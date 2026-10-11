@@ -74,4 +74,3 @@ const SBFX={async pre(prev,ns,own){const e=ns.ev[0];if(e&&e.t==='path'){Snd.play
   else if(e.t==='deal'){Snd.play('deal');banner('ROUND '+ns.round,'Controlla in segreto il tuo ruolo')}
   else if(e.t==='round'){Snd.play(e.finder!=null?'win':'lose')}
   else if(e.t==='win'){confetti()}}}};
-

@@ -52,4 +52,3 @@ const AZFX={async pre(){return{}},
   else if(e.t==='floor'){Snd.play('impact');flt('#azf'+e.p,String(e.pen),'red');await W(250)}
   else if(e.t==='tofloor'){Snd.play('impact')}
   else if(e.t==='win'){Snd.play('win');confetti()}}}};
-

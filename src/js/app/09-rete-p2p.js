@@ -1,7 +1,8 @@
+if(typeof window!=="undefined"&&!window.Peer&&window.peerjs)window.Peer=window.peerjs.Peer;
 /* ================= RETE PEER-TO-PEER (PeerJS + WebRTC) =================
    Il creatore della stanza è l'host: tiene lo stato e lo rilancia a tutti. Gli altri entrano col codice a 4 lettere.
    Espone la stessa interfaccia minima del db (doc/collection: get, set, delete, onSnapshot), così il resto dell'app non cambia. */
-const P2P={peer:null,conns:new Map(),store:new Map(),subs:[],role:null,code:'',pend:new Map(),oid:0,hostConn:null,lost:false,retry:null,state:'off'};
+const P2P={tr:'pj',peer:null,conns:new Map(),store:new Map(),subs:[],role:null,code:'',pend:new Map(),oid:0,hostConn:null,lost:false,retry:null,state:'off'};
 const p2pPeerOpts=()=>{const q=new URLSearchParams(location.search).get('peer');const o={debug:0};if(q){const[h,p]=q.split(':');o.host=h;o.port=+p;o.path='/';o.secure=false;o.config={iceServers:[]}}return o};
 const p2pParent=p=>p.split('/').slice(0,-1).join('/');
 const p2pClone=o=>o===undefined?undefined:JSON.parse(JSON.stringify(o));
@@ -21,10 +22,12 @@ function p2pWrite(path,data){
  if(!P2P.hostConn||!P2P.hostConn.open)return Promise.reject(Object.assign(new Error('Connessione con l’host persa'),{code:'offline'}));
  const oid=++P2P.oid;return new Promise((res,rej)=>{const t=setTimeout(()=>{P2P.pend.delete(oid);rej(Object.assign(new Error('timeout'),{code:'timeout'}))},9000);P2P.pend.set(oid,{res,rej,t});p2pSend(P2P.hostConn,{op:'set',path,data,oid})})}
 function p2pReset(){clearTimeout(P2P.retry);try{P2P.peer&&P2P.peer.destroy()}catch(e){}P2P.peer=null;P2P.conns.clear();P2P.hostConn=null;P2P.subs.length=0;P2P.store=new Map();P2P.pend.forEach(p=>{clearTimeout(p.t);p.rej(new Error('chiusa'))});P2P.pend.clear();P2P.lost=false;P2P.state='off'}
-const p2pOpen=(opts,id)=>new Promise((res,rej)=>{if(typeof Peer==='undefined')return rej(Object.assign(new Error('PeerJS non disponibile'),{code:'nolib'}));let done=false;const pe=id?new Peer(id,opts):new Peer(opts);
- const to=setTimeout(()=>{if(!done){done=true;try{pe.destroy()}catch(e){}rej(Object.assign(new Error('Server di incontro non raggiungibile'),{code:'broker'}))}},5500);
+const p2pOpen=(opts,id,tr)=>new Promise((res,rej)=>{tr=tr||P2P.tr;if(tr==='pj'&&typeof Peer==='undefined')return rej(Object.assign(new Error('PeerJS non disponibile'),{code:'nolib'}));let done=false;const pe=tr==='mq'?new MQPeer(id||null,{bi:MQ.bi}):id?new Peer(id,opts):new Peer(opts);
+ const to=setTimeout(()=>{if(!done){done=true;try{pe.destroy()}catch(e){}rej(Object.assign(new Error('Server di incontro non raggiungibile'),{code:'broker'}))}},tr==='mq'?9000:10000);
  pe.on('open',()=>{if(!done){done=true;clearTimeout(to);res(pe)}});pe.on('error',e=>{if(!done){done=true;clearTimeout(to);try{pe.destroy()}catch(x){}rej(Object.assign(new Error(e.type||'errore'),{code:e.type||'err'}))}})});
-async function p2pProbe(){if(typeof Peer==='undefined')return false;try{const pe=await p2pOpen(p2pPeerOpts());pe.destroy();return true}catch(e){return false}}
+async function p2pProbe(){const q=new URLSearchParams(location.search);
+ if(!q.get('peer')){const order=[MQ.bi,...MQ.list.map((_,i)=>i).filter(i=>i!==MQ.bi)];for(const i of order){try{const c=await mqConnect(MQ.list[i],'tvp'+mqRid(),()=>{},null,6000);c.close();MQ.bi=i;P2P.tr='mq';return true}catch(e){}}}
+ if(q.get('mq'))return false;if(typeof Peer==='undefined')return false;try{const pe=await p2pOpen(p2pPeerOpts(),null,'pj');pe.destroy();P2P.tr='pj';return true}catch(e){return false}}
 const p2pId=c=>'tvn1-'+c;
 async function p2pHost(code,restore){p2pReset();let pe;
  for(let i=0;i<5;i++){try{pe=await p2pOpen(p2pPeerOpts(),p2pId(code));break}catch(e){if(e.code==='unavailable-id'&&i<4){await new Promise(r=>setTimeout(r,2000));continue}throw e}}
@@ -38,17 +41,17 @@ async function p2pHost(code,restore){p2pReset();let pe;
  pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});
  if(restore)setTimeout(()=>{if(P2P.peer!==pe)return;const room=P2P.store.get('rooms/'+code);if(!room||room.phase!=='lobby')return;[...P2P.store.keys()].filter(k=>p2pParent(k)==='rooms/'+code+'/members').forEach(k=>{const dv=k.split('/').pop();if(dv!==ME.dev&&![...P2P.conns.values()].some(x=>(x.metadata||{}).dev===dv)){p2pApply(k,null);p2pBroadcast({op:'put',path:k,data:null})}})},30000);
  return p2pDB}
-async function p2pJoin(code){p2pReset();const pe=await p2pOpen(p2pPeerOpts());P2P.peer=pe;P2P.role='guest';P2P.code=code;
- await p2pLink(code);pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});return p2pDB}
-function p2pLink(code){return new Promise((res,rej)=>{const pe=P2P.peer;let first=true,t;const c=pe.connect(p2pId(code),{metadata:{dev:ME.dev},reliable:true});
+async function p2pJoin(code){const tr0=P2P.tr,bi0=MQ.bi,cands=[[tr0,bi0]];if(tr0==='mq'&&!new URLSearchParams(location.search).get('mq'))MQ.list.forEach((_,i)=>{if(i!==bi0)cands.push(['mq',i])});let last;
+ for(const[tr,bi]of cands){p2pReset();P2P.tr=tr;MQ.bi=bi;try{const pe=await p2pOpen(p2pPeerOpts());P2P.peer=pe;P2P.role='guest';P2P.code=code;await p2pLink(code,tr===tr0&&bi===bi0?9000:5000);last=null;break}catch(e){last=e}}
+ if(last){P2P.tr=tr0;MQ.bi=bi0;throw last}const pe=P2P.peer;pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});return p2pDB}
+function p2pLink(code,tmo=12000){return new Promise((res,rej)=>{const pe=P2P.peer;let first=true,t;const c=pe.connect(p2pId(code),{metadata:{dev:ME.dev},reliable:true});
  const fail=(m,cd)=>{if(first){first=false;clearTimeout(t);rej(Object.assign(new Error(m),{code:cd}))}};
- t=setTimeout(()=>fail('Stanza non trovata o host non raggiungibile','timeout'),12000);
+ t=setTimeout(()=>fail('Stanza non trovata o host non raggiungibile','timeout'),tmo);
  const onErr=e=>{if(e&&e.type==='peer-unavailable')fail('Stanza '+code+' non trovata','peer-unavailable')};pe.on('error',onErr);
  c.on('data',m=>{if(!m)return;
   if(m.op==='snap'){P2P.store=new Map(m.e);P2P.hostConn=c;P2P.state='on';if(P2P.lost){P2P.lost=false;ui.err='';}p2pNotify();if(first){first=false;clearTimeout(t);res()}}
-  else if(m.op==='put'){p2pApply(m.path,m.data);if(m.oid&&P2P.pend.has(m.oid)){const p=P2P.pend.get(m.oid);P2P.pend.delete(m.oid);clearTimeout(p.t);p.res()}}});
+  else if(m.op==='put'){p2pApply(m.path,m.data);if(m.oid&&m.by===ME.dev&&P2P.pend.has(m.oid)){const p=P2P.pend.get(m.oid);P2P.pend.delete(m.oid);clearTimeout(p.t);p.res()}}});
  const lost=()=>{if(P2P.hostConn===c)P2P.hostConn=null;if(first){fail('Connessione non riuscita','close');return}if(P2P.role!=='guest'||P2P.code!==code)return;
   P2P.lost=true;ui.err='Connessione con l’host persa… riprovo';render();P2P.pend.forEach(p=>{clearTimeout(p.t);p.rej(Object.assign(new Error('Connessione persa'),{code:'offline'}))});P2P.pend.clear();
   clearTimeout(P2P.retry);P2P.retry=setTimeout(function again(){if(P2P.role!=='guest'||P2P.code!==code||!P2P.lost)return;p2pLink(code).then(()=>{ui.err='';const mp='rooms/'+code+'/members/'+ME.dev;if(!P2P.store.has(mp))p2pWrite(mp,p2pClone(R.mine)).catch(()=>{});render()}).catch(()=>{P2P.retry=setTimeout(again,3000)})},2500)};
  c.on('close',lost);c.on('error',lost)})}
-
