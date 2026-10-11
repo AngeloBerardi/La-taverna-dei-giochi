@@ -46,6 +46,7 @@
  "src/js/app/10-carte-piacentine.js",
  "src/js/app/11-carte-napoletane.js",
  "src/js/app/12-sala-hall.js",
+ "src/js/app/12b-lobby-diorama.js",
  "src/js/app/13-regicide.js",
  "src/js/app/14-the-gang.js",
  "src/js/app/15-saboteur.js",
