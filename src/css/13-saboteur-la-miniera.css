@@ -1,0 +1,24 @@
+/* ---- Saboteur: la miniera ---- */
+.mine{overflow:auto;border-radius:18px;border:5px solid #4a3018;background:radial-gradient(ellipse at 30% 40%,rgba(255,190,90,.18),transparent 55%),repeating-linear-gradient(90deg,#1a120c 0 2px,transparent 2px 40px),#140d08;box-shadow:inset 0 0 40px rgba(0,0,0,.8),0 8px 20px rgba(0,0,0,.5);padding:6px;max-height:52vh}
+.grid{display:grid;gap:2px;width:max-content;margin:0 auto}
+.cell{width:var(--tw);aspect-ratio:5/7;border-radius:4px;position:relative}.cell.full{filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+.cell.hot{background:rgba(111,227,154,.15);outline:2px dashed rgba(111,227,154,.8);cursor:pointer;animation:ready 1.4s ease-in-out infinite}
+.cell .ghost{opacity:.45}.cell.newt{animation:bump .6s}
+.tile{width:100%;height:100%;display:block}.tile .tun line{stroke:#e2c08f;stroke-width:13;stroke-linecap:round}.tile .tun circle{fill:#e2c08f}.tile .tun .over line{stroke:#f2d6a8;stroke-width:11;filter:drop-shadow(0 0 1.5px #000)}
+.scard{--cw:clamp(52px,15vw,70px);padding:0;overflow:hidden;background:#22160e;border-color:#6b4a28}
+.scard .tile{border-radius:inherit}
+.scard.act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:linear-gradient(160deg,#f6e7c8,#d8b77e);color:#2a1a0c}
+.scard.act.break,.scard.act.trap,.scard.act.theft{background:linear-gradient(160deg,#ffd6cc,#d97a64)}.scard.act.fix,.scard.act.free,.scard.act.handsoff{background:linear-gradient(160deg,#d8f5dd,#7cc58a)}
+.scard.act.map,.scard.act.inspect{background:linear-gradient(160deg,#f3ecd0,#c9b27a)}.scard.act.rock{background:linear-gradient(160deg,#ddd,#888)}.scard.act.hats,.scard.act.swap{background:linear-gradient(160deg,#e8dcff,#a48ad8)}
+.sic{font-size:calc(var(--cw)*.36)}.stl{font-size:calc(var(--cw)*.2);min-height:1em}.sname{font:800 calc(var(--cw)*.13)/1 var(--f-d);text-align:center;padding:0 2px}
+.splayers{display:flex;gap:5px;flex-wrap:wrap}.sp{flex:1 1 140px;min-width:0;display:flex;align-items:center;gap:5px;border:2px solid var(--line);border-radius:30px;padding:3px 8px 3px 3px;background:var(--panel)}
+.sp .av{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,#b8863a 60%,#5a3a10);color:#2a1d03;display:grid;place-items:center;font:900 14px var(--f-d);border:2px solid #000;flex:none}
+.sp .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.sp.act{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}.sp.tgt{cursor:pointer;border-color:#6fe39a;box-shadow:0 0 0 2px #6fe39a,0 0 14px rgba(111,227,154,.6)}
+.brk{font-size:14px;filter:drop-shadow(0 0 3px #f00)}
+.srole{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:7px 12px;border-radius:12px;border:2px solid #000;background:linear-gradient(90deg,#3a2a14,#1f160c);color:#f3e2bf}
+.srole span{font:700 11px var(--f-d);letter-spacing:.15em;text-transform:uppercase;opacity:.8}.srole b{font:900 18px var(--f-d)}.srole em{flex-basis:100%;font:italic 700 13px var(--f-d);color:#ffd34d}
+.srole.sab{background:linear-gradient(90deg,#5a1414,#2a0a0a)}.srole.blue{background:linear-gradient(90deg,#14305a,#0a1a2a)}.srole.green{background:linear-gradient(90deg,#14502a,#0a2a14)}
+.rtag{font:800 12px var(--f-d);padding:2px 6px;border-radius:6px;background:#6b5a3a;color:#fff}.rtag.sab{background:#a02a2a}.rtag.blue{background:#2c7fd6}.rtag.green{background:#2fa65b}.rtag.boss{background:#8a5a00}.rtag.prof{background:#7a3c9a}.rtag.geo{background:#3a7a8a}
+.sumt tr.w td{color:var(--good)}.nuggets{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.nug{width:64px;height:64px;border-radius:50%;border:3px solid #6a4a00;background:radial-gradient(circle at 35% 30%,#fff1a0,#e2a828 60%,#8a5a00);color:#4a3000;font:900 13px var(--f-d);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(0,0,0,.4)}.nug b{font-size:20px}.nug[disabled]{cursor:default;filter:saturate(.6)}
+button.chip{cursor:pointer}

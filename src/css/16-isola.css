@@ -1,0 +1,14 @@
+/* ---- ISOLA ---- */
+.isl{background:linear-gradient(180deg,#7fd6ff,#3aa7d8 55%,#1b6fa8);border:2px solid #0f4a78;border-radius:14px;padding:8px;margin:6px 0;box-shadow:inset 0 0 0 3px #ffffff40}
+.igrid{--cz:calc((min(100vw,520px) - 56px)/6);display:grid;grid-template-columns:repeat(6,var(--cz));gap:3px;justify-content:center}
+.icell{width:var(--cz);height:calc(var(--cz)*1.25);border-radius:7px;background:#ffffff1c;position:relative;display:block}
+.icell.in{background:#f2dc9a55;box-shadow:inset 0 0 0 1px #ffffff55}
+.icell.hot{outline:2px dashed #ffd34d;animation:azp 1s infinite;cursor:pointer}.icell.pk .ic{filter:drop-shadow(0 0 5px #ffd34d)}.icell.sel .ic{transform:translateY(-4px) scale(1.06);filter:drop-shadow(0 0 7px #fff)}
+.ic{position:absolute;inset:0;border-radius:7px;background:linear-gradient(160deg,var(--a),var(--b));border:2px solid #2a1a10;overflow:hidden;box-shadow:0 2px 0 #0006;transition:transform .15s}
+.ic .iart{position:absolute;left:0;right:0;bottom:0;width:100%;height:82%}
+.ic .iv{position:absolute;top:1px;left:3px;font:900 calc(var(--cz)*.3)/1 Georgia,serif;color:#fff;text-shadow:0 0 3px #000,0 1px 0 #000}
+.ic .ist{position:absolute;right:2px;bottom:1px;font:800 11px/1 sans-serif;color:#fff;background:#000a;border-radius:6px;padding:1px 4px;font-style:normal}
+.ibw{display:flex;justify-content:center;margin:6px 0}
+.ibig{position:relative;width:min(100%,300px);border-radius:14px;background:linear-gradient(160deg,var(--a),var(--b));border:3px solid #2a1a10;padding:8px;color:#fff;text-shadow:0 1px 2px #000;box-shadow:0 4px 12px #0007}
+.ibig .iart{display:block;width:70%;margin:0 auto;aspect-ratio:1}.ibig .iv{position:absolute;top:6px;right:12px;font:900 34px/1 Georgia,serif}.ibig .inm{font:900 20px/1.1 Georgia,serif;text-align:center}.ibig .ie{text-align:center;font-weight:800;font-size:13px;margin:2px 0 4px;opacity:.95}.ibig .ip{background:#0005;border-radius:8px;padding:6px 8px;font-size:13px;text-align:center;text-shadow:none;color:#fff}
+.iall{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;max-height:60vh;overflow:auto}.iall .ibig{width:auto}.iall .ibig .ip{font-size:11px}

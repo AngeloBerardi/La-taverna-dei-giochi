@@ -1,0 +1,6 @@
+/* ---- menu ---- */
+.title{text-align:center;padding-top:14px}.title h1{font:900 clamp(40px,13vw,68px)/1 var(--f-t);margin:0;background:linear-gradient(180deg,var(--gold1),var(--gold2) 50%,var(--gold3));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #000) drop-shadow(0 0 24px rgba(233,196,106,.35))}
+.title p{margin:6px 0 0;color:var(--muted);font:italic 700 15px var(--f-d)}
+.trio{display:flex;justify-content:center;margin:14px 0 6px;height:150px;align-items:center}.trio .card{--cw:84px}.trio>div:nth-child(1){transform:rotate(-14deg) translateX(16px)}.trio>div:nth-child(3){transform:rotate(14deg) translateX(-16px)}.trio>div:nth-child(2){z-index:2}.trio>div:nth-child(2) .card{--cw:98px}
+.big{width:100%;font-size:19px;padding:15px}
+.code{font:900 44px var(--f-d);letter-spacing:.28em;color:var(--accent);text-align:center}

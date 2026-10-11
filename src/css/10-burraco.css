@@ -1,0 +1,14 @@
+/* ---- burraco ---- */
+.team{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:6px 8px}.team.mine{border-color:var(--accent)}
+.th{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px;margin-bottom:4px}.th b{flex:1;min-width:0}
+.melds{display:flex;gap:10px;flex-wrap:wrap;min-height:44px;align-items:center;padding-top:6px}
+.meld{display:flex;position:relative;padding:4px 6px 4px 4px;border-radius:10px;background:rgba(0,0,0,.22)}
+.meld .card{--cw:34px;border-width:1.5px}.meld .card+.card{margin-left:-19px}
+.meld.can{cursor:pointer;box-shadow:0 0 0 2px rgba(111,227,154,.8);animation:ready 1.6s ease-in-out infinite}
+.meld.bp{box-shadow:0 0 0 2px #ffd34d,0 0 14px rgba(255,211,77,.6)}.meld.bs{box-shadow:0 0 0 2px #c0c6d0}
+.btag{position:absolute;top:-10px;right:2px;background:#ffd34d;color:#2a1d03;border:1.5px solid #000;border-radius:6px;font:900 9px var(--f-d);padding:1px 5px;text-transform:uppercase;white-space:nowrap}.meld.bs .btag{background:#c0c6d0}
+.felt.bur{min-height:100px;gap:18px}
+.dfan{display:flex;height:59px;align-items:center;justify-content:center;min-width:44px}.dfan .card{--cw:40px}.dfan .card+.card{margin-left:-26px}
+#bdisc[data-a]{cursor:pointer}#bdisc[data-a] .dfan{filter:drop-shadow(0 0 8px var(--accent))}
+.hand.many{flex-wrap:wrap;row-gap:4px;padding-top:24px}.hand.many .card{--cw:clamp(48px,13.5vw,62px)}
+.hand.many .slot{margin-left:-17px}.hand.many .slot:first-child{margin-left:0}.hand.many .slot.sel{transform:translateY(-16px)}

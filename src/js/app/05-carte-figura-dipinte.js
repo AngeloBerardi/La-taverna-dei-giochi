@@ -177,3 +177,14 @@ const TILT={JH:-5,JD:4,JC:-2,JS:-3,QH:3,QD:-4,QC:5,QS:-2,KH:2,KD:-3,KC:1,KS:3,X:
 function svg(id){if(!cache[id]){const k=id==='X'?'X':id.slice(-2);cache[id]=F[k]?`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g transform="rotate(${TILT[k]||0} 50 80)">${F[k]()}</g></g></svg>`:''}return cache[id]}
 let dd=0;function ensureDefs(){if(dd)return;dd=1;if(typeof document!=='undefined'&&!document.getElementById('fzdefs')){const d=document.createElement('div');d.id='fzdefs';d.innerHTML=DEFS;document.body.appendChild(d)}}
 return{svg,ensureDefs,F}})();
+
+function cardH(id,o={}){FACE.ensureDefs();
+ if(o.back)return`<div class="card back ${o.cls||''}"></div>`;
+ const{r,s}=P(id),a=o.attrs||'',face='JQK'.includes(r)&&!o.boss&&!o.nofoil,cls=`card ${s||'X'} ${'JQKX'.includes(r)?'fz':''} ${o.cls||''} ${face||(r==='X'&&!o.nofoil)?'foil':''}`,st=o.style?`style="${o.style}"`:'',dv=o.dv?`<div class="dv">−${o.dv}</div>`:'';let inner;
+ if(r==='X')return`<div class="${cls}" ${a} ${st}><div class="ix"><span>J</span></div>${FACE.svg('X')}<div class="val">0</div>${dv}</div>`;
+ const ix=`<div class="ix"><span>${r}</span><i>${SYM[s]}</i></div><div class="ix r"><span>${r}</span><i>${SYM[s]}</i></div>`;
+ if(PIPS[r])inner=`<div class="pips">${PIPS[r].map(([x,y])=>`<b class="${y>.5?'f':''}" style="left:${x*50}%;top:${y*100}%">${SYM[s]}</b>`).join('')}</div>`;
+ else if(r==='A')inner=`<div class="art">${ART.A}<em>${SYM[s]}</em></div><div class="val">1</div>`;
+ else inner=`${FACE.svg(r+s)}${o.boss?'':`<div class="val">${RG.cv(id)}</div>`}`;
+ return`<div class="${cls}" ${a} ${st}>${ix}${inner}${dv}</div>`}
+const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return h};

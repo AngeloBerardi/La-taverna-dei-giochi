@@ -1,0 +1,9 @@
+/* ---- mano ---- */
+.handbox{margin-top:auto;position:sticky;bottom:0;z-index:5;padding:0 0 env(safe-area-inset-bottom,0px);background:linear-gradient(180deg,transparent,var(--bg) 45%)}
+.hand{--ov:0px;display:flex;justify-content:center;padding:32px 4px 20px;min-height:140px}
+.hand .card{--cw:clamp(58px,17.5vw,90px);cursor:pointer}
+.slot{position:relative;transform:translateY(var(--ty,0)) rotate(var(--rot,0deg));transition:transform .22s cubic-bezier(.3,1.7,.5,1);transform-origin:50% 120%}.slot+.slot{margin-left:calc(var(--ov)*-1)}
+.slot.sel{transform:translateY(-36px) rotate(0) scale(1.1);z-index:6}.slot.sel .card{box-shadow:inset 0 0 0 3px var(--cardbg),0 0 0 3px var(--accent),0 0 24px var(--accent),0 10px 14px rgba(0,0,0,.45)}
+.slot:hover{z-index:5}.slot:hover:not(.sel){transform:translateY(calc(var(--ty,0px) - 12px)) rotate(0)}
+.hand .card.off{cursor:default;filter:saturate(.85)}
+.cover{text-align:center;padding:26px 10px}.cover .nm{font:900 32px var(--f-t);color:var(--accent);margin:6px 0 14px}

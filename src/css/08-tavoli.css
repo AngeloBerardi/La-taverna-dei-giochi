@@ -1,0 +1,15 @@
+/* ---- tavoli ---- */
+.tinfo{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center}
+.isv{width:16px;height:16px;vertical-align:-3px}.isv.iC{fill:#ff8a80}.isv.iD{fill:#ffd54f}.isv.iS{fill:#90caf9}.isv.iB{fill:#a5d6a7}
+.felt{position:relative;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:140px;padding:12px 10px;border-radius:22px;background:radial-gradient(ellipse at 50% 40%,#2f7a52,#174a33 70%,#0f3324);border:6px solid #5a3a1c;box-shadow:inset 0 0 0 2px #2a1a0c,inset 0 6px 24px rgba(0,0,0,.5),0 8px 20px rgba(0,0,0,.45)}
+[data-gt=notte] .felt{background:radial-gradient(ellipse at 50% 40%,#1c2a6a,#0b1236 75%);border-color:#2a3cc0}[data-gt=castello] .felt{background:radial-gradient(ellipse at 50% 40%,#5a1a28,#2a0b14 75%);border-color:#4a3410}
+.felt .pile{color:#e8dcc0}.felt .muted{color:#cfe3d6}
+.deckbox{position:relative;display:flex;align-items:center}.deckbox[data-a]{cursor:pointer}.deckbox[data-a] .stk{filter:drop-shadow(0 0 8px var(--accent))}
+.trumpc{transform:rotate(90deg);margin-left:-6px}.trumpc .card{--cw:46px}
+.trick{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:104px;align-items:center;flex:1}
+.tc{display:flex;flex-direction:column;align-items:center;gap:3px;font:800 12px var(--f-d);color:#f3e9cf}.tc .card{--cw:62px}.tc.win .card{box-shadow:0 0 0 3px var(--accent),0 0 22px var(--accent)}
+.table{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;flex:1;min-height:90px;align-items:center}
+.tslot{transition:transform .15s}.tslot .card{--cw:54px;cursor:pointer}
+.tslot.can .card{box-shadow:0 0 0 2px rgba(111,227,154,.85),0 0 14px rgba(111,227,154,.6)}
+.tslot.tsel{transform:translateY(-10px)}.tslot.tsel .card{box-shadow:0 0 0 3px var(--accent),0 0 20px var(--accent)}
+.tslot.taking .card{animation:taking .45s ease-in-out}@keyframes taking{50%{transform:scale(1.15) rotate(-4deg);filter:brightness(1.4)}}

@@ -1,0 +1,5 @@
+{
+  "name": "la-taverna-dei-giochi",
+  "private": true,
+  "scripts": { "build": "node scripts/build.js", "check": "node scripts/check.js" }
+}

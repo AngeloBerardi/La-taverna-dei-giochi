@@ -1,0 +1,9 @@
+/* ---- piacentine ---- */
+.card.it.pc{background:linear-gradient(170deg,#fbf3da,#eddcae);border:2px solid #7a2a1e;box-shadow:inset 0 0 0 2px #f6ecd0,inset 0 0 0 3px #b8892f88,0 3px 8px #0006}
+.card.it.pc svg{fill:#000}.card.it.pc .ix span{font-family:Georgia,serif;font-weight:900}
+.card.it.pc.iC .ix span{color:#b3261e}.card.it.pc.iD .ix span{color:#a06a00}.card.it.pc.iS .ix span{color:#1f4f9a}.card.it.pc.iB .ix span{color:#1f6a2c}
+.card.it.pc .pips b svg{filter:drop-shadow(0 1px 0 #0003)}
+.card.it.pc .big1 svg{width:62%}.card.it.pc .big1 .ring{position:absolute;inset:13% 11%;border:2px double #b8892f;border-radius:50%;opacity:.8}
+.card.it.pc .pcart{inset:13% 12%;border:2px solid #7a2a1e;background:linear-gradient(135deg,#f9efcf 50%,#f0dca6 50%);border-radius:4px;display:grid;grid-template-rows:1fr 1fr;padding:0;overflow:hidden;position:absolute}
+.card.it.pc .pa{display:grid;place-items:center;min-height:0;padding:2px}.card.it.pc .pa svg{width:100%;height:100%}.card.it.pc .pa.rv{transform:rotate(180deg);border-top:0}
+.card.it.pc .pcart::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#7a2a1e;transform:translateY(-1px)}

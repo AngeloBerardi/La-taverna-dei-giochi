@@ -1,7 +1,3 @@
 [build]
-  publish = "."
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Content-Type-Options = "nosniff"
+  command = "node scripts/check.js"
+  publish = "dist"

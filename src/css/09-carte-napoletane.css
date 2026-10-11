@@ -1,0 +1,7 @@
+/* ---- carte napoletane ---- */
+.card.iC{--su:#c62828}.card.iD{--su:#c9930a}.card.iS{--su:#1d5bbf}.card.iB{--su:#2e7d32}
+[data-gt=notte] .card.iC{--su:#ff6b6b}[data-gt=notte] .card.iD{--su:#ffd54f}[data-gt=notte] .card.iS{--su:#7fb5ff}[data-gt=notte] .card.iB{--su:#7be08e}
+.card.it svg{fill:var(--su)}.card.it .ix i svg{width:.8em;height:.8em;display:block}
+.card.it .pips{inset:17% 27%}.card.it .pips b svg{width:calc(var(--cw)*.22);height:calc(var(--cw)*.22);display:block}
+.card.it .big1{position:absolute;inset:0;display:grid;place-items:center}.card.it .big1 svg{width:56%;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+.card.it .art em{display:block;line-height:0}.card.it .art em svg{width:calc(var(--cw)*.18);height:calc(var(--cw)*.18)}

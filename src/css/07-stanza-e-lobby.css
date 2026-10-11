@@ -1,0 +1,14 @@
+/* ---- stanza e lobby ---- */
+.roomhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.roomhead .code{font-size:38px;text-align:left}
+.mems{display:flex;flex-direction:column;gap:6px}.mem{display:flex;flex-direction:column;gap:4px}
+.pl.guest{margin-left:22px;border-style:dashed}.pl small{font-weight:600}
+.x{border:0;background:rgba(0,0,0,.35);color:var(--fg);width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none}
+.games{display:grid;gap:10px}
+.gcard{background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.gcard.top{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 0 20px rgba(233,196,106,.3)}.gcard.no{opacity:.5}
+.gh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.gt{font:900 22px var(--f-t);color:var(--accent)}.gm{font:800 13px var(--f-d);color:var(--fg)}
+.gd{margin:0;color:var(--muted);font-weight:600;font-size:14px}
+.gv{min-width:52px;text-align:center;background:radial-gradient(circle at 35% 30%,var(--gold1),var(--gold2) 60%,var(--gold3));color:#2a1d03;border:2px solid #000;border-radius:12px;font:900 22px/1 var(--f-d);padding:5px}.gv small{display:block;font-size:9px;letter-spacing:.1em}
+.votes{display:flex;gap:6px;flex-wrap:wrap}
+.vote{border:2px solid var(--line);background:rgba(0,0,0,.25);border-radius:20px;padding:7px 12px;font:800 14px var(--f-b);cursor:pointer;color:var(--fg);min-height:38px}.vote.on{background:var(--accent);color:var(--accent-fg);border-color:#000}
+select.sel.sm{min-height:40px;padding:6px 8px}
