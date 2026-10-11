@@ -1,5 +1,9 @@
 {
   "name": "la-taverna-dei-giochi",
   "private": true,
-  "scripts": { "build": "node scripts/build.js", "check": "node scripts/check.js" }
+  "scripts": {
+    "build": "node scripts/build.js",
+    "check": "node scripts/check.js",
+    "test": "node tests/test_mind.js && node tests/test_harvest.js && node tests/test_scoundrel.js"
+  }
 }
