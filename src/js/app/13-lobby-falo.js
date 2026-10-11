@@ -16,14 +16,27 @@ function chatH(){if(!R.on)return'';const myKeys=[{k:'m',name:R.mine.name||ME.nam
  <div class="row"><input type="text" id="cmsg" maxlength="120" placeholder="Scrivi un messaggio" value="${esc(ui.cm||'')}" autocomplete="off" style="flex:1"><button class="b sm disc" data-a="chatsend">Invia</button></div>
  ${myKeys.length>1?`<div class="row">${myKeys.map(x=>`<button class="vote ${x.k===ek?'on':''}" data-a="ek" data-v="${x.k}">${esc(x.name)}</button>`).join('')}</div>`:''}
 </div>`}
-function tvScene(S){const N=S.length,gap=Math.min(2*Math.PI/Math.max(N,1),1.0);
- const pl=S.map((s,i)=>{const th=Math.PI/2+(i-(N-1)/2)*gap,sn=Math.sin(th),x=50+37*Math.cos(th),y=218+62*sn,sc=(.74+.3*(sn+1)/2).toFixed(2),mine=s.dev===ME.dev&&s.k==='m';
-  return`<div class="tvp" style="left:${x.toFixed(1)}%;top:${y.toFixed(0)}px;z-index:${Math.round(y)};--s:${sc}">${tvBub(s)}<div class="tvtag${mine?' me':''}${s.k!=='m'?' g':''}">${esc(s.name)}</div>${tvSprite(TVP[i%TVP.length])}</div>`}).join('');
- const stars=[[8,40],[22,70],[41,28],[63,56],[78,34],[92,76],[30,102],[86,110]].map((p,i)=>`<i class="tvst" style="left:${p[0]}%;top:${p[1]}px;animation-delay:-${(i*.37).toFixed(2)}s"></i>`).join('');
- return`<div class="tvscene" role="img" aria-label="Il falò con ${N} giocator${N===1?'e':'i'} seduti intorno"><div class="tvsky"></div>${stars}<div class="tvmoon"></div><div class="tvmt1"></div><div class="tvmt2"></div><div class="tvgnd"></div><div class="tvglow"></div>
+let tvSeats=[],isoC=null,isoEl=null,isoSaveT=0;const isoSeen={};
+const isoSave=()=>{clearTimeout(isoSaveT);isoSaveT=setTimeout(()=>{saveMine()},400)};
+function tvScene(S){tvSeats=S;const N=S.length;
+ return`<div class="tvscene2" role="group" aria-label="Il falò con ${N} giocator${N===1?'e':'i'}: tocca per muoverti">
  <div class="tvplq">${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
- <svg class="tvfire tvsp" viewBox="0 0 16 16" width="96" height="96" shape-rendering="crispEdges" aria-hidden="true"><rect x="1" y="13" width="14" height="2" fill="#5a3414"/><rect x="3" y="12" width="10" height="1" fill="#7a4a24"/><rect x="0" y="14" width="3" height="1" fill="#3d2410"/><rect x="13" y="14" width="3" height="1" fill="#3d2410"/><g><rect x="5" y="5" width="6" height="8" fill="#e8742c"/><rect x="7" y="2" width="2" height="3" fill="#e8742c"/><rect x="6" y="4" width="1" height="2" fill="#e8742c"/><rect x="9" y="4" width="1" height="2" fill="#e8742c"/><rect x="6" y="8" width="4" height="5" fill="#ffd36a"/><rect x="7" y="10" width="2" height="3" fill="#fff3c4"/><rect x="3" y="9" width="2" height="4" fill="#d8402f"/><rect x="11" y="9" width="2" height="4" fill="#d8402f"/></g></svg>
- <i class="tvspk" style="left:50%"></i><i class="tvspk" style="left:calc(50% + 10px);animation-delay:-.8s"></i><i class="tvspk" style="left:calc(50% - 10px);animation-delay:-1.6s"></i>${pl}${emoBar()}</div>`}
+ <div id="isohost"></div>${emoBar()}</div>`}
+/* collega il diorama persistente (non si ricrea a ogni render) e sincronizza posizioni, emote e chat */
+function tvIso(){const h=document.getElementById('isohost');if(!h)return;
+ if(!isoEl){isoEl=document.createElement('div');isoEl.className='isoel';
+  isoC=ISO.create(isoEl,{players:[],bar:false,
+   onShelf(){const e=$('.tvshelf');if(e)e.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})},
+   onSelect(id){ui.ek=id.split('|')[1]},
+   onMove(id,x,y){if(id===ME.dev+'|m'){R.mine.pos={x:+x.toFixed(2),y:+y.toFixed(2),t:Date.now()};isoSave()}},
+   onEmote(id,e){const[d,k]=id.split('|');if(d!==ME.dev)return;const t=Date.now();isoSeen['e'+id]=t;(R.mine.emo=R.mine.emo||{})[k]={e,t};isoSave()}})}
+ h.appendChild(isoEl);isoC.resize();
+ const S=tvSeats,now=Date.now();
+ isoC.setPlayers(S.map(s=>{const m=members().find(x=>x.id===s.dev);return{id:s.dev+'|'+s.k,name:s.name,own:s.dev===ME.dev,guest:s.k!=='m',sync:!!(m&&m.pos&&s.k==='m'&&s.dev!==ME.dev)}}));
+ S.forEach(s=>{const id=s.dev+'|'+s.k,m=members().find(x=>x.id===s.dev);if(!m)return;
+  const em=m.emo&&m.emo[s.k];if(em&&isoSeen['e'+id]!==em.t){isoSeen['e'+id]=em.t;if(now-em.t<5000&&now-em.t>-3000)isoC.emote(id,em.e,true)}
+  if(s.k==='m'&&s.dev!==ME.dev&&m.pos&&isoSeen['p'+id]!==m.pos.t){isoSeen['p'+id]=m.pos.t;isoC.setRemote(id,m.pos.x,m.pos.y)}});
+ for(let i=R.chat.length-1;i>=0&&i>R.chat.length-8;i--){const x=R.chat[i];if(now-x.t>7000)break;isoC.say(x.dev+'|'+(x.k||'m'),x.text,x.t)}}
 function tvShelf(list,top,N,myKeys,busy){
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
  const pick=list.find(x=>x.g.id===ui.pick)||top||list[0];
@@ -81,7 +94,7 @@ function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
  $('#app').innerHTML=ui.screen==='name'?nameH():ui.screen==='room'?roomH():gameH();
  if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
  Snd.track(ui.screen==='game'&&G&&!G.over?(G.g==='regicide'?(G.en?P(G.en.c).r:'menu'):G.g==='gang'?'gang':G.g==='saboteur'?'mine':G.g==='azul'?'azul':G.g==='island'?'island':G.g==='machiavelli'?'mach':'it'):'menu')}
-function afterRender(){const h=$('#hand');
+function afterRender(){if(ui.screen==='room')tvIso();const h=$('#hand');
  if(h&&!h.classList.contains('many')){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;if(n<2)h.style.setProperty('--ov','0px');else{const Wd=h.clientWidth-8,cw=sl[0].firstElementChild.getBoundingClientRect().width||64,step=Math.min(cw+8,(Wd-cw)/(n-1));h.style.setProperty('--ov',(cw-step)+'px')}}
  if(h){const deals=[...h.querySelectorAll('.card.deal')];if(deals.length&&!RM){const t=ctr(G&&G.g==='regicide'?'#ptav':'#deck');deals.forEach((c,i)=>{const r=c.getBoundingClientRect();if(c.animate)c.animate([{transform:`translate(${t.x-(r.left+r.width/2)}px,${t.y-(r.top+r.height/2)}px) scale(.45) rotate(-25deg)`,opacity:.3},{transform:'none',opacity:1}],{duration:520*Math.max(SP,.1),delay:i*90*SP,easing:'cubic-bezier(.2,1.2,.4,1)',fill:'backwards'});if(i<6)setTimeout(()=>Snd.play('deal'),i*90*SP)})}}
  if(G&&G.g==='regicide'&&G.en&&ui.screen==='game'){const en=ui.viewEn||G.en;if(seen.e&&seen.e!==en.c&&!RM){const b=$('#boss');if(b&&b.animate)b.animate([{transform:'translateY(-60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:600*SP,easing:'cubic-bezier(.2,1.3,.4,1)'})}seen.e=en.c}}
