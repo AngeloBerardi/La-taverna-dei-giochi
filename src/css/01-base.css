@@ -9,7 +9,7 @@
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:700 16px/1.3 var(--f-b);overflow-x:hidden;touch-action:manipulation}
 body::before{content:"";position:fixed;left:-50vmax;top:-50vmax;width:200vmax;height:200vmax;z-index:-2;pointer-events:none;background:radial-gradient(circle at 36% 36%,var(--s1),transparent 36%),radial-gradient(circle at 64% 62%,var(--s2),transparent 38%),radial-gradient(circle at 50% 50%,var(--s3),transparent 62%);animation:spin 80s linear infinite}
-body::after{content:"";position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(0,0,0,.55)),repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0 1px,transparent 1px 3px)}
+body::after{content:"";position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,rgba(0,0,0,.55))}
 [data-gt=carta] body::after{opacity:.3}
 @keyframes spin{to{transform:rotate(360deg)}}
 .embers{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}.embers i{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px 2px var(--accent);opacity:0;animation:ember linear infinite}
