@@ -16,7 +16,7 @@ function chatH(){if(!R.on)return'';const myKeys=[{k:'m',name:R.mine.name||ME.nam
  <div class="row"><input type="text" id="cmsg" maxlength="120" placeholder="Scrivi un messaggio" value="${esc(ui.cm||'')}" autocomplete="off" style="flex:1"><button class="b sm disc" data-a="chatsend">Invia</button></div>
  ${myKeys.length>1?`<div class="row">${myKeys.map(x=>`<button class="vote ${x.k===ek?'on':''}" data-a="ek" data-v="${x.k}">${esc(x.name)}</button>`).join('')}</div>`:''}
 </div>`}
-let tvSeats=[],isoC=null,isoEl=null,isoSaveT=0;const isoSeen={};
+let tvHi=0,tvSeats=[],isoC=null,isoEl=null,isoSaveT=0;const isoSeen={};
 const isoSave=()=>{clearTimeout(isoSaveT);isoSaveT=setTimeout(()=>{saveMine()},400)};
 function tvScene(S){tvSeats=S;const N=S.length;
  return`<div class="tvscene2" role="group" aria-label="Il falò con ${N} giocator${N===1?'e':'i'}: tocca per muoverti">
@@ -28,15 +28,16 @@ function tvIso(){const h=document.getElementById('isohost');if(!h)return;
   isoC=ISO.create(isoEl,{players:[],bar:false,
    onShelf(){const e=$('.tvshelf');if(e)e.scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})},
    onSelect(id){ui.ek=id.split('|')[1]},
-   onMove(id,x,y){if(id===ME.dev+'|m'){R.mine.pos={x:+x.toFixed(2),y:+y.toFixed(2),t:Date.now()};isoSave()}},
-   onEmote(id,e){const[d,k]=id.split('|');if(d!==ME.dev)return;const t=Date.now();isoSeen['e'+id]=t;(R.mine.emo=R.mine.emo||{})[k]={e,t};isoSave()}})}
+   onMove(id,x,y){if(ui.screen==='room'&&id===ME.dev+'|m'){R.mine.pos={x:+x.toFixed(2),y:+y.toFixed(2),t:Date.now()};isoSave()}},
+   onEmote(id,e){const[d,k]=id.split('|');if(ui.screen!=='room'||d!==ME.dev)return;const t=Date.now();isoSeen['e'+id]=t;(R.mine.emo=R.mine.emo||{})[k]={e,t};isoSave()}})}
  h.appendChild(isoEl);isoC.resize();
  const S=tvSeats,now=Date.now();
  isoC.setPlayers(S.map(s=>{const m=members().find(x=>x.id===s.dev);return{id:s.dev+'|'+s.k,name:s.name,own:s.dev===ME.dev,guest:s.k!=='m',sync:!!(m&&m.pos&&s.k==='m'&&s.dev!==ME.dev)}}));
  S.forEach(s=>{const id=s.dev+'|'+s.k,m=members().find(x=>x.id===s.dev);if(!m)return;
   const em=m.emo&&m.emo[s.k];if(em&&isoSeen['e'+id]!==em.t){isoSeen['e'+id]=em.t;if(now-em.t<5000&&now-em.t>-3000)isoC.emote(id,em.e,true)}
   if(s.k==='m'&&s.dev!==ME.dev&&m.pos&&isoSeen['p'+id]!==m.pos.t){isoSeen['p'+id]=m.pos.t;isoC.setRemote(id,m.pos.x,m.pos.y)}});
- for(let i=R.chat.length-1;i>=0&&i>R.chat.length-8;i--){const x=R.chat[i];if(now-x.t>7000)break;isoC.say(x.dev+'|'+(x.k||'m'),x.text,x.t)}}
+ for(let i=R.chat.length-1;i>=0&&i>R.chat.length-8;i--){const x=R.chat[i];if(now-x.t>7000)break;isoC.say(x.dev+'|'+(x.k||'m'),x.text,x.t)}
+ if(ui.screen==='name'&&!tvHi){tvHi=1;setTimeout(()=>isoC&&isoC.emote(ME.dev+'|m','👋',true),600)}}
 function tvShelf(list,top,N,myKeys,busy){
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
  const pick=list.find(x=>x.g.id===ui.pick)||top||list[0];
@@ -94,13 +95,13 @@ function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
  $('#app').innerHTML=ui.screen==='name'?nameH():ui.screen==='room'?roomH():gameH();
  if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
  Snd.track(ui.screen==='game'&&G&&!G.over?(G.g==='regicide'?(G.en?P(G.en.c).r:'menu'):G.g==='gang'?'gang':G.g==='saboteur'?'mine':G.g==='azul'?'azul':G.g==='island'?'island':G.g==='machiavelli'?'mach':'it'):'menu')}
-function afterRender(){if(ui.screen==='room')tvIso();const h=$('#hand');
+function afterRender(){if(ui.screen==='room'||ui.screen==='name')tvIso();const h=$('#hand');
  if(h&&!h.classList.contains('many')){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;if(n<2)h.style.setProperty('--ov','0px');else{const Wd=h.clientWidth-8,cw=sl[0].firstElementChild.getBoundingClientRect().width||64,step=Math.min(cw+8,(Wd-cw)/(n-1));h.style.setProperty('--ov',(cw-step)+'px')}}
  if(h){const deals=[...h.querySelectorAll('.card.deal')];if(deals.length&&!RM){const t=ctr(G&&G.g==='regicide'?'#ptav':'#deck');deals.forEach((c,i)=>{const r=c.getBoundingClientRect();if(c.animate)c.animate([{transform:`translate(${t.x-(r.left+r.width/2)}px,${t.y-(r.top+r.height/2)}px) scale(.45) rotate(-25deg)`,opacity:.3},{transform:'none',opacity:1}],{duration:520*Math.max(SP,.1),delay:i*90*SP,easing:'cubic-bezier(.2,1.2,.4,1)',fill:'backwards'});if(i<6)setTimeout(()=>Snd.play('deal'),i*90*SP)})}}
  if(G&&G.g==='regicide'&&G.en&&ui.screen==='game'){const en=ui.viewEn||G.en;if(seen.e&&seen.e!==en.c&&!RM){const b=$('#boss');if(b&&b.animate)b.animate([{transform:'translateY(-60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:600*SP,easing:'cubic-bezier(.2,1.3,.4,1)'})}seen.e=en.c}}
 addEventListener('resize',()=>afterRender());
 
-document.addEventListener('input',e=>{if(e.target.id==='tvq'){ui.q=e.target.value;render();const el=document.getElementById('tvq');if(el){el.focus({preventScroll:true});try{el.setSelectionRange(ui.q.length,ui.q.length)}catch(x){}}}});
+document.addEventListener('input',e=>{if(e.target.id==='myname'&&tvSeats[0]){tvSeats[0].name=e.target.value.trim().slice(0,14)||'Tu';tvIso()}if(e.target.id==='tvq'){ui.q=e.target.value;render();const el=document.getElementById('tvq');if(el){el.focus({preventScroll:true});try{el.setSelectionRange(ui.q.length,ui.q.length)}catch(x){}}}});
 
 document.addEventListener('input',e=>{if(e.target.id==='cmsg')ui.cm=e.target.value});
 let tvT=0;function tvLater(){clearTimeout(tvT);tvT=setTimeout(()=>{if(ui.screen==='room'){const l=$('#chatlog'),t=l?l.scrollTop:0;render();const l2=$('#chatlog');if(l2)l2.scrollTop=t}},7200)}
