@@ -61,4 +61,3 @@ const GAFX={async pre(prev,ns){const e=ns.ev.find(x=>x.t==='take');if(e&&prev){c
   else if(e.t==='spec'){banner(GANG.SPEC[e.id].n.toUpperCase(),'Specialista in azione');Snd.play('turn');await W(700)}
   else if(e.t==='showdown'){await W(200);if(e.ok){Snd.play('vault');banner('CAVEAU APERTO!','Le mani erano in ordine');const c=ctr('.felt');burst(c.x,c.y,['#ffd34d','#fff','#c8a24a'],100,{v:9,sq:true})}else{Snd.play('alarm');banner('ALLARME!','Qualcuno ha sbagliato i conti','red');add(null,'flash',null,null,600);shake(12)}await W(900)}
   else if(e.t==='win'){Snd.play('win');confetti()}else if(e.t==='lose'){Snd.play('lose')}}}};
-

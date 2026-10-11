@@ -37,4 +37,3 @@ const MAFX={async pre(){return{}},
   else if(e.t==='draw'){Snd.play('draw');flt('#av'+e.p,'pesca','gry')}
   else if(e.t==='pass'){flt('#av'+e.p,'passa','gry')}
   else if(e.t==='win'){Snd.play('win');confetti()}}}};
-

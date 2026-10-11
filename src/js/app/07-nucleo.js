@@ -1,0 +1,349 @@
+/* ================= STATO, STANZA, GIOCHI ================= */
+let G=null,fxDone=null;
+const ui={screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
+const ME={name:ST('rg-name')||'',dev:'local'};
+const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
+const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN};
+const GAMES=[
+ {id:'regicide',name:'Regicide',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},
+ {id:'briscola',name:'Briscola',desc:'Carte napoletane: vince chi supera i 60 punti.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n===4?'A coppie, 2 contro 2':n===3?'Tutti contro tutti (senza il 2 di Coppe)':'Testa a testa'},
+ {id:'scopa',name:'Scopa',desc:'Prendi le carte dal tavolo, fai scopa, conquista il settebello.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n===4?'A coppie, 2 contro 2':n===3?'Tutti contro tutti':'Testa a testa',opts:{k:'target',label:'Si gioca a',vals:[['11','11 punti'],['21','21 punti']]}},
+ {id:'burraco',name:'Burraco',desc:'Scale e tris con jolly e pinelle, pozzetto e chiusura.',range:'2 o 4',ok:n=>n===2||n===4,mode:n=>n===4?'A coppie, 2 contro 2':'Testa a testa',opts:{k:'target',label:'Si gioca a',vals:[['one','Una mano'],['1005','1005 punti'],['2005','2005 punti']]}}];
+GAMES.push({id:'gang',name:'The Gang',desc:'Poker cooperativo: ordinate le vostre mani senza parlare e svaligiate 3 caveau.',range:'3–6',ok:n=>n>=3&&n<=6,mode:n=>n+' scassinatori in squadra',opts:{k:'mode',label:'Modalità',vals:[['base','Base'],['avanzata','Avanzata (sfide e specialisti)'],['pro','Professionista'],['maestro','Maestro del furto']]}});
+GAMES.push({id:'island',name:'L’isola dei predatori',desc:'Solitario: sposta gli animali e mangia in ordine di catena alimentare, finché ne resta uno solo.',range:'1',ok:n=>n===1,mode:n=>'Solitario',opts:{k:'water',label:'Carte acquatiche',vals:[['2','Squalo e balena'],['1','Una sola, a caso'],['0','Nessuna (difficile)']]}});
+GAMES.push({id:'mind',name:'The Mind',desc:'Cooperativo senza parole: giocate le carte in ordine crescente, senza comunicare. Sentite il gruppo.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' giocatori · '+({2:12,3:10,4:8}[n])+' livelli'});
+GAMES.push({id:'mindx',name:'The Mind Extreme',desc:'La versione estrema: carte bianche crescenti e rosse decrescenti, e più avanti carte giocate coperte.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' giocatori · '+({2:12,3:10,4:8}[n])+' livelli'});
+GAMES.push({id:'harvest',name:'Harvest Valley',desc:'Costruisci la tua fattoria in una valle condivisa: ortaggi, frutteti e grano… ma attenti a corvi e cinghiali!',range:'2–5',ok:n=>n>=2&&n<=5,mode:n=>n+' contadini · valle '+(n%2?'6×5':'5×5')});
+GAMES.push({id:'scoundrel',name:'Scoundrel',desc:'Solitario roguelike con un mazzo di carte: affronta il dungeon, scegli le armi, scappa (ma non due volte di fila).',range:'1',ok:n=>n===1,mode:n=>'Solitario · 20 vite'});
+GAMES.push({id:'machiavelli',name:'Machiavelli',desc:'Cala tris e scale, riorganizza il tavolo e svuota per primo la mano.',range:'2–5',ok:n=>n>=2&&n<=5,mode:n=>n+' giocatori · 2 mazzi + 4 jolly'});
+GAMES.push({id:'azul',name:'Azul',desc:'Decora il palazzo di Evora con azulejos: prendi, incastra, posa sul muro.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' decoratori · '+({2:5,3:7,4:9}[n])+' fabbriche',opts:{k:'wall',label:'Muro',vals:[['classic','Classico'],['grey','Libero (variante)']]}});
+GAMES.push({id:'saboteur',name:'Saboteur',desc:'Nani cercatori d’oro contro sabotatori nascosti: scava le gallerie, ma di chi ti fidi?',range:'3–10',ok:n=>n>=3&&n<=10,mode:n=>{const r={3:'1 sabotatore',4:'1 sabotatore',5:'2 sabotatori',6:'2 sabotatori',7:'3 sabotatori',8:'3 sabotatori',9:'3 sabotatori',10:'4 sabotatori'}[n];return n+' nani · '+r},opts:{k:'exp',label:'Edizione',vals:[['base','Gioco base'],['sab2','Con Saboteur 2']]}});
+const GN=id=>(GAMES.find(g=>g.id===id)||{}).name||id;
+/* posti: chi gioca su questo dispositivo */
+const seatsNow=()=>(R.on?(R.doc&&R.doc.seats):R.offSeats)||[];
+const local=()=>{const S=seatsNow();const L=[];S.forEach((x,i)=>{if(x.dev===ME.dev)L.push(i)});return L};
+const isMine=i=>local().includes(i);
+const multiLocal=()=>local().length>1;
+function viewer(){if(!G)return-1;const L=local();if(G.sim)return L.includes(ui.ms)?ui.ms:(L.length?L[0]:-1);if(L.length===1)return L[0];if(isMine(G.cur)&&ui.shown===G.cur)return G.cur;return-1}
+function needCover(){return!!(G&&!G.sim&&!G.over&&G.phase!=='summary'&&isMine(G.cur)&&multiLocal()&&ui.shown!==G.cur)}
+function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.sim)return local().length>0;if(G.g==='harvest')return isMine(G.cur);if(!isMine(G.cur))return false;if(G.phase==='summary')return true;return!multiLocal()||ui.shown===G.cur}
+function seatTag(i){const x=seatsNow()[i];if(!x||x.dev!==ME.dev||G&&G.n===1)return'';return x.k==='m'?' (tu)':' (ospite)'}
+const members=()=>R.on?R.members:[{id:ME.dev,...R.mine}];
+const multiDev=()=>members().length>=2;
+const INV=(()=>{try{const c=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length>=3&&c.length<=6?c:''}catch(e){return''}})();
+function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?'},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
+function tally(n){const t={};members().forEach(m=>{const keys=['m',...(m.guests||[]).map(g=>g.k)];keys.forEach(k=>((m.votes||{})[k]||[]).forEach(g=>{const G0=GAMES.find(x=>x.id===g);if(G0&&G0.ok(n))t[g]=(t[g]||0)+1}))});return t}
+const rid=()=>Math.random().toString(36).slice(2,10);
+const newCode=()=>Array.from({length:4},()=>'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.floor(Math.random()*23)]).join('');
+/* ---- rete ---- */
+async function netInit(){if(R.tried)return;R.tried=true;const nq=new URLSearchParams(location.search).get('net');
+ ME.dev=ST('rg-dev')||('d'+rid()+rid());ST('rg-dev',ME.dev);
+ if(nq!=='db'&&!window.__NETDB&&await p2pProbe()){R.mode='p2p';R.on=true;return}
+ try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
+function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
+async function enterHub(){ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();
+ if(!R.on){try{const o=JSON.parse(ST('rg-off')||'null');if(o&&o.mine)R.mine={...o.mine,name:ME.name}}catch(e){}render();return}
+ if(R.mode==='p2p'){try{await p2pEnter()}catch(e){ui.err=netErr(e);render()}return}
+ try{let code=ST('rg-room');
+  if(INV&&INV!==code){try{if((await R.db.doc('rooms/'+INV).get()).exists)code=INV;else ui.err='Non trovo il falò '+INV}catch(e){}}
+  if(code){const sn=await R.db.doc('rooms/'+code).get();if(!sn.exists)code=null;else{const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}}
+  if(!code)code=await createRoom();await joinRoom(code)}catch(e){ui.err=netErr(e);render()}}
+async function p2pCreate(){for(let i=0;i<6;i++){const c=newCode();try{R.db=await p2pHost(c,false);ST('rg-role','host');await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}catch(e){if(e.code!=='unavailable-id')throw e}}throw new Error('nessun codice libero')}
+async function p2pEnter(){let code=ST('rg-room'),role=ST('rg-role');
+ if(INV&&!(code===INV&&role==='host')){try{R.db=await p2pJoin(INV);ST('rg-role','guest');code=INV;await joinRoom(code);return}catch(e){ui.err='Non trovo il falò '+INV+': l’host deve avere la pagina aperta.';code=ST('rg-room');role=ST('rg-role')}}
+if(code){try{if(role==='host'){R.db=await p2pHost(code,true);if(!(await R.db.doc('rooms/'+code).get()).exists)code=null}else{R.db=await p2pJoin(code);ST('rg-role','guest')}}catch(e){code=null}}
+ if(code){const d=(await R.db.doc('rooms/'+code).get()).data();if(d&&d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}
+ if(!code)code=await p2pCreate();await joinRoom(code)}
+const netErr=e=>e&&e.code==='broker'?'Il server di incontro non è raggiungibile: controlla la connessione.':e&&(e.code==='peer-unavailable'||e.code==='timeout'||e.code==='close')&&R.mode==='p2p'?'Stanza non trovata: controlla il codice (l’host deve avere la pagina aperta).':e&&e.code==='invalid_argument'?'Non hai il permesso di scrivere in questa pagina: chiedi al proprietario di condividerla come Contributor.':'Errore di rete: '+(e&&(e.message||e.code)||e);
+async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
+async function joinRoom(code){const old=R.code;unsubAll();
+ if(old&&old!==code){try{await R.db.doc('rooms/'+old+'/members/'+ME.dev).delete()}catch(e){}}
+ R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.doc=null;R.members=[];R.chat=[];G=null;fxDone=null;
+ const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
+ R.mine={name:ME.name,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){}subscribe()}
+function subscribe(){
+ R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();enterHub();return}
+  const d=sn.data();R.doc=d;const seated=d.phase==='play'&&!!d.s&&(d.seats||[]).some(x=>x.dev===ME.dev),was=ui.screen;
+  ui.screen=ui.screen==='name'?'name':seated?'game':'room';
+  if(seated){if(d.rev>=R.rev){const ch=d.rev>R.rev;R.rev=d.rev;if(ch){ui.sel=[];ui.tsel=[]}if(was!=='game'){fxDone=null;G=null;ui.shown=-1}pushState(d.s,false);return}}
+  else{R.rev=Math.max(R.rev,d.rev||0);if(was==='game'){G=null;ui.anim=false}}
+  render()},e=>{ui.err='Connessione persa ('+e.code+')';render()}));
+ R.un.push(R.db.collection('rooms/'+R.code+'/members').onSnapshot(q=>{R.members=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));if(ui.screen==='room'){render();tvLater()}},()=>{}));
+ R.un.push(R.db.collection('rooms/'+R.code+'/chat').onSnapshot(q=>{const n0=R.chat.length;R.chat=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.t-b.t);if(ui.screen==='room'){render();tvLater();const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight}else if(R.chat.length>n0&&ui.screen==='game'){const l=R.chat[R.chat.length-1];if(ui.cd){render();const lg=$('#chatlog');if(lg)lg.scrollTop=lg.scrollHeight}else if(l&&l.dev!==ME.dev){ui.unread=(ui.unread||0)+1;say(l.name+': '+(l.text.length>60?l.text.slice(0,59)+'…':l.text));render()}}},()=>{}))}
+async function writeRoom(patch){if(patch.rev!=null)R.rev=patch.rev;R.doc={...R.doc,...patch};await R.ref.set(R.doc)}
+async function saveMine(){if(!R.on){ST('rg-off',JSON.stringify({mine:R.mine,game:G&&ui.screen==='game'?{G,seats:R.offSeats}:null}));render();return}
+ try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){ui.err=netErr(e)}render()}
+function saveOff(s){if(!R.on)ST('rg-off',JSON.stringify({mine:R.mine,game:s?{G:s,seats:R.offSeats}:null}))}
+/* ---- avvio, rivincita, ritorno alla stanza ---- */
+function defOpts(id){const g=GAMES.find(x=>x.id===id);const o={};if(g&&g.opts)o[g.opts.k]=ui.opts[id]||g.opts.vals[0][0];return o}
+async function startGame(id,seats,opts){const S=seats||lobbySeats(),g=GAMES.find(x=>x.id===id);
+ if(!g||!g.ok(S.length)){ui.err=g?g.name+' si gioca con '+g.range+' giocatori':'Gioco sconosciuto';return render()}
+ if(R.on&&R.doc&&R.doc.phase==='play'&&!seats){ui.err='C’è già una partita in corso in questa stanza';return render()}
+ const o=opts||defOpts(id);if(id==='mindx')o.x=1;const s=ENG[id].newGame(S.length,S.map(x=>x.name),o);s.g=id;s.gid=rid();ui.err='';
+ if(id==='regicide'&&ST('rg-intro')!=='1')ui.story=true;
+ if(R.on){try{await writeRoom({phase:'play',game:id,opts:o,seats:S,s,rev:R.rev+1})}catch(e){ui.err=netErr(e);render()}return}
+ R.offSeats=S;R.offGame={id,opts:o};ui.screen='game';G=null;fxDone=null;ui.shown=-1;pushState(s,false);saveOff(s)}
+function rematch(){const id=G.g,S=seatsNow().slice(),o=R.on?R.doc.opts:(R.offGame||{}).opts;return startGame(id,S,o||{})}
+async function toLobby(){ui.confirm=false;ui.cfg=false;ui.story=false;if(R.on){try{await writeRoom({phase:'lobby',s:null,rev:R.rev+1})}catch(e){ui.err=netErr(e)}return render()}
+ G=null;ui.screen='room';saveOff(null);render()}
+/* ---- coda degli stati e animazioni ---- */
+let Q=Promise.resolve();
+function pushState(ns,own){Q=Q.then(()=>applyState(ns,own)).catch(e=>{console.warn(e);ui.anim=false;ui.viewEn=null;ui.view=null;G=ns;fxDone=ns.evn;render()})}
+function coverCheck(prev,ns){if(multiLocal()&&prev&&prev.cur!==ns.cur)ui.shown=-1}
+async function applyState(ns,own){
+ const ev=ns.ev||[],prev=G,isNew=!G||G.gid!==ns.gid,fresh=isNew||fxDone===null||ns.evn===fxDone||!ev.length||ui.screen!=='game';
+ if(fresh){G=ns;fxDone=ns.evn;if(isNew){ui.ih=[];seen.h=null;seen.p=new Set();seen.e=null;prevRank=null;ui.shown=-1;ui.sel=[];ui.tsel=[]}else coverCheck(prev,ns);render();if(isNew&&ns.evn===0&&ui.screen==='game')intro(ns);cap=null;return}
+ ui.anim=true;render();const F=FX[ns.g];let cx={};
+ try{if(F.pre)cx=await F.pre(prev,ns,own)||{};cap=null;G=ns;fxDone=ns.evn;coverCheck(prev,ns);render();await F.run(prev,ns,own,cx)}
+ finally{cap=null;ui.viewEn=null;ui.view=null;ui.anim=false;render();turnNote(prev,ns)}}
+function turnNote(prev,ns){if(ns.sim||ns.over||!prev||prev.cur===ns.cur||ns.g==='regicide'||ns.phase==='summary')return;
+ if(isMine(ns.cur)){if(!multiLocal()&&R.on){say('Tocca a te!',1400);Snd.play('turn')}}else say('Tocca a '+ns.names[ns.cur],1400)}
+function intro(ns){if(ns.g==='regicide'){if(!ui.story&&ns.en)splash(ns.en.c,true);return}
+ const g=GAMES.find(x=>x.id===ns.g);banner(g.name.toUpperCase(),g.mode(ns.n));Snd.play('turn');setTimeout(()=>Snd.play('deal'),300)}
+async function dispatch(a){if(!myTurn())return;if(G.sim&&a.seat==null)a.seat=viewer();const r=ENG[G.g].act(G,a);if(r.err){ui.err=r.err;Snd.play('err');return render()}
+ if(G.g==='island'){(ui.ih=ui.ih||[]).push(JSON.stringify(G));if(ui.ih.length>200)ui.ih.shift()}
+ ui.err='';if(['play','discard','meld','add'].includes(a.t))captureSel();ui.sel=[];ui.tsel=[];
+ if(!R.on){pushState(r.s,true);saveOff(r.s);return}
+ ui.busy=true;pushState(r.s,true);try{await writeRoom({s:r.s,rev:R.rev+1})}catch(e){ui.err='Mossa non inviata: '+netErr(e)}ui.busy=false;render()}
+/* ---- comandi ---- */
+document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
+ if(a!=='sel'&&a!=='tsel')Snd.play('ok');
+ switch(a){
+ case'setname':{const n=($('#myname')?.value||'').trim().slice(0,14);if(!n){ui.err='Scrivi il tuo nome';return render()}ME.name=n;ST('rg-name',n);R.mine.name=n;if(R.on&&R.code){await saveMine();ui.screen=G?'game':'room';return render()}return enterHub()}
+ case'rename':ui.cfg=false;ui.screen='name';return render();
+ case'addguest':{const n=($('#gname')?.value||'').trim().slice(0,14);if(!n){ui.err='Scrivi il nome dell’ospite';return render()}if(lobbySeats().length>=10){ui.err='Massimo 10 giocatori per tavolo';return render()}R.mine.guests=[...(R.mine.guests||[]),{k:'g'+rid(),name:n}];ui.err='';return saveMine()}
+ case'rmguest':R.mine.guests=(R.mine.guests||[]).filter(g=>g.k!==v);delete R.mine.votes[v];return saveMine();
+ case'rmmember':if(R.on){try{await R.db.doc('rooms/'+R.code+'/members/'+v).delete()}catch(x){ui.err=netErr(x)}}return render();
+ case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
+ case'start':return startGame(v);
+ case'join':{const c=($('#jc')?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
+  if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
+  try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
+   await joinRoom(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
+ case'retrynet':R.tried=false;R.on=false;R.mode=null;ui.err='';return enterHub();
+ case'emo':{const[e,k]=v.split('|');const m=R.mine.emo=R.mine.emo||{};m[k||'m']={e,t:Date.now()};await saveMine();tvLater();return}
+ case'ek':ui.ek=v;return render();
+ case'chatsend':return chatSend();
+ case'chatd':ui.cd=!ui.cd;ui.unread=0;render();{const lg=$('#chatlog');if(lg)lg.scrollTop=lg.scrollHeight}return;
+ case'chatemo':ui.cm=v;await chatSend();return;
+ case'tab':ui.tab=v;ui.err='';render();scrollTo(0,0);return;
+ case'avedit':ui.avk=v||null;return render();
+ case'avset':case'avrand':{const k=ui.avk;if(k==null)return;const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),cur=avOf({dev:ME.dev,k},i);let nv;
+  if(a==='avrand'){const r=n=>Math.floor(Math.random()*n);nv={t:r(AVT.length),h:r(AVC.length),c:r(AVC.length),s:r(AVS.length)}}else{const[f,n]=v.split('|');nv={...cur,[f]:+n}}
+  if(k==='m')R.mine.av=nv;else R.mine.guests=(R.mine.guests||[]).map(g=>g.k===k?{...g,av:nv}:g);ST('rg-av',JSON.stringify(R.mine.av||null));return saveMine()}
+ case'tvcat':ui.cat=v;return render();
+ case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
+ case'tvpick':ui.pick=v;return render();
+ case'newroom':if(!R.on)return;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);say('Nuova stanza '+c)}catch(x){ui.err=netErr(x);render()}return;
+ case'copy':{const url=location.origin+location.pathname+'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:''),txt='Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
+ case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;
+ case'rematch':return rematch();
+ case'tolobby':return toLobby();
+ case'askstop':ui.confirm=true;return render();case'nostop':ui.confirm=false;return render();
+ case'reveal':ui.shown=G.cur;Snd.play('deal');return render();
+ case'story':ui.story=false;ST('rg-intro','1');render();if(G&&G.en&&ui.screen==='game')splash(G.en.c,true);return;
+ case'm-story':ui.story=true;return render();
+ case'rules':ui.rules=ui.rules?null:(v||(G&&G.g)||'regicide');return render();
+ case'cfg':ui.cfg=!ui.cfg;return render();
+ case'mus':Snd.setMus(!Snd.mus);return render();case'sfx':Snd.setSfx(!Snd.sfx);return render();
+ case'next':return dispatch({t:'next'});
+ }
+ if(G&&ui.screen==='game')gameClick(a,v);
+});
+document.addEventListener('change',e=>{const id=e.target.id;if(id==='cs'){pstyle=e.target.value!=='nap';ST('rg-cards',pstyle?'pia':'nap');render();return}if(id==='th'){theme=e.target.value;ST('rg-theme',theme);applyTheme()}
+ if(id==='fc'){fc=e.target.checked;ST('rg-fc',fc?'1':'0');applyTheme()}
+ if(id&&id.startsWith('opt-')){ui.opts[id.slice(4)]=e.target.value}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const id=e.target.id;if(id==='myname')$('[data-a=setname]')?.click();if(id==='gname')$('[data-a=addguest]')?.click();if(id==='jc')$('[data-a=join]')?.click();if(id==='cmsg')chatSend()}
+ if((e.key==='Enter'||e.key===' ')&&['sel','tsel','meld','avedit'].includes(e.target.dataset?.a)){e.preventDefault();e.target.click()}});
+/* ---- viste comuni ---- */
+const seen={h:null,p:new Set(),e:null};
+const hudH=(title)=>`<div class="hud"><div class="logo">${esc(title||'La Taverna dei Giochi')}</div><div class="grow"></div>${R.on&&ui.screen==='game'?`<button class="ib chatb" data-a="chatd" aria-label="Chat della stanza" title="Chat">💬${ui.unread?`<i class="nb">${ui.unread>9?'9+':ui.unread}</i>`:''}</button>`:''}<button class="ib ${Snd.mus?'':'off'}" data-a="mus" aria-label="Musica" title="Musica">♪</button><button class="ib" data-a="cfg" aria-label="Impostazioni">⚙</button></div>`;
+const RULES={
+ scoundrel:`<p>Solitario di <i>Zach Gage e Kurt Bieg</i>: attraversate il dungeon senza morire. Mazzo da <b>44 carte</b>: niente jolly, niente figure e assi rossi. Partite con <b>20 punti vita</b>.</p><ul><li><b>♣ Fiori e ♠ Picche = mostri</b> (danno pari al valore; J=11, Q=12, K=13, A=14). <b>♦ Quadri = armi</b>. <b>♥ Cuori = pozioni</b> (curano il valore, mai oltre 20).</li><li>Ogni <b>stanza</b> mostra 4 carte: ne giocate <b>3</b>, una alla volta, nell’ordine che volete. La quarta resta e forma la stanza successiva con 3 nuove carte.</li><li><b>Scappare</b>: potete rimettere le 4 carte in fondo al mazzo, ma <b>non due stanze di fila</b> e solo prima di aver giocato carte di quella stanza.</li><li><b>Mostri</b>: a mani nude prendete tutto il danno. Con un’arma il danno è <i>mostro − arma</i> (minimo 0) e il mostro resta impilato sull’arma: da quel momento l’arma colpisce solo mostri di valore <b>uguale o inferiore all’ultimo abbattuto</b>.</li><li><b>Armi</b>: equipaggiarne una nuova scarta la vecchia con i mostri impilati.</li><li><b>Pozioni</b>: una sola per stanza; la seconda viene scartata senza effetto.</li><li><b>Fine</b>: se la vita arriva a 0 perdete (punteggio = vita meno i mostri rimasti nel dungeon). Se svuotate il dungeon vincete: punteggio = vita rimasta (+ il valore dell’ultima pozione se avete 20 vite e l’ultima carta era una pozione).</li></ul>`,
+ harvest:`<p>Ogni giocatore costruisce una <b>fattoria</b> in una valle condivisa (griglia <b>5×5</b> in 2 e 4 giocatori, <b>6×5</b> in 3 e 5). Vince chi ha più punti quando la valle è piena.</p><ul><li><b>Turno</b>: o giochi una tua <b>fattoria</b> (1 a testa; <b>2 a testa in 2–3 giocatori</b>), oppure prendi una delle 3 carte del <b>mercato</b> e la giochi. Il mercato si riempie dal mazzo.</li><li>Ogni carta va in una <b>cella libera adiacente</b> (in orizzontale o verticale) a una carta già giocata, restando nei limiti della griglia.</li><li><b>Erbacce</b>: si giocano <i>sopra</i> una carta terreno, che torna nel mercato. <b>Trattore</b>: si gioca sopra una carta terreno, che viene spinta in una cella libera adiacente.</li><li><b>A griglia piena</b>: i <b>Corvi</b> mangiano tutti i frutteti vicini (anche in diagonale), i <b>Cinghiali</b> tutti gli ortaggi adiacenti. Poi si contano i punti.</li><li><b>Punti</b> (per ogni fattoria): ortaggi adiacenti (ortogonali) = il loro valore; frutteti adiacenti (anche in diagonale) = il loro valore; ogni <b>stagno</b> accanto a un ortaggio o frutteto gli dà <b>+1</b>; un <b>campo di grano</b> (carte di grano collegate) toccato dalla fattoria vale <b>il quadrato</b> del numero di carte.</li><li>In 2–3 giocatori si sommano i punti delle due fattorie. Parità: vince chi ha più punti dai frutteti.</li></ul><p class="muted">Attenzione: i valori e il numero esatto delle carte sono ricostruiti dalle regole pubbliche: se hai la scatola, confrontali e dimmi cosa correggere.</p>`,
+ mind:`<p>Gioco cooperativo (2–4) <b>senza comunicare</b>: niente parole, gesti o indizi. Ogni livello si superano giocando tutte le carte di tutti <b>in ordine crescente</b>.</p><ul><li>Carte da 1 a 100. Al livello N ognuno riceve N carte (livello 1: una, livello 2: due…).</li><li>Quando tutti toccano <b>«Sono pronto»</b> si parte. Non c’è un turno: <b>chiunque può giocare la sua carta più bassa quando sente che è il momento</b>.</li><li><b>Errore</b>: se giochi una carta mentre qualcuno ne ha una più bassa, perdete <b>1 vita</b>; le carte più basse vengono scartate e il livello riparte dal «pronto».</li><li><b>Shuriken ★</b>: se tutti sono d’accordo, ognuno scarta la propria carta più bassa (senza perdere vite). Se uno non è d’accordo, si annulla. Si parte con 1 shuriken.</li><li><b>Stop ✋</b>: ferma il gioco per ricalibrarvi (ma non parlate!).</li><li>Premi: dopo i livelli 2, 5 e 8 ottenete uno shuriken; dopo i livelli 3, 6 e 9 una vita (massimo 5 vite e 3 shuriken).</li><li>Vite iniziali: 2 giocatori 2, 3 giocatori 3, 4 giocatori 4. Livelli totali: 12, 10 o 8. Vincete completando l’ultimo livello.</li></ul>`,
+ mindx:`<p>Come <b>The Mind</b> (cooperativo, 2–4, <b>senza comunicare</b>) ma con 100 carte di due colori.</p><ul><li><b>Bianche 1–50</b>: si giocano in ordine <b>crescente</b>. <b>Rosse 1–50</b>: si giocano in ordine <b>decrescente</b> (dal 50 giù). Due pile separate.</li><li>Ognuno riceve N carte al livello N. Quando tutti sono pronti si parte; chiunque gioca quando sente che è il momento: tocca la tua carta <b>bianca più bassa</b> o la <b>rossa più alta</b>.</li><li><b>Errore</b>: carta giocata mentre qualcuno ne ha una che andava prima (nello stesso colore): <b>−1 vita</b> e carte saltate scartate.</li><li><b>Carte coperte</b> (livelli avanzati): le carte di quel colore si giocano a faccia in giù; gli errori si scoprono solo <b>a fine livello</b> e costano una vita per ogni carta giocata troppo presto.</li><li><b>Shuriken ★</b> (tutti d’accordo): ognuno scarta la propria carta più bassa bianca o la più alta rossa. <b>Stop ✋</b> per ricalibrarsi.</li><li>Premi e vite come in The Mind: shuriken dopo i livelli 2, 5 e 8; vita dopo 3, 6 e 9.</li></ul><p class="muted">Nota: la distribuzione esatta dei livelli a carte coperte è ricostruita dal regolamento: confrontala con la tua scatola.</p>`,
+ machiavelli:`<p>Si gioca con 2 mazzi francesi + 4 jolly (108 carte). Ognuno riceve 13 carte; vince chi <b>finisce per primo le carte in mano</b>.</p><ul><li><b>Combinazioni</b>: <b>tris o quartetti</b> (stesso valore, semi tutti diversi) e <b>scale</b> (almeno 3 carte consecutive dello stesso seme; l’asso vale 1 o sta dopo il re, ma non si «gira»: K-A-2 non vale).</li><li>Il <b>jolly</b> sostituisce qualsiasi carta.</li><li><b>Turno</b>: puoi calare carte dalla mano e <b>riorganizzare liberamente il tavolo</b> (spezzare, unire, riprendere un jolly sostituendolo con la carta vera...), purché alla fine <b>ogni combinazione sia valida</b>, tutte le carte del tavolo restino in gioco e tu cali <b>almeno una carta</b> dalla tua mano.</li><li>Se non puoi o non vuoi giocare, <b>peschi una carta</b> e il turno passa.</li><li>Se il mazzo è finito e nessuno riesce a calare, vince chi ha meno carte.</li></ul><p><b>Come si fa qui</b>: tocca le carte (mano o tavolo) per selezionarle, poi «Nuova combinazione» o «+ qui» su una combinazione esistente. «Suggerisci» propone la miglior giocata, «Conferma» la gioca.</p>`,
+ island:`<p>Siete su un’isola dimenticata: gli animali hanno fame e <b>dovete far mangiare tutti finché ne resta uno solo</b>. Gioco ispirato a <i>Food Chain Island</i> di Scott Almes.</p><ul><li>16 animali di terra (valore 0–15) in griglia 4×4, più <b>squalo</b> e <b>balena</b>.</li><li><b>Turno</b>: muovi un animale di 1 casella (su, giù, sinistra, destra) sopra un altro che vale <b>da 1 a 3 in meno</b>. Lo impila sopra: la pila vale il numero in cima e si muove insieme.</li><li>Quando mangi scatta <b>il potere</b> dell’animale che ha mangiato (obbligatorio, se puoi). Poi fai un altro turno, con lo stesso animale o con un altro.</li><li>Alcuni poteri valgono <b>al turno dopo</b> (volpe, lince, tigre, leone, procione, orso polare).</li><li>Una volta per partita puoi scartare lo <b>squalo</b> (mangia un animale di valore qualsiasi minore, spostandosi di 1) o la <b>balena</b> (sposta un animale in una casella vuota). Prevalgono sugli altri poteri.</li><li>Si finisce quando non puoi più mangiare (o premi «Concludi»): 1 animale rimasto = grande vittoria, 2 = bella vittoria, 3 = di misura, 4 o più = sconfitta.</li><li>Difficoltà: togli lo squalo, la balena o entrambi.</li></ul><p class="muted">Nota: le caselle vuote si possono usare anche fuori dalla griglia iniziale, in un’area 6×6.</p>`,
+ azul:`<p>Siete maestri decoratori al Palazzo Reale di Evora: completate il muro di <b>azulejos</b>.</p><ul><li><b>Turno</b>: prendi <b>tutte</b> le piastrelle di un colore da una fabbrica (le altre vanno al centro) oppure dal centro. Il primo che pesca dal centro prende il segnalino «1» (pavimento, −1 e sarà primo del round dopo).</li><li>Mettile in una <b>riga modello</b> (1–5 posti): un solo colore per riga, e non un colore già presente nella stessa riga del muro. Quelle che non entrano cadono sul <b>pavimento</b> (−1,−1,−2,−2,−2,−3,−3).</li><li>Quando fabbriche e centro sono vuoti: ogni riga piena posa <b>una</b> piastrella sul muro (le altre vanno nel coperchio) e fa punti: 1 se isolata, altrimenti le piastrelle collegate in riga + colonna.</li><li>Fine: appena un muro ha una riga completa. Bonus: riga +2, colonna +7, 5 piastrelle dello stesso colore +10.</li><li><b>Muro libero</b> (variante ufficiale): niente colori stampati, scegli tu la colonna senza ripetere un colore in riga o colonna.</li></ul>`,
+  regicide:`<p>Gioco cooperativo (1–4): sconfiggete i 12 nemici del castello (4 Fanti, 4 Regine, 4 Re). Se un giocatore non può subire il danno, perdete tutti.</p><ul><li><b>Turno</b>: gioca una carta (o un Asso + una carta, o carte uguali con somma ≤ 10, o il Jolly) oppure cedi; poi poteri dei semi, danno, e se il nemico sopravvive scarta carte per almeno il suo attacco.</li><li>♥ rimetti in fondo alla Taverna carte dagli scarti. ♦ pesca (senza superare la mano massima). ♣ danno doppio. ♠ l’attacco del nemico cala.</li><li><b>Solo i ♦ fanno pescare.</b></li><li><b>Immunità</b>: il nemico ignora il potere del proprio seme; il Jolly la annulla. Danno esatto: il nemico è redento e va in cima alla Taverna.</li><li>Asso = Animale (1). Fante 10, Regina 15, Re 20. Chi sconfigge un nemico gioca ancora.</li><li>Non si può cedere se tutti gli altri hanno ceduto. Il Jolly (3–4 giocatori): chi lo gioca sceglie chi va dopo.</li><li><b>Solitario</b>: mano da 8, due Jolly per rifare la mano. Oro = 0 usati, Argento = 1, Bronzo = 2.</li></ul>`,
+ briscola:`<ul><li>40 carte napoletane, 3 carte a testa. L’ultima carta del mazzo, scoperta, indica la <b>briscola</b> (il seme che vince).</li><li>A turno ognuno gioca una carta. Prende chi gioca la briscola più alta; se non ci sono briscole, la carta più alta del seme giocato per primo.</li><li>Ordine: Asso, 3, Re, Cavallo, Fante, 7, 6, 5, 4, 2.</li><li>Punti: Asso 11, 3 10, Re 4, Cavallo 3, Fante 2. Totale 120: vince chi supera 60.</li><li>Chi prende pesca per primo. In 4 si gioca a coppie (compagni uno di fronte all’altro); in 3 si toglie il 2 di Coppe.</li></ul>`,
+ scopa:`<ul><li>40 carte napoletane: 3 a testa e 4 scoperte in tavola.</li><li>Con una carta prendi una carta di pari valore, oppure più carte la cui somma è uguale. Se c’è una carta uguale devi prendere quella. <b>La presa è obbligatoria.</b></li><li>Valori: Asso 1 … 7, Fante 8, Cavallo 9, Re 10.</li><li>Se svuoti il tavolo fai <b>scopa</b> (1 punto), tranne all’ultima giocata.</li><li>A fine mano le carte rimaste vanno a chi ha preso per ultimo. Punti: carte (più carte), denari (più denari), settebello, primiera, scope.</li><li>Primiera: 7=21, 6=18, Asso=16, 5=15, 4=14, 3=13, 2=12, figure=10 (la carta migliore per seme).</li><li>In 4 si gioca a coppie. Si gioca a 11 o 21 punti.</li></ul>`,
+ gang:`<p>Siete una banda di scassinatori: vincete aprendo <b>3 caveau</b>, perdete con <b>3 allarmi</b>.</p><ul><li>Ognuno riceve 2 carte coperte (poker Texas Hold’em). Sul tavolo escono 3 carte (Flop), poi 1 (Turn), poi 1 (River).</li><li>A ogni round ci sono gettoni da 1 a N stelle (bianchi, gialli, arancio, rossi). <b>Più stelle = pensi di avere la mano più forte.</b></li><li>A turno: prendi un gettone dal centro, <b>rubalo</b> a un altro giocatore, oppure passa. Il round finisce quando tutti hanno un gettone e tutti passano di fila. (Nel gioco da tavolo si fa tutti insieme: qui si va a turno per giocare anche passandosi il telefono.)</li><li><b>Vietato parlare delle proprie carte!</b> L’unico segnale sono i gettoni.</li><li>Showdown: si rivelano le mani in ordine di gettone rosso. Se ognuna è uguale o più forte della precedente, il caveau si apre.</li><li><b>Avanzata</b>: dopo un colpo riuscito arriva una carta Sfida, dopo un fallimento uno Specialista che aiuta. <b>Professionista</b>: una Sfida resta sempre attiva. <b>Maestro</b>: due Sfide sempre attive, nessuno Specialista e bastano 2 allarmi per perdere.</li></ul><p>Tocca «Guida alle mani» durante la partita per vedere tutte le combinazioni.</p>`,
+ saboteur:`<p>Siete nani in miniera. Alcuni sono <b>sabotatori</b> segreti! I cercatori vogliono collegare l’ingresso alla carta d’oro, i sabotatori vogliono impedirlo.</p><ul><li>Ruoli segreti: 3–4 giocatori 1 sabotatore, 5–6 due, 7–9 tre, 10 quattro (un ruolo resta sempre fuori, quindi può anche non esserci nessun sabotatore).</li><li>Turno: gioca <b>una</b> carta (galleria, azione) oppure scartane una coperta; poi peschi.</li><li><b>Gallerie</b>: devono combaciare con tutte le carte vicine e collegarsi all’ingresso. Puoi ruotarle di 180°.</li><li><b>Attrezzi rotti</b> (piccone, lanterna, carrello): chi ne ha uno davanti non può scavare finché non viene riparato.</li><li><b>Frana</b>: togli una galleria. <b>Mappa</b>: guarda in segreto una delle 3 mete.</li><li>Le 3 mete in fondo: una è l’oro, due sono carbone. Quando una galleria le raggiunge si girano.</li><li>Oro trovato: chi l’ha raggiunto pesca tante pepite quanti sono i giocatori, ne sceglie una e passa le altre ai cercatori (in senso antiorario). Oro non trovato a fine mazzo: vincono i sabotatori (4 pepite se è uno solo, 3 se sono 2–3, 2 se sono 4).</li><li>Si giocano 3 round: vince chi ha più pepite.</li></ul><p><b>Saboteur 2</b>: squadre di cercatori blu e verdi (le porte del colore avversario bloccano), Capo, Profittatore, Geologi (contano i cristalli), scale collegate alla superficie, ponti, e nuove azioni: prigione, libertà, furto, giù le mani, cambio cappello, ispezione, scambio delle mani. Pepite: 1 vincitore 5, 2 vincitori 4, 3 vincitori 3, 4 vincitori 2, di più 1 (Capo −1, Profittatore −2). Le forme delle 30 nuove gallerie sono ricostruite.</p>`,
+ burraco:`<ul><li>2 mazzi francesi + 4 jolly. 11 carte a testa e due pozzetti da 11. In 4 si gioca a coppie.</li><li>Turno: <b>pesca</b> una carta dal mazzo oppure <b>raccogli tutti gli scarti</b>; poi cala o attacca combinazioni; infine <b>scarta</b> una carta.</li><li>Combinazioni: scala (3+ carte consecutive dello stesso seme, Asso basso o alto) o tris (3+ carte dello stesso valore). Massimo un jolly o una pinella (il 2) per combinazione.</li><li><b>Burraco</b> = combinazione di 7+ carte: pulito (senza jolly) +200, sporco +100.</li><li>Quando finisci le carte prendi il <b>pozzetto</b> (al volo se finisci calando). Una sola volta per coppia.</li><li><b>Chiusura</b> (+100): serve aver preso il pozzetto e avere almeno un burraco; chiudi scartando l’ultima carta (non un jolly o una pinella).</li><li>Punti carte: Jolly 30, pinella 20, Asso 15, dall’8 al Re 10, dal 3 al 7 5. Le carte in mano si sottraggono; pozzetto non preso −100. Se il mazzo finisce, la mano termina.</li></ul>`};
+const rulesH=()=>!ui.rules?'':`<div class="modal"><div class="box"><h2>${GN(ui.rules)}</h2>${RULES[ui.rules]||''}<button class="b gold" data-a="rules">Chiudi</button></div></div>`;
+const cfgH=()=>!ui.cfg?'':`<div class="modal"><div class="box col"><h2>Impostazioni</h2>
+<label class="col"><span class="muted">Tema grafico</span><select class="sel" id="th">${[['tavolo','Tavolo verde'],['castello','Castello'],['notte','Notte neon'],['carta','Pergamena chiara']].map(([k,n])=>`<option value="${k}" ${k===theme?'selected':''}>${n}</option>`).join('')}</select></label>
+<label class="col"><span class="muted">Carte da 40</span><select class="sel" id="cs"><option value="nap" ${pstyle?'':'selected'}>Napoletane</option><option value="pia" ${pstyle?'selected':''}>Piacentine</option></select></label>
+<label class="row"><input type="checkbox" id="fc" ${fc?'checked':''}> Semi francesi a 4 colori</label>
+<div class="row"><button class="b sm ${Snd.mus?'grn':''}" data-a="mus">Musica: ${Snd.mus?'sì':'no'}</button><button class="b sm ${Snd.sfx?'grn':''}" data-a="sfx">Suoni: ${Snd.sfx?'sì':'no'}</button></div>
+<button class="b sm" data-a="rename">Cambia nome</button>${G&&ui.screen==='game'?`<button class="b sm" data-a="rules" data-v="${G.g}">Regole di ${GN(G.g)}</button>${ui.confirm?`<p class="muted" style="margin:0">La partita finisce per tutti e si torna alla stanza.</p><div class="row"><button class="b sm play" data-a="tolobby">Sì, interrompi</button><button class="b sm" data-a="nostop">No</button></div>`:'<button class="b sm yld" data-a="askstop">Interrompi e torna alla stanza</button>'}`:''}<button class="b gold" data-a="cfg">Chiudi</button></div></div>`;
+const storyH=()=>!ui.story?'':`<div class="modal"><div class="box story" style="text-align:center"><h2>Il Regno Caduto</h2>${STORY.map(l=>`<p>${l}</p>`).join('')}<button class="b play" data-a="story" style="margin-top:10px">Alle armi!</button></div></div>`;
+function nameH(){return`${hudH()}<div class="title"><h1>La Taverna dei Giochi</h1><p>${INV?'Sei invitato al falò <b>'+esc(INV)+'</b>':'Un falò tra le montagne, giochi per tutti'}</p></div>${tvScene([])}
+<div class="panel col"><h3>Come ti chiami?</h3><input type="text" id="myname" maxlength="14" placeholder="Il tuo nome" value="${esc(ME.name)}" autocomplete="nickname"><button class="b play big" data-a="setname">${INV?'Siediti al falò':'Accendi il falò'}</button><p class="muted" style="margin:0">${INV?'Ti siederai accanto a chi ti ha invitato.':'Entrerai subito nel tuo falò: manda il link e gli amici si siederanno accanto a te.'}</p></div><div class="err" role="alert">${esc(ui.err)}</div>${cfgH()}${rulesH()}`}
+/* ---- Lobby: falò + scaffale ---- */
+const TVC={carte:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CARTE'},tavolo:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'DA TAVOLO'},coop:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'},solo:{f:'#8a62d6',s:'#4d3490',e:'#b99af0',n:'SOLITARI'}};
+const TVG={regicide:['coop','REGICIDE'],briscola:['carte','BRISCOLA'],scopa:['carte','SCOPA'],burraco:['carte','BURRACO'],gang:['coop','THE GANG'],saboteur:['carte','SABOTEUR'],island:['solo','ISOLA'],machiavelli:['carte','MACHIAVELLI'],harvest:['tavolo','HARVEST'],scoundrel:['solo','SCOUNDREL'],mind:['coop','THE MIND'],mindx:['coop','MIND EXTREME'],azul:['tavolo','AZUL']};
+const tvInfo=g=>TVG[g.id]||['tavolo',g.name.toUpperCase().slice(0,11)];
+const TVP=[['#c8262f','#8e1b22','#2f8a5b','#1f6a43'],['#2c7fd6','#123f7a','#e2b13c','#a67d12'],['#7d55c7','#40287a','#d8402f','#8e1b22'],['#e8742c','#9a4a12','#3f8fe0','#1d5aa0'],['#2fa65b','#17603a','#c8434a','#8e1b22'],['#e8b83a','#a67d12','#7d55c7','#40287a'],['#d85a9a','#8a2a5a','#2f8a5b','#1f6a43'],['#5cc8d8','#1d6a7a','#e8742c','#9a4a12']];
+const tvExt=c=>{let a=[];for(let i=1;i<=6;i++)a.push(i+'px -'+i+'px 0 '+c);a.push('12px 5px 12px rgba(0,0,0,.55)');return a.join(',')};
+const AVC=[['#c8262f','#8e1b22'],['#2c7fd6','#123f7a'],['#2fa65b','#17603a'],['#7d55c7','#40287a'],['#e8742c','#9a4a12'],['#e8b83a','#a67d12'],['#d85a9a','#8a2a5a'],['#5cc8d8','#1d6a7a'],['#3a3a44','#1a1a22'],['#f3efe6','#a8a090']];
+const AVS=['#f2c29b','#d9a074','#a8693e','#6b4226'],AVT=['Berretto','Corona','Cappuccio','Elmo','Capelli','Cappello da mago'];
+const avDef=i=>({t:i%6===1?4:0,h:i%8,c:(i+3)%8,s:i%4===3?2:0});
+function avOf(s,i){const m=members().find(x=>x.id===s.dev);let a=null;if(m){if(s.k==='m')a=m.av;else{const g=(m.guests||[]).find(x=>x.k===s.k);a=g&&g.av}}return Object.assign(avDef(i),a||{})}
+function tvSprite(av,w=44){const H=AVC[av.h%AVC.length],C=AVC[av.c%AVC.length],sk=AVS[av.s%AVS.length],R1=(x,y,ww,hh,f)=>`<rect x="${x}" y="${y}" width="${ww}" height="${hh}" fill="${f}"/>`;
+ let hat='';
+ if(av.t===0)hat=R1(8,0,2,1,'#fff3c4')+R1(6,1,4,1,H[0])+R1(5,2,6,1,H[0])+R1(4,3,8,1,H[1]);
+ else if(av.t===1)hat=R1(5,1,1,1,'#ffd34d')+R1(8,1,1,1,'#ffd34d')+R1(10,1,1,1,'#ffd34d')+R1(5,2,6,2,'#e9b23a')+R1(7,2,2,1,H[0]);
+ else if(av.t===2)hat=R1(5,1,6,1,H[0])+R1(4,2,8,2,H[0])+R1(4,4,1,4,H[1])+R1(11,4,1,4,H[1]);
+ else if(av.t===3)hat=R1(5,1,6,1,'#c9d1df')+R1(4,2,8,2,'#9aa3b5')+R1(7,4,2,2,'#9aa3b5')+R1(7,0,2,1,H[0]);
+ else if(av.t===4)hat=R1(5,2,6,2,H[1])+R1(4,3,1,3,H[1])+R1(11,3,1,3,H[1]);
+ else hat=R1(7,-3,2,1,H[0])+R1(6,-2,4,2,H[0])+R1(5,0,6,2,H[0])+R1(3,2,10,1,H[1])+R1(7,-1,1,1,'#ffd34d');
+ return`<svg viewBox="0 -3 16 21" width="${w}" height="${Math.round(w*21/16)}" shape-rendering="crispEdges" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(3px 0 0 #05081c) drop-shadow(-3px 0 0 #05081c) drop-shadow(0 3px 0 #05081c) drop-shadow(0 -3px 0 #05081c)">${R1(5,4,6,3,sk)}${R1(6,7,4,1,sk)}${R1(3,12,1,1,sk)}${R1(12,12,1,1,sk)}${R1(6,5,1,1,'#1a1206')}${R1(9,5,1,1,'#1a1206')}${R1(7,6,2,1,'#b5533c')}${hat}${R1(4,8,8,3,C[0])}${R1(4,12,8,1,C[0])}${R1(3,9,1,3,C[0])}${R1(12,9,1,3,C[0])}${R1(5,13,6,1,C[1])}${R1(7,9,2,1,C[1])}${R1(4,11,8,1,'#e9c46a')}${R1(5,14,3,3,'#3a2f6b')}${R1(8,14,3,3,'#3a2f6b')}${R1(4,17,4,1,'#4a2c14')}${R1(8,17,4,1,'#4a2c14')}</svg>`}
+const TVEMO=['😀','😂','😍','😎','😭','😡','👍','🎉','🍻','🔥'];
+function tvBub(s){const now=Date.now();const m=members().find(x=>x.id===s.dev);const em=m&&m.emo&&m.emo[s.k];if(em&&now-em.t<5000&&now-em.t>-3000)return`<div class="tvbub e">${esc(em.e)}</div>`;
+ for(let i=R.chat.length-1;i>=0;i--){const x=R.chat[i];if(now-x.t>7000)break;if(x.dev===s.dev&&(x.k||'m')===s.k)return`<div class="tvbub">${esc(x.text.length>34?x.text.slice(0,33)+'…':x.text)}</div>`}return''}
+
+function emoBar(){if(!R.on)return'';const myKeys=[{k:'m'},...(R.mine.guests||[]).map(g=>({k:g.k}))],ek=myKeys.some(x=>x.k===ui.ek)?ui.ek:'m';
+ return`<div class="emos">${TVEMO.map(e=>`<button class="emo" data-a="emo" data-v="${e}|${ek}" aria-label="Emoji ${e}">${e}</button>`).join('')}</div>`}
+function chatDrawerH(){if(!R.on||!ui.cd)return'';const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))],ek=myKeys.some(x=>x.k===ui.ek)?ui.ek:'m';
+ return`<div class="cdr" role="dialog" aria-label="Chat della stanza"><div class="cdh"><b>Chat · stanza ${esc(R.code)}</b><button class="ib sm" data-a="chatd" aria-label="Chiudi chat">✕</button></div><div class="chatlog" id="chatlog">${R.chat.map(x=>`<div class="cm ${x.dev===ME.dev?'me':''}"><b>${esc(x.name)}</b> ${esc(x.text)}</div>`).join('')||'<span class="muted">Nessun messaggio: scrivi il primo!</span>'}</div>
+ <div class="emos cde">${TVEMO.map(e=>`<button class="emo" data-a="chatemo" data-v="${e}" aria-label="Invia ${e}">${e}</button>`).join('')}</div>
+ <div class="row"><input type="text" id="cmsg" maxlength="120" placeholder="Scrivi un messaggio" value="${esc(ui.cm||'')}" autocomplete="off" style="flex:1"><button class="b sm disc" data-a="chatsend">Invia</button></div>${myKeys.length>1?`<div class="row">${myKeys.map(x=>`<button class="vote ${x.k===ek?'on':''}" data-a="ek" data-v="${x.k}">${esc(x.name)}</button>`).join('')}</div>`:''}</div>`}
+function chatH(){if(!R.on)return'';const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))],ek=myKeys.some(x=>x.k===ui.ek)?ui.ek:'m';
+ return`<div class="panel col chatp"><h3>Chat della stanza</h3><div class="chatlog" id="chatlog">${R.chat.map(x=>`<div class="cm ${x.dev===ME.dev?'me':''}"><b>${esc(x.name)}</b> ${esc(x.text)}</div>`).join('')||'<span class="muted">Nessun messaggio: scrivi il primo!</span>'}</div>
+ <div class="row"><input type="text" id="cmsg" maxlength="120" placeholder="Scrivi un messaggio" value="${esc(ui.cm||'')}" autocomplete="off" style="flex:1"><button class="b sm disc" data-a="chatsend">Invia</button></div>
+ ${myKeys.length>1?`<div class="row">${myKeys.map(x=>`<button class="vote ${x.k===ek?'on':''}" data-a="ek" data-v="${x.k}">${esc(x.name)}</button>`).join('')}</div>`:''}
+</div>`}
+const SAT=new Set();
+const CAM={v:0,ptr:0,tilt:0,t:0};
+function tvScene(S){const N=S.length,big=true,full=N>=5,H=N>=9?390:365,ry=N>=9?78:70,cy=272,cmp=N>=8?.82:1;
+ const me0=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k==='m')),want=full?0:Math.floor((N-1)/2),ord=S.map((_,j)=>(j-want+me0+N)%N);
+ let pl=ord.map((oi,i)=>{const s=S[oi];let th;if(!full){const gap=N>1?Math.PI*.95/(N-1):0;th=Math.PI/2+(i-(N-1)/2)*gap}else th=Math.PI/2+2*Math.PI*i/N;
+  const sn=Math.sin(th),x=50+(big?40:37)*Math.cos(th),y=cy+ry*sn*(sn>0?1.1:1),sc=((.66+.34*(sn+1)/2)*cmp).toFixed(2),me=s.dev===ME.dev,mine=me&&s.k==='m';
+  const sk=s.dev+'|'+s.k,fresh=!SAT.has(sk);SAT.add(sk);
+  return`<div class="tvp${me?' tvme':''}${fresh?' sit':''}" style="left:${x.toFixed(1)}%;top:${y.toFixed(0)}px;z-index:${Math.round(y)};--s:1;--br:${(.7+.3*(sn+1)/2).toFixed(2)};--d:${(i*.09).toFixed(2)}s" ${me?`data-a="avedit" data-v="${s.k}" role="button" tabindex="0" aria-label="Personalizza ${esc(s.name)}"`:''}>${tvBub(s)}<div class="tvtag${mine?' me':''}${s.k!=='m'?' g':''}${N>=7?' sm':''}">${esc(s.name)}</div>${tvSprite(avOf(s,oi),Math.round(44*sc))}</div>`}).join('');
+ const stars=[[8,40],[22,70],[41,28],[63,56],[78,34],[92,76],[30,102],[86,110]].map((p,i)=>`<i class="tvst" style="left:${p[0]}%;top:${p[1]}px;animation-delay:-${(i*.37).toFixed(2)}s"></i>`).join('');
+ if(N===0)pl=`<div class="tvp ghost" style="left:50%;top:${cy+ry*1.1}px;z-index:${cy+ry};--s:1;--br:1"><div class="tvtag">TU?</div>${tvSprite(avOf({dev:ME.dev,k:'m'},0),44)}</div>`;
+ const fb=cy-8;
+ return`<div class="tvscene" style="height:${H}px;--px:${CAM.v.toFixed(3)}" role="img" aria-label="Il falò con ${N} giocator${N===1?'e':'i'} seduti intorno"><div class="tvsky"></div><div class="tvaur"><i></i><i></i><i></i></div>${stars}<div class="tvmoon"></div>${VH.mts}${VH.far}<div class="tvgnd"><i class="tvgrid"></i></div><div class="tvdirt" style="top:${fb-40}px"></div>${VH.near}<div class="tvfog"></div><div class="tvfog b"></div>${VH.fg}
+ <div class="tvglow" style="top:${fb-150}px"></div><div class="tvlight" style="top:${fb-40}px"></div>
+ <div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
+ <div class="tvpit" style="top:${fb-34}px;z-index:${fb-2}">${VH.logs}</div><canvas class="tvfirec" id="tvfirec" width="40" height="36" style="top:${fb-112}px;z-index:${fb-1}"></canvas><div class="tvpit" style="top:${fb-34}px;z-index:${fb+1}">${VH.stones}</div>
+ <i class="tvspk" style="left:50%;top:${fb-70}px"></i><i class="tvspk" style="left:calc(50% + 12px);top:${fb-64}px;animation-delay:-.8s"></i><i class="tvspk" style="left:calc(50% - 12px);top:${fb-66}px;animation-delay:-1.6s"></i><i class="tvspk" style="left:calc(50% + 4px);top:${fb-74}px;animation-delay:-2.1s"></i>${pl}</div>`}
+/* ---- scenario nordico: montagne innevate, pini, falò a pixel ---- */
+const VH=(()=>{let sd=7;const rnd=()=>{sd=(sd*9301+49297)%233280;return sd/233280};
+ const pines=(n,hmin,hmax,col,cls)=>{let p='';const step=400/n;for(let k=0;k<=n;k++){const x=k*step+(rnd()-.5)*step*.6,h=hmin+rnd()*(hmax-hmin),w=h*.42,b=80;
+   p+=`M${(x-w).toFixed(1)} ${b}L${x.toFixed(1)} ${(b-h).toFixed(1)}L${(x+w).toFixed(1)} ${b}Z`;p+=`M${(x-w*.8).toFixed(1)} ${(b-h*.35).toFixed(1)}L${x.toFixed(1)} ${(b-h*1.02).toFixed(1)}L${(x+w*.8).toFixed(1)} ${(b-h*.35).toFixed(1)}Z`}
+  return`<svg class="${cls}" viewBox="0 0 400 80" preserveAspectRatio="none" aria-hidden="true"><path d="${p}" fill="${col}"/></svg>`};
+ const mts=`<svg class="tvmts" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120V70L40 40L70 62L120 14L160 52L190 36L240 70L290 20L330 50L370 30L400 48V120Z" fill="#22384a"/><path d="M120 14L104 30L114 28L120 36L128 27L138 31ZM290 20L276 34L286 33L292 40L300 32L309 34ZM40 40L30 49L38 48L44 54L50 46ZM370 30L360 39L368 38L374 44L381 37Z" fill="#d6e6ef"/><path d="M0 120V92L50 70L90 86L140 60L200 84L250 66L300 88L350 72L400 86V120Z" fill="#17283a"/></svg>`;
+ const far=pines(30,26,46,'#0f2230','tvpine1'),near=pines(18,34,62,'#081720','tvpine2');
+ const R1=(x,y,w,h,f)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"/>`;
+ const logs=`<svg viewBox="0 0 32 12" width="128" height="48" shape-rendering="crispEdges" aria-hidden="true">${R1(6,5,20,2,'#5a3414')}${R1(6,5,20,1,'#7a4a24')}${R1(9,3,3,5,'#4a2a10')}${R1(20,3,3,5,'#4a2a10')}${R1(11,6,10,2,'#3d2410')}${R1(14,4,4,4,'#ff8a2a')}${R1(12,6,8,2,'#ffb347')}</svg>`;
+ const st=[[2,7,4,3],[6,8,4,3],[10,9,4,3],[14,9,4,3],[18,9,4,3],[22,8,4,3],[26,7,4,3],[4,5,3,2],[25,5,3,2]];
+ const stones=`<svg viewBox="0 0 32 12" width="128" height="48" shape-rendering="crispEdges" aria-hidden="true">${st.map(([x,y,w,h],k)=>R1(x,y,w,h,k%2?'#5b636e':'#6f7884')+R1(x,y,w,1,'#a3acb8')+R1(x+1,y+h-1,w-1,1,'#3a4048')).join('')}</svg>`;
+ const br=(sx)=>{let p='';for(let k=0;k<7;k++){const y=6+k*13,l=70-k*7;p+=`M0 ${y}L${l} ${y+8}L0 ${y+16}Z`}return`<svg class="tvfg ${sx}" viewBox="0 0 80 100" aria-hidden="true"><path d="M0 0H12V100H0Z" fill="#04090d"/><path d="${p}" fill="#050c11"/></svg>`};
+ const fg=br('l')+br('r');
+ return{mts,far,near,logs,stones,fg}})();
+(()=>{const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ document.addEventListener('pointermove',e=>{const sc=document.querySelector('.tvscene');if(!sc)return;const r=sc.getBoundingClientRect();if(e.clientY<r.top-40||e.clientY>r.bottom+40)return;CAM.ptr=Math.max(-1,Math.min(1,(e.clientX-r.left)/r.width*2-1))},{passive:true});
+ window.addEventListener('deviceorientation',e=>{if(e.gamma!=null)CAM.tilt=Math.max(-1,Math.min(1,e.gamma/22))},{passive:true});
+ setInterval(()=>{if(document.hidden||rm)return;const sc=document.querySelector('.tvscene');if(!sc)return;CAM.t+=60;const tg=Math.sin(CAM.t/3800)*.45+CAM.ptr*.55+CAM.tilt*.5;CAM.v+=(Math.max(-1,Math.min(1,tg))-CAM.v)*.12;sc.style.setProperty('--px',CAM.v.toFixed(3))},60)})();
+const FIRE=(()=>{const W=40,H=36,px=new Uint8Array(W*H);let img=null,ctx=null,cv=null,t=0;
+ const PAL=[[7,7,7],[31,7,7],[47,15,7],[71,15,7],[87,23,7],[103,31,7],[119,31,7],[143,39,7],[159,47,7],[175,63,7],[191,71,7],[199,71,7],[223,79,7],[223,87,7],[223,87,7],[215,95,7],[215,95,7],[215,103,15],[207,111,15],[207,119,15],[207,127,15],[207,135,23],[199,135,23],[199,143,23],[199,151,31],[191,159,31],[191,159,31],[191,167,39],[191,167,39],[191,175,47],[183,175,47],[183,183,47],[183,183,55],[207,207,111],[223,223,159],[239,239,199],[255,255,255]];
+ function step(){t++;const wind=Math.sin(t/31)*.22;
+  for(let x=0;x<W;x++){const d=Math.abs(x-(W-1)/2)/(W*.2),v=d>=1?0:Math.round(36*(1-d*d*d)*(.8+.2*Math.random()));px[(H-1)*W+x]=v}
+  for(let x=0;x<W;x++)for(let y=1;y<H;y++){const s=y*W+x,p=px[s];if(!p){px[s-W]=0;continue}const r=Math.max(0,Math.min(2,Math.floor(Math.random()*3+wind)));let dst=s-W-r+1;if(dst<0)dst=0;if(dst>=W*H)dst=W*H-1;px[dst]=Math.max(0,p-(Math.random()<.7?1:0)-(Math.random()<.22?1:0))}}
+ function draw(){if(!ctx)return;const d=img.data;for(let k=0;k<W*H;k++){const p=px[k],c=PAL[p];d[k*4]=c[0];d[k*4+1]=c[1];d[k*4+2]=c[2];d[k*4+3]=p<2?0:Math.min(255,(p-1)*30)}ctx.putImageData(img,0,0)}
+ function tick(){const el=document.getElementById('tvfirec');if(!el){cv=null;return}if(el!==cv){cv=el;ctx=el.getContext('2d');img=ctx.createImageData(W,H)}step();draw()}
+ for(let k=0;k<40;k++)step();
+ setInterval(()=>{if(!RM)tick();else if(document.getElementById('tvfirec')!==cv)tick()},70);return{tick}})();
+function tvShelf(list,top,N,myKeys,busy){
+ const MD=multiDev();
+ const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
+ const pick=list.find(x=>x.g.id===ui.pick)||top||list[0];
+ const order=['carte','tavolo','coop','solo'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k));
+ const chips=[['tutti','TUTTI ('+list.length+')'],...order.map(k=>[k,TVC[k].n+' ('+list.filter(x=>tvInfo(x.g)[0]===k).length+')'])].map(([k,l])=>`<button class="tvchip ${cat===k?'on':''}" data-a="tvcat" data-v="${k}" aria-pressed="${cat===k}">${l}</button>`).join('');
+ const vis=list.filter(x=>(cat==='tutti'||tvInfo(x.g)[0]===cat)&&(!q||x.g.name.toLowerCase().includes(q)));
+ let rows='';
+ order.forEach(k=>{const items=vis.filter(x=>tvInfo(x.g)[0]===k);
+  for(let i=0;i<items.length;i+=6){const ch=items.slice(i,i+6);
+   rows+=`<div class="tvrow">${i===0?`<div class="tvplate">${TVC[k].n}<small>${items.length}</small></div>`:''}<div class="tvboxes">${ch.map(({g,ok,v},j)=>{const c=TVC[k],on=pick&&pick.g===g,h=112+((i+j)*7%5)*4;
+    return`<button class="tvbox" data-a="tvpick" data-v="${g.id}" aria-pressed="${!!on}" aria-label="${esc(g.name)}, ${g.range} giocatori${MD?', '+v+' voti':''}${ok?'':', non disponibile con '+N}" style="height:${h}px;background:linear-gradient(90deg,${ok?c.f:'#7a819e'},${ok?c.s:'#4a5072'});box-shadow:${tvExt(ok?c.s:'#4a5072')};border-top-color:${ok?c.e:'#aab0c8'};transform:translateY(${on?-14:0}px);opacity:${ok?1:.65}"><span class="tvv">${tvInfo(g)[1]}</span><span class="tvt">${g.range.replace(' o ','/')}${MD&&v?' ★'+v:''}</span></button>`}).join('')}</div><div class="tvplank"></div></div>`}});
+ if(!vis.length)rows='<div class="tvnone">NESSUN GIOCO TROVATO</div>';
+ const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
+ const det=g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
+  <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${on?'★':'☆'} ${esc(x.name)}</button>`}).join('')}</div>`:''}
+  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:'';
+ return`<div class="tvshelf"><div class="tvsh"><div class="tvst2">LO SCAFFALE</div><div class="tvsn">${vis.length} ${vis.length===1?'gioco':'giochi'} · ${N} giocator${N===1?'e':'i'}</div></div>
+ <input type="text" id="tvq" class="tvq" placeholder="Cerca tra i giochi" aria-label="Cerca tra i giochi" value="${esc(ui.q||'')}" autocomplete="off"><div class="tvchips">${chips}</div>${rows}<p class="tvhint">${MD?'Tocca una scatola per vederla. Ogni giocatore può votare fino a 3 giochi: vince il più votato.':'Tocca una scatola per scegliere, poi premi Gioca.'}</p>${det}</div>`}
+
+function roomH(){const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.on&&R.doc&&R.doc.phase==='play';
+ const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];
+ const MD=multiDev(),list=GAMES.map(g=>({g,ok:g.ok(N),v:MD?T[g.id]||0:0})).sort((a,b)=>(b.ok-a.ok)||(b.v-a.v));
+ const top=list.find(x=>x.ok);
+ const hint=R.on?`<p class="muted" style="margin:0">Manda il link d’invito: chi lo apre scrive il nome e si siede subito al falò (oppure inserisce il codice sulla targa). ${R.mode==='p2p'?'<b>Online diretto</b>: tieni questa pagina aperta, sei tu a fare da tavolo.':''}</p><button class="b sm" data-a="copy">Copia invito</button>`:`<p class="muted" style="margin:0">Non riesco a collegarmi per il gioco online (server di incontro non raggiungibile da questa pagina). Intanto puoi aggiungere ospiti e passarvi il telefono.</p><button class="b sm" data-a="retrynet">Riprova il collegamento</button>`;
+ const mem=M.map(m=>`<div class="mem"><div class="pl ${m.id===ME.dev?'act':''}"><div class="av">${esc((m.name||'?')[0])}</div><span class="n">${esc(m.name||'?')}${m.id===ME.dev?' (tu)':''}</span>${m.id!==ME.dev&&R.on?`<button class="x" data-a="rmmember" data-v="${m.id}" aria-label="Rimuovi ${esc(m.name)}">✕</button>`:''}</div>
+  ${(m.guests||[]).map(g=>`<div class="pl guest"><div class="av">${esc(g.name[0]||'?')}</div><span class="n">${esc(g.name)} <small class="muted">ospite di ${esc(m.name)}</small></span>${m.id===ME.dev?`<button class="x" data-a="rmguest" data-v="${g.k}" aria-label="Rimuovi ${esc(g.name)}">✕</button>`:''}</div>`).join('')}</div>`).join('');
+ const tab=ui.tab==='games'?'games':'room',nv=MD?Object.values(T).reduce((a,b)=>a+b,0):0;
+ const busyB=busy?`<div class="bubble">Partita di <b>${GN(R.doc.game)}</b> in corso in questa stanza. Potrai unirti alla prossima.</div>`:'';
+ const nav=`<nav class="tvnav" aria-label="Sezioni"><button class="tvtab ${tab==='room'?'on':''}" data-a="tab" data-v="room" aria-pressed="${tab==='room'}">🔥<span>Falò</span></button><button class="tvtab ${tab==='games'?'on':''}" data-a="tab" data-v="games" aria-pressed="${tab==='games'}">🎲<span>Giochi</span>${nv?`<i>${nv}</i>`:''}</button></nav>`;
+ const resume=!R.on&&(()=>{try{return JSON.parse(ST('rg-off')||'null')?.game}catch(e){return null}})()?'<button class="b gold" data-a="resume">Riprendi la partita interrotta</button>':'';
+ let body;
+ if(tab==='games'){const games=tvShelf(list,top,N,myKeys,busy);
+  body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
+  ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
+  ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
+  ${games}${resume}`}
+ else{body=`${hallScene(S)}${emoBar()}<div class="panel col">${hint}<div class="mems">${mem}</div>
+  <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button></div>
+  <p class="muted" style="margin:0">Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.</p></div>
+  ${busyB}
+  ${top&&!busy?`<button class="tvnext" data-a="tab" data-v="games"><span>🎲 ${!MD?'Scegli un gioco dallo scaffale':top.v?'In testa: <b>'+esc(top.g.name)+'</b> · '+top.v+' vot'+(top.v===1?'o':'i'):'Votate il gioco di stasera'}</span><b>Vai ai giochi ›</b></button>`:''}
+  ${chatH()}
+  ${R.on?`<div class="panel col"><h3>Entra nella stanza di un amico</h3><div class="row"><input type="text" id="jc" maxlength="6" placeholder="Codice" style="flex:1;text-transform:uppercase"><button class="b sm disc" data-a="join">Entra</button></div><button class="b sm" data-a="newroom">Crea una stanza nuova</button></div>`:''}
+  ${resume}`}
+ return`${hudH()}${body}<div class="err" role="alert">${esc(ui.err)}</div><div style="height:84px"></div>${nav}${avEditH()}${rulesH()}${cfgH()}`}
+function avEditH(){if(ui.avk==null)return'';const k=ui.avk,g=k==='m'?null:(R.mine.guests||[]).find(x=>x.k===k);if(k!=='m'&&!g)return'';
+ const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),av=avOf({dev:ME.dev,k},i),nm=g?g.name:(R.mine.name||ME.name);
+ const sw=(f,arr,lab)=>`<div class="avrow"><span>${lab}</span><div class="avsw">${arr.map((c,n)=>`<button class="avc ${av[f]===n?'on':''}" style="background:${Array.isArray(c)?c[0]:c}" data-a="avset" data-v="${f}|${n}" aria-label="${lab} ${n+1}"></button>`).join('')}</div></div>`;
+ return`<div class="modal"><div class="box col avbox"><h2>${esc(nm)}</h2><div class="avprev">${tvSprite(av,96)}</div>
+ <div class="avrow"><span>Copricapo</span><div class="avsw">${AVT.map((t,n)=>`<button class="b sm ${av.t===n?'gold':''}" data-a="avset" data-v="t|${n}">${t}</button>`).join('')}</div></div>
+ ${sw('h',AVC,'Colore copricapo')}${sw('c',AVC,'Vestito')}${sw('s',AVS,'Carnagione')}
+ <div class="row"><button class="b sm" data-a="avrand">🎲 A caso</button><button class="b gold" data-a="avedit" data-v="">Fatto</button></div></div></div>`}
+function coverH(i){const n=esc(G.names[i]);return`<div class="cover panel"><h3>Passa il telefono a</h3><div class="nm">${n}</div><button class="b play" data-a="reveal">Sono ${n}</button></div>`}
+function endH(){const s=G;if(!s.over||ui.anim)return'';let body='';
+ if(s.g==='regicide')body=`<div class="crown">${s.over.win?'👑':'💀'}</div><h2>${s.over.win?'Regicidio compiuto!':'Il regno è perduto'}</h2>${s.over.win?(s.over.medal?`<div class="medal">${{gold:'🥇 Oro',silver:'🥈 Argento',bronze:'🥉 Bronzo'}[s.over.medal]}</div>`:'')+'<p>Il Re Oscuro è caduto. La Taverna brinda alla vostra gloria!</p>':`<p>${esc(s.over.reason)}.</p><p class="muted">La corruzione dilaga. Ma gli eroi tornano sempre.</p>`}<p class="muted">Nemici sconfitti: ${12-s.castle.length-(s.en?1:0)} su 12</p>`;
+ else{const tn=t=>esc(IT.teamName(s,t)),w=s.over.win;body=`<div class="crown">${w==null?'🤝':'🏆'}</div><h2>${w==null?'Pareggio!':'Vince '+tn(w)+'!'}</h2><div class="scores">${s.over.scores.map((v,t)=>`<div class="${t===w?'w':''}"><span>${tn(t)}</span><b>${v}</b></div>`).join('')}</div>${s.g==='briscola'?'<p class="muted">Su 120 punti totali</p>':''}`}
+ const win=s.g==='regicide'?s.over.win:s.over.win!=null&&isMine(s.over.win===null?-1:s.over.win)||s.over.win!=null&&s.n===4&&local().some(i=>i%2===s.over.win);
+ return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${s.g==='regicide'?(s.over.win?'win':'lose'):'win'}">${body}<div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
+function playersH(s,{teams=false,extra}={}){return`<div class="players" id="players">${s.names.map((n,i)=>`<div class="pl ${i===s.cur&&!s.over?'act':''} ${teams?'t'+(i%2):''}"><div class="av" id="av${i}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc">${s.hands[i].length}🂠</span></div>`).join('')}${extra||''}</div>`}
+function fanH(cards,rend,{mine,dv,many}={}){const owner=viewer(),n=cards.length,same=seen.h&&seen.h.owner===owner,prevIds=new Set(same?seen.h.ids:[]),now=Date.now()/1000;
+ const h=`<div class="hand ${many?'many':''}" id="hand">${cards.map((c,i)=>{const mid=(n-1)/2,rot=many?0:(i-mid)*(rend===icardH?1.7:n>6?3.2:4),ty=many?0:Math.pow(Math.abs(i-mid),2)*1.8,isNew=seen.h!==null&&!prevIds.has(c);
+  return`<div class="slot ${ui.sel.includes(c)?'sel':''}" style="--rot:${rot}deg;--ty:${ty}px">${rend(c,{cls:(mine?'':'off ')+(isNew?'deal ':(many?'':'fl8 ')),style:`--fd:-${((now+i*.43)%3.6).toFixed(2)}s`,attrs:`data-a="sel" data-v="${c}" tabindex="0" role="button"`,dv:dv?dv(c):0,nofoil:many})}</div>`}).join('')||'<span class="muted">Nessuna carta in mano</span>'}</div>`;
+ seen.h={owner,ids:cards};return h}
+function bubbleH(s,mineTxt,waitTxt){if(s.over||ui.anim)return`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`;
+ const mine=myTurn();return mine?`<div class="bubble me"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span><b>${esc(s.names[s.cur])}</b>, tocca a te!<small>${mineTxt}</small></div>`
+ :`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>${waitTxt?`<small>${waitTxt}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`}
+function gameH(){if(!G)return hudH()+'<p class="muted" style="text-align:center">Caricamento…</p>';return VIEW[G.g]()}
+function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
+ $('#app').innerHTML=(ui.screen==='name'?nameH():ui.screen==='room'?roomH():gameH())+(ui.screen==='game'?chatDrawerH():'');
+ if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
+ Snd.track(ui.screen==='game'&&G&&!G.over?(G.g==='regicide'?(G.en?P(G.en.c).r:'menu'):G.g==='gang'?'gang':G.g==='saboteur'?'mine':G.g==='azul'?'azul':G.g==='island'?'island':G.g==='machiavelli'?'mach':G.sim?'gang':'it'):'menu')}
+function afterRender(){const h=$('#hand');
+ if(h&&!h.classList.contains('many')){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;if(n<2)h.style.setProperty('--ov','0px');else{const Wd=h.clientWidth-8,cw=sl[0].firstElementChild.getBoundingClientRect().width||64,step=Math.min(cw+8,(Wd-cw)/(n-1));h.style.setProperty('--ov',(cw-step)+'px')}}
+ if(h){const deals=[...h.querySelectorAll('.card.deal')];if(deals.length&&!RM){const t=ctr(G&&G.g==='regicide'?'#ptav':'#deck');deals.forEach((c,i)=>{const r=c.getBoundingClientRect();if(c.animate)c.animate([{transform:`translate(${t.x-(r.left+r.width/2)}px,${t.y-(r.top+r.height/2)}px) scale(.45) rotate(-25deg)`,opacity:.3},{transform:'none',opacity:1}],{duration:520*Math.max(SP,.1),delay:i*90*SP,easing:'cubic-bezier(.2,1.2,.4,1)',fill:'backwards'});if(i<6)setTimeout(()=>Snd.play('deal'),i*90*SP)})}}
+ if(G&&G.g==='regicide'&&G.en&&ui.screen==='game'){const en=ui.viewEn||G.en;if(seen.e&&seen.e!==en.c&&!RM){const b=$('#boss');if(b&&b.animate)b.animate([{transform:'translateY(-60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:600*SP,easing:'cubic-bezier(.2,1.3,.4,1)'})}seen.e=en.c}}
+addEventListener('resize',()=>afterRender());
+
+document.addEventListener('input',e=>{if(e.target.id==='tvq'){ui.q=e.target.value;render();const el=document.getElementById('tvq');if(el){el.focus({preventScroll:true});try{el.setSelectionRange(ui.q.length,ui.q.length)}catch(x){}}}});
+
+document.addEventListener('input',e=>{if(e.target.id==='cmsg')ui.cm=e.target.value});
+let tvT=0;function tvLater(){clearTimeout(tvT);tvT=setTimeout(()=>{if(ui.screen==='room'){const l=$('#chatlog'),t=l?l.scrollTop:0;render();const l2=$('#chatlog');if(l2)l2.scrollTop=t}},7200)}
+let lastChat=0;
+async function chatSend(){const t=(ui.cm||'').trim().slice(0,120);if(!t||!R.on||!R.code)return;if(Date.now()-lastChat<600)return;lastChat=Date.now();
+ const k=ui.ek||'m',g=(R.mine.guests||[]).find(x=>x.k===k),nm=g?g.name:(R.mine.name||ME.name),id=Date.now()+'_'+rid();ui.cm='';
+ try{await R.db.doc('rooms/'+R.code+'/chat/'+id).set({dev:ME.dev,k:g?k:'m',name:nm,text:t,t:Date.now()});
+  const old=R.chat.slice(0,Math.max(0,R.chat.length-39));for(const o of old){try{await R.db.doc('rooms/'+R.code+'/chat/'+o.id).delete()}catch(e){}}}catch(e){ui.err=netErr(e)}
+ render();const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight;const el=$('#cmsg');if(el)el.focus({preventScroll:true})}
