@@ -3,7 +3,11 @@
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src/manifest.json'), 'utf8'));
-const html = manifest.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('');
+let html = manifest.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('');
+// carte con illustrazione in assets/cards/<ID>.webp (es. JH, QS, KC, X): usate al posto del disegno vettoriale
+const cardsDir = path.join(root, 'assets/cards');
+const imgs = fs.existsSync(cardsDir) ? fs.readdirSync(cardsDir).filter(n => /^[JQKX][HDCS]?\.webp$/.test(n)).map(n => n.replace('.webp', '')) : [];
+html = html.replace('/*FZIMG*/[]', JSON.stringify(imgs));
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
 // asset statici (immagini, audio) copiati così come sono
