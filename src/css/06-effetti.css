@@ -37,3 +37,9 @@
 @media(min-width:700px){.hand .card{--cw:90px}.card.xl{--cw:134px}}
 @media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .card.fz{background:radial-gradient(120% 90% at 30% 15%,rgba(255,255,255,.55),transparent 60%),var(--cardbg)}.card.fz .fzsvg{position:absolute;left:3%;top:4%;width:94%;height:94%;pointer-events:none}.card.fz .ix{z-index:2;text-shadow:0 0 3px var(--cardbg),0 0 3px var(--cardbg)}.card.fz .val{z-index:2}.card.sm.fz .ix,.card.fz.mini .ix{font-size:calc(var(--cw)*.22)}
+
+/* carte figura: pergamena, filetto interno, vignettatura, stampa a incisione */
+.card.fz{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .3 0 0 0 0 .14 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),radial-gradient(120% 90% at 30% 15%,rgba(255,255,255,.5),transparent 60%),#f6ecd2}
+.card.fz::before{content:"";position:absolute;inset:3.4%;border:1px solid rgba(70,45,20,.55);border-radius:calc(var(--cw)*.05);box-shadow:inset 0 0 calc(var(--cw)*.2) rgba(120,80,25,.32),inset 0 0 0 calc(var(--cw)*.014) rgba(255,255,255,.3);pointer-events:none;z-index:1}
+.card.fz .fzsvg{filter:sepia(.28) saturate(.95) contrast(1.06)}
+.card.fz .fzimg{position:absolute;left:3.4%;top:3.4%;width:93.2%;height:93.2%;object-fit:cover;border-radius:calc(var(--cw)*.05);mix-blend-mode:multiply;pointer-events:none}

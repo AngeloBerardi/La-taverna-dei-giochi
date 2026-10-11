@@ -3,9 +3,11 @@ const FACE=(()=>{
 const PAL={H:{m:'#b8323a',d:'#7a1c28',l:'#e9898a',w:'#f3c1b6'},D:{m:'#d39b2b',d:'#94600f',l:'#f4d06c',w:'#f7e2a6'},C:{m:'#3f7d4c',d:'#244f30',l:'#93c48e',w:'#cfe5c2'},S:{m:'#3b4b8e',d:'#1e2552',l:'#8d9de0',w:'#c9d0f0'}};
 const GOLD='#e3b341',GOLDD='#a9761c',INK='#2a1a14',CREAM='#f3e6c8',STEEL='#9aa3b2',STEELD='#5d6578';
 const o=v=>v==null?'':` opacity="${v}"`;
-const p=(d,f,op)=>`<path d="${d}" fill="${f}"${o(op)}/>`;
+const INKC='#2a1a14',lum=h=>{const m=/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(h||'');if(!m)return 1;let x=m[1];if(x.length===3)x=x.replace(/./g,'$&$&');const n=parseInt(x,16);return(.299*(n>>16)+.587*(n>>8&255)+.114*(n&255))/255};
+const hatchOf=f=>{const l=lum(f);return l<.4?'fzh2':l<.62?'fzh1':''};
+const p=(d,f,op)=>{if(op!=null)return`<path d="${d}" fill="${f}"${o(op)}/>`;const h=hatchOf(f);return`<path d="${d}" fill="${f}" stroke="${INKC}" stroke-width=".55" stroke-linejoin="round"/>`+(h?`<path d="${d}" fill="url(#${h})"/>`:'')};
 const c=(x,y,r,f,op)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"${o(op)}/>`;
-const e=(x,y,rx,ry,f,op)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}"${o(op)}/>`;
+const e=(x,y,rx,ry,f,op)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}"${o(op)}${op==null&&rx>=5?` stroke="${INKC}" stroke-width=".5"`:''}/>`;
 const ln=(d,s,w,op)=>`<path d="${d}" fill="none" stroke="${s}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${o(op)}/>`;
 const wash=(P,v)=>p(v?'M22 30C8 58 12 104 30 124C52 142 82 132 88 108C96 78 94 40 74 24C56 10 32 12 22 30Z':'M20 36C10 66 16 112 34 126C56 140 84 128 88 102C94 70 90 34 70 22C52 12 28 18 20 36Z',P.w,.75)+c(84,26,5,P.w,.6)+c(15,118,4,P.w,.55)+c(88,40,2.2,P.w,.6);
 /* testa */
@@ -52,6 +54,19 @@ const coin=(x,y,r=3)=>c(x,y,r,GOLD)+c(x,y,r*.62,'none')+`<circle cx="${x}" cy="$
 const rose=(x,y)=>ln(`M${x} ${y}q-2 6 1 12`,'#3f7d4c',1.4)+e(x+2,y+6,2.4,1.2,'#3f7d4c')+c(x,y,3.4,'#c8262f')+ln(`M${x-1.6} ${y-.4}q1.6-2 3.2 0q-1.6 2-3.2 0`,'#7a1c28',.9);
 const heart=(x,y,s,f)=>p(`M${x} ${y+s*.9}C${x-s*1.6} ${y-s*.1} ${x-s} ${y-s*1.2} ${x} ${y-s*.45}C${x+s} ${y-s*1.2} ${x+s*1.6} ${y-s*.1} ${x} ${y+s*.9}Z`,f);
 /* ---- personaggi ---- */
+
+/* sfondo inciso per seme: cielo a righe, colline tratteggiate, motivo del seme */
+const rr=i=>((i*7919)%97)/97;
+const pine=(x,y,k)=>p(`M${x-1} ${y}h2v${4*k}h-2z`,'#5a4026')+[0,1,2].map(i=>{const w=(5.5-i)*k,t=y-10*k+i*4.6*k;return p(`M${x} ${t}L${x+w} ${t+6*k}H${x-w}Z`,'#4a5a3c')}).join('');
+const hills=(a,b)=>p(`M0 ${a}L12 ${a-12}L26 ${a-3}L42 ${a-18}L58 ${a-4}L74 ${a-14}L88 ${a-2}L100 ${a-9}V140H0Z`,'#a89a78')+p(`M0 ${b}Q22 ${b-8} 46 ${b-2}T100 ${b-5}V140H0Z`,'#7e7050');
+const BG={
+ H:()=>p('M8 34h13v50H8z','#8a7a5c')+p('M6 30h3v4h3v-4h3v4h3v-4h3v4h2v-6H6z','#8a7a5c')+p('M12 42h5v8h-5z','#2a1a14')+ln('M78 70q6-8 12 0M70 78q8-10 16 0','#7a1c28',.7,.6)+[[80,92],[88,96],[74,98]].map(([x,y])=>c(x,y,2.2,'#b8323a')+c(x,y,.8,'#7a1c28')).join(''),
+ D:()=>[16,50,84].map(x=>p(`M${x-5} 40h10v56h-10z`,'#9a8a68')+p(`M${x-7} 36h14v4h-14z`,'#7e7050')).join('')+ln('M11 40q5-12 10 0M45 40q5-12 10 0M79 40q5-12 10 0','#2a1a14',.6)+[[22,100],[78,104],[50,108]].map(([x,y])=>coin(x,y,2.4)).join(''),
+ C:()=>p('M0 62h100v6H0z','#7e7050')+Array.from({length:10},(_,i)=>p(`M${i*10+1} 56h6v6h-6z`,'#7e7050')).join('')+p('M0 68h100v34H0z','#8f8160')+Array.from({length:6},(_,i)=>ln(`M${i*18+4} 74h14M${i*18+13} 86h14M${i*18+4} 96h14`,'#2a1a14',.35,.7)).join('')+pine(10,106,1.4)+pine(92,108,1.2),
+ S:()=>c(80,26,7,'#f3e6c8')+c(83,24,6,'#cdbf9c',.9)+p('M12 108q4-30 3-48q-6-4-9-10q6 1 10 5q-1-8 2-14q3 7 1 15q5-5 11-6q-6 5-9 11q2 20 5 47z','#3a2a1c')+ln('M16 62q10-8 18-8M14 74q-8-6-12-6','#2a1a14',.8)
+};
+const bgScene=s=>{let o='';for(let i=0;i<24;i++){const y=6+i*2.3;o+=`<path d="M${4+rr(i)*6} ${y}H${96-rr(i+5)*8}" stroke="#2a1a14" stroke-width=".22" opacity="${(.55-i*.02).toFixed(2)}" fill="none"/>`}
+ o+=hills(76,106)+(BG[s]?BG[s]():'')+p('M0 112Q30 104 60 110T100 108V140H0Z','#6e6244');return o};
 const F={};
 F.JH=()=>{const P=PAL.H;return wash(P)+
  p('M58 70l14 18-2 2-14-16z',STEEL)+p('M55 67l5-2 3 4-5 2z',GOLD)+ /* pugnale dietro la schiena */
@@ -172,9 +187,12 @@ F.X=()=>{const R='#c8262f',Y='#e8b83a';return p('M20 36C10 66 16 112 34 126C56 1
  p('M40 30Q38 18 50 16Q62 18 60 30Z',R)+p('M50 16Q62 18 60 30H50Z',Y)+p('M42 22Q30 14 24 24Q32 20 40 28Z',R)+p('M58 22Q70 14 76 24Q68 20 60 28Z',Y)+p('M48 17Q50 4 54 2Q52 10 52 17Z',R)+
  c(24,25,2.6,Y)+c(76,25,2.6,R)+c(54,3,2.4,Y)+p('M39 28h22v4H39z',INK)};
 /* filtro "pittura": bordi irregolari + grana di carta (definito una volta nella pagina) */
-const DEFS='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="fzpaint" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="8" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 .2  0 0 0 0 .12  0 0 0 0 .05  0 0 0 -.7 .42" result="ga"/><feComposite in="ga" in2="d" operator="in" result="gm"/><feMerge><feMergeNode in="d"/><feMergeNode in="gm"/></feMerge></filter></defs></svg>';
+const DEFS='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="fzh1" width="1.9" height="1.9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V1.9" stroke="#1c1008" stroke-width=".42" opacity=".6"/></pattern><pattern id="fzh2" width="1.9" height="1.9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V1.9M0 0H1.9" stroke="#1c1008" stroke-width=".42" opacity=".62"/></pattern><clipPath id="fzclip"><rect x="3" y="4" width="94" height="132" rx="4"/></clipPath><filter id="fzpaint" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="8" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 .2  0 0 0 0 .12  0 0 0 0 .05  0 0 0 -.7 .42" result="ga"/><feComposite in="ga" in2="d" operator="in" result="gm"/><feMerge><feMergeNode in="d"/><feMergeNode in="gm"/></feMerge></filter></defs></svg>';
 const TILT={JH:-5,JD:4,JC:-2,JS:-3,QH:3,QD:-4,QC:5,QS:-2,KH:2,KD:-3,KC:1,KS:3,X:-6};const cache={};
-function svg(id){if(!cache[id]){const k=id==='X'?'X':id.slice(-2);cache[id]=F[k]?`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g transform="translate(6 9) scale(.88)"><g transform="rotate(${TILT[k]||0} 50 80)">${F[k]()}</g></g></g></svg>`:''}return cache[id]}
+const FZIMG=/*FZIMG*/[];
+function svg(id){if(!cache[id]){const k=id==='X'?'X':id.slice(-2);
+ if(FZIMG.includes(id)){cache[id]=`<img class="fzimg" src="assets/cards/${id}.webp" alt="" draggable="false" decoding="async" onerror="this.remove()">`}
+ else cache[id]=F[k]?`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene(k[0]==='X'?'D':k[1])}</g><g transform="translate(6 9) scale(.88)"><g transform="rotate(${TILT[k]||0} 50 80)">${F[k]()}</g></g></g></svg>`:''}return cache[id]}
 let dd=0;function ensureDefs(){if(dd)return;dd=1;if(typeof document!=='undefined'&&!document.getElementById('fzdefs')){const d=document.createElement('div');d.id='fzdefs';d.innerHTML=DEFS;document.body.appendChild(d)}}
 return{svg,ensureDefs,F}})();
 
