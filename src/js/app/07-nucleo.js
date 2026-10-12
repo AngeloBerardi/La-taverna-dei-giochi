@@ -191,8 +191,17 @@ function nameH(){return`${hudH()}<div class="title"><h1>La Taverna dei Giochi</h
 <div class="panel col"><h3>Come ti chiami?</h3><input type="text" id="myname" maxlength="14" placeholder="Il tuo nome" value="${esc(ME.name)}" autocomplete="nickname"><button class="b play big" data-a="setname">${INV?'Siediti al falò':'Accendi il falò'}</button><p class="muted" style="margin:0">${INV?'Ti siederai accanto a chi ti ha invitato.':'Entrerai subito nel tuo falò: manda il link e gli amici si siederanno accanto a te.'}</p></div><div class="err" role="alert">${esc(ui.err)}</div>${cfgH()}${rulesH()}`}
 /* ---- Lobby: falò + scaffale ---- */
 const TVC={carte:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CARTE'},tavolo:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'DA TAVOLO'},coop:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'},solo:{f:'#8a62d6',s:'#4d3490',e:'#b99af0',n:'SOLITARI'}};
-const TVG={regicide:['coop','REGICIDE'],briscola:['carte','BRISCOLA'],scopa:['carte','SCOPA'],burraco:['carte','BURRACO'],gang:['coop','THE GANG'],saboteur:['carte','SABOTEUR'],island:['solo','ISOLA'],machiavelli:['carte','MACHIAVELLI'],harvest:['tavolo','HARVEST'],valle:['tavolo','VALLE'],scoundrel:['solo','SCOUNDREL'],mind:['coop','THE MIND'],mindx:['coop','MIND EXTREME'],azul:['tavolo','AZUL']};
+const TVG={regicide:['coop','REGICIDE'],briscola:['carte','BRISCOLA'],scopa:['carte','SCOPA'],burraco:['carte','BURRACO'],gang:['coop','THE GANG'],saboteur:['carte','SABOTEUR'],island:['solo','ISOLA'],machiavelli:['carte','MACHIAVELLI'],harvest:['tavolo','HARVEST'],valle:['tavolo','VALLE'],discesa:['solo','DISCESA'],scoundrel:['solo','SCOUNDREL'],mind:['coop','THE MIND'],mindx:['coop','MIND EXTREME'],azul:['tavolo','AZUL']};
 const tvInfo=g=>TVG[g.id]||['tavolo',g.name.toUpperCase().slice(0,11)];
+/* Scatole in proporzioni reali (misure approssimate in mm: altezza in piedi, spessore, larghezza del fronte).
+   k: deck = astuccio di carte con linguetta, box = scatola con coperchio, wallet = bustina, flat = scatola grande coricata.
+   Colori che richiamano le confezioni originali, ma titoli e grafica restano nostri (niente copertine né loghi). */
+const TVB={regicide:{mm:[98,38],k:'deck',c:['#6e1420','#3a0a10','#e2b13c']},briscola:{mm:[95,20],k:'deck',c:['#f1ebdd','#b9ad94','#c8262f'],ink:'#8e1b22'},scopa:{mm:[95,20],k:'deck',c:['#c8262f','#7a121a','#f1ebdd']},
+ burraco:{mm:[98,42],k:'deck',c:['#1d4f9a','#0e2a55','#f1ebdd']},machiavelli:{mm:[98,42],k:'deck',c:['#2f7a4a','#164029','#f1ebdd']},gang:{mm:[125,40],k:'box',c:['#1c1c24','#09090d','#d8402f']},
+ saboteur:{mm:[126,28],k:'box',c:['#8a4a1a','#4a240a','#f2c230']},mind:{mm:[112,22],k:'box',c:['#2a4fa8','#122660','#9fd2ff']},mindx:{mm:[112,22],k:'box',c:['#a8261c','#5a0e08','#ffb347']},
+ harvest:{mm:[150,42],k:'box',c:['#6aa33a','#35601a','#f2c230']},azul:{mm:[265,80],k:'flat',c:['#f3efe6','#b9b2a2','#2c5fb0'],ink:'#1d3f7a'},valle:{mm:[254,70],k:'flat',c:['#2f7a6a','#163f36','#e0c95a']},
+ island:{mm:[128,12],k:'wallet',c:['#3aa39a','#1d5c56','#f2c230']},scoundrel:{mm:[92,22],k:'deck',c:['#2a2a30','#101014','#c8262f']},discesa:{mm:[118,25],k:'box',c:['#4d3490','#24164a','#f2c230']}};
+const TVPX=.85;
 const TVP=[['#c8262f','#8e1b22','#2f8a5b','#1f6a43'],['#2c7fd6','#123f7a','#e2b13c','#a67d12'],['#7d55c7','#40287a','#d8402f','#8e1b22'],['#e8742c','#9a4a12','#3f8fe0','#1d5aa0'],['#2fa65b','#17603a','#c8434a','#8e1b22'],['#e8b83a','#a67d12','#7d55c7','#40287a'],['#d85a9a','#8a2a5a','#2f8a5b','#1f6a43'],['#5cc8d8','#1d6a7a','#e8742c','#9a4a12']];
 const tvExt=c=>{let a=[];for(let i=1;i<=6;i++)a.push(i+'px -'+i+'px 0 '+c);a.push('12px 5px 12px rgba(0,0,0,.55)');return a.join(',')};
 const AVC=[['#c8262f','#8e1b22'],['#2c7fd6','#123f7a'],['#2fa65b','#17603a'],['#7d55c7','#40287a'],['#e8742c','#9a4a12'],['#e8b83a','#a67d12'],['#d85a9a','#8a2a5a'],['#5cc8d8','#1d6a7a'],['#3a3a44','#1a1a22'],['#f3efe6','#a8a090']];
@@ -266,6 +275,11 @@ const FIRE=(()=>{const W=40,H=36,px=new Uint8Array(W*H);let img=null,ctx=null,cv
  function tick(){const el=document.getElementById('tvfirec');if(!el){cv=null;return}if(el!==cv){cv=el;ctx=el.getContext('2d');img=ctx.createImageData(W,H)}step();draw()}
  for(let k=0;k<40;k++)step();
  setInterval(()=>{if(!RM)tick();else if(document.getElementById('tvfirec')!==cv)tick()},70);return{tick}})();
+function tvBoxH(x,k,pick,MD,N){const{g,ok,v}=x,c=TVC[k],b=TVB[g.id]||{mm:[112,36],k:'box',c:[c.f,c.s,c.e]},on=pick&&pick.g===g,flat=b.k==='flat';
+ const w=flat?Math.round(b.mm[0]*TVPX):Math.max(24,Math.round(b.mm[1]*TVPX)),h=flat?Math.round(b.mm[1]*TVPX):Math.round(b.mm[0]*TVPX),thin=w<40;
+ return`<button class="tvbox tv-${b.k}${thin?' thin':''}${ok?'':' off'}" data-a="tvpick" data-v="${g.id}" aria-pressed="${!!on}" aria-label="${esc(g.name)}, ${g.range} giocatori${MD?', '+v+' voti':''}${ok?'':', non disponibile con '+N}" style="width:${w}px;height:${h}px;--bf:${b.c[0]};--bs:${b.c[1]};--be:${b.c[2]};--bi:${b.ink||'#fff3c4'};box-shadow:${tvExt(b.c[1])};transform:translateY(${on?-14:0}px)">${thin?'<i class="tvhit" aria-hidden="true"></i>':''}<span class="tvv">${tvInfo(g)[1]}</span><span class="tvt">${g.range.replace(' o ','/')}${MD&&v?' ★'+v:''}</span></button>`}
+function tvBoxes(ch,k,pick,MD,N){const isF=x=>TVB[x.g.id]&&TVB[x.g.id].k==='flat';ch=[...ch.filter(isF),...ch.filter(x=>!isF(x))];let out='',pile=[];const flush=()=>{if(pile.length){out+=`<div class="tvpile">${pile.reverse().join('')}</div>`;pile=[]}};
+ for(const x of ch){const b=TVB[x.g.id];if(b&&b.k==='flat'){pile.push(tvBoxH(x,k,pick,MD,N));if(pile.length===2)flush()}else{flush();out+=tvBoxH(x,k,pick,MD,N)}}flush();return out}
 function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
@@ -276,8 +290,7 @@ function tvShelf(list,top,N,myKeys,busy){
  let rows='';
  order.forEach(k=>{const items=vis.filter(x=>tvInfo(x.g)[0]===k);
   for(let i=0;i<items.length;i+=6){const ch=items.slice(i,i+6);
-   rows+=`<div class="tvrow">${i===0?`<div class="tvplate">${TVC[k].n}<small>${items.length}</small></div>`:''}<div class="tvboxes">${ch.map(({g,ok,v},j)=>{const c=TVC[k],on=pick&&pick.g===g,h=112+((i+j)*7%5)*4;
-    return`<button class="tvbox" data-a="tvpick" data-v="${g.id}" aria-pressed="${!!on}" aria-label="${esc(g.name)}, ${g.range} giocatori${MD?', '+v+' voti':''}${ok?'':', non disponibile con '+N}" style="height:${h}px;background:linear-gradient(90deg,${ok?c.f:'#7a819e'},${ok?c.s:'#4a5072'});box-shadow:${tvExt(ok?c.s:'#4a5072')};border-top-color:${ok?c.e:'#aab0c8'};transform:translateY(${on?-14:0}px);opacity:${ok?1:.65}"><span class="tvv">${tvInfo(g)[1]}</span><span class="tvt">${g.range.replace(' o ','/')}${MD&&v?' ★'+v:''}</span></button>`}).join('')}</div><div class="tvplank"></div></div>`}});
+   rows+=`<div class="tvrow">${i===0?`<div class="tvplate">${TVC[k].n}<small>${items.length}</small></div>`:''}<div class="tvboxes">${tvBoxes(ch,k,pick,MD,N)}</div><div class="tvplank"></div></div>`}});
  if(!vis.length)rows='<div class="tvnone">NESSUN GIOCO TROVATO</div>';
  const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
  const det=g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
