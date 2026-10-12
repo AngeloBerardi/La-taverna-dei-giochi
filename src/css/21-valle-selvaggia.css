@@ -1,0 +1,29 @@
+/* Valle Selvaggia: plancia esagonale, sentiero di 4 coppie, tabella finale */
+.vwrap{display:flex;justify-content:center;padding:4px 0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2b3a2a 0%,#1a1612 75%);border-radius:14px;margin:4px 0;box-shadow:inset 0 0 24px #000a}
+.vboard{max-width:100%;height:auto;touch-action:manipulation}
+.vboard .vtap{cursor:pointer}
+.vboard .vglow{animation:hpulse 1s infinite alternate}
+.vboard .vghost{filter:drop-shadow(0 0 6px #f7c948)}
+.vdisp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px 2px}
+.vpair{display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px;padding:4px 0;background:#ffffff0d;transition:transform .15s}
+.vpair.sel{background:#f7c94826;transform:translateY(-4px)}
+.vpt,.vpk{background:none;border:0;padding:0;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px}
+.vpk{font-size:26px;width:44px;height:44px;background:#f6efe0;border:2px solid #3b2a1a;border-radius:50%}
+.vpt.on svg{filter:drop-shadow(0 0 5px #f7c948)}
+.vpk.on{outline:3px solid #f7c948}
+.vpk.wipe{outline:3px dashed #e8574a;opacity:.7}
+.vctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:44px;align-items:center}
+.vheld{font-size:30px;width:48px;height:48px;display:inline-flex;align-items:center;justify-content:center;background:#f6efe0;border:2px solid #3b2a1a;border-radius:50%;animation:hpulse 1s infinite alternate}
+.pl.vsee{box-shadow:0 0 0 2px #f7c94899}
+.vgoals{font-size:12px;line-height:1.35;background:#00000055;border-radius:10px;padding:6px 8px;margin:4px 0;display:grid;gap:3px}
+.vgoals b{color:var(--gold,#f7c948)}
+.vgbtn{cursor:pointer;border:0;font:inherit}
+.vscore{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+.vscore th,.vscore td{padding:3px 4px;text-align:center;border-bottom:1px solid #ffffff1a}
+.vscore td small{color:#f7c948;margin-left:2px}
+.vscore tr.tot td{font-weight:bold;font-size:15px}
+.vscore td.w{color:#b3261e;font-size:18px}
+.vsw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle}
+@media (prefers-reduced-motion:reduce){.vboard .vglow,.vheld{animation:none}.vpair{transition:none}}
+.vleg{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;font-size:12px;opacity:.9;margin:2px 0 4px}
+.vleg span{display:inline-flex;align-items:center;gap:3px}

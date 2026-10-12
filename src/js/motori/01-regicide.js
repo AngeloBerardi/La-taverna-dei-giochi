@@ -34,6 +34,7 @@ function draw(s,k){let i=s.cur,stuck=0,got=0;
  while(k>0&&s.tav.length&&stuck<s.n){if(s.hands[i].length<HAND[s.n]){s.hands[i].push(s.tav.pop());k--;got++;stuck=0}else stuck++;i=(i+1)%s.n}return got}
 function lose(s,why){s.over={win:false,reason:why};E(s,{t:'lose'});L(s,'SCONFITTA: '+why)}
 function endTurn(s){s.cur=(s.cur+1)%s.n;E(s,{t:'turn',p:s.cur});s.phase='play';s.owed=0;
+ if(s.n===1&&!s.hands[0].length&&s.jl<1)return lose(s,'Mano vuota e nessun Jolly: il castello resiste');
  if(s.n>1&&s.yr>=s.n-1&&!s.hands[s.cur].length)lose(s,s.names[s.cur]+' non può né giocare né cedere')}
 function beginDamage(s){const rk=P(s.en.c).r;s.owed=Math.max(0,atOf[rk]-s.en.sh);
  if(!s.owed){L(s,'Il nemico non infligge danni (scudo)');E(s,{t:'block'});return endTurn(s)}
