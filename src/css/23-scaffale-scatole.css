@@ -33,3 +33,14 @@
 @supports not (color:color-mix(in srgb,red,blue)){.tvbox{background:var(--bf)}.tv-deck::before,.tv-box::before,.tv-flat::before{background:rgba(0,0,0,.3)}}
 .tvbox .tvv,.tvbox .tvt{position:relative;z-index:1}
 .tvbox.off{filter:grayscale(.6) brightness(.8);opacity:.8}
+/* infobox ⓘ */
+.info{position:relative;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;vertical-align:middle;cursor:help;flex:none;outline:none}
+.info::before{content:'';position:absolute;inset:-11px}
+.info>i{font:700 13px/1 Georgia,serif;font-style:italic;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2c7fd6;color:#fff;border:2px solid #05081c;box-shadow:0 2px 0 #05081c}
+.info.dark>i{background:#ffb347;color:#1a1206}
+.info .tip{display:none;position:fixed;z-index:3000;background:#fff8e6;color:#1a1206;border:3px solid #05081c;border-radius:10px;box-shadow:0 6px 0 #05081c,0 12px 24px rgba(0,0,0,.4);padding:9px 11px;font:500 14px/1.4 system-ui,sans-serif;text-align:left;text-transform:none;letter-spacing:0;white-space:normal;pointer-events:none}
+.info:hover .tip,.info:focus .tip,.info.open .tip{display:block}
+.info:focus-visible>i{outline:3px solid #ffe83d;outline-offset:2px}
+@media (hover:none){.info:hover:not(.open):not(:focus) .tip{display:none}}
+.dcbw,.dtogr{display:flex;align-items:center;gap:6px}.dcbw .dcb,.dtogr .dtog{flex:1}
+.dcb{flex-direction:row;align-items:center;gap:6px}
