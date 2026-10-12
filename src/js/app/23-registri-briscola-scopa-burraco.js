@@ -104,6 +104,6 @@ const BUFX={async pre(prev,ns,own){const e=ns.ev[0];if(!e)return{};
   endFx(ns)}};
 function endFx(ns){if(ns.over){if(ns.over.win!=null){Snd.play('win');confetti()}else Snd.play('turn')}}
 /* ================= REGISTRI ================= */
-const VIEW={regicide:()=>regicideH(),briscola:briscolaH,scopa:scopaH,burraco:burracoH,gang:gangH,saboteur:sabotH,azul:azulH,island:islandH,machiavelli:machH,mind:mindH,mindx:mindH,harvest:harvH,scoundrel:scoundH,valle:valleH};
-const FX={regicide:{pre:regPre,run:(p,n,o)=>runFx(n.ev,o)},briscola:BRFX,scopa:SCFX,burraco:BUFX,gang:GAFX,saboteur:SBFX,azul:AZFX,island:ISFX,machiavelli:MAFX,mind:MIFX,mindx:MIFX,harvest:HVFX,scoundrel:SCFXX,valle:VLFX};
-function gameClick(a,v){({regicide:regClick,briscola:brisClick,scopa:scopaClick,burraco:burClick,gang:gangClick,saboteur:sabClick,azul:azClick,island:islClick,machiavelli:machClick,mind:mindClick,mindx:mindClick,harvest:harvClick,scoundrel:sclClick,valle:valClick})[G.g](a,v)}
+const VIEW={regicide:()=>regicideH(),briscola:briscolaH,scopa:scopaH,burraco:burracoH,gang:gangH,saboteur:sabotH,azul:azulH,island:islandH,machiavelli:machH,mind:mindH,mindx:mindH,harvest:harvH,scoundrel:scoundH,valle:valleH,discesa:discesaH};
+const FX={regicide:{pre:regPre,run:(p,n,o)=>runFx(n.ev,o)},briscola:BRFX,scopa:SCFX,burraco:BUFX,gang:GAFX,saboteur:SBFX,azul:AZFX,island:ISFX,machiavelli:MAFX,mind:MIFX,mindx:MIFX,harvest:HVFX,scoundrel:SCFXX,valle:VLFX,discesa:DIFX};
+function gameClick(a,v){({regicide:regClick,briscola:brisClick,scopa:scopaClick,burraco:burClick,gang:gangClick,saboteur:sabClick,azul:azClick,island:islClick,machiavelli:machClick,mind:mindClick,mindx:mindClick,harvest:harvClick,scoundrel:sclClick,valle:valClick,discesa:discClick})[G.g](a,v)}
