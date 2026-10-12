@@ -32,6 +32,8 @@ function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.si
 function seatTag(i){const x=seatsNow()[i];if(!x||x.dev!==ME.dev||G&&G.n===1)return'';return x.k==='m'?' (tu)':' (ospite)'}
 const members=()=>R.on?R.members:[{id:ME.dev,...R.mine}];
 const multiDev=()=>members().length>=2;
+const GENROOM='PIAZZA',isGen=()=>R.code===GENROOM;
+function setRoomUrl(c){try{const u=new URL(location.href);if(c&&c!==GENROOM)u.searchParams.set('room',c);else u.searchParams.delete('room');history.replaceState(null,'',u)}catch(e){}}
 const INV=(()=>{try{const c=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length>=3&&c.length<=6?c:''}catch(e){return''}})();
 function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?'},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
 function tally(n){const t={};members().forEach(m=>{const keys=['m',...(m.guests||[]).map(g=>g.k)];keys.forEach(k=>((m.votes||{})[k]||[]).forEach(g=>{const G0=GAMES.find(x=>x.id===g);if(G0&&G0.ok(n))t[g]=(t[g]||0)+1}))});return t}
@@ -47,15 +49,19 @@ async function enterHub(){ui.screen='room';ui.err='';R.mine.name=ME.name;render(
  if(!R.on){try{const o=JSON.parse(ST('rg-off')||'null');if(o&&o.mine)R.mine={...o.mine,name:ME.name}}catch(e){}render();return}
  if(R.mode==='p2p'){try{await p2pEnter()}catch(e){ui.err=netErr(e);render()}return}
  try{let code=ST('rg-room');
-  if(INV&&INV!==code){try{if((await R.db.doc('rooms/'+INV).get()).exists)code=INV;else ui.err='Non trovo il falò '+INV}catch(e){}}
-  if(code){const sn=await R.db.doc('rooms/'+code).get();if(!sn.exists)code=null;else{const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}}
-  if(!code)code=await createRoom();await joinRoom(code)}catch(e){ui.err=netErr(e);render()}}
+  code=GENROOM;
+  if(INV&&INV!==GENROOM){try{if((await R.db.doc('rooms/'+INV).get()).exists)code=INV;else ui.err='Non trovo il falò '+INV}catch(e){}}
+  const sn=await R.db.doc('rooms/'+code).get();if(!sn.exists)await R.db.doc('rooms/'+code).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});
+  await joinRoom(code)}catch(e){ui.err=netErr(e);render()}}
 async function p2pCreate(){for(let i=0;i<6;i++){const c=newCode();try{R.db=await p2pHost(c,false);ST('rg-role','host');await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}catch(e){if(e.code!=='unavailable-id')throw e}}throw new Error('nessun codice libero')}
-async function p2pEnter(){let code=ST('rg-room'),role=ST('rg-role');
- if(INV&&!(code===INV&&role==='host')){try{R.db=await p2pJoin(INV);ST('rg-role','guest');code=INV;await joinRoom(code);return}catch(e){ui.err='Non trovo il falò '+INV+': l’host deve avere la pagina aperta.';code=ST('rg-room');role=ST('rg-role')}}
-if(code){try{if(role==='host'){R.db=await p2pHost(code,true);if(!(await R.db.doc('rooms/'+code).get()).exists)code=null}else{R.db=await p2pJoin(code);ST('rg-role','guest')}}catch(e){code=null}}
- if(code){const d=(await R.db.doc('rooms/'+code).get()).data();if(d&&d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}
- if(!code)code=await p2pCreate();await joinRoom(code)}
+async function p2pEnter(){
+ if(INV&&INV!==GENROOM){try{R.db=await p2pJoin(INV);ST('rg-role','guest');await joinRoom(INV);return}catch(e){ui.err='Non trovo la stanza '+INV+': chi l’ha creata deve avere la pagina aperta. Ti porto nella stanza generale.';setRoomUrl(null)}}
+ await p2pGeneral()}
+/* stanza generale: entra se qualcuno la ospita, altrimenti la ospiti tu */
+async function p2pGeneral(){const c=GENROOM;
+ for(let k=0;k<3;k++){try{R.db=await p2pJoin(c,4000);ST('rg-role','guest');ui.err='';await joinRoom(c);return}catch(e){}
+  try{R.db=await p2pHost(c,true,null,true);ST('rg-role','host');if(!(await R.db.doc('rooms/'+c).get()).exists)await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});ui.err='';await joinRoom(c);return}catch(e){if(e.code!=='unavailable-id')throw e}}
+ throw Object.assign(new Error('Stanza generale non raggiungibile'),{code:'timeout'})}
 const netErr=e=>e&&e.code==='broker'?'Il server di incontro non è raggiungibile: controlla la connessione.':e&&(e.code==='peer-unavailable'||e.code==='timeout'||e.code==='close')&&R.mode==='p2p'?'Stanza non trovata: controlla il codice (l’host deve avere la pagina aperta).':e&&e.code==='invalid_argument'?'Non hai il permesso di scrivere in questa pagina: chiedi al proprietario di condividerla come Contributor.':'Errore di rete: '+(e&&(e.message||e.code)||e);
 async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
 async function joinRoom(code){const old=R.code;unsubAll();
@@ -121,7 +127,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'join':{const c=($('#jc')?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
-   await joinRoom(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
+   await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
+ case'genroom':if(!R.on)return;setRoomUrl(null);ui.err='';try{if(R.mode==='p2p'){await p2pGeneral()}else{await joinRoom(GENROOM)}say('Sei nella stanza generale')}catch(x){ui.err=netErr(x);render()}return;
  case'retrynet':R.tried=false;R.on=false;R.mode=null;ui.err='';return enterHub();
  case'emo':{const[e,k]=v.split('|');const m=R.mine.emo=R.mine.emo||{};m[k||'m']={e,t:Date.now()};await saveMine();tvLater();return}
  case'ek':ui.ek=v;return render();
@@ -136,8 +143,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'tvcat':ui.cat=v;return render();
  case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
  case'tvpick':ui.pick=v;return render();
- case'newroom':if(!R.on)return;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);say('Nuova stanza '+c)}catch(x){ui.err=netErr(x);render()}return;
- case'copy':{const url=location.origin+location.pathname+'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:''),txt='Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
+ case'newroom':if(!R.on)return;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);setRoomUrl(c);say('Stanza privata '+c+': condividi il codice')}catch(x){ui.err=netErr(x);render()}return;
+ case'copy':{const url=location.origin+location.pathname+(isGen()?(R.mode==='p2p'&&P2P.tr==='mq'?'?b='+MQ.bi:''):'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')),txt=isGen()?'Vieni a giocare alla Taverna dei Giochi!':'Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
  case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;
  case'rematch':return rematch();
  case'tolobby':return toLobby();
@@ -245,7 +252,7 @@ function tvScene(S){const N=S.length,big=true,full=N>=5,H=N>=9?390:365,ry=N>=9?7
  const fb=cy-8;
  return`<div class="tvscene" style="height:${H}px;--px:${CAM.v.toFixed(3)}" role="img" aria-label="Il falò con ${N} giocator${N===1?'e':'i'} seduti intorno"><div class="tvsky"></div><div class="tvaur"><i></i><i></i><i></i></div>${stars}<div class="tvmoon"></div>${VH.mts}${VH.far}<div class="tvgnd"><i class="tvgrid"></i></div><div class="tvdirt" style="top:${fb-40}px"></div>${VH.near}<div class="tvfog"></div><div class="tvfog b"></div>${VH.fg}
  <div class="tvglow" style="top:${fb-150}px"></div><div class="tvlight" style="top:${fb-40}px"></div>
- <div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
+ <div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
  <div class="tvpit" style="top:${fb-34}px;z-index:${fb-2}">${VH.logs}</div><canvas class="tvfirec" id="tvfirec" width="40" height="36" style="top:${fb-112}px;z-index:${fb-1}"></canvas><div class="tvpit" style="top:${fb-34}px;z-index:${fb+1}">${VH.stones}</div>
  <i class="tvspk" style="left:50%;top:${fb-70}px"></i><i class="tvspk" style="left:calc(50% + 12px);top:${fb-64}px;animation-delay:-.8s"></i><i class="tvspk" style="left:calc(50% - 12px);top:${fb-66}px;animation-delay:-1.6s"></i><i class="tvspk" style="left:calc(50% + 4px);top:${fb-74}px;animation-delay:-2.1s"></i>${pl}</div>`}
 /* ---- scenario nordico: montagne innevate, pini, falò a pixel ---- */
@@ -303,7 +310,7 @@ function roomH(){const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.o
  const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];
  const MD=multiDev(),list=GAMES.map(g=>({g,ok:g.ok(N),v:MD?T[g.id]||0:0})).sort((a,b)=>(b.ok-a.ok)||(b.v-a.v));
  const top=list.find(x=>x.ok);
- const hint=R.on?`<p class="muted" style="margin:0">Manda il link d’invito: chi lo apre scrive il nome e si siede subito al falò (oppure inserisce il codice sulla targa). ${R.mode==='p2p'?'<b>Online diretto</b>: tieni questa pagina aperta, sei tu a fare da tavolo.':''}</p><button class="b sm" data-a="copy">Copia invito</button>`:`<p class="muted" style="margin:0">Non riesco a collegarmi per il gioco online (server di incontro non raggiungibile da questa pagina). Intanto puoi aggiungere ospiti e passarvi il telefono.</p><button class="b sm" data-a="retrynet">Riprova il collegamento</button>`;
+ const hint=R.on?`<p class="muted" style="margin:0">${isGen()?'Siete tutti nella <b>stanza generale</b>: chi apre il sito scrive il nome e si siede subito al falò. Manda il link del sito agli amici.':'Stanza privata <b>'+esc(R.code)+'</b>: manda il link d’invito, oppure fai inserire il codice sulla targa.'+(R.mode==='p2p'&&P2P.role==='host'?' Tieni questa pagina aperta: la stanza vive sul tuo telefono.':'')}</p><button class="b sm" data-a="copy">Copia invito</button>`:`<p class="muted" style="margin:0">Non riesco a collegarmi per il gioco online (server di incontro non raggiungibile da questa pagina). Intanto puoi aggiungere ospiti e passarvi il telefono.</p><button class="b sm" data-a="retrynet">Riprova il collegamento</button>`;
  const mem=M.map(m=>`<div class="mem"><div class="pl ${m.id===ME.dev?'act':''}"><div class="av">${esc((m.name||'?')[0])}</div><span class="n">${esc(m.name||'?')}${m.id===ME.dev?' (tu)':''}</span>${m.id!==ME.dev&&R.on?`<button class="x" data-a="rmmember" data-v="${m.id}" aria-label="Rimuovi ${esc(m.name)}">✕</button>`:''}</div>
   ${(m.guests||[]).map(g=>`<div class="pl guest"><div class="av">${esc(g.name[0]||'?')}</div><span class="n">${esc(g.name)} <small class="muted">ospite di ${esc(m.name)}</small></span>${m.id===ME.dev?`<button class="x" data-a="rmguest" data-v="${g.k}" aria-label="Rimuovi ${esc(g.name)}">✕</button>`:''}</div>`).join('')}</div>`).join('');
  const tab=ui.tab==='games'?'games':'room',nv=MD?Object.values(T).reduce((a,b)=>a+b,0):0;
@@ -312,7 +319,7 @@ function roomH(){const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.o
  const resume=!R.on&&(()=>{try{return JSON.parse(ST('rg-off')||'null')?.game}catch(e){return null}})()?'<button class="b gold" data-a="resume">Riprendi la partita interrotta</button>':'';
  let body;
  if(tab==='games'){const games=tvShelf(list,top,N,myKeys,busy);
-  body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
+  body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
   ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
@@ -322,7 +329,7 @@ function roomH(){const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.o
   ${busyB}
   ${top&&!busy?`<button class="tvnext" data-a="tab" data-v="games"><span>🎲 ${!MD?'Scegli un gioco dallo scaffale':top.v?'In testa: <b>'+esc(top.g.name)+'</b> · '+top.v+' vot'+(top.v===1?'o':'i'):'Votate il gioco di stasera'}</span><b>Vai ai giochi ›</b></button>`:''}
   ${chatH()}
-  ${R.on?`<div class="panel col"><h3>Entra nella stanza di un amico</h3><div class="row"><input type="text" id="jc" maxlength="6" placeholder="Codice" style="flex:1;text-transform:uppercase"><button class="b sm disc" data-a="join">Entra</button></div><button class="b sm" data-a="newroom">Crea una stanza nuova</button></div>`:''}
+  ${R.on?`<div class="panel col"><h3>${isGen()?'Sei nella stanza generale':'Sei nella stanza privata '+esc(R.code)}</h3><p class="muted" style="margin:0">${isGen()?'Chi apre il sito arriva qui. Se volete giocare da soli, create una stanza privata e condividete il codice.':'Solo chi ha il codice può entrare.'}</p>${isGen()?'':'<button class="b sm" data-a="genroom">Torna alla stanza generale</button>'}<h3>Entra in una stanza privata</h3><div class="row"><input type="text" id="jc" maxlength="6" placeholder="Codice" style="flex:1;text-transform:uppercase"><button class="b sm disc" data-a="join">Entra</button></div><button class="b sm" data-a="newroom">Crea una stanza privata</button></div>`:''}
   ${resume}`}
  return`${hudH()}${body}<div class="err" role="alert">${esc(ui.err)}</div><div style="height:84px"></div>${nav}${avEditH()}${rulesH()}${cfgH()}`}
 function avEditH(){if(ui.avk==null)return'';const k=ui.avk,g=k==='m'?null:(R.mine.guests||[]).find(x=>x.k===k);if(k!=='m'&&!g)return'';
