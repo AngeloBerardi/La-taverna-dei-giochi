@@ -11,6 +11,6 @@ Nessuna.
 ## Casi limite
 Ultima stanza con meno di 4 carte: si giocano tutte.
 ## Test del motore (3)
-`tests/test_scoundrel.js` (3000 partite casuali terminano) e `test_scoundrel_greedy.js` (bot avido). Nota: nessuna vittoria osservata con bot semplici, difficoltà da verificare.
+`tests/test_scoundrel.js` (3000 partite casuali terminano, nessuna vittoria) e `test_scoundrel_greedy.js` (bot che pianifica la stanza e stima il danno futuro: circa 2-3% di vittorie su 1000 partite). Il motore rispetta le regole: è un solitario molto difficile.
 ## Fonti
 https://donarumo.itch.io/scoundrel (descrizione delle regole)
