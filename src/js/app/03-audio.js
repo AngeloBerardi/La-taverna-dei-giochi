@@ -5,6 +5,8 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
    mel:[[74,0,76,79,0,76],[74,0,71,74,0,0],[72,0,74,76,0,79],[81,0,79,76,0,0],[79,0,81,83,81,79],[76,0,74,76,0,72],[74,0,72,69,0,71],[74,0,0,0,0,0]]},
   disc:{sd:.15,bar:6,prog:[[45,0],[41,1],[43,1],[40,0],[45,0],[38,0],[40,1],[45,0]],arp:[0,2,1,3,2,1],lead:'bell',drum:'march',
    mel:[[69,0,72,0,76,74],[72,0,69,0,65,0],[67,0,71,74,0,72],[71,0,68,0,64,0],[69,72,76,0,81,79],[77,0,74,0,72,0],[71,0,74,0,68,71],[69,0,0,0,0,0]]},
+  peru:{sd:.14,bar:6,prog:[[50,1],[46,0],[48,0],[45,0],[50,1],[46,0],[43,1],[45,0]],arp:[0,2,1,3,2,1],lead:'pluck',drum:'tav',
+   mel:[[69,0,72,0,74,72],[70,0,74,0,77,74],[72,0,76,0,79,76],[74,0,0,69,0,0],[77,0,76,74,72,0],[74,0,72,70,69,0],[70,72,74,0,72,70],[69,0,0,0,0,0]]},
   menu:{sd:.19,bar:6,prog:[[53,1],[48,1],[50,0],[46,1]],arp:[0,2,1,3,2,1],lead:'bell',drum:'tav',
    mel:[[72,0,69,72,0,74],[76,0,74,72,0,67],[69,0,72,74,0,72],[70,0,69,67,0,0],[72,0,76,77,0,76],[74,0,72,76,0,74],[72,0,69,70,0,67],[65,0,0,0,0,0]]},
   J:{sd:60/96/2,bar:8,prog:[[50,0],[46,1],[48,1],[45,0]],arp:[0,1,2,3,2,1,2,1],lead:'pluck',drum:'march',
@@ -75,6 +77,12 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   case'turn':I.brass(mf(62),t,.09,o,.25);I.brass(mf(69),t+.18,.1,o,.5);break;
   case'win':[62,66,69,74,69,74,78].forEach((m,i)=>I.brass(mf(m),t+i*.14,.1,o,.4));I.timp(mf(38),t,.5,o);I.timp(mf(38),t+.84,.6,o);break;
   case'lose':I.pad([mf(50),mf(53),mf(57)],t,2.5,.03,o);[0,-2,-5,-9].forEach((k,i)=>I.brass(mf(57+k),t+i*.35,.08,o,.6));osc('sine',55,t+1.2,3,.3,o);break;
+  case'dice':[0,.05,.1,.17,.25,.34].forEach(d=>{noise(t+d,.05,.14,o,2000+d*6000,'bandpass');osc('triangle',380+d*900,t+d,.06,.06,o)});break;
+  case'boom':noise(t,.9,.45,o,260,'lowpass');I.timp(48,t,.8,o);osc('sawtooth',120,t,.5,.2,o,{sl:35,lp:500});break;
+  case'meow':osc('sawtooth',520,t,.28,.12,o,{sl:980,lp:2400,at:.06});osc('sawtooth',980,t+.26,.32,.1,o,{sl:420,lp:2000,at:.02});break;
+  case'nope':osc('square',330,t,.12,.12,o,{sl:200});osc('square',200,t+.12,.2,.12,o,{sl:110});break;
+  case'build':I.timp(90,t,.45,o);noise(t,.12,.18,o,900,'bandpass');osc('triangle',660,t+.08,.2,.08,o);break;
+  case'coin':[0,.07].forEach((d,i)=>osc('sine',1320+i*440,t+d,.25,.1,o,{at:.005}));noise(t,.04,.05,o,7000);break;
   case'pick':osc('square',1700,t,.06,.12,o);osc('sine',2400,t,.3,.1,o);noise(t,.05,.2,o,2500,'bandpass');break;
   case'rock':noise(t,.9,.35,o,200,'lowpass');I.timp(48,t,.6,o);noise(t+.2,.5,.2,o,500,'lowpass');break;
   case'gold':[0,4,7,12,16,19].forEach((k,i)=>I.bell(mf(79+k),t+i*.06,.1,o));noise(t,.3,.08,o,7000);break;
