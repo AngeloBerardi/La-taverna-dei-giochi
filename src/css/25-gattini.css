@@ -1,0 +1,19 @@
+/* GATTINI ESPLOSIVI – carte colorate con icone, grafica nostra */
+.kc{--kb:#555;--kf:#fff;width:64px;height:92px;border-radius:12px;border:3px solid #17110a;background:linear-gradient(160deg,var(--kb),color-mix(in srgb,var(--kb) 65%,#000));color:var(--kf);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;box-shadow:0 3px 6px #0006;flex:none;text-align:center;transition:transform .18s cubic-bezier(.3,1.7,.5,1)}
+.kc i{font-style:normal;font-size:30px;line-height:1}.kc em{position:absolute;top:3px;left:5px;font-style:normal;font-size:15px}
+.kc b{font:900 9.5px/1.05 var(--f-d);text-transform:uppercase;letter-spacing:.03em;padding:0 3px}
+.kc.sm{width:56px;height:80px}.kc.sm i{font-size:26px}.kc.sm b{font-size:9px}
+.kc.back{background:repeating-linear-gradient(45deg,#2a1d3a,#2a1d3a 6px,#3b2852 6px,#3b2852 12px);color:#ffd36b}
+.kc.empty{background:#0002;border-style:dashed;color:#fff8;box-shadow:none}
+.kc.can{cursor:pointer}.kc.sel{transform:translateY(-14px) scale(1.06);box-shadow:0 0 0 3px #f2c230,0 0 18px #f2c230,0 8px 10px #0006;z-index:2}
+.khand{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:18px 6px 14px}
+.khand .kc{cursor:pointer}
+.ktable{display:flex;gap:26px;justify-content:center;align-items:flex-start;margin:10px 0;padding:12px;border-radius:22px;background:radial-gradient(ellipse at 50% 35%,#4a2f6a,#251538 75%);border:3px solid #120a1d;box-shadow:inset 0 0 30px #0009,0 4px 0 #0006}
+.kpile{display:flex;flex-direction:column;align-items:center;gap:4px;color:#e9d9ff;font:900 14px var(--f-d)}
+.kpeek{margin:-2px 0 10px;padding:8px;border-radius:16px;background:#251538;border:2px solid #7d55c7;text-align:center;color:#e6e0ff}.kpeek small{display:block;margin-bottom:6px}.krow{display:flex;gap:8px;justify-content:center}
+.kpl .pl.out{opacity:.4}.kpl .pl.trn{border-style:dashed;border-color:#e2b13c}
+.ktg,.kchips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:4px 0 8px}
+.kch{border:2px solid #0006;border-radius:12px;padding:6px 10px;background:#fff6;font:700 13px var(--f-d);cursor:pointer;color:inherit}.kch.sel{background:#f2c230;border-color:#86600c;color:#2a1d03}
+.kctl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.kc.lng b{font-size:7.5px;letter-spacing:0}.khb{position:static;background:none}
+.kpl.many{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.kpl.many .pl{flex-direction:column;gap:1px;padding:4px 2px;min-width:0;align-items:center}.kpl.many .pl .av{width:30px;height:30px;font-size:14px}.kpl.many .pl .n{font-size:10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kpl.many .pl .hc{font-size:11px}
