@@ -33,8 +33,8 @@ function azulH(){const s=G,mine=myTurn(),v=viewer();const L=local();if(needCover
  const others=s.names.map((_,i)=>i).filter(i=>i!==me).map(i=>azBoard(s,i,{mini:true})).join('');
  const sum=s.over&&!ui.anim?azSummary(s):'';
  return`${hudH('Azul')}<div class="tinfo"><span class="chip">Round ${s.round}</span><span class="chip">Sacchetto ${s.bag.length}</span>${s.grey?'<span class="chip sh">Muro libero</span>':''}</div>
- <div class="az"><div class="azfs">${fac}</div>${cen}</div>${bubbleH(s,'Scegli un colore: prendi tutte le piastrelle di quel colore.',null)}<div class="prev">${hint}</div><div class="err" role="alert">${esc(ui.err)}</div>
- <div class="az">${azBoard(s,me,{act:mine})}</div>${others?`<div class="azo">${others}</div>`:''}${sum}${rulesH()}${cfgH()}`}
+ <div class="azx"><div class="azL"><div class="az"><div class="azfs">${fac}</div>${cen}</div>${bubbleH(s,'Scegli un colore: prendi tutte le piastrelle di quel colore.',null)}<div class="prev">${hint}</div><div class="err" role="alert">${esc(ui.err)}</div>${others?`<div class="azo">${others}</div>`:''}</div>
+ <div class="azR"><div class="az">${azBoard(s,me,{act:mine})}</div></div></div>${sum}${rulesH()}${cfgH()}`}
 function azSummary(s){const o=s.over,R0=s.res||[];const rows=s.names.map((n,i)=>`<tr class="${o.winners.includes(i)?'w':''}"><td>${esc(n)}</td><td>${R0[i].rows}×2</td><td>${R0[i].cols}×7</td><td>${R0[i].colors}×10</td><td><b>${o.scores[i]}</b></td></tr>`).join('');
  return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">${o.winners.length>1?'🤝':'🏆'}</div><h2>${o.winners.length>1?'Pareggio tra '+o.winners.map(i=>esc(s.names[i])).join(' e '):esc(s.names[o.win])+' vince!'}</h2><table class="sumt"><tr><th>Giocatore</th><th>Righe</th><th>Colonne</th><th>Colori</th><th>Totale</th></tr>${rows}</table><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
 function azClick(a,v){const s=G;if(a==='azno'){ui.azs=null;return render()}
