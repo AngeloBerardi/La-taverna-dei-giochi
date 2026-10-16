@@ -2,7 +2,7 @@
    Per i giochi in FIXED la pagina occupa esattamente lo schermo: in alto titolo e dati, striscia giocatori compatta, al centro il tavolo
    (si adatta allo spazio che resta), in basso messaggio, comandi e mano. Giocatori, registro e regole stanno in pannelli a scorrimento
    interno che si aprono dalla barra in fondo. */
-const FIXED=new Set(['perudo','kittens','catan','pets','uno']);
+const FIXED=new Set(['perudo','kittens','catan','pets','uno','trono']);
 const fxOn=()=>ui.screen==='game'&&G&&FIXED.has(G.g);
 /* striscia giocatori: f(i) → {b: badge, c: colore, out: eliminato} */
 function stripH(s,f){return`<div class="fx-strip n${Math.min(s.names.length,10)}">`+s.names.map((n,i)=>{const o=f(i)||{};
@@ -17,3 +17,13 @@ function fanH(cards,per){per=per||8;const rows=cards.length>per?[cards.slice(0,M
  return rows.map(r=>`<div class="fanrow">${r.join('')}</div>`).join('')}
 function fanFit(){document.querySelectorAll('.fanrow').forEach(r=>{const k=[...r.children],n=k.length;if(n<2){r.style.setProperty('--ov','0px');return}
  const w=r.clientWidth,cw=k[0].getBoundingClientRect().width||56,step=Math.min(cw+4,(w-cw)/(n-1));r.style.setProperty('--ov',(cw-step)+'px')})}
+/* ADATTAMENTO ALLO SCHERMO: --k scala carte e pezzi in base allo spazio; i giochi non ancora migrati al layout fisso vengono rimpiccioliti (zoom) quanto basta per non scorrere, fino a un minimo leggibile */
+const FITMIN=.58;
+function adaptScreen(){const root=document.documentElement,app=document.getElementById('app');if(!app)return;
+ const wide=innerWidth>=820||(innerWidth>innerHeight&&innerHeight<=520),k=Math.max(.7,Math.min(1.5,Math.min(innerHeight/760,innerWidth/(wide?700:390))));
+ root.style.setProperty('--k',k.toFixed(3));root.classList.toggle('wide',wide);
+ app.style.zoom='';
+ if(ui.screen==='game'&&G&&!fxOn()){const ov=()=>root.scrollHeight-innerHeight;
+  if(ov()>2){let z=Math.max(FITMIN,Math.min(1,innerHeight/root.scrollHeight));app.style.zoom=z.toFixed(3);
+   if(ov()>2){z=Math.max(FITMIN,z*innerHeight/root.scrollHeight);app.style.zoom=z.toFixed(3)}}}
+ if(fxOn())fanFit()}
