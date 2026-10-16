@@ -46,8 +46,10 @@
 
 ## 3. Non incluso (candidati per dopo)
 - Timer del turno e tema "veloce" con 60 secondi per mossa.
-- 5-6 giocatori (il motore funziona con n qualsiasi ma la plancia base ha risorse e porti per 3-4: per 5-6 serve l'ampliamento).
 - Città e Cavalieri, Marinai, Navigatori: espansioni, regole a parte.
 - Mappe alternative (isole, bordo fisso per principianti): basta aggiungere un generatore a `newGame`.
 - Bot per giocare da soli (esiste già il bot di test, `tests/test_catan.js`, da portare in `motori/`).
 - Privacy sullo stesso telefono: con ospiti, ogni giocatore tocca il proprio nome per vedere la sua mano (nessun passaggio del telefono, come in The Mind).
+
+## 4. Aggiornamento: 5-6 e 7-8 giocatori
+Tre plance (19, 30 e 37 esagoni) in `motori/18-catan.js` (`PROF`, `KIT`), banca da 19/24/29 carte, mazzo sviluppo da 25/34/43, e **costruzione speciale** dopo ogni turno (fase `sbp`: solo costruire o comprare, niente scambi né sviluppi né vittoria). Test in `tests/test_catan_grande.js`. I numeri del 7-8 sono approssimati: vedi `docs/hud-ux-ricerca.md`.

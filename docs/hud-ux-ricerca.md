@@ -1,0 +1,25 @@
+# HUD e UX: cosa abbiamo studiato e cosa abbiamo cambiato
+
+## Che cosa è verificato e che cosa no
+- **Verificato** (pagine pubbliche di colonist.io, regole ufficiali, guide delle espansioni): regole delle plance 5-6 e 7-8, costruzione speciale, dotazioni di carte e banca di Colonist (tessere, mazzo sviluppo, banca), elenco delle espansioni di Exploding Kittens.
+- **Non verificato**: come Colonist disegna la plancia (canvas o DOM) e come sono fatte le app mobile di Exploding Kittens. Non ho potuto ispezionare né il client né il codice; una offerta di lavoro indica solo React/TypeScript/Node. Non traiamo quindi conclusioni tecniche su di loro.
+- **Approssimazioni nostre**: numeri e porti del 7-8 (37 esagoni, 12 porti, 35 numeri) e quelli del 5-6 oltre a quanto confermato; il Gattino Implodente a faccia in su resta nel mazzo senza regole speciali per il mescolamento.
+
+## Pattern di HUD dei giochi da tavolo online (convenzioni del genere)
+1. Plancia al centro, sempre intera; pezzi che si capiscono da forma + colore, mai solo dal colore.
+2. Pannello giocatori compatto con 3-4 numeri al massimo (punti, carte in mano, premi). Il resto a richiesta.
+3. Mano in basso, vicino al pollice; azioni di costruzione in una barra con costo visibile.
+4. Una frase di stato dice sempre di chi è il turno e che cosa si può fare.
+5. Gli avversari fuori turno non bloccano il tuo schermo: le offerte arrivano come card, non come pop-up.
+
+## Cosa è stato applicato
+- **Catan 5-8 giocatori**: pannello giocatori a due colonne (solo ★, carte, carte sviluppo e premi; cavalieri e strada più lunga restano visibili quando contano), 8 colori, plancia con viewBox calcolata per ogni mappa, chip "Costruzione speciale", pulsante "Passa" al posto di "Fine turno" e nessuno scambio nella fase speciale.
+- **Exploding Kittens 6-10 giocatori**: griglia di avatar a 4 colonne con conteggio carte; chip con verso di gioco e stato del Gattino Implodente; ogni carta nuova ha icona, colore e testo di aiuto.
+- Controlli contestuali: la barra mostra solo ciò che la carta selezionata permette (bersagli per Attacco mirato, riordino per Altera il futuro, jolly per il Randagio).
+
+## Proposte non ancora fatte
+- Timer del turno con barra visiva (Catan e Kittens).
+- Registro delle mosse espandibile con filtri (dadi, costruzioni, scambi).
+- Evidenziare sulla plancia i terreni che producono col numero uscito (già c'è il token pulsante) e le risorse guadagnate a fianco di ogni giocatore.
+- Modalità "mano grande" per telefono con lo scambio a trascinamento.
+- Varianti di Exploding Kittens non fatte: Streaking e Barking (non ho verificato i testi esatti delle carte), Party Pack con Slap e minigiochi in tempo reale, Zombie e Bene contro Male (squadre), Recipes for Disaster, edizioni NSFW/UK (cambiano solo grafica e testi).
