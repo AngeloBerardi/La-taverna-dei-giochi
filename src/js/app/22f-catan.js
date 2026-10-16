@@ -1,12 +1,13 @@
 /* ================= CATAN ================= */
-const CPC=['#e8574a','#3a8fe6','#35b866','#f2c230','#b06be0','#e8742c'];
+const CPC=['#e8574a','#3a8fe6','#35b866','#f2c230','#b06be0','#e8742c','#2fc5c0','#e86bb0'];
 const CTC={wood:['#2f7a3c','🌲'],brick:['#bf5a30','🧱'],wool:['#93cf5e','🐑'],grain:['#e7c445','🌾'],ore:['#8d92a3','⛰️'],desert:['#e3cf94','🏜️']};
 const CRI={wood:'🪵',brick:'🧱',wool:'🐑',grain:'🌾',ore:'🪨'};
 const CDV={knight:['⚔️','Cavaliere'],rb:['🛣️','Costruzione strade'],yop:['🎁','Invenzione'],mono:['💰','Monopolio'],vp:['🏆','Punto vittoria']};
-const CS=38,CBX=(()=>{let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;CATAN.V.forEach(v=>{x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y)});const m=1.05;return[(x0-m)*CS,(y0-m)*CS,(x1-x0+2*m)*CS,(y1-y0+2*m)*CS]})();
-const cV=v=>[CATAN.V[v].x*CS,CATAN.V[v].y*CS];
+const CS=38,CBXC={};
+const cbx=s=>CBXC[s.prof||'a']||(CBXC[s.prof||'a']=(()=>{let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;CATAN.geo(s).V.forEach(v=>{x0=Math.min(x0,v.x);x1=Math.max(x1,v.x);y0=Math.min(y0,v.y);y1=Math.max(y1,v.y)});const m=1.15;return[(x0-m)*CS,(y0-m)*CS,(x1-x0+2*m)*CS,(y1-y0+2*m)*CS]})());
+let cGeo=null;const cV=v=>[cGeo.V[v].x*CS,cGeo.V[v].y*CS];
 const cRes=(o,cls)=>CATAN.RES.filter(k=>o[k]>0).map(k=>`<span class="cri ${cls||''}">${o[k]}${CRI[k]}</span>`).join('')||'—';
-function boardH(s,tg){const C=CATAN;let g='';
+function boardH(s,tg){const C=Object.assign({},CATAN,CATAN.geo(s));cGeo=C;let g='';
  s.hexes.forEach((x,i)=>{const H=C.HX[i],[c,ic]=CTC[x.t],cx=H.x*CS,cy=H.y*CS,hot=s.dice&&x.num&&s.dice[0]+s.dice[1]===x.num;
   g+=`<polygon class="chx" points="${H.v.map(v=>cV(v).join(',')).join(' ')}" fill="${c}"/><text class="cic" x="${cx}" y="${x.num?cy-11:cy+7}" text-anchor="middle" font-size="${x.num?15:24}">${ic}</text>`;
   if(x.num){const pp=C.pips(x.num);g+=`<g class="ctok ${hot?'hot':''}"><circle cx="${cx}" cy="${cy+8}" r="13"/><text x="${cx}" y="${cy+12}" text-anchor="middle" class="${x.num===6||x.num===8?'red':''}">${x.num}</text>${Array.from({length:pp},(_,k)=>`<circle class="pp" cx="${cx-(pp-1)*1.7+k*3.4}" cy="${cy+17.5}" r=".9"/>`).join('')}</g>`}});
@@ -20,7 +21,7 @@ function boardH(s,tg){const C=CATAN;let g='';
  {const H=C.HX[s.robber],x=H.x*CS-15,y=H.y*CS+9;g+=`<g class="crob"><path d="M${x-7},${y+9} Q${x-7},${y-1} ${x},${y-3} Q${x+7},${y-1} ${x+7},${y+9}Z"/><circle cx="${x}" cy="${y-8}" r="5"/></g>`}
  if(tg&&tg.k==='v')tg.l.forEach(v=>{const[x,y]=cV(v);g+=`<circle class="ctv" data-a="cvert" data-v="${v}" role="button" cx="${x}" cy="${y}" r="11"/>`});
  if(tg&&tg.k==='h')tg.l.forEach(i=>{g+=`<polygon class="cth2" data-a="chex" data-v="${i}" role="button" points="${C.HX[i].v.map(v=>cV(v).join(',')).join(' ')}"/>`});
- return`<svg class="cboard" viewBox="${CBX.join(' ')}" role="img" aria-label="Plancia">${g}</svg>`}
+ return`<svg class="cboard" viewBox="${cbx(s).join(' ')}" role="img" aria-label="Plancia">${g}</svg>`}
 function catanH(){const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
  if(multiLocal()&&ui.cmk!==key){ui.cmk=key;const w=s.phase==='discard'?Number(Object.keys(s.disc||{}).find(k=>isMine(+k))):s.cur;if(w!=null&&!Number.isNaN(w)&&isMine(w))ui.ms=w}
  if(ui.ck!==key){ui.ck=key;ui.cmode=null;ui.cdisc=null}
@@ -28,15 +29,16 @@ function catanH(){const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
  let tg=null,hint='';
  if(me){
   if(ph==='setup'){tg=s.setup.step==='v'?{k:'v',l:C.settleSpots(s,v,true)}:{k:'e',l:C.roadSpots(s,v,s.setup.v)};hint=s.setup.step==='v'?'Tocca un incrocio per posare una colonia.':'Ora una strada accanto alla colonia.'}
-  else if(ph==='robber'){tg={k:'h',l:C.HX.map((h,i)=>i).filter(i=>i!==s.robber)};hint='Tocca l’esagono dove spostare il ladro.'}
+  else if(ph==='robber'){tg={k:'h',l:C.geo(s).HX.map((h,i)=>i).filter(i=>i!==s.robber)};hint='Tocca l’esagono dove spostare il ladro.'}
   else if(ph==='rb'){tg={k:'e',l:C.roadSpots(s,v)};hint='Strada gratuita: ne restano '+s.rbLeft+'.'}
-  else if(ph==='main'&&ui.cmode){tg=ui.cmode==='road'?{k:'e',l:C.roadSpots(s,v)}:ui.cmode==='settle'?{k:'v',l:C.settleSpots(s,v,false)}:{k:'v',l:C.citySpots(s,v)};hint='Tocca dove costruire (o riprova il pulsante per annullare).'}
+  else if((ph==='main'||ph==='sbp')&&ui.cmode){tg=ui.cmode==='road'?{k:'e',l:C.roadSpots(s,v)}:ui.cmode==='settle'?{k:'v',l:C.settleSpots(s,v,false)}:{k:'v',l:C.citySpots(s,v)};hint='Tocca dove costruire (o riprova il pulsante per annullare).'}
+  else if(ph==='sbp')hint='Costruzione speciale: costruisci o compra una carta, poi passa.';
   else if(ph==='roll')hint='Tira i dadi, oppure gioca prima un cavaliere.';
   else if(ph==='main')hint='Costruisci, scambia o gioca una carta; poi fine turno.'}
- const pl=`<div class="cpls">${s.names.map((n,i)=>`<div class="cpl ${i===s.cur&&!s.over?'act':''}" style="--pc:${CPC[i]}"><i class="cdot"></i><b>${esc(n)}${seatTag(i)}</b><span class="cvp">${C.points(s,i,false)}★</span><span title="Carte in mano">🂠${C.cardsOf(s,i)}</span><span title="Carte sviluppo">🃏${s.dev[i].length}</span><span title="Cavalieri giocati">⚔${s.knights[i]}</span><span title="Strada più lunga">🛣${C.roadLen(s,i)}</span>${s.longest&&s.longest.p===i?'<em>🛣️+2</em>':''}${s.army&&s.army.p===i?'<em>⚔️+2</em>':''}${s.disc&&s.disc[i]?`<em class="dsc">scarta ${s.disc[i]}</em>`:''}</div>`).join('')}</div>`;
+ const pl=`<div class="cpls ${s.n>=5?'big':''}">${s.names.map((n,i)=>`<div class="cpl ${i===s.cur&&!s.over?'act':''}" style="--pc:${CPC[i]}"><i class="cdot"></i><b>${esc(n)}${seatTag(i)}</b><span class="cvp">${C.points(s,i,false)}★</span><span title="Carte in mano">🂠${C.cardsOf(s,i)}</span><span title="Carte sviluppo">🃏${s.dev[i].length}</span><span title="Cavalieri giocati">⚔${s.knights[i]}</span><span title="Strada più lunga">🛣${C.roadLen(s,i)}</span>${s.longest&&s.longest.p===i?'<em>🛣️+2</em>':''}${s.army&&s.army.p===i?'<em>⚔️+2</em>':''}${s.disc&&s.disc[i]?`<em class="dsc">scarta ${s.disc[i]}</em>`:''}</div>`).join('')}</div>`;
  const seats=multiLocal()?`<div class="kchips cseats">${local().map(i=>`<button class="kch ${i===v?'sel':''}" data-a="cseat" data-v="${i}">${esc(s.names[i])}</button>`).join('')}</div>`:'';
  const dice=s.dice?`<span class="cdice">${dieH(s.dice[0],{cls:'sm'})}${dieH(s.dice[1],{cls:'sm'})}<b>${s.dice[0]+s.dice[1]}</b></span>`:'';
- const info=`<div class="tinfo"><span class="chip">Vince chi arriva a ${s.vp}★</span><span class="chip">Mazzo sviluppo ${s.deck.length}</span>${dice}</div>`;
+ const info=`<div class="tinfo"><span class="chip">Vince chi arriva a ${s.vp}★</span><span class="chip">Mazzo sviluppo ${s.deck.length}</span>${s.n>=5?'<span class="chip" title="Dopo ogni turno gli altri giocatori possono costruire">🏗 Costruzione speciale</span>':''}${dice}</div>`;
  let hand='';
  if(v>=0){const dc={};s.dev[v].forEach(c=>dc[c]=(dc[c]||0)+1);const nw={};s.newDev[v].forEach(c=>nw[c]=(nw[c]||0)+1);
   hand=`<div class="chand">${RES.map(k=>`<div class="crc ${k}"><i>${CRI[k]}</i><b>${mine[k]}</b><small>${C.RN[k]}</small></div>`).join('')}</div>`
@@ -46,9 +48,9 @@ function catanH(){const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
  if(me&&!ui.ctr){
   if(ph==='roll')ctl=`<button class="b play" data-a="croll">🎲 Tira i dadi</button>`;
   else if(ph==='steal')ctl=`<div class="hlabel">A chi rubi una carta?</div><div class="ktg">${s.vict.map(i=>`<button class="b sm gold" data-a="csteal" data-v="${i}">${esc(s.names[i])} · ${C.cardsOf(s,i)}🂠</button>`).join('')}</div>`;
-  else if(ph==='main'){const b=(k,ic,lab,ok,cost)=>`<button class="b sm cbtn ${ui.cmode===k?'sel':''}" data-a="cmode" data-v="${k}" ${ok?'':'disabled'}><i>${ic}</i>${lab}<small>${cost}</small></button>`;
+  else if(ph==='main'||ph==='sbp'){const sb=ph==='sbp',b=(k,ic,lab,ok,cost)=>`<button class="b sm cbtn ${ui.cmode===k?'sel':''}" data-a="cmode" data-v="${k}" ${ok?'':'disabled'}><i>${ic}</i>${lab}<small>${cost}</small></button>`;
    ctl=`<div class="cbar">${b('road','🛣️','Strada',C.has(s,v,C.COST.road)&&C.roadsOf(s,v)<15&&C.roadSpots(s,v).length,'🪵🧱')}${b('settle','🏠','Colonia',C.has(s,v,C.COST.settle)&&C.settleSpots(s,v,false).length,'🪵🧱🐑🌾')}${b('city','🏰','Città',C.has(s,v,C.COST.city)&&C.citySpots(s,v).length&&C.count(s,v,2)<4,'🌾🌾🪨🪨🪨')}<button class="b sm cbtn" data-a="cbuy" ${C.has(s,v,C.COST.dev)&&s.deck.length?'':'disabled'}><i>🃏</i>Carta<small>🐑🌾🪨</small></button></div>
-   <div class="cbar"><button class="b sm disc" data-a="ctr">🔁 Scambia</button><button class="b sm grn" data-a="cend">⏭ Fine turno</button></div>`}}
+   <div class="cbar">${sb?'':'<button class="b sm disc" data-a="ctr">🔁 Scambia</button>'}<button class="b sm grn" data-a="cend">${sb?'⏭ Passa':'⏭ Fine turno'}</button></div>`}}
  /* offerta di scambio in corso */
  let tr='';const T=s.trade;
  if(T&&ph==='main'){const fr=esc(s.names[T.from]);
@@ -67,7 +69,7 @@ function catanH(){const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
   modal=`<div class="modal"><div class="box col"><h2>Scambia</h2>${tabs}${body}<button class="b disc" data-a="ctrx">Chiudi</button></div></div>`}
  else if(me&&ui.cdev){const d=ui.cdev;
   modal=`<div class="modal"><div class="box col"><h2>${CDV[d.card][1]}</h2><p>${d.card==='yop'?'Scegli due risorse dalla banca ('+[d.a,d.b].filter(Boolean).length+'/2).':'Scegli la risorsa: tutti gli altri ti danno quelle che hanno.'}</p><div class="kchips">${RES.map(k=>`<button class="kch" data-a="cdevpick" data-v="${k}">${CRI[k]} ${C.RN[k]}</button>`).join('')}</div>${d.card==='yop'?`<button class="b gold" data-a="cdevok" ${d.a&&d.b?'':'disabled'}>Prendi ${d.a?CRI[d.a]:'?'} ${d.b?CRI[d.b]:'?'}</button>`:''}<button class="b disc" data-a="cdevx">Annulla</button></div></div>`}
- const prompt=s.over?'':me?`<b>${esc(s.names[s.cur])}</b>, tocca a te!<small>${hint}</small>`:ph==='discard'?`Si scartano le carte: ${Object.keys(s.disc).map(i=>esc(s.names[i])).join(', ')}…`:`Tocca a <b>${esc(s.names[s.cur])}</b>${ph==='robber'?' (sposta il ladro)':ph==='roll'?' (tira i dadi)':ph==='setup'?' (preparazione)':''}<span class="dots"></span>`;
+ const prompt=s.over?'':me?`<b>${esc(s.names[s.cur])}</b>, tocca a te!<small>${hint}</small>`:ph==='discard'?`Si scartano le carte: ${Object.keys(s.disc).map(i=>esc(s.names[i])).join(', ')}…`:`${ph==='sbp'?'Costruzione speciale di ':'Tocca a '}<b>${esc(s.names[s.cur])}</b>${ph==='robber'?' (sposta il ladro)':ph==='roll'?' (tira i dadi)':ph==='setup'?' (preparazione)':''}<span class="dots"></span>`;
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">🏆</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>★</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  return`${hudH('Catan')}${info}${seats}${pl}<div class="cwrap">${boardH(s,tg)}</div><div class="bubble ${me?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${prompt}${ui.busy?'<small>invio mossa…</small>':''}</div>${tr}<div class="ctl kctl">${ctl}</div><div class="err" role="alert">${esc(ui.err)}</div>${hand}<div class="clog">${s.log.slice(-6,-1).reverse().map(l=>`<div>${esc(l)}</div>`).join('')}</div>${modal}${end}${rulesH()}${cfgH()}`}
 function catanClick(a,v){const s=G,C=CATAN;
