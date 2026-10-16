@@ -1,0 +1,26 @@
+<div id="l3dapp">
+  <div id="stage"></div>
+  <div class="vig"></div>
+  <div id="tags"></div>
+  <div class="hudr"><button type="button" class="hb" data-a="mus" aria-label="Musica sì/no">♪</button><button type="button" class="hb" data-a="cfg" aria-label="Impostazioni">⚙</button></div>
+  <div class="panel" id="login">
+    <label for="myname" id="lq">Benvenuto! Come ti chiami?</label>
+    <input id="myname" maxlength="14" placeholder="Il tuo nome" autocomplete="nickname" autocapitalize="words" spellcheck="false">
+    <button class="btn" id="enter" type="button">Siediti</button>
+  </div>
+  <div id="chat"><div id="clog" aria-live="polite"></div><div id="cemo"><button type="button" data-a="emo" data-v="😀|m">😀</button><button type="button" data-a="emo" data-v="😂|m">😂</button><button type="button" data-a="emo" data-v="😍|m">😍</button><button type="button" data-a="emo" data-v="👍|m">👍</button><button type="button" data-a="emo" data-v="🎉|m">🎉</button><button type="button" data-a="emo" data-v="🍻|m">🍻</button><button type="button" data-a="emo" data-v="😡|m">😡</button><button type="button" data-a="emo" data-v="🔥|m">🔥</button></div><div id="cbar"><input id="cin" maxlength="120" placeholder="Scrivi alla stanza" autocomplete="off" aria-label="Messaggio"><button class="btn" id="csend" type="button">Invia</button></div></div>
+  <div id="sbar"><span id="sinfo"></span><button class="btn ghost" id="rtog" type="button" aria-label="La stanza: persone, ospiti, inviti">🚪</button><button class="btn ghost" id="ctog" type="button" aria-label="Apri la chat">💬</button><button class="btn" id="open" type="button">Giochi</button></div>
+  <div id="sim"><span>Ospiti al tavolo<b id="simn">0</b></span><button type="button" id="sim-m" aria-label="Togli un ospite">−</button><button type="button" id="sim-p" aria-label="Aggiungi un ospite">+</button></div>
+  <div class="ov" id="glist" aria-hidden="true"><div class="hd"><b>Lo scaffale</b><button class="x" id="gl-x" type="button">Chiudi</button></div><input id="glq" placeholder="Cerca un gioco" autocomplete="off" aria-label="Cerca un gioco"><div id="gl-grid"></div></div>
+  <div id="zpg"></div>
+  <div class="ov" id="gpage" aria-hidden="true"><div class="hd"><b id="gp-k"></b><button class="x" id="gp-x" type="button">Torna nella locanda</button></div>
+    <div class="gp"><img id="gp-img" alt=""><h2 id="gp-t"></h2><div class="meta" id="gp-m"></div><p id="gp-d"></p><div id="gp-o"></div>
+    <div class="row"><button class="btn ghost" id="gp-v" type="button">Regole</button><button class="btn" id="gp-go" type="button">Proponi al tavolo</button></div></div></div>
+  <div id="zbar"></div>
+  <div id="vote" role="dialog" aria-label="Proposta di gioco"></div>
+  <div class="ov" id="roomp" aria-hidden="true"><div class="rp"><div class="rph"><h3>La stanza</h3><button class="x" id="rp-x" type="button">Chiudi</button></div><div id="rp-body"></div></div></div>
+  <div class="panel" id="juke" role="dialog" aria-label="Jukebox"></div>
+  <div class="panel" id="cust" role="dialog" aria-label="Personalizza il pupazzo"></div>
+  <div id="toast"></div>
+  <div id="fade"></div>
+</div>

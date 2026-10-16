@@ -103,5 +103,6 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   case'err':osc('sawtooth',110,t,.18,.15,o,{lp:900});break;case'ok':osc('triangle',900,t,.06,.1,o);noise(t,.015,.06,o,4000);break}}
  return{start,play,init,get mus(){return mus},get sfx(){return sfx},track(k){want=TR[k]?k:'menu'},
   setMus(v){mus=v;ST('rg-mus',v?'1':'0');if(v){start();if(mg)mg.gain.setTargetAtTime(.5,ctx.currentTime,.15)}else if(mg)mg.gain.setTargetAtTime(0,ctx.currentTime,.1)},
-  setSfx(v){sfx=v;ST('rg-sfx',v?'1':'0')}}})();
+  setSfx(v){sfx=v;ST('rg-sfx',v?'1':'0')},
+  duck(v){if(ctx&&mg)mg.gain.setTargetAtTime(v||!mus?0:.5,ctx.currentTime,.4)}}})();
 document.addEventListener('pointerdown',()=>{if(Snd.mus)Snd.start()},{once:true,capture:true});

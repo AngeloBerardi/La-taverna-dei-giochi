@@ -122,4 +122,4 @@ function tvIso(){const h=document.getElementById('isohost');if(!h)return;
  if(ui.screen==='name'&&!tvHi){tvHi=1;setTimeout(()=>isoC&&isoC.emote(ME.dev+'|m','👋',true),600)}}
 const tvNameIso=()=>{tvSeats=[{dev:ME.dev,k:'m',name:ME.name||'Tu'}];return`<div class="tvscene2 namesc" role="group" aria-label="Il tuo omino al falò"><div id="isohost"></div></div>`};
 document.addEventListener('input',e=>{if(e.target.id==='myname'&&tvSeats[0]&&ui.lobby!=='hall'){tvSeats[0].name=e.target.value.trim().slice(0,14)||'Tu';tvIso()}});
-document.addEventListener('change',e=>{if(e.target.id==='lb'){ui.lobby=e.target.value==='hall'?'hall':'iso';ST('rg-lobby',ui.lobby);render()}});
+document.addEventListener('change',e=>{if(e.target.id==='lb'){ui.lobby=['hall','iso','3d'].includes(e.target.value)?e.target.value:'3d';ST('rg-lb',ui.lobby);render()}});

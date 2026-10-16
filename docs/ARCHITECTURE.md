@@ -17,6 +17,9 @@ Stato con `sim:true` (The Mind): nessun turno, ogni posto locale può agire, le 
 ## Aggiungere un gioco
 1. `motori/NN-nome.js` + test in node. 2. Riga in `GAMES`, testo in `RULES`, vista `nomeH()` in un file `app/`, `VIEW`/`FX`/click in `app/25-registri.js`, traccia in `Snd`. 3. File nuovi nel manifest. 4. `docs/rules/nome.md` come fonte.
 
+## Lobby 3D (predefinita)
+`app/12c-lobby-3d.js` (`L3D`, generato da `tools/taverna3d/`) è la lobby di base: ingresso, locanda e boschetto in un overlay `#l3d` sopra `#app`. Con `ui.lobby==='3d'` `nameH`/`roomH` disegnano solo le modali (regole, impostazioni) e `afterRender` chiama `L3D.show(screen)`; in partita l'overlay si nasconde. Usa le azioni esistenti (`setname`, `addguest`, `rmguest`, `join`, `newroom`, `copy`, `chatsend`, `emo`, `rules`, `resume`) e `startGame` per avviare. Nel documento del membro aggiunge `av3`, `pos3`, `prop`/`pv` (proposta di gioco con voto ✓/✗ in 30 s, la avvia chi propone), `juke`. three.js r128 è in `vendor/09c-three.min.js`. Senza WebGL, o se gira sotto ~12 fps, si passa al falò (`ui.lobby='iso'`, salvato in `rg-lb`); da Impostazioni → Lobby si sceglie Taverna 3D, Falò (modalità semplice) o Sala.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Invito: `?room=CODICE&b=indice_broker`. Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 

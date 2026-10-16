@@ -1,0 +1,21 @@
+.hudr{position:absolute;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);display:flex;gap:6px;z-index:6}
+.hudr .hb{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,214,150,.35);background:rgba(14,10,8,.75);color:var(--amber);font:700 16px/1 Georgia,serif;cursor:pointer}
+#sim{top:calc(env(safe-area-inset-top,0px) + 52px)!important}
+#cemo{display:none;gap:4px;overflow-x:auto;pointer-events:auto;scrollbar-width:none}
+#chat.open #cemo{display:flex}
+#cemo button{flex:0 0 auto;width:38px;height:36px;border-radius:8px;border:1px solid rgba(255,214,150,.25);background:rgba(10,7,6,.75);font-size:19px;cursor:pointer}
+#roomp{justify-content:center;background:rgba(8,6,10,.78)}
+#roomp .rp{margin:0 14px;padding:16px;border-radius:10px;background:linear-gradient(#3d2616,#26160c);border:1px solid #8a5d33;box-shadow:0 14px 30px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px;max-height:86vh;overflow:auto}
+#roomp .rph{display:flex;justify-content:space-between;align-items:center}
+#roomp h3{margin:0;font:700 22px 'Alegreya SC',Georgia,serif;color:var(--amber);letter-spacing:.05em}
+#roomp h4{margin:6px 0 0;font:700 15px 'Alegreya SC',Georgia,serif;color:var(--amber)}
+#rp-body{display:flex;flex-direction:column;gap:8px}
+#rp-body p{margin:0;font:500 15px/1.4 'Alegreya Sans',sans-serif;color:var(--ink)}#rp-body p b{color:var(--amber)}
+#rp-body .btn{height:44px;font-size:16px}
+#rp-body .hint{font:500 12px 'Alegreya Sans',sans-serif;color:var(--muted)}
+.rpm{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.05);color:var(--ink);font:600 15px 'Alegreya Sans',sans-serif}
+.rpm.g{margin-left:16px;font-weight:500}.rpm small{color:var(--muted)}
+.rx{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,214,150,.35);background:#2a1a10;color:var(--ink);cursor:pointer}
+.rrow{display:flex;gap:8px}.rrow input{flex:1;min-width:0;height:44px;padding:0 12px;border-radius:6px;border:1px solid #6b4527;background:#150d08;color:var(--ink);font:500 17px 'Alegreya Sans',sans-serif;outline:none;user-select:text;-webkit-user-select:text}
+.rrow .btn{flex:0 0 auto;padding:0 14px}
+#sbar span{color:var(--ink)!important;font-size:14px!important}
