@@ -1,6 +1,6 @@
 # La Taverna dei Giochi
 
-Hub di giochi multiplayer per telefono (Regicide, Briscola, Scopa, Burraco, The Gang, Isola, Machiavelli, Azul, Saboteur, The Mind (+Extreme), Harvest Valley, Scoundrel).
+Hub di giochi multiplayer per telefono (Regicide, Briscola, Scopa, Burraco, The Gang, Isola, Machiavelli, Azul, Saboteur, The Mind (+Extreme), Harvest Valley, Scoundrel, Perudo, Exploding Kittens, Catan).
 
 - `dist/index.html`: il gioco (pagina unica generata da `npm run build`).
 - `src/`: sorgenti separati (carte figura dipinte in `faces.js`).
