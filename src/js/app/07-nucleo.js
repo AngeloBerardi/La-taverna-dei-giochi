@@ -1,6 +1,6 @@
 /* ================= STATO, STANZA, GIOCHI ================= */
 let G=null,fxDone=null;
-const ui={lobby:(()=>{try{return ST('rg-lobby')==='hall'?'hall':'iso'}catch(e){return'iso'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
+const ui={lobby:(()=>{try{const l=ST('rg-lobby');return l==='hall'||l==='3d'?l:'iso'}catch(e){return'iso'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
 const ME={name:ST('rg-name')||'',dev:'local'};
 const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
 const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,uno:UNO,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC};
@@ -192,7 +192,7 @@ const RULES={
 const rulesH=()=>!ui.rules?'':`<div class="modal"><div class="box"><h2>${GN(ui.rules)}</h2>${RULES[ui.rules]||''}<button class="b gold" data-a="rules">Chiudi</button></div></div>`;
 const cfgH=()=>!ui.cfg?'':`<div class="modal"><div class="box col"><h2>Impostazioni</h2>
 <label class="col"><span class="muted">Tema grafico</span><select class="sel" id="th">${[['tavolo','Tavolo verde'],['castello','Castello'],['notte','Notte neon'],['carta','Pergamena chiara']].map(([k,n])=>`<option value="${k}" ${k===theme?'selected':''}>${n}</option>`).join('')}</select></label>
-<label class="col"><span class="muted">Lobby</span><select class="sel" id="lb"><option value="iso" ${ui.lobby!=='hall'?'selected':''}>Falò isometrico</option><option value="hall" ${ui.lobby==='hall'?'selected':''}>Sala dark fantasy</option></select></label>
+<label class="col"><span class="muted">Lobby</span><select class="sel" id="lb"><option value="iso" ${ui.lobby!=='hall'?'selected':''}>Falò isometrico</option><option value="hall" ${ui.lobby==='hall'?'selected':''}>Sala dark fantasy</option><option value="3d" ${ui.lobby==='3d'?'selected':''}>Locanda 3D</option></select></label>
 <label class="col"><span class="muted">Carte da 40</span><select class="sel" id="cs"><option value="nap" ${pstyle?'':'selected'}>Napoletane</option><option value="pia" ${pstyle?'selected':''}>Piacentine</option></select></label>
 <label class="row"><input type="checkbox" id="fc" ${fc?'checked':''}> Semi francesi a 4 colori</label>
 <div class="row"><button class="b sm ${Snd.mus?'grn':''}" data-a="mus">Musica: ${Snd.mus?'sì':'no'}</button><button class="b sm ${Snd.sfx?'grn':''}" data-a="sfx">Suoni: ${Snd.sfx?'sì':'no'}</button></div>
@@ -327,7 +327,7 @@ function roomH(){const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.o
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
   ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
- else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
+ else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():ui.lobby==='3d'?L3D.sceneH(S):tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
   <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button></div>
   <p class="muted" style="margin:0">Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.</p></div>
   ${busyB}
@@ -363,7 +363,7 @@ function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
  $('#app').innerHTML=(ui.screen==='name'?nameH():ui.screen==='room'?roomH():gameH())+(ui.screen==='game'?chatDrawerH():'');
  if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
  Snd.track(ui.screen==='game'&&G&&!G.over?(G.g==='regicide'?(G.en?P(G.en.c).r:'menu'):G.g==='gang'?'gang':G.g==='saboteur'?'mine':G.g==='azul'?'azul':G.g==='island'?'island':G.g==='machiavelli'?'mach':G.g==='valle'?'valle':G.g==='discesa'?'disc':G.g==='uno'?'uno':G.g==='pets'?'pets':G.g==='catan'?'cata':G.g==='kittens'?'kitt':G.g==='perudo'?'peru':G.sim?'gang':'it'):'menu')}
-function afterRender(){if(fxOn())fanFit();if(ui.lobby!=='hall'&&(ui.screen==='room'||ui.screen==='name'))tvIso();const h=$('#hand');
+function afterRender(){if(fxOn())fanFit();if(ui.lobby!=='hall'&&(ui.screen==='name'||(ui.screen==='room'&&ui.lobby!=='3d')))tvIso();if(ui.lobby==='3d'&&ui.screen==='room')L3D.mount();const h=$('#hand');
  if(h&&!h.classList.contains('many')){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;if(n<2)h.style.setProperty('--ov','0px');else{const Wd=h.clientWidth-8,cw=sl[0].firstElementChild.getBoundingClientRect().width||64,step=Math.min(cw+8,(Wd-cw)/(n-1));h.style.setProperty('--ov',(cw-step)+'px')}}
  if(h){const deals=[...h.querySelectorAll('.card.deal')];if(deals.length&&!RM){const t=ctr(G&&G.g==='regicide'?'#ptav':'#deck');deals.forEach((c,i)=>{const r=c.getBoundingClientRect();if(c.animate)c.animate([{transform:`translate(${t.x-(r.left+r.width/2)}px,${t.y-(r.top+r.height/2)}px) scale(.45) rotate(-25deg)`,opacity:.3},{transform:'none',opacity:1}],{duration:520*Math.max(SP,.1),delay:i*90*SP,easing:'cubic-bezier(.2,1.2,.4,1)',fill:'backwards'});if(i<6)setTimeout(()=>Snd.play('deal'),i*90*SP)})}}
  if(G&&G.g==='regicide'&&G.en&&ui.screen==='game'){const en=ui.viewEn||G.en;if(seen.e&&seen.e!==en.c&&!RM){const b=$('#boss');if(b&&b.animate)b.animate([{transform:'translateY(-60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:600*SP,easing:'cubic-bezier(.2,1.3,.4,1)'})}seen.e=en.c}}

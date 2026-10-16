@@ -17,6 +17,9 @@ Stato con `sim:true` (The Mind): nessun turno, ogni posto locale può agire, le 
 ## Aggiungere un gioco
 1. `motori/NN-nome.js` + test in node. 2. Riga in `GAMES`, testo in `RULES`, vista `nomeH()` in un file `app/`, `VIEW`/`FX`/click in `app/25-registri.js`, traccia in `Snd`. 3. File nuovi nel manifest. 4. `docs/rules/nome.md` come fonte.
 
+## Lobby 3D (opzionale)
+`app/12c0-taverna-kit.js` (asset procedurali, solo `window.TavernaKit`) e `app/12c-lobby-3d.js` (`L3D`): terza lobby scelta in Impostazioni → Lobby → "Locanda 3D" (`ui.lobby='3d'`, salvata in `rg-lobby`). Legge `lobbySeats()`, `members()`, `R.chat` e le emote; scrive solo `R.mine.av3` (pupazzo 3D, campo in più nel documento del membro, ignorato dalle altre lobby). Toccare una scatola apre lo scaffale dell'app (`ui.tab='games'`, `ui.pick`): l'avvio delle partite resta `startGame`. three.js r128 si scarica da cdnjs solo quando serve; senza WebGL o senza rete si torna al falò. Gira solo con `ui.screen==='room'`.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Invito: `?room=CODICE&b=indice_broker`. Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 
