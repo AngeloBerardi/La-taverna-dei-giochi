@@ -23,6 +23,7 @@
  "src/css/21-valle-selvaggia.css",
  "src/css/22-discesa-tascabile.css",
  "src/css/23-scaffale-scatole.css",
+ "src/css/25-gattini.css",
  "src/css/24-perudo.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -41,6 +42,7 @@
  "src/js/motori/14-valle-selvaggia.js",
  "src/js/motori/15-discesa-tascabile.js",
  "src/js/motori/16-perudo.js",
+ "src/js/motori/17-gattini.js",
  "src/js/app/01-base.js",
  "src/js/app/02-narrazione.js",
  "src/js/app/03-audio.js",
@@ -67,6 +69,7 @@
  "src/js/app/22b-valle-selvaggia.js",
  "src/js/app/22c-discesa-tascabile.js",
  "src/js/app/22d-perudo.js",
+ "src/js/app/22e-gattini.js",
  "src/js/app/23-registri-briscola-scopa-burraco.js",
  "src/js/app/24-avvio.js",
  "src/html/tail.html"
