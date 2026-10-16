@@ -25,6 +25,7 @@
  "src/css/23-scaffale-scatole.css",
  "src/css/25-gattini.css",
  "src/css/26-catan.css",
+ "src/css/27-fisso.css",
  "src/css/24-perudo.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -73,6 +74,7 @@
  "src/js/app/22d-perudo.js",
  "src/js/app/22e-gattini.js",
  "src/js/app/22f-catan.js",
+ "src/js/app/22g-fisso.js",
  "src/js/app/23-registri-briscola-scopa-burraco.js",
  "src/js/app/24-avvio.js",
  "src/html/tail.html"

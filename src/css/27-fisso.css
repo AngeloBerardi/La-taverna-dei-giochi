@@ -1,0 +1,35 @@
+/* LAYOUT FISSO: la pagina è alta quanto lo schermo, niente scorrimento; il tavolo prende lo spazio che resta */
+.wrap.fixed{height:100dvh;min-height:0;overflow:hidden;gap:4px;padding:4px 10px calc(4px + env(safe-area-inset-bottom,0px))}
+.fx{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0}
+.fx-top{display:flex;flex-direction:column;gap:3px;flex:none}.fx-top .hud .logo{font-size:18px}.fx-top .ib{width:34px;height:34px;font-size:16px}
+.fx-chips{gap:4px}.fx-chips .chip{font-size:11px;padding:2px 8px}
+.fx-strip{display:flex;gap:4px;justify-content:center;flex:none}
+.fxp{position:relative;flex:1 1 0;min-width:0;max-width:64px;display:flex;flex-direction:column;align-items:center;gap:0;padding:3px 2px 2px;border:2px solid var(--line);border-bottom:4px solid var(--pc);border-radius:12px;background:var(--panel);color:var(--fg);font:inherit;cursor:pointer}
+.fxp i{font:900 14px var(--f-d);font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--pc);color:#fff;text-shadow:0 1px 0 #0006}
+.fxp small{font-size:9px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.1}
+.fxp b{position:absolute;top:-6px;right:-3px;min-width:18px;padding:0 4px;border-radius:9px;background:#2a1d03;color:#ffd36b;font:900 10px/16px var(--f-d);text-align:center;border:1px solid #000}
+.fxp.act{box-shadow:0 0 0 2px var(--accent),0 0 12px var(--accent)}.fxp.trn{border-style:dashed}.fxp.out{opacity:.4}
+.fx-strip.n10 .fxp i,.fx-strip.n9 .fxp i,.fx-strip.n8 .fxp i{width:22px;height:22px;font-size:12px}
+.fx-mid{flex:1 1 0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden}
+.fx-mid>*{max-width:100%;max-height:100%}
+.fx-bot{flex:none;display:flex;flex-direction:column;gap:4px;max-height:46%;overflow-y:auto;scrollbar-width:none}.fx-bot::-webkit-scrollbar{display:none}
+.fx-bot .bubble{padding:5px 10px;font-size:14px}.fx-bot .bubble .nar{font-size:11px;margin-bottom:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fx-bot .bubble small{font-size:11px}
+.fx-bot .err:empty{display:none}.fx-bot .ctl{margin:0}
+.fx-hand{flex:none;padding-bottom:2px}
+.fx-tabs{display:flex;gap:6px;flex:none}
+.fxt{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:12px;border:2px solid var(--line);background:var(--panel);color:var(--fg);font:800 12px var(--f-b);cursor:pointer}.fxt i{font-style:normal;font-size:15px}.fxt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.fx-sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
+.fx-card{position:relative;width:100%;max-width:620px;max-height:72dvh;overflow-y:auto;background:var(--bg);border:3px solid var(--gold2);border-bottom:0;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));animation:fxup .25s ease-out both}
+@keyframes fxup{from{transform:translateY(40px);opacity:0}}
+.fx-card h3{margin:0 0 8px;font:900 18px var(--f-d)}.fx-x{position:absolute;top:8px;right:8px;width:32px;height:32px}
+.fx-list{display:flex;flex-direction:column;gap:5px}.fx-log{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}.fx-log div{padding:3px 0;border-bottom:1px dashed var(--line)}
+/* ventaglio di carte */
+.fanrow{display:flex;justify-content:center;padding-top:2px}.fanrow>*{flex:none;margin-left:calc(var(--ov,0px)*-1);transition:transform .15s}.fanrow>*:first-child{margin-left:0}.fanrow>.sel,.fanrow>.up{transform:translateY(-12px);z-index:3}
+.fanrow+.fanrow{margin-top:-30px}
+@media (max-height:700px){.fx-top .hud .logo{font-size:15px}.fx-bot .bubble{font-size:13px}.fxt{padding:5px 4px}}
+.fx .cwrap{margin:0;height:100%;width:100%;display:flex;padding:2px;border-radius:18px}.fx .cboard{max-height:none;width:100%;height:100%}
+.fx .khand{display:block}.fx .khand .kc{width:58px}
+.fx .chand{margin-top:0;gap:4px}.fx .crc{padding:2px;max-width:70px}.fx .crc i{font-size:17px}.fx .crc b{font-size:16px}.fx .crc small{font-size:8px}
+.fx .cdev{flex-direction:row;flex-wrap:wrap;margin-top:3px}.fx .cdc{flex:1 1 45%;padding:2px 6px;font-size:11px}
+.fx .cbar{margin:0}.fx .cbtn{min-width:62px;padding:3px 6px}.fx .cbtn i{font-size:16px}
+.fx .ptable{margin:0}

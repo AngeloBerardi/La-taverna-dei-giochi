@@ -9,7 +9,7 @@ function peruH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn(),sum=s.phas
  if(s.pal!=null&&s.bid)ui.pf=s.bid.f;
  const pl=`<div class="players pdpl" id="players">${s.names.map((n,i)=>{const c=(sum&&res?res.hands[i]:s.hands[i]).length,out=!s.hands[i].length&&!(sum&&res&&res.hands[i].length);
   return`<div class="pl ${i===s.cur&&!s.over&&!sum?'act':''} ${out?'out':''} ${s.bid&&s.bid.p===i&&!sum?'bidder':''}"><div class="av" id="av${i}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc pdc">${s.hands[i].length?'<b>'+s.hands[i].length+'</b>🎲':'✕'}</span></div>`}).join('')}</div>`;
- const info=`<div class="tinfo"><span class="chip">Round ${s.round}</span><span class="chip">${tot} dadi in tavola</span>${(s.pal!=null)?`<span class="chip pal">PALIFICO · ${esc(s.names[s.pal])}</span>`:''}</div>`;
+ const info=`<span class="chip">Round ${s.round}</span><span class="chip">${tot} dadi in tavola</span>${(s.pal!=null)?`<span class="chip pal">PALIFICO · ${esc(s.names[s.pal])}</span>`:''}`;
  let table;
  if(sum&&res){const hit=x=>x===res.bid.f||(x===1&&!res.pal&&res.bid.f!==1);
   const rows=res.hands.map((h,i)=>h.length?`<div class="prow ${i===res.bidder?'bd':''}"><span class="pn">${esc(s.names[i])}</span><span class="pdice">${h.map(x=>dieH(x,{cls:'sm '+(hit(x)?'hit':'dim')})).join('')}</span></div>`:'').join('');
@@ -27,7 +27,8 @@ function peruH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn(),sum=s.phas
    <div class="ctl"><button class="b play" data-a="pbid" ${err?'disabled':''}>Dichiara ${ui.pq}× ${PERU.FN[ui.pf]}</button></div>${err?`<div class="phint">${esc(err)}</div>`:''}
    ${s.bid?`<div class="ctl"><button class="b gold sm" data-a="pdudo">🗡 Dudo!</button><button class="b grn sm" data-a="pcalza" ${PERU.canCalza(s)?'':'disabled'}>🎯 Calza</button></div>`:''}`}}
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">🏆</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>dadi</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
- return`${hudH('Perudo')}${info}${pl}${table}${bubbleH(s,sum?'Guarda i dadi, poi si riparte.':'Alza la dichiarazione, sfida con Dudo o prova la Calza.',null)}${ctl}<div class="err" role="alert">${esc(ui.err)}</div><div class="handbox pdhand">${mine_dice}</div>${end}${rulesH()}${cfgH()}`}
+ const strip=stripH(s,i=>({b:s.hands[i].length||'',out:!s.hands[i].length&&!(sum&&res&&res.hands[i].length),trn:!!(s.bid&&s.bid.p===i&&!sum)}));
+ return fixH({title:'Perudo',chips:info,strip,mid:table,bot:bubbleH(s,sum?'Guarda i dadi, poi si riparte.':'Alza la dichiarazione, sfida con Dudo o prova la Calza.',null)+ctl,hand:mine_dice?`<div class="handbox pdhand">${mine_dice}</div>`:'',players:pl,end})}
 function peruClick(a,v){const s=G;if(!myTurn())return;
  if(a==='pq'){ui.pq=Math.max(1,Math.min(PERU.total(s),ui.pq+(+v)));return render()}
  if(a==='pf'){ui.pf=+v;return render()}
