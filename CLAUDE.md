@@ -25,5 +25,5 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 ## Decisioni dell'utente (vincolanti)
 - Niente effetto olografico/foil sulle carte.
 - Grafica originale: ispirarsi a titoli famosi per HUD e atmosfera, ma niente illustrazioni, nomi, loghi o testi di regole copiati. Le regole (meccaniche) non sono protette, il testo e l'arte sì.
-- Stile: campeggio/falò pixel-art per la lobby (in prova una lobby alternativa "Locanda 3D" isometrica, `app/12c-lobby-3d.js`), carte figura dipinte per Regicide, 3D dove sensato. Dettagli in `docs/STYLE.md`.
+- Stile: la lobby di base è la Taverna 3D (ingresso, locanda, boschetto; sorgenti in `tools/taverna3d/`), con il falò pixel-art come modalità semplice per i telefoni senza 3D; carte figura dipinte per Regicide, 3D dove sensato. Dettagli in `docs/STYLE.md`.
 - Ogni gioco ha: schede regole in-game, musica propria, suoni, vista dedicata, test del motore (bot intelligente vince, bot casuale perde).

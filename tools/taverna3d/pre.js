@@ -1,0 +1,23 @@
+'use strict';
+var T=window.THREE;
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var R=mulberry32(7);
+var rnd=function(a,b){return a+Math.random()*(b-a)};
+var mk=function(w,h){var c=document.createElement('canvas');c.width=w;c.height=h;return c};
+var L=function(a,b,t){return a+(b-a)*t};
+var $=function(id){return document.getElementById(id)};
+var app=A.root,stage=$('stage');
+var renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.outputEncoding=T.sRGBEncoding;
+renderer.toneMapping=T.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.0;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=T.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+var scene=new T.Scene();
+scene.background=new T.Color(0x07060d);
+scene.fog=new T.FogExp2(0x07060d,0.016);
+var camera=new T.PerspectiveCamera(30,1,4,300);
+var ANIS=Math.min(8,renderer.capabilities.getMaxAnisotropy());

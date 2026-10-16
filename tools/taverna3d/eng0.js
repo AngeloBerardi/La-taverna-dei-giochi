@@ -1,0 +1,1 @@
+$('open').onclick=function(){openList()};
