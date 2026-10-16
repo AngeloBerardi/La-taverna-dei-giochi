@@ -203,9 +203,9 @@ const storyH=()=>!ui.story?'':`<div class="modal"><div class="box story" style="
 function nameH(){if(ui.lobby==='3d'&&L3D.ok())return`${rulesH()}${cfgH()}`;return`${hudH()}<div class="title"><h1>La Taverna dei Giochi</h1><p>${INV?'Sei invitato al falò <b>'+esc(INV)+'</b>':'Un falò tra le montagne, giochi per tutti'}</p></div>${ui.lobby==='hall'?tvScene([]):tvNameIso()}
 <div class="panel col"><h3>Come ti chiami?</h3><input type="text" id="myname" maxlength="14" placeholder="Il tuo nome" value="${esc(ME.name)}" autocomplete="nickname"><button class="b play big" data-a="setname">${INV?'Siediti al falò':'Accendi il falò'}</button><p class="muted" style="margin:0">${INV?'Ti siederai accanto a chi ti ha invitato.':'Entrerai subito nel tuo falò: manda il link e gli amici si siederanno accanto a te.'}</p></div><div class="err" role="alert">${esc(ui.err)}</div>${cfgH()}${rulesH()}`}
 /* ---- Lobby: falò + scaffale ---- */
-const TVC={carte:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CARTE'},tavolo:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'DA TAVOLO'},coop:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'},solo:{f:'#8a62d6',s:'#4d3490',e:'#b99af0',n:'SOLITARI'}};
-const TVG={trono:['carte', 'TRONO'],uno:['carte', 'UNO'],pets:['carte', 'PETS'],catan:['tavolo', 'CATAN'],kittens:['carte', 'KITTENS'],perudo:['tavolo', 'PERUDO'],regicide:['coop','REGICIDE'],briscola:['carte','BRISCOLA'],scopa:['carte','SCOPA'],burraco:['carte','BURRACO'],gang:['coop','THE GANG'],saboteur:['carte','SABOTEUR'],island:['solo','ISOLA'],machiavelli:['carte','MACHIAVELLI'],harvest:['tavolo','HARVEST'],valle:['tavolo','VALLE'],discesa:['solo','DISCESA'],scoundrel:['solo','SCOUNDREL'],mind:['coop','THE MIND'],mindx:['coop','MIND EXTREME'],azul:['tavolo','AZUL']};
-const tvInfo=g=>TVG[g.id]||['tavolo',g.name.toUpperCase().slice(0,11)];
+const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'SQUADRA E RISATE'}};
+const TVG={briscola:['classici','BRISCOLA'],scopa:['classici','SCOPA'],burraco:['classici','BURRACO'],machiavelli:['classici','MACHIAVELLI'],uno:['classici','UNO'],perudo:['classici','PERUDO'],catan:['strategia','CATAN'],azul:['strategia','AZUL'],valle:['strategia','VALLE'],harvest:['strategia','HARVEST'],discesa:['strategia','DISCESA'],regicide:['strategia','REGICIDE'],island:['strategia','ISOLA'],scoundrel:['strategia','SCOUNDREL'],gang:['squadra','THE GANG'],mind:['squadra','THE MIND'],mindx:['squadra','MIND EXTREME'],saboteur:['squadra','SABOTEUR'],kittens:['squadra','KITTENS'],pets:['squadra','PETS'],trono:['squadra','TRONO']};
+const tvInfo=g=>TVG[g.id]||['strategia',g.name.toUpperCase().slice(0,11)];
 /* Scatole in proporzioni reali (misure approssimate in mm: altezza in piedi, spessore, larghezza del fronte).
    k: deck = astuccio di carte con linguetta, box = scatola con coperchio, wallet = bustina, flat = scatola grande coricata.
    Colori che richiamano le confezioni originali, ma titoli e grafica restano nostri (niente copertine né loghi). */
@@ -297,7 +297,7 @@ function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
  const pick=list.find(x=>x.g.id===ui.pick)||top||list[0];
- const order=['carte','tavolo','coop','solo'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k));
+ const order=['classici','strategia','squadra'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k));
  const chips=[['tutti','TUTTI ('+list.length+')'],...order.map(k=>[k,TVC[k].n+' ('+list.filter(x=>tvInfo(x.g)[0]===k).length+')'])].map(([k,l])=>`<button class="tvchip ${cat===k?'on':''}" data-a="tvcat" data-v="${k}" aria-pressed="${cat===k}">${l}</button>`).join('');
  const vis=list.filter(x=>(cat==='tutti'||tvInfo(x.g)[0]===cat)&&(!q||x.g.name.toLowerCase().includes(q)));
  let rows='';

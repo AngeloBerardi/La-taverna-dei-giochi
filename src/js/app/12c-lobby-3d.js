@@ -707,12 +707,12 @@ function sceneSolo(){
 
 
 /* ================= catalogo: i giochi veri dell'app ================= */
-var CATN={carte:'Carte',tavolo:'Da tavolo',coop:'Cooperativi',solo:'Solitari'};
+var CATN={classici:'Classici',strategia:'Strategia',squadra:'Squadra e risate'};
 var ICON={regicide:0,briscola:1,burraco:2,gang:3,saboteur:4,azul:5,island:6,machiavelli:7,scopa:9,mind:10,mindx:11,harvest:12,valle:13,discesa:14,scoundrel:15,uno:16,pets:17,catan:18,kittens:19,perudo:20};
 function lum(h){var n=parseInt(h.slice(1),16);return(.3*(n>>16&255)+.59*(n>>8&255)+.11*(n&255))/255}
 var GAMES=A.games().map(function(g){var I=A.info(g),b=A.box(g.id);var c=b?b.c[0]:'#5a3a24';if(lum(c)>.62)c=b?b.c[1]:'#5a3a24';if(lum(c)>.62)c='#5a3a24';
   return{id:g.id,g:g,t:g.name,l:I[1].length>13?I[1].slice(0,13):I[1],s:g.desc,r:g.range,k:CATN[I[0]]||I[0],ck:I[0],c:c,v:0,m:ICON[g.id]!=null?ICON[g.id]:(g.id.length%16)}});
-var CATS=[];['carte','tavolo','coop','solo'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
+var CATS=[];['classici','strategia','squadra'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
   if(GAMES.some(function(G){return G.ck===k}))CATS.push({k:CATN[k]||k,c:(A.cat(k)||{f:'#e8b83a'}).f})});
 function boxTex(i){
   var c=mk(256,256),g=c.getContext('2d'),G=GAMES[i];i=G.m;
@@ -916,6 +916,31 @@ function sceneLocanda3(){
   var SLOTS=[[2,2,-9.3,-D/2+.05,0],[2,2,-3.4,-D/2+.05,0],[2,2,fx+.05,-6.0,PI/2],[2,2,fx+.05,8.25,PI/2],[2,2,-7.6,-2.2,0]];
   plant(S,-12.85,-9.85,1.05);
   CATS.forEach(function(C,k){var sl=SLOTS[k%SLOTS.length];bookcase(C,sl[0],sl[1],sl[2],sl[3],sl[4])});
+  // ---- bersaglio delle freccette: prende il posto del vecchio scaffale dei solitari
+  function darts(px,pz,ry){
+    var d=new T.Group();d.position.set(px,0,pz);d.rotation.y=ry;g.add(d);
+    var c=mk(512,512),x=c.getContext('2d'),cx=256;
+    x.fillStyle='#17120e';x.fillRect(0,0,512,512);
+    var rings=[[250,1],[230,0],[150,1],[130,0]];
+    rings.forEach(function(R){for(var i=0;i<20;i++){var a0=(i-.5)*PI/10-PI/2;
+      x.beginPath();x.moveTo(cx,cx);x.arc(cx,cx,R[0],a0,a0+PI/10);x.closePath();
+      x.fillStyle=R[1]?(i%2?'#b3261e':'#2f7a3a'):(i%2?'#1b1712':'#efe3c8');x.fill()}});
+    x.beginPath();x.arc(cx,cx,30,0,PI*2);x.fillStyle='#2f7a3a';x.fill();
+    x.beginPath();x.arc(cx,cx,12,0,PI*2);x.fillStyle='#b3261e';x.fill();
+    x.strokeStyle='rgba(190,190,200,.55)';x.lineWidth=2;
+    [250,230,150,130,30].forEach(function(r){x.beginPath();x.arc(cx,cx,r,0,PI*2);x.stroke()});
+    d.add(box(2.7,2.7,.2,M.dark,0,5.0,.1));
+    var cab=mesh(new T.CylinderGeometry(1.18,1.18,.26,40),M.tableEdge,0,5.0,.33,true,true);cab.rotation.x=PI/2;d.add(cab);
+    d.add(mesh(new T.CircleGeometry(1.0,48),std({map:tex(c,1,1),roughness:.85}),0,5.0,.47,false,true));
+    [[.25,.35,0xd8402f],[-.3,.1,0x2a63b8],[.05,-.45,0xe3ac1f]].forEach(function(q){
+      var br=mesh(new T.CylinderGeometry(.03,.03,.55,6),std({color:0xb8b8c0,metalness:.6,roughness:.4}),5.0*0+q[0],5.0+q[1],.47+.27);br.rotation.x=PI/2;d.add(br);
+      d.add(box(.22,.22,.02,std({color:q[2],roughness:.7}),q[0],5.0+q[1],.47+.56))});
+    d.add(mesh(new T.PlaneGeometry(2.4,.6),std({map:signTex(['FRECCETTE'],512,128,{fs:58}),roughness:.7}),0,6.7,.3,false,true));
+    d.add(box(2.2,.03,.12,std({color:0xefe3c8,roughness:.8}),0,.02,2.8));
+    d.updateMatrixWorld(true);var w=d.localToWorld(new T.Vector3(0,0,3));
+    pendant(S,w.x,11.5,w.z,.55,0xffc477,1.0,14);
+  }
+  darts(SLOTS[3][2],SLOTS[3][3],SLOTS[3][4]);
   S.unpop=function(){S.boxes.forEach(function(b){if(b)b.userData.tz=b.userData.z0})};
 
   // ---- il tavolo lungo
