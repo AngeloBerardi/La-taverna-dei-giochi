@@ -28,3 +28,8 @@
 Perudo, Exploding Kittens, Catan, Power Hungry Pets e Uno usano `fixH` (`app/22g-fisso.js`, `css/27-fisso.css`): la pagina è alta quanto lo schermo e non scorre. In alto titolo e chip, poi una striscia compatta di giocatori (avatar, iniziale, badge con carte o punti); al centro il tavolo, che prende lo spazio che resta; in basso messaggio, comandi e mano. Giocatori (elenco completo), registro e regole si aprono dalla barra in fondo come pannelli. La mano di carte è un ventaglio su una o due file che si sovrappone quanto serve (`fanH`). Verificato a 390×844 e 360×640 senza scorrimento verticale né orizzontale. Gli altri giochi della Taverna non sono ancora migrati.
 
 Power Hungry Pets: regole prese dal regolamento pubblicato (21 carte 0-10, 7 gettoni); nomi e grafica sono nostri. Dettaglio non specificato nel regolamento e deciso da noi: nello spareggio a fine mazzo vince la carta scoperta più alta, poi la somma delle carte scoperte, poi pari; il Re dei Gatti costretto dal Serpente Mago elimina senza rivelare altre carte; il 5 può bersagliare anche sé stessi.
+
+## Adattabilità allo schermo
+- `adaptScreen` (`app/22g-fisso.js`) a ogni disegno e a ogni resize calcola `--k` (0,7–1,5) da altezza e larghezza e scala carte e pezzi dei giochi a layout fisso (`css/30-adatta.css`).
+- Schermi larghi (≥820 px) e telefoni in orizzontale: griglia a due colonne, tavolo a sinistra, messaggio, comandi e mano a destra.
+- I giochi non ancora migrati al layout fisso vengono rimpiccioliti con `zoom` quanto basta per non scorrere, fino a un minimo di 0,58 per restare leggibili. Misurato a 390×844, 360×640, 844×390 e 1280×800: tutti senza scorrimento tranne Regicide (71 px) e Azul (138 px) in orizzontale sul telefono.
