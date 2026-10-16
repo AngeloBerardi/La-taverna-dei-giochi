@@ -28,6 +28,7 @@
  "src/css/27-fisso.css",
  "src/css/28-pets.css",
  "src/css/29-uno.css",
+ "src/css/31-trono.css",
  "src/css/30-adatta.css",
  "src/css/24-perudo.css",
  "src/html/mid.html",
@@ -51,6 +52,7 @@
  "src/js/motori/18-catan.js",
  "src/js/motori/19-pets.js",
  "src/js/motori/20-uno.js",
+ "src/js/motori/21-trono.js",
  "src/js/app/01-base.js",
  "src/js/app/02-narrazione.js",
  "src/js/app/03-audio.js",
@@ -82,6 +84,7 @@
  "src/js/app/22g-fisso.js",
  "src/js/app/22h-pets.js",
  "src/js/app/22i-uno.js",
+ "src/js/app/22j-trono.js",
  "src/js/app/23-registri-briscola-scopa-burraco.js",
  "src/js/app/24-avvio.js",
  "src/html/tail.html"
