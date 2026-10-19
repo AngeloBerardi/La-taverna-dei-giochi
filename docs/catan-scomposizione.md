@@ -40,7 +40,7 @@
 | Bersagli toccabili (incroci, strade, esagoni) secondo la fase | `app/22f-catan.js`, `cTargets` | fatto |
 | Mano di risorse, carte sviluppo, barra delle costruzioni, dadi, giocatori, registro | `app/22f-catan.js`, `catanH` | fatto |
 | Finestre: scambio (banca e giocatori), scarto del 7, invenzione, monopolio | `app/22f-catan.js` | fatto |
-| Stile | `css/26-catan.css` | fatto |
+| Stile | `css/25-catan.css` | fatto |
 | Regole in-game, musica, suoni | `RULES.catan`, traccia `cata`, suoni `build`, `dice`, `coin` | fatto |
 | Test del motore (geometria, regole, partite complete, bot competente contro bot casuale) | `tests/test_catan.js` | fatto |
 

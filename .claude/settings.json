@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(node scripts/*)",
+      "Bash(node tests/*)",
+      "Bash(python3 tools/taverna3d/mk.py)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git fetch*)",
+      "Bash(git branch*)"
+    ],
+    "deny": [
+      "Read(./dist/**)",
+      "Read(./src/js/vendor/**)",
+      "Read(./src/js/app/12c-lobby-3d.js)"
+    ]
+  }
+}
