@@ -6,6 +6,8 @@ const html = fs.readFileSync(path.join(__dirname, '../dist/index.html'), 'utf8')
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 let bad = 0;
 scripts.forEach((m, i) => { try { new Function(m[1]); } catch (e) { bad++; console.error(`script ${i}: ${e.message}`); } });
+const swPath = path.join(__dirname, '../dist/sw.js');
+if (fs.existsSync(swPath)) { const sw = fs.readFileSync(swPath, 'utf8'); try { new Function(sw); } catch (e) { bad++; console.error(`sw.js: ${e.message}`); } if (sw.includes('__BUILD__')) { bad++; console.error('sw.js: __BUILD__ non sostituito'); } }
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/manifest.json'), 'utf8'));
 const missing = manifest.filter(f => !fs.existsSync(path.join(__dirname, '..', f)));
 if (missing.length) { bad++; console.error('nel manifest ma assenti:', missing.join(', ')); }
