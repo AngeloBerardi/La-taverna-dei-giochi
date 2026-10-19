@@ -1,0 +1,61 @@
+rules_version = '2';
+
+// Regole di La Taverna dei Giochi. Si incollano in Console Firebase → Firestore Database → Regole → Pubblica.
+// Spiegazione e limiti: docs/FIREBASE-PIANO.md. Protezione leggera pensata per un gruppo di amici, non anti-truffa.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function accesso() { return request.auth != null; }
+    function nomeOk(d) { return d.name is string && d.name.size() >= 1 && d.name.size() <= 24; }
+
+    match /players/{uid} {
+      // il nome e le monete servono agli altri (classifiche, tavolo): lettura per chi ha fatto l'accesso
+      allow read: if accesso();
+
+      // creazione: solo il proprio profilo, vuoto
+      allow create: if accesso() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'createdAt', 'lastAward'])
+        && nomeOk(request.resource.data)
+        && request.resource.data.coins == 0
+        && request.resource.data.played == 0
+        && request.resource.data.wins == 0
+        && request.resource.data.createdAt == request.time;
+
+      // aggiornamento: solo il proprio profilo e solo i campi previsti
+      allow update: if accesso() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'lastAward'])
+        && nomeOk(request.resource.data)
+        && (
+          // 1) niente monete e niente oggetti nuovi: cambio di nome o scelta dei cosmetici già posseduti
+          (request.resource.data.coins == resource.data.coins
+            && request.resource.data.played == resource.data.played
+            && request.resource.data.wins == resource.data.wins
+            && request.resource.data.owned == resource.data.owned)
+          // 2) premio di fine partita: da 1 a 30 monete, una partita in più, al massimo una vittoria in più,
+          //    non più spesso di una volta ogni 50 secondi
+          || (request.resource.data.coins > resource.data.coins
+              && request.resource.data.coins - resource.data.coins <= 30
+              && request.resource.data.played == resource.data.played + 1
+              && request.resource.data.wins >= resource.data.wins
+              && request.resource.data.wins <= resource.data.wins + 1
+              && request.resource.data.lastAward == request.time
+              && (resource.data.lastAward == null || request.time > resource.data.lastAward + duration.value(50, 's')))
+          // 3) acquisto: le monete scendono (mai sotto zero) e il possesso cambia
+          //    (il prezzo non è ancora verificato: arriva con il catalogo)
+          || (request.resource.data.coins < resource.data.coins
+              && request.resource.data.coins >= 0
+              && request.resource.data.owned != resource.data.owned
+              && request.resource.data.played == resource.data.played
+              && request.resource.data.wins == resource.data.wins)
+        );
+
+      allow delete: if false;
+    }
+
+    // tutto il resto è chiuso finché non lo apriamo con una regola esplicita
+    match /{altro=**} {
+      allow read, write: if false;
+    }
+  }
+}

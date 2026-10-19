@@ -98,6 +98,7 @@
  "src/js/app/22j-trono.js",
  "src/js/app/23-registri-briscola-scopa-burraco.js",
  "src/js/app/24-pwa.js",
+ "src/js/app/24a-firebase.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]

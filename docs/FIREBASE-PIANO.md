@@ -2,6 +2,16 @@
 
 Scelte dell'utente: **Firebase**, identità **anonima poi email**. Idee collegate: 3 (partite asincrone + notifiche), 4 (taverna personalizzabile), poi 2 (account, ELO).
 
+## Stato
+- Progetto Firebase creato dall'utente (`la-taverna-dei-giochi`); config nel codice (`FB.CFG` in `app/24a-firebase.js`: sono identificativi pubblici).
+- **Fase B avviata:** accesso anonimo, profilo `players/{uid}`, monete a fine partita (10 per giocare, +15 per vincere), riga profilo nelle impostazioni, coda dei premi sul telefono se si è offline o il server rifiuta. Manca la **bottega** (catalogo e acquisti).
+- Provato in Chromium con un SDK simulato (profilo, premio, coda, errore di accesso). **Non provato** con il vero Firebase né con l'emulatore delle regole (non scaricabile da qui): il primo giro vero è l'anteprima Netlify.
+
+## Pubblicare le regole (una volta, e a ogni modifica di `firestore.rules`)
+1. Console Firebase → **Build → Firestore Database → scheda Regole**.
+2. Cancella tutto, incolla il contenuto di `firestore.rules` e tocca **Pubblica**: la console segnala eventuali errori di sintassi.
+3. Facoltativo: nel **Simulatore regole** prova una lettura di `players/qualsiasi` con un utente autenticato (deve passare) e una scrittura non autenticata (deve fallire).
+
 ## Fasi
 | Fase | Cosa | Serve |
 |---|---|---|

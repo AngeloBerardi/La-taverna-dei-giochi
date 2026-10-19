@@ -12,7 +12,7 @@ async function toLobby(){ui.confirm=false;ui.cfg=false;ui.story=false;if(R.on){t
  G=null;ui.screen='room';saveOff(null);render()}
 /* ---- coda degli stati e animazioni ---- */
 let Q=Promise.resolve();
-function pushState(ns,own){Q=Q.then(()=>applyState(ns,own)).catch(e=>{console.warn(e);ui.anim=false;ui.viewEn=null;ui.view=null;G=ns;fxDone=ns.evn;render()})}
+function pushState(ns,own){Q=Q.then(()=>{const fin=!!(G&&G.gid===ns.gid&&!G.over&&ns.over);return applyState(ns,own).then(()=>{if(fin)FB.matchEnd(ns)})}).catch(e=>{console.warn(e);ui.anim=false;ui.viewEn=null;ui.view=null;G=ns;fxDone=ns.evn;render()})}
 function coverCheck(prev,ns){if(multiLocal()&&prev&&prev.cur!==ns.cur)ui.shown=-1}
 async function applyState(ns,own){
  const ev=ns.ev||[],prev=G,isNew=!G||G.gid!==ns.gid,fresh=isNew||fxDone===null||ns.evn===fxDone||!ev.length||ui.screen!=='game';
