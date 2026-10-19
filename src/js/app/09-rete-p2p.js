@@ -29,13 +29,24 @@ async function p2pProbe(){const q=new URLSearchParams(location.search);
  if(!q.get('peer')){const order=[MQ.bi,...MQ.list.map((_,i)=>i).filter(i=>i!==MQ.bi)];for(const i of order){try{const c=await mqConnect(MQ.list[i],'tvp'+mqRid(),()=>{},null,6000);c.close();MQ.bi=i;P2P.tr='mq';return true}catch(e){}}}
  if(q.get('mq'))return false;if(typeof Peer==='undefined')return false;try{const pe=await p2pOpen(p2pPeerOpts(),null,'pj');pe.destroy();P2P.tr='pj';return true}catch(e){return false}}
 const p2pId=c=>'tvn1-'+c;
+/* Validazione delle scritture degli ospiti sull'host: solo percorsi della stanza ospitata, il proprio documento tra i membri
+   (la rimozione di un membro resta consentita), dati oggetto di dimensione ragionevole. Una scrittura rifiutata non cambia
+   lo stato: l'ospite riceve il valore corrente e la sua attesa si chiude. */
+function p2pValid(path,data,dev,code){
+ if(typeof path!=='string'||path.length>120)return false;
+ const m=/^rooms\/([A-Za-z0-9_-]{3,16})(?:\/(members|chat)\/([\w-]{1,64}))?$/.exec(path);
+ if(!m||m[1]!==code)return false;
+ if(m[2]==='members'&&data!==null&&m[3]!==dev)return false;
+ if(data===null)return true;
+ if(typeof data!=='object'||Array.isArray(data))return false;
+ try{return JSON.stringify(data).length<=262144}catch(e){return false}}
 async function p2pHost(code,restore,keep,fast){p2pReset();let pe;
  for(let i=0;i<5;i++){try{pe=await p2pOpen(p2pPeerOpts(),p2pId(code));break}catch(e){if(e.code==='unavailable-id'&&i<4&&!fast){await new Promise(r=>setTimeout(r,2000));continue}throw e}}
  P2P.peer=pe;P2P.role='host';P2P.code=code;P2P.state='on';
  if(keep)keep.forEach(([k,v])=>P2P.store.set(k,v));else if(restore){try{const o=JSON.parse(ST('rg-p2p-store')||'null');if(o&&o.code===code)o.e.forEach(([k,v])=>P2P.store.set(k,v))}catch(e){}}
  pe.on('connection',c=>{const dev=(c.metadata||{}).dev;
   c.on('open',()=>{P2P.conns.set(c.peer+'/'+c.connectionId,c);p2pSend(c,{op:'snap',e:[...P2P.store]})});
-  c.on('data',m=>{if(!m)return;if(m.op==='set'&&typeof m.path==='string'&&m.path.startsWith('rooms/')){p2pApply(m.path,m.data);p2pBroadcast({op:'put',path:m.path,data:m.data,oid:m.oid,by:dev})}});
+  c.on('data',m=>{if(!m||typeof m!=='object')return;if(m.op==='set'){if(p2pValid(m.path,m.data,dev,code)){p2pApply(m.path,m.data);p2pBroadcast({op:'put',path:m.path,data:m.data,oid:m.oid,by:dev})}else if(m.oid)p2pSend(c,{op:'put',path:String(m.path||''),data:P2P.store.get(m.path)||null,oid:m.oid,by:dev})}});
   const gone=()=>{P2P.conns.delete(c.peer+'/'+c.connectionId);if(!dev)return;setTimeout(()=>{if(P2P.peer!==pe)return;const room=P2P.store.get('rooms/'+code);if(room&&room.phase==='lobby'&&![...P2P.conns.values()].some(x=>(x.metadata||{}).dev===dev)){const mp='rooms/'+code+'/members/'+dev;if(P2P.store.has(mp)){p2pApply(mp,null);p2pBroadcast({op:'put',path:mp,data:null})}}},20000)};
   c.on('close',gone);c.on('error',gone)});
  pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});
