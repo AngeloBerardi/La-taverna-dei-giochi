@@ -1,0 +1,36 @@
+function coverH(i){const n=esc(G.names[i]);return`<div class="cover panel"><h3>Passa il telefono a</h3><div class="nm">${n}</div><button class="b play" data-a="reveal">Sono ${n}</button></div>`}
+function endH(){const s=G;if(!s.over||ui.anim)return'';let body='';
+ if(s.g==='regicide')body=`<div class="crown">${s.over.win?'👑':'💀'}</div><h2>${s.over.win?'Regicidio compiuto!':'Il regno è perduto'}</h2>${s.over.win?(s.over.medal?`<div class="medal">${{gold:'🥇 Oro',silver:'🥈 Argento',bronze:'🥉 Bronzo'}[s.over.medal]}</div>`:'')+'<p>Il Re Oscuro è caduto. La Taverna brinda alla vostra gloria!</p>':`<p>${esc(s.over.reason)}.</p><p class="muted">La corruzione dilaga. Ma gli eroi tornano sempre.</p>`}<p class="muted">Nemici sconfitti: ${12-s.castle.length-(s.en?1:0)} su 12</p>`;
+ else{const tn=t=>esc(IT.teamName(s,t)),w=s.over.win;body=`<div class="crown">${w==null?'🤝':'🏆'}</div><h2>${w==null?'Pareggio!':'Vince '+tn(w)+'!'}</h2><div class="scores">${s.over.scores.map((v,t)=>`<div class="${t===w?'w':''}"><span>${tn(t)}</span><b>${v}</b></div>`).join('')}</div>${s.g==='briscola'?'<p class="muted">Su 120 punti totali</p>':''}`}
+ const win=s.g==='regicide'?s.over.win:s.over.win!=null&&isMine(s.over.win===null?-1:s.over.win)||s.over.win!=null&&s.n===4&&local().some(i=>i%2===s.over.win);
+ return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${s.g==='regicide'?(s.over.win?'win':'lose'):'win'}">${body}<div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
+function playersH(s,{teams=false,extra}={}){return`<div class="players" id="players">${s.names.map((n,i)=>`<div class="pl ${i===s.cur&&!s.over?'act':''} ${teams?'t'+(i%2):''}"><div class="av" id="av${i}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc">${s.hands[i].length}🂠</span></div>`).join('')}${extra||''}</div>`}
+function fanH(cards,rend,{mine,dv,many}={}){const owner=viewer(),n=cards.length,same=seen.h&&seen.h.owner===owner,prevIds=new Set(same?seen.h.ids:[]),now=Date.now()/1000;
+ const h=`<div class="hand ${many?'many':''}" id="hand">${cards.map((c,i)=>{const mid=(n-1)/2,rot=many?0:(i-mid)*(rend===icardH?1.7:n>6?3.2:4),ty=many?0:Math.pow(Math.abs(i-mid),2)*1.8,isNew=seen.h!==null&&!prevIds.has(c);
+  return`<div class="slot ${ui.sel.includes(c)?'sel':''}" style="--rot:${rot}deg;--ty:${ty}px">${rend(c,{cls:(mine?'':'off ')+(isNew?'deal ':(many?'':'fl8 ')),style:`--fd:-${((now+i*.43)%3.6).toFixed(2)}s`,attrs:`data-a="sel" data-v="${c}" tabindex="0" role="button"`,dv:dv?dv(c):0,nofoil:many})}</div>`}).join('')||'<span class="muted">Nessuna carta in mano</span>'}</div>`;
+ seen.h={owner,ids:cards};return h}
+function bubbleH(s,mineTxt,waitTxt){if(s.over||ui.anim)return`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`;
+ const mine=myTurn();return mine?`<div class="bubble me"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span><b>${esc(s.names[s.cur])}</b>, tocca a te! ${infoH(mineTxt)}</div>`
+ :`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>${waitTxt?`<small>${waitTxt}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`}
+function gameH(){if(!G)return hudH()+'<p class="muted" style="text-align:center">Caricamento…</p>';return VIEW[G.g]()}
+function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
+ $('#app').classList.toggle('fixed',fxOn());
+ $('#app').innerHTML=(ui.screen==='name'?nameH():ui.screen==='room'?roomH():gameH())+(ui.screen==='game'?chatDrawerH():'');
+ if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
+ Snd.track(ui.screen==='game'&&G&&!G.over?(G.g==='regicide'?(G.en?P(G.en.c).r:'menu'):G.g==='gang'?'gang':G.g==='saboteur'?'mine':G.g==='azul'?'azul':G.g==='island'?'island':G.g==='machiavelli'?'mach':G.g==='valle'?'valle':G.g==='discesa'?'disc':G.g==='trono'?'trono':G.g==='uno'?'uno':G.g==='pets'?'pets':G.g==='catan'?'cata':G.g==='kittens'?'kitt':G.g==='perudo'?'peru':G.sim?'gang':'it'):'menu')}
+function afterRender(){adaptScreen();const u3=ui.lobby==='3d'&&L3D.ok()&&(ui.screen==='room'||ui.screen==='name');if(u3)L3D.show(ui.screen);else{L3D.hide();if(ui.lobby!=='hall'&&(ui.screen==='room'||ui.screen==='name'))tvIso()}const h=$('#hand');
+ if(h&&!h.classList.contains('many')){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;if(n<2)h.style.setProperty('--ov','0px');else{const Wd=h.clientWidth-8,cw=sl[0].firstElementChild.getBoundingClientRect().width||64,step=Math.min(cw+8,(Wd-cw)/(n-1));h.style.setProperty('--ov',(cw-step)+'px')}}
+ if(h){const deals=[...h.querySelectorAll('.card.deal')];if(deals.length&&!RM){const t=ctr(G&&G.g==='regicide'?'#ptav':'#deck');deals.forEach((c,i)=>{const r=c.getBoundingClientRect();if(c.animate)c.animate([{transform:`translate(${t.x-(r.left+r.width/2)}px,${t.y-(r.top+r.height/2)}px) scale(.45) rotate(-25deg)`,opacity:.3},{transform:'none',opacity:1}],{duration:520*Math.max(SP,.1),delay:i*90*SP,easing:'cubic-bezier(.2,1.2,.4,1)',fill:'backwards'});if(i<6)setTimeout(()=>Snd.play('deal'),i*90*SP)})}}
+ if(G&&G.g==='regicide'&&G.en&&ui.screen==='game'){const en=ui.viewEn||G.en;if(seen.e&&seen.e!==en.c&&!RM){const b=$('#boss');if(b&&b.animate)b.animate([{transform:'translateY(-60px) scale(.6)',opacity:0},{transform:'none',opacity:1}],{duration:600*SP,easing:'cubic-bezier(.2,1.3,.4,1)'})}seen.e=en.c}}
+addEventListener('resize',()=>afterRender());
+
+document.addEventListener('input',e=>{if(e.target.id==='tvq'){ui.q=e.target.value;render();const el=document.getElementById('tvq');if(el){el.focus({preventScroll:true});try{el.setSelectionRange(ui.q.length,ui.q.length)}catch(x){}}}});
+
+document.addEventListener('input',e=>{if(e.target.id==='cmsg')ui.cm=e.target.value});
+let tvT=0;function tvLater(){clearTimeout(tvT);tvT=setTimeout(()=>{if(ui.screen==='room'){const l=$('#chatlog'),t=l?l.scrollTop:0;render();const l2=$('#chatlog');if(l2)l2.scrollTop=t}},7200)}
+let lastChat=0;
+async function chatSend(){const t=(ui.cm||'').trim().slice(0,120);if(!t||!R.on||!R.code)return;if(Date.now()-lastChat<600)return;lastChat=Date.now();
+ const k=ui.ek||'m',g=(R.mine.guests||[]).find(x=>x.k===k),nm=g?g.name:(R.mine.name||ME.name),id=Date.now()+'_'+rid();ui.cm='';
+ try{await R.db.doc('rooms/'+R.code+'/chat/'+id).set({dev:ME.dev,k:g?k:'m',name:nm,text:t,t:Date.now()});
+  const old=R.chat.slice(0,Math.max(0,R.chat.length-39));for(const o of old){try{await R.db.doc('rooms/'+R.code+'/chat/'+o.id).delete()}catch(e){}}}catch(e){ui.err=netErr(e)}
+ render();const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight;const el=$('#cmsg');if(el)el.focus({preventScroll:true})}
