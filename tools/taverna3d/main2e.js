@@ -50,7 +50,8 @@ function sceneLocanda3(){
   shelfBottles(S,8,5.6,-D/2+.8,7,7.6);shelfBottles(S,8,8.2,-D/2+.8,6,7.6);
   var ho=person(S,3,8.6,0,-D/2+.7,0,.55);ho.add(box(1.9,2.3,.08,std({color:0xe6dcc4,roughness:.9}),0,2.6,.97));
   barrel(S,12.9,-D/2+2.2,.8);
-  g.add(mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true));
+  var roomSign=mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true);g.add(roomSign);
+  S.setRoomSign=function(code){var m=roomSign.material,old=m.map;m.map=signTex(['STANZA',code],512,256,{fs:96,f2:.8});m.needsUpdate=true;if(old)old.dispose()};
   pendant(S,8,12,bz+1,.6,0xffc477,1.1,14);
   var keg=new T.Group();keg.position.set(5.0,2.62,bz);g.add(keg);
   var kb=mesh(barrelG,M.dark,0,.62,0);kb.scale.setScalar(.4);kb.rotation.z=PI/2;kb.position.x=.64;keg.add(kb);
@@ -171,6 +172,31 @@ function sceneLocanda3(){
   var SLOTS=[[2,2,-9.3,-D/2+.05,0],[2,2,-3.4,-D/2+.05,0],[2,2,fx+.05,-6.0,PI/2],[2,2,fx+.05,8.25,PI/2],[2,2,-7.6,-2.2,0]];
   plant(S,-12.85,-9.85,1.05);
   CATS.forEach(function(C,k){var sl=SLOTS[k%SLOTS.length];bookcase(C,sl[0],sl[1],sl[2],sl[3],sl[4])});
+  // ---- bersaglio delle freccette: prende il posto del vecchio scaffale dei solitari
+  function darts(px,pz,ry){
+    var d=new T.Group();d.position.set(px,0,pz);d.rotation.y=ry;g.add(d);
+    var c=mk(512,512),x=c.getContext('2d'),cx=256;
+    x.fillStyle='#17120e';x.fillRect(0,0,512,512);
+    var rings=[[250,1],[230,0],[150,1],[130,0]];
+    rings.forEach(function(R){for(var i=0;i<20;i++){var a0=(i-.5)*PI/10-PI/2;
+      x.beginPath();x.moveTo(cx,cx);x.arc(cx,cx,R[0],a0,a0+PI/10);x.closePath();
+      x.fillStyle=R[1]?(i%2?'#b3261e':'#2f7a3a'):(i%2?'#1b1712':'#efe3c8');x.fill()}});
+    x.beginPath();x.arc(cx,cx,30,0,PI*2);x.fillStyle='#2f7a3a';x.fill();
+    x.beginPath();x.arc(cx,cx,12,0,PI*2);x.fillStyle='#b3261e';x.fill();
+    x.strokeStyle='rgba(190,190,200,.55)';x.lineWidth=2;
+    [250,230,150,130,30].forEach(function(r){x.beginPath();x.arc(cx,cx,r,0,PI*2);x.stroke()});
+    d.add(box(2.7,2.7,.2,M.dark,0,5.0,.1));
+    var cab=mesh(new T.CylinderGeometry(1.18,1.18,.26,40),M.tableEdge,0,5.0,.33,true,true);cab.rotation.x=PI/2;d.add(cab);
+    d.add(mesh(new T.CircleGeometry(1.0,48),std({map:tex(c,1,1),roughness:.85}),0,5.0,.47,false,true));
+    [[.25,.35,0xd8402f],[-.3,.1,0x2a63b8],[.05,-.45,0xe3ac1f]].forEach(function(q){
+      var br=mesh(new T.CylinderGeometry(.03,.03,.55,6),std({color:0xb8b8c0,metalness:.6,roughness:.4}),5.0*0+q[0],5.0+q[1],.47+.27);br.rotation.x=PI/2;d.add(br);
+      d.add(box(.22,.22,.02,std({color:q[2],roughness:.7}),q[0],5.0+q[1],.47+.56))});
+    d.add(mesh(new T.PlaneGeometry(2.4,.6),std({map:signTex(['FRECCETTE'],512,128,{fs:58}),roughness:.7}),0,6.7,.3,false,true));
+    d.add(box(2.2,.03,.12,std({color:0xefe3c8,roughness:.8}),0,.02,2.8));
+    d.updateMatrixWorld(true);var w=d.localToWorld(new T.Vector3(0,0,3));
+    pendant(S,w.x,11.5,w.z,.55,0xffc477,1.0,14);
+  }
+  darts(SLOTS[3][2],SLOTS[3][3],SLOTS[3][4]);
   S.unpop=function(){S.boxes.forEach(function(b){if(b)b.userData.tz=b.userData.z0})};
 
   // ---- il tavolo lungo

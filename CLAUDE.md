@@ -5,6 +5,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 ## Struttura
 - `src/manifest.json`: elenco ordinato dei file; `scripts/build.js` li concatena in `dist/index.html` (una sola pagina, nessuna dipendenza). Un file nuovo va aggiunto al manifest nella posizione giusta.
 - `src/css/`, `src/js/motori/` (regole dei giochi, pure e testabili), `src/js/app/` (viste, rete, audio, effetti), `src/js/vendor/` (PeerJS, non toccare).
+- `src/js/app/07*.js` è il nucleo dell'app diviso per compiti (stato, rete, partita, comandi, viste, lobby): vedi ARCHITECTURE.md. `src/js/app/12c-lobby-3d.js` è generato da `tools/taverna3d/` con `python3 tools/taverna3d/mk.py`: non si modifica a mano.
 - `docs/ARCHITECTURE.md` mappa dei moduli e contratti; `docs/STYLE.md` guida di stile e HUD; `docs/GAMES-BACKLOG.md` giochi candidati; `docs/rules/` schede regole.
 - `npm run check` = build + sintassi. Va lanciato prima di ogni push.
 

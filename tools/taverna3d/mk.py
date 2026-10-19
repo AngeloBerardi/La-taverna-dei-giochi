@@ -21,7 +21,7 @@ const L3D=(()=>{
   ST:(k,v)=>ST(k,v),Snd:()=>Snd,inv:()=>INV,defOpts:id=>defOpts(id),
   busy:()=>!!(R.on&&R.doc&&R.doc.phase==='play'),
   canResume:()=>{if(R.on)return false;try{return!!(JSON.parse(ST('rg-off')||'null')||{}).game}catch(e){return false}},
-  save:()=>saveMine(),start:(id,o)=>startGame(id,null,o),
+  save:()=>saveMine(),savePos:()=>savePos(),start:(id,o)=>startGame(id,null,o),
   act:(a,v)=>{const b=document.createElement('button');b.type='button';b.hidden=true;b.dataset.a=a;if(v!=null)b.dataset.v=v;(A.root||document.body).appendChild(b);b.click();b.remove()},
   duck:v=>{if(Snd.duck)Snd.duck(v)},audioKick:()=>{if(Snd.mus)Snd.start()},
   fallback:msg=>{state='fail';ui.lobby='iso';ST('rg-lb','iso');ui.err=msg;hide();render()}

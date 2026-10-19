@@ -63,6 +63,7 @@ function drum(kind,t){
 }
 function musTick(){
   var c=MUS.ctx,Tk=TRACKS[MUS.cur];if(!Tk)return;
+  if(MUS.next<c.currentTime-.4)MUS.next=c.currentTime+.05;
   while(MUS.next<c.currentTime+.15){
     var s=MUS.step%Tk.mel.length,t=MUS.next,bar=Math.floor(s/Tk.bar),inb=s%Tk.bar,nb=Tk.ch.length,bi=bar%nb;
     var m=Tk.mel[s];if(m){var hold=1;while(hold<4&&Tk.mel[(s+hold)%Tk.mel.length]===0)hold++;
