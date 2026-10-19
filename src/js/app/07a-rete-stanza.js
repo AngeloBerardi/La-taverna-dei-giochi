@@ -35,7 +35,7 @@ async function joinRoom(code){const old=R.code;unsubAll();
  if(old&&old!==code){try{await R.db.doc('rooms/'+old+'/members/'+ME.dev).delete()}catch(e){}}
  R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.doc=null;R.members=[];R.chat=[];G=null;fxDone=null;
  const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
- R.mine={name:ME.name,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){}subscribe()}
+ R.mine={name:ME.name,uid:FB.uid||null,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){}subscribe()}
 function subscribe(){
  R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();enterHub();return}
   const d=sn.data();R.doc=d;const seated=d.phase==='play'&&!!d.s&&(d.seats||[]).some(x=>x.dev===ME.dev),was=ui.screen;

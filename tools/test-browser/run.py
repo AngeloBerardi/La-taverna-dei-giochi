@@ -178,6 +178,92 @@ async def sc_vendor_offline_e_cache(b, srv):
     check(await pg.evaluate('VENDOR.load("peerjs").then(()=>typeof Peer!=="undefined",()=>false)'), 'offline: PeerJS arriva dalla cache')
     await ctx.set_offline(False); await ctx.close()
 
+async def sc_account_email(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    uid0 = await pg.evaluate('FB.uid')
+    await pg.evaluate("(()=>{window.__db['players/'+FB.uid].coins=77;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()")
+    check('Profilo anonimo' in await pg.inner_text('.modal'), 'impostazioni: profilo anonimo')
+    await pg.click('[data-a=acc]'); await pg.wait_for_timeout(200)
+    # password corta e email già usata danno messaggi chiari
+    await pg.fill('#acc-mail', 'a@b.it'); await pg.fill('#acc-pw', '123'); await pg.click('[data-a=acclink]'); await pg.wait_for_timeout(500)
+    check('almeno 6' in await pg.inner_text('.acc-msg'), 'password corta rifiutata con messaggio')
+    await pg.fill('#acc-pw', 'segreta1'); await pg.click('[data-a=acclink]'); await pg.wait_for_timeout(500)
+    check(await pg.evaluate('FB.mail()') == 'a@b.it' and await pg.evaluate('FB.uid') == uid0, 'email collegata, stesso profilo')
+    check('a@b.it' in await pg.inner_text('.modal') and await pg.query_selector('#acc-mail') is None, 'il modale mostra l\'account collegato')
+    # esci: nuovo profilo anonimo vuoto
+    await pg.click('[data-a=accout]'); await pg.wait_for_timeout(800)
+    uid1 = await pg.evaluate('FB.uid')
+    check(uid1 != uid0 and await pg.evaluate('FB.p.coins') == 0 and await pg.evaluate('FB.mail()') == '', f'uscita: nuovo profilo anonimo {uid0}->{uid1}')
+    # accedi con password sbagliata e giusta: tornano le monete
+    await pg.fill('#acc-mail', 'a@b.it'); await pg.fill('#acc-pw', 'sbagliata'); await pg.click('[data-a=accin]'); await pg.wait_for_timeout(500)
+    check('errate' in await pg.inner_text('.acc-msg'), 'password errata: messaggio')
+    await pg.fill('#acc-pw', 'segreta1'); await pg.click('[data-a=accin]'); await pg.wait_for_timeout(900)
+    check(await pg.evaluate('[FB.uid,FB.p.coins]') == [uid0, 77], 'accesso: ritrovato il profilo con le monete')
+    check(await pg.evaluate('R.mine.uid') == uid0, 'la stanza vede l\'uid del profilo attivo')
+    # il reset password parte con l'email scritta; l'email già usata da un altro profilo è rifiutata
+    await pg.click('[data-a=accout]'); await pg.wait_for_timeout(800)
+    await pg.fill('#acc-mail', 'a@b.it'); await pg.click('[data-a=accreset]'); await pg.wait_for_timeout(400)
+    check(await pg.evaluate('window.__resetMail') == 'a@b.it', 'reset password inviato')
+    await pg.fill('#acc-pw', 'altra123'); await pg.click('[data-a=acclink]'); await pg.wait_for_timeout(500)
+    check('già un profilo' in await pg.inner_text('.acc-msg'), 'email già usata: messaggio')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+ELO_PARTITA = """async([gioco,seats,over])=>{await startGame(gioco,seats);await Q;
+ const ns=JSON.parse(JSON.stringify(G));ns.over=over;pushState(ns);await Q;await new Promise(r=>setTimeout(r,900))}"""
+RIVALE = "localStorage.setItem('__stub',JSON.stringify({'players/u-2':{name:'Rivale',coins:5,played:3,wins:1,owned:{},equipped:{},elo:{uno:1200}}}));"
+
+async def sc_elo_fine_partita(b, srv):
+    A = {'dev': 'DEV', 'k': 'm', 'name': 'Tester', 'uid': 'u-1'}; Bb = {'dev': 'altro', 'k': 'm', 'name': 'Rivale', 'uid': 'u-2'}
+    async def gioca(over, seats=None, gioco='uno', extra=''):
+        ctx = await new_context(b, srv.port, extra_init=RIVALE + extra); pg = await page(ctx, srv.url)
+        dev = await pg.evaluate('ME.dev'); s = seats or [dict(A, dev=dev), Bb]
+        s = [dict(x, dev=dev) if x.get('dev') == 'DEV' else x for x in s]
+        await pg.evaluate(ELO_PARTITA, [gioco, s, over]); return ctx, pg
+    # vittoria contro uno più forte (1200): +24
+    ctx, pg = await gioca({'win': 0, 'scores': [0, 5]})
+    check(await pg.evaluate('(FB.p.elo||{}).uno') == 1024, f'vittoria contro 1200: ELO {await pg.evaluate("(FB.p.elo||{}).uno")}')
+    check(await pg.evaluate('FB.p.wins') == 1 and await pg.evaluate('FB.p.coins') == 25, 'monete e vittoria registrate insieme')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # sconfitta: 1000 - 8 (attesa 0.24 -> perde 8)
+    ctx, pg = await gioca({'win': 1, 'scores': [5, 0]})
+    check(await pg.evaluate('(FB.p.elo||{}).uno') == 992, f'sconfitta contro 1200: ELO {await pg.evaluate("(FB.p.elo||{}).uno")}')
+    await ctx.close()
+    # con un ospite al tavolo, in un gioco cooperativo o senza vincitore: nessun ELO, ma i premi sì
+    for nome, over, seats, gioco in [('ospite', {'win': 0, 'scores': [0, 5]}, [A, {'dev': 'DEV', 'k': 'g1', 'name': 'Ospite'}], 'uno'),
+                                     ('cooperativo', {'win': True}, [A, Bb], 'regicide'), ('pareggio', {'win': None, 'scores': [60, 60]}, [A, Bb], 'briscola')]:
+        ctx, pg = await gioca(over, seats, gioco)
+        check(await pg.evaluate('FB.p.elo') is None and await pg.evaluate('FB.p.played') == 1, f'{nome}: niente ELO, premio sì')
+        await ctx.close()
+    # chi ha vinto, per ogni forma di partita (coop booleano, singolo, squadre a 4, pari merito)
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    esiti = await pg.evaluate("""async()=>{const dev=ME.dev,S=n=>Array.from({length:n},(_,i)=>({dev:i===0?dev:'x'+i,k:'m',name:'p'+i}));
+      const t=async(g,n,over,mio)=>{R.offSeats=S(n).map((x,i)=>i===mio?{...x,dev}:i===0&&mio!==0?{...x,dev:'x0'}:x);return !!iWon({g,n,over})};
+      return[await t('gang',3,{win:true},0),await t('gang',3,{win:false},0),await t('uno',4,{win:0},0),await t('uno',4,{win:0},2),await t('uno',4,{win:2},2),
+        await t('briscola',4,{win:0},2),await t('briscola',4,{win:1},2),await t('azul',3,{win:null,winners:[0,2]},2),await t('azul',3,{win:null,winners:[]},0),await t('regicide',2,{win:true},0)]}""")
+    check(esiti == [True, False, True, False, True, True, False, True, False, True], f'iWon in tutte le forme {esiti}'); await ctx.close()
+    # stesso uid in due posti (tentativo di gonfiare il punteggio): niente ELO
+    ctx, pg = await gioca({'win': 0, 'scores': [0, 5]}, [A, dict(A, dev='altro')])
+    check(await pg.evaluate('FB.p.elo') is None, 'stesso profilo su due posti: niente ELO'); await ctx.close()
+
+async def sc_classifica(b, srv):
+    db = {f'players/u-{i}': {'name': n, 'coins': c, 'played': p, 'wins': w, 'owned': {}, 'equipped': {}, **({'elo': e} if e else {})}
+          for i, (n, c, p, w, e) in enumerate([('Anna', 300, 20, 9, {'uno': 1100}), ('Bruno', 50, 8, 2, {'uno': 1300, 'perudo': 900}), ('Carla', 120, 30, 5, None)], start=2)}
+    import json
+    ctx = await new_context(b, srv.port, extra_init=f"localStorage.setItem('__stub',{json.dumps(json.dumps(db))});"); pg = await page(ctx, srv.url)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=top]'); await pg.wait_for_timeout(500)
+    nomi = await pg.eval_on_selector_all('.top li b', 'e=>e.map(x=>x.textContent)')
+    check(nomi == ['Anna', 'Carla', 'Bruno', 'Tester'][:len(nomi)] or nomi[:3] == ['Anna', 'Bruno', 'Carla'] or nomi[0] == 'Anna', f'vittorie in ordine {nomi}')
+    check(nomi[0] == 'Anna' and nomi[1] == 'Carla' and nomi[2] == 'Bruno', f'ordine per vittorie {nomi}')
+    check(await pg.eval_on_selector_all('.top li.me b', 'e=>e.map(x=>x.textContent)') == ['Tester'], 'la mia riga è evidenziata')
+    await pg.click('[data-a=topk][data-v="elo.uno"]'); await pg.wait_for_timeout(500)
+    check(await pg.eval_on_selector_all('.top li', 'e=>e.map(x=>x.querySelector("b").textContent+":"+x.querySelector("em").textContent)') == ['Bruno:1300', 'Anna:1100'], 'ELO Uno: solo chi ha giocato, in ordine')
+    check('ELO' in await pg.inner_text('.modal') and not [c for c in await pg.eval_on_selector_all('.chips .chip', 'e=>e.map(x=>x.textContent)') if 'Regicide' in c or 'Gang' in c], 'i giochi cooperativi non hanno la classifica ELO')
+    await pg.click('[data-a=accx]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate('ui.cfg===true&&!ui.acc'), 'chiudendo si torna alle impostazioni')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

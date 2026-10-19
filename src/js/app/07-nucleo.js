@@ -49,7 +49,7 @@ const infoH=(t,cls='')=>t?`<span class="info ${cls}" tabindex="0" role="button" 
 const GENROOM='PIAZZA',isGen=()=>R.code===GENROOM;
 function setRoomUrl(c){try{const u=new URL(location.href);if(c&&c!==GENROOM)u.searchParams.set('room',c);else u.searchParams.delete('room');history.replaceState(null,'',u)}catch(e){}}
 const INV=(()=>{try{const c=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length>=3&&c.length<=6?c:''}catch(e){return''}})();
-function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?'},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
+function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?',uid:m.uid||null},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
 function tally(n){const t={};members().forEach(m=>{const keys=['m',...(m.guests||[]).map(g=>g.k)];keys.forEach(k=>((m.votes||{})[k]||[]).forEach(g=>{const G0=GAMES.find(x=>x.id===g);if(G0&&G0.ok(n))t[g]=(t[g]||0)+1}))});return t}
 const rid=()=>Math.random().toString(36).slice(2,10);
 const newCode=()=>Array.from({length:4},()=>'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.floor(Math.random()*23)]).join('');
