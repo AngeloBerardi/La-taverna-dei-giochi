@@ -15,6 +15,7 @@ const tutti = [];
 (function giro(d) {
   for (const n of fs.readdirSync(path.join(root, d))) {
     const p = d + '/' + n;
+    if (p === 'src/pwa') continue;
     if (fs.statSync(path.join(root, p)).isDirectory()) giro(p); else if (/\.(js|css|html)$/.test(n)) tutti.push(p);
   }
 })('src');

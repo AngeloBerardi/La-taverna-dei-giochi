@@ -34,6 +34,9 @@ Per aggiungere codice cerca la funzione con `grep -n` e apri solo quel file.
 ## Lobby 3D (predefinita)
 `app/12c-lobby-3d.js` (`L3D`, generato da `tools/taverna3d/`) è la lobby di base: ingresso, locanda e boschetto in un overlay `#l3d` sopra `#app`. Con `ui.lobby==='3d'` `nameH`/`roomH` disegnano solo le modali (regole, impostazioni) e `afterRender` chiama `L3D.show(screen)`; in partita l'overlay si nasconde. Usa le azioni esistenti (`setname`, `addguest`, `rmguest`, `join`, `newroom`, `genroom`, `copy`, `chatsend`, `emo`, `rules`, `resume`) e `startGame` per avviare. Nel documento del membro aggiunge `av3`, `pos3`, `prop`/`pv` (proposta di gioco con voto ✓/✗ in 30 s, la avvia chi propone), `juke`. three.js r128 è in `vendor/09c-three.min.js`. Senza WebGL, o se gira sotto ~12 fps, si passa al falò (`ui.lobby='iso'`, salvato in `rg-lb`); da Impostazioni → Lobby si sceglie Taverna 3D, Falò (modalità semplice) o Sala.
 
+## PWA (app installabile)
+`src/pwa/` finisce nella radice di `dist/` (`scripts/build.js`): `manifest.webmanifest`, icone, `sw.js` (il service worker deve stare in `/`). `__BUILD__` in `sw.js` diventa l'hash della pagina: a ogni deploy cambia la cache e la vecchia viene cancellata. Strategia: pagina **prima la rete** (ripiego sulla copia dopo 4 s o offline), asset e font **dalla cache e aggiornati in sottofondo**, WebSocket e `/.netlify/` mai toccati. `app/24-pwa.js` registra il worker, controlla gli aggiornamenti quando l'app torna in primo piano, ricarica solo fuori partita e gestisce il pulsante «Installa l'app» (impostazioni). `sw.js` ha già `push` e `notificationclick` per le notifiche (dati `{title, body, url}`), da collegare a Firebase Cloud Messaging. Icone: `python3 tools/pwa/mk-icone.py`.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -146,6 +149,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22i-uno.js` | 6 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
-| `js/app/24-avvio.js` | 1 |  |
+| `js/app/24-pwa.js` | 2 | PWA |
+| `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
