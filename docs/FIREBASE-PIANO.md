@@ -5,6 +5,7 @@ Scelte dell'utente: **Firebase**, identità **anonima poi email**. Idee collegat
 ## Stato
 - Progetto Firebase creato dall'utente (`la-taverna-dei-giochi`); config nel codice (`FB.CFG` in `app/24a-firebase.js`: sono identificativi pubblici).
 - **Fase B avviata:** accesso anonimo, profilo `players/{uid}`, monete a fine partita (10 per giocare, +15 per vincere), riga profilo nelle impostazioni, coda dei premi sul telefono se si è offline o il server rifiuta. Manca la **bottega** (catalogo e acquisti).
+- **Bottega fatta** (6 dorsi delle carte, prezzi verificati dalle regole). **Dopo ogni modifica ai prezzi:** `npm run regole` e ripubblica `firestore.rules` nella console.
 - Provato in Chromium con un SDK simulato (profilo, premio, coda, errore di accesso). **Non provato** con il vero Firebase né con l'emulatore delle regole (non scaricabile da qui): il primo giro vero è l'anteprima Netlify.
 
 ## Pubblicare le regole (una volta, e a ogni modifica di `firestore.rules`)

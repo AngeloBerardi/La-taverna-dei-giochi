@@ -9,6 +9,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | `npm test -- catan uno` | solo i test il cui nome contiene quelle parole (in parallelo) |
 | `npm run test:rapido` / `npm test` | senza i test lenti / tutti (~1,5 min) |
 | `npm run test:browser` | prove in Chromium headless con Firebase simulato (PWA, profilo, premi…): `tools/test-browser/` |
+| `npm run regole` | riscrive in `firestore.rules` i prezzi della bottega dal catalogo (`-- --controlla` per verificare) |
 | `npm run check` | build + sintassi (è ciò che esegue Netlify) |
 | `npm run struttura` | file fuori manifest, CSS copiato, righe troppo lunghe |
 | `npm run mappa` | rigenera la mappa dei moduli in `docs/ARCHITECTURE.md` |
@@ -26,6 +27,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Lobby falò / sala | `src/js/app/07e-lobby-falo.js`, `12-sala-hall.js`, `12b-lobby-diorama.js` |
 | App installabile, offline, notifiche push | `src/pwa/` (`sw.js`, manifest, icone: `python3 tools/pwa/mk-icone.py`), `src/js/app/24-pwa.js` |
 | Profilo online, monete (Firebase) | `src/js/app/24a-firebase.js`, regole in `firestore.rules`, piano in `docs/FIREBASE-PIANO.md` |
+| Bottega, cosmetici, prezzi | catalogo `src/js/motori/22-bottega.js` (unica fonte), `app/24b-bottega.js`, `css/33-dorsi.css`; dopo aver cambiato i prezzi: `npm run regole` e ripubblica `firestore.rules` |
 | Nuovo gioco | comando `/nuovo-gioco` |
 
 Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `docs/STYLE.md`. Cartelle con regole proprie: vedi il `CLAUDE.md` dentro `src/css/`, `src/js/app/`, `src/js/motori/`, `tests/`, `tools/taverna3d/`.

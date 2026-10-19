@@ -97,6 +97,34 @@ async def sc_firebase_accesso_negato(b, srv):
     check(r == ['err', True, True, 1], f'errore mostrato, partita normale, premio in coda {r}')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+
+async def sc_bottega(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    # il profilo parte con 100 monete (simulatore): ricarico perché l'app lo rilegga
+    await pg.evaluate("(()=>{const k=Object.keys(window.__db).find(x=>x.startsWith('players/'));window.__db[k].coins=100;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate('FB.p.coins') == 100, 'profilo con 100 monete')
+    await pg.evaluate("ui.cfg=true;render()")
+    check(await pg.evaluate("!!document.querySelector('[data-a=shop]')"), 'le impostazioni hanno il pulsante Bottega')
+    await pg.click('[data-a=shop]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("document.querySelectorAll('.shopi').length") == 7, 'bottega: classico + 6 dorsi')
+    check(await pg.evaluate("document.querySelector('[data-a=shopbuy][data-v=dorso-oro]').disabled") is True, 'dorso da 160 con 100 monete: pulsante disattivato')
+    await pg.click('[data-a=shopbuy][data-v=dorso-notte]'); await pg.wait_for_timeout(500)
+    st = await pg.evaluate("[FB.p.coins,!!FB.p.owned['dorso-notte'],FB.p.equipped.dorso,document.documentElement.dataset.dorso,localStorage.getItem('rg-dorso')]")
+    check(st == [60, True, 'dorso-notte', 'notte', 'dorso-notte'], f'acquisto a 40: monete, posseduto, in uso, attributo, memoria locale = {st}')
+    bordo = await pg.evaluate("(()=>{const e=document.createElement('div');e.className='card back';document.body.appendChild(e);const c=getComputedStyle(e).borderTopColor;e.remove();return c})()")
+    check(bordo == 'rgb(143, 160, 224)', f'una carta coperta qualsiasi usa il dorso scelto (bordo {bordo})')
+    await pg.click('[data-a=shopbuy][data-v=dorso-bosco]'); await pg.wait_for_timeout(400)
+    await pg.click('[data-a=shopuse][data-v=dorso-notte]'); await pg.wait_for_timeout(400)
+    check(await pg.evaluate("[FB.p.coins,FB.p.equipped.dorso,document.documentElement.dataset.dorso]") == [0, 'dorso-notte', 'notte'], 'secondo acquisto (60) poi si torna al dorso notte')
+    await pg.click('[data-a=shopuse][data-v=dorso-classico]'); await pg.wait_for_timeout(400)
+    check(await pg.evaluate("[FB.p.equipped.dorso,document.documentElement.dataset.dorso]") == ['dorso-classico', ''], 'dorso classico: attributo vuoto')
+    # una scelta non posseduta (manomessa) non si applica dopo il ricarico
+    await pg.evaluate("(()=>{const k=Object.keys(window.__db).find(x=>x.startsWith('players/'));window.__db[k].equipped={dorso:'dorso-oro'};localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate("document.documentElement.dataset.dorso") == '', 'dorso non posseduto ignorato dopo il ricarico')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

@@ -9,4 +9,5 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 net={db:undefined,uid:null,code:'',ref:null,host:'',seats:[],phase:'',players:[],rev:0,un:[],names:[],doc:null};
 let theme=ST('rg-theme');if(!['tavolo','castello','notte','carta'].includes(theme))theme=matchMedia('(prefers-color-scheme:light)').matches?'carta':'tavolo';
 let fc=ST('rg-fc')==='1';
-function applyTheme(){document.documentElement.dataset.gt=theme;document.documentElement.classList.toggle('fc',fc);document.documentElement.style.colorScheme=theme==='carta'?'light':'dark'}
+let dorsoSel=ST('rg-dorso')||'';
+function applyTheme(){document.documentElement.dataset.gt=theme;document.documentElement.dataset.dorso=dorsoSel.replace(/^dorso-/,'');document.documentElement.classList.toggle('fc',fc);document.documentElement.style.colorScheme=theme==='carta'?'light':'dark'}

@@ -1,0 +1,15 @@
+/* Dorsi delle carte della bottega. Si applicano a <html data-dorso="notte"> e, per l'anteprima, alla classe d-notte.
+   Solo tinte piatte e motivi: niente effetti olografici o lucidi. L'id nel catalogo (dorso-notte) = suffisso qui. */
+.card.back.d-notte,[data-dorso=notte] .card.back{--cb:#10205a;--cb2:#0a1238;border-color:#8fa0e0;background:radial-gradient(circle at 50% 50%,#dfe6ff 0 5%,transparent 6%),radial-gradient(circle at 22% 24%,#8fa0e0 0 3%,transparent 3.5%),radial-gradient(circle at 78% 72%,#8fa0e0 0 3%,transparent 3.5%),radial-gradient(circle at 72% 20%,#dfe6ff 0 2%,transparent 2.5%),linear-gradient(180deg,#16245a,#0a1238)}
+.card.back.d-bosco,[data-dorso=bosco] .card.back{--cb:#1f4a2c;--cb2:#173a22;border-color:#6fae62;background:radial-gradient(circle at 50% 50%,rgba(160,220,120,.55) 0 14%,transparent 15%),repeating-linear-gradient(60deg,#1f4a2c 0 6px,#173a22 6px 12px)}
+.card.back.d-brace,[data-dorso=brace] .card.back{--cb:#3a1208;--cb2:#2a0c05;border-color:#ff8a1f;background:radial-gradient(circle at 50% 66%,#ffd060 0 7%,#ff8a1f 8% 16%,transparent 17%),repeating-linear-gradient(0deg,#3a1208 0 6px,#2a0c05 6px 12px)}
+.card.back.d-corvo,[data-dorso=corvo] .card.back{--cb:#221a30;--cb2:#14101c;border-color:#9a90b8;background:radial-gradient(circle at 50% 50%,#9a90b8 0 10%,transparent 11%),conic-gradient(#14101c 25%,#221a30 0 50%,#14101c 0 75%,#221a30 0) 0 0/20% 14.3%}
+.card.back.d-brina,[data-dorso=brina] .card.back{--cb:#cfe9f7;--cb2:#a8d4ec;border-color:#fff;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.85) 0 13%,transparent 14%),repeating-linear-gradient(45deg,#cfe9f7 0 4px,#a8d4ec 4px 8px)}
+.card.back.d-oro,[data-dorso=oro] .card.back{--cb:#8a6a1e;--cb2:#6e5214;border-color:#e9c46a;background:radial-gradient(circle at 50% 50%,transparent 0 9%,#e9c46a 10% 13%,transparent 14%),repeating-linear-gradient(135deg,#8a6a1e 0 5px,#6e5214 5px 10px)}
+/* modale */
+.shop{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shopi{display:flex;gap:10px;align-items:center;padding:8px;border:2px solid var(--line,rgba(255,255,255,.18));border-radius:12px;background:rgba(255,255,255,.04)}
+.shopi.on{border-color:var(--gold2)}
+.shopi .card{--cw:46px}
+.shopt{display:flex;flex-direction:column;gap:3px;min-width:0}.shopt small{opacity:.75;font-size:11px;line-height:1.2}
+.shopt .b[disabled]{opacity:.45}
