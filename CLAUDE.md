@@ -8,6 +8,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | `npm run verifica` | build + sintassi + struttura + test rapidi (~25 s): **prima di ogni commit** |
 | `npm test -- catan uno` | solo i test il cui nome contiene quelle parole (in parallelo) |
 | `npm run test:rapido` / `npm test` | senza i test lenti / tutti (~1,5 min) |
+| `npm run test:browser` | prove in Chromium headless con Firebase simulato (PWA, profilo, premi…): `tools/test-browser/` |
 | `npm run check` | build + sintassi (è ciò che esegue Netlify) |
 | `npm run struttura` | file fuori manifest, CSS copiato, righe troppo lunghe |
 | `npm run mappa` | rigenera la mappa dei moduli in `docs/ARCHITECTURE.md` |

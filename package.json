@@ -8,6 +8,7 @@
     "mappa": "node scripts/mappa-moduli.js",
     "struttura": "node scripts/struttura.js",
     "test:rapido": "node tests/tutti.js --lenti",
-    "verifica": "node scripts/check.js && node scripts/struttura.js && node tests/tutti.js --lenti"
+    "verifica": "node scripts/check.js && node scripts/struttura.js && node tests/tutti.js --lenti",
+    "test:browser": "node scripts/build.js && python3 tools/test-browser/run.py"
   }
 }
