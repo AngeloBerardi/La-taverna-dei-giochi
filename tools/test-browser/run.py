@@ -73,7 +73,7 @@ async def sc_pwa_aggiornamento(b, srv):
         await pg.evaluate('navigator.serviceWorker.getRegistration().then(r=>r.update())'); await pg.wait_for_timeout(2500)
         dopo = await pg.evaluate('caches.keys()')
         check(await pg.evaluate('window.__m||0') == 0, 'nuova versione: ricarica da sola (fuori partita)')
-        check('taverna-nuova' in dopo and not any(k not in ('taverna-nuova', 'taverna-font') for k in dopo), f'cache vecchia cancellata: {prima} -> {dopo}')
+        check('taverna-nuova' in dopo and not any(k not in ('taverna-nuova', 'taverna-font', 'taverna-vendor') for k in dopo), f'cache vecchia cancellata: {prima} -> {dopo}')
         check('<!--v2-->' in await pg.content(), 'viene servita la pagina nuova'); await ctx.close()
     finally: s2.stop(); shutil.rmtree(tmp, ignore_errors=True)
 
@@ -124,6 +124,59 @@ async def sc_bottega(b, srv):
     await pg.reload(); await pg.wait_for_timeout(3500)
     check(await pg.evaluate("document.documentElement.dataset.dorso") == '', 'dorso non posseduto ignorato dopo il ricarico')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def vendor_pg(ctx, url, wait=3500):
+    pg = await ctx.new_page(); pg.errs = []; pg.reqs = []
+    pg.on('pageerror', lambda e: pg.errs.append(str(e))); pg.on('request', lambda r: pg.reqs.append(r.url))
+    await pg.goto(url); await pg.wait_for_timeout(wait); return pg
+
+def vendor_chiesti(pg): return sorted(re.findall(r'/vendor/([a-z]+)\.', ' '.join(pg.reqs)))
+
+async def sc_vendor_su_richiesta(b, srv):
+    # falò: three.js non viene nemmeno scaricato, PeerJS sì (serve alla stanza)
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await vendor_pg(ctx, srv.url)
+    check(vendor_chiesti(pg) == ['peerjs'], f'falò: scaricato solo peerjs {vendor_chiesti(pg)}')
+    check(await pg.evaluate('!window.THREE && typeof Peer!=="undefined"'), 'falò: THREE assente, Peer presente')
+    check(len(await pg.inner_html('#app')) > 500, 'falò: la lobby è disegnata')
+    # passando alla lobby 3D dalle impostazioni, three.js viene caricato in quel momento
+    gl = await pg.evaluate('VENDOR.gl()')
+    await pg.evaluate("(()=>{const s=document.createElement('select');s.id='lb';s.innerHTML='<option value=3d>3d</option>';document.body.appendChild(s);s.value='3d';s.dispatchEvent(new Event('change',{bubbles:true}))})()")
+    await pg.wait_for_timeout(2500)
+    if gl: check(await pg.evaluate('!!window.THREE') and 'three' in vendor_chiesti(pg), 'cambio lobby: three caricato al bisogno')
+    else: print('  --   WebGL assente in questo browser: cambio lobby non verificabile')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # lobby 3D all'avvio: three.js caricato prima del primo disegno
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','3d');"); pg = await vendor_pg(ctx, srv.url, 5000)
+    gl = await pg.evaluate('VENDOR.gl()')
+    if gl: check('three' in vendor_chiesti(pg) and await pg.evaluate('!!window.THREE'), 'avvio 3D: three caricato')
+    else: check('three' not in vendor_chiesti(pg), 'senza WebGL three non si scarica')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def sc_vendor_guasto(b, srv):
+    # three.js non scaricabile: l'app parte lo stesso (ripiego sul falò), senza errori
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','3d');VENDOR_FORZA=1;")
+    await ctx.route('**/vendor/three.*', lambda r: r.abort())
+    pg = await vendor_pg(ctx, srv.url, 5000)
+    check(await pg.evaluate('!window.THREE'), 'three guasto: THREE assente')
+    check(len(await pg.inner_html('#app')) > 500, 'three guasto: l\'app si disegna comunque')
+    check(not [e for e in pg.errs if 'vendor' not in e], f'nessun errore JS imprevisto {pg.errs[:1]}'); await ctx.close()
+    # PeerJS non scaricabile: si usa il relay, l'app non si blocca
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');")
+    await ctx.route('**/vendor/peerjs.*', lambda r: r.abort())
+    pg = await vendor_pg(ctx, srv.url, 5000)
+    check(len(await pg.inner_html('#app')) > 500, 'peerjs guasto: l\'app si disegna comunque')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def sc_vendor_offline_e_cache(b, srv):
+    ctx = await new_context(b, srv.port, name=None, sw=True, extra_init="localStorage.setItem('rg-lb','iso');")
+    pg = await vendor_pg(ctx, srv.url, 500)
+    await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
+    nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
+    check(len(nomi) == 2 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
+    await pg.reload(); await pg.wait_for_timeout(800)
+    await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1500)
+    check(await pg.evaluate('VENDOR.load("peerjs").then(()=>typeof Peer!=="undefined",()=>false)'), 'offline: PeerJS arriva dalla cache')
+    await ctx.set_offline(False); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

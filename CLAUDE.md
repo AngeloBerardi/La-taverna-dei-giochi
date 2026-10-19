@@ -35,6 +35,7 @@ Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `doc
 ## Build
 - `src/manifest.json` è l'elenco **ordinato** dei file: `scripts/build.js` li concatena in `dist/index.html`. L'ordine è il cascade del CSS e l'ordine di definizione del JS. Un file nuovo va nel manifest nella posizione giusta, altrimenti non esiste in `dist` (`npm run struttura` lo segnala).
 - Il numero nel nome del file segue l'ordine di caricamento (prefisso `07a`, `22b`… per i derivati). Se sposti un file nel manifest, rinominalo di conseguenza.
+- Le librerie in `src/js/vendor/` (three.js, PeerJS) non entrano in `dist/index.html`: il build le scrive in `dist/vendor/<nome>.<hash>.js` e `VENDOR.load('three'|'peerjs')` (`app/01a-vendor.js`) le carica solo quando servono; il service worker le tiene in una cache a parte. Una nuova libreria: nome in `scripts/build.js` (`NOMI`) e controllo in `PRONTO` di `01a-vendor.js`.
 - Mai aprire `dist/` né `src/js/vendor/` (bloccati in `.claude/settings.json`).
 
 ## Ruoli (agenti in `.claude/agents/`)

@@ -117,6 +117,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
+| `js/app/01a-vendor.js` | 1 |  |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 14 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |

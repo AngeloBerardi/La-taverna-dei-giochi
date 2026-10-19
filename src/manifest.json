@@ -59,6 +59,7 @@
  "src/js/motori/21-trono.js",
  "src/js/motori/22-bottega.js",
  "src/js/app/01-base.js",
+ "src/js/app/01a-vendor.js",
  "src/js/app/02-narrazione.js",
  "src/js/app/03-audio.js",
  "src/js/app/04-carte-render.js",

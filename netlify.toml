@@ -13,3 +13,9 @@
   [headers.values]
     Content-Type = "application/manifest+json"
     Cache-Control = "no-cache"
+
+# Librerie esterne: il nome contiene l'hash del contenuto, quindi si possono tenere per sempre.
+[[headers]]
+  for = "/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -1,3 +1,3 @@
 (()=>{const em=$('.embers');if(RM)return;for(let i=0;i<14;i++){const d=document.createElement('i');d.style.left=Math.random()*100+'%';d.style.animationDuration=9+Math.random()*10+'s';d.style.animationDelay=-Math.random()*15+'s';em.appendChild(d)}})();
 window.__rg={get G(){return G},ui,R,ME,dispatch,render,local,myTurn,viewer,needCover,isMine,lobbyN:()=>lobbySeats().length,get Q(){return Q},set SP(v){SP=v}};
-if(ME.name)enterHub();else{ui.screen='name';render()}
+(async()=>{if(ui.lobby==='3d'&&VENDOR.gl())await VENDOR.prova('three',10000);if(ME.name)enterHub();else{ui.screen='name';render()}})();

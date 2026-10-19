@@ -1,7 +1,7 @@
 /* ---- rete ---- */
 async function netInit(){if(R.tried)return;R.tried=true;const nq=new URLSearchParams(location.search).get('net');
  ME.dev=ST('rg-dev')||('d'+rid()+rid());ST('rg-dev',ME.dev);
- if(nq!=='db'&&!window.__NETDB&&await p2pProbe()){R.mode='p2p';R.on=true;return}
+ if(nq!=='db'&&!window.__NETDB&&await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true;return}
  try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
 function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
 async function enterHub(){setTimeout(()=>FB.start(),1500);ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();
