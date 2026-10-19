@@ -38,6 +38,16 @@ function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.si
 function seatTag(i){const x=seatsNow()[i];if(!x||x.dev!==ME.dev||G&&G.n===1)return'';return x.k==='m'?' (tu)':' (ospite)'}
 const members=()=>R.on?R.members:[{id:ME.dev,...R.mine}];
 const multiDev=()=>members().length>=2;
+/* infobox: una ⓘ che mostra la spiegazione toccandola o passandoci sopra col cursore */
+const infoH=(t,cls='')=>t?`<span class="info ${cls}" tabindex="0" role="button" aria-label="Spiegazione: ${String(t).replace(/<[^>]+>/g,'').replace(/"/g,'&quot;')}"><i aria-hidden="true">i</i><span class="tip" role="tooltip">${t}</span></span>`:'';
+(()=>{const place=el=>{const tip=el.querySelector('.tip');if(!tip)return;const r=el.getBoundingClientRect(),W=innerWidth,w=Math.min(280,W-32);tip.style.width=w+'px';
+  let x=r.left+r.width/2-w/2;x=Math.max(16,Math.min(W-16-w,x));tip.style.left=x+'px';const below=r.bottom+8,th=tip.offsetHeight||80;tip.style.top=(below+th>innerHeight-8?Math.max(8,r.top-8-th):below)+'px'};
+ document.addEventListener('click',e=>{const i=e.target.closest('.info');document.querySelectorAll('.info.open').forEach(x=>{if(x!==i)x.classList.remove('open')});if(i){e.stopPropagation();i.classList.toggle('open');place(i)}},true);
+ document.addEventListener('mouseover',e=>{const i=e.target.closest&&e.target.closest('.info');if(i)place(i)});
+ document.addEventListener('focusin',e=>{const i=e.target.closest&&e.target.closest('.info');if(i)place(i)});
+ addEventListener('scroll',()=>document.querySelectorAll('.info.open').forEach(x=>x.classList.remove('open')),{passive:true})})();
+const GENROOM='PIAZZA',isGen=()=>R.code===GENROOM;
+function setRoomUrl(c){try{const u=new URL(location.href);if(c&&c!==GENROOM)u.searchParams.set('room',c);else u.searchParams.delete('room');history.replaceState(null,'',u)}catch(e){}}
 const INV=(()=>{try{const c=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length>=3&&c.length<=6?c:''}catch(e){return''}})();
 function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?'},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
 function tally(n){const t={};members().forEach(m=>{const keys=['m',...(m.guests||[]).map(g=>g.k)];keys.forEach(k=>((m.votes||{})[k]||[]).forEach(g=>{const G0=GAMES.find(x=>x.id===g);if(G0&&G0.ok(n))t[g]=(t[g]||0)+1}))});return t}
@@ -53,23 +63,27 @@ async function enterHub(){ui.screen='room';ui.err='';R.mine.name=ME.name;render(
  if(!R.on){try{const o=JSON.parse(ST('rg-off')||'null');if(o&&o.mine)R.mine={...o.mine,name:ME.name}}catch(e){}render();return}
  if(R.mode==='p2p'){try{await p2pEnter()}catch(e){ui.err=netErr(e);render()}return}
  try{let code=ST('rg-room');
-  if(INV&&INV!==code){try{if((await R.db.doc('rooms/'+INV).get()).exists)code=INV;else ui.err='Non trovo il falò '+INV}catch(e){}}
-  if(code){const sn=await R.db.doc('rooms/'+code).get();if(!sn.exists)code=null;else{const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}}
-  if(!code)code=await createRoom();await joinRoom(code)}catch(e){ui.err=netErr(e);render()}}
+  code=GENROOM;
+  if(INV&&INV!==GENROOM){try{if((await R.db.doc('rooms/'+INV).get()).exists)code=INV;else ui.err='Non trovo il falò '+INV}catch(e){}}
+  const sn=await R.db.doc('rooms/'+code).get();if(!sn.exists)await R.db.doc('rooms/'+code).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});
+  await joinRoom(code)}catch(e){ui.err=netErr(e);render()}}
 async function p2pCreate(){for(let i=0;i<6;i++){const c=newCode();try{R.db=await p2pHost(c,false);ST('rg-role','host');await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}catch(e){if(e.code!=='unavailable-id')throw e}}throw new Error('nessun codice libero')}
-async function p2pEnter(){let code=ST('rg-room'),role=ST('rg-role');
- if(INV&&!(code===INV&&role==='host')){
+async function p2pEnter(){
+ if(INV&&INV!==GENROOM){
   /* invito: l'host può essere in background (foglio di condivisione, altra app). Si riprova con calma, senza creare stanze di ripiego,
      finché non risponde (max ~75 s). Un'azione manuale (join, nuova stanza, riprova) interrompe l'attesa. */
-  const tok=R.jt=(R.jt||0)+1,t0=Date.now(),strict=new URLSearchParams(location.search).has('b');let n=0;
+  const tok=R.jt=(R.jt||0)+1,t0=Date.now(),strict=new URLSearchParams(location.search).has('b');let k=0;
   while(R.jt===tok&&Date.now()-t0<75000){
    try{R.db=await p2pJoin(INV,8000,strict);if(R.jt!==tok)return;ST('rg-role','guest');ui.err='';await joinRoom(INV);return}
-   catch(e){if(R.jt!==tok)return;if(e&&e.code==='nolib')break;if(!n++){ui.err='Mi collego alla stanza '+INV+'… l’host deve avere la pagina aperta.';render()}await new Promise(r=>setTimeout(r,1200))}}
+   catch(e){if(R.jt!==tok)return;if(e&&e.code==='nolib')break;if(!k++){ui.err='Mi collego alla stanza '+INV+'… l’host deve avere la pagina aperta.';render()}await new Promise(r=>setTimeout(r,1200))}}
   if(R.jt!==tok)return;
-  ui.err='Non trovo la stanza '+INV+': l’host deve avere la pagina aperta. Quando è pronto, inserisci il codice nel pannello della stanza.';code=ST('rg-room');role=ST('rg-role')}
-if(code){try{if(role==='host'){R.db=await p2pHost(code,true);if(!(await R.db.doc('rooms/'+code).get()).exists)code=null}else{R.db=await p2pJoin(code);ST('rg-role','guest')}}catch(e){code=null}}
- if(code){const d=(await R.db.doc('rooms/'+code).get()).data();if(d&&d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev))code=null}
- if(!code)code=await p2pCreate();await joinRoom(code)}
+  ui.err='Non trovo la stanza '+INV+': chi l’ha creata deve avere la pagina aperta. Ti porto nella stanza generale.';setRoomUrl(null)}
+ await p2pGeneral()}
+/* stanza generale: entra se qualcuno la ospita, altrimenti la ospiti tu */
+async function p2pGeneral(){const c=GENROOM;
+ for(let k=0;k<3;k++){try{R.db=await p2pJoin(c,4000);ST('rg-role','guest');ui.err='';await joinRoom(c);return}catch(e){}
+  try{R.db=await p2pHost(c,true,null,true);ST('rg-role','host');if(!(await R.db.doc('rooms/'+c).get()).exists)await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});ui.err='';await joinRoom(c);return}catch(e){if(e.code!=='unavailable-id')throw e}}
+ throw Object.assign(new Error('Stanza generale non raggiungibile'),{code:'timeout'})}
 const netErr=e=>e&&e.code==='broker'?'Il server di incontro non è raggiungibile: controlla la connessione.':e&&(e.code==='peer-unavailable'||e.code==='timeout'||e.code==='close')&&R.mode==='p2p'?'Stanza non trovata: controlla il codice (l’host deve avere la pagina aperta).':e&&e.code==='invalid_argument'?'Non hai il permesso di scrivere in questa pagina: chiedi al proprietario di condividerla come Contributor.':'Errore di rete: '+(e&&(e.message||e.code)||e);
 async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
 async function joinRoom(code){const old=R.code;unsubAll();
@@ -137,7 +151,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'join':{R.jt=(R.jt||0)+1;const c=($('#jc')?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
-   await joinRoom(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
+   await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
+ case'genroom':if(!R.on)return;setRoomUrl(null);ui.err='';try{if(R.mode==='p2p'){await p2pGeneral()}else{await joinRoom(GENROOM)}say('Sei nella stanza generale')}catch(x){ui.err=netErr(x);render()}return;
  case'retrynet':R.tried=false;R.on=false;R.mode=null;ui.err='';return enterHub();
  case'emo':{const[e,k]=v.split('|');const m=R.mine.emo=R.mine.emo||{};m[k||'m']={e,t:Date.now()};await saveMine();tvLater();return}
  case'ek':ui.ek=v;return render();
@@ -152,8 +167,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'tvcat':ui.cat=v;return render();
  case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
  case'tvpick':ui.pick=v;return render();
- case'newroom':if(!R.on)return;R.jt=(R.jt||0)+1;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);say('Nuova stanza '+c)}catch(x){ui.err=netErr(x);render()}return;
- case'copy':{const url=location.origin+location.pathname+'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:''),txt='Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
+ case'newroom':if(!R.on)return;R.jt=(R.jt||0)+1;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);setRoomUrl(c);say('Stanza privata '+c+': condividi il codice')}catch(x){ui.err=netErr(x);render()}return;
+ case'copy':{const url=location.origin+location.pathname+(isGen()?(R.mode==='p2p'&&P2P.tr==='mq'?'?b='+MQ.bi:''):'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')),txt=isGen()?'Vieni a giocare alla Taverna dei Giochi!':'Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
  case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;
  case'rematch':return rematch();
  case'tolobby':return toLobby();
@@ -211,7 +226,7 @@ const cfgH=()=>!ui.cfg?'':`<div class="modal"><div class="box col"><h2>Impostazi
 <button class="b sm" data-a="rename">Cambia nome</button>${G&&ui.screen==='game'?`<button class="b sm" data-a="rules" data-v="${G.g}">Regole di ${GN(G.g)}</button>${ui.confirm?`<p class="muted" style="margin:0">La partita finisce per tutti e si torna alla stanza.</p><div class="row"><button class="b sm play" data-a="tolobby">Sì, interrompi</button><button class="b sm" data-a="nostop">No</button></div>`:'<button class="b sm yld" data-a="askstop">Interrompi e torna alla stanza</button>'}`:''}<button class="b gold" data-a="cfg">Chiudi</button></div></div>`;
 const storyH=()=>!ui.story?'':`<div class="modal"><div class="box story" style="text-align:center"><h2>Il Regno Caduto</h2>${STORY.map(l=>`<p>${l}</p>`).join('')}<button class="b play" data-a="story" style="margin-top:10px">Alle armi!</button></div></div>`;
 function nameH(){if(ui.lobby==='3d'&&L3D.ok())return`${rulesH()}${cfgH()}`;return`${hudH()}<div class="title"><h1>La Taverna dei Giochi</h1><p>${INV?'Sei invitato al falò <b>'+esc(INV)+'</b>':'Un falò tra le montagne, giochi per tutti'}</p></div>${ui.lobby==='hall'?tvScene([]):tvNameIso()}
-<div class="panel col"><h3>Come ti chiami?</h3><input type="text" id="myname" maxlength="14" placeholder="Il tuo nome" value="${esc(ME.name)}" autocomplete="nickname"><button class="b play big" data-a="setname">${INV?'Siediti al falò':'Accendi il falò'}</button><p class="muted" style="margin:0">${INV?'Ti siederai accanto a chi ti ha invitato.':'Entrerai subito nel tuo falò: manda il link e gli amici si siederanno accanto a te.'}</p></div><div class="err" role="alert">${esc(ui.err)}</div>${cfgH()}${rulesH()}`}
+<div class="panel col"><h3>Come ti chiami? ${infoH(INV?'Ti siederai accanto a chi ti ha invitato.':'Entrerai subito nel tuo falò: manda il link e gli amici si siederanno accanto a te.')}</h3><input type="text" id="myname" maxlength="14" placeholder="Il tuo nome" value="${esc(ME.name)}" autocomplete="nickname"><button class="b play big" data-a="setname">${INV?'Siediti al falò':'Accendi il falò'}</button></div><div class="err" role="alert">${esc(ui.err)}</div>${cfgH()}${rulesH()}`}
 /* ---- Lobby: falò + scaffale ---- */
 const TVC={carte:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CARTE'},tavolo:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'DA TAVOLO'},coop:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'},solo:{f:'#8a62d6',s:'#4d3490',e:'#b99af0',n:'SOLITARI'}};
 const TVG={trono:['carte', 'TRONO'],uno:['carte', 'UNO'],pets:['carte', 'PETS'],catan:['tavolo', 'CATAN'],kittens:['carte', 'KITTENS'],perudo:['tavolo', 'PERUDO'],regicide:['coop','REGICIDE'],briscola:['carte','BRISCOLA'],scopa:['carte','SCOPA'],burraco:['carte','BURRACO'],gang:['coop','THE GANG'],saboteur:['carte','SABOTEUR'],island:['solo','ISOLA'],machiavelli:['carte','MACHIAVELLI'],harvest:['tavolo','HARVEST'],valle:['tavolo','VALLE'],discesa:['solo','DISCESA'],scoundrel:['solo','SCOUNDREL'],mind:['coop','THE MIND'],mindx:['coop','MIND EXTREME'],azul:['tavolo','AZUL']};
@@ -268,7 +283,7 @@ function tvScene(S){const N=S.length,big=true,full=N>=5,H=N>=9?390:365,ry=N>=9?7
  const fb=cy-8;
  return`<div class="tvscene" style="height:${H}px;--px:${CAM.v.toFixed(3)}" role="img" aria-label="Il falò con ${N} giocator${N===1?'e':'i'} seduti intorno"><div class="tvsky"></div><div class="tvaur"><i></i><i></i><i></i></div>${stars}<div class="tvmoon"></div>${VH.mts}${VH.far}<div class="tvgnd"><i class="tvgrid"></i></div><div class="tvdirt" style="top:${fb-40}px"></div>${VH.near}<div class="tvfog"></div><div class="tvfog b"></div>${VH.fg}
  <div class="tvglow" style="top:${fb-150}px"></div><div class="tvlight" style="top:${fb-40}px"></div>
- <div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
+ <div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
  <div class="tvpit" style="top:${fb-34}px;z-index:${fb-2}">${VH.logs}</div><canvas class="tvfirec" id="tvfirec" width="40" height="36" style="top:${fb-112}px;z-index:${fb-1}"></canvas><div class="tvpit" style="top:${fb-34}px;z-index:${fb+1}">${VH.stones}</div>
  <i class="tvspk" style="left:50%;top:${fb-70}px"></i><i class="tvspk" style="left:calc(50% + 12px);top:${fb-64}px;animation-delay:-.8s"></i><i class="tvspk" style="left:calc(50% - 12px);top:${fb-66}px;animation-delay:-1.6s"></i><i class="tvspk" style="left:calc(50% + 4px);top:${fb-74}px;animation-delay:-2.1s"></i>${pl}</div>`}
 /* ---- scenario nordico: montagne innevate, pini, falò a pixel ---- */
@@ -319,14 +334,14 @@ function tvShelf(list,top,N,myKeys,busy){
  const det=g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
   <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${on?'★':'☆'} ${esc(x.name)}</button>`}).join('')}</div>`:''}
   <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:'';
- return`<div class="tvshelf"><div class="tvsh"><div class="tvst2">LO SCAFFALE</div><div class="tvsn">${vis.length} ${vis.length===1?'gioco':'giochi'} · ${N} giocator${N===1?'e':'i'}</div></div>
- <input type="text" id="tvq" class="tvq" placeholder="Cerca tra i giochi" aria-label="Cerca tra i giochi" value="${esc(ui.q||'')}" autocomplete="off"><div class="tvchips">${chips}</div>${rows}<p class="tvhint">${MD?'Tocca una scatola per vederla. Ogni giocatore può votare fino a 3 giochi: vince il più votato.':'Tocca una scatola per scegliere, poi premi Gioca.'}</p>${det}</div>`}
+ return`<div class="tvshelf"><div class="tvsh"><div class="tvst2">LO SCAFFALE ${infoH(MD?'Tocca una scatola per vederla. Ogni giocatore può votare fino a 3 giochi: vince il più votato.':'Tocca una scatola per scegliere, poi premi Gioca.',"dark")}</div><div class="tvsn">${vis.length} ${vis.length===1?'gioco':'giochi'} · ${N} giocator${N===1?'e':'i'}</div></div>
+ <input type="text" id="tvq" class="tvq" placeholder="Cerca tra i giochi" aria-label="Cerca tra i giochi" value="${esc(ui.q||'')}" autocomplete="off"><div class="tvchips">${chips}</div>${rows}${det}</div>`}
 
 function roomH(){if(ui.lobby==='3d'&&L3D.ok())return`${avEditH()}${rulesH()}${cfgH()}`;const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.on&&R.doc&&R.doc.phase==='play';
  const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];
  const MD=multiDev(),list=GAMES.map(g=>({g,ok:g.ok(N),v:MD?T[g.id]||0:0})).sort((a,b)=>(b.ok-a.ok)||(b.v-a.v));
  const top=list.find(x=>x.ok);
- const hint=R.on?`<p class="muted" style="margin:0">Manda il link d’invito: chi lo apre scrive il nome e si siede subito al falò (oppure inserisce il codice sulla targa). ${R.mode==='p2p'?'<b>Online diretto</b>: tieni questa pagina aperta, sei tu a fare da tavolo.':''}</p><button class="b sm" data-a="copy">Copia invito</button>`:`<p class="muted" style="margin:0">Non riesco a collegarmi per il gioco online (server di incontro non raggiungibile da questa pagina). Intanto puoi aggiungere ospiti e passarvi il telefono.</p><button class="b sm" data-a="retrynet">Riprova il collegamento</button>`;
+ const hint=R.on?`<div class="row" style="align-items:center"><button class="b sm" data-a="copy" style="flex:1">Copia invito</button>${infoH(isGen()?'Siete tutti nella <b>stanza generale</b>: chi apre il sito scrive il nome e si siede subito al falò. Manda il link del sito agli amici.':'Stanza privata <b>'+esc(R.code)+'</b>: manda il link d’invito, oppure fai inserire il codice sulla targa.'+(R.mode==='p2p'&&P2P.role==='host'?' Tieni questa pagina aperta: la stanza vive sul tuo telefono.':''))}</div>`:`<p class="muted" style="margin:0">Gioco online non raggiungibile ${infoH("Non riesco a collegarmi per il gioco online (server di incontro non raggiungibile da questa pagina). Intanto puoi aggiungere ospiti e passarvi il telefono.")}</p><button class="b sm" data-a="retrynet">Riprova il collegamento</button>`;
  const mem=M.map(m=>`<div class="mem"><div class="pl ${m.id===ME.dev?'act':''}"><div class="av">${esc((m.name||'?')[0])}</div><span class="n">${esc(m.name||'?')}${m.id===ME.dev?' (tu)':''}</span>${m.id!==ME.dev&&R.on?`<button class="x" data-a="rmmember" data-v="${m.id}" aria-label="Rimuovi ${esc(m.name)}">✕</button>`:''}</div>
   ${(m.guests||[]).map(g=>`<div class="pl guest"><div class="av">${esc(g.name[0]||'?')}</div><span class="n">${esc(g.name)} <small class="muted">ospite di ${esc(m.name)}</small></span>${m.id===ME.dev?`<button class="x" data-a="rmguest" data-v="${g.k}" aria-label="Rimuovi ${esc(g.name)}">✕</button>`:''}</div>`).join('')}</div>`).join('');
  const tab=ui.tab==='games'?'games':'room',nv=MD?Object.values(T).reduce((a,b)=>a+b,0):0;
@@ -335,17 +350,16 @@ function roomH(){if(ui.lobby==='3d'&&L3D.ok())return`${avEditH()}${rulesH()}${cf
  const resume=!R.on&&(()=>{try{return JSON.parse(ST('rg-off')||'null')?.game}catch(e){return null}})()?'<button class="b gold" data-a="resume">Riprendi la partita interrotta</button>':'';
  let body;
  if(tab==='games'){const games=tvShelf(list,top,N,myKeys,busy);
-  body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
+  body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
   ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
  else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
-  <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button></div>
-  <p class="muted" style="margin:0">Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.</p></div>
+  <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button>${infoH("Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.")}</div></div>
   ${busyB}
   ${top&&!busy?`<button class="tvnext" data-a="tab" data-v="games"><span>🎲 ${!MD?'Scegli un gioco dallo scaffale':top.v?'In testa: <b>'+esc(top.g.name)+'</b> · '+top.v+' vot'+(top.v===1?'o':'i'):'Votate il gioco di stasera'}</span><b>Vai ai giochi ›</b></button>`:''}
   ${chatH()}
-  ${R.on?`<div class="panel col"><h3>Entra nella stanza di un amico</h3><div class="row"><input type="text" id="jc" maxlength="6" placeholder="Codice" style="flex:1;text-transform:uppercase"><button class="b sm disc" data-a="join">Entra</button></div><button class="b sm" data-a="newroom">Crea una stanza nuova</button></div>`:''}
+  ${R.on?`<div class="panel col"><h3>${isGen()?'Sei nella stanza generale':'Sei nella stanza privata '+esc(R.code)} ${infoH(isGen()?'Chi apre il sito arriva qui. Se volete giocare da soli, create una stanza privata e condividete il codice.':'Solo chi ha il codice può entrare.')}</h3>${isGen()?'':'<button class="b sm" data-a="genroom">Torna alla stanza generale</button>'}<h3>Entra in una stanza privata</h3><div class="row"><input type="text" id="jc" maxlength="6" placeholder="Codice" style="flex:1;text-transform:uppercase"><button class="b sm disc" data-a="join">Entra</button></div><button class="b sm" data-a="newroom">Crea una stanza privata</button></div>`:''}
   ${resume}`}
  return`${hudH()}${body}<div class="err" role="alert">${esc(ui.err)}</div><div style="height:84px"></div>${nav}${avEditH()}${rulesH()}${cfgH()}`}
 function avEditH(){if(ui.avk==null)return'';const k=ui.avk,g=k==='m'?null:(R.mine.guests||[]).find(x=>x.k===k);if(k!=='m'&&!g)return'';
@@ -367,7 +381,7 @@ function fanH(cards,rend,{mine,dv,many}={}){const owner=viewer(),n=cards.length,
   return`<div class="slot ${ui.sel.includes(c)?'sel':''}" style="--rot:${rot}deg;--ty:${ty}px">${rend(c,{cls:(mine?'':'off ')+(isNew?'deal ':(many?'':'fl8 ')),style:`--fd:-${((now+i*.43)%3.6).toFixed(2)}s`,attrs:`data-a="sel" data-v="${c}" tabindex="0" role="button"`,dv:dv?dv(c):0,nofoil:many})}</div>`}).join('')||'<span class="muted">Nessuna carta in mano</span>'}</div>`;
  seen.h={owner,ids:cards};return h}
 function bubbleH(s,mineTxt,waitTxt){if(s.over||ui.anim)return`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`;
- const mine=myTurn();return mine?`<div class="bubble me"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span><b>${esc(s.names[s.cur])}</b>, tocca a te!<small>${mineTxt}</small></div>`
+ const mine=myTurn();return mine?`<div class="bubble me"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span><b>${esc(s.names[s.cur])}</b>, tocca a te! ${infoH(mineTxt)}</div>`
  :`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>${waitTxt?`<small>${waitTxt}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`}
 function gameH(){if(!G)return hudH()+'<p class="muted" style="text-align:center">Caricamento…</p>';return VIEW[G.g]()}
 function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;

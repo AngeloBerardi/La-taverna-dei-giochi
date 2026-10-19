@@ -144,4 +144,4 @@ function hallScene(S){
  const N=S.length,avail={};GAMES.forEach(g=>{if(g.ok(N)){const k=tvInfo(g)[0];avail[k]=(avail[k]||0)+1}});
  const sel=ui.cat&&ui.cat!=='tutti'?ui.cat:null;
  const{svg,tags}=HALL.scene(S,sel,avail);
- return`<div class="hall"><div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>${svg}<div class="hlq">${tags}</div></div>`}
+ return`<div class="hall"><div class="tvplq" ${N===0?'hidden':''}>${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>${svg}<div class="hlq">${tags}</div></div>`}

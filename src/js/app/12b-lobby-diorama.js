@@ -102,7 +102,7 @@ let tvHi=0,tvSeats=[],isoC=null,isoEl=null,isoSaveT=0;const isoSeen={};
 const isoSave=()=>{clearTimeout(isoSaveT);isoSaveT=setTimeout(()=>{saveMine()},400)};
 function tvSceneIso(S){tvSeats=S;const N=S.length;
  return`<div class="tvscene2" role="group" aria-label="Il falò con ${N} giocator${N===1?'e':'i'}: tocca per muoverti">
- <div class="tvplq">${R.on?`<span>STANZA</span><b>${esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
+ <div class="tvplq">${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b><button class="tvcp" data-a="copy">COPIA</button>`:`<span>SU QUESTO TELEFONO</span>`}</div>
  <div id="isohost"></div>${emoBar()}</div>`}
 /* collega il diorama persistente (non si ricrea a ogni render) e sincronizza posizioni, emote e chat */
 function tvIso(){const h=document.getElementById('isohost');if(!h)return;

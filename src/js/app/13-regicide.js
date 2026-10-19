@@ -18,13 +18,13 @@ function regicideH(){
  if(s.over||cover)bub='';
  else if(ui.anim)bub=`<div class="bubble"><span class="nar">${nar}</span>&nbsp;</div>`;
  else if(!mine)bub=`<div class="bubble"><span class="nar">${nar}</span>Tocca a <b>${cname}</b><span class="dots"></span><small>${ui.busy?'invio mossa…':s.phase==='discard'?'deve scartare '+s.owed+' per il danno':s.phase==='pick'?'sta scegliendo chi gioca dopo':'sta scegliendo cosa giocare'}</small></div>`;
- else if(s.phase==='play'){bub=`<div class="bubble me"><span class="nar">${nar}</span><b>${cname}</b>, a te la mossa!<small>Scegli le carte da giocare, oppure cedi (subirai comunque l’attacco).</small></div>`;
+ else if(s.phase==='play'){bub=`<div class="bubble me"><span class="nar">${nar}</span><b>${cname}</b>, a te la mossa! ${infoH('Scegli le carte da giocare, oppure cedi (subirai comunque l’attacco).')}</div>`;
   if(sel.length){const e=RG.checkPlay(s,sel),pv=e?null:RG.preview(s,sel);
    prev=e?`<span class="chip w">${esc(e)}</span>`:pv.jester?'<span class="chip sh">Annulla l’immunità · scegli chi gioca dopo</span>':`<span class="chip atk">⚔ danno ${pv.dmg}${pv.x2?' (×2)':''}</span>${pv.heal?`<span class="chip hl">♥ ${pv.heal} in Taverna</span>`:''}${pv.drawFull?(pv.draw?`<span class="chip sh">♦ pesca ${pv.draw}${pv.draw<pv.atk?' (mano piena)':''}</span>`:'<span class="chip off">♦ mano piena: non peschi</span>'):''}${pv.shield?`<span class="chip sh">♠ attacco −${pv.shield}</span>`:''}${pv.ign?`<span class="chip off">${SYM[pv.ign]} ignorato (immune)</span>`:''}`}
   else prev='<span class="muted">Tocca le carte per selezionarle</span>';
   ctl=`<button class="b play" data-a="play" ${(!sel.length||RG.checkPlay(s,sel))?'disabled':''}>Attacca${sel.length?' ('+RG.sum(sel)+')':''}</button><button class="b yld sm" data-a="yieldask">Cedi…</button>${s.n===1&&s.jl?`<button class="b gold sm" data-a="flip">Jolly (${s.jl})</button>`:''}`}
  else if(s.phase==='discard'){const sm=RG.sum(sel),pc=Math.min(100,sm/s.owed*100);
-  bub=`<div class="bubble atk"><span class="nar">${nar}</span>⚔ Il nemico colpisce <b>${cname}</b>!<small>Scarta carte per almeno ${s.owed} punti: il numero rosso è il loro valore.</small></div>`;
+  bub=`<div class="bubble atk"><span class="nar">${nar}</span>⚔ Il nemico colpisce <b>${cname}</b>! Scarta ${s.owed} ${infoH('Scarta carte per almeno '+s.owed+' punti: il numero rosso è il loro valore.')}</div>`;
   prev=`<div class="meter ${sm>=s.owed?'ok':''}"><i style="width:${pc}%"></i><b>${sm} / ${s.owed}</b></div>`;
   ctl=`<button class="b disc" data-a="disc" ${sm<s.owed?'disabled':''}>Para il colpo</button><button class="b grn sm" data-a="auto">Suggerisci</button>${s.n===1&&s.jl?`<button class="b gold sm" data-a="flip">Jolly (${s.jl})</button>`:''}`}
  else if(s.phase==='pick'){bub=`<div class="bubble me"><b>${cname}</b> ha giocato il Jolly!<small>Scegli chi gioca dopo.</small></div>`;ctl=s.names.map((n,i)=>`<button class="b play" data-a="pick" data-v="${i}">${esc(n)}</button>`).join('')}
