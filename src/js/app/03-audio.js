@@ -55,7 +55,7 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   pad:(fs,t,d,v,o)=>fs.forEach(f=>{osc('sawtooth',f,t,d,v,o,{at:.7,lp:850,det:-9});osc('sawtooth',f,t,d,v,o,{at:.7,lp:850,det:9})}),
   bass:(f,t,d,v,o)=>{osc('triangle',f,t,d,v,o);osc('sine',f/2,t,d,v*.7,o)},
   timp:(f,t,v,o)=>{osc('sine',f,t,1,v,o,{sl:f*.6,slt:.25});noise(t,.07,v*.35,o,180,'lowpass')}};
- function sched(){if(!ctx)return;if(!mus){nt=ctx.currentTime+.1;return}
+ function sched(){if(!ctx)return;if(!mus){nt=ctx.currentTime+.1;return}if(nt<ctx.currentTime-.4)nt=ctx.currentTime+.05;
   while(nt<ctx.currentTime+.3){let T=TR[track],i=st%T.bar;if(i===0&&want!==track){track=want;st=0;T=TR[track];i=0}
    const b=Math.floor(st/T.bar)%8,c=T.prog[b%T.prog.length],iv=c[1]?[0,4,7,12,16]:[0,3,7,12,15],t=nt+(T.swing&&i%2?T.sd*T.swing:0),barLen=T.sd*T.bar;
    if(T.walk){if(i%2===0)I.bass(mf(c[0]-12+[0,iv[1],iv[2],iv[2]+2][i/2]),t,T.sd*1.9,.22,mg);if(i===2||i===6)[iv[1],iv[2],iv[3]].forEach(k=>I.bell(mf(c[0]+12+k),t,.035,mg));const m=T.mel[b][i];if(m)osc('sawtooth',mf(m),t,T.sd*1.7,.05,mg,{at:.03,lp:1100,det:4});if(i%2===0)noise(t,.12,.03,mg,6000);else noise(t,.06,.018,mg,7000);if(i===2||i===6)noise(t,.05,.04,mg,4000);if(i===0)I.timp(mf(c[0]-24),t,.12,mg);nt+=T.sd;st++;continue}

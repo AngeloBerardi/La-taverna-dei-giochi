@@ -11,6 +11,7 @@ function mqConnect(url,cid,onMsg,onClose,timeout=7000){return new Promise((res,r
  const send=p=>{try{if(ws&&ws.readyState===1)ws.send(p)}catch(e){}};
  const api={sub(t){const id=pid++&65535||1;send(pkt(0x82,new Uint8Array([id>>8,id&255]),str(t),new Uint8Array([0])))},
   pub(t,obj){send(pkt(0x30,str(t),te.encode(JSON.stringify(obj))))},
+  ping(){send(new Uint8Array([0xC0,0]))},pong:0,
   close(){clearInterval(ping);try{send(new Uint8Array([0xE0,0]));ws.close()}catch(e){}},get open(){return ws&&ws.readyState===1}};
  const fail=m=>{if(!done){done=true;clearTimeout(to);try{ws.close()}catch(e){}rej(Object.assign(new Error(m),{code:'broker'}))}};
  const to=setTimeout(()=>fail('Server di incontro non raggiungibile'),timeout);
@@ -21,6 +22,7 @@ function mqConnect(url,cid,onMsg,onClose,timeout=7000){return new Promise((res,r
   for(;;){if(buf.length<2)break;let m=1,v=0,i=1,b;do{if(i>=buf.length)return;b=buf[i++];v+=(b&127)*m;m*=128}while(b&128);if(buf.length<i+v)break;
    const h=buf[0],body=buf.slice(i,i+v);buf=buf.slice(i+v);const ty=h>>4;
    if(ty===2){if(body[1]===0){if(!done){done=true;clearTimeout(to);ping=setInterval(()=>send(new Uint8Array([0xC0,0])),20000);res(api)}}else fail('rifiutato '+body[1])}
+   else if(ty===13){api.pong=Date.now()}
    else if(ty===3){const tl=(body[0]<<8)|body[1],topic=td.decode(body.slice(2,2+tl));let off=2+tl;if((h>>1)&3)off+=2;try{onMsg(topic,JSON.parse(td.decode(body.slice(off))))}catch(e){}}}};
  ws.onerror=()=>fail('errore');ws.onclose=()=>{clearInterval(ping);if(!done)fail('chiuso');else onClose&&onClose()}})}
 const mqRid=()=>Math.random().toString(36).slice(2,10);
@@ -34,17 +36,22 @@ class MQPeer{constructor(id,opts){if(typeof id==='object'){opts=id;id=null}this.
  on(e,f){(this._h[e]=this._h[e]||[]).push(f)}
  _emit(e,...a){(this._h[e]||[]).slice().forEach(f=>{try{f(...a)}catch(x){console.error(x)}})}
  _top(id){return MQ.pre+id}
- async _go(first){try{this.c=await mqConnect(MQ.list[this.bi],'tv'+mqRid()+mqRid(),(t,m)=>this._in(m),()=>{if(!this.dead)this._emit('disconnected')});if(this.dead){this.c.close();return}
-   this.c.sub(this._top(this.id));
-   if(first){if(this.id.startsWith('tvn')){this.c.pub(this._top(this.id),{t:'who',n:this.nonce});await new Promise(r=>setTimeout(r,900));if(this._taken){this._emit('error',{type:'unavailable-id'});return}}this._emit('open',this.id)}}
-  catch(e){if(first)this._emit('error',{type:'broker'});else setTimeout(()=>{if(!this.dead)this._go(false)},3000)}}
+ async _go(first){if(this._conn&&!first)return;this._conn=true;
+  try{const old=this.c;const c=await mqConnect(MQ.list[this.bi],'tv'+mqRid()+mqRid(),(t,m)=>this._in(m),()=>{if(!this.dead&&this.c===c)this._emit('disconnected')});if(this.dead){c.close();return}
+   if(old&&old!==c){try{old.close()}catch(e){}}this.c=c;
+   c.sub(this._top(this.id));
+   if(first){if(this.id.startsWith('tvn')){c.pub(this._top(this.id),{t:'who',n:this.nonce});await new Promise(r=>setTimeout(r,900));if(this._taken){this._emit('error',{type:'unavailable-id'});return}}this._emit('open',this.id)}}
+  catch(e){if(first)this._emit('error',{type:'broker'});else setTimeout(()=>{if(!this.dead)this._go(false)},3000)}
+  finally{this._conn=false}}
  reconnect(){if(this.dead)return;if(!this.c||!this.c.open)this._go(false)}
+ revive(){if(this.dead)return;const c=this.c;if(!c||!c.open){this.reconnect();return}const t=Date.now();c.ping();
+  setTimeout(()=>{if(this.dead||this.c!==c||c.pong>=t)return;this.c=null;try{c.close()}catch(e){}this._go(false)},2500)}
  disconnect(){}
  destroy(){if(this.dead)return;this.dead=true;clearInterval(this._hb);[...this.conns.values()].forEach(c=>c.close());setTimeout(()=>{try{this.c&&this.c.close()}catch(e){}},150)}
  _out(to,m){if(this.c)this.c.pub(this._top(to),{...m,f:this.id})}
  _beat(){const now=Date.now();this.conns.forEach(c=>{if(!c.open)return;if(now-c.last>15000){c._end();return}this._out(c.peer,{t:'hb',c:c.connectionId})})}
  connect(id,o){const c=new MQConn(this,id,'c'+mqRid(),o&&o.metadata);this.conns.set(c.connectionId,c);
-  const syn=()=>this._out(id,{t:'syn',c:c.connectionId,m:c.metadata});syn();let k=0;const rt=setInterval(()=>{if(c.open||c._gone||this.dead){clearInterval(rt);return}if(++k>=4){clearInterval(rt);this.conns.delete(c.connectionId);this._emit('error',{type:'peer-unavailable'});return}syn()},1500);return c}
+  const syn=()=>this._out(id,{t:'syn',c:c.connectionId,m:c.metadata});syn();const tries=(o&&o.tries)||4;let k=0;const rt=setInterval(()=>{if(c.open||c._gone||this.dead){clearInterval(rt);return}if(++k>=tries){clearInterval(rt);this.conns.delete(c.connectionId);this._emit('error',{type:'peer-unavailable'});return}syn()},1500);return c}
  _in(m){if(!m||typeof m!=='object')return;
   if(m.t==='who'){if(m.n!==this.nonce&&!this.dead&&this._opened!==false)this._out(this.id,{t:'here',n:m.n});return}
   if(m.t==='here'){if(m.n===this.nonce)this._taken=true;return}

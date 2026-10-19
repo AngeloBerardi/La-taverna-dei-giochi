@@ -50,7 +50,8 @@ function sceneLocanda3(){
   shelfBottles(S,8,5.6,-D/2+.8,7,7.6);shelfBottles(S,8,8.2,-D/2+.8,6,7.6);
   var ho=person(S,3,8.6,0,-D/2+.7,0,.55);ho.add(box(1.9,2.3,.08,std({color:0xe6dcc4,roughness:.9}),0,2.6,.97));
   barrel(S,12.9,-D/2+2.2,.8);
-  g.add(mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true));
+  var roomSign=mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true);g.add(roomSign);
+  S.setRoomSign=function(code){var m=roomSign.material,old=m.map;m.map=signTex(['STANZA',code],512,256,{fs:96,f2:.8});m.needsUpdate=true;if(old)old.dispose()};
   pendant(S,8,12,bz+1,.6,0xffc477,1.1,14);
   var keg=new T.Group();keg.position.set(5.0,2.62,bz);g.add(keg);
   var kb=mesh(barrelG,M.dark,0,.62,0);kb.scale.setScalar(.4);kb.rotation.z=PI/2;kb.position.x=.64;keg.add(kb);

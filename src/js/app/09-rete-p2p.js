@@ -41,10 +41,10 @@ async function p2pHost(code,restore){p2pReset();let pe;
  pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});
  if(restore)setTimeout(()=>{if(P2P.peer!==pe)return;const room=P2P.store.get('rooms/'+code);if(!room||room.phase!=='lobby')return;[...P2P.store.keys()].filter(k=>p2pParent(k)==='rooms/'+code+'/members').forEach(k=>{const dv=k.split('/').pop();if(dv!==ME.dev&&![...P2P.conns.values()].some(x=>(x.metadata||{}).dev===dv)){p2pApply(k,null);p2pBroadcast({op:'put',path:k,data:null})}})},30000);
  return p2pDB}
-async function p2pJoin(code){const tr0=P2P.tr,bi0=MQ.bi,cands=[[tr0,bi0]];if(tr0==='mq'&&!new URLSearchParams(location.search).get('mq'))MQ.list.forEach((_,i)=>{if(i!==bi0)cands.push(['mq',i])});let last;
- for(const[tr,bi]of cands){p2pReset();P2P.tr=tr;MQ.bi=bi;try{const pe=await p2pOpen(p2pPeerOpts());P2P.peer=pe;P2P.role='guest';P2P.code=code;await p2pLink(code,tr===tr0&&bi===bi0?9000:5000);last=null;break}catch(e){last=e}}
+async function p2pJoin(code,tmo,strict){const tr0=P2P.tr,bi0=MQ.bi,cands=[[tr0,bi0]];if(!strict&&tr0==='mq'&&!new URLSearchParams(location.search).get('mq'))MQ.list.forEach((_,i)=>{if(i!==bi0)cands.push(['mq',i])});let last;
+ for(const[tr,bi]of cands){p2pReset();P2P.tr=tr;MQ.bi=bi;try{const pe=await p2pOpen(p2pPeerOpts());P2P.peer=pe;P2P.role='guest';P2P.code=code;await p2pLink(code,tmo||(tr===tr0&&bi===bi0?9000:5000));last=null;break}catch(e){last=e}}
  if(last){P2P.tr=tr0;MQ.bi=bi0;throw last}const pe=P2P.peer;pe.on('disconnected',()=>{try{pe.reconnect()}catch(e){}});return p2pDB}
-function p2pLink(code,tmo=12000){return new Promise((res,rej)=>{const pe=P2P.peer;let first=true,t;const c=pe.connect(p2pId(code),{metadata:{dev:ME.dev},reliable:true});
+function p2pLink(code,tmo=12000){return new Promise((res,rej)=>{const pe=P2P.peer;let first=true,t;const c=pe.connect(p2pId(code),{metadata:{dev:ME.dev},reliable:true,tries:Math.max(4,Math.ceil(tmo/1500))});
  const fail=(m,cd)=>{if(first){first=false;clearTimeout(t);rej(Object.assign(new Error(m),{code:cd}))}};
  t=setTimeout(()=>fail('Stanza non trovata o host non raggiungibile','timeout'),tmo);
  const onErr=e=>{if(e&&e.type==='peer-unavailable')fail('Stanza '+code+' non trovata','peer-unavailable')};pe.on('error',onErr);
@@ -53,5 +53,14 @@ function p2pLink(code,tmo=12000){return new Promise((res,rej)=>{const pe=P2P.pee
   else if(m.op==='put'){p2pApply(m.path,m.data);if(m.oid&&m.by===ME.dev&&P2P.pend.has(m.oid)){const p=P2P.pend.get(m.oid);P2P.pend.delete(m.oid);clearTimeout(p.t);p.res()}}});
  const lost=()=>{if(P2P.hostConn===c)P2P.hostConn=null;if(first){fail('Connessione non riuscita','close');return}if(P2P.role!=='guest'||P2P.code!==code)return;
   P2P.lost=true;ui.err='Connessione con l’host persa… riprovo';render();P2P.pend.forEach(p=>{clearTimeout(p.t);p.rej(Object.assign(new Error('Connessione persa'),{code:'offline'}))});P2P.pend.clear();
-  clearTimeout(P2P.retry);P2P.retry=setTimeout(function again(){if(P2P.role!=='guest'||P2P.code!==code||!P2P.lost)return;p2pLink(code).then(()=>{ui.err='';const mp='rooms/'+code+'/members/'+ME.dev;if(!P2P.store.has(mp))p2pWrite(mp,p2pClone(R.mine)).catch(()=>{});render()}).catch(()=>{P2P.retry=setTimeout(again,3000)})},2500)};
+  clearTimeout(P2P.retry);P2P.retry=setTimeout(P2P.again=function again(){if(P2P.role!=='guest'||P2P.code!==code||!P2P.lost)return;p2pLink(code).then(()=>{ui.err='';const mp='rooms/'+code+'/members/'+ME.dev;if(!P2P.store.has(mp))p2pWrite(mp,p2pClone(R.mine)).catch(()=>{});render()}).catch(()=>{P2P.retry=setTimeout(again,3000)})},2500)};
  c.on('close',lost);c.on('error',lost)})}
+
+/* Ritorno in primo piano (dopo il foglio di condivisione, un'altra app, lo schermo spento): i socket possono essere morti senza
+   che nessuno se ne sia accorto. Si controlla il broker, si dà tempo ai collegamenti e si accelera il recupero dell'host. */
+function p2pWake(){const pe=P2P.peer;if(!pe||P2P.state==='off')return;
+ try{if(typeof pe.revive==='function')pe.revive();else if(pe.disconnected)pe.reconnect()}catch(e){}
+ const n=Date.now();P2P.conns.forEach(c=>{if(c.last!=null)c.last=n});if(P2P.hostConn&&P2P.hostConn.last!=null)P2P.hostConn.last=n;
+ if(P2P.lost&&P2P.again){clearTimeout(P2P.retry);P2P.retry=setTimeout(P2P.again,300)}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)p2pWake()});
+addEventListener('pageshow',e=>{if(e.persisted)p2pWake()});addEventListener('online',p2pWake);

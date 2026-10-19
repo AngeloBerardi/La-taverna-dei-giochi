@@ -10,7 +10,7 @@ const L3D=(()=>{
   ST:(k,v)=>ST(k,v),Snd:()=>Snd,inv:()=>INV,defOpts:id=>defOpts(id),
   busy:()=>!!(R.on&&R.doc&&R.doc.phase==='play'),
   canResume:()=>{if(R.on)return false;try{return!!(JSON.parse(ST('rg-off')||'null')||{}).game}catch(e){return false}},
-  save:()=>saveMine(),start:(id,o)=>startGame(id,null,o),
+  save:()=>saveMine(),savePos:()=>savePos(),start:(id,o)=>startGame(id,null,o),
   act:(a,v)=>{const b=document.createElement('button');b.type='button';b.hidden=true;b.dataset.a=a;if(v!=null)b.dataset.v=v;(A.root||document.body).appendChild(b);b.click();b.remove()},
   duck:v=>{if(Snd.duck)Snd.duck(v)},audioKick:()=>{if(Snd.mus)Snd.start()},
   fallback:msg=>{state='fail';ui.lobby='iso';ST('rg-lb','iso');ui.err=msg;hide();render()}
@@ -795,7 +795,8 @@ function sceneLocanda3(){
   shelfBottles(S,8,5.6,-D/2+.8,7,7.6);shelfBottles(S,8,8.2,-D/2+.8,6,7.6);
   var ho=person(S,3,8.6,0,-D/2+.7,0,.55);ho.add(box(1.9,2.3,.08,std({color:0xe6dcc4,roughness:.9}),0,2.6,.97));
   barrel(S,12.9,-D/2+2.2,.8);
-  g.add(mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true));
+  var roomSign=mesh(new T.PlaneGeometry(3.8,1.9),std({map:signTex(['STANZA',ROOM],512,256,{fs:96,f2:.8}),roughness:.7}),8,11,-D/2+.07,false,true);g.add(roomSign);
+  S.setRoomSign=function(code){var m=roomSign.material,old=m.map;m.map=signTex(['STANZA',code],512,256,{fs:96,f2:.8});m.needsUpdate=true;if(old)old.dispose()};
   pendant(S,8,12,bz+1,.6,0xffc477,1.1,14);
   var keg=new T.Group();keg.position.set(5.0,2.62,bz);g.add(keg);
   var kb=mesh(barrelG,M.dark,0,.62,0);kb.scale.setScalar(.4);kb.rotation.z=PI/2;kb.position.x=.64;keg.add(kb);
@@ -1471,6 +1472,7 @@ function drum(kind,t){
 }
 function musTick(){
   var c=MUS.ctx,Tk=TRACKS[MUS.cur];if(!Tk)return;
+  if(MUS.next<c.currentTime-.4)MUS.next=c.currentTime+.05;
   while(MUS.next<c.currentTime+.15){
     var s=MUS.step%Tk.mel.length,t=MUS.next,bar=Math.floor(s/Tk.bar),inb=s%Tk.bar,nb=Tk.ch.length,bi=bar%nb;
     var m=Tk.mel[s];if(m){var hold=1;while(hold<4&&Tk.mel[(s+hold)%Tk.mel.length]===0)hold++;
@@ -1559,8 +1561,14 @@ E.saveLook=function(){var o=Object.assign({},FIG[6]);delete o.hat;var m=A.R().mi
 function build(n){if(n==='ing')return sceneSolo();if(n==='bosco')return sceneBosco();ROOM=A.R().on?A.R().code||'…':'—';FIG[6]=myLook();var S=sceneLocanda3();return S}
 function uiFor(n){var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
   ['zbar','vote','cust','zpg','juke'].forEach(function(x){$(x).classList.remove('show')});closePage();closeList();closeRooms();$('chat').classList.remove('open')}
+/* pupazzi remoti: vanno tolti dalla scena a cui appartengono (le scene restano in cache), altrimenti al ritorno ne compare uno fermo accanto a quello che cammina */
+function clearWalkers(){Object.keys(walk).forEach(function(id){var W=walk[id],S0=W.S||cur;try{(S0?S0.g:W.f.parent).remove(W.f)}catch(e){}if(W.tag){W.tag.el.remove();if(S0){var k=S0.tags.indexOf(W.tag);if(k>=0)S0.tags.splice(k,1)}}});walk={};peopleSig=''}
+function disposeScene(S0){if(!S0)return;var keys=['map','normalMap','roughnessMap','metalnessMap','emissiveMap','alphaMap','bumpMap','aoMap'];
+  S0.g.traverse(function(o){if(o.geometry&&o.geometry.dispose)o.geometry.dispose();var m=o.material;if(m)(Array.isArray(m)?m:[m]).forEach(function(mm){keys.forEach(function(k){if(mm[k]&&mm[k].dispose)mm[k].dispose()});if(mm.dispose)mm.dispose()})});
+  S0.tags.forEach(function(t){t.el.remove()});S0.tags.length=0}
 function setArea(n,instant){
   var doit=function(){
+    clearWalkers();
     if(cur){scene.remove(cur.g);cur.tags.forEach(function(t){t.el.dataset.d=t.el.style.display;t.el.style.display='none'})}
     var S=CACHE[n]||(CACHE[n]=build(n));cur=S;area=n;
     S.tags.forEach(function(t){t.el.style.display=t.el.dataset.d||''});
@@ -1589,7 +1597,8 @@ function figKey(dev,k){return dev+'|'+k}
 function sync(){
   if(!cur||area==='ing')return;
   var R0=A.R(),me=A.ME(),M0=A.members(),seats=A.seats(),list=[],walkers=[];
-  seats.forEach(function(s,i){if(s.dev===me.dev&&s.k==='m')return;var m=M0.find(function(x){return x.id===s.dev})||{},gu=s.k==='m'?m:((m.guests||[]).find(function(x){return x.k===s.k})||{});
+  var seenSeat={};
+  seats.forEach(function(s,i){if(s.dev===me.dev&&s.k==='m')return;if(seenSeat[figKey(s.dev,s.k)])return;seenSeat[figKey(s.dev,s.k)]=1;var m=M0.find(function(x){return x.id===s.dev})||{},gu=s.k==='m'?m:((m.guests||[]).find(function(x){return x.k===s.k})||{});
     var o=avTo3(gu.av,gu.av3,i+1),p=s.k==='m'&&m.pos3;
     var e={id:figKey(s.dev,s.k),name:s.name,o:o,guest:s.k!=='m',owner:m.name,sig:s.name+JSON.stringify(o)};
     if(p&&!p.sit&&s.dev!==me.dev)walkers.push({e:e,p:p});else list.push(e)});
@@ -1597,7 +1606,7 @@ function sync(){
   // camminatori remoti nell'area corrente
   var live={};walkers.forEach(function(w){if(w.p.a!==area)return;live[w.e.id]=1;var W=walk[w.e.id];
     if(!W||W.sig!==w.e.sig){if(W){cur.g.remove(W.f);W.tag.el.remove();cur.tags.splice(cur.tags.indexOf(W.tag),1)}
-      var f=figure(w.e.o);f.scale.setScalar(.55);f.position.set(w.p.x,0,w.p.z);cur.g.add(f);var tg=addTag(cur,new T.Vector3(0,4.3,0),esc(w.e.name),'');tg.follow=f;W=walk[w.e.id]={f:f,tag:tg,sig:w.e.sig,x:w.p.x,z:w.p.z}}
+      var f=figure(w.e.o);f.scale.setScalar(.55);f.position.set(w.p.x,0,w.p.z);cur.g.add(f);var tg=addTag(cur,new T.Vector3(0,4.3,0),esc(w.e.name),'');tg.follow=f;W=walk[w.e.id]={f:f,tag:tg,sig:w.e.sig,x:w.p.x,z:w.p.z,S:cur}}
     W.tx=w.p.x;W.tz=w.p.z});
   Object.keys(walk).forEach(function(id){if(!live[id]){var W=walk[id];cur.g.remove(W.f);W.tag.el.remove();var k=cur.tags.indexOf(W.tag);if(k>=0)cur.tags.splice(k,1);delete walk[id]}});
   // info in basso
@@ -1615,19 +1624,28 @@ function sync(){
   MUS.mute=!A.Snd().mus;musVol(MUS.vol);A.duck(MUS.cur>=0&&!MUS.mute);
   // errori dell'app
   var er=A.ui().err;if(er&&er!==E.lastErr)toast(er);E.lastErr=er;
-  if(area==='loc'&&ROOM!==(R0.on?R0.code||'…':'—'))roomChanged();
+  if(area==='loc'&&ROOM!==roomLabel())roomChanged();
   if($('roomp').classList.contains('on'))renderRooms();
 }
 function bubbleFor(id,text){var me=A.ME(),f=null;if(id===figKey(me.dev,'m'))f=cur.me;else if(walk[id])f=walk[id].f;else if(cur.npc){var n=cur.npc.find(function(x){return x.id===id&&!x.out});if(n)f=n.f}
   if(!f)return;var o=addTag(cur,new T.Vector3(0,4.9,0),esc(text),'bub sm');o.follow=f;setTimeout(function(){o.el.remove();var k=cur.tags.indexOf(o);if(k>=0)cur.tags.splice(k,1)},4200)}
-function roomChanged(){delete CACHE.loc;delete CACHE.bosco;seenChat={};chatInit=false;$('clog').innerHTML='';setArea('loc')}
+function roomLabel(){var R0=A.R();return R0.on?R0.code||'…':'—'}
+function roomChanged(){var now=roomLabel(),soft=ROOM.length<2||now.length<2||ROOM==='…'||ROOM==='—'||now==='…'||now==='—';
+  if(soft&&cur&&cur.setRoomSign){ROOM=now;cur.setRoomSign(now);return}
+  clearWalkers();var old=[CACHE.loc,CACHE.bosco];delete CACHE.loc;delete CACHE.bosco;seenChat={};chatInit=false;$('clog').innerHTML='';
+  setArea('loc');setTimeout(function(){old.forEach(function(S0){if(S0&&S0!==cur)disposeScene(S0)})},900)}
 E.sendChat=function(v){var R0=A.R();if(!R0.on){toast('La chat funziona nelle stanze online');return}A.ui().cm=v;A.act('chatsend')};
 /* ---- posizione: la mando agli altri telefoni (al massimo ogni ~0,6 s) ---- */
 var posT=0;
-E.movedTo=function(p,sit,quiet){var R0=A.R();if(!R0.on)return;R0.mine.pos3={a:area,x:+p.x.toFixed(2),z:+p.z.toFixed(2),sit:!!sit,t:Date.now()};
-  clearTimeout(posT);posT=setTimeout(function(){A.save()},quiet?1200:600)};
+E.movedTo=function(p,sit,quiet){var R0=A.R();if(!R0.on)return;var q=(!sit&&cur&&cur.pos)?cur.pos:p;sendPos(q.x,q.z,!!sit,quiet)};
+var ps={x:1e9,z:1e9,t:0};
+function sendPos(x,z,sit,quiet){var R0=A.R();if(!R0.on)return;ps.x=x;ps.z=z;ps.t=performance.now();R0.mine.pos3={a:area,x:+x.toFixed(2),z:+z.toFixed(2),sit:!!sit,t:Date.now()};
+  clearTimeout(posT);posT=setTimeout(function(){A.savePos()},quiet?400:0)}
+/* mentre cammino mando la posizione vera ogni ~0,45 s (e un ultimo assestamento quando mi fermo): gli altri telefoni seguono lo stesso percorso */
+function posStream(S,now){if(area==='ing'||!S.pos||S.sit||!A.R().on)return;var d=Math.hypot(S.pos.x-ps.x,S.pos.z-ps.z);
+  if(d>.4&&now-ps.t>450)sendPos(S.pos.x,S.pos.z,false);else if(d>.03&&now-ps.t>1000)sendPos(S.pos.x,S.pos.z,false)}
 function walkersTick(dt){Object.keys(walk).forEach(function(id){var W=walk[id],dx=W.tx-W.x,dz=W.tz-W.z,L0=Math.hypot(dx,dz),f=W.f;
-  if(L0>.05){var st=Math.min(L0,6.5*dt);W.x+=dx/L0*st;W.z+=dz/L0*st;f.rotation.y=Math.atan2(dx,dz);f.position.y=Math.abs(Math.sin(performance.now()/80))*.09}else f.position.y=0;
+  if(L0>.05){var st=Math.min(L0,Math.max(6.5,L0*2.6)*dt);W.x+=dx/L0*st;W.z+=dz/L0*st;f.rotation.y=Math.atan2(dx,dz);f.position.y=Math.abs(Math.sin(performance.now()/80))*.09}else f.position.y=0;
   if(L0>40){W.x=W.tx;W.z=W.tz}f.position.x=W.x;f.position.z=W.z})}
 /* ---- proposta di gioco condivisa: 30 secondi, ✓/✗ visibili a tutti ---- */
 var seenProp={},doneProp={},lastVoteSig='';
@@ -1701,7 +1719,8 @@ function frame(now){
   if(now-(frame.l||0)<FMIN)return;
   var t=now/1000,S=cur,c=S.cam;
   var w=app.clientWidth||390,h=app.clientHeight||844,dt=Math.min(.05,(now-(frame.l||now))/1000);frame.l=now;
-  if(!fpsChecked){if(!fpsT)fpsT=now;fpsN++;if(now-fpsT>4500){fpsChecked=true;var fps=fpsN*1000/(now-fpsT);if(fps<12){A.fallback('Il 3D è troppo lento su questo telefono: passo alla taverna semplice.');return}}}
+  if(!fpsChecked){if(frame.p&&now-frame.p>600){fpsT=0;fpsN=0}frame.p=now;if(!fpsT)fpsT=now;fpsN++;if(now-fpsT>4500){fpsChecked=true;var fps=fpsN*1000/(now-fpsT);if(fps<12){A.fallback('Il 3D è troppo lento su questo telefono: passo alla taverna semplice.');return}}}
+  adaptQuality(now);
   if(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio())){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
   var wantE=S.view&&S.view.exp?S.view.exp:S.exp;renderer.toneMappingExposure+=(wantE-renderer.toneMappingExposure)*Math.min(1,dt*4);
   if(S.view){if(camera.fov!==50){camera.fov=50;camera.updateProjectionMatrix()}if(!S.vp){S.vp=S.view.pos.clone();S.vl=S.view.look.clone()}var za=Math.min(1,dt*4);S.vp.lerp(S.view.pos,za);S.vl.lerp(S.view.look,za);camera.position.copy(S.vp);camera.lookAt(S.vl);cam=camera}
@@ -1711,13 +1730,22 @@ function frame(now){
   S.fires.forEach(function(s){var p=s.userData.ph,k=s.scale.y>1.5?1:.34;s.scale.set((1.7+Math.sin(t*9+p)*.28*fk)*(k<1?.34:1),(2.6+Math.sin(t*11+p*2)*.5*fk)*(k<1?.34:1),1);s.position.y=s.userData.base.y+Math.sin(t*7+p)*.12*fk*(k<1?.3:1);s.material.opacity=(k<1?.7:.55)+Math.sin(t*13+p)*.15*fk});
   S.flick.forEach(function(f){f.l.intensity=f.b*(1+f.a*fk*(Math.sin(t*17+f.p)+Math.sin(t*9.3+f.p)*.7))});
   if(S.fx)for(var fi=0;fi<S.fx.length;fi++)S.fx[fi](t,dt);if(S.tick)S.tick(t,dt);
-  if(area!=='ing'){walkersTick(dt);if(area!=='loc')E.voteTick(dt)}
+  if(area!=='ing'){walkersTick(dt);posStream(S,now);if(area!=='loc')E.voteTick(dt)}
   var tg=S.tags;for(var i=0;i<tg.length;i++){var o=tg[i];if(o.follow){v3.set(o.follow.position.x,o.follow.position.y+o.pos.y,o.follow.position.z)}else v3.copy(o.pos);v3.project(cam);
     o.el.style.transform='translate('+Math.round((v3.x*.5+.5)*w)+'px,'+Math.round((-v3.y*.5+.5)*h)+'px) translate(-50%,-100%)'}
   renderer.render(scene,cam);
 }
+/* qualità adattiva: se il telefono non regge (dopo un rientro dal background, scaldato…), prima si abbassa la risoluzione e poi si tolgono le ombre.
+   Solo in discesa e solo per questa sessione; i tempi di background (salti tra un frame e l'altro) non contano. */
+var aq={n:0,t:0,low:0};
+function adaptQuality(now){if(!fpsChecked)return;if(aq.p&&now-aq.p>600){aq.n=0;aq.t=0;aq.low=0}aq.p=now;if(!aq.t){aq.t=now;aq.n=0}aq.n++;
+  if(now-aq.t<2500)return;var f=aq.n*1000/(now-aq.t);aq.n=0;aq.t=now;
+  if(f>=22){aq.low=0;return}if(++aq.low<2)return;aq.low=0;
+  var pr=renderer.getPixelRatio();
+  if(pr>1){renderer.setPixelRatio(Math.max(1,pr-.5))}
+  else if(renderer.shadowMap.enabled){renderer.shadowMap.enabled=false;scene.traverse(function(o){var m=o.material;if(m)(Array.isArray(m)?m:[m]).forEach(function(x){x.needsUpdate=true})})}}
 function loop(){if(!raf&&E.on){frame.l=0;raf=requestAnimationFrame(frame)}}
-document.addEventListener('visibilitychange',function(){if(!document.hidden)loop()});
+document.addEventListener('visibilitychange',function(){fpsT=0;fpsN=0;frame.p=0;if(!document.hidden)loop()});
 /* ---- chiamate dall'app a ogni render ---- */
 E.show=function(screen){
   E.on=true;app.style.display='';
