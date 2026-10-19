@@ -37,6 +37,9 @@ Per aggiungere codice cerca la funzione con `grep -n` e apri solo quel file.
 ## PWA (app installabile)
 `src/pwa/` finisce nella radice di `dist/` (`scripts/build.js`): `manifest.webmanifest`, icone, `sw.js` (il service worker deve stare in `/`). `__BUILD__` in `sw.js` diventa l'hash della pagina: a ogni deploy cambia la cache e la vecchia viene cancellata. Strategia: pagina **prima la rete** (ripiego sulla copia dopo 4 s o offline), asset e font **dalla cache e aggiornati in sottofondo**, WebSocket e `/.netlify/` mai toccati. `app/24-pwa.js` registra il worker, controlla gli aggiornamenti quando l'app torna in primo piano, ricarica solo fuori partita e gestisce il pulsante «Installa l'app» (impostazioni). `sw.js` ha già `push` e `notificationclick` per le notifiche (dati `{title, body, url}`), da collegare a Firebase Cloud Messaging. Icone: `python3 tools/pwa/mk-icone.py`.
 
+## Firebase (profilo online)
+`app/24a-firebase.js` (`FB`): l'SDK si importa da gstatic **solo dopo l'ingresso** (`enterHub` → `FB.start()` dopo 1,5 s), mai in blocco. Accesso anonimo → `players/{uid}`. Il premio di fine partita parte da `pushState` (`FB.matchEnd`, una volta per partita e per telefono; `iWon` in `07f` decide la vittoria) e passa da una coda in `localStorage` (`rg-fbq`) svuotata in ordine: se è offline o le regole rifiutano (un premio ogni ~50 s) resta in coda. Qualsiasi errore Firebase è solo un avviso nelle impostazioni: il gioco non dipende da lui. Regole: `firestore.rules`; piano e limiti: `docs/FIREBASE-PIANO.md`.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -121,7 +124,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07d-regole.js` | 30 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | seen, hudH, rulesH, cfgH, storyH, nameH |
 | `js/app/07e-lobby-falo.js` | 25 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
-| `js/app/07f-viste-gioco.js` | 7 | coverH, endH, playersH, fanH, bubbleH, gameH, render |
+| `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
@@ -150,6 +153,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
+| `js/app/24a-firebase.js` | 4 | FB |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
