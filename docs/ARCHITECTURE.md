@@ -5,7 +5,7 @@ Una sola pagina, nessuna dipendenza. `scripts/build.js` concatena i file di `src
 ## Stato globale (in `app/07-nucleo.js`)
 - `ui`: stato di interfaccia (schermata, selezioni, opzioni). `render()` ridisegna `#app` e ripristina il focus per id.
 - `G`: stato della partita corrente (JSON-clonabile). `ME`: il giocatore di questo telefono. `R`: stanza/rete (`R.on`, `R.mine.votes`, membri, ospiti).
-- `GAMES`: elenco giochi `{id,name,desc,range,ok(n),mode(n),opts?}`; `RULES[id]`: guide (in `app/07d-viste-comuni.js`); `VIEW[id]`, `FX[id]`, `gameClick` nei registri di `app/23-registri-briscola-scopa-burraco.js`.
+- `GAMES`: elenco giochi `{id,name,desc,range,ok(n),mode(n),opts?}`; `RULES[id]`: guide (in `app/07d-regole.js`); `VIEW[id]`, `FX[id]`, `gameClick` nei registri di `app/23-registri-briscola-scopa-burraco.js`.
 - Eventi: un solo `document.addEventListener('click')` con `data-a`/`data-v` e uno `switch(a)` in `app/07c-comandi.js`.
 
 ## Contratto di un motore (`motori/`)
@@ -25,7 +25,8 @@ Un tempo un solo file di 93 KB, ora sette file concatenati in ordine (stesso amb
 | `07a-rete-stanza.js` | `netInit`, `enterHub`, ingresso p2p (invito, stanza generale), `joinRoom`, `subscribe`, `saveMine`, `savePos` |
 | `07b-partita.js` | `startGame`, rivincita, ritorno alla stanza, coda degli stati (`pushState`, `applyState`), `dispatch` |
 | `07c-comandi.js` | listener di click, change, keydown: lo `switch` delle azioni `data-a` |
-| `07d-viste-comuni.js` | HUD, `RULES`, impostazioni, storia, schermata del nome |
+| `07d-regole.js` | `RULES`: i testi delle regole in-game, una scheda per riga |
+| `07d-viste-comuni.js` | HUD, regole (modale), impostazioni, storia, schermata del nome |
 | `07e-lobby-falo.js` | lobby falò e sala: scaffale, scatole, avatar, chat, editor dell'avatar |
 | `07f-viste-gioco.js` | viste comuni di partita (copertura, fine, mani), `render`, `afterRender`, chat |
 Per aggiungere codice cerca la funzione con `grep -n` e apri solo quel file.
@@ -67,19 +68,19 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/17-machiavelli.css` | 1 |  |
 | `css/18-lobby-falo.css` | 8 |  |
 | `css/19-lobby-iso.css` | 1 |  |
-| `css/20-sala-hall-e-nuovi-giochi.css` | 46 |  |
+| `css/20-lobby-campeggio-e-sala.css` | 16 |  |
 | `css/21-valle-selvaggia.css` | 2 |  |
 | `css/22-discesa-tascabile.css` | 3 |  |
 | `css/23-scaffale-scatole.css` | 4 |  |
-| `css/25-gattini.css` | 3 |  |
-| `css/26-catan.css` | 5 |  |
-| `css/27-fisso.css` | 4 |  |
-| `css/28-pets.css` | 2 |  |
-| `css/29-uno.css` | 2 |  |
-| `css/31-trono.css` | 6 |  |
+| `css/24-gattini.css` | 3 |  |
+| `css/25-catan.css` | 5 |  |
+| `css/26-fisso.css` | 4 |  |
+| `css/27-pets.css` | 2 |  |
+| `css/28-uno.css` | 2 |  |
+| `css/29-trono.css` | 6 |  |
 | `css/30-adatta.css` | 2 |  |
-| `css/32-orizzontale.css` | 1 |  |
-| `css/24-perudo.css` | 3 |  |
+| `css/31-orizzontale.css` | 1 |  |
+| `css/32-perudo.css` | 3 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -114,7 +115,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07a-rete-stanza.js` | 7 | netInit, unsubAll, enterHub, p2pCreate, p2pEnter, p2pGeneral, netErr |
 | `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
 | `js/app/07c-comandi.js` | 6 |  |
-| `js/app/07d-viste-comuni.js` | 33 | seen, hudH, RULES, rulesH, cfgH, storyH, nameH |
+| `js/app/07d-regole.js` | 30 | RULES |
+| `js/app/07d-viste-comuni.js` | 4 | seen, hudH, rulesH, cfgH, storyH, nameH |
 | `js/app/07e-lobby-falo.js` | 25 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, endH, playersH, fanH, bubbleH, gameH, render |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
