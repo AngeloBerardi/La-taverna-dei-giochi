@@ -264,6 +264,47 @@ async def sc_classifica(b, srv):
     check(await pg.evaluate('ui.cfg===true&&!ui.acc'), 'chiudendo si torna alle impostazioni')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_locandiere(b, srv):
+    # senza funzione Netlify (qui il server risponde 501): risposte a copioni
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=oste]'); await pg.wait_for_timeout(300)
+    check('Sono il locandiere' in await pg.inner_text('#oste-log'), 'saluto iniziale')
+    check(len(await pg.query_selector_all('[data-a=osteq]')) == 4, 'quattro domande pronte')
+    await pg.click('[data-a=osteq] >> nth=2'); await pg.wait_for_timeout(600)
+    txt = await pg.inner_text('#oste-log')
+    check('10 monete' in txt and 'Come guadagno monete?' in txt, 'chip: domanda e risposta a copioni')
+    check(await pg.evaluate('Oste.ai') is False, 'funzione assente (501): si ricorda e non riprova')
+    await pg.fill('#oste-q', 'regole di perudo'); await pg.press('#oste-q', 'Enter'); await pg.wait_for_timeout(500)
+    check('Perudo' in (await pg.inner_text('#oste-log')).split('regole di perudo')[-1], 'invio con Enter: regole del gioco')
+    await pg.fill('#oste-q', 'che gioco ci consigli'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
+    check('proverei' in await pg.inner_text('#oste-log'), 'consiglio per il tavolo')
+    check(await pg.evaluate('document.getElementById("oste-q").value') == '', 'campo svuotato dopo l\'invio')
+    await pg.fill('#oste-q', '<img src=x onerror=window.__xss=1>'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
+    check(await pg.evaluate('window.__xss') is None and await pg.query_selector('#oste-log img') is None, 'il testo scritto non diventa HTML')
+    await pg.click('[data-a=ostex]'); check(await pg.evaluate('ui.cfg===true&&!ui.oste'), 'chiudendo si torna alle impostazioni')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # con la funzione attiva: risposta di Claude, con il contesto del tavolo; poi 429 -> ripiego senza spegnerla
+    ctx = await new_context(b, srv.port); corpi = []; stato = {'c': 200}
+    async def fn(r):
+        if r.request.method == 'POST': corpi.append(r.request.post_data_json)
+        if stato['c'] == 200: return await r.fulfill(status=200, content_type='application/json', body='{"testo":"Risposta del locandiere vero"}')
+        await r.fulfill(status=stato['c'], content_type='application/json', body='{"errore":"x"}')
+    await ctx.route('**/.netlify/functions/locandiere', fn)
+    pg = await page(ctx, srv.url)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=oste]')
+    await pg.fill('#oste-q', 'cosa giochiamo stasera?'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
+    check('Risposta del locandiere vero' in await pg.inner_text('#oste-log'), 'risposta dalla funzione')
+    check(corpi and corpi[0]['domanda'] == 'cosa giochiamo stasera?' and corpi[0]['contesto']['n'] == 1 and 'Uno' in corpi[0]['contesto']['giochi'], f'contesto inviato {str(corpi[:1])[:120]}')
+    stato['c'] = 429
+    await pg.fill('#oste-q', 'come guadagno monete'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
+    check('10 monete' in await pg.inner_text('#oste-log') and await pg.evaluate('Oste.ai') is True, '429: ripiego a copioni, funzione ancora considerata attiva')
+    stato['c'] = 503
+    await pg.fill('#oste-q', 'aiuto'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
+    check(await pg.evaluate('Oste.ai') is False, '503 (chiave non configurata): spenta')
+    n = len(corpi); await pg.fill('#oste-q', 'ciao'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(400)
+    check(len(corpi) == n, 'spenta: nessuna altra chiamata')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

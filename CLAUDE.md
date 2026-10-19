@@ -29,6 +29,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Profilo online, monete (Firebase) | `src/js/app/24a-firebase.js`, regole in `firestore.rules`, piano in `docs/FIREBASE-PIANO.md` |
 | Bottega, cosmetici, prezzi | catalogo `src/js/motori/22-bottega.js` (unica fonte), `app/24b-bottega.js`, `css/33-dorsi.css`; dopo aver cambiato i prezzi: `npm run regole` e ripubblica `firestore.rules` |
 | Account (email), classifica, ELO | `app/24c-account.js` (modale), `app/24a-firebase.js` (FB.collega/entra/top, ELO in `award`), regole del punteggio `motori/23-elo.js` (+ `tests/test_elo.js`); nuovo gioco ⇒ `npm run regole` |
+| Locandiere (NPC) | copioni `motori/24-locandiere.js` (+ `tests/test_locandiere.js`), finestra `app/24d-locandiere.js`, risposte con Claude `netlify/functions/locandiere.js` (serve `ANTHROPIC_API_KEY` su Netlify) |
 | Nuovo gioco | comando `/nuovo-gioco` |
 
 Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `docs/STYLE.md`. Cartelle con regole proprie: vedi il `CLAUDE.md` dentro `src/css/`, `src/js/app/`, `src/js/motori/`, `tests/`, `tools/taverna3d/`.

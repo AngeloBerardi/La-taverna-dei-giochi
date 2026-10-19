@@ -1,0 +1,5 @@
+/* Il locandiere (finestra in app/24d-locandiere.js) */
+.oste .olog{display:flex;flex-direction:column;gap:6px;max-height:42vh;overflow-y:auto;padding:2px}
+.om{max-width:88%;padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.3;background:rgba(255,255,255,.07)}
+.om.oste{align-self:flex-start;border-bottom-left-radius:3px}
+.om.tu{align-self:flex-end;border-bottom-right-radius:3px;background:rgba(214,170,60,.22)}
