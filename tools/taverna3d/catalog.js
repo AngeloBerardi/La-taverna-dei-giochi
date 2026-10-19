@@ -1,11 +1,11 @@
 
 /* ================= catalogo: i giochi veri dell'app ================= */
-var CATN={carte:'Carte',tavolo:'Da tavolo',coop:'Cooperativi',solo:'Solitari'};
+var CATN={classici:'Classici',strategia:'Strategia',squadra:'Squadra e risate'};
 var ICON={regicide:0,briscola:1,burraco:2,gang:3,saboteur:4,azul:5,island:6,machiavelli:7,scopa:9,mind:10,mindx:11,harvest:12,valle:13,discesa:14,scoundrel:15,uno:16,pets:17,catan:18,kittens:19,perudo:20};
 function lum(h){var n=parseInt(h.slice(1),16);return(.3*(n>>16&255)+.59*(n>>8&255)+.11*(n&255))/255}
 var GAMES=A.games().map(function(g){var I=A.info(g),b=A.box(g.id);var c=b?b.c[0]:'#5a3a24';if(lum(c)>.62)c=b?b.c[1]:'#5a3a24';if(lum(c)>.62)c='#5a3a24';
   return{id:g.id,g:g,t:g.name,l:I[1].length>13?I[1].slice(0,13):I[1],s:g.desc,r:g.range,k:CATN[I[0]]||I[0],ck:I[0],c:c,v:0,m:ICON[g.id]!=null?ICON[g.id]:(g.id.length%16)}});
-var CATS=[];['carte','tavolo','coop','solo'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
+var CATS=[];['classici','strategia','squadra'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
   if(GAMES.some(function(G){return G.ck===k}))CATS.push({k:CATN[k]||k,c:(A.cat(k)||{f:'#e8b83a'}).f})});
 function boxTex(i){
   var c=mk(256,256),g=c.getContext('2d'),G=GAMES[i];i=G.m;

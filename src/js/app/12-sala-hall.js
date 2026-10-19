@@ -63,11 +63,11 @@ const HALL=(()=>{
   [[i+.08,j+.08],[i+w-.2,j+.08],[i+.08,j+d-.2],[i+w-.2,j+d-.2]].forEach(([a,b])=>s+=box(a,b,.12,.12,L,'#3a2616'));
   s+=box(i,j,w,d,6,top,L)+items;return s};
  const CATS={
-  carte:{i:.35,j:4.9,w:1.7,d:1.5,k:'CARTE',items:()=>cardq(.85,5.4,24,'#efe3c8',.3)+cardq(1.2,5.7,24,'#efe3c8',-.2)+cardq(1.5,5.45,24,'#d8c08a',.6)+cardq(1.05,6.0,24,'#efe3c8',.1)},
-  tavolo:{i:5.0,j:.4,w:1.7,d:1.5,k:'DA TAVOLO',items:()=>{let s='';const cs=['#2a63b8','#e3ac1f','#c8281e','#2f7a3a','#efe3c8'];for(let a=0;a<4;a++)for(let b=0;b<3;b++){const c=P(5.3+a*.32,.85+b*.3,24);s+=`<polygon points="${f1(c[0])},${f1(c[1]-3)} ${f1(c[0]+5)},${f1(c[1])} ${f1(c[0])},${f1(c[1]+3)} ${f1(c[0]-5)},${f1(c[1])}" fill="${cs[(a*3+b)%5]}" stroke="#1a0f08" stroke-width=".6"/>`}return s}},
-  coop:{i:.35,j:.4,w:1.7,d:1.5,k:'COOPERATIVI',items:()=>cardq(.85,.9,24,'#c8281e',.2)+cardq(1.25,1.2,24,'#1a1a1a',-.3)+cardq(1.55,.85,24,'#e3ac1f',.5)+dice(1.1,1.4,24)},
-  solo:{i:5.0,j:4.9,w:1.7,d:1.5,k:'SOLITARI',items:()=>cardq(5.5,5.4,24,'#7a2a8a',.2)+cardq(5.9,5.7,24,'#2a63b8',-.2)+mug(6.3,5.5,24)+dice(5.6,6.0,24)}};
- const catSvg=(id,n,sel)=>{const c=CATS[id],cx=id==='solo'?(q=>[q[0],q[1]+16])(P(c.i+c.w/2,c.j+c.d,0)):P(c.i+c.w/2,c.j+c.d/2,66),lbl=c.k+' · '+n,ww=lbl.length*5.5+12;
+  classici:{i:.35,j:4.9,w:1.7,d:1.5,k:'CLASSICI',items:()=>cardq(.85,5.4,24,'#efe3c8',.3)+cardq(1.2,5.7,24,'#efe3c8',-.2)+cardq(1.5,5.45,24,'#d8c08a',.6)+cardq(1.05,6.0,24,'#efe3c8',.1)},
+  strategia:{i:5.0,j:.4,w:1.7,d:1.5,k:'STRATEGIA',items:()=>{let s='';const cs=['#2a63b8','#e3ac1f','#c8281e','#2f7a3a','#efe3c8'];for(let a=0;a<4;a++)for(let b=0;b<3;b++){const c=P(5.3+a*.32,.85+b*.3,24);s+=`<polygon points="${f1(c[0])},${f1(c[1]-3)} ${f1(c[0]+5)},${f1(c[1])} ${f1(c[0])},${f1(c[1]+3)} ${f1(c[0]-5)},${f1(c[1])}" fill="${cs[(a*3+b)%5]}" stroke="#1a0f08" stroke-width=".6"/>`}return s}},
+  squadra:{i:.35,j:.4,w:1.7,d:1.5,k:'SQUADRA E RISATE',items:()=>cardq(.85,.9,24,'#c8281e',.2)+cardq(1.25,1.2,24,'#1a1a1a',-.3)+cardq(1.55,.85,24,'#e3ac1f',.5)+dice(1.1,1.4,24)}};
+
+ const catSvg=(id,n,sel)=>{const c=CATS[id],cx=P(c.i+c.w/2,c.j+c.d/2,66),lbl=c.k+' · '+n,ww=lbl.length*5.5+12;
   return`<g class="hh-tb${sel?' on':''}" data-a="hallgo" data-v="${id}" role="button" tabindex="0" aria-label="${c.k}, ${n} giochi disponibili" style="cursor:pointer">${tableBox(c.i,c.j,c.w,c.d,WOOD,c.items())}
   <g class="hh-plq"><rect x="${f1(cx[0]-ww/2)}" y="${f1(cx[1]-7)}" width="${f1(ww)}" height="14" fill="#2a1a0c" stroke="${sel?'#ffd34d':'#8a6a3a'}" stroke-width="2"/><text x="${f1(cx[0])}" y="${f1(cx[1]+3)}" text-anchor="middle" font-size="8" font-weight="700" fill="#efe3c8" style="font-family:'Silkscreen',monospace">${lbl}</text></g></g>`};
 
