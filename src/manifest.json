@@ -35,6 +35,7 @@
  "src/css/33-dorsi.css",
  "src/css/34-account.css",
  "src/css/35-locandiere.css",
+ "src/css/36-distanza.css",
  "src/css/90-lobby-3d.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -62,6 +63,7 @@
  "src/js/motori/22-bottega.js",
  "src/js/motori/23-elo.js",
  "src/js/motori/24-locandiere.js",
+ "src/js/motori/25-distanza.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
  "src/js/app/02-narrazione.js",
@@ -109,6 +111,7 @@
  "src/js/app/24b-bottega.js",
  "src/js/app/24c-account.js",
  "src/js/app/24d-locandiere.js",
+ "src/js/app/24e-distanza.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]
