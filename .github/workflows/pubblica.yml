@@ -1,0 +1,19 @@
+# Pubblica il sito su Firebase Hosting a ogni unione in main (serve il segreto FIREBASE_SERVICE_ACCOUNT, vedi docs/HOSTING.md).
+name: Pubblica
+on:
+  push:
+    branches: [main]
+jobs:
+  pubblica:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node scripts/check.js
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: la-taverna-dei-giochi
