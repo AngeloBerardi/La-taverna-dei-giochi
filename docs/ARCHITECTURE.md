@@ -46,6 +46,9 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 ## Account, classifica, ELO
 `motori/23-elo.js` (dati puri): `ELO.vincitori(s)` dice chi ha vinto (singoli, pari merito, squadre di briscola/burraco; `null` per cooperativi e pareggi), `ELO.nuovo` calcola la valutazione (K 32, base 1000, zero-sum al tavolo). `FB.eloInfo` decide se una partita vale: tutti i posti sono giocatori con profilo (`uid` nel documento membro, nessun ospite, nessun uid ripetuto). Il punteggio si salva in `award` insieme al premio (`players/{uid}.elo {gioco: valore}`); le regole lo limitano a ±32 per partita su un solo gioco. `app/24c-account.js` (`Acc`): email (collega / accedi / password dimenticata / esci) e classifica (vittorie, partite, monete, ELO per gioco). `iWon` usa `ELO.vincitori`. Limite noto: il punteggio lo calcola il telefono di chi gioca (protezione leggera tra amici, come le monete).
 
+## Locandiere
+`motori/24-locandiere.js` (`LOC`): cervello a copioni (saluto per ora del giorno e profilo, consigli adatti a `n` giocatori che ruotano col giorno, regole di un gioco, monete, classifica, account, ospiti), ripetibile e senza rete. `app/24d-locandiere.js` (`Oste`): finestra dalle impostazioni; prima prova `POST /.netlify/functions/locandiere` (9 s), che usa Claude con la chiave solo sul server (`ANTHROPIC_API_KEY`, modello `LOCANDIERE_MODEL`, default haiku; 6 richieste/min per indirizzo; risposta ≤ 50 parole); con 404/405/501/503 si ricorda che non c'è e usa i copioni, con 429/502/timeout ripiega solo per quella domanda. Senza chiave l'app funziona uguale. In futuro farà da master delle campagne.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -95,6 +98,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/32-perudo.css` | 3 |  |
 | `css/33-dorsi.css` | 2 |  |
 | `css/34-account.css` | 1 |  |
+| `css/35-locandiere.css` | 1 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -121,6 +125,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/motori/23-elo.js` | 2 | ELO |
+| `js/motori/24-locandiere.js` | 6 | LOC |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
@@ -167,6 +172,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24a-firebase.js` | 7 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 5 | Acc |
+| `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
