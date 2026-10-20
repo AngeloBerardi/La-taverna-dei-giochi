@@ -1,0 +1,12 @@
+/* Campagna (app/24h-campagna.js): mappa a esagoni, barra della perdizione, prove */
+.camp{max-height:90vh;overflow-y:auto}
+.chud{display:flex;justify-content:space-between;gap:6px;font-weight:700}
+.cbar{height:8px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}.cbar i{display:block;height:100%;background:linear-gradient(90deg,#7a4aa8,#b23a2e)}
+.cmap{width:100%;height:auto;max-height:46vh;border:3px solid var(--gold2,#d6aa3c);border-radius:14px;background:#14110f;touch-action:manipulation}
+.hx{stroke:rgba(0,0,0,.35);stroke-width:1}.hx.adj{stroke:#f3d37a;stroke-width:2.5;cursor:pointer}
+.grp{animation:cpulse 1.6s ease-in-out infinite}@keyframes cpulse{50%{opacity:.55}}
+.cero{display:flex;gap:6px}.ce{flex:1;display:flex;flex-direction:column;padding:5px 6px;border-radius:10px;background:rgba(255,255,255,.08);border-bottom:3px solid var(--gold2,#d6aa3c);font-size:12px;min-width:0}.ce.ko{opacity:.45;filter:grayscale(1)}
+.cinc{display:flex;flex-direction:column;gap:6px;padding:8px;border:3px solid #b23a2e;border-radius:12px;background:rgba(178,58,46,.15)}
+.cprove{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.cprove b{width:100%;font-size:12px}
+.cfine{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;text-align:center}.cfine.win{background:rgba(60,143,78,.3)}.cfine.lose{background:rgba(178,58,46,.3)}
+.clog{font-size:12px;opacity:.85}.clog p{margin:2px 0}

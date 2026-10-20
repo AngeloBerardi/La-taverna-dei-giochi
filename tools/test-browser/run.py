@@ -461,6 +461,95 @@ async def sc_schermo_comune(b, srv):
     check(await T.evaluate('[ui.screen,!!ui.err]') == ['tv', True], 'TV: tavolo eliminato, torna in attesa con un avviso')
     for c in (ctxA, ctxB, ctxT): await c.close()
 
+async def sc_campagna(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));ui.cfg=true;render()})()")
+    await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
+    await pg.click('[data-a=campstart]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('svg.cmap') is not None, 'mappa disegnata')
+    check(len(await pg.query_selector_all('.ce')) == 2, 'due eroi nel gruppo')
+    check(len(await pg.query_selector_all('.hx.adj')) >= 2, 'esagoni adiacenti toccabili')
+    check('Giorno 1' in await pg.inner_text('.chud'), 'giorno 1')
+    # tocco su un esagono: il gruppo si muove (o scatta un incontro) e il movimento scende
+    pm0 = await pg.evaluate('Camp.s.pm')
+    await pg.evaluate("(()=>{const n=CAMP.vicini(0,0)[0];Camp.s.celle[n.q+','+n.r].t='strada';render()})()")
+    await pg.click('.hx.adj'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate('Camp.s.turno') == 1 and await pg.evaluate('Camp.s.pm') < pm0, 'il movimento viene speso')
+    # incontro forzato: bottoni delle prove, risultato registrato
+    await pg.evaluate("(()=>{Camp.s.incontro={kind:'bestie',cd:1,testo:'Prova',ab:['atletica','percezione']};render()})()")
+    check(await pg.query_selector('.cinc') is not None and await pg.query_selector('[data-a=campriposa]') is None, 'incontro: niente riposo')
+    await pg.click('[data-a=campris][data-v="0:atletica"]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('.cinc') is None and await pg.evaluate('Camp.s.ultima.ok') is True, 'prova superata (CD 1), incontro chiuso')
+    # giorno e notte
+    await pg.click('[data-a=campriposa]'); await pg.click('[data-a=campriposa]')
+    check('Giorno 2' in await pg.inner_text('.chud') and await pg.evaluate('Camp.s.perdizione') == 3, 'giorno 2, perdizione 3')
+    # errore leggibile: entrare dove non c'è nulla
+    await pg.click('[data-a=campentra]', force=True); await pg.wait_for_timeout(100)
+    # salvataggio: dopo il ricaricamento la partita riprende
+    await pg.evaluate("localStorage.setItem('__stub',JSON.stringify(window.__db))")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate('Camp.s&&Camp.s.giorno') == 2, 'la campagna riprende dopo il ricaricamento')
+    # fine campagna
+    await pg.evaluate("(()=>{ui.camp=true;Camp.s.over={win:true,reason:'La torre oscura è caduta',giorni:2};render()})()")
+    check('Vittoria' in await pg.inner_text('.cfine'), 'schermata di vittoria')
+    await pg.click('[data-a=campnuova]'); await pg.wait_for_timeout(1200)
+    check(await pg.evaluate('Camp.s.giorno') == 1 and await pg.query_selector('.cfine') is None, 'nuova campagna')
+    await ctx.close()
+
+async def sc_eroi(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(500)
+    check(len(await pg.query_selector_all('[data-a=eroinuovo]')) == 5, 'cinque posti liberi')
+    await pg.click('[data-a=eroinuovo][data-v=e1]')
+    await pg.click('[data-a=eroiavanti]'); check('Scegli un nome' in await pg.inner_text('.acc-msg'), 'senza nome non si prosegue')
+    await pg.fill('#eroe-nome', 'Brunilde'); await pg.click('[data-a=eroiasp][data-v="capelli:1"]'); await pg.click('[data-a=eroiasp][data-v="viso:-1"]')
+    check(await pg.evaluate('Eroi.bozza.aspetto') == {'pelle': 0, 'capelli': 1, 'mantello': 0, 'viso': 0}, 'aspetto scelto (viso 1 -> 0)')
+    check(await pg.query_selector('.eritr svg.rit') is not None, 'ritratto disegnato')
+    await pg.click('[data-a=eroiavanti]'); await pg.click('[data-a=eroirazza][data-v=nano]'); await pg.click('[data-a=eroiavanti]')
+    await pg.click('[data-a=eroiclasse][data-v=guerriero]'); await pg.click('[data-a=eroiavanti]')
+    for _ in range(7): await pg.click('[data-a=eroipt][data-v="for:1"]')
+    check(await pg.evaluate('Eroi.bozza.base.for') == 15 and await pg.inner_text('#punti') == '18', 'FOR a 15 costa 9 punti: ne restano 18')
+    for _ in range(6): await pg.click('[data-a=eroipt][data-v="cos:1"]')
+    check(await pg.evaluate('[Eroi.bozza.base.cos,Eroi.puntiLiberi()]') == [14, 11], 'COS a 14: costo progressivo 7, restano 11')
+    for _ in range(2): await pg.click('[data-a=eroipt][data-v="des:1"]')
+    await pg.click('[data-a=eroipt][data-v="des:-1"]')
+    for k in ('int', 'sag', 'car'):
+        for _ in range(8): await pg.click(f'[data-a=eroipt][data-v="{k}:1"]') if await pg.evaluate(f'!document.querySelector(\'[data-a=eroipt][data-v="{k}:1"]\').disabled') else None
+    check(await pg.evaluate('Eroi.puntiLiberi()') >= 0 and await pg.evaluate('EROI.costoBase(Eroi.bozza.base)') <= 27, 'mai oltre i 27 punti')
+    check(await pg.evaluate('document.querySelector(\'[data-a=eroipt][data-v="for:-1"]\').disabled') is False and await pg.evaluate('Eroi.bozza.base.for') == 15, 'si può togliere un punto')
+    await pg.click('[data-a=eroiavanti]'); await pg.wait_for_timeout(200)
+    check('brunilde' in (await pg.inner_text('.escheda')).lower() and 'CA 19' in (await pg.inner_text('.escheda')).upper(), 'riepilogo: nome e CA (maglia 16 + scudo 2 + nano 1 + DES)')
+    await pg.click('[data-a=eroicrea]'); await pg.wait_for_timeout(800)
+    k = 'players/u-1/eroi/e1'
+    st = await pg.evaluate(f"window.__db['{k}']||null")
+    check(st and st['nome'] == 'Brunilde' and st['razza'] == 'nano' and st['classe'] == 'guerriero' and st['liv'] == 1 and st['xp'] == 0 and st['oro'] == 20, f'salvato nel profilo {st and st["nome"]}')
+    check(await pg.evaluate('EROI.coerente(window.__db["' + k + '"])'), 'l\'eroe salvato è coerente')
+    check('brunilde' in (await pg.inner_text('.escheda')).lower(), 'si apre la scheda')
+    await pg.click('[data-a=eroiindietro]'); check('brunilde' in (await pg.inner_text('.ecard')).lower() and len(await pg.query_selector_all('[data-a=eroinuovo]')) == 4, 'nell\'elenco, quattro posti liberi')
+    # difese delle regole (simulate nello stub): punteggi truccati, sesto posto, modifica di razza, lettura degli eroi di altri
+    async def prova(js): return await pg.evaluate("(async()=>{try{" + js + ";return 'ok'}catch(e){return e.code||e.message}})()")
+    base_ok = "const h=EROI.nuovo({nome:'X',razza:'umano',classe:'mago',base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});"
+    check(await prova(base_ok + "h.base={for:15,des:15,cos:15,int:15,sag:15,car:15};await FB.salvaEroe('e2',h)") == 'permission-denied', 'punteggi oltre i 27 punti: rifiutati')
+    check(await prova(base_ok + "await FB.salvaEroe('e6',h)") == 'permission-denied', 'un sesto eroe: rifiutato')
+    check(await prova(base_ok + "h.liv=5;await FB.salvaEroe('e2',h)") == 'permission-denied', 'eroe nuovo di livello 5: rifiutato')
+    check(await prova(base_ok + "await FB.salvaEroe('e2',h)") == 'ok', 'un eroe valido sul secondo posto passa')
+    check(await prova("const h={...Eroi.lista.e1,razza:'orco'};await FB.salvaEroe('e1',h)") == 'permission-denied', 'cambiare razza: rifiutato')
+    check(await prova("const h={...Eroi.lista.e1,classe:'mago'};await FB.salvaEroe('e1',h)") == 'permission-denied', 'cambiare classe: rifiutato')
+    check(await prova("const h=EROI.guadagna(Eroi.lista.e1,150);await FB.salvaEroe('e1',h)") == 'ok', 'salire di livello: permesso')
+    check(await prova("const h={...Eroi.lista.e1,xp:0,liv:1};await FB.salvaEroe('e1',h)") == 'permission-denied', 'tornare indietro di livello: rifiutato')
+    check(await prova("const F=FB.m.F;await F.getDocs(F.collection(FB.db,'players','u-2','eroi'))") == 'permission-denied', 'leggere gli eroi di un altro: rifiutato')
+    # persistenza e scheda manomessa
+    await pg.evaluate("(()=>{const k='players/u-1/eroi/e2';window.__db[k].hpMax=150;window.__db[k].hp=150;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
+    check(len(await pg.query_selector_all('.ecard:not(.vuoto)')) == 1 and 'brunilde' in (await pg.inner_text('.ecard')).lower(), 'dopo il ricarico: c\'è Brunilde, la scheda manomessa è nascosta')
+    await pg.click('[data-a=eroischeda][data-v=e1]'); await pg.wait_for_timeout(200)
+    check('liv' in (await pg.inner_text('.modal')).lower() or 'livello 2' in await pg.inner_text('.modal'), 'scheda dopo il ricarico')
+    pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+    await pg.click('[data-a=eroielimina]'); await pg.wait_for_timeout(600)
+    check(await pg.evaluate("window.__db['players/u-1/eroi/e1']") is None and len(await pg.query_selector_all('[data-a=eroinuovo]')) == 5, 'eliminato: il posto torna libero')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
