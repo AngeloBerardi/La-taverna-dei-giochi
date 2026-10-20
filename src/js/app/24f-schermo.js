@@ -22,8 +22,14 @@ const TV={
  cfgH(){return R.on&&R.code&&!ui.tv?'<button class="b sm tile" data-a="tvm"><span class="ti">'+ic('tv')+'</span>Schermo comune</button>':''},
  modaleH(){const u=TV.linkSchermo();return`<div class="modal"><div class="box col"><h2>Schermo comune</h2>
 <p class="muted" style="margin:0">Apri questo link sulla TV o sul PC: mostra il tavolo in grande, tu giochi dal telefono.</p>
-<div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()"><div class="row"><button class="b sm gold" data-a="tvcopy">Copia link</button><button class="b sm" data-a="tvmx">Chiudi</button></div></div></div>`},
- async act(a){if(a==='tvfull')return TV.pieno();
+<div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()">${TV.puoiCast()?`<button class="b gold" data-a="tvcast">Trasmetti a Chromecast</button>${TV._conn?'<p class="muted" style="margin:0">Trasmissione attiva: la TV mostra il tavolo.</p>':''}`:''}
+<p class="muted" style="margin:0;font-size:13px">${TV.puoiCast()?'Se non trovi il Chromecast, ':''}apri il link da Chrome sul PC e scegli Trasmetti dal menu del browser, oppure apri il link direttamente nel browser della TV.</p>
+<div class="row"><button class="b sm gold" data-a="tvcopy">Copia link</button><button class="b sm" data-a="tvmx">Chiudi</button></div></div></div>`},
+ // Trasmissione a un Chromecast con la Presentation API di Chrome: la TV apre il link dello schermo comune da sola
+ puoiCast(){return typeof window.PresentationRequest==='function'&&!ui.tv&&location.protocol==='https:'},
+ async cast(){try{const rq=new PresentationRequest([TV.linkSchermo()]);const c=await rq.start();TV._conn=c;c.onterminate=c.onclose=()=>{TV._conn=null;render()};say('Trasmissione avviata',2500);render()}
+  catch(e){const n=e&&e.name;say(n==='NotFoundError'?'Nessun Chromecast trovato in questa rete Wi-Fi':n==='NotAllowedError'||n==='AbortError'?'Trasmissione annullata':'Trasmissione non riuscita',3500)}},
+ async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();
   if(a==='tvm'){ui.tvm=true;ui.cfg=false;return render()}if(a==='tvmx'){ui.tvm=false;ui.cfg=true;return render()}
   if(a==='tvcopy'){const u=TV.linkSchermo();try{await navigator.clipboard.writeText(u);say('Link copiato',1800)}catch(e){say(u,4000)}}},
  sveglio(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}},

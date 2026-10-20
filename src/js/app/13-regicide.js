@@ -1,5 +1,6 @@
 function pileH(id,label,n,face){return`<div class="pile ${n?'':'empty'}" id="${id}"><div class="stk">${n?(face?cardH(face,{}):[0,1,2].slice(0,Math.min(3,n)).map(()=>cardH('',{back:1})).join('')):''}</div>${label}${n?`<b>${n}</b>`:''}</div>`}
 function regicideH(){
+ if(ui.tv)return regicideTVH();
  const s=G,en=ui.viewEn||s.en,cur=s.cur,cover=needCover(),mine=myTurn(),cname=esc(s.names[cur]),sel=ui.sel;
  const owner=viewer(),okHand=!cover&&owner>=0;
  const hand=okHand?s.hands[owner].slice().sort((a,b)=>RG.cv(a)-RG.cv(b)||(a<b?-1:1)):[];
