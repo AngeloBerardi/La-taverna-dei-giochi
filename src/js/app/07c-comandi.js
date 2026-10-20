@@ -3,6 +3,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  if(a!=='sel'&&a!=='tsel')Snd.play('ok');
  switch(a){
  case'setname':{const n=($('#myname')?.value||'').trim().slice(0,14);if(!n){ui.err='Scrivi il tuo nome';return render()}ME.name=n;ST('rg-name',n);R.mine.name=n;if(R.on&&R.code){await saveMine();ui.screen=G?'game':'room';return render()}return enterHub()}
+ case'fbstart':FB.start();return render();
  case'rename':ui.cfg=false;ui.screen='name';return render();
  case'addguest':{const n=($('#gname')?.value||'').trim().slice(0,14);if(!n){ui.err='Scrivi il nome dell’ospite';return render()}if(lobbySeats().length>=10){ui.err='Massimo 10 giocatori per tavolo';return render()}R.mine.guests=[...(R.mine.guests||[]),{k:'g'+rid(),name:n}];ui.err='';return saveMine()}
  case'rmguest':R.mine.guests=(R.mine.guests||[]).filter(g=>g.k!==v);delete R.mine.votes[v];return saveMine();
