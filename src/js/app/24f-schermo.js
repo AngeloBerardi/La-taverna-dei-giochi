@@ -22,14 +22,19 @@ const TV={
  cfgH(){return R.on&&R.code&&!ui.tv?'<button class="b sm tile" data-a="tvm"><span class="ti">'+ic('tv')+'</span>Schermo comune</button>':''},
  modaleH(){const u=TV.linkSchermo();return`<div class="modal"><div class="box col"><h2>Schermo comune</h2>
 <p class="muted" style="margin:0">Apri questo link sulla TV o sul PC: mostra il tavolo in grande, tu giochi dal telefono.</p>
-<div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()">${TV.puoiCast()?`<button class="b gold" data-a="tvcast">Trasmetti a Chromecast</button>${TV._conn?'<p class="muted" style="margin:0">Trasmissione attiva: la TV mostra il tavolo.</p>':''}`:''}
-<p class="muted" style="margin:0;font-size:13px">${TV.puoiCast()?'Se non trovi il Chromecast, ':''}apri il link da Chrome sul PC e scegli Trasmetti dal menu del browser, oppure apri il link direttamente nel browser della TV.</p>
+<div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()">
+${TV.puoiCondividere()?'<button class="b gold" data-a="tvshare">Invia il link al PC o alla TV</button>':''}
+<p class="muted" style="margin:0;font-size:13px">Per il Chromecast: apri questo link su un PC con Chrome, poi menu ⋮ → <b>Trasmetti</b> → scegli il Chromecast → <b>Trasmetti scheda</b>. Con una smart TV puoi aprire il link nel suo browser. I telefoni restano i comandi.</p>
+${TV.puoiCast()?`<button class="b sm" data-a="tvcast">Prova il cast diretto dal telefono</button>${TV._conn?'<p class="muted" style="margin:0">Trasmissione attiva: la TV mostra il tavolo.</p>':''}`:''}
 <div class="row"><button class="b sm gold" data-a="tvcopy">Copia link</button><button class="b sm" data-a="tvmx">Chiudi</button></div></div></div>`},
+ // dal telefono: il foglio di condivisione manda il link a un altro dispositivo (Chrome: «Invia ai tuoi dispositivi»), da cui si trasmette
+ puoiCondividere(){return typeof navigator.share==='function'&&!ui.tv},
+ async condividi(){try{await navigator.share({title:'Schermo comune · La Taverna dei Giochi',url:TV.linkSchermo()})}catch(e){if(!e||e.name!=='AbortError')say('Condivisione non riuscita: usa «Copia link»',3500)}},
  // Trasmissione a un Chromecast con la Presentation API di Chrome: la TV apre il link dello schermo comune da sola
  puoiCast(){return typeof window.PresentationRequest==='function'&&!ui.tv&&location.protocol==='https:'},
  async cast(){try{const rq=new PresentationRequest([TV.linkSchermo()]);const c=await rq.start();TV._conn=c;c.onterminate=c.onclose=()=>{TV._conn=null;render()};say('Trasmissione avviata',2500);render()}
-  catch(e){const n=e&&e.name;say(n==='NotFoundError'?'Nessun Chromecast trovato in questa rete Wi-Fi':n==='NotAllowedError'||n==='AbortError'?'Trasmissione annullata':'Trasmissione non riuscita',3500)}},
- async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();
+  catch(e){const n=e&&e.name;say(n==='NotAllowedError'||n==='AbortError'?'Trasmissione annullata':n==='NotFoundError'?'Il telefono non vede schermi per questo link: invialo a un PC e trasmetti da lì':'Trasmissione non riuscita: invia il link a un PC e trasmetti da lì',4500)}},
+ async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();if(a==='tvshare')return TV.condividi();
   if(a==='tvm'){ui.tvm=true;ui.cfg=false;return render()}if(a==='tvmx'){ui.tvm=false;ui.cfg=true;return render()}
   if(a==='tvcopy'){const u=TV.linkSchermo();try{await navigator.clipboard.writeText(u);say('Link copiato',1800)}catch(e){say(u,4000)}}},
  sveglio(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}},
