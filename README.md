@@ -9,7 +9,7 @@ Hub di giochi multiplayer per telefono, in italiano: una locanda 3D (con il fal�
 - Se chi ospita la stanza generale esce, un altro giocatore ne prende il posto con lo stato già in mano.
 
 ## Per sviluppare
-- `dist/index.html`: il gioco (pagina unica generata da `npm run build`). Netlify pubblica la radice a ogni push su `main`.
+- `dist/index.html`: il gioco (pagina unica generata da `npm run build`). Firebase Hosting pubblica `dist/` a ogni unione in `main`.
 - `src/`: sorgenti separati; `src/manifest.json` fissa l'ordine di concatenazione. `src/js/app/12c-lobby-3d.js` è **generato** da `tools/taverna3d/` (`python3 tools/taverna3d/mk.py`): non modificarlo a mano.
 - `npm run check` = build + sintassi, prima di ogni push. `npm test` = simulazioni dei motori (`tests/`). `npm run mappa` aggiorna la mappa dei moduli in `docs/ARCHITECTURE.md`.
 - `tools/test-rete/`: test manuali della rete a due client (broker locale, invito, subentro dell'host, validazione); istruzioni nel README della cartella.

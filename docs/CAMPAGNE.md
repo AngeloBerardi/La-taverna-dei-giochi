@@ -15,5 +15,5 @@ Obiettivo: campagne a più sessioni stile *For the King* (mappa a esagoni, grupp
 1. Combattimento a turni sulla mappa (iniziativa, attacco/danno già in `EROI.derivati`).
 2. Campagna condivisa: gruppo da più telefoni sopra `R.db` (come le partite a distanza), un eroe per giocatore.
 3. Salvataggio dell'avanzamento negli eroi dell'account (XP, oro, oggetti) con regole che ne limitino la crescita per sessione.
-4. Locandiere come Game Master: descrive gli incontri (`motori/24-locandiere.js` + funzione Netlify).
+4. Locandiere come Game Master: descrive gli incontri (`motori/24-locandiere.js` ).
 5. Oggetti, negozi di città, più missioni e mappe fatte a mano; musica e suoni propri.

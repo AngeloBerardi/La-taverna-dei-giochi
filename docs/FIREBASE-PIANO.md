@@ -6,9 +6,9 @@ Scelte dell'utente: **Firebase**, identità **anonima poi email**. Idee collegat
 - Progetto Firebase creato dall'utente (`la-taverna-dei-giochi`); config nel codice (`FB.CFG` in `app/24a-firebase.js`: sono identificativi pubblici).
 - **Fase B avviata:** accesso anonimo, profilo `players/{uid}`, monete a fine partita (10 per giocare, +15 per vincere), riga profilo nelle impostazioni, coda dei premi sul telefono se si è offline o il server rifiuta. Manca la **bottega** (catalogo e acquisti).
 - **Bottega fatta** (6 dorsi delle carte, prezzi verificati dalle regole). **Dopo ogni modifica ai prezzi:** `npm run regole` e ripubblica `firestore.rules` nella console.
-- **Account, classifica ed ELO fatti** (fase E). Per l'accesso con email va attivato **Authentication → Metodo di accesso → Email/password** nella console; per provare l'anteprima Netlify va aggiunto il suo dominio in **Authentication → Impostazioni → Domini autorizzati**. Ripubblica `firestore.rules` (ora limitano anche `elo` e non lasciano più cambiare `owned` con un premio).
-- **Partite a distanza fatte** (fase D, senza notifiche push a app chiusa): collezione `partite` con regole proprie. Ripubblica `firestore.rules`. Per le notifiche a app chiusa serve un server: *Cloud Functions* (piano Blaze con carta) che reagisce al cambio di `turno` in `partite/{codice}` e invia FCM, oppure una funzione Netlify con `firebase-admin`. I dati ci sono già (`turno`, `uids`); manca solo l'invio e la registrazione dei token FCM.
-- Provato in Chromium con un SDK simulato (profilo, premio, coda, errore di accesso). **Non provato** con il vero Firebase né con l'emulatore delle regole (non scaricabile da qui): il primo giro vero è l'anteprima Netlify.
+- **Account, classifica ed ELO fatti** (fase E). Per l'accesso con email va attivato **Authentication → Metodo di accesso → Email/password** nella console; il dominio `la-taverna-dei-giochi.web.app` è già tra i **Domini autorizzati**. Ripubblica `firestore.rules` (ora limitano anche `elo` e non lasciano più cambiare `owned` con un premio).
+- **Partite a distanza fatte** (fase D, senza notifiche push a app chiusa): collezione `partite` con regole proprie. Ripubblica `firestore.rules`. Per le notifiche a app chiusa serve un server: *Cloud Functions* (piano Blaze con carta) che reagisce al cambio di `turno` in `partite/{codice}` e invia FCM. I dati ci sono già (`turno`, `uids`); manca solo l'invio e la registrazione dei token FCM.
+- Provato in Chromium con un SDK simulato (profilo, premio, coda, errore di accesso). **Non provato** con il vero Firebase né con l'emulatore delle regole (non scaricabile da qui): il primo giro vero è il sito su Firebase Hosting.
 
 ## Pubblicare le regole (una volta, e a ogni modifica di `firestore.rules`)
 1. Console Firebase → **Build → Firestore Database → scheda Regole**.
@@ -39,7 +39,7 @@ L'SDK Firebase (modulare, dal CDN gstatic) si carica **solo quando serve** (`imp
 
 ## Limiti da sapere
 1. **Informazioni nascoste.** Con il motore sul telefono, lo stato salvato contiene anche le mani degli altri: chi sa leggere il database potrebbe sbirciare. Fase C parte con l'onestà tra amici. Per giochi con carte segrete serve far girare i motori (sono funzioni pure in node) su un server e tenere le mani in sottodocumenti leggibili solo dal proprietario.
-2. **Notifiche.** Il browser riceve push solo se un server le invia a ogni cambio turno. Due strade: *Cloud Functions* (richiedono il piano a consumo **Blaze**, con carta di credito; con pochi utenti restano nel gratuito) oppure una *Netlify Function* con `firebase-admin` (nessun piano a pagamento, ma l'invio parte dal telefono di chi ha giocato: ok tra amici). Da decidere alla fase D.
+2. **Notifiche.** Il browser riceve push solo se un server le invia a ogni cambio turno. Due strade: *Cloud Functions* (richiedono il piano a consumo **Blaze**, con carta di credito; con pochi utenti restano nel gratuito). Da decidere alla fase D.
 3. **iPhone.** Le notifiche push web funzionano solo se l'app è installata sulla schermata Home (iOS 16.4 o successivo).
 4. **Piano gratuito (Spark).** Ordine di grandezza: 50 000 letture, 20 000 scritture e 1 GB al giorno: più che sufficiente per un gruppo di amici.
 
@@ -48,5 +48,5 @@ L'SDK Firebase (modulare, dal CDN gstatic) si carica **solo quando serve** (`imp
 2. **Build → Authentication → Inizia → Accesso anonimo → Abilita.**
 3. **Build → Firestore Database → Crea database** → modalità **produzione** → località **europe-west8 (Milano)** (o europe-west1).
 4. **Impostazioni progetto (ingranaggio) → Le tue app → Web (`</>`)** → nome «Taverna» (senza Hosting) → copia l'oggetto `firebaseConfig` e incollalo in chat. Non è un segreto: la sicurezza sta nelle regole.
-5. **Authentication → Impostazioni → Domini autorizzati** → aggiungi `latavernadeigiochi.netlify.app` (e i domini delle anteprime Netlify che userai).
+5. **Authentication → Impostazioni → Domini autorizzati** → controlla che ci sia `la-taverna-dei-giochi.web.app`.
 6. Solo per le notifiche, più avanti: **Impostazioni progetto → Cloud Messaging → Certificati push web → Genera coppia di chiavi** e incolla la chiave pubblica.

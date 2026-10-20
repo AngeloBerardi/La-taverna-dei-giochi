@@ -1,7 +1,6 @@
 /* ---- Il locandiere: personaggio della taverna che saluta, consiglia giochi e risponde alle domande (dati puri). ----
    Cervello "a copioni": riconosce l'argomento dalle parole e risponde in modo ripetibile (stessa domanda, stessa
-   risposta nello stesso giorno). Se sul sito c'è la funzione Netlify `locandiere` (che usa Claude), l'app la preferisce
-   e usa questo come ripiego. Il contesto `c` lo prepara la vista: { nome, n (giocatori al tavolo), ora (0-23), giorno,
+   risposta nello stesso giorno). Il contesto `c` lo prepara la vista: { nome, n (giocatori al tavolo), ora (0-23), giorno,
    monete, partite, vittorie, mail (bool), giochi:[{id,name,desc,range,ok (vale per n),coop}] }. */
 const LOC=(()=>{
  const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();

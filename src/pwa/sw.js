@@ -44,7 +44,6 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const u = new URL(req.url);
   if (u.origin === location.origin) {
-    if (u.pathname.startsWith('/.netlify/')) return;
     if (req.mode === 'navigate') return e.respondWith(paginaRete(req));
     if (u.pathname === '/sw.js') return;
     if (u.pathname.startsWith('/vendor/')) return e.respondWith(caches.open(VENDOR).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r }))));
