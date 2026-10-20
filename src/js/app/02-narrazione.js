@@ -7,7 +7,7 @@ const ACTS={J:['Atto I','Le Mura'],Q:['Atto II','Le Sale della Corte'],K:['Atto 
 const STORY=['Una magia oscura ha corrotto i sovrani del regno.','Fanti, Regine e Re ora governano col terrore dalle loro torri.','Dalla Taverna partono gli ultimi eroi, con i loro fidi Animali.','Espugnate il castello. Sconfiggeteli... o redimeteli.'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 net={db:undefined,uid:null,code:'',ref:null,host:'',seats:[],phase:'',players:[],rev:0,un:[],names:[],doc:null};
-let theme=ST('rg-theme');if(!['tavolo','castello','notte','carta'].includes(theme))theme=matchMedia('(prefers-color-scheme:light)').matches?'carta':'tavolo';
+let theme='tavolo'; // tema unico: legno, ottone e tavolo verde
 let fc=ST('rg-fc')==='1';
 let dorsoSel=ST('rg-dorso')||'';
 function applyTheme(){document.documentElement.dataset.gt=theme;document.documentElement.dataset.dorso=dorsoSel.replace(/^dorso-/,'');document.documentElement.classList.toggle('fc',fc);document.documentElement.style.colorScheme=theme==='carta'?'light':'dark'}

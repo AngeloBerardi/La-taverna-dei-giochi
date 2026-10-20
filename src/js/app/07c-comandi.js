@@ -10,7 +10,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'rmmember':if(R.on){try{await R.db.doc('rooms/'+R.code+'/members/'+v).delete()}catch(x){ui.err=netErr(x)}}return render();
  case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
  case'start':return startGame(v);
- case'join':{R.jt=(R.jt||0)+1;const c=($('#jc')?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
+ case'join':{R.jt=(R.jt||0)+1;const c=(($('#plc')||$('#jc'))?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
+  ui.joinm=false;
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
    await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
@@ -21,6 +22,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'chatsend':return chatSend();
  case'chatd':ui.cd=!ui.cd;ui.unread=0;render();{const lg=$('#chatlog');if(lg)lg.scrollTop=lg.scrollHeight}return;
  case'chatemo':ui.cm=v;await chatSend();return;
+ case'pl':return Plancia.act(v);
  case'tab':ui.tab=v;ui.err='';render();scrollTo(0,0);return;
  case'avedit':ui.avk=v||null;return render();
  case'avset':case'avrand':{const k=ui.avk;if(k==null)return;const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),cur=avOf({dev:ME.dev,k},i);let nv;
@@ -42,7 +44,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'cfg':ui.cfg=!ui.cfg;return render();
  case'pwainstall':PWA.install();return;
  case'shop':case'shopx':case'shopbuy':case'shopuse':return Shop.act(a,v);
- case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accreset':case'accout':return Acc.act(a,v);
+ case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accgoogle':case'accreset':case'accout':return Acc.act(a,v);
  case'oste':case'ostex':case'osteq':case'osteok':return Oste.act(a,v);
  case'eroi':case'eroix':case'eroinuovo':case'eroischeda':case'eroiindietro':case'eroiavanti':case'eroicol':case'eroirazza':case'eroiclasse':case'eroipt':case'eroicrea':case'eroielimina':return Eroi.act(a,v);
  case'campstart':case'campx':case'campnuova':case'campmuovi':case'campriposa':case'campentra':case'campfuggi':case'campris':return Camp.act(a,v);

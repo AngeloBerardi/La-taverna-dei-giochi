@@ -3,16 +3,17 @@ const Acc={
  rows:{},key:'wins',msg:'',busy:false,f:{mail:'',pw:''}, // f: testo dei campi (render() li ridisegna: si tiene qui)
  ERR:{'auth/email-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/weak-password':'Password troppo corta (almeno 6 caratteri).','auth/invalid-email':'Email non valida.',
   'auth/invalid-credential':'Email o password errate.','auth/wrong-password':'Email o password errate.','auth/user-not-found':'Email o password errate.','auth/operation-not-allowed':'Accesso con email non attivo nella console Firebase.',
-  'auth/network-request-failed':'Nessuna connessione.','auth/credential-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/too-many-requests':'Troppi tentativi, riprova tra poco.'},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="acc"><span class="ti">👤</span>Account</button><button class="b sm tile" data-a="top"><span class="ti">🏆</span>Classifica</button>':''},
+  'auth/network-request-failed':'Nessuna connessione.','auth/credential-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/too-many-requests':'Troppi tentativi, riprova tra poco.',
+  'auth/popup-closed-by-user':'Finestra chiusa: riprova quando vuoi.','auth/cancelled-popup-request':'Finestra chiusa: riprova quando vuoi.','auth/popup-blocked':'Il browser ha bloccato la finestra di Google: consentila e riprova.','auth/unauthorized-domain':'Questo indirizzo non è autorizzato in Firebase (Authentication › Impostazioni › Domini).'},
+ cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="acc"><span class="ti">'+ic('utente')+'</span>Account</button><button class="b sm tile" data-a="top"><span class="ti">'+ic('coppa')+'</span>Classifica</button>':''},
  chiavi(){return[{k:'wins',n:'Vittorie',c:'wins'},{k:'played',n:'Partite',c:'played'},{k:'coins',n:'Monete',c:'coins'},
   ...GAMES.filter(g=>ELO.competitivo(g.id)&&g.id!=='mindx').map(g=>({k:'elo.'+g.id,n:'ELO '+g.name,c:'elo.'+g.id}))]},
  val(r,k){return k.startsWith('elo.')?(r.elo||{})[k.slice(4)]:r[k]},
  html(){return ui.acc==='top'?Acc.topH():Acc.accH()},
  accH(){const m=FB.mail(),ok=FB.st==='ok'&&FB.p;
   return`<div class="modal"><div class="box col"><h2>Account</h2>
-<p class="muted" style="margin:0">${!ok?'Profilo online non disponibile.':m?'Collegato a <b>'+esc(m)+'</b>. Puoi ritrovare monete, dorsi e ELO da qualsiasi telefono.':'Ora il tuo profilo vive solo su questo telefono. Collegalo a un\'email per non perderlo.'}</p>
-${ok&&!m?`<input class="acc-in" id="acc-mail" type="email" autocomplete="email" placeholder="Email" inputmode="email" value="${esc(Acc.f.mail)}"><input class="acc-in" id="acc-pw" type="password" autocomplete="new-password" placeholder="Password (almeno 6 caratteri)" value="${esc(Acc.f.pw)}">
+<p class="muted" style="margin:0">${!ok?'Profilo online non disponibile.':m?'Collegato come <b>'+esc(m)+'</b>. Puoi ritrovare monete, dorsi e ELO da qualsiasi telefono.':'Ora il tuo profilo vive solo su questo telefono. Collegalo a un\'email per non perderlo.'}</p>
+${ok&&!m?`<button class="b gold gbtn" data-a="accgoogle">Continua con Google</button><small class="muted">Google serve solo a riconoscerti: non salviamo nome, email né foto.</small><div class="acc-or"><span>oppure con l'email</span></div><input class="acc-in" id="acc-mail" type="email" autocomplete="email" placeholder="Email" inputmode="email" value="${esc(Acc.f.mail)}"><input class="acc-in" id="acc-pw" type="password" autocomplete="new-password" placeholder="Password (almeno 6 caratteri)" value="${esc(Acc.f.pw)}">
 <div class="row"><button class="b sm gold" data-a="acclink">Collega email</button><button class="b sm" data-a="accin">Accedi</button><button class="b sm" data-a="accreset">Password dimenticata</button></div>
 <small class="muted">«Accedi» passa al profilo già legato a quell'email: quello anonimo di questo telefono resta indietro.</small>`:''}
 ${ok&&m?'<div class="row"><button class="b sm" data-a="accout">Esci da questo telefono</button></div><small class="muted">Dopo l\'uscita questo telefono ripartisce con un nuovo profilo anonimo.</small>':''}
@@ -32,6 +33,7 @@ ${rows==null?'<p class="muted">Carico…</p>':rows.length?`<ol class="top">${row
   if(a==='topk'){Acc.key=v;return Acc.carica(v)}
   if(Acc.busy||FB.st!=='ok')return;
   const mail=Acc.f.mail.trim(),pw=Acc.f.pw;
+  if(a==='accgoogle'){Acc.busy=true;Acc.msg='Si apre Google…';render();try{await FB.google();Acc.msg='Fatto: sei collegato con Google.'}catch(e){Acc.msg=Acc.ERR[e&&e.code]||'Non riuscito, riprova tra poco.';console.warn('Google',e)}finally{Acc.busy=false;render()}return}
   if(a!=='accout'&&!mail){Acc.msg='Scrivi l\'email.';return render()}
   if((a==='acclink'||a==='accin')&&!pw){Acc.msg='Scrivi la password.';return render()}
   Acc.busy=true;Acc.msg='Un attimo…';render();

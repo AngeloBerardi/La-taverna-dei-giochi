@@ -21,12 +21,12 @@ const Dist={
  righe:null,msg:'',busy:false,prev:null,visti:{},codice:'',
  ok(){return FB.st==='ok'&&!!FB.p},
  tocca(){return(Dist.righe||[]).filter(r=>r.tocca).length},
- cfgH(){return Dist.ok()?`<button class="b sm tile" data-a="dist"><span class="ti">🌍</span>A distanza${Dist.tocca()?' <b class="badge">'+Dist.tocca()+'</b>':''}</button>`:''},
+ cfgH(){return Dist.ok()?`<button class="b sm tile" data-a="dist"><span class="ti">${ic('globo')}</span>A distanza${Dist.tocca()?' <b class="badge">'+Dist.tocca()+'</b>':''}</button>`:''},
  nomeGioco(id){const g=GAMES.find(x=>x.id===id);return g?g.name:id},
  invito(c){return location.origin+location.pathname+'?dist='+c},
  html(){const fs=R.mode==='fs'&&R.code;
   const riga=r=>`<div class="drow ${r.tocca?'tocca':''}"><div class="dtx"><b>${esc(r.gioco||'In attesa di avvio')}</b> <small>${esc(r.code)} · ${esc(r.fase)}${r.giocatori?' · '+esc(r.giocatori.join(', ')):' · '+r.n+(r.n===1?' persona':' persone')}</small>${r.tocca?'<span class="chip on">Tocca a te</span>':''}</div>
-<div class="row"><button class="b sm" data-a="distgo" data-v="${esc(r.code)}">Entra</button>${r.mia?`<button class="b sm" data-a="distdel" data-v="${esc(r.code)}" aria-label="Elimina la partita ${esc(r.code)}">🗑</button>`:''}</div></div>`;
+<div class="row"><button class="b sm" data-a="distgo" data-v="${esc(r.code)}">Entra</button>${r.mia?`<button class="b sm" data-a="distdel" data-v="${esc(r.code)}" aria-label="Elimina la partita ${esc(r.code)}">${ic('cestino',18)}</button>`:''}</div></div>`;
   return`<div class="modal"><div class="box col"><h2>Partite a distanza</h2>
 <p class="muted" style="margin:0">Un tavolo che resta aperto: giocate a turni, anche a ore o giorni di distanza. Ognuno rientra quando può.</p>
 ${fs?`<div class="drow tocca"><div class="dtx"><b>Sei nella partita ${esc(R.code)}</b><small>Mandane il link agli amici</small></div><div class="row"><button class="b sm gold" data-a="distcopy">Copia invito</button><button class="b sm" data-a="distexit">Esci</button></div></div>`:''}

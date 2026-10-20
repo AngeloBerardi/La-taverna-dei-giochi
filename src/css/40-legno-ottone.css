@@ -1,0 +1,41 @@
+/* ---- Legno e ottone: stile unico dell'interfaccia (pulsanti, chip, plancia in basso). Angoli netti, niente emoji. ---- */
+.ico{vertical-align:-4px;flex:none}
+.b,.chip,.ib{border:0;border-radius:0;box-shadow:none;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);background:repeating-linear-gradient(90deg,transparent 0 5px,rgba(0,0,0,.2) 5px 6px,transparent 6px 13px),linear-gradient(180deg,#7a4f2b,#5c3a1e);color:#f0d9ae;text-shadow:0 -1px 0 rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.12);text-transform:none;letter-spacing:.01em}
+.b{font:800 16px var(--f-d);min-height:48px;padding:10px 18px;transition:filter .15s,transform .08s}
+.b.sm{font-size:14px;min-height:40px;padding:8px 13px}
+.b.play,.b.gold{background:radial-gradient(circle at 8px 8px,#5a3a10 1.6px,transparent 2.6px),radial-gradient(circle at calc(100% - 8px) 8px,#5a3a10 1.6px,transparent 2.6px),radial-gradient(circle at 8px calc(100% - 8px),#5a3a10 1.6px,transparent 2.6px),radial-gradient(circle at calc(100% - 8px) calc(100% - 8px),#5a3a10 1.6px,transparent 2.6px),linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+.b.grn{background:repeating-linear-gradient(90deg,transparent 0 5px,rgba(0,0,0,.2) 5px 6px,transparent 6px 13px),linear-gradient(180deg,#5f8a4a,#3d5c30)}
+.b:active:not([disabled]){transform:translateY(1px);filter:brightness(.88);box-shadow:none}
+.b[disabled]{filter:grayscale(.6) brightness(.8);opacity:.6}
+.chip,.ib{clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}.chip.on,.fl.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.modal .box,.panel,.tile,.acc-in,.sel{border-radius:4px}
+.tile .ti{display:inline-grid;place-items:center}
+#plancia{position:fixed;left:0;right:0;bottom:0;z-index:80;display:none;grid-template-columns:repeat(5,1fr);height:calc(64px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box;background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.25) 6px 7px,transparent 7px 15px),#2a1b0f;border-top:3px solid #cf8f2c}
+.has-pl #plancia{display:grid}
+#plancia button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-right:1px solid rgba(0,0,0,.35);background:none;color:#d9bf92;font:700 11px var(--f-b);cursor:pointer;min-width:0}
+#plancia button:last-child{border-right:0}
+#plancia button.on{color:#f0c166;background:rgba(240,193,102,.1);box-shadow:inset 0 3px 0 #f0c166}
+.has-pl #app{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+.has-pl .tvnav{display:none}
+.has-pl #plancia{z-index:95}.has-pl .modal{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+.has-pl .modal .box{max-height:calc(100dvh - 110px - env(safe-area-inset-bottom,0px));overflow:auto}
+
+/* correzioni: il clip-path non deve tagliare il pallino della chat né nascondere il focus */
+.chatb .nb{top:2px;right:2px}
+.b:focus-visible,.chip:focus-visible,.ib:focus-visible{outline:none;box-shadow:inset 0 0 0 3px #ffe83d;filter:brightness(1.12)}
+.stoff{flex:1;font-size:13px;color:var(--mu,#b8a68d)}
+/* dock della Taverna */
+#dock{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:94;display:none}
+.has-dk #dock{display:block}
+#dock .cells3{display:grid;grid-template-columns:repeat(3,1fr);background:#1d1510;border-top:1px solid rgba(245,205,150,.2)}
+#dock .cells3 button{height:52px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-right:1px solid rgba(245,205,150,.16);background:none;color:#e6cfa3;font:700 13px var(--f-b);cursor:pointer}
+#dock .cells3 button:last-child{border-right:0}#dock .cells3 button[disabled]{opacity:.4;cursor:default}
+#dock .pri{display:flex;align-items:center;justify-content:space-between;width:100%;height:60px;padding:0 20px;border:0;background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08;font:800 21px var(--f-d);text-shadow:0 1px 0 rgba(255,255,255,.45);cursor:pointer}
+#dock .pri[disabled]{filter:grayscale(.6) brightness(.8);cursor:default}
+.has-dk #app{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))}
+.has-dk .tvnext{display:none}
+
+/* Avventura, Amici e Profilo: le finestre diventano pagine intere, con la plancia sempre visibile */
+.pg .modal{background:var(--bg,#15100d);inset:0 0 calc(64px + env(safe-area-inset-bottom,0px)) 0;padding:0;place-items:start stretch;overflow:auto;z-index:92}
+.pg .modal .box{max-width:none;width:100%;min-height:100%;max-height:none;overflow:visible;border:0;border-radius:0;box-shadow:none;background:transparent;box-sizing:border-box;padding:22px 16px 28px}
+.pg .modal .box>h2:first-child{font-size:28px;margin:0 0 4px}

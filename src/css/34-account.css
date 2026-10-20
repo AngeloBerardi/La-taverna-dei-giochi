@@ -18,3 +18,4 @@
 .cfg select.sel{min-width:0;width:100%}
 .top li:nth-child(1) span::after{content:' 🥇'}.top li:nth-child(2) span::after{content:' 🥈'}.top li:nth-child(3) span::after{content:' 🥉'}
 .cfg .cfgsel select.sel{font-size:14px;padding-left:8px;padding-right:4px}
+.gbtn{width:100%}.acc-or{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mu,#b8a68d)}.acc-or::before,.acc-or::after{content:'';flex:1;height:1px;background:currentColor;opacity:.3}

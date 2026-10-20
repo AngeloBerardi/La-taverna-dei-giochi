@@ -34,6 +34,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Schermo comune (TV/PC, `?tv=CODICE`), codice QR | `app/24f-schermo.js` (`TV`), `css/37-schermo.css`, generatore `motori/26-qr.js` (+ `tests/test_qr.js`, lettura vera con OpenCV) |
 | Eroi (creazione del personaggio, legati all'account) | motore `motori/27-eroi.js` (+ `tests/test_eroi.js`), vista `app/24g-eroi.js`, `css/38-eroi.css`, regole `eroi` in `firestore.rules` (generate: `npm run regole`) |
 | Campagne (mappa a esagoni, perdizione, prove) | motore `motori/28-campagna.js` (+ `tests/test_campagna.js`), anteprima `app/24h-campagna.js`, `css/39-campagna.css`, piano in `docs/CAMPAGNE.md` |
+| Stile unico (legno e ottone), barra in basso a 5 destinazioni, icone | `css/40-legno-ottone.css`, `app/24i-plancia.js` (`Plancia`), icone SVG `app/01b-icone.js` (`ic('nome')`; niente emoji nell'interfaccia) |
 | Nuovo gioco | comando `/nuovo-gioco` |
 
 Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `docs/STYLE.md`. Cartelle con regole proprie: vedi il `CLAUDE.md` dentro `src/css/`, `src/js/app/`, `src/js/motori/`, `tests/`, `tools/taverna3d/`.
