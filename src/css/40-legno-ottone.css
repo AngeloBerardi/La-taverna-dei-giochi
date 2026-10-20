@@ -102,3 +102,15 @@
 button.hm-st.off{border:0;cursor:pointer;min-height:32px;background:#5c3a1e;color:#f0d9ae;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
 @keyframes hmpr{50%{opacity:.45}}
 @media(prefers-reduced-motion:reduce){.hm-st.prova{animation:none}}
+/* Taverna: intestazione personale, scena notturna, «Gioca ora» e stanza */
+.hm-bar{display:flex;align-items:center;gap:10px}.hm-who{flex:1;min-width:0;display:flex;flex-direction:column}.hm-who b{font:800 16px var(--f-d);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hm-who small{font-size:12px;color:var(--mu,#b8a68d);display:flex;align-items:center;gap:4px}
+.hm-hero{position:relative;margin:14px calc(50% - 50vw) 0;width:100vw;height:190px;overflow:hidden;border-bottom:3px solid #cf8f2c}
+.hm-sc{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hm-hi{position:absolute;left:16px;right:16px;bottom:14px}.hm-hi small{display:block;font:700 15px var(--f-b);color:#f0d9ae}.hm-hi h1{margin:0;font:800 34px/1.05 var(--f-d);color:#fff3c4;text-shadow:0 2px 0 rgba(0,0,0,.5)}.hm-hi p{margin:6px 0 0;font-size:14px;color:#f3e3cf;text-shadow:0 1px 0 rgba(0,0,0,.6)}.hm-hi p b{color:#f0c166}
+.hm-win{animation:hmfl 3.2s ease-in-out infinite}.hm-stars{animation:hmtw 4s ease-in-out infinite}
+@keyframes hmfl{50%{opacity:.78}}@keyframes hmtw{50%{opacity:.5}}
+.hm-go{width:100%;margin-top:16px;min-height:60px;font-size:21px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.hm-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.hm-duo .b{min-height:52px}
+.hm-c small{display:block}.hm-c{min-height:104px}
+.rw3 .g small{display:block;font-size:12px;color:var(--mu,#b8a68d)}
+@media(prefers-reduced-motion:reduce){.hm-win,.hm-stars{animation:none}}
