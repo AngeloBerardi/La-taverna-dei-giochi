@@ -21,7 +21,7 @@ const Dist={
  righe:null,msg:'',busy:false,prev:null,visti:{},codice:'',
  ok(){return FB.st==='ok'&&!!FB.p},
  tocca(){return(Dist.righe||[]).filter(r=>r.tocca).length},
- cfgH(){return Dist.ok()?`<button class="b sm" data-a="dist">Partite a distanza 🌍${Dist.tocca()?' <b class="badge">'+Dist.tocca()+'</b>':''}</button>`:''},
+ cfgH(){return Dist.ok()?`<button class="b sm tile" data-a="dist"><span class="ti">🌍</span>A distanza${Dist.tocca()?' <b class="badge">'+Dist.tocca()+'</b>':''}</button>`:''},
  nomeGioco(id){const g=GAMES.find(x=>x.id===id);return g?g.name:id},
  invito(c){return location.origin+location.pathname+'?dist='+c},
  html(){const fs=R.mode==='fs'&&R.code;

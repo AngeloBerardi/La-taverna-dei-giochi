@@ -77,6 +77,9 @@ const EROI=(()=>{
   if(h.razza==='piccolo'&&t===1)t=d();
   const c=CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0,tot=t+mod(st[k])+c+(h.razza==='elfo'&&abilita==='percezione'?1:0);
   return{tiro:t,mod:mod(st[k]),comp:c,tot,cd,ok:t===20||(t!==1&&tot>=cd),critico:t===20,fallimento:t===1}}
+ // bonus totale di un'abilità e probabilità di superare una difficoltà (1 e 20 naturali compresi, senza il ritiro del piccolo)
+ function bonus(h,abilita){const st=punteggi(h.base,h.razza);return mod(st[ABILITA[abilita]])+(CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0)+(h.razza==='elfo'&&abilita==='percezione'?1:0)}
+ function probabilita(h,abilita,cd){const b=bonus(h,abilita);let n=0;for(let t=1;t<=20;t++)if(t===20||(t!==1&&t+b>=cd))n++;return n/20}
  const BASE_ID=k=>NOME_STAT[k];
- return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,OGGETTI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,BASE_ID}})();
+ return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,OGGETTI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,bonus,probabilita,BASE_ID}})();
 if(typeof module!=='undefined')module.exports=EROI;

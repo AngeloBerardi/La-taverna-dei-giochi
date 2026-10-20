@@ -3,7 +3,7 @@ const Shop={
  // allinea la scelta locale (rg-dorso) con quella salvata nel profilo; ignora oggetti non posseduti
  sync(){const p=FB.p;if(!p)return;const eq=(p.equipped||{}).dorso||'';
   const id=eq&&BOTTEGA.usabile(eq,p.owned)?eq:'';dorsoSel=id==='dorso-classico'?'':id;ST('rg-dorso',dorsoSel);applyTheme()},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm" data-a="shop">Bottega 🛍️</button>':''},
+ cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="shop"><span class="ti">🛍️</span>Bottega</button>':''},
  html(){const p=FB.p,ok=FB.st==='ok'&&p,cur=ok?((p.equipped||{}).dorso||BOTTEGA.SLOT.dorso.base):'';
   const lista=[{id:BOTTEGA.SLOT.dorso.base,nome:'Classico',prezzo:0,desc:'Il dorso di sempre.'},...BOTTEGA.oggetti.filter(o=>o.slot==='dorso')];
   const voce=o=>{const su=BOTTEGA.suffisso(o.id),mio=BOTTEGA.usabile(o.id,ok&&p.owned);

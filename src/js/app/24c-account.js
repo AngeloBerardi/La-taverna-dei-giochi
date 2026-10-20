@@ -4,7 +4,7 @@ const Acc={
  ERR:{'auth/email-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/weak-password':'Password troppo corta (almeno 6 caratteri).','auth/invalid-email':'Email non valida.',
   'auth/invalid-credential':'Email o password errate.','auth/wrong-password':'Email o password errate.','auth/user-not-found':'Email o password errate.','auth/operation-not-allowed':'Accesso con email non attivo nella console Firebase.',
   'auth/network-request-failed':'Nessuna connessione.','auth/credential-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/too-many-requests':'Troppi tentativi, riprova tra poco.'},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm" data-a="acc">Account 👤</button><button class="b sm" data-a="top">Classifica 🏆</button>':''},
+ cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="acc"><span class="ti">👤</span>Account</button><button class="b sm tile" data-a="top"><span class="ti">🏆</span>Classifica</button>':''},
  chiavi(){return[{k:'wins',n:'Vittorie',c:'wins'},{k:'played',n:'Partite',c:'played'},{k:'coins',n:'Monete',c:'coins'},
   ...GAMES.filter(g=>ELO.competitivo(g.id)&&g.id!=='mindx').map(g=>({k:'elo.'+g.id,n:'ELO '+g.name,c:'elo.'+g.id}))]},
  val(r,k){return k.startsWith('elo.')?(r.elo||{})[k.slice(4)]:r[k]},

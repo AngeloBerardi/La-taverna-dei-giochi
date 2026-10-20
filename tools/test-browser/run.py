@@ -499,11 +499,11 @@ async def sc_campagna(b, srv):
 async def sc_eroi(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(500)
-    check(len(await pg.query_selector_all('[data-a=eroinuovo]')) == 5, 'cinque posti liberi')
+    check('5 posti liberi' in await pg.inner_text('.ecard.nuovo'), 'cinque posti liberi')
     await pg.click('[data-a=eroinuovo][data-v=e1]')
     await pg.click('[data-a=eroiavanti]'); check('Scegli un nome' in await pg.inner_text('.acc-msg'), 'senza nome non si prosegue')
-    await pg.fill('#eroe-nome', 'Brunilde'); await pg.click('[data-a=eroiasp][data-v="capelli:1"]'); await pg.click('[data-a=eroiasp][data-v="viso:-1"]')
-    check(await pg.evaluate('Eroi.bozza.aspetto') == {'pelle': 0, 'capelli': 1, 'mantello': 0, 'viso': 0}, 'aspetto scelto (viso 1 -> 0)')
+    await pg.fill('#eroe-nome', 'Brunilde'); await pg.click('[data-a=eroicol][data-v="capelli:1"]'); await pg.click('[data-a=eroicol][data-v="viso:0"]')
+    check(await pg.evaluate('Eroi.bozza.aspetto') == {'pelle': 0, 'capelli': 1, 'mantello': 0, 'viso': 0}, 'aspetto scelto (capelli 1, viso 0)')
     check(await pg.query_selector('.eritr svg.rit') is not None, 'ritratto disegnato')
     await pg.click('[data-a=eroiavanti]'); await pg.click('[data-a=eroirazza][data-v=nano]'); await pg.click('[data-a=eroiavanti]')
     await pg.click('[data-a=eroiclasse][data-v=guerriero]'); await pg.click('[data-a=eroiavanti]')
@@ -525,7 +525,7 @@ async def sc_eroi(b, srv):
     check(st and st['nome'] == 'Brunilde' and st['razza'] == 'nano' and st['classe'] == 'guerriero' and st['liv'] == 1 and st['xp'] == 0 and st['oro'] == 20, f'salvato nel profilo {st and st["nome"]}')
     check(await pg.evaluate('EROI.coerente(window.__db["' + k + '"])'), 'l\'eroe salvato è coerente')
     check('brunilde' in (await pg.inner_text('.escheda')).lower(), 'si apre la scheda')
-    await pg.click('[data-a=eroiindietro]'); check('brunilde' in (await pg.inner_text('.ecard')).lower() and len(await pg.query_selector_all('[data-a=eroinuovo]')) == 4, 'nell\'elenco, quattro posti liberi')
+    await pg.click('[data-a=eroiindietro]'); check('brunilde' in (await pg.inner_text('.ecard')).lower() and '4 posti liberi' in await pg.inner_text('.ecard.nuovo'), 'nell\'elenco, quattro posti liberi')
     # difese delle regole (simulate nello stub): punteggi truccati, sesto posto, modifica di razza, lettura degli eroi di altri
     async def prova(js): return await pg.evaluate("(async()=>{try{" + js + ";return 'ok'}catch(e){return e.code||e.message}})()")
     base_ok = "const h=EROI.nuovo({nome:'X',razza:'umano',classe:'mago',base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});"
@@ -542,12 +542,12 @@ async def sc_eroi(b, srv):
     await pg.evaluate("(()=>{const k='players/u-1/eroi/e2';window.__db[k].hpMax=150;window.__db[k].hp=150;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
     await pg.reload(); await pg.wait_for_timeout(3500)
     await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
-    check(len(await pg.query_selector_all('.ecard:not(.vuoto)')) == 1 and 'brunilde' in (await pg.inner_text('.ecard')).lower(), 'dopo il ricarico: c\'è Brunilde, la scheda manomessa è nascosta')
+    check(len(await pg.query_selector_all('.ecard:not(.nuovo)')) == 1 and 'brunilde' in (await pg.inner_text('.ecard')).lower(), 'dopo il ricarico: c\'è Brunilde, la scheda manomessa è nascosta')
     await pg.click('[data-a=eroischeda][data-v=e1]'); await pg.wait_for_timeout(200)
     check('liv' in (await pg.inner_text('.modal')).lower() or 'livello 2' in await pg.inner_text('.modal'), 'scheda dopo il ricarico')
     pg.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
     await pg.click('[data-a=eroielimina]'); await pg.wait_for_timeout(600)
-    check(await pg.evaluate("window.__db['players/u-1/eroi/e1']") is None and len(await pg.query_selector_all('[data-a=eroinuovo]')) == 5, 'eliminato: il posto torna libero')
+    check(await pg.evaluate("window.__db['players/u-1/eroi/e1']") is None and '5 posti liberi' in await pg.inner_text('.ecard.nuovo'), 'eliminato: il posto torna libero')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
@@ -572,4 +572,4 @@ async def main():
             await b.close()
     finally: srv.stop()
     print('RISULTATO:', 'TUTTO OK' if all(RESULTS) else 'CI SONO ERRORI', f'({sum(RESULTS)}/{len(RESULTS)})'); sys.exit(0 if all(RESULTS) else 1)
-asyncio.run(main())
+if __name__ == '__main__': asyncio.run(main())
