@@ -11,7 +11,6 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
  case'start':return startGame(v);
  case'join':{R.jt=(R.jt||0)+1;const c=(($('#plc')||$('#jc'))?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
-  ui.joinm=false;
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
    await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
@@ -31,6 +30,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'tvcat':ui.cat=v;return render();
  case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
  case'tvpick':ui.pick=v;return render();
+ case'pickx':ui.pick=null;return render();
  case'newroom':if(!R.on)return;R.jt=(R.jt||0)+1;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);setRoomUrl(c);say('Stanza privata '+c+': condividi il codice')}catch(x){ui.err=netErr(x);render()}return;
  case'copy':{const url=location.origin+location.pathname+(isGen()?(R.mode==='p2p'&&P2P.tr==='mq'?'?b='+MQ.bi:''):(R.mode==='fs'?'?dist=':'?room=')+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')),txt=isGen()?'Vieni a giocare alla Taverna dei Giochi!':'Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
  case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;

@@ -204,7 +204,7 @@ async def sc_account_email(b, srv):
     await pg.reload(); await pg.wait_for_timeout(3500)
     await pg.evaluate("(()=>{ui.cfg=true;render()})()")
     check('Profilo anonimo' in await pg.inner_text('.modal'), 'impostazioni: profilo anonimo')
-    await pg.click('[data-a=acc]'); await pg.wait_for_timeout(200)
+    await pg.click('.modal [data-a=acc]'); await pg.wait_for_timeout(200)
     # password corta e email già usata danno messaggi chiari
     await pg.fill('#acc-mail', 'a@b.it'); await pg.fill('#acc-pw', '123'); await pg.click('[data-a=acclink]'); await pg.wait_for_timeout(500)
     check('almeno 6' in await pg.inner_text('.acc-msg'), 'password corta rifiutata con messaggio')
@@ -256,13 +256,20 @@ async def sc_account_google(b, srv):
 async def sc_taverna_dock(b, srv):
     ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await page(ctx, srv.url)
     check(await pg.query_selector('#plancia') is not None and len(await pg.query_selector_all('#plancia button')) == 5, 'plancia a 5 destinazioni')
-    check('Gioca ora' in await pg.inner_text('#dock'), 'dock con «Gioca ora»')
-    await pg.click('#dock [data-v=codice]'); await pg.wait_for_timeout(200)
-    check(await pg.query_selector('#plc') is not None and not await pg.is_visible('#dock'), 'Codice apre il modale e nasconde il dock')
-    await pg.click('[data-a=pl][data-v=taverna]'); await pg.wait_for_timeout(200)
-    await pg.click('#dock .pri'); await pg.wait_for_timeout(200)
-    check(await pg.evaluate("ui.tab") == 'games' and await pg.evaluate("document.querySelector('#plancia .on').getAttribute('aria-label')") == 'Giochi', '«Gioca ora» porta ai giochi')
-    # il pallino della chat non è tagliato: sta dentro il pulsante
+    # la Taverna è la lobby personale: niente dock, niente «Gioca ora»
+    check(await pg.query_selector('.hm') is not None or 'Gioca da solo' in await pg.inner_text('body'), 'Home personale')
+    check(not await pg.is_visible('#dock'), 'nessun dock nella Home')
+    await pg.click('.hm-c[data-a=acc]'); await pg.wait_for_timeout(250)
+    check(await pg.query_selector('.modal [data-a=acclink]') is not None, 'Sfida senza account: appare il popup di accesso')
+    await pg.click('[data-a=pl][data-v=taverna]'); await pg.wait_for_timeout(250)
+    check(await pg.query_selector('.gl-feat') is None and await pg.query_selector('.hm-note') is None, 'niente note a margine né Gioca in evidenza')
+    await pg.click('[data-a=pl][data-v=giochi]'); await pg.wait_for_timeout(250)
+    check(await pg.query_selector('.gl-grid') is not None, 'catalogo giochi a griglia')
+    check(await pg.evaluate("document.documentElement.scrollWidth") <= 390, 'catalogo senza scroll orizzontale')
+    await pg.click('[data-a=pl][data-v=amici]'); await pg.wait_for_timeout(250)
+    check(await pg.query_selector('#gname') is not None, 'Amici: tavolo, ospiti e distanza nella stessa pagina')
+    check(await pg.evaluate("document.documentElement.scrollWidth") <= 390, 'amici senza scroll orizzontale')
+    await pg.click('[data-a=pl][data-v=taverna]'); await pg.wait_for_timeout(250)
     await pg.evaluate("(()=>{ui.unread=3;ui.screen='game';render()})()")
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
@@ -370,7 +377,7 @@ async def sc_distanza_due_telefoni(b, srv):
     ctxA, A = await telefono(b, srv, sh, 'Ada', 1)
     A.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
     check(await A.evaluate('Dist.ok()'), 'A: profilo online pronto')
-    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('[data-a=dist]'); await A.wait_for_timeout(300)
+    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('.modal [data-a=dist]'); await A.wait_for_timeout(300)
     await A.click('[data-a=distnew]'); await A.wait_for_function("R.mode==='fs'&&R.code&&R.members.length>0", timeout=30000)
     code = await A.evaluate('R.code')
     check(await A.evaluate('R.mode') == 'fs' and len(code) == 8 and await A.evaluate('ME.dev') == 'u:u-1', f'A: nuova partita {code} in modalità a distanza')
@@ -407,7 +414,7 @@ async def sc_distanza_due_telefoni(b, srv):
     # il giorno dopo: B chiude tutto, riapre l'app, ritrova la partita nell'elenco e rientra
     await B.close(); B = await ctxB.new_page(); B.errs = []; B.on('pageerror', lambda e: B.errs.append(str(e))); await B.goto(srv.url); await B.wait_for_timeout(5000)
     check(await B.evaluate('R.mode') != 'fs', 'B: riaperta l\'app, non è dentro alcuna partita a distanza')
-    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('[data-a=dist]'); await B.wait_for_timeout(1500)
+    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('.modal [data-a=dist]'); await B.wait_for_timeout(1500)
     check(await B.eval_on_selector_all('.drow small', 'e=>e.map(x=>x.textContent)') != [] and code in await B.inner_text('.modal'), 'B: la partita è nell\'elenco')
     await B.click(f'[data-a=distgo][data-v="{code}"]'); await B.wait_for_function("R.mode==='fs'&&G", timeout=30000)
     check(await B.evaluate('[R.mode,ui.screen,G&&G.g]') == ['fs', 'game', 'uno'], 'B: rientra e ritrova la partita in corso')
@@ -415,7 +422,7 @@ async def sc_distanza_due_telefoni(b, srv):
     await B.evaluate("Dist.esci()"); await B.wait_for_timeout(500)
     check(await B.evaluate('[R.mode!=="fs",ME.dev.startsWith("u:")]') == [True, False], 'B: uscito, identificativo del telefono ripristinato')
     # solo chi l'ha creata può eliminarla; gli altri vengono riportati fuori
-    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('[data-a=dist]'); await B.wait_for_timeout(500)
+    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('.modal [data-a=dist]'); await B.wait_for_timeout(500)
     check(await B.query_selector('[data-a=distdel]') is None, 'B non vede il cestino')
     await B.click(f'[data-a=distgo][data-v="{code}"]'); await B.wait_for_function("R.mode==='fs'", timeout=30000); await B.wait_for_timeout(800)
     await A.evaluate("(()=>{ui.cfg=true;render()})()") if await A.evaluate('!ui.dist') else None
@@ -448,13 +455,13 @@ def leggi_qr(png):
 async def sc_schermo_comune(b, srv):
     sh = Shared()
     ctxA, A = await telefono(b, srv, sh, 'Ada', 1)
-    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('[data-a=dist]'); await A.click('[data-a=distnew]')
+    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('.modal [data-a=dist]'); await A.click('[data-a=distnew]')
     await A.wait_for_function("R.mode==='fs'&&R.code&&R.members.length>0", timeout=30000)
     code = await A.evaluate('R.code')
     ctxB, B = await telefono(b, srv, sh, 'Bruno', 2, '?dist=' + code)
     await B.wait_for_function("R.mode==='fs'&&R.members.length>0", timeout=30000)
     # il telefono propone il link dello schermo comune, con un QR leggibile
-    await A.evaluate("(()=>{ui.cfg=true;ui.dist=false;render()})()"); await A.click('[data-a=tvm]'); await A.wait_for_timeout(300)
+    await A.evaluate("(()=>{ui.cfg=true;ui.dist=false;render()})()"); await A.click('.modal [data-a=tvm]'); await A.wait_for_timeout(300)
     link = await A.evaluate('TV.linkSchermo()')
     check(link.endswith('?tv=' + code), f'link schermo {link}')
     check(leggi_qr(await (await A.query_selector('.tvm-qr svg')).screenshot()) == link, 'il QR del telefono contiene il link dello schermo')
