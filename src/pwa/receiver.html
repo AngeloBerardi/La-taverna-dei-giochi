@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La Taverna dei Giochi · Schermo</title>
+<!-- Ricevitore Google Cast: è la pagina che il Chromecast apre. Il telefono manda il codice della stanza con un messaggio e
+     qui si mostra lo schermo comune (?tv=CODICE) a tutto schermo. Registrazione e prova: docs/CAST.md -->
+<style>
+html,body{margin:0;height:100%;background:#0d1a1c;color:#f3e3cf;font:700 3.2vh/1.3 system-ui,sans-serif}
+#att{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;text-align:center}
+#att h1{margin:0;font-size:6vh;color:#f0c166}#att p{margin:0;font-size:3vh;color:#b8a68d}
+#f{position:fixed;inset:0;width:100%;height:100%;border:0;background:#0d1a1c}
+[hidden]{display:none!important}
+</style>
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+<div id="att"><h1>La Taverna dei Giochi</h1><p id="msg">In attesa del telefono…</p></div>
+<iframe id="f" title="Schermo comune" hidden allow="autoplay; fullscreen"></iframe>
+<script>
+(function () {
+  var NS = 'urn:x-cast:app.web.latavernadeigiochi';
+  var f = document.getElementById('f'), att = document.getElementById('att'), msg = document.getElementById('msg'), corrente = '';
+  // il codice arriva dal telefono: 3-8 lettere o cifre, più l'indice del broker (&b=) per le stanze p2p
+  function apri(d) {
+    var code = String((d && d.code) || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length < 3 || code.length > 8) { msg.textContent = 'Codice non valido: riprova dal telefono.'; return; }
+    var q = '/?tv=' + code + (d.b !== undefined && d.b !== null && /^\d{1,2}$/.test(String(d.b)) ? '&b=' + d.b : '');
+    if (q === corrente) return;
+    corrente = q; f.src = q; f.hidden = false; att.hidden = true;
+  }
+  try {
+    var ctx = cast.framework.CastReceiverContext.getInstance();
+    ctx.addCustomMessageListener(NS, function (e) { apri(e.data); });
+    // lo schermo resta acceso finché il telefono non smette di trasmettere
+    var opt = new cast.framework.CastReceiverOptions();
+    opt.disableIdleTimeout = true;
+    opt.customNamespaces = {};
+    opt.customNamespaces[NS] = cast.framework.system.MessageType.JSON;
+    ctx.start(opt);
+  } catch (e) { msg.textContent = 'Ricevitore Cast non disponibile.'; }
+  // senza Cast (prova da browser): /receiver.html?tv=CODICE[&b=N]
+  try { var p = new URLSearchParams(location.search); if (p.get('tv')) apri({ code: p.get('tv'), b: p.get('b') }); } catch (e) {}
+})();
+</script>
+</body>
+</html>

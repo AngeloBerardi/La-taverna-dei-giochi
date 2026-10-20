@@ -525,6 +525,36 @@ async def sc_schermo_condividi(b, srv):
     check(len(inviato) == 1 and '?tv=ABCD' in inviato[0]['url'], f'condivide il link dello schermo {inviato}')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_schermo_cast(b, srv):
+    # Chromecast: il telefono carica l'SDK Cast, avvia la sessione e manda il codice; il ricevitore apre lo schermo comune
+    sdk = ("window.__msg=[];window.cast={framework:{AutoJoinPolicy:{},CastContext:{getInstance:()=>{const c={sess:null,"
+           "setOptions(o){window.__opt=o},requestSession:async()=>{c.sess={sendMessage:async(ns,m)=>{window.__msg.push([ns,m])}};return null},"
+           "getCurrentSession:()=>c.sess,endCurrentSession(){c.sess=null}};window.__cx=window.__cx||c;return window.__cx}}}};"
+           "window.chrome={cast:{AutoJoinPolicy:{ORIGIN_SCOPED:'origin_scoped'}}};setTimeout(()=>window.__onGCastApiAvailable&&window.__onGCastApiAvailable(true),10);")
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-castid','ABC12345');")
+    await ctx.route('https://www.gstatic.com/cv/js/sender/v1/cast_sender.js*', lambda r: r.fulfill(content_type='text/javascript', body=sdk))
+    pg = await page(ctx, srv.url, 2500)
+    await pg.evaluate("(()=>{R.on=true;R.code='ABCD';R.mode='p2p';ui.tvm=true;render()})()"); await pg.wait_for_timeout(300)
+    # il pulsante dipende da https e Chrome: in prova lo si forza
+    visibile = await pg.evaluate("TV.castId()")
+    check(visibile == 'ABC12345', f'ID Cast letto dal telefono {visibile}')
+    await pg.evaluate("(()=>{TV.puoiCast=()=>true;render()})()"); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('.modal [data-a=tvcast]') is not None, 'Schermo comune: pulsante «Trasmetti al Chromecast»')
+    await pg.click('.modal [data-a=tvcast]'); await pg.wait_for_timeout(600)
+    msg = await pg.evaluate("window.__msg"); opt = await pg.evaluate("window.__opt")
+    check(len(msg) == 1 and msg[0][0] == 'urn:x-cast:app.web.latavernadeigiochi' and msg[0][1]['code'] == 'ABCD', f'manda il codice al ricevitore {msg}')
+    check(opt and opt['receiverApplicationId'] == 'ABC12345', f'usa l\'ID dell\'app {opt}')
+    await pg.click('.modal [data-a=tvcastx]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("TV.inCast()") is False, 'la trasmissione si interrompe')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # ricevitore: riceve il codice e apre lo schermo comune a tutto schermo (da browser, senza Cast)
+    ctx = await new_context(b, srv.port); pg = await ctx.new_page()
+    await pg.goto(f'{srv.url.split("?")[0].rstrip("/")}/receiver.html?tv=abcd&b=2'); await pg.wait_for_timeout(500)
+    src = await pg.evaluate("document.getElementById('f').getAttribute('src')")
+    check(src == '/?tv=ABCD&b=2', f'il ricevitore apre lo schermo comune {src}')
+    await pg.goto(f'{srv.url.split("?")[0].rstrip("/")}/receiver.html?tv=%3Cx%3E'); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("document.getElementById('f').hidden") is True, 'codice non valido: il ricevitore non apre nulla'); await ctx.close()
+
 async def sc_campagna(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));ui.cfg=true;render()})()")
