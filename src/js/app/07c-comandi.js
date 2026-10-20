@@ -10,7 +10,8 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'rmmember':if(R.on){try{await R.db.doc('rooms/'+R.code+'/members/'+v).delete()}catch(x){ui.err=netErr(x)}}return render();
  case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
  case'start':return startGame(v);
- case'join':{R.jt=(R.jt||0)+1;const c=($('#jc')?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
+ case'join':{R.jt=(R.jt||0)+1;const c=(($('#plc')||$('#jc'))?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
+  ui.joinm=false;
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
    await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}

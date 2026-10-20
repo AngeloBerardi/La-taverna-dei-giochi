@@ -12,6 +12,7 @@ const ICONE={
  stretta:'<path d="M3 12l5-5 4 3 4-3 5 5-9 8z"/>',medaglia:'<circle cx="12" cy="9" r="6"/><path d="M8 14l-2 7 6-3 6 3-2-7"/>',
  play:'<path d="M7 4L19 12 7 20z" fill="currentColor"/>',casa:'<path d="M3 11l9-7 9 7v9H4z"/>',mappa:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>',
  amici:'<path d="M3 20c0-4 3-6 6-6s6 2 6 6M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M17 6a2.5 2.5 0 0 1 0 5M18 14c2 .5 3 2.5 3 6"/>',spada:'<path d="M5 19L17 7l2-4 2 0-1 3-4 2zM5 19l-2 2M8 16l2 2"/>',
+ plus:'<path d="M12 4v16M4 12h16"/>',chiave:'<path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/>',
  pugnale:'<path d="M5 19L15 9M13 7l4 4M15 9l4-4M3 21l2-2"/>',scintilla:'<path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>',croce:'<path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/>',freccia:'<path d="M4 20L20 4M10 4h10v10"/>',
  cuore:'<path d="M12 20L4 12a5 5 0 0 1 8-6 5 5 0 0 1 8 6z"/>',scudo:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',passi:'<path d="M8 4v6M6 12h4v5H6zM16 7v6M14 15h4v5h-4z"/>',
  sole:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',luna:'<path d="M20 14a8 8 0 1 1-9-10 6 6 0 0 0 9 10z"/>',bersaglio:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',pin:'<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12zM12 9v.01"/>',spunta:'<path d="M4 12l5 5L20 6"/>',
