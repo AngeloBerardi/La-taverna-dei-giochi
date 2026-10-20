@@ -7,4 +7,4 @@ Il simulatore **non** applica le regole di `firestore.rules` (solo l'intervallo 
 Per un nuovo scenario aggiungi una funzione `async def sc_nome(b, srv)` in `run.py`: usa `new_context(...)`, `page(...)` e `check(condizione, messaggio)`.
 
 ## Più telefoni
-`Shared` (in `run.py`) è un archivio Firestore condiviso tra più contesti del browser: ogni contesto è un telefono (uid scelto con `localStorage.__stubseq`). Lo stub imita anche le regole delle `partite` (entrare, scrivere, eliminare). La suite intera dura ~3,5 min: lanciala con `timeout` ampio o per scenari (`run.py distanza`). Nei test la lobby è il falò (`rg-lb=iso`): il 3D in software rallenta troppo.
+`Shared` (in `run.py`) è un archivio Firestore condiviso tra più contesti del browser: ogni contesto è un telefono (uid scelto con `localStorage.__stubseq`). Lo stub imita anche le regole delle `partite` (entrare, scrivere, eliminare). La suite intera dura ~2 min (4 scenari in parallelo, `PARALLELO=1` per uno alla volta; per scenari: `run.py distanza`). Nei test la lobby è il falò (`rg-lb=iso`): il 3D in software rallenta troppo.

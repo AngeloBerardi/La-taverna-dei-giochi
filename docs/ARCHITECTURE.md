@@ -52,6 +52,9 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 ## Partite a distanza
 `app/24e-distanza.js`: `FsDb` implementa l'interfaccia di `R.db` (doc/collection: get, set, delete, onSnapshot) sopra Firestore (`partite/{codice}`, sottoraccolte `membri` e `chat`), quindi stanza, lobby e partite funzionano senza modifiche. In modalità `R.mode==='fs'` l'identità è `ME.dev='u:<uid>'` (stesso tavolo da qualsiasi telefono) e `savePos` non scrive (quota). Lo stato viaggia come testo JSON nel campo `j` (Firestore vieta array dentro array); accanto ci sono i campi leggibili `uids`, `turno` (a chi tocca), `nomi`, `phase`, `game`, `finita`, `rev` (`DIST.meta` in `motori/25-distanza.js`). La scrittura della stanza è una transazione: gli uid non si perdono e una scrittura con `rev` più vecchio viene rifiutata (`conflitto`). Si entra con codice di 8 caratteri o link `?dist=CODICE`; chi entra aggiunge solo il proprio uid (regole). `Dist` (impostazioni → Partite a distanza): nuova, entra, «Le mie partite» con «Tocca a te», elimina (solo chi l'ha creata, con membri e chat), esci. L'elenco si aggiorna ogni 90 s e al ritorno in primo piano; quando tocca a te compare un avviso (notifica del sistema se concessa e l'app è in secondo piano). **Limite noto:** con l'app chiusa non arrivano notifiche, serve un server che le invii (vedi docs/FIREBASE-PIANO.md). Anche qui tutti i dati della partita (mani comprese) sono leggibili da chi ha il codice.
 
+## Schermo comune e QR
+`?tv=CODICE` (`app/24f-schermo.js`, `TV`): la pagina entra nella stanza **in sola visione** (`joinRoom(code,true)`: nessun membro, nessuna chat, nessuna scrittura), con `ui.tv`, senza schermata del nome e senza profilo online (tranne per le partite a distanza, codice di 8 caratteri). `subscribe` mostra la partita anche a chi non ha un posto (`local()` è vuoto, quindi le viste mostrano il tavolo senza mani); fuori partita c'è `TV.lobbyH`. `#tvpanel` (a sinistra): QR per sedersi (`?room=` o `?dist=`), codice, gioco, giocatori con ▶ sul turno. `adaptScreen` ingrandisce fino a 2,6×. Dal telefono: impostazioni → «Schermo comune 📺» (QR e link). `motori/26-qr.js` genera il QR (byte, correzione M, versioni 1–15) senza librerie; `tests/test_qr.js` lo fa leggere a OpenCV. Se la connessione cade o il tavolo sparisce la TV riprova da sola ogni 6 s.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -103,6 +106,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/34-account.css` | 1 |  |
 | `css/35-locandiere.css` | 1 |  |
 | `css/36-distanza.css` | 1 |  |
+| `css/37-schermo.css` | 2 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -131,6 +135,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/23-elo.js` | 2 | ELO |
 | `js/motori/24-locandiere.js` | 6 | LOC |
 | `js/motori/25-distanza.js` | 3 | DIST |
+| `js/motori/26-qr.js` | 6 | QR |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
@@ -141,7 +146,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07-nucleo.js` | 10 | G, ui, ME, R, ENG, GAMES, GN |
 | `js/app/07a-rete-stanza.js` | 7 | netInit, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter, p2pGeneral |
 | `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
-| `js/app/07c-comandi.js` | 6 |  |
+| `js/app/07c-comandi.js` | 7 |  |
 | `js/app/07d-regole.js` | 30 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | seen, hudH, rulesH, cfgH, storyH, nameH |
 | `js/app/07e-lobby-falo.js` | 25 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
@@ -179,6 +184,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24c-account.js` | 5 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 9 | FsDb, Dist |
+| `js/app/24f-schermo.js` | 5 | TV |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
