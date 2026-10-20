@@ -18,6 +18,12 @@ export const signInWithEmailAndPassword=async(au,email,password)=>{const db=JSON
   if(!db[email]||db[email].password!==password){const e=new Error('x');e.code='auth/invalid-credential';throw e}
   const u={uid:db[email].uid,isAnonymous:false,email};save(u);au.currentUser=u;return{user:u}};
 export const sendPasswordResetEmail=async(au,email)=>{window.__resetMail=email};
+export class GoogleAuthProvider{setCustomParameters(){}static credentialFromError(e){return e.credential||null}}
+const GEM='giulia@gmail.test',gdb=()=>JSON.parse(localStorage.getItem('__stubgoogle')||'{}');
+export const linkWithPopup=async(user,p)=>{if(window.__popupClosed){const e=new Error('x');e.code='auth/popup-closed-by-user';throw e}
+  const db=gdb();if(db[GEM]&&db[GEM]!==user.uid){const e=new Error('x');e.code='auth/credential-already-in-use';e.credential={google:GEM};throw e}
+  db[GEM]=user.uid;localStorage.setItem('__stubgoogle',JSON.stringify(db));Object.assign(user,{isAnonymous:false,email:GEM});save(user);return{user}};
+export const signInWithCredential=async(au,c)=>{const u={uid:gdb()[c.google],isAnonymous:false,email:c.google};save(u);au.currentUser=u;return{user:u}};
 export const signOut=async au=>{localStorage.removeItem('__stubuser');localStorage.setItem('__stubseq',String(+(localStorage.getItem('__stubseq')||'1')+1));au.currentUser=null};
 """
 FIRESTORE = r"""

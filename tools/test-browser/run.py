@@ -229,6 +229,30 @@ async def sc_account_email(b, srv):
     check('già un profilo' in await pg.inner_text('.acc-msg'), 'email già usata: messaggio')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_account_google(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    uid0 = await pg.evaluate('FB.uid')
+    await pg.evaluate("(()=>{window.__db['players/'+FB.uid].coins=55;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    await pg.evaluate("(()=>{ui.acc='acc';render()})()")
+    check(await pg.query_selector('[data-a=accgoogle]') is not None, 'pulsante Google presente')
+    await pg.click('[data-a=accgoogle]'); await pg.wait_for_timeout(600)
+    check(await pg.evaluate('FB.mail()') == 'giulia@gmail.test' and await pg.evaluate('FB.uid') == uid0, 'Google collega lo stesso profilo')
+    check(await pg.query_selector('[data-a=accgoogle]') is None, 'dopo il collegamento il pulsante sparisce')
+    # nessun dato di Google finisce nel profilo salvato
+    prof = await pg.evaluate("JSON.stringify(window.__db['players/'+FB.uid])")
+    check('gmail' not in prof and 'giulia' not in prof, 'nessuna email/nome di Google nel profilo salvato')
+    # esci, poi un nuovo telefono entra con lo stesso Google: ritrova il profilo
+    await pg.click('[data-a=accout]'); await pg.wait_for_timeout(800)
+    check(await pg.evaluate('FB.uid') != uid0, 'uscita: nuovo profilo anonimo')
+    await pg.click('[data-a=accgoogle]'); await pg.wait_for_timeout(900)
+    check(await pg.evaluate('[FB.uid,FB.p.coins]') == [uid0, 55], 'Google su profilo già legato: ritrovate le monete')
+    # finestra chiusa: messaggio chiaro
+    await pg.click('[data-a=accout]'); await pg.wait_for_timeout(800)
+    await pg.evaluate('window.__popupClosed=true'); await pg.click('[data-a=accgoogle]'); await pg.wait_for_timeout(400)
+    check('Finestra chiusa' in await pg.inner_text('.acc-msg'), 'finestra chiusa: messaggio')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 ELO_PARTITA = """async([gioco,seats,over])=>{await startGame(gioco,seats);await Q;
  const ns=JSON.parse(JSON.stringify(G));ns.over=over;pushState(ns);await Q;await new Promise(r=>setTimeout(r,900))}"""
 RIVALE = "localStorage.setItem('__stub',JSON.stringify({'players/u-2':{name:'Rivale',coins:5,played:3,wins:1,owned:{},equipped:{},elo:{uno:1200}}}));"

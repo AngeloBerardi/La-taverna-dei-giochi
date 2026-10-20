@@ -57,6 +57,11 @@ const FB={
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
  mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},
  async collega(email,pw){const Au=FB.m.Au;await Au.linkWithCredential(FB.auth.currentUser,Au.EmailAuthProvider.credential(email,pw))},
+ // Accesso con Google: serve solo a riconoscerti. Nessun dato di Google (nome, email, foto) viene copiato nel profilo o in Firestore.
+ async google(){const Au=FB.m.Au,p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{await Au.linkWithPopup(FB.auth.currentUser,p)}
+  catch(e){if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(!c)throw e;await Au.signInWithCredential(FB.auth,c);await FB.cambiaProfilo()}else throw e}
+  const u=FB.auth.currentUser;if(u&&u.reload)await u.reload()},
  async cambiaProfilo(){if(R.mode==='fs')await Dist.esci();Eroi.lista=null;FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
  async entra(email,pw){await FB.m.Au.signInWithEmailAndPassword(FB.auth,email,pw);await FB.cambiaProfilo()},
  async reset(email){await FB.m.Au.sendPasswordResetEmail(FB.auth,email)},
