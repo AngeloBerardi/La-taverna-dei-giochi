@@ -34,3 +34,8 @@
 #dock .pri[disabled]{filter:grayscale(.6) brightness(.8);cursor:default}
 .has-dk #app{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))}
 .has-dk .tvnext{display:none}
+
+/* Avventura, Amici e Profilo: le finestre diventano pagine intere, con la plancia sempre visibile */
+.pg .modal{background:var(--bg,#15100d);inset:0 0 calc(64px + env(safe-area-inset-bottom,0px)) 0;padding:0;place-items:start stretch;overflow:auto;z-index:92}
+.pg .modal .box{max-width:none;width:100%;min-height:100%;max-height:none;overflow:visible;border:0;border-radius:0;box-shadow:none;background:transparent;box-sizing:border-box;padding:22px 16px 28px}
+.pg .modal .box>h2:first-child{font-size:28px;margin:0 0 4px}
