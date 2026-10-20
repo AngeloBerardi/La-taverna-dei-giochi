@@ -4,9 +4,9 @@ const Oste={
  ctx(){const n=Math.max(1,lobbySeats().length),on=FB.st==='ok'&&FB.p,p=on?FB.p:{};
   return{nome:ME.name,n,ora:new Date().getHours(),giorno:Math.floor(Date.now()/864e5),monete:on?p.coins:null,partite:p.played||0,vittorie:p.wins||0,mail:!!(on&&FB.mail()),
    giochi:GAMES.map(g=>({id:g.id,name:g.name,desc:g.desc,range:g.range,ok:g.ok(n),coop:!ELO.competitivo(g.id)}))}},
- cfgH(){return'<button class="b sm" data-a="oste">Locandiere 🍺</button>'},
+ cfgH(){return'<button class="b sm tile" data-a="oste"><span class="ti">🍺</span>Locandiere</button>'},
  html(){const c=Oste.ctx();
-  return`<div class="modal"><div class="box col oste"><h2>Il locandiere</h2>
+  return`<div class="modal"><div class="box col oste"><div class="ohead"><svg class="oav" viewBox="0 0 100 100" width="56" height="56" role="img" aria-label="Il locandiere"><circle cx="50" cy="50" r="48" fill="#3a2d22" stroke="#d6aa3c" stroke-width="3"/><path d="M12 100 Q16 70 50 68 Q84 70 88 100Z" fill="#8a5a2b"/><path d="M36 70 L50 100 L64 70Z" fill="#e9dcc0"/><ellipse cx="50" cy="46" rx="21" ry="23" fill="#e0ac82"/><path d="M28 50 Q30 86 50 88 Q70 86 72 50 Q62 66 50 64 Q38 66 28 50Z" fill="#7a4a24"/><path d="M26 40 Q28 18 50 18 Q72 18 74 40 Q62 28 50 30 Q38 28 26 40Z" fill="#7a4a24"/><circle cx="42" cy="46" r="2.6" fill="#241a12"/><circle cx="58" cy="46" r="2.6" fill="#241a12"/><path d="M43 58 Q50 63 57 58" stroke="#5a2f22" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg><div><h2>Il locandiere</h2><small class="muted">Regole, consigli e come guadagnare monete</small></div></div>
 <div class="olog" id="oste-log" aria-live="polite">${Oste.log.map(m=>`<div class="om ${m.da}">${esc(m.t)}</div>`).join('')}${Oste.busy?'<div class="om oste">…</div>':''}</div>
 <div class="chips">${LOC.rapide(c).map(q=>`<button class="chip" data-a="osteq" data-v="${esc(q)}">${esc(q)}</button>`).join('')}</div>
 <div class="row"><input class="acc-in" id="oste-q" type="text" maxlength="200" placeholder="Chiedi al locandiere" autocomplete="off" value="${esc(Oste.q)}" style="flex:1"><button class="b sm gold" data-a="osteok" ${Oste.busy?'disabled':''}>Invia</button></div>

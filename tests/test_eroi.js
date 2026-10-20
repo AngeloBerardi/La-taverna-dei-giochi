@@ -88,4 +88,12 @@ for (const [v, c] of Object.entries(E.COSTO)) { const regola = Number(v) <= 13 ?
 assert(rules.includes("['e1', 'e2', 'e3', 'e4', 'e5']") && E.SLOT_ID.join() === 'e1,e2,e3,e4,e5', 'posti degli eroi');
 for (const [k, n] of Object.entries(E.ASPETTO)) assert(rules.includes(`a.${k} < ${n}`), 'limite aspetto ' + k);
 assert(rules.includes('d.liv <= ' + E.LIV_MAX), 'livello massimo');
+// bonus e probabilità coerenti con la prova vera
+{ const h = E.nuovo({ nome: 'P', razza: 'elfo', classe: 'ladro', aspetto: A, base: base({ des: 15, sag: 13 }) });
+  assert.strictEqual(E.bonus(h, 'furtivita'), E.mod(E.punteggi(h.base, h.razza).des) + E.comp(1));
+  assert.strictEqual(E.bonus(h, 'percezione'), E.mod(E.punteggi(h.base, h.razza).sag) + 1, 'elfo: +1 in percezione');
+  assert.strictEqual(E.probabilita(h, 'furtivita', 1), 0.95, 'solo l\'1 naturale fallisce');
+  assert.strictEqual(E.probabilita(h, 'furtivita', 99), 0.05, 'solo il 20 naturale riesce');
+  let ok = 0; const r = require('./carica.js').rng(3), N = 20000; for (let i = 0; i < N; i++) if (E.prova(h, 'furtivita', 14, r).ok) ok++;
+  assert(Math.abs(ok / N - E.probabilita(h, 'furtivita', 14)) < 0.02, 'la probabilità coincide con la simulazione'); }
 console.log('eroi regole ok');

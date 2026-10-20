@@ -1,34 +1,40 @@
 /* ---- Campagna (anteprima): mappa a esagoni, giorno e notte, perdizione, prove di abilità. Regole: motori/28-campagna.js ---- */
 const Camp={
  s:null,msg:'',seed:0,
- COL:{pianura:'#7a9a4a',strada:'#b79c6a',bosco:'#3e6b3a',collina:'#9a8a52',palude:'#566b52',montagna:'#6c6c78',acqua:'#2f5f8f'},
+ COL:{pianura:'#86a554',strada:'#c2a672',bosco:'#3f7a43',collina:'#a8955a',palude:'#5d7a62',montagna:'#7d7d8c',acqua:'#3a6ea5'},
+ GLI:{bosco:'🌲',collina:'⛰',palude:'〰',montagna:'🏔',acqua:'🌊'},
  ICO:{citta:'🏘',antro:'🕳',torre:'🗼',tesoro:'💰',campo:'⛺'},
- SZ:20,VISTA:4,
+ SZ:27,VISTA:3,
  xy(q,r){return[Camp.SZ*Math.sqrt(3)*(q+r/2),Camp.SZ*1.5*r]},
  hex(cx,cy,z){const p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);p.push((cx+z*Math.cos(a)).toFixed(1)+','+(cy+z*Math.sin(a)).toFixed(1))}return p.join(' ')},
- mappaH(s){const[px,py]=Camp.xy(s.party.q,s.party.r),W=Camp.SZ*Math.sqrt(3)*(Camp.VISTA*2+1),H=Camp.SZ*1.5*(Camp.VISTA*2+1)+Camp.SZ,vicini=new Set(CAMP.vicini(s.party.q,s.party.r).map(c=>c.q+','+c.r));
-  let g='';for(const c of CAMP.celleRaggio(Camp.VISTA)){const q=s.party.q+c.q,r=s.party.r+c.r,x=s.celle[q+','+r];if(!x)continue;const[cx,cy]=Camp.xy(q,r);
-   if(!x.visto){g+=`<polygon points="${Camp.hex(cx,cy,Camp.SZ-1)}" fill="#14110f"/>`;continue}
-   const adj=vicini.has(q+','+r)&&CAMP.passabile(x.t),aqui=q===s.party.q&&r===s.party.r;
-   g+=`<polygon points="${Camp.hex(cx,cy,Camp.SZ-1)}" fill="${Camp.COL[x.t]}" class="hx${adj?' adj':''}" ${adj?`data-a="campmuovi" data-v="${q},${r}"`:''}><title>${esc(CAMP.TERRENI[x.t].n)}</title></polygon>`;
-   if(x.poi)g+=`<text x="${cx}" y="${cy+6}" text-anchor="middle" font-size="16" pointer-events="none">${Camp.ICO[x.poi]}</text>`;
-   if(aqui)g+=`<circle cx="${cx}" cy="${cy}" r="9" fill="#f3d37a" stroke="#2a1a08" stroke-width="2" class="grp"/>`}
-  return`<svg class="cmap" viewBox="${px-W/2} ${py-H/2} ${W} ${H}" role="img" aria-label="Mappa della campagna">${g}</svg>`},
- eroiH(s){return`<div class="cero">${s.eroi.map(e=>`<div class="ce${e.hp<=0?' ko':''}"><b>${esc(e.nome)}</b><span>${e.hp}/${e.hpMax} PF · CA ${e.ca}</span></div>`).join('')}</div>`},
- incontroH(s){const i=s.incontro,m=i.multi;
-  const bottoni=s.eroi.map((e,n)=>e.hp<=0?'':`<div class="cprove"><b>${esc(e.nome)}</b>${i.ab.map(a=>`<button class="b sm" data-a="campris" data-v="${n}:${a}">${esc(a)} (${EROI.mod(EROI.punteggi(e.base,e.razza)[EROI.ABILITA[a]])>=0?'+':''}${EROI.mod(EROI.punteggi(e.base,e.razza)[EROI.ABILITA[a]])})</button>`).join('')}</div>`).join('');
-  return`<div class="cinc"><b>${esc(i.testo)}</b><small>Difficoltà ${i.cd}${m?` · prove ${m.fatte}/${m.prove}, ne servono ${m.serve} riuscite (${m.riuscite} fin qui)`:''}</small>${bottoni}${m?'':'<button class="b sm" data-a="campfuggi">Fuggi</button>'}</div>`},
+ mappaH(s){const[px,py]=Camp.xy(s.party.q,s.party.r),W=Camp.SZ*Math.sqrt(3)*(Camp.VISTA*2+1.2),H=Camp.SZ*1.5*(Camp.VISTA*2+1)+Camp.SZ*.6,vic=new Set(CAMP.vicini(s.party.q,s.party.r).map(c=>c.q+','+c.r));
+  let g='',top='';for(const c of CAMP.celleRaggio(Camp.VISTA)){const q=s.party.q+c.q,r=s.party.r+c.r,x=s.celle[q+','+r];if(!x)continue;const[cx,cy]=Camp.xy(q,r),Z=Camp.SZ-1.5;
+   if(!x.visto){g+=`<polygon points="${Camp.hex(cx,cy,Z)}" fill="#1c1814" stroke="#2c261f" stroke-width="1.5"/>`;continue}
+   const costo=CAMP.TERRENI[x.t].c,adj=vic.has(q+','+r)&&costo!=null,puoi=adj&&costo<=s.pm&&!s.incontro&&!s.over,aqui=q===s.party.q&&r===s.party.r;
+   g+=`<polygon points="${Camp.hex(cx,cy,Z)}" fill="${Camp.COL[x.t]}" stroke="${puoi?'#f3d37a':'rgba(0,0,0,.4)'}" stroke-width="${puoi?3:1.5}" class="hx${puoi?' adj':''}" ${puoi?`data-a="campmuovi" data-v="${q},${r}"`:''}><title>${esc(CAMP.TERRENI[x.t].n)}</title></polygon>`;
+   if(Camp.GLI[x.t]&&!x.poi)g+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="15" opacity=".5" pointer-events="none">${Camp.GLI[x.t]}</text>`;
+   if(x.poi)g+=`<text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="22" pointer-events="none">${Camp.ICO[x.poi]}</text>`;
+   if(adj&&!aqui)top+=`<text x="${cx+Z*.5}" y="${cy-Z*.45}" text-anchor="middle" font-size="11" font-weight="800" fill="${puoi?'#fff':'#ff9a8a'}" stroke="#000" stroke-width="2.4" paint-order="stroke" pointer-events="none">${costo}</text>`;
+   if(aqui)top+=`<circle cx="${cx}" cy="${cy}" r="11" fill="#f3d37a" stroke="#2a1a08" stroke-width="3" class="grp" pointer-events="none"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="900" fill="#2a1a08" pointer-events="none">${CAMP.vivi(s).length}</text>`}
+  return`<svg class="cmap" viewBox="${(px-W/2).toFixed(1)} ${(py-H/2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" role="img" aria-label="Mappa della campagna">${g}${top}</svg>`},
+ eroiH(s){return`<div class="cero">${s.eroi.map(e=>`<div class="ce${e.hp<=0?' ko':''}">${Eroi.ritratto(e.aspetto,e.razza,e.classe,34)}<span><b>${esc(e.nome)}</b><span class="ehp sm"><i style="width:${Math.round(e.hp/e.hpMax*100)}%"></i><span>${e.hp}/${e.hpMax}</span></span></span></div>`).join('')}</div>`},
+ ultimaH(s){const u=s.ultima;if(!u||s.incontro&&!s.incontro.multi)return'';const e=s.eroi[u.eroe];return`<div class="cdado ${u.ok?'ok':'ko'}"><span class="d20">${u.tiro}</span><span>${esc(e?e.nome:'')}: ${u.tiro}${u.tot-u.tiro>=0?' + ':' − '}${Math.abs(u.tot-u.tiro)} = <b>${u.tot}</b> contro ${u.cd} — <b>${u.ok?'riesce':'fallisce'}</b></span></div>`},
+ incontroH(s){const i=s.incontro,m=i.multi,NOMI={atletica:'Atletica',intimidire:'Intimidire',furtivita:'Furtività',acrobazia:'Acrobazia',arcano:'Arcano',storia:'Storia',medicina:'Medicina',percezione:'Percezione',sopravvivenza:'Sopravvivenza',persuasione:'Persuasione'};
+  const righe=s.eroi.map((e,n)=>e.hp<=0?'':`<div class="cprove"><span class="cn">${Eroi.ritratto(e.aspetto,e.razza,e.classe,28)}<b>${esc(e.nome)}</b></span><div>${i.ab.map(a=>{const p=Math.round(EROI.probabilita(e,a,i.cd)*100);return`<button class="b sm pr p${p>=65?'a':p>=35?'m':'b'}" data-a="campris" data-v="${n}:${a}"><span>${NOMI[a]||esc(a)}</span><small>${p}%</small></button>`}).join('')}</div></div>`).join('');
+  return`<div class="cinc"><b>${esc(i.testo)}</b><small>Difficoltà ${i.cd} · scegli chi prova e con quale abilità${m?` · ${m.fatte}/${m.prove} prove, ne servono ${m.serve} riuscite (${m.riuscite} fin qui)`:''}</small>${righe}${m?'':'<button class="b sm" data-a="campfuggi">Fuggi (−PF)</button>'}</div>`},
+ qui(s){const c=s.celle[s.party.q+','+s.party.r],t=CAMP.TERRENI[c.t];return(c.poi?CAMP.NOME_POI[c.poi]+' · ':'')+t.n},
  html(){const s=Camp.s;
   if(!s)return`<div class="modal"><div class="box col camp"><h2>Campagna</h2><p class="muted">Scegli i tuoi eroi dalla scheda «Eroi» e parti.</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`;
-  const cella=s.celle[s.party.q+','+s.party.r],puo=cella.poi==='citta'||cella.poi==='antro'||cella.poi==='torre';
+  const cella=s.celle[s.party.q+','+s.party.r],puo=cella.poi==='citta'||cella.poi==='antro'||cella.poi==='torre',pa=s.missione.passi[Math.min(s.missione.passo,2)];
   const fine=s.over?`<div class="cfine ${s.over.win?'win':'lose'}"><b>${s.over.win?'Vittoria!':'Sconfitta'}</b><span>${esc(s.over.reason)}</span><button class="b sm gold" data-a="campnuova">Nuova campagna</button></div>`:'';
-  return`<div class="modal"><div class="box col camp"><h2>${esc(s.missione.titolo)}</h2>
-<div class="chud"><span>${s.fase==='giorno'?'☀':'☾'} Giorno ${s.giorno}</span><span>👣 ${s.pm}</span><span>💰 ${s.oro}</span><span class="cdoom" title="Perdizione">☠ ${s.perdizione}</span></div>
+  const dir=pa==='citta'?'Parla con il sindaco in città 🏘':pa==='antro'?'Ripulisci l\'antro 🕳':'Abbatti la torre oscura 🗼';
+  return`<div class="modal"><div class="box col camp"><div class="chead"><h2>${esc(s.missione.titolo)}</h2><button class="b sm" data-a="campx" aria-label="Chiudi">✕</button></div>
+<div class="chud"><span>${s.fase==='giorno'?'☀':'☾'} Giorno ${s.giorno}</span><span title="Movimento">👣 ${s.pm}</span><span title="Monete">💰 ${s.oro}</span><span class="cdoom" title="Perdizione: a 100 la campagna è persa">☠ ${s.perdizione}/100</span></div>
 <div class="cbar"><i style="width:${s.perdizione}%"></i></div>
-<small class="muted">Missione: ${esc(s.missione.passi[Math.min(s.missione.passo,2)]==='citta'?'parla in città':s.missione.passi[Math.min(s.missione.passo,2)]==='antro'?'ripulisci l\'antro':'abbatti la torre')}</small>
-${Camp.mappaH(s)}${Camp.eroiH(s)}${fine}${!s.over&&s.incontro?Camp.incontroH(s):''}
-${!s.over&&!s.incontro?`<div class="row"><button class="b sm" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b sm" data-a="campriposa">Riposa</button></div>`:''}
-<div class="clog" role="log">${s.log.slice(-4).map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="acc-msg" role="status">${esc(Camp.msg)}</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`},
+<div class="cmis">🎯 ${dir}</div>
+${Camp.mappaH(s)}<div class="cqui">📍 ${esc(Camp.qui(s))}</div>${Camp.eroiH(s)}${fine}${!s.over&&s.incontro?Camp.incontroH(s):''}${Camp.ultimaH(s)}
+<div class="clog" role="log">${s.log.slice(-3).map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="acc-msg" role="status">${esc(Camp.msg)}</p>
+${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa ☾':'Alba ☀'}</button></div>`:''}</div></div>`},
  salva(){try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=j.s}catch(e){}},
  cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna ⚔️</button>':''},

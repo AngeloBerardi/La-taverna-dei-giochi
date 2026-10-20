@@ -3,3 +3,6 @@
 .om{max-width:88%;padding:7px 10px;border-radius:12px;font-size:14px;line-height:1.3;background:rgba(255,255,255,.07)}
 .om.oste{align-self:flex-start;border-bottom-left-radius:3px}
 .om.tu{align-self:flex-end;border-bottom-right-radius:3px;background:rgba(214,170,60,.22)}
+.ohead{display:flex;align-items:center;gap:10px}.ohead h2{margin:0}.oav{flex:none}
+.oste .chips{flex-wrap:wrap;overflow:visible}
+.om{position:relative}.om.oste{background:color-mix(in srgb,var(--gold2) 14%,transparent);border-left:3px solid var(--gold2)}

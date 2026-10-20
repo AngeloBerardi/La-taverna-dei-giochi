@@ -19,7 +19,7 @@ const TV={
    await joinRoom(c,true);ui.err=''}
   catch(e){ui.err=netErr?netErr(e):String(e);render();setTimeout(()=>TV.avvia(),6000)}},
  // sul telefono di un giocatore: finestra con il QR da inquadrare con la TV (o il link da aprire sul PC)
- cfgH(){return R.on&&R.code&&!ui.tv?'<button class="b sm" data-a="tvm">Schermo comune 📺</button>':''},
+ cfgH(){return R.on&&R.code&&!ui.tv?'<button class="b sm tile" data-a="tvm"><span class="ti">📺</span>Schermo comune</button>':''},
  modaleH(){const u=TV.linkSchermo();return`<div class="modal"><div class="box col"><h2>Schermo comune</h2>
 <p class="muted" style="margin:0">Apri questo link sulla TV o sul PC: mostra il tavolo in grande, tu giochi dal telefono.</p>
 <div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()"><div class="row"><button class="b sm gold" data-a="tvcopy">Copia link</button><button class="b sm" data-a="tvmx">Chiudi</button></div></div></div>`},
