@@ -22,7 +22,7 @@ function boardH(s,tg){const C=Object.assign({},CATAN,CATAN.geo(s));cGeo=C;let g=
  if(tg&&tg.k==='v')tg.l.forEach(v=>{const[x,y]=cV(v);g+=`<circle class="ctv" data-a="cvert" data-v="${v}" role="button" cx="${x}" cy="${y}" r="11"/>`});
  if(tg&&tg.k==='h')tg.l.forEach(i=>{g+=`<polygon class="cth2" data-a="chex" data-v="${i}" role="button" points="${C.HX[i].v.map(v=>cV(v).join(',')).join(' ')}"/>`});
  return`<svg class="cboard" viewBox="${cbx(s).join(' ')}" role="img" aria-label="Plancia">${g}</svg>`}
-function catanH(){const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
+function catanH(){if(ui.tv)return catanTVH();const s=G,C=CATAN,RES=C.RES,key=s.gid+':'+s.evn;
  if(multiLocal()&&ui.cmk!==key){ui.cmk=key;const w=s.phase==='discard'?Number(Object.keys(s.disc||{}).find(k=>isMine(+k))):s.cur;if(w!=null&&!Number.isNaN(w)&&isMine(w))ui.ms=w}
  if(ui.ck!==key){ui.ck=key;ui.cmode=null;ui.cdisc=null}
  const v=viewer(),ph=s.phase,me=v>=0&&v===s.cur&&myTurn()&&!s.over,mine=v>=0?s.res[v]:null;if(!me)ui.ctr=false;
