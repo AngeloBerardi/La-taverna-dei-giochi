@@ -2,4 +2,3 @@ dist/
 node_modules/
 *.png.tmp
 __pycache__/
-__pycache__/
