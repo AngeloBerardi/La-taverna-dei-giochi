@@ -1,0 +1,22 @@
+/* ---- Icone a tratto (SVG, currentColor): al posto delle emoji nell'interfaccia ---- */
+const ICONE={
+ chat:'<path d="M4 5h16v11H9l-5 4z"/>',nota:'<path d="M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3M19 16a3 3 0 1 1-3-3"/>',
+ ingr:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',x:'<path d="M5 5l14 14M19 5L5 19"/>',
+ star:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',fuoco:'<path d="M12 3c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-10z"/>',
+ dado:'<rect x="4" y="4" width="16" height="16"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
+ moneta:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',borsa:'<path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
+ utente:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>',coppa:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v2a3 3 0 0 0 4 3M16 6h4v2a3 3 0 0 1-4 3M12 13v4M8 20h8"/>',
+ boccale:'<path d="M5 6h10v13H5zM15 9h3a2 2 0 0 1 0 6h-3M5 6c0-2 3-3 5-2 2-1 5 0 5 2"/>',globo:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+ tv:'<rect x="3" y="5" width="18" height="12"/><path d="M8 21h8M12 17v4"/>',cestino:'<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>',
+ corona:'<path d="M3 18L5 7l5 5 2-7 2 7 5-5 2 11z"/>',teschio:'<path d="M12 3a8 8 0 0 0-8 8c0 3 1.6 5 4 6v3h8v-3c2.4-1 4-3 4-6a8 8 0 0 0-8-8zM9 12h.01M15 12h.01"/>',
+ stretta:'<path d="M3 12l5-5 4 3 4-3 5 5-9 8z"/>',medaglia:'<circle cx="12" cy="9" r="6"/><path d="M8 14l-2 7 6-3 6 3-2-7"/>',
+ play:'<path d="M7 4L19 12 7 20z" fill="currentColor"/>',casa:'<path d="M3 11l9-7 9 7v9H4z"/>',mappa:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>',
+ amici:'<path d="M3 20c0-4 3-6 6-6s6 2 6 6M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M17 6a2.5 2.5 0 0 1 0 5M18 14c2 .5 3 2.5 3 6"/>',spada:'<path d="M5 19L17 7l2-4 2 0-1 3-4 2zM5 19l-2 2M8 16l2 2"/>',
+ pugnale:'<path d="M5 19L15 9M13 7l4 4M15 9l4-4M3 21l2-2"/>',scintilla:'<path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>',croce:'<path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/>',freccia:'<path d="M4 20L20 4M10 4h10v10"/>',
+ cuore:'<path d="M12 20L4 12a5 5 0 0 1 8-6 5 5 0 0 1 8 6z"/>',scudo:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',passi:'<path d="M8 4v6M6 12h4v5H6zM16 7v6M14 15h4v5h-4z"/>',
+ sole:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',luna:'<path d="M20 14a8 8 0 1 1-9-10 6 6 0 0 0 9 10z"/>',bersaglio:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',pin:'<path d="M12 21s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12zM12 9v.01"/>',spunta:'<path d="M4 12l5 5L20 6"/>',
+ viso0:'<rect x="3" y="3" width="18" height="18"/><path d="M8 9v2M16 9v2M8 16h8"/>',viso1:'<rect x="3" y="3" width="18" height="18"/><path d="M8 9v2M16 9v2M8 15q4 4 8 0"/>',viso2:'<rect x="3" y="3" width="18" height="18"/><path d="M6 8l4 2M18 8l-4 2M8 17q4-3 8 0"/>',viso3:'<rect x="3" y="3" width="18" height="18"/><path d="M8 9v2M16 9v2"/><circle cx="12" cy="16" r="2"/>',
+ /* simboli della mappa */ g_bosco:'<path d="M12 3l6 9h-3l4 6H5l4-6H6z"/>',g_collina:'<path d="M3 19l9-12 9 12z"/>',g_palude:'<path d="M3 10q3-3 6 0t6 0 6 0M3 16q3-3 6 0t6 0 6 0"/>',g_montagna:'<path d="M2 20l7-13 4 7 3-4 6 10z"/>',g_acqua:'<path d="M3 9q3-3 6 0t6 0 6 0M3 15q3-3 6 0t6 0 6 0"/>',
+ p_citta:'<path d="M3 20V11l5-4 5 4v9zM13 20v-7l4-3 4 3v7z"/>',p_antro:'<path d="M3 20c0-8 4-13 9-13s9 5 9 13zM9 20v-5a3 3 0 0 1 6 0v5"/>',p_torre:'<path d="M8 21V9L6 4h12l-2 5v12zM11 14h2v3h-2z"/>',p_tesoro:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',p_campo:'<path d="M3 20L12 4l9 16zM12 20l-3-7h6z"/>'};
+const ic=(n,s=20)=>`<svg class="ico" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${ICONE[n]||''}</svg>`;
+const glifo=(n,cx,cy,sz,col,op)=>`<g transform="translate(${cx-sz/2} ${cy-sz/2}) scale(${sz/24})" fill="none" stroke="${col||'currentColor'}" stroke-width="2" stroke-linejoin="miter" opacity="${op||1}" pointer-events="none">${ICONE[n]||''}</g>`;

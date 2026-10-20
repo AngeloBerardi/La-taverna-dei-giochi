@@ -2,8 +2,8 @@
 const Camp={
  s:null,msg:'',seed:0,
  COL:{pianura:'#86a554',strada:'#c2a672',bosco:'#3f7a43',collina:'#a8955a',palude:'#5d7a62',montagna:'#7d7d8c',acqua:'#3a6ea5'},
- GLI:{bosco:'🌲',collina:'⛰',palude:'〰',montagna:'🏔',acqua:'🌊'},
- ICO:{citta:'🏘',antro:'🕳',torre:'🗼',tesoro:'💰',campo:'⛺'},
+ GLI:{bosco:'g_bosco',collina:'g_collina',palude:'g_palude',montagna:'g_montagna',acqua:'g_acqua'},
+ ICO:{citta:'p_citta',antro:'p_antro',torre:'p_torre',tesoro:'p_tesoro',campo:'p_campo'},
  SZ:27,VISTA:3,
  xy(q,r){return[Camp.SZ*Math.sqrt(3)*(q+r/2),Camp.SZ*1.5*r]},
  hex(cx,cy,z){const p=[];for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);p.push((cx+z*Math.cos(a)).toFixed(1)+','+(cy+z*Math.sin(a)).toFixed(1))}return p.join(' ')},
@@ -12,8 +12,8 @@ const Camp={
    if(!x.visto){g+=`<polygon points="${Camp.hex(cx,cy,Z)}" fill="#1c1814" stroke="#2c261f" stroke-width="1.5"/>`;continue}
    const costo=CAMP.TERRENI[x.t].c,adj=vic.has(q+','+r)&&costo!=null,puoi=adj&&costo<=s.pm&&!s.incontro&&!s.over,aqui=q===s.party.q&&r===s.party.r;
    g+=`<polygon points="${Camp.hex(cx,cy,Z)}" fill="${Camp.COL[x.t]}" stroke="${puoi?'#f3d37a':'rgba(0,0,0,.4)'}" stroke-width="${puoi?3:1.5}" class="hx${puoi?' adj':''}" ${puoi?`data-a="campmuovi" data-v="${q},${r}"`:''}><title>${esc(CAMP.TERRENI[x.t].n)}</title></polygon>`;
-   if(Camp.GLI[x.t]&&!x.poi)g+=`<text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="15" opacity=".5" pointer-events="none">${Camp.GLI[x.t]}</text>`;
-   if(x.poi)g+=`<text x="${cx}" y="${cy+8}" text-anchor="middle" font-size="22" pointer-events="none">${Camp.ICO[x.poi]}</text>`;
+   if(Camp.GLI[x.t]&&!x.poi)g+=glifo(Camp.GLI[x.t],cx,cy,16,'#000',.35);
+   if(x.poi)g+=glifo(Camp.ICO[x.poi],cx,cy,24,'#fff',1);
    if(adj&&!aqui)top+=`<text x="${cx+Z*.5}" y="${cy-Z*.45}" text-anchor="middle" font-size="11" font-weight="800" fill="${puoi?'#fff':'#ff9a8a'}" stroke="#000" stroke-width="2.4" paint-order="stroke" pointer-events="none">${costo}</text>`;
    if(aqui)top+=`<circle cx="${cx}" cy="${cy}" r="11" fill="#f3d37a" stroke="#2a1a08" stroke-width="3" class="grp" pointer-events="none"/><text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="900" fill="#2a1a08" pointer-events="none">${CAMP.vivi(s).length}</text>`}
   return`<svg class="cmap" viewBox="${(px-W/2).toFixed(1)} ${(py-H/2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" role="img" aria-label="Mappa della campagna">${g}${top}</svg>`},
@@ -27,17 +27,17 @@ const Camp={
   if(!s)return`<div class="modal"><div class="box col camp"><h2>Campagna</h2><p class="muted">Scegli i tuoi eroi dalla scheda «Eroi» e parti.</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`;
   const cella=s.celle[s.party.q+','+s.party.r],puo=cella.poi==='citta'||cella.poi==='antro'||cella.poi==='torre',pa=s.missione.passi[Math.min(s.missione.passo,2)];
   const fine=s.over?`<div class="cfine ${s.over.win?'win':'lose'}"><b>${s.over.win?'Vittoria!':'Sconfitta'}</b><span>${esc(s.over.reason)}</span><button class="b sm gold" data-a="campnuova">Nuova campagna</button></div>`:'';
-  const dir=pa==='citta'?'Parla con il sindaco in città 🏘':pa==='antro'?'Ripulisci l\'antro 🕳':'Abbatti la torre oscura 🗼';
-  return`<div class="modal"><div class="box col camp"><div class="chead"><h2>${esc(s.missione.titolo)}</h2><button class="b sm" data-a="campx" aria-label="Chiudi">✕</button></div>
-<div class="chud"><span>${s.fase==='giorno'?'☀':'☾'} Giorno ${s.giorno}</span><span title="Movimento">👣 ${s.pm}</span><span title="Monete">💰 ${s.oro}</span><span class="cdoom" title="Perdizione: a 100 la campagna è persa">☠ ${s.perdizione}/100</span></div>
+  const dir=pa==='citta'?'Parla con il sindaco in città':pa==='antro'?'Ripulisci l\'antro':'Abbatti la torre oscura';
+  return`<div class="modal"><div class="box col camp"><div class="chead"><h2>${esc(s.missione.titolo)}</h2><button class="b sm" data-a="campx" aria-label="Chiudi">${ic('x',18)}</button></div>
+<div class="chud"><span>${ic(s.fase==='giorno'?'sole':'luna',16)} Giorno ${s.giorno}</span><span title="Movimento">${ic('passi',16)} ${s.pm}</span><span title="Monete">${ic('moneta',16)} ${s.oro}</span><span class="cdoom" title="Perdizione: a 100 la campagna è persa">${ic('teschio',16)} ${s.perdizione}/100</span></div>
 <div class="cbar"><i style="width:${s.perdizione}%"></i></div>
-<div class="cmis">🎯 ${dir}</div>
-${Camp.mappaH(s)}<div class="cqui">📍 ${esc(Camp.qui(s))}</div>${Camp.eroiH(s)}${fine}${!s.over&&s.incontro?Camp.incontroH(s):''}${Camp.ultimaH(s)}
+<div class="cmis">${ic('bersaglio',16)} ${dir}</div>
+${Camp.mappaH(s)}<div class="cqui">${ic('pin',16)} ${esc(Camp.qui(s))}</div>${Camp.eroiH(s)}${fine}${!s.over&&s.incontro?Camp.incontroH(s):''}${Camp.ultimaH(s)}
 <div class="clog" role="log">${s.log.slice(-3).map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="acc-msg" role="status">${esc(Camp.msg)}</p>
-${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa ☾':'Alba ☀'}</button></div>`:''}</div></div>`},
+${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa '+ic('luna',16):'Alba '+ic('sole',16)}</button></div>`:''}</div></div>`},
  salva(){try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=j.s}catch(e){}},
- cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna ⚔️</button>':''},
+ cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna '+ic('spada',16)+'</button>':''},
  // gli eroi vengono sempre riletti dal profilo: la scheda in memoria potrebbe non essere ancora stata caricata
  async parti(){let L=Eroi.lista;try{L=await FB.eroi();Eroi.lista=L}catch(e){console.warn('Camp',e)}
   const eroi=EROI.SLOT_ID.map(id=>L&&L[id]&&EROI.coerente(L[id])?{...L[id],slot:id}:null).filter(Boolean).slice(0,3);

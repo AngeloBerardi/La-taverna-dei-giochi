@@ -43,7 +43,7 @@ const FB={
    tx.update(ref,u);return{...d,...u,lastAward:null}})},
  // svuota la coda dei premi in attesa, in ordine; al primo errore si ferma e riprova alla prossima occasione
  async flush(){if(FB.st!=='ok'&&FB.st!=='load'||!FB.p||FB.busy)return;FB.busy=true;
-  try{while(FB.q.length){const r=FB.q[0];await FB.award(r);FB.q.shift();FB.saveQ();say('+'+r.n+' 🪙 monete'+(FB.dElo?' · ELO '+(FB.dElo>0?'+':'')+FB.dElo:''),2600);if(ui.cfg)render();
+  try{while(FB.q.length){const r=FB.q[0];await FB.award(r);FB.q.shift();FB.saveQ();say('+'+r.n+' monete'+(FB.dElo?' · ELO '+(FB.dElo>0?'+':'')+FB.dElo:''),2600);if(ui.cfg)render();
     if(FB.q.length)await new Promise(ok=>setTimeout(ok,52000))}}
   catch(e){FB.err=String((e&&e.code)||e);console.warn('Firebase premio',e)}finally{FB.busy=false}},
  // dati per la classifica ELO, o null se la partita non vale (cooperativa, pareggio, ospiti, posti ripetuti)
@@ -72,7 +72,7 @@ const FB={
  matchEnd(ns){if(!ns.over||FB.last===ns.gid||!local().length)return;FB.last=ns.gid;
   const won=!!iWon(ns);FB.q.push({n:FB.PREMIO.gioca+(won?FB.PREMIO.vinci:0),won,gid:ns.gid,elo:FB.eloInfo(ns)});FB.saveQ();
   if(FB.st==='ok')FB.flush();else FB.start().then(()=>FB.flush())},
- cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">🪙 ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
+ cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">${ic('moneta',16)} ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
   if(FB.st==='err')return`<p class="muted" style="margin:0">Profilo online non attivo (${esc(FB.err)}).</p><button class="b sm" data-a="fbstart">Riprova</button>`;
   if(FB.st==='load')return'<p class="muted" style="margin:0">Connessione al profilo online…</p>';
   return'<button class="b sm gold" data-a="fbstart">Attiva profilo online</button>'}};

@@ -5,7 +5,7 @@ const Acc={
   'auth/invalid-credential':'Email o password errate.','auth/wrong-password':'Email o password errate.','auth/user-not-found':'Email o password errate.','auth/operation-not-allowed':'Accesso con email non attivo nella console Firebase.',
   'auth/network-request-failed':'Nessuna connessione.','auth/credential-already-in-use':'Questa email ha già un profilo: usa «Accedi».','auth/too-many-requests':'Troppi tentativi, riprova tra poco.',
   'auth/popup-closed-by-user':'Finestra chiusa: riprova quando vuoi.','auth/cancelled-popup-request':'Finestra chiusa: riprova quando vuoi.','auth/popup-blocked':'Il browser ha bloccato la finestra di Google: consentila e riprova.','auth/unauthorized-domain':'Questo indirizzo non è autorizzato in Firebase (Authentication › Impostazioni › Domini).'},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="acc"><span class="ti">👤</span>Account</button><button class="b sm tile" data-a="top"><span class="ti">🏆</span>Classifica</button>':''},
+ cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="acc"><span class="ti">'+ic('utente')+'</span>Account</button><button class="b sm tile" data-a="top"><span class="ti">'+ic('coppa')+'</span>Classifica</button>':''},
  chiavi(){return[{k:'wins',n:'Vittorie',c:'wins'},{k:'played',n:'Partite',c:'played'},{k:'coins',n:'Monete',c:'coins'},
   ...GAMES.filter(g=>ELO.competitivo(g.id)&&g.id!=='mindx').map(g=>({k:'elo.'+g.id,n:'ELO '+g.name,c:'elo.'+g.id}))]},
  val(r,k){return k.startsWith('elo.')?(r.elo||{})[k.slice(4)]:r[k]},

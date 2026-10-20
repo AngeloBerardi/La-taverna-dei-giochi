@@ -21,6 +21,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'chatsend':return chatSend();
  case'chatd':ui.cd=!ui.cd;ui.unread=0;render();{const lg=$('#chatlog');if(lg)lg.scrollTop=lg.scrollHeight}return;
  case'chatemo':ui.cm=v;await chatSend();return;
+ case'pl':return Plancia.act(v);
  case'tab':ui.tab=v;ui.err='';render();scrollTo(0,0);return;
  case'avedit':ui.avk=v||null;return render();
  case'avset':case'avrand':{const k=ui.avk;if(k==null)return;const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),cur=avOf({dev:ME.dev,k},i);let nv;

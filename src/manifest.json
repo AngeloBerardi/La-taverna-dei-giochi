@@ -39,6 +39,7 @@
  "src/css/37-schermo.css",
  "src/css/38-eroi.css",
  "src/css/39-campagna.css",
+ "src/css/40-legno-ottone.css",
  "src/css/90-lobby-3d.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -72,6 +73,7 @@
  "src/js/motori/28-campagna.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
+ "src/js/app/01b-icone.js",
  "src/js/app/02-narrazione.js",
  "src/js/app/03-audio.js",
  "src/js/app/04-carte-render.js",
@@ -121,6 +123,7 @@
  "src/js/app/24f-schermo.js",
  "src/js/app/24g-eroi.js",
  "src/js/app/24h-campagna.js",
+ "src/js/app/24i-plancia.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]
