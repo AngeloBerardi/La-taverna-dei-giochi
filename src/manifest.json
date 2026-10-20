@@ -62,6 +62,7 @@
  "src/js/motori/16-perudo.js",
  "src/js/motori/17-gattini.js",
  "src/js/motori/18-catan.js",
+  "src/js/motori/18b-catan-marinai.js",
  "src/js/motori/19-pets.js",
  "src/js/motori/20-uno.js",
  "src/js/motori/21-trono.js",
