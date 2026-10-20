@@ -20,7 +20,7 @@ function fanFit(){document.querySelectorAll('.fanrow').forEach(r=>{const k=[...r
 /* ADATTAMENTO ALLO SCHERMO: --k scala carte e pezzi in base allo spazio; i giochi non ancora migrati al layout fisso vengono rimpiccioliti (zoom) quanto basta per non scorrere, fino a un minimo leggibile */
 const FITMIN=.58;
 function adaptScreen(){const root=document.documentElement,app=document.getElementById('app');if(!app)return;
- const wide=innerWidth>=820||(innerWidth>innerHeight&&innerHeight<=520),k=Math.max(.7,Math.min(1.5,Math.min(innerHeight/760,innerWidth/(wide?700:390))));
+ const wide=innerWidth>=820||(innerWidth>innerHeight&&innerHeight<=520),k=Math.max(.7,Math.min(ui.tv?2.6:1.5,Math.min(innerHeight/760,innerWidth/(wide?700:390))));
  root.style.setProperty('--k',k.toFixed(3));root.classList.toggle('wide',wide);
  app.style.zoom='';
  if(ui.screen==='game'&&G&&!fxOn()){const ov=()=>root.scrollHeight-innerHeight;

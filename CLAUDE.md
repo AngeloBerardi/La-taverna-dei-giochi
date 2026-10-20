@@ -31,6 +31,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Account (email), classifica, ELO | `app/24c-account.js` (modale), `app/24a-firebase.js` (FB.collega/entra/top, ELO in `award`), regole del punteggio `motori/23-elo.js` (+ `tests/test_elo.js`); nuovo gioco ⇒ `npm run regole` |
 | Locandiere (NPC) | copioni `motori/24-locandiere.js` (+ `tests/test_locandiere.js`), finestra `app/24d-locandiere.js`, risposte con Claude `netlify/functions/locandiere.js` (serve `ANTHROPIC_API_KEY` su Netlify) |
 | Partite a distanza (a turni, anche a giorni) | `app/24e-distanza.js` (`FsDb` = `R.db` su Firestore, `Dist` = elenco/inviti), dati puri `motori/25-distanza.js` (+ `tests/test_distanza.js`), regole `partite` in `firestore.rules` |
+| Schermo comune (TV/PC, `?tv=CODICE`), codice QR | `app/24f-schermo.js` (`TV`), `css/37-schermo.css`, generatore `motori/26-qr.js` (+ `tests/test_qr.js`, lettura vera con OpenCV) |
 | Nuovo gioco | comando `/nuovo-gioco` |
 
 Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `docs/STYLE.md`. Cartelle con regole proprie: vedi il `CLAUDE.md` dentro `src/css/`, `src/js/app/`, `src/js/motori/`, `tests/`, `tools/taverna3d/`.

@@ -1,0 +1,18 @@
+/* Schermo comune (?tv=CODICE, app/24f-schermo.js): tavolo grande al centro, pannello con QR e giocatori a sinistra */
+html[data-tv]{--tvp:clamp(260px,24vw,460px)}
+html[data-tv] body{overflow-x:hidden}
+html[data-tv] #app{margin-left:var(--tvp);cursor:default;pointer-events:none}
+html[data-tv] #app button,html[data-tv] #app [data-a]{pointer-events:none}
+#tvpanel{color:#f3e6c4;position:fixed;left:0;top:0;bottom:0;width:var(--tvp);box-sizing:border-box;padding:2vh 1.2vw;display:flex;flex-direction:column;align-items:center;gap:1.2vh;background:rgba(10,7,4,.72);border-right:2px solid rgba(214,170,60,.35);overflow:hidden;z-index:30}
+.tvp-qr{width:min(100%,24vh);aspect-ratio:1}.tvp-qr svg{width:100%;height:100%;border-radius:10px;display:block}
+.tvp-cod{font-size:clamp(28px,5vh,64px);letter-spacing:.18em;font-weight:700;color:var(--gold2,#d6aa3c)}
+.tvp-hint{opacity:.75;font-size:clamp(11px,1.8vh,20px);text-align:center}
+.tvp-game{font-size:clamp(16px,3vh,34px);font-weight:700;text-align:center}
+.tvp-pl{list-style:none;margin:0;padding:0;width:100%;display:flex;flex-direction:column;gap:.6vh;flex:1;overflow:auto}
+.tvp-pl li{display:flex;gap:.6em;font-size:clamp(14px,2.8vh,30px);padding:.5vh .8vw;border-radius:8px;background:rgba(255,255,255,.05)}
+.tvp-pl li span{width:1em;color:var(--gold2,#d6aa3c)}.tvp-pl li.on{background:rgba(214,170,60,.22);font-weight:700}.tvp-pl li.vuoto{opacity:.6;justify-content:center}
+.tvp-fine{font-weight:700;color:var(--gold2,#d6aa3c);font-size:clamp(14px,2.6vh,28px)}
+html[data-tv] #tvpanel .b{pointer-events:auto}
+.tvwait{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2vh}
+.tvwait h1{font-size:clamp(28px,6vw,64px);margin:0}.tvwait p{font-size:clamp(16px,2.4vw,30px);margin:0}.tvwait .err{color:#e98}
+.tvm-qr{width:min(70vw,260px);margin:0 auto}.tvm-qr svg{width:100%;height:auto;display:block;border-radius:8px}

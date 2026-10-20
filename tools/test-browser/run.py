@@ -3,7 +3,7 @@
   npm run build && python3 tools/test-browser/run.py            # tutti
   python3 tools/test-browser/run.py firebase                    # solo gli scenari il cui nome contiene "firebase"
 Firebase è simulato (stub.py): nessuna rete, nessun dato vero. Esce con codice 1 se qualcosa fallisce."""
-import asyncio, json, os, re, shutil, socket, subprocess, sys, tempfile, time
+import asyncio, contextvars, json, os, re, shutil, socket, subprocess, sys, tempfile, time
 from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(__file__))
 import stub
@@ -13,8 +13,12 @@ DIST = os.path.join(ROOT, 'dist')
 SDK = re.compile(r'^https://www\.gstatic\.com/firebasejs/[\d.]+/(firebase-[a-z]+\.js)$')
 RESULTS = []
 
+USCITA = contextvars.ContextVar('uscita', default=None)
 def check(cond, msg):
-    print(('  OK   ' if cond else '  FAIL ') + msg); RESULTS.append(bool(cond)); return bool(cond)
+    riga = ('  OK   ' if cond else '  FAIL ') + msg
+    if USCITA.get() is not None: USCITA.get().append(riga)
+    else: print(riga)
+    RESULTS.append(bool(cond)); return bool(cond)
 
 class Server:
     def __init__(self, d):
@@ -384,6 +388,79 @@ async def sc_distanza_due_telefoni(b, srv):
     for p in (A, B): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_schermo_tutti_i_giochi(b, srv):
+    # lo schermo comune non ha posti: ogni gioco deve disegnarsi senza errori e senza mostrare una mano
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
+    ids = await pg.evaluate('GAMES.map(g=>g.id)')
+    for gid in ids:
+        r = await pg.evaluate("""async(gid)=>{const g=GAMES.find(x=>x.id===gid);let n=1;while(n<=12&&!g.ok(n))n++;
+          const S=Array.from({length:n},(_,i)=>({dev:'altro'+i,k:'m',name:'G'+i}));ui.tv=true;
+          await startGame(gid,S);await Q;await new Promise(r=>setTimeout(r,500));
+          const app=document.getElementById('app');
+          return{g:G&&G.g,len:app.innerHTML.length,mano:document.querySelectorAll('#hand .card:not(.back)').length,local:local().length,sc:ui.screen}}""", gid)
+        check(r['g'] == gid and r['len'] > 200 and r['mano'] == 0 and r['local'] == 0, f'{gid}: disegnato senza mano ({r["len"]} byte)')
+        await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null})()")
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
+def leggi_qr(png):
+    import cv2, numpy as np
+    img = cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_GRAYSCALE)
+    img = cv2.copyMakeBorder(img, 30, 30, 30, 30, cv2.BORDER_CONSTANT, value=255)
+    return cv2.QRCodeDetector().detectAndDecode(img)[0]
+
+async def sc_schermo_comune(b, srv):
+    sh = Shared()
+    ctxA, A = await telefono(b, srv, sh, 'Ada', 1)
+    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('[data-a=dist]'); await A.click('[data-a=distnew]')
+    await A.wait_for_function("R.mode==='fs'&&R.code&&R.members.length>0", timeout=30000)
+    code = await A.evaluate('R.code')
+    ctxB, B = await telefono(b, srv, sh, 'Bruno', 2, '?dist=' + code)
+    await B.wait_for_function("R.mode==='fs'&&R.members.length>0", timeout=30000)
+    # il telefono propone il link dello schermo comune, con un QR leggibile
+    await A.evaluate("(()=>{ui.cfg=true;ui.dist=false;render()})()"); await A.click('[data-a=tvm]'); await A.wait_for_timeout(300)
+    link = await A.evaluate('TV.linkSchermo()')
+    check(link.endswith('?tv=' + code), f'link schermo {link}')
+    check(leggi_qr(await (await A.query_selector('.tvm-qr svg')).screenshot()) == link, 'il QR del telefono contiene il link dello schermo')
+    # la TV apre il link
+    prima = {k: str(v) for k, v in sh.d.items()}
+    ctxT = await new_context(b, srv.port, name=None, shared=sh, extra_init="localStorage.setItem('__stubseq','9');")
+    await ctxT.add_init_script("")
+    T = await page(ctxT, srv.url + '?tv=' + code, 2000); await T.set_viewport_size({'width': 1920, 'height': 1080})
+    await T.wait_for_function("R.mode==='fs'&&R.code&&ui.tv", timeout=30000); await T.wait_for_timeout(1500)
+    check(await T.evaluate('[ui.screen,document.documentElement.dataset.tv]') == ['tv', '1'], 'TV: modalità schermo, in attesa del gioco')
+    check({k: str(v) for k, v in sh.d.items() if k.startswith('partite/' + code)} == {k: v for k, v in prima.items() if k.startswith('partite/' + code)}, 'TV: non ha scritto nulla (nessun posto, nessun membro)')
+    check(len([k for k in sh.d if '/membri/' in k and code in k]) == 2, 'TV: i membri restano due')
+    inv = await T.evaluate('Dist.invito(R.code)')
+    check(leggi_qr(await (await T.query_selector('.tvp-qr svg')).screenshot()) == inv, f'TV: il QR del pannello invita al tavolo {inv}')
+    nomi = await T.eval_on_selector_all('.tvp-pl li', 'e=>e.map(x=>x.textContent.replace("▶",""))')
+    check(sorted(nomi) == ['Ada', 'Bruno'], f'TV: giocatori in attesa {nomi}')
+    # si avvia Uno dal telefono: la TV passa al tavolo
+    await A.evaluate("startGame('uno')"); await T.wait_for_function("ui.screen==='game'&&G&&G.g==='uno'", timeout=20000); await T.wait_for_timeout(800)
+    check(await T.evaluate('local().length') == 0 and await T.evaluate('document.querySelectorAll("#hand .card:not(.back)").length') == 0, 'TV: nessuna mano a vista')
+    on = await T.eval_on_selector_all('.tvp-pl li.on', 'e=>e.map(x=>x.textContent.replace("▶",""))')
+    tur = sh.d['partite/' + code]['turno'][0]; nome_t = 'Ada' if tur == 'u-1' else 'Bruno'
+    check(on == [nome_t], f'TV: freccia sul giocatore di turno {on} (turno di {nome_t})')
+    check('Uno' in await T.inner_text('#tvpanel'), 'TV: pannello con il nome del gioco')
+    # il turno passa: la freccia si sposta
+    att, altro_nome = (A, 'Bruno') if tur == 'u-1' else (B, 'Ada'); uid_altro = 'u-2' if tur == 'u-1' else 'u-1'
+    for _ in range(4):
+        await att.wait_for_timeout(1500)
+        if sh.d['partite/' + code]['turno'] == [uid_altro]: break
+        await att.evaluate("(async()=>{await dispatch({t:G.phase==='pass'?'pass':'draw'})})()")
+    await T.wait_for_timeout(2500)
+    on = await T.eval_on_selector_all('.tvp-pl li.on', 'e=>e.map(x=>x.textContent.replace("▶",""))')
+    check(on == [altro_nome], f'TV: dopo la mossa la freccia passa a {altro_nome} {on}')
+    # layout da TV: pannello a sinistra, tavolo a destra, tutto dentro lo schermo
+    geo = await T.evaluate("(()=>{const p=document.getElementById('tvpanel').getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect();return[Math.round(p.right),Math.round(a.left),document.documentElement.scrollWidth<=innerWidth]})()")
+    check(geo[0] <= geo[1] + 2 and geo[2], f'TV: pannello e tavolo non si sovrappongono {geo}')
+    for p_ in (A, B, T): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
+    await T.screenshot(path='/tmp/claude-0/tv-finale.png')
+    # tavolo eliminato: la TV lo dice e riprova, senza errori
+    A.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+    await A.evaluate("Dist.act('dist')"); await A.wait_for_timeout(600); await A.click(f'[data-a=distdel][data-v="{code}"]'); await T.wait_for_timeout(3000)
+    check(await T.evaluate('[ui.screen,!!ui.err]') == ['tv', True], 'TV: tavolo eliminato, torna in attesa con un avviso')
+    for c in (ctxA, ctxB, ctxT): await c.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
@@ -393,9 +470,16 @@ async def main():
     try:
         async with async_playwright() as p:
             b = await p.chromium.launch()
-            for sc in SCENARI:
-                if filtro and not any(f in sc.__name__ for f in filtro): continue
-                print(sc.__name__[3:]); await sc(b, srv)
+            scelti = [sc for sc in SCENARI if not filtro or any(f in sc.__name__ for f in filtro)]
+            sem = asyncio.Semaphore(int(os.environ.get('PARALLELO', '4')))  # PARALLELO=1 per uno alla volta
+            async def uno(sc):
+                async with sem:
+                    out = []; USCITA.set(out)
+                    try: await sc(b, srv)
+                    except Exception as e: check(False, f'{sc.__name__}: eccezione {type(e).__name__}: {str(e)[:200]}')
+                    return sc.__name__[3:], out
+            for nome, out in await asyncio.gather(*[uno(sc) for sc in scelti]):
+                print(nome); print('\n'.join(out))
             await b.close()
     finally: srv.stop()
     print('RISULTATO:', 'TUTTO OK' if all(RESULTS) else 'CI SONO ERRORI', f'({sum(RESULTS)}/{len(RESULTS)})'); sys.exit(0 if all(RESULTS) else 1)
