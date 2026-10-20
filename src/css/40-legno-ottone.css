@@ -83,3 +83,17 @@
 .hm .sh2,.hm .rw3{margin-left:-0px}
 .has-dk #app{padding-bottom:calc(140px + env(safe-area-inset-bottom,0px))}
 #dock .pri{height:64px;font-size:20px}#dock .pri small{display:block;font:600 12px var(--f-b);opacity:.8}
+
+/* Scheda del gioco nella pagina Giochi: stesso linguaggio di plancia e pulsanti (il blu pixel-art resta solo nel falò) */
+.gl-sheet .tvdet{background:none;border:0;box-shadow:none;padding:0;margin:0;gap:10px}
+.gl-sheet .tvdh{padding-right:44px}
+.gl-sheet .tvdn{font:800 26px/1.1 var(--f-d);color:#f0d9ae;text-shadow:none}
+.gl-sheet .tvdm{font:700 13px/1.35 var(--f-b);color:var(--mu,#b8a68d);margin-top:4px}
+.gl-sheet .tvdv{background:#3a2d22;color:#f0c166;border:0;box-shadow:none;padding:5px 8px}
+.gl-sheet .tvdv b{font:800 18px/1 var(--f-d)}
+.gl-sheet .tvdv small{font:800 10px var(--f-b);letter-spacing:.12em}
+.gl-sheet .tvdd{font:700 15px/1.4 var(--f-b);color:#f3e3cf}
+.gl-sheet .tvdl{font:800 11px var(--f-b);letter-spacing:.12em;color:var(--mu,#b8a68d);text-transform:uppercase}
+.gl-sheet .vote{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border:0;border-radius:0;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);background:linear-gradient(180deg,#7a4f2b,#5c3a1e);box-shadow:none;color:#f0d9ae;font:800 14px var(--f-d)}
+.gl-sheet .vote.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08}
+.gl-sheet .tvdet .sel{background:#1d1510;color:#f0d9ae;border:1px solid rgba(245,205,150,.2);border-radius:0;font:700 14px var(--f-b)}
