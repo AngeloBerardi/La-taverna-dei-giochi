@@ -26,6 +26,66 @@ service cloud.firestore {
     }
     function eloUguale() { return request.resource.data.get('elo', {}) == resource.data.get('elo', {}); }
 
+    // eroi delle campagne: privati del proprietario, al massimo cinque (e1..e5). Razza, classe, punteggi base e data non cambiano più.
+    // Razze e classi tra i segnaposto sono generate dal catalogo (npm run regole).
+    function costoPunteggio(v) { return v <= 13 ? v - 8 : (v == 14 ? 7 : 9); }
+    function baseEroeOk(b) {
+      return b.keys().hasOnly(['for', 'des', 'cos', 'int', 'sag', 'car'])
+        && b['for'] is int && b['des'] is int && b['cos'] is int && b['int'] is int && b['sag'] is int && b['car'] is int
+        && b['for'] >= 8 && b['for'] <= 15 && b['des'] >= 8 && b['des'] <= 15 && b['cos'] >= 8 && b['cos'] <= 15
+        && b['int'] >= 8 && b['int'] <= 15 && b['sag'] >= 8 && b['sag'] <= 15 && b['car'] >= 8 && b['car'] <= 15
+        && costoPunteggio(b['for']) + costoPunteggio(b['des']) + costoPunteggio(b['cos']) + costoPunteggio(b['int']) + costoPunteggio(b['sag']) + costoPunteggio(b['car']) <= 27;
+    }
+    function aspettoEroeOk(a) {
+      return a.keys().hasOnly(['pelle', 'capelli', 'mantello', 'viso'])
+        && a.pelle is int && a.pelle >= 0 && a.pelle < 6 && a.capelli is int && a.capelli >= 0 && a.capelli < 7
+        && a.mantello is int && a.mantello >= 0 && a.mantello < 6 && a.viso is int && a.viso >= 0 && a.viso < 4;
+    }
+    function razzaEroeOk(r) {
+      return
+        // eroi:razze
+        r == 'umano'
+        || r == 'elfo'
+        || r == 'nano'
+        || r == 'piccolo'
+        || r == 'orco'
+        // eroi:razze:fine
+        ;
+    }
+    function classeEroeOk(c) {
+      return
+        // eroi:classi
+        c == 'guerriero'
+        || c == 'ladro'
+        || c == 'mago'
+        || c == 'chierico'
+        || c == 'esploratore'
+        || c == 'bardo'
+        // eroi:classi:fine
+        ;
+    }
+    function eroeOk(d) {
+      return d.keys().hasOnly(['v', 'nome', 'razza', 'classe', 'aspetto', 'base', 'liv', 'xp', 'oro', 'equip', 'creato', 'hpMax', 'hp'])
+        && d.v == 1 && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 16
+        && razzaEroeOk(d.razza) && classeEroeOk(d.classe) && baseEroeOk(d.base) && aspettoEroeOk(d.aspetto)
+        && d.liv is int && d.liv >= 1 && d.liv <= 10 && d.xp is int && d.xp >= 0 && d.xp < 100000
+        && d.oro is int && d.oro >= 0 && d.oro < 1000000
+        && d.hpMax is int && d.hpMax >= 1 && d.hpMax <= 200 && d.hp is int && d.hp >= 0 && d.hp <= d.hpMax
+        && d.equip is map && d.creato is int;
+    }
+
+    match /players/{uid}/eroi/{eroe} {
+      allow read: if accesso() && request.auth.uid == uid;
+      allow create: if accesso() && request.auth.uid == uid && eroe in ['e1', 'e2', 'e3', 'e4', 'e5']
+        && eroeOk(request.resource.data) && request.resource.data.liv == 1 && request.resource.data.xp == 0 && request.resource.data.oro == 20;
+      allow update: if accesso() && request.auth.uid == uid && eroeOk(request.resource.data)
+        && request.resource.data.razza == resource.data.razza && request.resource.data.classe == resource.data.classe
+        && request.resource.data.base == resource.data.base && request.resource.data.aspetto == resource.data.aspetto
+        && request.resource.data.creato == resource.data.creato
+        && request.resource.data.liv >= resource.data.liv && request.resource.data.xp >= resource.data.xp;
+      allow delete: if accesso() && request.auth.uid == uid;
+    }
+
     match /players/{uid} {
       // il nome e le monete servono agli altri (classifiche, tavolo): lettura per chi ha fatto l'accesso
       allow read: if accesso();

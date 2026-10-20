@@ -48,10 +48,14 @@ const FB={
  eloInfo(ns){const S=seatsNow(),w=ELO.vincitori(ns);if(!w||S.length<2||S.length!==ns.n||!FB.uid)return null;
   const u=S.map(x=>x.uid);if(!S.every(x=>x.k==='m'&&x.uid)||new Set(u).size!==u.length)return null;
   const me=S.findIndex(x=>x.dev===ME.dev);return me<0||u[me]!==FB.uid?null:{g:ns.g,u,me:FB.uid,w:w.map(i=>u[i])}},
+ // ---- eroi delle campagne (players/{uid}/eroi/e1..e5, vedi motori/27-eroi.js) ----
+ async eroi(){const F=FB.m.F,q=await F.getDocs(F.collection(FB.db,'players',FB.uid,'eroi')),m={};for(const d of q.docs)m[d.id]=d.data();return m},
+ async salvaEroe(slot,h){const F=FB.m.F;await F.setDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot),h)},
+ async eliminaEroe(slot){const F=FB.m.F;await F.deleteDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot))},
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
  mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},
  async collega(email,pw){const Au=FB.m.Au;await Au.linkWithCredential(FB.auth.currentUser,Au.EmailAuthProvider.credential(email,pw))},
- async cambiaProfilo(){if(R.mode==='fs')await Dist.esci();FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
+ async cambiaProfilo(){if(R.mode==='fs')await Dist.esci();Eroi.lista=null;FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
  async entra(email,pw){await FB.m.Au.signInWithEmailAndPassword(FB.auth,email,pw);await FB.cambiaProfilo()},
  async reset(email){await FB.m.Au.sendPasswordResetEmail(FB.auth,email)},
  async esci(){await FB.m.Au.signOut(FB.auth);await FB.m.Au.signInAnonymously(FB.auth);await FB.cambiaProfilo()},

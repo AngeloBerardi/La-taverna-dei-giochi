@@ -1,0 +1,13 @@
+/* Eroi e creazione del personaggio (app/24g-eroi.js): schede grosse e colorate, bordi spessi */
+.eroi{max-height:88vh;overflow-y:auto}
+.ecard{display:flex;gap:10px;align-items:center;padding:8px;border:3px solid var(--gold2,#d6aa3c);border-radius:14px;background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(0,0,0,.18))}
+.ecard.vuoto{border-style:dashed;border-color:var(--line,rgba(255,255,255,.3));justify-content:space-between;background:none}
+.etx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.etx small{opacity:.8}
+.rit{display:block;flex:none}.eritr{display:flex;justify-content:center}
+.erow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 0}.erow span{flex:1;text-align:center}
+.esc{display:flex;flex-direction:column;gap:2px;text-align:left;padding:8px 10px;border:2px solid var(--line,rgba(255,255,255,.25));border-radius:12px;background:rgba(255,255,255,.05);color:inherit;font:inherit;cursor:pointer}
+.esc.on{border-color:var(--gold2,#d6aa3c);background:rgba(214,170,60,.2)}.esc small{opacity:.8}.esc em{font-style:normal;font-size:12px;color:var(--gold2,#d6aa3c)}
+.escheda{display:flex;flex-direction:column;gap:8px}
+.estat{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;text-align:center}
+.estat div{display:flex;flex-direction:column;padding:4px 2px;border-radius:8px;background:rgba(255,255,255,.07);border-bottom:3px solid var(--gold2,#d6aa3c)}.estat small{font-size:10px;opacity:.8}.estat b{font-size:18px}
+.eder{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-weight:700}
