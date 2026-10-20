@@ -49,6 +49,9 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 ## Locandiere
 `motori/24-locandiere.js` (`LOC`): cervello a copioni (saluto per ora del giorno e profilo, consigli adatti a `n` giocatori che ruotano col giorno, regole di un gioco, monete, classifica, account, ospiti), ripetibile e senza rete. `app/24d-locandiere.js` (`Oste`): finestra dalle impostazioni; prima prova `POST /.netlify/functions/locandiere` (9 s), che usa Claude con la chiave solo sul server (`ANTHROPIC_API_KEY`, modello `LOCANDIERE_MODEL`, default haiku; 6 richieste/min per indirizzo; risposta ≤ 50 parole); con 404/405/501/503 si ricorda che non c'è e usa i copioni, con 429/502/timeout ripiega solo per quella domanda. Senza chiave l'app funziona uguale. In futuro farà da master delle campagne.
 
+## Partite a distanza
+`app/24e-distanza.js`: `FsDb` implementa l'interfaccia di `R.db` (doc/collection: get, set, delete, onSnapshot) sopra Firestore (`partite/{codice}`, sottoraccolte `membri` e `chat`), quindi stanza, lobby e partite funzionano senza modifiche. In modalità `R.mode==='fs'` l'identità è `ME.dev='u:<uid>'` (stesso tavolo da qualsiasi telefono) e `savePos` non scrive (quota). Lo stato viaggia come testo JSON nel campo `j` (Firestore vieta array dentro array); accanto ci sono i campi leggibili `uids`, `turno` (a chi tocca), `nomi`, `phase`, `game`, `finita`, `rev` (`DIST.meta` in `motori/25-distanza.js`). La scrittura della stanza è una transazione: gli uid non si perdono e una scrittura con `rev` più vecchio viene rifiutata (`conflitto`). Si entra con codice di 8 caratteri o link `?dist=CODICE`; chi entra aggiunge solo il proprio uid (regole). `Dist` (impostazioni → Partite a distanza): nuova, entra, «Le mie partite» con «Tocca a te», elimina (solo chi l'ha creata, con membri e chat), esci. L'elenco si aggiorna ogni 90 s e al ritorno in primo piano; quando tocca a te compare un avviso (notifica del sistema se concessa e l'app è in secondo piano). **Limite noto:** con l'app chiusa non arrivano notifiche, serve un server che le invii (vedi docs/FIREBASE-PIANO.md). Anche qui tutti i dati della partita (mani comprese) sono leggibili da chi ha il codice.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -99,6 +102,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/33-dorsi.css` | 2 |  |
 | `css/34-account.css` | 1 |  |
 | `css/35-locandiere.css` | 1 |  |
+| `css/36-distanza.css` | 1 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -126,6 +130,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/motori/23-elo.js` | 2 | ELO |
 | `js/motori/24-locandiere.js` | 6 | LOC |
+| `js/motori/25-distanza.js` | 3 | DIST |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
@@ -134,7 +139,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
 | `js/app/07-nucleo.js` | 10 | G, ui, ME, R, ENG, GAMES, GN |
-| `js/app/07a-rete-stanza.js` | 7 | netInit, unsubAll, enterHub, p2pCreate, p2pEnter, p2pGeneral, netErr |
+| `js/app/07a-rete-stanza.js` | 7 | netInit, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter, p2pGeneral |
 | `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
 | `js/app/07c-comandi.js` | 6 |  |
 | `js/app/07d-regole.js` | 30 | RULES |
@@ -173,6 +178,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 5 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
+| `js/app/24e-distanza.js` | 9 | FsDb, Dist |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

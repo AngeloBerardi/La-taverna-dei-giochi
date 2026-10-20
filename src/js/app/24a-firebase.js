@@ -15,7 +15,7 @@ const FB={
   FB.m={A,Au,F};const app=A.initializeApp(FB.CFG),auth=Au.getAuth(app);
   await auth.authStateReady();if(!auth.currentUser)await Au.signInAnonymously(auth);
   FB.auth=auth;FB.uid=auth.currentUser.uid;FB.db=F.getFirestore(app);
-  await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();await FB.flush()},
+  await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();Dist.init();await FB.flush()},
  ref(){return FB.m.F.doc(FB.db,'players',FB.uid)},
  // legge il profilo, lo crea alla prima volta, tiene il nome allineato
  async load(){const F=FB.m.F,ref=FB.ref(),nome=(ME.name||'Ospite').slice(0,24);
@@ -51,7 +51,7 @@ const FB={
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
  mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},
  async collega(email,pw){const Au=FB.m.Au;await Au.linkWithCredential(FB.auth.currentUser,Au.EmailAuthProvider.credential(email,pw))},
- async cambiaProfilo(){FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
+ async cambiaProfilo(){if(R.mode==='fs')await Dist.esci();FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
  async entra(email,pw){await FB.m.Au.signInWithEmailAndPassword(FB.auth,email,pw);await FB.cambiaProfilo()},
  async reset(email){await FB.m.Au.sendPasswordResetEmail(FB.auth,email)},
  async esci(){await FB.m.Au.signOut(FB.auth);await FB.m.Au.signInAnonymously(FB.auth);await FB.cambiaProfilo()},

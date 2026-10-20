@@ -29,7 +29,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
  case'tvpick':ui.pick=v;return render();
  case'newroom':if(!R.on)return;R.jt=(R.jt||0)+1;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);setRoomUrl(c);say('Stanza privata '+c+': condividi il codice')}catch(x){ui.err=netErr(x);render()}return;
- case'copy':{const url=location.origin+location.pathname+(isGen()?(R.mode==='p2p'&&P2P.tr==='mq'?'?b='+MQ.bi:''):'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')),txt=isGen()?'Vieni a giocare alla Taverna dei Giochi!':'Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
+ case'copy':{const url=location.origin+location.pathname+(isGen()?(R.mode==='p2p'&&P2P.tr==='mq'?'?b='+MQ.bi:''):(R.mode==='fs'?'?dist=':'?room=')+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')),txt=isGen()?'Vieni a giocare alla Taverna dei Giochi!':'Siediti al mio tavolo alla Taverna dei Giochi! Codice stanza: '+R.code;if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'La Taverna dei Giochi',text:txt,url});return}catch(x){if(x&&x.name==='AbortError')return}}try{await navigator.clipboard.writeText(txt+' '+url);say('Invito copiato: incollalo ai tuoi amici')}catch(x){say('Codice: '+R.code)}return}
  case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;
  case'rematch':return rematch();
  case'tolobby':return toLobby();
@@ -43,6 +43,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'shop':case'shopx':case'shopbuy':case'shopuse':return Shop.act(a,v);
  case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accreset':case'accout':return Acc.act(a,v);
  case'oste':case'ostex':case'osteq':case'osteok':return Oste.act(a,v);
+ case'dist':case'distx':case'distnew':case'distjoin':case'distgo':case'distdel':case'distcopy':case'distexit':case'distnot':return Dist.act(a,v);
  case'fxsheet':ui.sheet=(!v||ui.sheet===v)?null:v;return render();
  case'mus':Snd.setMus(!Snd.mus);return render();case'sfx':Snd.setSfx(!Snd.sfx);return render();
  case'next':return dispatch({t:'next'});

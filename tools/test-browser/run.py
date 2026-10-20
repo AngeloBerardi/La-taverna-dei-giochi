@@ -3,7 +3,7 @@
   npm run build && python3 tools/test-browser/run.py            # tutti
   python3 tools/test-browser/run.py firebase                    # solo gli scenari il cui nome contiene "firebase"
 Firebase è simulato (stub.py): nessuna rete, nessun dato vero. Esce con codice 1 se qualcosa fallisce."""
-import asyncio, os, re, shutil, socket, subprocess, sys, tempfile, time
+import asyncio, json, os, re, shutil, socket, subprocess, sys, tempfile, time
 from playwright.async_api import async_playwright
 sys.path.insert(0, os.path.dirname(__file__))
 import stub
@@ -23,10 +23,24 @@ class Server:
         time.sleep(0.8); self.url = f'http://localhost:{self.port}/'
     def stop(self): self.p.terminate()
 
-async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init=''):
+class Shared:
+    """Archivio Firestore condiviso tra più contesti (= più telefoni): lo stub ne parla con fetch('/__fs')."""
+    def __init__(self): self.d = {}
+    async def handle(self, route):
+        o = json.loads(route.request.post_data); op = o['op']; out = {}
+        if op == 'get': out = {'v': self.d.get(o['k'])}
+        elif op == 'put': self.d[o['k']] = o['v']
+        elif op == 'del': self.d.pop(o['k'], None)
+        elif op == 'list':
+            c = o['c']; n = len(c.split('/')) + 1
+            out = {'rows': [{'id': k.split('/')[-1], 'd': v} for k, v in self.d.items() if k.startswith(c + '/') and len(k.split('/')) == n]}
+        await route.fulfill(status=200, content_type='application/json', body=json.dumps(out))
+
+async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None):
     ctx = await b.new_context(viewport={'width': 390, 'height': 844}, service_workers='allow' if sw else 'block')
-    init = f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else ''
+    init = "localStorage.setItem('rg-lb','iso');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
     if auth_error: init += f"window.__stubAuthError={auth_error!r};"
+    if shared: init += 'window.__stubShared=true;'
     await ctx.add_init_script(init + extra_init)
     async def route(r):
         u = r.request.url; m = SDK.match(u)
@@ -34,6 +48,7 @@ async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_i
         if u.startswith(f'http://localhost:{port}'): return await r.continue_()
         await r.abort()
     await ctx.route('**/*', route)
+    if shared: await ctx.route('**/__fs', shared.handle)
     return ctx
 
 async def page(ctx, url, wait=3500):
@@ -304,6 +319,70 @@ async def sc_locandiere(b, srv):
     n = len(corpi); await pg.fill('#oste-q', 'ciao'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(400)
     check(len(corpi) == n, 'spenta: nessuna altra chiamata')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def telefono(b, srv, sh, nome, seq, query='', wait=5000):
+    ctx = await new_context(b, srv.port, name=nome, shared=sh, extra_init=f"localStorage.setItem('__stubseq','{seq}');")
+    pg = await page(ctx, srv.url + query, wait); return ctx, pg
+
+async def sc_distanza_due_telefoni(b, srv):
+    sh = Shared()
+    ctxA, A = await telefono(b, srv, sh, 'Ada', 1)
+    A.on('dialog', lambda d: asyncio.ensure_future(d.accept()))
+    check(await A.evaluate('Dist.ok()'), 'A: profilo online pronto')
+    await A.evaluate("(()=>{ui.cfg=true;render()})()"); await A.click('[data-a=dist]'); await A.wait_for_timeout(300)
+    await A.click('[data-a=distnew]'); await A.wait_for_function("R.mode==='fs'&&R.code&&R.members.length>0", timeout=30000)
+    code = await A.evaluate('R.code')
+    check(await A.evaluate('R.mode') == 'fs' and len(code) == 8 and await A.evaluate('ME.dev') == 'u:u-1', f'A: nuova partita {code} in modalità a distanza')
+    st = sh.d.get('partite/' + code) or {}
+    check(st.get('uids') == ['u-1'] and st.get('host') == 'u-1' and st.get('phase') == 'lobby', f'A: salvata con host e uids {st.get("uids")}')
+    check('?dist=' + code in await A.evaluate('(()=>{Dist.msg="";return Dist.invito(R.code)})()'), 'A: link di invito')
+    # B apre il link d'invito sul suo telefono
+    ctxB, B = await telefono(b, srv, sh, 'Bruno', 2, '?dist=' + code)
+    await B.wait_for_function("R.mode==='fs'&&R.members.length>0", timeout=30000)
+    check(await B.evaluate('[R.mode,R.code,ME.dev]') == ['fs', code, 'u:u-2'], 'B: entrato dal link')
+    check('dist=' not in B.url, 'B: il link viene ripulito dall\'indirizzo')
+    check(sh.d['partite/' + code]['uids'] == ['u-1', 'u-2'], 'B: aggiunto agli uid senza toccare lo stato')
+    await A.wait_for_timeout(1500)
+    check(await A.evaluate('R.members.length') == 2 and await B.evaluate('R.members.length') == 2, 'A e B vedono due persone al tavolo')
+    # A avvia Uno: parte per entrambi
+    await A.evaluate("startGame('uno')"); await A.wait_for_timeout(3500)
+    check(await A.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'] and await B.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'], 'la partita parte su entrambi i telefoni')
+    meta = sh.d['partite/' + code]
+    check(meta['phase'] == 'play' and meta['game'] == 'uno' and len(meta['turno']) == 1 and set(meta['nomi'].values()) == {'Ada', 'Bruno'}, f'meta a chi tocca: {meta["turno"]} {meta["nomi"]}')
+    # chi deve muovere muove: il turno passa all'altro e arriva sull'altro telefono
+    tur = meta['turno'][0]; att, altro = (A, B) if tur == 'u-1' else (B, A); uid_altro = 'u-2' if tur == 'u-1' else 'u-1'
+    for _ in range(4):
+        await att.wait_for_timeout(1500)
+        if sh.d['partite/' + code]['turno'] == [uid_altro]: break
+        await att.evaluate("(async()=>{await dispatch({t:G.phase==='pass'?'pass':'draw'})})()")
+    await altro.wait_for_timeout(2500)
+    check(sh.d['partite/' + code]['turno'] == [uid_altro], 'dopo la mossa, il turno passa all\'altro giocatore')
+    check(await altro.evaluate('G.cur===local()[0]'), 'la mossa è arrivata sull\'altro telefono')
+    await altro.evaluate('Dist.aggiorna()'); await altro.wait_for_timeout(500)
+    check(await altro.evaluate('Dist.tocca()') == 1, 'nell\'elenco compare «tocca a te»')
+    # una scrittura con uno stato più vecchio viene rifiutata (telefono rimasto indietro)
+    esito = await att.evaluate("FsDb.setRoom(R.code,{...R.doc,rev:0}).then(()=>'scritto',e=>e.code)")
+    check(esito == 'conflitto', f'stato vecchio rifiutato ({esito})')
+    # il giorno dopo: B chiude tutto, riapre l'app, ritrova la partita nell'elenco e rientra
+    await B.close(); B = await ctxB.new_page(); B.errs = []; B.on('pageerror', lambda e: B.errs.append(str(e))); await B.goto(srv.url); await B.wait_for_timeout(5000)
+    check(await B.evaluate('R.mode') != 'fs', 'B: riaperta l\'app, non è dentro alcuna partita a distanza')
+    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('[data-a=dist]'); await B.wait_for_timeout(1500)
+    check(await B.eval_on_selector_all('.drow small', 'e=>e.map(x=>x.textContent)') != [] and code in await B.inner_text('.modal'), 'B: la partita è nell\'elenco')
+    await B.click(f'[data-a=distgo][data-v="{code}"]'); await B.wait_for_function("R.mode==='fs'&&G", timeout=30000)
+    check(await B.evaluate('[R.mode,ui.screen,G&&G.g]') == ['fs', 'game', 'uno'], 'B: rientra e ritrova la partita in corso')
+    # B esce: torna alla modalità di prima, con il suo identificativo di telefono
+    await B.evaluate("Dist.esci()"); await B.wait_for_timeout(500)
+    check(await B.evaluate('[R.mode!=="fs",ME.dev.startsWith("u:")]') == [True, False], 'B: uscito, identificativo del telefono ripristinato')
+    # solo chi l'ha creata può eliminarla; gli altri vengono riportati fuori
+    await B.evaluate("(()=>{ui.cfg=true;render()})()"); await B.click('[data-a=dist]'); await B.wait_for_timeout(500)
+    check(await B.query_selector('[data-a=distdel]') is None, 'B non vede il cestino')
+    await B.click(f'[data-a=distgo][data-v="{code}"]'); await B.wait_for_function("R.mode==='fs'", timeout=30000); await B.wait_for_timeout(800)
+    await A.evaluate("(()=>{ui.cfg=true;render()})()") if await A.evaluate('!ui.dist') else None
+    await A.evaluate("Dist.act('dist')"); await A.wait_for_timeout(800); await A.click(f'[data-a=distdel][data-v="{code}"]'); await A.wait_for_timeout(2500)
+    check(not [k for k in sh.d if k.startswith('partite/' + code)], f'A: eliminata con membri e chat ({[k for k in sh.d if k.startswith("partite/")]})')
+    check(await B.evaluate('R.mode') != 'fs', 'B: avvisato e riportato fuori dalla partita eliminata')
+    for p in (A, B): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
+    await ctxA.close(); await ctxB.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

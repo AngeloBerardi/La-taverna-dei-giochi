@@ -4,7 +4,9 @@ async function netInit(){if(R.tried)return;R.tried=true;const nq=new URLSearchPa
  if(nq!=='db'&&!window.__NETDB&&await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true;return}
  try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
 function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
-async function enterHub(){setTimeout(()=>FB.start(),1500);ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();
+// R.hub = l'ingresso in corso (rete + stanza generale): chi cambia la rete della stanza (partite a distanza) aspetta che finisca
+function enterHub(){return R.hub=enterHub0()}
+async function enterHub0(){setTimeout(()=>FB.start(),1500);ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();if(R.mode==='fs')return;
  if(!R.on){try{const o=JSON.parse(ST('rg-off')||'null');if(o&&o.mine)R.mine={...o.mine,name:ME.name}}catch(e){}render();return}
  if(R.mode==='p2p'){try{await p2pEnter()}catch(e){ui.err=netErr(e);render()}return}
  try{let code=ST('rg-room');
@@ -37,7 +39,7 @@ async function joinRoom(code){const old=R.code;unsubAll();
  const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
  R.mine={name:ME.name,uid:FB.uid||null,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){}subscribe()}
 function subscribe(){
- R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();enterHub();return}
+ R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();if(R.mode==='fs'){say('La partita è stata eliminata',3000);Dist.esci();return}enterHub();return}
   const d=sn.data();R.doc=d;const seated=d.phase==='play'&&!!d.s&&(d.seats||[]).some(x=>x.dev===ME.dev),was=ui.screen;
   ui.screen=ui.screen==='name'?'name':seated?'game':'room';
   if(seated){if(d.rev>=R.rev){const ch=d.rev>R.rev;R.rev=d.rev;if(ch){ui.sel=[];ui.tsel=[]}if(was!=='game'){fxDone=null;G=null;ui.shown=-1}pushState(d.s,false);return}}
@@ -49,5 +51,5 @@ async function writeRoom(patch){if(patch.rev!=null)R.rev=patch.rev;R.doc={...R.d
 async function saveMine(){if(!R.on){ST('rg-off',JSON.stringify({mine:R.mine,game:G&&ui.screen==='game'?{G,seats:R.offSeats}:null}));render();return}
  try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){ui.err=netErr(e)}render()}
 /* solo la posizione (pupazzo che cammina): scrive il documento del membro senza ridisegnare la pagina */
-async function savePos(){if(!R.on||!R.code)return;try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){}}
+async function savePos(){if(!R.on||!R.code||R.mode==='fs')return;try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){}}
 function saveOff(s){if(!R.on)ST('rg-off',JSON.stringify({mine:R.mine,game:s?{G:s,seats:R.offSeats}:null}))}

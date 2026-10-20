@@ -106,6 +106,43 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // partite a distanza: stanze che restano salvate (stato come testo `j`, campi leggibili per l'elenco).
+    // Si entra conoscendo il codice (8 caratteri): chi entra aggiunge solo il proprio uid a `uids`; dopo, scrive solo chi è dentro.
+    match /partite/{code} {
+      function campi(d) { return d.keys().hasOnly(['j', 'uids', 'host', 'phase', 'game', 'turno', 'nomi', 'finita', 'rev', 'upd']); }
+      function dentro() { return request.auth.uid in get(/databases/$(database)/documents/partite/$(code)).data.uids; }
+
+      allow read: if accesso();
+
+      allow create: if accesso() && campi(request.resource.data)
+        && request.resource.data.uids == [request.auth.uid]
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.j is string && request.resource.data.j.size() < 900000;
+
+      allow update: if accesso() && campi(request.resource.data)
+        && request.resource.data.host == resource.data.host
+        && request.resource.data.uids.hasAll(resource.data.uids)
+        && request.resource.data.uids.size() <= 8
+        && request.resource.data.j is string && request.resource.data.j.size() < 900000
+        && (request.auth.uid in resource.data.uids
+            // entrare: cambia solo l'elenco, aggiungendo se stessi
+            || (request.auth.uid in request.resource.data.uids
+                && request.resource.data.uids.size() == resource.data.uids.size() + 1
+                && request.resource.data.j == resource.data.j));
+
+      allow delete: if accesso() && resource.data.host == request.auth.uid;
+
+      match /membri/{m} {
+        allow read: if accesso();
+        allow create, update: if accesso() && m == ('u:' + request.auth.uid) && dentro();
+        allow delete: if accesso() && dentro();
+      }
+      match /chat/{c} {
+        allow read: if accesso();
+        allow create, delete: if accesso() && dentro();
+      }
+    }
+
     // tutto il resto è chiuso finché non lo apriamo con una regola esplicita
     match /{altro=**} {
       allow read, write: if false;
