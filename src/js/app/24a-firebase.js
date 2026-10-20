@@ -9,7 +9,9 @@ const FB={
  q:(()=>{try{return JSON.parse(ST('rg-fbq')||'[]')}catch(e){return[]}})(),
  saveQ(){ST('rg-fbq',JSON.stringify(FB.q.slice(-20)))},
  start(){if(FB.st==='load'||FB.st==='ok')return FB.ready;FB.st='load';FB.err='';
-  return FB.ready=FB._init().then(()=>{FB.st='ok';if(ui.cfg)render()}).catch(e=>{FB.st='err';FB.err=String((e&&e.code)||e);console.warn('Firebase',e);if(ui.cfg)render()})},
+  if(ui.cfg)render();
+  const lento=new Promise((_,no)=>setTimeout(()=>no({code:'timeout: nessuna risposta da Firebase'}),20000));
+  return FB.ready=Promise.race([FB._init(),lento]).then(()=>{FB.st='ok';if(ui.cfg)render()}).catch(e=>{FB.st='err';FB.err=String((e&&e.code)||e);console.warn('Firebase',e);if(ui.cfg)render()})},
  async _init(){const B='https://www.gstatic.com/firebasejs/'+FB.V+'/';
   const [A,Au,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
   FB.m={A,Au,F};const app=A.initializeApp(FB.CFG),auth=Au.getAuth(app);
@@ -66,5 +68,7 @@ const FB={
   const won=!!iWon(ns);FB.q.push({n:FB.PREMIO.gioca+(won?FB.PREMIO.vinci:0),won,gid:ns.gid,elo:FB.eloInfo(ns)});FB.saveQ();
   if(FB.st==='ok')FB.flush();else FB.start().then(()=>FB.flush())},
  cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">🪙 ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
-  if(FB.st==='err')return`<p class="muted" style="margin:0">Profilo online non attivo (${esc(FB.err)}).</p>`;return''}};
+  if(FB.st==='err')return`<p class="muted" style="margin:0">Profilo online non attivo (${esc(FB.err)}).</p><button class="b sm" data-a="fbstart">Riprova</button>`;
+  if(FB.st==='load')return'<p class="muted" style="margin:0">Connessione al profilo online…</p>';
+  return'<button class="b sm gold" data-a="fbstart">Attiva profilo online</button>'}};
 window.addEventListener('online',()=>{if(FB.st==='err'&&ME.name)FB.start()});
