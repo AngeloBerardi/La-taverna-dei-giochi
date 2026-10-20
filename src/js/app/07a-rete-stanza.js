@@ -1,12 +1,14 @@
 /* ---- rete ---- */
-async function netInit(){if(R.tried)return;R.tried=true;const nq=new URLSearchParams(location.search).get('net');
+// R.net: 'prova' mentre si cerca la rete (può durare ~20 s), poi 'ok' o 'off'; la Taverna lo mostra e, se è 'off', permette di riprovare
+async function netInit(){if(R.tried)return;try{await netInit0()}finally{R.net=R.on?'ok':'off'}}
+async function netInit0(){R.tried=true;const nq=new URLSearchParams(location.search).get('net');
  ME.dev=ST('rg-dev')||('d'+rid()+rid());ST('rg-dev',ME.dev);
  if(nq!=='db'&&!window.__NETDB&&await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true;return}
  try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
 function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
 // R.hub = l'ingresso in corso (rete + stanza generale): chi cambia la rete della stanza (partite a distanza) aspetta che finisca
 function enterHub(){return R.hub=enterHub0()}
-async function enterHub0(){setTimeout(()=>FB.start(),1500);ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();if(R.mode==='fs')return;
+async function enterHub0(){setTimeout(()=>FB.start(),1500);if(!R.tried)R.net='prova';ui.screen='room';ui.err='';R.mine.name=ME.name;render();await netInit();if(R.mode==='fs')return;
  if(!R.on){try{const o=JSON.parse(ST('rg-off')||'null');if(o&&o.mine)R.mine={...o.mine,name:ME.name}}catch(e){}render();return}
  if(R.mode==='p2p'){try{await p2pEnter()}catch(e){ui.err=netErr(e);render()}return}
  try{let code=ST('rg-room');

@@ -15,7 +15,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
    await joinRoom(c);setRoomUrl(c);say('Sei nella stanza '+c)}catch(x){ui.err=netErr(x);render()}return}
  case'genroom':if(!R.on)return;setRoomUrl(null);ui.err='';try{if(R.mode==='p2p'){await p2pGeneral()}else{await joinRoom(GENROOM)}say('Sei nella stanza generale')}catch(x){ui.err=netErr(x);render()}return;
- case'retrynet':R.tried=false;R.on=false;R.mode=null;ui.err='';return enterHub();
+ case'retrynet':R.tried=false;R.on=false;R.mode=null;R.net='prova';ui.err='';return enterHub();
  case'emo':{const[e,k]=v.split('|');const m=R.mine.emo=R.mine.emo||{};m[k||'m']={e,t:Date.now()};await saveMine();tvLater();return}
  case'ek':ui.ek=v;return render();
  case'chatsend':return chatSend();

@@ -97,3 +97,8 @@
 .gl-sheet .vote{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border:0;border-radius:0;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);background:linear-gradient(180deg,#7a4f2b,#5c3a1e);box-shadow:none;color:#f0d9ae;font:800 14px var(--f-d)}
 .gl-sheet .vote.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08}
 .gl-sheet .tvdet .sel{background:#1d1510;color:#f0d9ae;border:1px solid rgba(245,205,150,.2);border-radius:0;font:700 14px var(--f-b)}
+/* stato della rete nella Taverna: in prova (pulsa), offline (tocca per riprovare) */
+.hm-st.prova{animation:hmpr 1.2s ease-in-out infinite}
+button.hm-st.off{border:0;cursor:pointer;min-height:32px;background:#5c3a1e;color:#f0d9ae;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+@keyframes hmpr{50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.hm-st.prova{animation:none}}
