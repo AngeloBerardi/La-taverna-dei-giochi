@@ -89,6 +89,11 @@ function tvBoxH(x,k,pick,MD,N){const{g,ok,v}=x,c=TVC[k],b=TVB[g.id]||{mm:[112,36
  return`<button class="tvbox tv-${b.k}${thin?' thin':''}${ok?'':' off'}" data-a="tvpick" data-v="${g.id}" aria-pressed="${!!on}" aria-label="${esc(g.name)}, ${g.range} giocatori${MD?', '+v+' voti':''}${ok?'':', non disponibile con '+N}" style="width:${w}px;height:${h}px;--bf:${b.c[0]};--bs:${b.c[1]};--be:${b.c[2]};--bi:${b.ink||'#fff3c4'};box-shadow:${tvExt(b.c[1])};transform:translateY(${on?-14:0}px)">${thin?'<i class="tvhit" aria-hidden="true"></i>':''}<span class="tvv">${tvInfo(g)[1]}</span><span class="tvt">${g.range.replace(' o ','/')}${MD&&v?' '+ic('star',12)+v:''}</span></button>`}
 function tvBoxes(ch,k,pick,MD,N){const isF=x=>TVB[x.g.id]&&TVB[x.g.id].k==='flat';ch=[...ch.filter(isF),...ch.filter(x=>!isF(x))];let out='',pile=[];const flush=()=>{if(pile.length){out+=`<div class="tvpile">${pile.reverse().join('')}</div>`;pile=[]}};
  for(const x of ch){const b=TVB[x.g.id];if(b&&b.k==='flat'){pile.push(tvBoxH(x,k,pick,MD,N));if(pile.length===2)flush()}else{flush();out+=tvBoxH(x,k,pick,MD,N)}}flush();return out}
+function tvDet(pick,N,MD,myKeys,busy){
+ const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
+ return g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
+  <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${ic('star',14)} ${esc(x.name)}</button>`}).join('')}</div>`:''}
+  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:''}
 function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
@@ -101,14 +106,11 @@ function tvShelf(list,top,N,myKeys,busy){
   for(let i=0;i<items.length;i+=6){const ch=items.slice(i,i+6);
    rows+=`<div class="tvrow">${i===0?`<div class="tvplate">${TVC[k].n}<small>${items.length}</small></div>`:''}<div class="tvboxes">${tvBoxes(ch,k,pick,MD,N)}</div><div class="tvplank"></div></div>`}});
  if(!vis.length)rows='<div class="tvnone">NESSUN GIOCO TROVATO</div>';
- const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
- const det=g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
-  <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${ic('star',14)} ${esc(x.name)}</button>`}).join('')}</div>`:''}
-  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:'';
+ const det=tvDet(pick,N,MD,myKeys,busy);
  return`<div class="tvshelf"><div class="tvsh"><div class="tvst2">LO SCAFFALE ${infoH(MD?'Tocca una scatola per vederla. Ogni giocatore può votare fino a 3 giochi: vince il più votato.':'Tocca una scatola per scegliere, poi premi Gioca.',"dark")}</div><div class="tvsn">${vis.length} ${vis.length===1?'gioco':'giochi'} · ${N} giocator${N===1?'e':'i'}</div></div>
  <input type="text" id="tvq" class="tvq" placeholder="Cerca tra i giochi" aria-label="Cerca tra i giochi" value="${esc(ui.q||'')}" autocomplete="off"><div class="tvchips">${chips}</div>${rows}${det}</div>`}
 
-function roomH(){if(lob3())return`${avEditH()}${rulesH()}${cfgH()}`;const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.on&&R.doc&&R.doc.phase==='play';
+function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEditH()}${rulesH()}${cfgH()}`;if(ui.amici)return`${avEditH()}${rulesH()}${cfgH()}`;if(!ui.inroom)return`${Plancia.homeH()}${avEditH()}${rulesH()}${cfgH()}`;if(lob3())return`${avEditH()}${rulesH()}${cfgH()}`;const M=members(),S=lobbySeats(),N=S.length,T=tally(N),busy=R.on&&R.doc&&R.doc.phase==='play';
  const myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];
  const MD=multiDev(),list=GAMES.map(g=>({g,ok:g.ok(N),v:MD?T[g.id]||0:0})).sort((a,b)=>(b.ok-a.ok)||(b.v-a.v));
  const top=list.find(x=>x.ok);

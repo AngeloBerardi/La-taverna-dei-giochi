@@ -13,8 +13,7 @@ Limiti Spark: 10 GB di file, ~360 MB/giorno di traffico. Il service worker tiene
 `node scripts/check.js && npx firebase-tools deploy --only hosting`
 
 ## Cosa non c'è
-`netlify/functions/locandiere.js` (risposte libere del locandiere con Claude) non gira su Hosting: servirebbero Cloud Functions (piano Blaze). Il locandiere usa i copioni scritti.
-`netlify.toml` resta nel repo ma non serve più.
+Il locandiere risponde con i copioni scritti: risposte libere con Claude richiederebbero Cloud Functions (piano Blaze).
 
 ## Accesso con Google
 Nel gioco: Impostazioni › Account › «Continua con Google» (`FB.google()` in `app/24a-firebase.js`: `linkWithPopup`, o `signInWithCredential` se quel Google ha già un profilo).

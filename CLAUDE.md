@@ -1,6 +1,6 @@
 # La Taverna dei Giochi
 
-Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. Hosting: Netlify, pubblica da `main` (`netlify.toml`: `node scripts/check.js`, cartella `dist/`). Una sola pagina, nessuna dipendenza.
+Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. Hosting: Firebase Hosting (`firebase.json`, cartella `dist/`), pubblica da `main`; dettagli in `docs/HOSTING.md`. Una sola pagina, nessuna dipendenza.
 
 ## Comandi (da lanciare, non da reinventare)
 | Comando | Cosa fa |
@@ -10,7 +10,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | `npm run test:rapido` / `npm test` | senza i test lenti / tutti (~1,5 min) |
 | `npm run test:browser` | prove in Chromium headless con Firebase simulato (PWA, profilo, premi…): `tools/test-browser/` |
 | `npm run regole` | riscrive in `firestore.rules` i prezzi della bottega dal catalogo (`-- --controlla` per verificare) |
-| `npm run check` | build + sintassi (è ciò che esegue Netlify) |
+| `npm run check` | build + sintassi (è il controllo di `node scripts/check.js` prima del deploy) |
 | `npm run struttura` | file fuori manifest, CSS copiato, righe troppo lunghe |
 | `npm run mappa` | rigenera la mappa dei moduli in `docs/ARCHITECTURE.md` |
 
@@ -29,7 +29,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Profilo online, monete (Firebase) | `src/js/app/24a-firebase.js`, regole in `firestore.rules`, piano in `docs/FIREBASE-PIANO.md` |
 | Bottega, cosmetici, prezzi | catalogo `src/js/motori/22-bottega.js` (unica fonte), `app/24b-bottega.js`, `css/33-dorsi.css`; dopo aver cambiato i prezzi: `npm run regole` e ripubblica `firestore.rules` |
 | Account (email), classifica, ELO | `app/24c-account.js` (modale), `app/24a-firebase.js` (FB.collega/entra/top, ELO in `award`), regole del punteggio `motori/23-elo.js` (+ `tests/test_elo.js`); nuovo gioco ⇒ `npm run regole` |
-| Locandiere (NPC) | copioni `motori/24-locandiere.js` (+ `tests/test_locandiere.js`), finestra `app/24d-locandiere.js`, risposte con Claude `netlify/functions/locandiere.js` (serve `ANTHROPIC_API_KEY` su Netlify) |
+| Locandiere (NPC) | copioni `motori/24-locandiere.js` (+ `tests/test_locandiere.js`), finestra `app/24d-locandiere.js` |
 | Partite a distanza (a turni, anche a giorni) | `app/24e-distanza.js` (`FsDb` = `R.db` su Firestore, `Dist` = elenco/inviti), dati puri `motori/25-distanza.js` (+ `tests/test_distanza.js`), regole `partite` in `firestore.rules` |
 | Schermo comune (TV/PC, `?tv=CODICE`), codice QR | `app/24f-schermo.js` (`TV`), `css/37-schermo.css`, generatore `motori/26-qr.js` (+ `tests/test_qr.js`, lettura vera con OpenCV) |
 | Eroi (creazione del personaggio, legati all'account) | motore `motori/27-eroi.js` (+ `tests/test_eroi.js`), vista `app/24g-eroi.js`, `css/38-eroi.css`, regole `eroi` in `firestore.rules` (generate: `npm run regole`) |
@@ -50,7 +50,7 @@ Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `doc
 
 ## Git
 - Mai lavorare su `main`. Rami: `design/…`, `art/…`, `rules/…`, `feat/…`, `fix/…`. Commit piccoli, messaggio in italiano all'imperativo breve.
-- Push del proprio ramo; l'unione in `main` la fa l'orchestratore dopo l'anteprima Netlify approvata dall'utente.
+- Push del proprio ramo; l'unione in `main` la fa l'orchestratore dopo l'verifica approvata dall'utente.
 - Un solo push alla volta (il proxy git limita le operazioni concorrenti). Prima di pushare: `git fetch origin main` e rebase.
 
 ## Risparmio di token (regole)
