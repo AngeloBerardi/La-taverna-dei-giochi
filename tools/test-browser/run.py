@@ -483,6 +483,24 @@ async def sc_schermo_comune(b, srv):
     check(await T.evaluate('[ui.screen,!!ui.err]') == ['tv', True], 'TV: tavolo eliminato, torna in attesa con un avviso')
     for c in (ctxA, ctxB, ctxT): await c.close()
 
+async def sc_schermo_regicide(b, srv):
+    # lo schermo comune ha una vista propria per Regicide: boss grande, giocatori, cronaca, nessuna mano, schermata finale
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500); await pg.set_viewport_size({'width': 1920, 'height': 1080})
+    await pg.evaluate("""async()=>{ui.tv=true;document.documentElement.dataset.tv='1';localStorage.setItem('rg-intro','1');
+      await startGame('regicide',[{dev:'a',k:'m',name:'Ada'},{dev:'b',k:'m',name:'Bruno'}]);await Q;await new Promise(r=>setTimeout(r,1500))}""")
+    check(await pg.query_selector('.rtv') is not None, 'Regicide TV: vista dedicata')
+    check(await pg.evaluate("document.querySelectorAll('.rtv .card:not(.back)').length") == 1, 'Regicide TV: solo il boss, nessuna mano')
+    check(await pg.evaluate("document.querySelectorAll('.rtv-pl li').length") == 2 and 'carte' in await pg.inner_text('.rtv-pl'), 'Regicide TV: giocatori con numero di carte')
+    check(await pg.evaluate("document.querySelectorAll('.rtv-path span').length") == 12 and await pg.evaluate("document.querySelectorAll('.rtv-path .now').length") == 1, 'Regicide TV: percorso di 12 nemici con quello attuale')
+    # il percorso non svela i semi dei nemici futuri
+    check(await pg.evaluate("[...document.querySelectorAll('.rtv-path .next')].every(e=>/^[JQK]$/.test(e.textContent))"), 'Regicide TV: semi dei nemici futuri nascosti')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight"), 'Regicide TV: niente scroll a 1920x1080')
+    await pg.evaluate("(()=>{const s=JSON.parse(JSON.stringify(G));s.over={win:true};G=s;render()})()"); await pg.wait_for_timeout(400)
+    check('Regicidio compiuto' in await pg.inner_text('.rtv-end'), 'Regicide TV: schermata di vittoria')
+    await pg.evaluate("(()=>{const s=JSON.parse(JSON.stringify(G));s.over={win:false,reason:'Ada deve scartare 9'};G=s;render()})()"); await pg.wait_for_timeout(400)
+    check('Il regno è perduto' in await pg.inner_text('.rtv-end') and 'Ada deve scartare 9' in await pg.inner_text('.rtv-end'), 'Regicide TV: schermata di sconfitta con il motivo')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 async def sc_campagna(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));ui.cfg=true;render()})()")

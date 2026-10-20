@@ -48,7 +48,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'oste':case'ostex':case'osteq':case'osteok':return Oste.act(a,v);
  case'eroi':case'eroix':case'eroinuovo':case'eroischeda':case'eroiindietro':case'eroiavanti':case'eroicol':case'eroirazza':case'eroiclasse':case'eroipt':case'eroicrea':case'eroielimina':return Eroi.act(a,v);
  case'campstart':case'campx':case'campnuova':case'campmuovi':case'campriposa':case'campentra':case'campfuggi':case'campris':return Camp.act(a,v);
- case'tvfull':case'tvm':case'tvmx':case'tvcopy':return TV.act(a);
+ case'tvfull':case'tvm':case'tvmx':case'tvcopy':case'tvcast':return TV.act(a);
  case'dist':case'distx':case'distnew':case'distjoin':case'distgo':case'distdel':case'distcopy':case'distexit':case'distnot':return Dist.act(a,v);
  case'fxsheet':ui.sheet=(!v||ui.sheet===v)?null:v;return render();
  case'mus':Snd.setMus(!Snd.mus);return render();case'sfx':Snd.setSfx(!Snd.sfx);return render();
