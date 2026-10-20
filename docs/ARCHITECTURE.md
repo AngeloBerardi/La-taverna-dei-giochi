@@ -40,6 +40,9 @@ Per aggiungere codice cerca la funzione con `grep -n` e apri solo quel file.
 ## Firebase (profilo online)
 `app/24a-firebase.js` (`FB`): l'SDK si importa da gstatic **solo dopo l'ingresso** (`enterHub` → `FB.start()` dopo 1,5 s), mai in blocco. Accesso anonimo → `players/{uid}`. Il premio di fine partita parte da `pushState` (`FB.matchEnd`, una volta per partita e per telefono; `iWon` in `07f` decide la vittoria) e passa da una coda in `localStorage` (`rg-fbq`) svuotata in ordine: se è offline o le regole rifiutano (un premio ogni ~50 s) resta in coda. Qualsiasi errore Firebase è solo un avviso nelle impostazioni: il gioco non dipende da lui. Regole: `firestore.rules`; piano e limiti: `docs/FIREBASE-PIANO.md`.
 
+## Bottega (cosmetici)
+Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). Il profilo ha `owned {id:true}` ed `equipped {slot:id}`; `FB.buy` (una transazione: scala le monete, aggiunge l'oggetto e lo mette in uso) e `FB.equip` (solo oggetti gratuiti o posseduti). Il dorso scelto è l'attributo `data-dorso` di `<html>` (`dorsoSel`, `applyTheme`), copiato in `localStorage` (`rg-dorso`) per applicarlo subito e offline; `Shop.sync()` lo riallinea al profilo e scarta scelte non possedute. CSS in `css/33-dorsi.css` (selettore doppio: anteprima `.d-xxx` e uso reale `[data-dorso=xxx]`). I prezzi sono anche in `firestore.rules`: lì l'acquisto è valido solo se compare **una** chiave nuova in `owned` e le monete scendono esattamente del prezzo; `npm run regole` genera quelle righe e `tests/test_bottega.js` fallisce se non coincidono.
+
 ## Rete
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Netlify la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
@@ -87,6 +90,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
+| `css/33-dorsi.css` | 2 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -111,7 +115,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/19-pets.js` | 8 | PETS, RND, clone, COUNTS, NAMES, TARGET, L |
 | `js/motori/20-uno.js` | 6 | UNO, RND, clone, COLORS, col, pts, L |
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
+| `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
+| `js/app/01a-vendor.js` | 1 |  |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 14 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
@@ -153,7 +159,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
-| `js/app/24a-firebase.js` | 4 | FB |
+| `js/app/24a-firebase.js` | 5 | FB |
+| `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

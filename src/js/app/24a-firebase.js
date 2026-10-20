@@ -15,13 +15,22 @@ const FB={
   FB.m={A,Au,F};const app=A.initializeApp(FB.CFG),auth=Au.getAuth(app);
   await auth.authStateReady();if(!auth.currentUser)await Au.signInAnonymously(auth);
   FB.uid=auth.currentUser.uid;FB.db=F.getFirestore(app);
-  await FB.load();await FB.flush()},
+  await FB.load();Shop.sync();await FB.flush()},
  ref(){return FB.m.F.doc(FB.db,'players',FB.uid)},
  // legge il profilo, lo crea alla prima volta, tiene il nome allineato
  async load(){const F=FB.m.F,ref=FB.ref(),nome=(ME.name||'Ospite').slice(0,24);
   FB.p=await F.runTransaction(FB.db,async tx=>{const s=await tx.get(ref);
    if(s.exists()){const d=s.data();if(d.name!==nome)tx.update(ref,{name:nome});return{...d,name:nome}}
    const n={name:nome,coins:0,played:0,wins:0,owned:{},equipped:{},createdAt:F.serverTimestamp(),lastAward:null};tx.set(ref,n);return{...n,createdAt:null}})},
+ // compra un oggetto della bottega al prezzo del catalogo e lo mette subito in uso (una sola scrittura)
+ async buy(id){const o=BOTTEGA.per(id);if(!o)throw new Error('oggetto sconosciuto');const F=FB.m.F,ref=FB.ref();
+  FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();if((d.owned||{})[id])return d;
+   if(d.coins<o.prezzo){const e=new Error('monete');e.code='monete';throw e}
+   const u={coins:d.coins-o.prezzo,owned:{...(d.owned||{}),[id]:true},equipped:{...(d.equipped||{}),[o.slot]:id}};tx.update(ref,u);return{...d,...u}})},
+ // sceglie cosa usare in uno slot (solo oggetti gratuiti o già posseduti)
+ async equip(slot,id){const F=FB.m.F,ref=FB.ref();
+  FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();if(!BOTTEGA.usabile(id,d.owned))throw new Error('non posseduto');
+   const u={equipped:{...(d.equipped||{}),[slot]:id}};tx.update(ref,u);return{...d,...u}})},
  // salva un premio: monete, partite, vittorie. Le regole lasciano passare un premio ogni ~50 s.
  async award(r){const F=FB.m.F,ref=FB.ref();
   FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();

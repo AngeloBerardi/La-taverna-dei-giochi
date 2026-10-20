@@ -8,6 +8,8 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | `npm run verifica` | build + sintassi + struttura + test rapidi (~25 s): **prima di ogni commit** |
 | `npm test -- catan uno` | solo i test il cui nome contiene quelle parole (in parallelo) |
 | `npm run test:rapido` / `npm test` | senza i test lenti / tutti (~1,5 min) |
+| `npm run test:browser` | prove in Chromium headless con Firebase simulato (PWA, profilo, premi…): `tools/test-browser/` |
+| `npm run regole` | riscrive in `firestore.rules` i prezzi della bottega dal catalogo (`-- --controlla` per verificare) |
 | `npm run check` | build + sintassi (è ciò che esegue Netlify) |
 | `npm run struttura` | file fuori manifest, CSS copiato, righe troppo lunghe |
 | `npm run mappa` | rigenera la mappa dei moduli in `docs/ARCHITECTURE.md` |
@@ -25,6 +27,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Lobby falò / sala | `src/js/app/07e-lobby-falo.js`, `12-sala-hall.js`, `12b-lobby-diorama.js` |
 | App installabile, offline, notifiche push | `src/pwa/` (`sw.js`, manifest, icone: `python3 tools/pwa/mk-icone.py`), `src/js/app/24-pwa.js` |
 | Profilo online, monete (Firebase) | `src/js/app/24a-firebase.js`, regole in `firestore.rules`, piano in `docs/FIREBASE-PIANO.md` |
+| Bottega, cosmetici, prezzi | catalogo `src/js/motori/22-bottega.js` (unica fonte), `app/24b-bottega.js`, `css/33-dorsi.css`; dopo aver cambiato i prezzi: `npm run regole` e ripubblica `firestore.rules` |
 | Nuovo gioco | comando `/nuovo-gioco` |
 
 Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `docs/STYLE.md`. Cartelle con regole proprie: vedi il `CLAUDE.md` dentro `src/css/`, `src/js/app/`, `src/js/motori/`, `tests/`, `tools/taverna3d/`.
@@ -32,6 +35,7 @@ Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `doc
 ## Build
 - `src/manifest.json` è l'elenco **ordinato** dei file: `scripts/build.js` li concatena in `dist/index.html`. L'ordine è il cascade del CSS e l'ordine di definizione del JS. Un file nuovo va nel manifest nella posizione giusta, altrimenti non esiste in `dist` (`npm run struttura` lo segnala).
 - Il numero nel nome del file segue l'ordine di caricamento (prefisso `07a`, `22b`… per i derivati). Se sposti un file nel manifest, rinominalo di conseguenza.
+- Le librerie in `src/js/vendor/` (three.js, PeerJS) non entrano in `dist/index.html`: il build le scrive in `dist/vendor/<nome>.<hash>.js` e `VENDOR.load('three'|'peerjs')` (`app/01a-vendor.js`) le carica solo quando servono; il service worker le tiene in una cache a parte. Una nuova libreria: nome in `scripts/build.js` (`NOMI`) e controllo in `PRONTO` di `01a-vendor.js`.
 - Mai aprire `dist/` né `src/js/vendor/` (bloccati in `.claude/settings.json`).
 
 ## Ruoli (agenti in `.claude/agents/`)

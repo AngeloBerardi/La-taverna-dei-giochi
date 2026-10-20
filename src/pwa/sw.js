@@ -3,15 +3,17 @@
 const BUILD = '__BUILD__';
 const CACHE = 'taverna-' + BUILD;
 const FONTS = 'taverna-font';
+const VENDOR = 'taverna-vendor'; // librerie con hash nel nome: non cambiano mai, restano tra un deploy e l'altro
+const VENDOR_URL = /*VENDOR*/[];
 const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => caches.open(VENDOR)).then(c => Promise.all(VENDOR_URL.map(u => c.match(u).then(h => h || c.add(u).catch(() => {}))))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k.startsWith('taverna-') && k !== CACHE && k !== FONTS).map(k => caches.delete(k))))
+    .then(ks => Promise.all(ks.filter(k => k.startsWith('taverna-') && k !== CACHE && k !== FONTS && k !== VENDOR).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -45,6 +47,7 @@ self.addEventListener('fetch', e => {
     if (u.pathname.startsWith('/.netlify/')) return;
     if (req.mode === 'navigate') return e.respondWith(paginaRete(req));
     if (u.pathname === '/sw.js') return;
+    if (u.pathname.startsWith('/vendor/')) return e.respondWith(caches.open(VENDOR).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r }))));
     return e.respondWith(vecchioNuovo(req, CACHE));
   }
   if (u.hostname === 'fonts.googleapis.com' || u.hostname === 'fonts.gstatic.com') e.respondWith(vecchioNuovo(req, FONTS));

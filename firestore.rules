@@ -8,6 +8,14 @@ service cloud.firestore {
     function accesso() { return request.auth != null; }
     function nomeOk(d) { return d.name is string && d.name.size() >= 1 && d.name.size() <= 24; }
 
+    // acquisto di UN oggetto al prezzo indicato: compare una sola chiave in `owned`, vale true, e le monete scendono del prezzo
+    function acquisto(id, prezzo) {
+      let o = request.resource.data.owned.diff(resource.data.owned);
+      return o.addedKeys().hasAll([id]) && o.affectedKeys().hasOnly([id])
+        && request.resource.data.owned[id] == true
+        && request.resource.data.coins == resource.data.coins - prezzo;
+    }
+
     match /players/{uid} {
       // il nome e le monete servono agli altri (classifiche, tavolo): lettura per chi ha fatto l'accesso
       allow read: if accesso();
@@ -41,13 +49,20 @@ service cloud.firestore {
               && request.resource.data.wins <= resource.data.wins + 1
               && request.resource.data.lastAward == request.time
               && (resource.data.lastAward == null || request.time > resource.data.lastAward + duration.value(50, 's')))
-          // 3) acquisto: le monete scendono (mai sotto zero) e il possesso cambia
-          //    (il prezzo non è ancora verificato: arriva con il catalogo)
-          || (request.resource.data.coins < resource.data.coins
-              && request.resource.data.coins >= 0
-              && request.resource.data.owned != resource.data.owned
+          // 3) acquisto dalla bottega al prezzo del catalogo (le righe tra i segnaposto sono generate: npm run regole)
+          || (request.resource.data.coins >= 0
               && request.resource.data.played == resource.data.played
-              && request.resource.data.wins == resource.data.wins)
+              && request.resource.data.wins == resource.data.wins
+              && (
+                // bottega:inizio
+                acquisto('dorso-notte', 40)
+                || acquisto('dorso-bosco', 60)
+                || acquisto('dorso-brace', 80)
+                || acquisto('dorso-corvo', 100)
+                || acquisto('dorso-brina', 120)
+                || acquisto('dorso-oro', 160)
+                // bottega:fine
+              ))
         );
 
       allow delete: if false;
