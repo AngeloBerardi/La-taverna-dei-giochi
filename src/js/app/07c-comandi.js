@@ -41,6 +41,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'cfg':ui.cfg=!ui.cfg;return render();
  case'pwainstall':PWA.install();return;
  case'shop':case'shopx':case'shopbuy':case'shopuse':return Shop.act(a,v);
+ case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accreset':case'accout':return Acc.act(a,v);
  case'fxsheet':ui.sheet=(!v||ui.sheet===v)?null:v;return render();
  case'mus':Snd.setMus(!Snd.mus);return render();case'sfx':Snd.setSfx(!Snd.sfx);return render();
  case'next':return dispatch({t:'next'});

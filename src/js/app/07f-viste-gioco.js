@@ -1,6 +1,7 @@
 function coverH(i){const n=esc(G.names[i]);return`<div class="cover panel"><h3>Passa il telefono a</h3><div class="nm">${n}</div><button class="b play" data-a="reveal">Sono ${n}</button></div>`}
 // true se ha vinto chi gioca su questo telefono (Regicide: vittoria cooperativa; a squadre in 4: i posti pari/dispari)
-function iWon(s){return s.g==='regicide'?s.over.win:s.over.win!=null&&isMine(s.over.win===null?-1:s.over.win)||s.over.win!=null&&s.n===4&&local().some(i=>i%2===s.over.win)}
+// vittoria di chi gioca su questo telefono: cooperativi = esito booleano; altrimenti ELO.vincitori (singoli, pari merito, squadre)
+function iWon(s){const o=s.over;if(typeof o.win==='boolean')return o.win;const w=ELO.vincitori(s);return!!w&&local().some(i=>w.includes(i))}
 function endH(){const s=G;if(!s.over||ui.anim)return'';let body='';
  if(s.g==='regicide')body=`<div class="crown">${s.over.win?'👑':'💀'}</div><h2>${s.over.win?'Regicidio compiuto!':'Il regno è perduto'}</h2>${s.over.win?(s.over.medal?`<div class="medal">${{gold:'🥇 Oro',silver:'🥈 Argento',bronze:'🥉 Bronzo'}[s.over.medal]}</div>`:'')+'<p>Il Re Oscuro è caduto. La Taverna brinda alla vostra gloria!</p>':`<p>${esc(s.over.reason)}.</p><p class="muted">La corruzione dilaga. Ma gli eroi tornano sempre.</p>`}<p class="muted">Nemici sconfitti: ${12-s.castle.length-(s.en?1:0)} su 12</p>`;
  else{const tn=t=>esc(IT.teamName(s,t)),w=s.over.win;body=`<div class="crown">${w==null?'🤝':'🏆'}</div><h2>${w==null?'Pareggio!':'Vince '+tn(w)+'!'}</h2><div class="scores">${s.over.scores.map((v,t)=>`<div class="${t===w?'w':''}"><span>${tn(t)}</span><b>${v}</b></div>`).join('')}</div>${s.g==='briscola'?'<p class="muted">Su 120 punti totali</p>':''}`}

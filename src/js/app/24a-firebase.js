@@ -14,8 +14,8 @@ const FB={
   const [A,Au,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
   FB.m={A,Au,F};const app=A.initializeApp(FB.CFG),auth=Au.getAuth(app);
   await auth.authStateReady();if(!auth.currentUser)await Au.signInAnonymously(auth);
-  FB.uid=auth.currentUser.uid;FB.db=F.getFirestore(app);
-  await FB.load();Shop.sync();await FB.flush()},
+  FB.auth=auth;FB.uid=auth.currentUser.uid;FB.db=F.getFirestore(app);
+  await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();await FB.flush()},
  ref(){return FB.m.F.doc(FB.db,'players',FB.uid)},
  // legge il profilo, lo crea alla prima volta, tiene il nome allineato
  async load(){const F=FB.m.F,ref=FB.ref(),nome=(ME.name||'Ospite').slice(0,24);
@@ -32,18 +32,35 @@ const FB={
   FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();if(!BOTTEGA.usabile(id,d.owned))throw new Error('non posseduto');
    const u={equipped:{...(d.equipped||{}),[slot]:id}};tx.update(ref,u);return{...d,...u}})},
  // salva un premio: monete, partite, vittorie. Le regole lasciano passare un premio ogni ~50 s.
- async award(r){const F=FB.m.F,ref=FB.ref();
+ // valutazioni degli altri giocatori del tavolo (lette prima: se una lettura fallisce si parte dalla base)
+ async rivali(e){const F=FB.m.F;return Promise.all(e.u.filter(x=>x!==FB.uid).map(x=>F.getDoc(F.doc(FB.db,'players',x)).then(s=>s.exists()?((s.data().elo||{})[e.g]||ELO.BASE):ELO.BASE,()=>ELO.BASE)))},
+ async award(r){const F=FB.m.F,ref=FB.ref(),e=r.elo&&r.elo.me===FB.uid?r.elo:null,altri=e?await FB.rivali(e):null;FB.dElo=null;
   FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();
-   const u={coins:d.coins+r.n,played:(d.played||0)+1,wins:(d.wins||0)+(r.won?1:0),lastAward:F.serverTimestamp()};tx.update(ref,u);return{...d,...u,lastAward:null}})},
+   const u={coins:d.coins+r.n,played:(d.played||0)+1,wins:(d.wins||0)+(r.won?1:0),lastAward:F.serverTimestamp()};
+   if(e){const mio=(d.elo||{})[e.g]||ELO.BASE,nuovo=ELO.nuovo(mio,altri,e.w.includes(FB.uid),e.w.length);u.elo={...(d.elo||{}),[e.g]:nuovo};FB.dElo=nuovo-mio}
+   tx.update(ref,u);return{...d,...u,lastAward:null}})},
  // svuota la coda dei premi in attesa, in ordine; al primo errore si ferma e riprova alla prossima occasione
  async flush(){if(FB.st!=='ok'&&FB.st!=='load'||!FB.p||FB.busy)return;FB.busy=true;
-  try{while(FB.q.length){const r=FB.q[0];await FB.award(r);FB.q.shift();FB.saveQ();say('+'+r.n+' 🪙 monete',2200);if(ui.cfg)render();
+  try{while(FB.q.length){const r=FB.q[0];await FB.award(r);FB.q.shift();FB.saveQ();say('+'+r.n+' 🪙 monete'+(FB.dElo?' · ELO '+(FB.dElo>0?'+':'')+FB.dElo:''),2600);if(ui.cfg)render();
     if(FB.q.length)await new Promise(ok=>setTimeout(ok,52000))}}
   catch(e){FB.err=String((e&&e.code)||e);console.warn('Firebase premio',e)}finally{FB.busy=false}},
+ // dati per la classifica ELO, o null se la partita non vale (cooperativa, pareggio, ospiti, posti ripetuti)
+ eloInfo(ns){const S=seatsNow(),w=ELO.vincitori(ns);if(!w||S.length<2||S.length!==ns.n||!FB.uid)return null;
+  const u=S.map(x=>x.uid);if(!S.every(x=>x.k==='m'&&x.uid)||new Set(u).size!==u.length)return null;
+  const me=S.findIndex(x=>x.dev===ME.dev);return me<0||u[me]!==FB.uid?null:{g:ns.g,u,me:FB.uid,w:w.map(i=>u[i])}},
+ // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
+ mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},
+ async collega(email,pw){const Au=FB.m.Au;await Au.linkWithCredential(FB.auth.currentUser,Au.EmailAuthProvider.credential(email,pw))},
+ async cambiaProfilo(){FB.uid=FB.auth.currentUser.uid;FB.p=null;await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();FB.q=FB.q.map(r=>({...r,elo:null}));FB.saveQ()},
+ async entra(email,pw){await FB.m.Au.signInWithEmailAndPassword(FB.auth,email,pw);await FB.cambiaProfilo()},
+ async reset(email){await FB.m.Au.sendPasswordResetEmail(FB.auth,email)},
+ async esci(){await FB.m.Au.signOut(FB.auth);await FB.m.Au.signInAnonymously(FB.auth);await FB.cambiaProfilo()},
+ // prime 20 righe di una classifica: campo = 'wins' | 'played' | 'coins' | 'elo.<gioco>'
+ async top(campo){const F=FB.m.F,s=await F.getDocs(F.query(F.collection(FB.db,'players'),F.orderBy(campo,'desc'),F.limit(20)));return s.docs.map(d=>({uid:d.id,...d.data()}))},
  // chiamata da pushState quando una partita passa a "finita": un premio per partita e per telefono
  matchEnd(ns){if(!ns.over||FB.last===ns.gid||!local().length)return;FB.last=ns.gid;
-  const won=!!iWon(ns);FB.q.push({n:FB.PREMIO.gioca+(won?FB.PREMIO.vinci:0),won,gid:ns.gid});FB.saveQ();
+  const won=!!iWon(ns);FB.q.push({n:FB.PREMIO.gioca+(won?FB.PREMIO.vinci:0),won,gid:ns.gid,elo:FB.eloInfo(ns)});FB.saveQ();
   if(FB.st==='ok')FB.flush();else FB.start().then(()=>FB.flush())},
- cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">🪙 ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p>`;
+ cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">🪙 ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
   if(FB.st==='err')return`<p class="muted" style="margin:0">Profilo online non attivo (${esc(FB.err)}).</p>`;return''}};
 window.addEventListener('online',()=>{if(FB.st==='err'&&ME.name)FB.start()});

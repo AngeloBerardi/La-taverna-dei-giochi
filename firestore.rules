@@ -16,6 +16,16 @@ service cloud.firestore {
         && request.resource.data.coins == resource.data.coins - prezzo;
     }
 
+    // valutazione ELO di un gioco: cambia solo quella chiave, resta tra 100 e 3000 e si sposta al massimo di 32 punti (ELO.K)
+    function elo(g) {
+      let a = resource.data.get('elo', {});
+      let b = request.resource.data.get('elo', {});
+      return b.diff(a).affectedKeys().hasOnly([g])
+        && b[g] >= 100 && b[g] <= 3000
+        && b[g] - a.get(g, 1000) <= 32 && a.get(g, 1000) - b[g] <= 32;
+    }
+    function eloUguale() { return request.resource.data.get('elo', {}) == resource.data.get('elo', {}); }
+
     match /players/{uid} {
       // il nome e le monete servono agli altri (classifiche, tavolo): lettura per chi ha fatto l'accesso
       allow read: if accesso();
@@ -32,25 +42,53 @@ service cloud.firestore {
       // aggiornamento: solo il proprio profilo e solo i campi previsti
       allow update: if accesso() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'lastAward'])
+             .hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'lastAward', 'elo'])
         && nomeOk(request.resource.data)
         && (
           // 1) niente monete e niente oggetti nuovi: cambio di nome o scelta dei cosmetici già posseduti
           (request.resource.data.coins == resource.data.coins
             && request.resource.data.played == resource.data.played
             && request.resource.data.wins == resource.data.wins
-            && request.resource.data.owned == resource.data.owned)
+            && request.resource.data.owned == resource.data.owned
+            && eloUguale())
           // 2) premio di fine partita: da 1 a 30 monete, una partita in più, al massimo una vittoria in più,
-          //    non più spesso di una volta ogni 50 secondi
+          //    non più spesso di una volta ogni 50 secondi; può spostare di poco la valutazione ELO di UN gioco
           || (request.resource.data.coins > resource.data.coins
               && request.resource.data.coins - resource.data.coins <= 30
               && request.resource.data.played == resource.data.played + 1
               && request.resource.data.wins >= resource.data.wins
               && request.resource.data.wins <= resource.data.wins + 1
+              && request.resource.data.owned == resource.data.owned
+              && (eloUguale() || (
+                // elo:inizio
+                elo('regicide')
+                || elo('briscola')
+                || elo('scopa')
+                || elo('burraco')
+                || elo('gang')
+                || elo('island')
+                || elo('mind')
+                || elo('mindx')
+                || elo('harvest')
+                || elo('valle')
+                || elo('discesa')
+                || elo('perudo')
+                || elo('kittens')
+                || elo('catan')
+                || elo('pets')
+                || elo('uno')
+                || elo('trono')
+                || elo('scoundrel')
+                || elo('machiavelli')
+                || elo('azul')
+                || elo('saboteur')
+                // elo:fine
+              ))
               && request.resource.data.lastAward == request.time
               && (resource.data.lastAward == null || request.time > resource.data.lastAward + duration.value(50, 's')))
           // 3) acquisto dalla bottega al prezzo del catalogo (le righe tra i segnaposto sono generate: npm run regole)
           || (request.resource.data.coins >= 0
+              && eloUguale()
               && request.resource.data.played == resource.data.played
               && request.resource.data.wins == resource.data.wins
               && (
