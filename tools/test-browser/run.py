@@ -499,6 +499,16 @@ async def sc_schermo_regicide(b, srv):
     check('Regicidio compiuto' in await pg.inner_text('.rtv-end'), 'Regicide TV: schermata di vittoria')
     await pg.evaluate("(()=>{const s=JSON.parse(JSON.stringify(G));s.over={win:false,reason:'Ada deve scartare 9'};G=s;render()})()"); await pg.wait_for_timeout(400)
     check('Il regno è perduto' in await pg.inner_text('.rtv-end') and 'Ada deve scartare 9' in await pg.inner_text('.rtv-end'), 'Regicide TV: schermata di sconfitta con il motivo')
+async def sc_stato_connessione(b, srv):
+    # senza rete la Taverna dice «Connessione…» finché prova, poi «Offline» cliccabile che rilancia la ricerca
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 300)
+    st0 = await pg.evaluate("document.querySelector('.hm-st')?.textContent||''")
+    check('Connessione' in st0 or 'Offline' in st0, f'stato iniziale: {st0!r}')
+    await pg.wait_for_function("R.net==='off'", timeout=60000); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('button.hm-st.off[data-a=retrynet]') is not None, 'offline: pulsante per riprovare nella Taverna')
+    await pg.click('button.hm-st.off'); await pg.wait_for_timeout(100)
+    check(await pg.evaluate("R.net")=='prova' or await pg.evaluate("R.net")=='off', 'riprova: la ricerca riparte')
+    await pg.wait_for_function("R.net==='off'", timeout=60000)
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
 async def sc_campagna(b, srv):

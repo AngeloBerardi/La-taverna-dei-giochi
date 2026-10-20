@@ -27,7 +27,7 @@ const Plancia={
    off=!R.on&&(()=>{try{return JSON.parse(ST('rg-off')||'null')?.game}catch(e){return null}})(),N=members().length,tv=R.on&&R.code;
   const card=(i,t,s,a,v,dis,cls)=>`<button class="hm-c ${cls||''}" data-a="${a}"${v?` data-v="${v}"`:''}${dis?' disabled':''}><span class="ic0">${ic(i,28)}</span><b>${t}</b></button>`;
   const resume=(tc?`<button class="rw3 hot" data-a="dist"><span class="g"><b>Tocca a te (${tc})</b></span>${ic('play',20)}</button>`:'')+(off?`<button class="rw3" data-a="resume"><span class="g"><b>Riprendi la partita</b></span>${ic('play',20)}</button>`:'');
-  return`<div class="hm"><div class="hm-top"><div><small>${sal}</small><h1>${nm}</h1></div><span class="hm-st ${R.on?'on':''}">${R.on?'Online':'Offline'}</span><button class="ib" data-a="mus" aria-label="Musica">${ic('nota',22)}</button></div>
+  return`<div class="hm"><div class="hm-top"><div><small>${sal}</small><h1>${nm}</h1></div>${R.on?'<span class="hm-st on">Online</span>':R.net==='prova'?'<span class="hm-st prova">Connessione…</span>':'<button class="hm-st off" data-a="retrynet" aria-label="Offline: tocca per riprovare a collegarti">Offline · riprova</button>'}<button class="ib" data-a="mus" aria-label="Musica">${ic('nota',22)}</button></div>
 <div class="hm-grid">${card('utente','Gioca da solo','Un solitario o una partita con i bot','pl','solo')}${card('globo','Sfida un\'amica','Partita a turni, anche a giorni di distanza',dist&&FB.mail()?'dist':'acc','',false)}${card('tv','Schermo comune','Mostra il tavolo sulla TV o sul PC','tvm','',!tv)}${card('fuoco','Entra nella taverna',N>1?N+' persone sedute adesso':'Il locale in 3D, da soli o in compagnia','pl','entra',false,'big')}</div>
 ${resume?`<div class="sh2">Da riprendere</div>${resume}`:''}
 </div>`},
