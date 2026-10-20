@@ -259,6 +259,9 @@ async def sc_taverna_dock(b, srv):
     # la Taverna è la lobby personale: niente dock, niente «Gioca ora»
     check(await pg.query_selector('.hm') is not None or 'Gioca da solo' in await pg.inner_text('body'), 'Home personale')
     check(not await pg.is_visible('#dock'), 'nessun dock nella Home')
+    check(await pg.query_selector('.hm-hero svg') is not None and await pg.query_selector('.hm-go[data-a=pl][data-v=giochi]') is not None, 'Home: scena e «Gioca ora»')
+    check(await pg.query_selector('.hm-duo [data-a=newroom]') is not None and await pg.query_selector('.hm-duo [data-a=codice]') is not None, 'Home: «Crea stanza» e «Entra con codice»')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth"), 'Home: niente scroll orizzontale')
     await pg.click('.hm-c[data-a=acc]'); await pg.wait_for_timeout(250)
     check(await pg.query_selector('.modal [data-a=acclink]') is not None, 'Sfida senza account: appare il popup di accesso')
     await pg.click('[data-a=pl][data-v=taverna]'); await pg.wait_for_timeout(250)
