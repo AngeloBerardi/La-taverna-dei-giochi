@@ -514,6 +514,17 @@ async def sc_stato_connessione(b, srv):
     await pg.wait_for_function("R.net==='off'", timeout=60000)
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_schermo_condividi(b, srv):
+    # dal telefono il link dello schermo comune si invia a un altro dispositivo con il foglio di condivisione
+    ctx = await new_context(b, srv.port, extra_init="window.__sh=[];navigator.share=async d=>{window.__sh.push(d)};"); pg = await page(ctx, srv.url, 2500)
+    await pg.evaluate("(()=>{R.on=true;R.code='ABCD';R.mode='p2p';ui.tvm=true;render()})()"); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('.modal [data-a=tvshare]') is not None, 'Schermo comune: pulsante «Invia il link al PC o alla TV»')
+    check('Trasmetti scheda' in await pg.inner_text('.modal'), 'Schermo comune: istruzioni per il Chromecast da PC')
+    await pg.click('.modal [data-a=tvshare]'); await pg.wait_for_timeout(300)
+    inviato = await pg.evaluate("window.__sh")
+    check(len(inviato) == 1 and '?tv=ABCD' in inviato[0]['url'], f'condivide il link dello schermo {inviato}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 async def sc_campagna(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));ui.cfg=true;render()})()")
