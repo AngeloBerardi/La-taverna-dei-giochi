@@ -36,7 +36,7 @@ function fantasmaH(){if(ui.tv)return fantasmaTVH();const s=G,v=viewer(),cover=ne
  const key=s.gid+':'+s.evn;if(ui.fk!==key){ui.fk=key;ui.fsel=null}
  const mv=mine&&(ph==='ghost'||ph==='det')?FANTASMA.moves(s,cur):[];
  const toMap={};mv.forEach(m=>{(toMap[m.to]=toMap[m.to]||[]).push(m.tk)});const dest=Object.keys(toMap).map(k=>({to:+k}));
- const chips=`<span class="chip pal">Round ${s.round}/${FANTASMA.ROUNDS}</span><span class="chip">${ph==='ghost'?'Muove il Fantasma':'Muovono i detective'}</span>${s.dbl?'<span class="chip">Doppia mossa</span>':''}`;
+ const chips=`<span class="chip pal">Round ${s.round}/${FANTASMA.ROUNDS}</span><span class="chip">${ph==='ghost'?'Muove il Fantasma':'Muovono i detective'}</span>${s.dbl?'<span class="chip">Doppia mossa</span>':''}${v!=null&&!cover?`<span class="chip role" style="border-color:${v?FAC[(v-1)%5]:'#8a6fd0'}">${v?'Sei un detective':'Sei il Fantasma'}</span>`:''}`;
  const strip=stripH(s,i=>({c:i?FAC[(i-1)%5]:'#8a6fd0',b:i?s.tk[i].taxi+'·'+s.tk[i].bus+'·'+s.tk[i].metro:'F'}));
  const pl=s.names.map((n,i)=>`<div class="pl ${i===cur&&!s.over?'act':''}"><div class="av" style="background:${i?FAC[(i-1)%5]:'#8a6fd0'}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc">${i===0?'Fantasma · taxi '+s.tk[0].taxi+' bus '+s.tk[0].bus+' metro '+s.tk[0].metro+' nero '+s.tk[0].black+' doppie '+s.tk[0].dbl:'Detective · taxi '+s.tk[i].taxi+' bus '+s.tk[i].bus+' metro '+s.tk[i].metro}</span></div>`).join('');
  const trail=`<div class="ftr">${s.trail.map((t,i)=>`<i class="${FANTASMA.REVEAL.includes(i+1)?'rv':''}" style="background:${FTC[t]}" title="Round ${i+1}">${i+1}</i>`).join('')||'<small class="muted">Il Fantasma non si è ancora mosso.</small>'}</div>`;

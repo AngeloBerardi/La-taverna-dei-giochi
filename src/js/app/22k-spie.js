@@ -3,7 +3,7 @@ const SPCOL={R:'#d8342c',B:'#2468c9',N:'#cdbb91',A:'#1b1b24'};
 const SPT=['Rossi','Blu'];
 function spieH(){if(ui.tv)return spieTVH();const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,t=s.turnT,spy=s.spies.includes(v),show=!cover&&(spy||!!s.over);
  const lr=SPIE.left(s,0),lb=SPIE.left(s,1);
- const chips=`<span class="chip" style="border-color:${SPCOL.R}">Rossi ${lr}</span><span class="chip" style="border-color:${SPCOL.B}">Blu ${lb}</span>${s.clue?`<span class="chip pal">Indizio «${esc(s.clue.w)}» ${s.clue.k}</span>`:''}${show&&!s.over?'<span class="chip">Vedi la chiave</span>':''}`;
+ const chips=`<span class="chip" style="border-color:${SPCOL.R}">Rossi ${lr}</span><span class="chip" style="border-color:${SPCOL.B}">Blu ${lb}</span>${s.clue?`<span class="chip pal">Indizio «${esc(s.clue.w)}» ${s.clue.k}</span>`:''}${show&&!s.over?'<span class="chip">Vedi la chiave</span>':''}${v!=null&&!cover?`<span class="chip role" style="border-color:${SPCOL[s.teams[v]?'B':'R']};color:${SPCOL[s.teams[v]?'B':'R']}">Sei ${spy?'la spia':'un agente'} dei ${SPT[s.teams[v]]}</span>`:''}`;
  const strip=stripH(s,i=>({c:SPCOL[s.teams[i]?'B':'R'],b:s.spies.includes(i)?'★':''}));
  const grid=s.words.map((w,i)=>{const k=s.key[i],r=s.rev[i],can=mine&&s.phase==='guess'&&!r;
   return`<button class="spc ${r?'rev k'+k:''} ${!r&&show?'hint h'+k:''} ${can?'can':''}" style="--sc:${SPCOL[k]}" ${can?`data-a="spcard" data-v="${i}"`:'disabled'}><span>${esc(w)}</span></button>`}).join('');
