@@ -39,7 +39,7 @@ const Plancia={
 <div class="hm-duo"><button class="b" data-a="newroom"${R.on?'':' disabled'}>Crea stanza</button><button class="b" data-a="codice"${R.on?'':' disabled'}>Entra con codice</button></div>
 ${resume?`<div class="sh2">Da riprendere</div>${resume}`:''}
 <div class="sh2">Altri modi di giocare</div>
-<div class="hm-grid">${tile('utente','Gioca da solo','Solitari e partite con i bot','pl','solo')}${tile('globo','Sfida un\'amica','A turni, anche a giorni di distanza',dist&&FB.mail()?'dist':'acc','',false)}${tile('tv','Schermo comune','Il tavolo sulla TV o sul PC','tvm','',!tv)}${tile('fuoco','Entra nella taverna',N>1?N+' persone sedute adesso':'Il locale in 3D','pl','entra',false)}</div>
+<div class="hm-grid">${tile('utente','Gioca da solo','Solitari e partite con i bot','pl','solo')}${tile('globo','Sfida a distanza','A turni, anche a giorni di distanza',dist&&FB.mail()?'dist':'acc','',false)}${tile('tv','Schermo comune','Il tavolo sulla TV o sul PC','tvm','',!tv)}${tile('fuoco','Entra nella taverna',N>1?N+' persone sedute adesso':'Il locale in 3D','pl','entra',false)}</div>
 </div>`},
  // Giochi: catalogo con ricerca, categorie, gioco in evidenza e scheda di dettaglio
  giochiH(){const N=lobbySeats().length,T=tally(N),MD=multiDev(),busy=R.on&&R.doc&&R.doc.phase==='play',myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];

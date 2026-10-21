@@ -4,13 +4,13 @@
    Percorsi: stanze/CODICE/d (la stanza), /m/DEV (membri), /c/ID (chat), /p/DEV (presenza: sparisce da sola quando il
    telefono si scollega, grazie a onDisconnect). Ogni documento viaggia come testo JSON (j): RTDB toglie null, array vuoti
    e numera gli array, lo stato dei giochi ne è pieno. Regole: database.rules.json. Piano: docs/FIREBASE-PIANO.md.
-   Spento di default (RT.PREDEFINITO): si prova con ?net=rt; se non risponde si ripiega sul p2p come prima. */
+   È il trasporto predefinito (RT.PREDEFINITO); ?net=p2p lo esclude; se non risponde entro 10 s si ripiega sul p2p. */
 const RT={
  URL:'https://la-taverna-dei-giochi-default-rtdb.europe-west1.firebasedatabase.app',
- PREDEFINITO:false, // true quando il database esiste ed è stato provato dal vivo
+ PREDEFINITO:true, // provato dal vivo; ?net=p2p riporta ai vecchi trasporti, ?net=rt lo forza
  m:null,db:null,on:false,vivo:false,pc:{},pw:{},here:{},ass:{},mio:'',TOLLERANZA:20000, // ms senza presenza prima di togliere un membro dall'attesa
 
- attivo(){return RT.PREDEFINITO||new URLSearchParams(location.search).get('net')==='rt'},
+ attivo(){const n=new URLSearchParams(location.search).get('net');return n==='p2p'?false:n==='rt'||RT.PREDEFINITO},
  // i link da condividere portano ?net=rt finché non è il trasporto predefinito (chi li apre usa lo stesso trasporto)
  link(u){return R.mode==='rt'&&!RT.PREDEFINITO?u+(u.includes('?')?'&':'?')+'net=rt':u},
  // percorso logico dell'app -> percorso nel database
