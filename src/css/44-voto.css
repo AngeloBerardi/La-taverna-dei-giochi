@@ -1,0 +1,11 @@
+.votoov{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(8,5,2,.72);padding:16px}
+.votoov.on{display:flex}
+.votoov .box{width:min(92vw,380px);gap:10px;text-align:center}
+.votoov .vq{margin:0;font-size:16px}
+.vlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.vlist li{display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.28);font-size:14px}
+.vlist li.si b{color:#7fe08a}.vlist li.no b{color:#ff8a7a}
+.votoov .vbar{height:6px;border-radius:3px;background:rgba(0,0,0,.4);overflow:hidden}
+.votoov .vbar i{display:block;height:100%;background:#f0c166;transition:width .4s linear}
+.votoov .vt{margin:0}
+.votoov .row .b{flex:1;min-height:46px}.votoov .row .b.on{outline:3px solid #fff3c4}

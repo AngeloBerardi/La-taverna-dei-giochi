@@ -93,7 +93,7 @@ function tvDet(pick,N,MD,myKeys,busy){
  const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
  return g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
   <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${ic('star',14)} ${esc(x.name)}</button>`}).join('')}</div>`:''}
-  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:''}
+  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>${MD?'Proponi':'Gioca'}</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:''}
 function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
@@ -125,7 +125,7 @@ function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEd
  if(tab==='games'){const games=tvShelf(list,top,N,myKeys,busy);
   body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
-  ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
+  ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Proponi ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
  else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
   <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button>${infoH("Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.")}</div></div>
