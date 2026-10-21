@@ -1,6 +1,6 @@
 
 /* ================= catalogo: i giochi veri dell'app ================= */
-var CATN={classici:'Classici',strategia:'Strategia',squadra:'Squadra e risate'};
+var CATN={classici:'Classici',strategia:'Strategia',squadra:'Cooperativi'};
 var ICON={regicide:0,briscola:1,burraco:2,gang:3,saboteur:4,azul:5,island:6,machiavelli:7,scopa:9,mind:10,mindx:11,harvest:12,valle:13,discesa:14,scoundrel:15,uno:16,pets:17,catan:18,kittens:19,perudo:20};
 function lum(h){var n=parseInt(h.slice(1),16);return(.3*(n>>16&255)+.59*(n>>8&255)+.11*(n&255))/255}
 var GAMES=A.games().map(function(g){var I=A.info(g),b=A.box(g.id);var c=b?b.c[0]:'#5a3a24';if(lum(c)>.62)c=b?b.c[1]:'#5a3a24';if(lum(c)>.62)c='#5a3a24';
