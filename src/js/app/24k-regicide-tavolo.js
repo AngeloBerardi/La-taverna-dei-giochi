@@ -53,12 +53,18 @@ function plate(txt,w,h,o){o=o||{};const k='pl'+txt+'|'+w+'|'+h+'|'+(o.bg||'')+(o
  let fs=Math.round(ch*.52);g.font=`bold ${fs}px Georgia,"DejaVu Sans",serif`;while(g.measureText(txt).width>cw-40&&fs>14){fs-=2;g.font=`bold ${fs}px Georgia,"DejaVu Sans",serif`}g.fillText(txt,cw/2,ch/2+2);
  const t=K.ctex(cv);TEX[k]=t;return t}
 function plateM(txt,w,h,o){const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshStandardMaterial({map:plate(txt,w,h,o),roughness:.7}));m.rotation.x=-Math.PI/2;return m}
-function cardM(c,sc){const f=new T.MeshStandardMaterial({map:face(c),roughness:.6}),b=new T.MeshStandardMaterial({map:back(),roughness:.6}),e=M('#efe3c4');
- const m=new T.Mesh(K.geo('rcard',()=>new T.BoxGeometry(CW,.025,CH)),[e,e,f,b,e,e]);m.scale.set(sc||1,1,sc||1);m.castShadow=true;return m}
-function backM(sc){const b=new T.MeshStandardMaterial({map:back(),roughness:.6}),e=M('#efe3c4');const m=new T.Mesh(K.geo('rcard',()=>new T.BoxGeometry(CW,.025,CH)),[e,e,b,b,e,e]);m.scale.set(sc||1,1,sc||1);m.castShadow=true;return m}
-function stackM(n,tilt){const g=new T.Group(),b=new T.MeshStandardMaterial({map:back(),roughness:.6}),e=M('#efe3c4'),h=n?Math.min(.9,.02+n*.022):.02;
- if(!n){const r=new T.Mesh(K.geo('slot',()=>new T.BoxGeometry(CW*1.04,.02,CH*1.04)),M('#2e4a40'));r.position.y=.01;g.add(r);return g}
- const m=new T.Mesh(new T.BoxGeometry(CW,h,CH),[e,e,b,b,e,e]);m.position.y=h/2;m.castShadow=true;g.add(m);if(tilt){m.rotation.y=.05;const t=new T.Mesh(K.geo('rcard',()=>new T.BoxGeometry(CW,.025,CH)),[e,e,b,b,e,e]);t.position.set(.22,h+.01,.1);t.rotation.y=.35;g.add(t)}return g}
+/* carte con spessore e angoli arrotondati: una lastra di bordo crema + una faccia sopra + un dorso sotto (nessuna carta è piatta, nessuna si compenetra) */
+const TH=.055,FM={};let BMAT=null;
+function rrShape(w,h,r){const s=new T.Shape(),x=-w/2,y=-h/2;s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
+const slab=h=>K.geo('slab'+h.toFixed(2),()=>{const g=new T.ExtrudeGeometry(rrShape(CW,CH,.07),{depth:h,bevelEnabled:false});g.rotateX(-Math.PI/2);return g});
+const fpl=()=>K.geo('fpl',()=>{const g=new T.PlaneGeometry(CW-.07,CH-.07);g.rotateX(-Math.PI/2);return g}),bpl=()=>K.geo('bpl',()=>{const g=new T.PlaneGeometry(CW-.07,CH-.07);g.rotateX(Math.PI/2);return g});
+const faceMat=c=>FM[c]||(FM[c]=new T.MeshStandardMaterial({map:face(c),roughness:.6})),backMat=()=>BMAT||(BMAT=new T.MeshStandardMaterial({map:back(),roughness:.6}));
+function cardM(c,sc,down){const g=new T.Group(),body=new T.Mesh(slab(TH),M('#efe3c4'));body.castShadow=true;g.add(body);
+ const f=new T.Mesh(fpl(),down?backMat():faceMat(c));f.position.y=TH+.002;g.add(f);const b=new T.Mesh(bpl(),backMat());b.position.y=-.002;g.add(b);g.scale.set(sc||1,1,sc||1);return g}
+const backM=sc=>cardM(null,sc,true);
+function stackM(n,tilt){const g=new T.Group();if(!n){const r=new T.Mesh(slab(.012),M('#2e4a40'));g.add(r);return g}
+ const h=Math.round((TH+Math.min(1.0,n*.028))/.02)*.02,m=new T.Mesh(slab(h),M('#efe3c4'));m.castShadow=true;g.add(m);const t=new T.Mesh(fpl(),backMat());t.position.y=h+.002;g.add(t);
+ if(tilt){const c=backM(1);c.position.set(.2,h+.006,.12);c.rotation.y=.35;g.add(c)}return g}
 function tower(col,tall){const g=new T.Group(),m=M(col,{roughness:.6}),d=M(K.shade(col,-.25),{roughness:.6});
  const b=new T.Mesh(new T.CylinderGeometry(.34,.4,.34*tall,8),m);b.position.y=.17*tall;const t=new T.Mesh(new T.ConeGeometry(.42,.34,8),d);t.position.y=.34*tall+.17;g.add(b,t);g.traverse(o=>{o.castShadow=true});return g}
 function pawn(col){const g=new T.Group(),m=K.mat(col,{roughness:.5,flatShading:false});const b=new T.Mesh(new T.CylinderGeometry(.14,.2,.34,12),m),h=new T.Mesh(new T.SphereGeometry(.15,12,10),m);h.position.y=.34;b.position.y=.17;g.add(b,h);g.traverse(o=>{o.castShadow=true});return g}
@@ -72,7 +78,8 @@ function buildTable(){const t=new T.Group(),wood=K.woodTex();
  S.scn.add(t);return t}
 /* ---------- pezzi (si ricostruiscono a ogni stato) ---------- */
 const PC=()=>(typeof CPC!=='undefined'?CPC:['#e8574a','#3a8fe6','#35b866','#f2c230','#b06be0','#e8742c']);
-const Y=.23;
+const Y=.25;
+const SP={x:1.5,z:1.0};
 function buildPieces(s,en,isNew){if(pcs)S.scn.remove(pcs);pcs=new T.Group();const keys=new Set(),fresh=[];pulses=[];
  const reg=(k,o)=>{keys.add(k);pcs.add(o);if(isNew&&!prev.has(k))fresh.push(o)},put=(o,x,y,z,ry)=>{o.position.set(x,y,z);if(ry)o.rotation.y=ry;return o};
  const done=s.en?12-s.castle.length-1:12;
@@ -80,34 +87,34 @@ function buildPieces(s,en,isNew){if(pcs)S.scn.remove(pcs);pcs=new T.Group();cons
  for(let i=0;i<12;i++){const r='JQK'[Math.floor(i/4)],st=i<done?'d':i===done&&s.en?'n':'x',x=-5.775+i*1.05;
   const col=st==='d'?'#8ccf9f':st==='n'?'#f0c166':RK[r],tw=tower(col,st==='n'?1.7:st==='d'?.7:1.1);put(tw,x,Y,-3.9);pcs.add(tw);
   const pl=plateM(st==='d'?'✓':r,.62,.36,{bg:st==='n'?'#7a5212':st==='d'?'#2f5a43':'#3b2616'});put(pl,x,Y+.01,-3.3);pcs.add(pl);if(st==='n')pulses.push(tw)}
- /* mazzi */
+ /* mazzi: l'altezza della pila è il numero di carte */
  [['Castello',s.castle.length,-2.2,0],['Taverna',s.tav.length,-.25,1],['Scarti',s.disc.length,1.7,1]].forEach(([nm,n,z,tl])=>{const st=stackM(n,tl);put(st,-5.9,Y,z);pcs.add(st);const p=plateM(nm+' '+n,1.5,.34);put(p,-5.9,Y+.01,z+1.0);pcs.add(p)});
- /* nemico sul cavalletto */
+ /* nemico: la carta poggia su un cavalletto (appoggio davanti, puntone dietro) */
  if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
   const ring=new T.Mesh(new T.CylinderGeometry(1.95,1.95,.04,36),new T.MeshBasicMaterial({color:lin(SUC[su]),transparent:true,opacity:.35}));put(ring,-.9,Y+.01,-.4);pcs.add(ring);pulses.push(ring);
-  const leg=new T.Mesh(new T.BoxGeometry(.2,1.5,.12),M('#6f4726'));put(leg,-.9,Y+.7,-1.75);leg.rotation.x=-.32;leg.castShadow=true;pcs.add(leg);
-  const base=new T.Mesh(new T.BoxGeometry(2.8,.1,.9),M('#6f4726'));put(base,-.9,Y+.05,1.45);base.castShadow=true;pcs.add(base);
-  const bc=cardM(en.c,2.15);put(bc,-.9,Y+1.12,-.28);bc.rotation.x=.62;reg('en'+en.c,bc);
-  const nm=plateM(RN[rk]+' di '+SN[su],3.1,.5);put(nm,-.9,Y+.02,2.0);pcs.add(nm);
-  const ti=plateM(TITLES[en.c]||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.45);pcs.add(ti);
-  const tr=new T.Mesh(new T.BoxGeometry(5.4,.12,.58),M('#3a2616'));put(tr,4.1,Y+.06,-3.0);tr.castShadow=true;pcs.add(tr);
-  const fl=Math.max(.001,5.1*left/hp),fb=new T.Mesh(new T.BoxGeometry(fl,.16,.36),M('#e0504a',{roughness:.5}));put(fb,1.55+fl/2,Y+.12,-3.0);pcs.add(fb);
-  for(let q=1;q<hp/10;q++){const tk=new T.Mesh(new T.BoxGeometry(.04,.2,.5),M('#1a120a'));put(tk,1.55+5.1*q*10/hp,Y+.13,-3.0);pcs.add(tk)}
-  const hpl=plateM('Vita '+left+' / '+hp,2.4,.42);put(hpl,2.9,Y+.02,-2.45);pcs.add(hpl);
-  const at=plateM('Attacco '+eff+(en.sh?'  (scudo −'+en.sh+')':''),3.2,.42,{bg:'#5a1f1f'});put(at,3.3,Y+.02,-1.9);pcs.add(at);
-  const im=plateM(en.can?'Immunità annullata dal Jolly':'Immune ai '+SN[su].toLowerCase()+' '+GL[su],3.8,.42,{bg:en.can?'#3a2d22':'#4a2a6a'});put(im,3.45,Y+.02,-1.35);pcs.add(im)}
- /* carte giocate contro il nemico */
- s.played.forEach((c,i)=>{const col=i%7,row=Math.floor(i/7),m=cardM(c,.82);put(m,1.65+col*.82,Y+.03+i*.004,.35+row*1.05,((hsh(c)%9)-4)*.035);reg('p'+c,m)});
- if(!s.played.length){const p=plateM('Nessuna carta sul campo',3.4,.4,{bg:'#2e4a40',fg:'#cfe6da'});put(p,3.5,Y+.02,1.2);pcs.add(p)}
- /* giocatori: sottobicchiere + carte coperte */
+  const ledge=new T.Mesh(new T.BoxGeometry(2.4,.235,.34),M('#6f4726'));put(ledge,-.9,Y+.1175,1.02);ledge.castShadow=true;pcs.add(ledge);
+  const leg=new T.Mesh(new T.BoxGeometry(.22,2.2,.12),M('#6f4726'));put(leg,-.9,Y+.82,-1.71);leg.rotation.x=.7;leg.castShadow=true;pcs.add(leg);
+  const bc=cardM(en.c,2.15);bc.scale.y=1.8;put(bc,-.9,Y+1.12,-.28);bc.rotation.x=.62;reg('en'+en.c,bc);
+  const nm=plateM(RN[rk]+' di '+SN[su],3.1,.5);put(nm,-.9,Y+.02,1.55);pcs.add(nm);
+  const ti=plateM(TITLES[en.c]||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.0);pcs.add(ti);
+  const tr=new T.Mesh(new T.BoxGeometry(4.1,.12,.58),M('#3a2616'));put(tr,4.9,Y+.06,-3.0);tr.castShadow=true;pcs.add(tr);
+  const fl=Math.max(.001,3.8*left/hp),fb=new T.Mesh(new T.BoxGeometry(fl,.16,.36),M('#e0504a',{roughness:.5}));put(fb,2.95+fl/2,Y+.12,-3.0);pcs.add(fb);
+  for(let q=1;q<hp/10;q++){const tk=new T.Mesh(new T.BoxGeometry(.04,.2,.5),M('#1a120a'));put(tk,2.95+3.8*q*10/hp,Y+.13,-3.0);pcs.add(tk)}
+  const hpl=plateM('Vita '+left+' / '+hp,2.4,.42);put(hpl,4.9,Y+.02,-2.4);pcs.add(hpl);
+  const at=plateM('Attacco '+eff+(en.sh?'  (scudo −'+en.sh+')':''),3.2,.42,{bg:'#5a1f1f'});put(at,4.9,Y+.02,-1.9);pcs.add(at);
+  const im=plateM(en.can?'Immunità annullata dal Jolly':'Immune ai '+SN[su].toLowerCase()+' '+GL[su],3.8,.42,{bg:en.can?'#3a2d22':'#4a2a6a'});put(im,4.9,Y+.02,-1.4);pcs.add(im)}
+ /* carte giocate: una accanto all'altra, ognuna un gradino sopra la precedente */
+ s.played.forEach((c,i)=>{const col=i%5,row=Math.floor(i/5),m=cardM(c,.75);put(m,2.95+col*.82,Y+.01+i*(TH+.006),.45+row*1.1,((hsh(c)%9)-4)*.03);reg('p'+c,m)});
+ if(!s.played.length){const p=plateM('Nessuna carta sul campo',3.4,.4,{bg:'#2e4a40',fg:'#cfe6da'});put(p,4.9,Y+.02,1.2);pcs.add(p)}
+ /* giocatori: sottobicchiere + carte coperte a ventaglio, una sopra l'altra */
  const n=s.n,cols=PC();
  for(let i=0;i<n;i++){const x=n===1?0:-5.2+(10.4/(n-1))*i,act=i===s.cur&&!s.over,h=s.hands[i].length;
   const co=new T.Mesh(new T.CylinderGeometry(.5,.55,.08,24),M(cols[i]||'#ccc',{roughness:.6}));put(co,x,Y+.04,4.25);co.castShadow=true;pcs.add(co);
-  const cnt=Math.min(h,10);for(let k=0;k<cnt;k++){const a=(k-(cnt-1)/2)*.17,m=backM(.5);put(m,x+Math.sin(a)*1.5,Y+.04+k*.006,3.55-Math.cos(a)*.15+Math.abs(a)*.4,-a*.9);pcs.add(m)}
+  const cnt=Math.min(h,10);for(let k=0;k<cnt;k++){const a=(k-(cnt-1)/2)*.17,m=backM(.5);put(m,x+Math.sin(a)*1.5,Y+.01+k*(TH+.006),3.55-Math.cos(a)*.15+Math.abs(a)*.4,-a*.9);pcs.add(m)}
   const nm=plateM(s.names[i]+(act?' ▸':''),2.2,.42,{bg:act?'#7a5212':'#3b2616'});put(nm,x,Y+.02,5.12);pcs.add(nm);
-  const hc=plateM(h+(h===1?' carta':' carte'),1.1,.3,{bg:'#2a1b0f',fg:'#e6cf9a'});put(hc,x,Y+.09,4.25);pcs.add(hc);
+  const hc=plateM(h+(h===1?' carta':' carte'),1.1,.3,{bg:'#2a1b0f',fg:'#e6cf9a'});put(hc,x,Y+.1,4.25);pcs.add(hc);
   if(act){const r=new T.Mesh(new T.TorusGeometry(.78,.06,8,30),new T.MeshBasicMaterial({color:lin('#ffd36b'),transparent:true,opacity:.8}));r.rotation.x=Math.PI/2;put(r,x,Y+.1,4.25);pcs.add(r);pulses.push(r)}}
- if(s.n===1&&s.jl!=null){const j=cardM('X1',.7);put(j,6.4,Y+.03,3.9,.1);pcs.add(j);const p=plateM('Jolly '+s.jl,1.2,.3);put(p,6.4,Y+.02,4.7);pcs.add(p)}
+ if(s.n===1&&s.jl!=null){const j=cardM('X1',.7);put(j,6.4,Y+.01,3.9,.1);pcs.add(j);const p=plateM('Jolly '+s.jl,1.2,.3);put(p,6.4,Y+.02,4.7);pcs.add(p)}
  S.scn.add(pcs);prev=keys;
  fresh.forEach(o=>{const y0=o.position.y;o.position.y=y0+2.2;anims.push({o,y0,t:0,d:.5+Math.random()*.15})})}
 /* ---------- avvio, ciclo, adattamento ---------- */
@@ -115,16 +122,21 @@ function size(){if(!S)return;const r=document.querySelector('.rtv-right'),w=Math
  S.ren.setSize(w,h,false);S.cv.style.width=w+'px';S.cv.style.height=h+'px';S.cam.aspect=w/h;S.cam.updateProjectionMatrix();
  const asp=w/h,th=Math.tan(S.cam.fov*Math.PI/180/2),tilt=.98,fw=15.4,fd=10.6;S.cam.userData={cx:0,cz:.3,tilt,dist:Math.max((fd*Math.sin(tilt)+.8)/2/th,fw/2/(th*asp))*1.2}}
 function loop(t){requestAnimationFrame(loop);if(!S||document.hidden||S.cv.style.display==='none')return;if(!tick0)tick0=t;const sec=(t-tick0)/1000,dt=Math.min(.05,(t-(loop.l||t))/1000);loop.l=t;
- const u=S.cam.userData;if(u&&u.dist){const sway=Math.sin(sec*.18)*.025;S.cam.position.set(u.cx+Math.sin(sway)*u.dist*.35,Math.sin(u.tilt)*u.dist,u.cz+Math.cos(u.tilt)*u.dist);S.cam.lookAt(u.cx,0,u.cz+.02*u.dist)}
+ const u=S.cam.userData;if(u&&u.dist){const sway=Math.sin(sec*.18)*.025;S.cam.position.set(u.cx+Math.sin(sway)*u.dist*.35,Math.sin(u.tilt)*u.dist,u.cz+Math.cos(u.tilt)*u.dist);const sh=RACT.shake||0;S.cam.position.x+=Math.sin(sec*61)*.07*sh;S.cam.position.y+=Math.sin(sec*53)*.05*sh;S.cam.lookAt(u.cx,0,u.cz+.02*u.dist)}
+ RACT.tick(dt,sec);
  pulses.forEach((m,i)=>{if(m.material&&m.material.opacity!==undefined&&m.material.transparent)m.material.opacity=.45+.3*Math.sin(sec*4);else{const k=1+.05*Math.sin(sec*3+i);m.scale.set(1,k,1)}});
  for(let i=anims.length-1;i>=0;i--){const a=anims[i];a.t+=dt;const k=Math.min(1,a.t/a.d),e=1-Math.pow(1-k,3),b=k<1?Math.abs(Math.sin(k*Math.PI*2.4))*.1*(1-k):0;a.o.position.y=a.y0+(1-e)*2.2+b;if(k>=1){a.o.position.y=a.y0;anims.splice(i,1)}}
  S.ren.render(S.scn,S.cam)}
-async function init(){if(S||failed)return;if(!loading)loading=(async()=>{try{T=await CTV.lib();K=CTV.kit();S=CTV.stage('rtv3d');buildTable();requestAnimationFrame(loop);addEventListener('resize',size);
+async function init(){if(S||failed)return;if(!loading)loading=(async()=>{try{T=await CTV.lib();K=CTV.kit();S=CTV.stage('rtv3d');buildTable();RACT.init(T,K,S.scn);requestAnimationFrame(loop);addEventListener('resize',size);
   if(typeof G!=='undefined'&&G&&G.g==='regicide'&&typeof render==='function')render()}catch(e){failed=true;console.warn('Regicide 3D non disponibile:',e&&e.message);if(typeof render==='function')render()}})();return loading}
+let curN=3,lastGid='',fired=false;
+const GEO={spot:SP,card:{x:-.9,y:Y+1.3,z:-.28},tower:s=>({x:-5.775+(s.en?12-s.castle.length-1:11)*1.05,z:-3.9}),seat:p=>({x:curN===1?0:-5.2+(10.4/(curN-1))*p,z:4.25})};
 function sync(s,en){if(failed)return false;if(!S){init();return false}
  const nk=(s.gid||'')+':'+s.evn+':'+(en?en.c+en.dmg+'/'+en.sh+(en.can?'j':''):'')+':'+s.cur;
- S.cv.style.display='block';size();
+ S.cv.style.display='block';size();curN=s.n;
  if(nk!==key){const first=!key;key=nk;buildPieces(s,en,!first)}
+ if((s.gid||'')!==lastGid){lastGid=s.gid||'';fired=false;RACT.clear()}
+ RACT.sync(s,en,s.ev,!fired,GEO);fired=true;
  return true}
 function hide(){if(S)S.cv.style.display='none'}
 return{sync,hide,init,get failed(){return failed},get ready(){return !!S},debug:()=>({S,K})}})();

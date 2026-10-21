@@ -492,11 +492,12 @@ async def sc_schermo_regicide(b, srv):
     await pg.evaluate("""async()=>{ui.tv=true;document.documentElement.dataset.tv='1';localStorage.setItem('rg-intro','1');
       await startGame('regicide',[{dev:'a',k:'m',name:'Ada'},{dev:'b',k:'m',name:'Bruno'}]);await Q;await new Promise(r=>setTimeout(r,1500))}""")
     check(await pg.query_selector('.rtv') is not None, 'Regicide TV: vista dedicata')
-    check(await pg.evaluate("document.querySelectorAll('.rtv .card:not(.back)').length") == 1, 'Regicide TV: solo il boss, nessuna mano')
+    d3 = await pg.evaluate("document.documentElement.dataset.rtv3==='1'")  # con WebGL il tavolo è 3D: boss e percorso stanno nella scena
+    check(d3 or await pg.evaluate("document.querySelectorAll('.rtv .card:not(.back)').length") == 1, 'Regicide TV: solo il boss, nessuna mano')
     check(await pg.evaluate("document.querySelectorAll('.rtv-pl li').length") == 2 and 'carte' in await pg.inner_text('.rtv-pl'), 'Regicide TV: giocatori con numero di carte')
-    check(await pg.evaluate("document.querySelectorAll('.rtv-path span').length") == 12 and await pg.evaluate("document.querySelectorAll('.rtv-path .now').length") == 1, 'Regicide TV: percorso di 12 nemici con quello attuale')
+    check(d3 or await pg.evaluate("document.querySelectorAll('.rtv-path span').length") == 12 and await pg.evaluate("document.querySelectorAll('.rtv-path .now').length") == 1, 'Regicide TV: percorso di 12 nemici con quello attuale')
     # il percorso non svela i semi dei nemici futuri
-    check(await pg.evaluate("[...document.querySelectorAll('.rtv-path .next')].every(e=>/^[JQK]$/.test(e.textContent))"), 'Regicide TV: semi dei nemici futuri nascosti')
+    check(d3 or await pg.evaluate("[...document.querySelectorAll('.rtv-path .next')].every(e=>/^[JQK]$/.test(e.textContent))"), 'Regicide TV: semi dei nemici futuri nascosti')
     check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight"), 'Regicide TV: niente scroll a 1920x1080')
     await pg.evaluate("(()=>{const s=JSON.parse(JSON.stringify(G));s.over={win:true};G=s;render()})()"); await pg.wait_for_timeout(400)
     check('Regicidio compiuto' in await pg.inner_text('.rtv-end'), 'Regicide TV: schermata di vittoria')
