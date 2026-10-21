@@ -4,7 +4,7 @@ module.exports=function(C){
 const RES=C.RES;
 const pv=(s,v,G)=>{let t=0;const k=new Set();G.V[v].h.forEach(h=>{const x=s.hexes[h];if(x.t==='sea'||x.t==='desert'||x.fog)return;t+=x.t==='gold'?3.5:C.pips(x.num);k.add(x.t==='gold'?'g':x.t)});return t+k.size*1.3};
 const freeV=(s,v,G)=>!s.bld[v]&&!G.V[v].n.some(x=>s.bld[x])&&G.V[v].h.some(i=>C.landH(s,i));
-function discardPlan(s,p){const need=s.disc[p],res={},r={...s.res[p]};for(let i=0;i<need;i++){const k=RES.slice().sort((a,b)=>r[b]-r[a])[0];r[k]--;res[k]=(res[k]||0)+1}return res}
+function discardPlan(s,p){const need=s.disc[p],res={},r={...s.res[p]},K=C.KEYS(s);for(let i=0;i<need;i++){const k=K.slice().sort((a,b)=>r[b]-r[a])[0];r[k]--;res[k]=(res[k]||0)+1}return res}
 function goldPlan(s,p){const need=s.gold[p],res={},have={...s.res[p]};const want=['ore','grain','wool','brick','wood'];
  for(let i=0;i<need;i++){const k=want.filter(x=>s.bank[x]-(res[x]||0)>0).sort((a,b)=>(have[a]+(res[a]||0))-(have[b]+(res[b]||0)))[0];res[k]=(res[k]||0)+1}return res}
 // strada verso il miglior incrocio libero entro 3 passi

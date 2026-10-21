@@ -46,7 +46,9 @@ const use=s=>{const g=s&&s.lay?geoLay(s.lay):GEO[(s&&s.prof)||'a'];HX=g.HX;V=g.V
 use(null);
 const other=(e,v)=>E[e].a===v?E[e].b:E[e].a;
 const L=(s,t)=>{s.log.push(t);if(s.log.length>50)s.log.shift()};
-const tot=(r)=>RES.reduce((a,k)=>a+r[k],0);
+const tot=(r)=>Object.values(r).reduce((a,b)=>a+b,0);
+/* carte in mano: le 5 risorse più le eventuali merci di un'espansione (s.xk) */
+const KEYS=s=>s&&s.xk&&s.xk.length?RES.concat(s.xk):RES;
 const zero=()=>({wood:0,brick:0,wool:0,grain:0,ore:0});
 const pips=n=>n?6-Math.abs(7-n):0;
 /* plancia classica: terreni, numeri (mai 6 e 8 vicini), porti sulla costa */
@@ -112,19 +114,19 @@ function updateLongest(s){const lens=s.n?Array.from({length:s.n},(_,p)=>roadLen(
  s.longest=w==null?null:{p:w,len:lens[w]};if(w!=null&&w!==old)L(s,s.names[w]+' ha la strada più lunga ('+M+')');else if(w==null&&old!=null)L(s,'La strada più lunga non appartiene più a nessuno')}
 function updateArmy(s,p){const k=s.knights[p];if(k>=3&&(!s.army||(s.army.p!==p&&k>s.army.n))){s.army={p,n:k};L(s,s.names[p]+' ha l’esercito più grande ('+k+' cavalieri)')}else if(s.army&&s.army.p===p)s.army.n=k}
 function points(s,p,hidden){let v=0;for(const k in s.bld)if(s.bld[k].p===p)v+=s.bld[k].k;if(s.longest&&s.longest.p===p)v+=2;if(s.army&&s.army.p===p)v+=2;if(hidden)v+=s.dev[p].filter(c=>c==='vp').length;v+=XS(s,'points',p,hidden);return v}
-function ratio(s,p,r){let q=4;for(const pt of s.ports){const mine=[E[pt.e].a,E[pt.e].b].some(v=>s.bld[v]&&s.bld[v].p===p);if(!mine)continue;if(pt.k==='any')q=Math.min(q,3);else if(pt.k===r)q=Math.min(q,2)}return q}
-const has=(s,p,c)=>RES.every(k=>(c[k]||0)<=s.res[p][k]);
-function pay(s,p,c){RES.forEach(k=>{const n=c[k]||0;s.res[p][k]-=n;s.bank[k]+=n})}
+function ratio(s,p,r){let q=4;for(const pt of s.ports){const mine=[E[pt.e].a,E[pt.e].b].some(v=>s.bld[v]&&s.bld[v].p===p);if(!mine)continue;if(pt.k==='any')q=Math.min(q,3);else if(pt.k===r)q=Math.min(q,2)}const o=X(s,'ratio',p,r,q);return o==null?q:o}
+const has=(s,p,c)=>Object.keys(c).every(k=>(c[k]||0)<=(s.res[p][k]||0));
+function pay(s,p,c){Object.keys(c).forEach(k=>{const n=c[k]||0;s.res[p][k]-=n;s.bank[k]+=n})}
 /* produzione con il limite della banca (19 carte per risorsa) */
-function produce(s,roll){const want=Array.from({length:s.n},zero),gw=Array(s.n).fill(0);
- HX.forEach((h,i)=>{const x=s.hexes[i];if(x.num!==roll||i===s.robber||x.fog||x.t==='sea')return;h.v.forEach(v=>{const b=s.bld[v];if(!b)return;
+function produce(s,roll){const K=KEYS(s),z=()=>Object.fromEntries(K.map(k=>[k,0])),want=Array.from({length:s.n},z),gw=Array(s.n).fill(0);
+ HX.forEach((h,i)=>{const x=s.hexes[i];if(x.num!==roll||(i===s.robber&&!s.robOff)||x.fog||x.t==='sea')return;h.v.forEach(v=>{const b=s.bld[v];if(!b)return;
   if(x.t==='gold')gw[b.p]+=b.k;else{const y=X(s,'yield',b,x.t,i);if(y)Object.keys(y).forEach(k=>{want[b.p][k]+=y[k]});else want[b.p][x.t]+=b.k}})});
  /* oro: chi ha una colonia (1) o una città (2) accanto sceglie altrettante risorse a piacere, nei limiti della banca */
  let left=RES.reduce((a,k)=>a+s.bank[k],0);s.gold=null;gw.forEach((n,p)=>{if(n>0&&left>0){const m=Math.min(n,left);(s.gold=s.gold||{})[p]=m;left-=m}});
- const got=Array.from({length:s.n},zero);
- for(const k of RES){const tot=want.reduce((a,w)=>a+w[k],0),who=want.map((w,p)=>w[k]?p:-1).filter(p=>p>=0);
+ const got=Array.from({length:s.n},z);
+ for(const k of K){const tot=want.reduce((a,w)=>a+w[k],0),who=want.map((w,p)=>w[k]?p:-1).filter(p=>p>=0);
   if(tot<=s.bank[k])who.forEach(p=>{got[p][k]=want[p][k]});else if(who.length===1)got[who[0]][k]=s.bank[k]}
- got.forEach((g,p)=>RES.forEach(k=>{s.res[p][k]+=g[k];s.bank[k]-=g[k]}));return got}
+ got.forEach((g,p)=>K.forEach(k=>{s.res[p][k]+=g[k];s.bank[k]-=g[k]}));return got}
 function check(s){if(s.over||s.phase==='setup'||s.phase==='sbp')return;const p=s.cur,v=points(s,p,true);if(v>=s.vp){s.over={win:p,scores:Array.from({length:s.n},(_,i)=>points(s,i,true)),reason:s.vp+' punti vittoria'};s.ev.push({t:'end',win:p});L(s,s.names[p]+' arriva a '+v+' punti e vince!')}}
 const cardsOf=(s,p)=>tot(s.res[p]);
 const handOf=(s,p)=>{const v=X(s,'handSize',p);return v==null?cardsOf(s,p):v};
@@ -133,11 +135,11 @@ function reveal(s,p,hs){if(!s.fogN)return;for(const i of hs){const x=s.hexes[i];
   if(RES.includes(x.t)&&s.bank[x.t]>0){s.res[p][x.t]++;s.bank[x.t]--}else if(x.t==='gold'){(s.gold=s.gold||{})[p]=(s.gold[p]||0)+1;if(s.phase!=='gold'){s.goldBack=s.phase;s.phase='gold'}}}}
 function startRobber(s,after){s.phase='robber';s.after=after}
 function endRobber(s){s.phase=s.after||'main';s.after=null;s.vict=null}
-function stealFrom(s,vic){const me=s.cur,hand=[];RES.forEach(k=>{for(let i=0;i<s.res[vic][k];i++)hand.push(k)});if(!hand.length){endRobber(s);return}
+function stealFrom(s,vic){const me=s.cur,hand=[];KEYS(s).forEach(k=>{for(let i=0;i<s.res[vic][k];i++)hand.push(k)});if(!hand.length){endRobber(s);return}
  const k=hand[Math.floor(RND()*hand.length)];s.res[vic][k]--;s.res[me][k]++;s.ev.push({t:'steal',p:me,from:vic});L(s,s.names[me]+' ruba una carta a '+s.names[vic]);endRobber(s)}
 function startTurn(s,p){s.cur=p;s.turnP=p;s.newDev[p]=[];s.newShips=[];s.shipMoved=false;X(s,'turn',p);s.phase='roll';s.dice=null;s.devPlayed=false;s.trade=null;s.sbp=null;s.ev.push({t:'turn',p});L(s,'Tocca a '+s.names[p])}
 /* fase di costruzione speciale (5-8 giocatori): finito il turno, ogni altro giocatore in ordine può costruire e comprare, ma non scambiare né giocare sviluppo */
-function nextTurn(s){const p=s.turnP=s.phase==='sbp'?s.turnP:s.cur;s.newDev[p]=[];s.trade=null;
+function nextTurn(s){const p=s.turnP=s.phase==='sbp'?s.turnP:s.cur;s.newDev[p]=[];s.trade=null;X(s,'end',p);
  if(s.n>=5){s.sbp={left:s.n-1};s.cur=(p+1)%s.n;s.phase='sbp';s.dice=null;s.devPlayed=false;s.ev.push({t:'sbp',p:s.cur});L(s,'Costruzione speciale: '+s.names[s.cur]+' può costruire');return}
  startTurn(s,(p+1)%s.n)}
 function nextSbp(s){const p=s.cur;s.sbp.left--;if(s.sbp.left<=0)return startTurn(s,(s.turnP+1)%s.n);s.cur=(p+1)%s.n;s.ev.push({t:'sbp',p:s.cur});L(s,'Costruzione speciale: '+s.names[s.cur]+' può costruire')}
@@ -145,11 +147,12 @@ const fail=e=>({err:e});
 function act(st,a){const s=clone(st);use(s);if(s.over)return fail('Partita finita');s.ev=[];const p=a.seat;if(!Number.isInteger(p)||p<0||p>=s.n)return fail('Giocatore sconosciuto');
  const r=run(s,a,p);if(r&&r.err)return r;check(s);s.evn++;return{s}}
 function run(s,a,p){
+ const xr=X(s,'act',a,p);if(xr)return xr===true?undefined:xr;
  /* risposte fuori turno */
  if(a.t==='discard'){if(s.phase!=='discard'||!s.disc||!s.disc[p])return fail('Non devi scartare');const c=a.res||{};let n=0;
-  for(const k of RES){const x=c[k]||0;if(!Number.isInteger(x)||x<0||x>s.res[p][k])return fail('Scarto non valido');n+=x}
+  for(const k of KEYS(s)){const x=c[k]||0;if(!Number.isInteger(x)||x<0||x>s.res[p][k])return fail('Scarto non valido');n+=x}
   if(n!==s.disc[p])return fail('Devi scartare esattamente '+s.disc[p]+' carte');pay(s,p,c);delete s.disc[p];s.ev.push({t:'discard',p,n});L(s,s.names[p]+' scarta '+n+' carte');
-  if(!Object.keys(s.disc).length){s.disc=null;startRobber(s,'main')}return}
+  if(!Object.keys(s.disc).length){s.disc=null;afterSeven(s)}return}
  if(a.t==='gold'){if(s.phase!=='gold'||!s.gold||!s.gold[p])return fail('Non devi scegliere risorse');const c=a.res||{};let n=0;
   for(const k of RES){const x=c[k]||0;if(!Number.isInteger(x)||x<0||x>s.bank[k])return fail('Scelta non valida');n+=x}
   if(n!==s.gold[p])return fail('Devi scegliere esattamente '+s.gold[p]+' carte');RES.forEach(k=>{const x=c[k]||0;s.res[p][k]+=x;s.bank[k]-=x});delete s.gold[p];s.ev.push({t:'goldpick',p,n});L(s,s.names[p]+' sceglie '+n+' '+(n>1?'risorse':'risorsa')+' dall’oro');
@@ -161,17 +164,13 @@ function run(s,a,p){
  switch(s.phase){
  case'setup':{const S=s.setup;
   if(S.step==='v'){if(a.t!=='settle')return fail('Posa una colonia');const e=canSettle(s,p,a.v,true);if(e)return fail(e);
-   s.bld[a.v]={p,k:1};S.v=a.v;S.step='e';s.ev.push({t:'build',p,k:'settle',x:a.v});X(s,'built',p,'settle',a.v,true);L(s,s.names[p]+' posa una colonia');
+   s.bld[a.v]={p,k:X(s,'setupK',p,S.i>=s.n)||1};S.v=a.v;S.step='e';s.ev.push({t:'build',p,k:'settle',x:a.v});X(s,'built',p,'settle',a.v,true);L(s,s.names[p]+' posa una colonia');
    if(S.i>=s.n){const g=zero();V[a.v].h.forEach(h=>{const t=s.hexes[h].t;if(t!=='desert'&&s.bank[t]>0){s.res[p][t]++;s.bank[t]--;g[t]++}});s.ev.push({t:'gain',p,res:g})}return}
   if(a.t!=='road'&&a.t!=='ship')return fail('Posa una strada (o una nave) accanto alla colonia');const e=a.t==='ship'?canShip(s,p,a.e,{from:S.v}):canRoad(s,p,a.e,S.v);if(e)return fail(e);
   (a.t==='ship'?s.ships:s.roads)[a.e]=p;s.ev.push({t:'build',p,k:a.t==='ship'?'ship':'road',x:a.e});if(a.t==='ship')reveal(s,p,E[a.e].h);S.i++;S.step='v';S.v=null;
   if(S.i>=S.order.length){s.phase='roll';s.cur=S.order[0];s.turnP=s.cur;s.setup=null;L(s,'Si gioca! Tocca a '+s.names[s.cur])}else s.cur=S.order[S.i];return}
  case'roll':
-  if(a.t==='roll'){const d=[1+Math.floor(RND()*6),1+Math.floor(RND()*6)],sum=d[0]+d[1];s.dice=d;s.ev.push({t:'roll',d});L(s,s.names[p]+' tira: '+d[0]+' + '+d[1]+' = '+sum);
-   if(sum===7){const need={};for(let i=0;i<s.n;i++){const c=handOf(s,i),lm=X(s,'discardLimit',i);if(c>(lm==null?7:lm))need[i]=Math.floor(c/2)}
-    if(Object.keys(need).length){s.disc=need;s.phase='discard';s.ev.push({t:'seven'})}else{s.ev.push({t:'seven'});startRobber(s,'main')}return}
-   const g=produce(s,sum);s.phase=s.gold?'gold':'main';s.goldBack='main';s.ev.push({t:'gain',all:g});if(s.gold)s.ev.push({t:'gold',who:Object.keys(s.gold).map(Number)});
-   if(g.every(x=>!tot(x)))L(s,'Nessuno raccoglie risorse');return}
+  if(a.t==='roll')return doRoll(s,p,null);
   if(a.t==='play'&&a.card==='knight')return playDev(s,p,a);
   return fail('Tira i dadi');
  case'robber':{if(a.t!=='robber')return fail('Sposta il ladro');const h=a.h;if(!Number.isInteger(h)||h<0||h>=HX.length)return fail('Esagono non valido');
@@ -188,6 +187,13 @@ function run(s,a,p){
  case'sbp':{if(a.t==='end'){nextSbp(s);return}if(!['road','ship','settle','city','buydev'].includes(a.t))return fail('Nella costruzione speciale puoi solo costruire o comprare');return main(s,a,p)}
  case'main':return main(s,a,p)}
  return fail('Azione non valida adesso')}
+/* tiro dei dadi (dice: valori imposti da una carta, altrimenti casuali); le espansioni si agganciano con 'roll' (prima di tutto: dado evento) e 'rolled' (dopo la produzione) */
+function afterSeven(s){if(X(s,'noRobber'))s.phase='main';else startRobber(s,'main')}
+function doRoll(s,p,dice){const d=dice||[1+Math.floor(RND()*6),1+Math.floor(RND()*6)],sum=d[0]+d[1];s.dice=d;s.ev.push({t:'roll',d});L(s,s.names[p]+' tira: '+d[0]+' + '+d[1]+' = '+sum);X(s,'roll',d,sum,p);
+ if(sum===7){const need={};for(let i=0;i<s.n;i++){const c=handOf(s,i),lm=X(s,'discardLimit',i);if(c>(lm==null?7:lm))need[i]=Math.floor(c/2)}
+  s.ev.push({t:'seven'});if(Object.keys(need).length){s.disc=need;s.phase='discard'}else afterSeven(s);return}
+ const g=produce(s,sum);X(s,'rolled',sum,g,p);s.phase=s.gold?'gold':'main';s.goldBack='main';s.ev.push({t:'gain',all:g});if(s.gold)s.ev.push({t:'gold',who:Object.keys(s.gold).map(Number)});
+ if(g.every(x=>!tot(x)))L(s,'Nessuno raccoglie risorse')}
 function playDev(s,p,a){const c=a.card;if(s.devPlayed)return fail('Una sola carta sviluppo per turno');if(!['knight','rb','yop','mono'].includes(c))return fail('Carta non giocabile');
  const own=s.dev[p].filter(x=>x===c).length-s.newDev[p].filter(x=>x===c).length;if(own<1)return fail(s.dev[p].includes(c)?'Non puoi giocare una carta appena comprata':'Non hai quella carta');
  const before=s.phase;
@@ -209,20 +215,20 @@ function main(s,a,p){switch(a.t){
  case'city':{const b=s.bld[a.v];if(!b||b.p!==p||b.k!==1)return fail('Serve una tua colonia');if(count(s,p,2)>=LIM.city)return fail('Hai già 4 città');if(!has(s,p,COST.city))return fail('Ti servono 2 Grano e 3 Roccia');pay(s,p,COST.city);b.k=2;s.ev.push({t:'build',p,k:'city',x:a.v});L(s,s.names[p]+' trasforma una colonia in città');return}
  case'buydev':{if(!s.deck.length)return fail('Le carte sviluppo sono finite');if(!has(s,p,COST.dev))return fail('Ti servono Lana, Grano e Roccia');pay(s,p,COST.dev);const c=s.deck.shift();s.dev[p].push(c);s.newDev[p].push(c);s.ev.push({t:'buydev',p});L(s,s.names[p]+' compra una carta sviluppo');return}
  case'play':return playDev(s,p,a);
- case'bank':{if(!RES.includes(a.give)||!RES.includes(a.get)||a.give===a.get)return fail('Scegli due risorse diverse');const q=ratio(s,p,a.give);
-  if(s.res[p][a.give]<q)return fail('Ti servono '+q+' × '+RN[a.give]);if(s.bank[a.get]<1)return fail('La banca non ha '+RN[a.get]);
-  s.res[p][a.give]-=q;s.bank[a.give]+=q;s.res[p][a.get]++;s.bank[a.get]--;s.ev.push({t:'bank',p});L(s,s.names[p]+' scambia '+q+' × '+RN[a.give]+' con 1 × '+RN[a.get]+' in banca');return}
- case'offer':{const g=a.give||{},w=a.want||{};for(const k of RES){if(!Number.isInteger(g[k]||0)||!Number.isInteger(w[k]||0)||(g[k]||0)<0||(w[k]||0)<0)return fail('Offerta non valida');if(g[k]&&w[k])return fail('Non puoi dare e chiedere la stessa risorsa')}
-  if(!RES.some(k=>g[k]>0)||!RES.some(k=>w[k]>0))return fail('Dai e chiedi almeno una carta');if(!has(s,p,g))return fail('Non hai le carte che offri');
+ case'bank':{const K=KEYS(s),nm=k=>RN[k]||(s.xn&&s.xn[k])||k;if(!K.includes(a.give)||!K.includes(a.get)||a.give===a.get)return fail('Scegli due carte diverse');const q=ratio(s,p,a.give);
+  if(s.res[p][a.give]<q)return fail('Ti servono '+q+' × '+nm(a.give));if(s.bank[a.get]<1)return fail('La banca non ha '+nm(a.get));
+  s.res[p][a.give]-=q;s.bank[a.give]+=q;s.res[p][a.get]++;s.bank[a.get]--;s.ev.push({t:'bank',p});L(s,s.names[p]+' scambia '+q+' × '+nm(a.give)+' con 1 × '+nm(a.get)+' in banca');return}
+ case'offer':{const g=a.give||{},w=a.want||{},K=KEYS(s);for(const k of K){if(!Number.isInteger(g[k]||0)||!Number.isInteger(w[k]||0)||(g[k]||0)<0||(w[k]||0)<0)return fail('Offerta non valida');if(g[k]&&w[k])return fail('Non puoi dare e chiedere la stessa risorsa')}
+  if(!K.some(k=>g[k]>0)||!K.some(k=>w[k]>0))return fail('Dai e chiedi almeno una carta');if(!has(s,p,g))return fail('Non hai le carte che offri');
   if(a.to!=null&&(a.to===p||!(a.to>=0&&a.to<s.n)))return fail('Destinatario non valido');
-  s.trade={from:p,give:Object.fromEntries(RES.map(k=>[k,g[k]||0])),want:Object.fromEntries(RES.map(k=>[k,w[k]||0])),to:a.to==null?null:a.to,acc:[],rej:[]};s.ev.push({t:'offer',p});L(s,s.names[p]+' propone uno scambio');return}
+  s.trade={from:p,give:Object.fromEntries(K.map(k=>[k,g[k]||0])),want:Object.fromEntries(K.map(k=>[k,w[k]||0])),to:a.to==null?null:a.to,acc:[],rej:[]};s.ev.push({t:'offer',p});L(s,s.names[p]+' propone uno scambio');return}
  case'cancel':s.trade=null;return;
  case'deal':{const t=s.trade;if(!t||!t.acc.includes(a.p))return fail('Nessuno ha accettato');if(!has(s,p,t.give)||!has(s,a.p,t.want))return fail('Le carte non bastano più');
-  RES.forEach(k=>{s.res[p][k]+=t.want[k]-t.give[k];s.res[a.p][k]+=t.give[k]-t.want[k]});s.trade=null;s.ev.push({t:'trade',p,q:a.p});L(s,s.names[p]+' e '+s.names[a.p]+' si scambiano delle carte');return}
+  KEYS(s).forEach(k=>{s.res[p][k]+=t.want[k]-t.give[k];s.res[a.p][k]+=t.give[k]-t.want[k]});s.trade=null;s.ev.push({t:'trade',p,q:a.p});L(s,s.names[p]+' e '+s.names[a.p]+' si scambiano delle carte');return}
  case'end':nextTurn(s);return}
  return fail('Azione sconosciuta')}
 /* mosse legali (per bot, test di fuzzing e suggerimenti): un elenco di azioni senza il campo seat. Le espansioni aggiungono le loro con il gancio 'moves'. */
-function pickCards(s,p,n,from,rnd){const hand=[];RES.forEach(k=>{for(let i=0;i<from[k];i++)hand.push(k)});const r={};for(let i=0;i<n&&hand.length;i++){const j=Math.floor(rnd()*hand.length),k=hand.splice(j,1)[0];r[k]=(r[k]||0)+1}return r}
+function pickCards(s,p,n,from,rnd){const hand=[];KEYS(s).forEach(k=>{for(let i=0;i<(from[k]||0);i++)hand.push(k)});const r={};for(let i=0;i<n&&hand.length;i++){const j=Math.floor(rnd()*hand.length),k=hand.splice(j,1)[0];r[k]=(r[k]||0)+1}return r}
 function moves(s,p){use(s);const out=[],ph=s.phase,rnd=()=>RND();if(s.over)return out;
  if(ph==='discard'){if(s.disc&&s.disc[p])out.push({t:'discard',res:X(s,'discardPlan',p,s.disc[p])||pickCards(s,p,s.disc[p],s.res[p],rnd)});return out}
  if(ph==='gold'){if(s.gold&&s.gold[p]){const bank={};RES.forEach(k=>bank[k]=s.bank[k]);out.push({t:'gold',res:pickCards(s,p,s.gold[p],bank,rnd)})}return out}
@@ -244,13 +250,13 @@ function moves(s,p){use(s);const out=[],ph=s.phase,rnd=()=>RND();if(s.over)retur
    if(!s.devPlayed){const own=c=>s.dev[p].filter(x=>x===c).length-s.newDev[p].filter(x=>x===c).length;
     if(own('knight')>0)out.push({t:'play',card:'knight'});if(own('rb')>0&&(roadSpots(s,p).length||shipSpots(s,p).length))out.push({t:'play',card:'rb'});
     if(own('yop')>0)out.push({t:'play',card:'yop',a:RES[Math.floor(rnd()*5)],b:RES[Math.floor(rnd()*5)]});if(own('mono')>0)out.push({t:'play',card:'mono',r:RES[Math.floor(rnd()*5)]})}
-   for(const g of RES){const q=ratio(s,p,g);if(s.res[p][g]>=q)RES.forEach(k=>{if(k!==g&&s.bank[k]>0)out.push({t:'bank',give:g,get:k})})}
+   for(const g of KEYS(s)){const q=ratio(s,p,g);if(s.res[p][g]>=q)KEYS(s).forEach(k=>{if(k!==g&&s.bank[k]>0)out.push({t:'bank',give:g,get:k})})}
    if(!s.trade){const g=RES.filter(k=>s.res[p][k]>0);if(g.length){const a=g[Math.floor(rnd()*g.length)],b=RES.filter(k=>k!==a)[Math.floor(rnd()*4)];out.push({t:'offer',give:{[a]:1},want:{[b]:1}})}}
    if(T&&T.from===p){T.acc.forEach(q=>{if(has(s,p,T.give)&&has(s,q,T.want))out.push({t:'deal',p:q})});out.push({t:'cancel'})}}
   out.push({t:'end'})}
  X(s,'moves',p,out);return out}
 const w=f=>(s,...r)=>{use(s);return f(s,...r)};
-KX={RND:()=>RND(),shuffle,clone,RES,RN,COST,LIM,KIT,profOf,zero,tot,pips,L,use,other,buildHexes,geoLay,coastOf,count,roadsOf,shipsOf,landH,seaH,cardsOf,handOf,has,pay,nbBuilt,updateLongest,updateArmy,startRobber,endRobber,reveal,canSettle,canRoad,canShip,roadLen,
+KX={RND:()=>RND(),shuffle,clone,RES,KEYS,RN,COST,LIM,KIT,profOf,zero,tot,pips,L,use,other,defaultMap,doRoll,afterSeven,produce,roadSpots,settleSpots,citySpots,points,ratio,buildHexes,geoLay,coastOf,count,roadsOf,shipsOf,landH,seaH,cardsOf,handOf,has,pay,nbBuilt,updateLongest,updateArmy,startRobber,endRobber,reveal,canSettle,canRoad,canShip,roadLen,
  g:()=>({HX,V,E,HN}),X,XS,EXT};
-return{moves,newGame,act,ext:(n,m)=>{EXT[n]=m},EXTS:EXT,setRnd:f=>{RND=f},canShip:w(canShip),shipSpots:w(shipSpots),shipOpen:w(shipOpen),shipsOf,landH,seaH,geo:s=>{const g=use(s);return{HX:g.HX,V:g.V,E:g.E,HN:g.HN,PORT_AT:g.PORT_AT}},KIT,profOf,HX:GEO.a.HX,V:GEO.a.V,E:GEO.a.E,HN:GEO.a.HN,RES,RN,COST,LIM,canSettle:w(canSettle),canRoad:w(canRoad),settleSpots:w(settleSpots),roadSpots:w(roadSpots),citySpots,roadLen:w(roadLen),points,ratio:w(ratio),has,pips,count,roadsOf,cardsOf,tot}})();
+return{moves,newGame,act,KEYS,ext:(n,m)=>{EXT[n]=m},EXTS:EXT,setRnd:f=>{RND=f},canShip:w(canShip),shipSpots:w(shipSpots),shipOpen:w(shipOpen),shipsOf,landH,seaH,geo:s=>{const g=use(s);return{HX:g.HX,V:g.V,E:g.E,HN:g.HN,PORT_AT:g.PORT_AT}},KIT,profOf,HX:GEO.a.HX,V:GEO.a.V,E:GEO.a.E,HN:GEO.a.HN,RES,RN,COST,LIM,canSettle:w(canSettle),canRoad:w(canRoad),settleSpots:w(settleSpots),roadSpots:w(roadSpots),citySpots,roadLen:w(roadLen),points,ratio:w(ratio),has,pips,count,roadsOf,cardsOf,tot}})();
 if(typeof module!=='undefined')module.exports=CATAN;
