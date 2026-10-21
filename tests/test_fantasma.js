@@ -6,6 +6,10 @@ const A=(s,a)=>{const r=F.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.strin
 // mappa: 72 incroci, taxi connesso, bus e metro presenti, archi simmetrici
 assert.strictEqual(F.N,72);for(let i=0;i<F.N;i++){assert(F.dist(0,i,['taxi'])<99,'taxi connesso');for(const t of F.TYPES)for(const j of F.adj[t][i])assert(F.adj[t][j].includes(i),'archi simmetrici')}
 assert(F.adj.bus.some(a=>a.length)&&F.adj.metro.some(a=>a.length));
+// fiume: si passa solo ai ponti; i traghetti collegano le rive e solo con il biglietto nero
+for(let i=0;i<F.N;i++)for(const t of F.TYPES)for(const j of F.adj[t][i])if(i%F.W<=3&&j%F.W>=4)assert(F.BR.includes(Math.floor(i/F.W)),'si attraversa solo ai ponti');
+assert(F.FERRY.every(f=>F.adj.ferry[f[1]*F.W+f[0]].includes(f[3]*F.W+f[2])));assert(F.FERRY.every(f=>!F.moves({...mk(3),pos:[f[1]*F.W+f[0],0,71],tk:[{taxi:9,bus:9,metro:9,black:1,dbl:0},{},{}]},0).filter(m=>m.tk!=='black').some(m=>m.to===f[3]*F.W+f[2])),'senza nero niente traghetto');
+assert(F.FERRY.every(f=>F.moves({...mk(3),pos:[f[1]*F.W+f[0],0,71]},0).some(m=>m.tk==='black'&&m.to===f[3]*F.W+f[2])),'con il nero sì');
 // partenza: n posizioni distinte, biglietti previsti
 for(const n of [3,4,6]){const s=mk(n);assert.strictEqual(new Set(s.pos).size,n);assert.strictEqual(s.tk[0].black,n-1);assert.strictEqual(s.tk[0].dbl,2);assert.deepStrictEqual([s.tk[1].taxi,s.tk[1].bus,s.tk[1].metro],[10,8,4]);assert.strictEqual(s.cur,0);assert.strictEqual(s.phase,'ghost')}
 // mosse non valide

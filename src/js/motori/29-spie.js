@@ -1,5 +1,5 @@
 /* AGENTI SEGRETI (gioco di parole a squadre, ispirato al genere "indizio + parole" di Nomi in Codice; parole, grafica e testi nostri).
-   4-10 giocatori in due squadre (posti pari = Rossi, dispari = Blu). Il posto 0 è la Spia dei Rossi, il posto 1 la Spia dei Blu: solo le spie
+   4-10 giocatori in due squadre (di base posti pari = Rossi, dispari = Blu; si scelgono con opts.teams/opts.spies, almeno 2 per squadra). Una spia per squadra: solo le spie
    vedono la chiave (25 parole: 9 della squadra che comincia, 8 dell'altra, 7 neutre, 1 trappola). La spia dà un indizio (una parola + un numero),
    gli altri della squadra, uno alla volta a turno, toccano parole. Si indovina finché sono giuste, al massimo numero+1 tentativi (numero 0 = senza limite).
    Fasi: clue (cur = spia di turnT) · guess (cur = un agente della squadra di turnT).
@@ -33,17 +33,22 @@ const WORDS=('acqua albero aereo ago alba ala altalena ambra ancora anello angel
 'zaino zattera zebra zero zolla zucca').split(/\s+/).filter(Boolean);
 const L=(s,t)=>{s.log.push(t);if(s.log.length>40)s.log.shift()};
 const nm=(s,i)=>s.names[i];
-const teamOf=i=>i%2;
-const agents=(s,t)=>{const r=[];for(let i=0;i<s.n;i++)if(teamOf(i)===t&&i!==t)r.push(i);return r};
+/* squadre di base: posti pari = Rossi, dispari = Blu; spie = i primi due posti. Si possono scegliere con o.teams (0/1 per posto) e o.spies ([spia Rossi, spia Blu]) */
+const defTeams=n=>Array.from({length:n},(_,i)=>i%2);
+const agents=(s,t)=>{const r=[];for(let i=0;i<s.n;i++)if(s.teams[i]===t&&i!==s.spies[t])r.push(i);return r};
+function setup(n,o){let teams=defTeams(n),spies=[0,1];
+ if(Array.isArray(o.teams)&&o.teams.length===n&&o.teams.every(x=>x===0||x===1)&&[0,1].every(t=>o.teams.filter(x=>x===t).length>=2)){teams=o.teams.slice();
+  const sp=Array.isArray(o.spies)&&o.spies.length===2&&[0,1].every(t=>teams[o.spies[t]]===t)?o.spies.slice():[0,1].map(t=>teams.indexOf(t));spies=sp}
+ return{teams,spies}}
 const left=(s,t)=>s.key.reduce((n,k,i)=>n+((k===(t?'B':'R')&&!s.rev[i])?1:0),0);
-function newGame(n,names,o={}){const ws=shuffle(WORDS.slice()).slice(0,25),start=Math.floor(RND()*2);
+function newGame(n,names,o={}){const{teams,spies}=setup(n,o);const ws=shuffle(WORDS.slice()).slice(0,25),start=Math.floor(RND()*2);
  const key=shuffle([...Array(start?8:9).fill('R'),...Array(start?9:8).fill('B'),...Array(7).fill('N'),'A']);
- const s={n,names:names.slice(0,n),hands:Array.from({length:n},()=>[]),teams:Array.from({length:n},(_,i)=>teamOf(i)),words:ws,key,rev:Array(25).fill(false),
-  start,turnT:start,phase:'clue',clue:null,left:0,tried:0,ix:[0,0],cur:start,log:[],ev:[],evn:0,over:null};
- L(s,'Comincia la squadra '+TN[start]+' ('+(9)+' parole da trovare). Tocca alla sua spia: '+nm(s,start));return s}
-function finish(s,winT,why){const winners=[];for(let i=0;i<s.n;i++)if(teamOf(i)===winT)winners.push(i);
- s.over={win:winT,winners,scores:Array.from({length:s.n},(_,i)=>teamOf(i)===winT?1:0),why};s.phase='end';s.ev.push({t:'over',team:winT});L(s,'Vincono i '+TN[winT]+'!')}
-function endTurn(s){const t=1-s.turnT;s.turnT=t;s.phase='clue';s.clue=null;s.left=0;s.tried=0;s.cur=t;s.ev.push({t:'turn',p:s.cur});L(s,'Tocca ai '+TN[t]+': la spia '+nm(s,t)+' dà un indizio')}
+ const s={n,names:names.slice(0,n),hands:Array.from({length:n},()=>[]),teams,spies,words:ws,key,rev:Array(25).fill(false),
+  start,turnT:start,phase:'clue',clue:null,left:0,tried:0,ix:[0,0],cur:spies[start],log:[],ev:[],evn:0,over:null};
+ L(s,'Comincia la squadra '+TN[start]+' ('+(9)+' parole da trovare). Tocca alla sua spia: '+nm(s,spies[start]));return s}
+function finish(s,winT,why){const winners=[];for(let i=0;i<s.n;i++)if(s.teams[i]===winT)winners.push(i);
+ s.over={win:winT,winners,scores:Array.from({length:s.n},(_,i)=>s.teams[i]===winT?1:0),why};s.phase='end';s.ev.push({t:'over',team:winT});L(s,'Vincono i '+TN[winT]+'!')}
+function endTurn(s){const t=1-s.turnT;s.turnT=t;s.phase='clue';s.clue=null;s.left=0;s.tried=0;s.cur=s.spies[t];s.ev.push({t:'turn',p:s.cur});L(s,'Tocca ai '+TN[t]+': la spia '+nm(s,s.cur)+' dà un indizio')}
 function nextAgent(s){const a=agents(s,s.turnT);const p=a[s.ix[s.turnT]%a.length];s.ix[s.turnT]++;return p}
 const fail=e=>({err:e});
 const norm=w=>String(w||'').trim().toLowerCase();
@@ -62,6 +67,6 @@ function act(st,a){const s=clone(st);if(s.over)return fail('Partita finita');s.e
   L(s,who+': «'+s.words[i]+'» è dei '+TN[1-t]+'!');if(left(s,1-t)===0){finish(s,1-t,'parole');s.evn++;return{s}}endTurn(s);s.evn++;return{s}}
  if(a.t==='end'){if(s.phase!=='guess')return fail('Non adesso');if(!s.tried)return fail('Prova almeno una parola');L(s,nm(s,s.cur)+' si ferma');endTurn(s);s.evn++;return{s}}
  return fail('Azione non valida adesso')}
-const isSpy=i=>i===0||i===1;
-return{newGame,act,setRnd:f=>{RND=f},WORDS,TN,teamOf,left,agents,isSpy}})();
+const isSpy=(s,i)=>s.spies.includes(i),teamOf=(s,i)=>s.teams[i];
+return{newGame,act,setRnd:f=>{RND=f},WORDS,TN,teamOf,left,agents,isSpy,defTeams}})();
 if(typeof module!=='undefined')module.exports=SPIE;

@@ -47,6 +47,7 @@
  "src/css/41-regicide-tv.css",
   "src/css/42-catan-tv.css",
   "src/css/43-tv-lowpoly.css",
+  "src/css/44-voto.css",
  "src/css/90-lobby-3d.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -85,6 +86,7 @@
  "src/js/motori/31-quiz.js",
  "src/js/motori/32-zucca.js",
  "src/js/motori/33-fantasma.js",
+ "src/js/motori/34-voto.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
  "src/js/app/01b-icone.js",
@@ -153,6 +155,9 @@
  "src/js/app/24n-tv-lowpoly.js",
  "src/js/app/24o-azul-tv.js",
  "src/js/app/24p-valle-tv.js",
+ "src/js/app/24q-voto.js",
+ "src/js/app/24r-squadre.js",
+ "src/js/app/24s-tv-giochi.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]

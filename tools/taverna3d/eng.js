@@ -108,7 +108,7 @@ function walkersTick(dt){Object.keys(walk).forEach(function(id){var W=walk[id],d
   if(L0>40){W.x=W.tx;W.z=W.tz}f.position.x=W.x;f.position.z=W.z})}
 /* ---- proposta di gioco condivisa: 30 secondi, ✓/✗ visibili a tutti ---- */
 var seenProp={},doneProp={},lastVoteSig='';
-function activeProp(){var best=null,now=Date.now();A.members().forEach(function(m){var P=m.prop;if(!P||!P.id||doneProp[P.id])return;if(!seenProp[P.id]){if(now-P.t>90000)return;seenProp[P.id]=now}
+function activeProp(){var best=null,now=Date.now();A.members().forEach(function(m){var P=m.prop;if(!P||!P.id||P.k==='stop'||doneProp[P.id])return;if(!seenProp[P.id]){if(now-P.t>90000)return;seenProp[P.id]=now}
   if(now-seenProp[P.id]>34000)return;if(!best||P.t>best.t)best=Object.assign({dev:m.id},P)});return best}
 E.propose=function(i){var G=GAMES[i],R0=A.R(),me=A.ME();if(!okG(i))return;if(A.busy()){toast('C’è già una partita in corso');return}
   var o=A.defOpts(G.id),sel=PENDSEL||selSummary(i);

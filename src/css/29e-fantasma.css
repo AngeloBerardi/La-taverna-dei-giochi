@@ -1,5 +1,7 @@
 /* CACCIA AL FANTASMA: mappa della città, percorso dei biglietti del Fantasma */
-.fmw{width:100%;max-width:400px;margin:0 auto}.fm{width:100%;height:auto;display:block;max-height:52vh}
-.fn{font:800 8.5px var(--f-d);fill:#f4ead0;text-anchor:middle;pointer-events:none}.fn.w{fill:#fff;font-size:10px}.ft.act circle{stroke:#ffe27a}
-.fd{cursor:pointer}.fp{animation:qp 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.fl text{fill:#b79cff;font-size:8px}
+.fmw{width:100%;margin:0 auto;overflow:auto;max-height:56vh;border-radius:12px;border:3px solid #5a3b20;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}.fmi{min-width:100%}.fm{width:100%;height:auto;display:block}
+.fr{font:800 13px var(--f-d);fill:#9fd0f6;letter-spacing:.3em;opacity:.8}
+.fleg{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:center;font-size:11px;padding:4px 0}.fleg i{display:inline-block;width:14px;height:5px;border-radius:3px;margin-right:4px;vertical-align:middle}.fzb{display:flex;gap:4px}.fzb .b{min-height:30px;padding:0 12px}
+.fn{font:800 13px var(--f-d);fill:#2a1f10;text-anchor:middle;pointer-events:none}.fn.w{fill:#fff;font-size:15px;paint-order:stroke;stroke:#0008;stroke-width:3px}.ft.act circle{stroke:#ffe27a}
+.fd{cursor:pointer}.fp{animation:qp 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.fl text{fill:#d8c8ff}
 .ftr{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;min-height:20px}.ftr i{font:900 9px var(--f-d);font-style:normal;color:#161616;border-radius:5px;padding:2px 5px;min-width:18px;text-align:center}.ftr i.rv{outline:2px solid #fff}

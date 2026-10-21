@@ -1,0 +1,15 @@
+const carica=require('./carica');
+const V=carica('34-voto.js','VOTO');
+const ok=(c,m)=>{if(!c){console.error('FAIL',m);process.exit(1)}};
+const d=['a','b','c'];
+ok(!V.esito('play',d,{a:true},20).fine,'attesa');
+ok(V.esito('play',d,{a:true,b:true,c:true},20).ok,'tutti sì');
+ok(V.esito('play',d,{a:true,b:false},20).fine&&!V.esito('play',d,{a:true,b:false},20).ok,'un no boccia');
+ok(V.esito('stop',d,{a:true,b:true},20).ok,'maggioranza stop');
+ok(V.esito('stop',d,{a:true,b:false,c:false},20).fine,'stop bocciato');
+ok(!V.esito('stop',d,{a:true,b:false},20).fine,'stop ancora aperto');
+const t=V.esito('play',d,{a:true},0);ok(t.fine&&!t.ok&&t.tempo,'scaduto');
+ok(V.esito('play',['a'],{a:true},30).ok,'da solo');
+ok(V.esito('stop',['a','b'],{a:true},30).fine===false,'2 presenti: serve anche l’altro');
+ok(V.chi(d,{a:true,b:false},{a:'A',b:'B',c:'C'}).join()==='B,C','chi manca');
+console.log('voto ok');

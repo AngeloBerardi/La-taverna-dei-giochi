@@ -17,7 +17,7 @@ function quizBoardH(s){const C=170,R=146,pos=p=>{const a=p/QUIZ.SQ*2*Math.PI-Mat
  const q=s.q;
  const mid=`<div class="qmid"><div class="qdie">${s.phase==='move'?`<b>${s.roll}</b>`:s.phase==='roll'?'<b>'+ic('dado',40)+'</b>':s.phase==='ask'?`<i style="color:${qcol(q.cat)}">${DOMANDE.CATS[q.cat].n}</i>`:'<b>★</b>'}</div><div class="qwed">${dots(s.cur)}</div><small>${esc(s.names[s.cur])}</small></div>`;
  return`<div class="qwrap">${o}${mid}</div>`}
-function quizH(){const s=G,mine=myTurn()&&!s.over,ph=s.phase,q=s.q;
+function quizH(){if(ui.tv)return quizTVH();const s=G,mine=myTurn()&&!s.over,ph=s.phase,q=s.q;
  const chips=`<span class="chip">${esc(s.names[s.cur])}${s.phase==='pick'?' sceglie la categoria':''}</span>${s.final||(q&&q.final)?'<span class="chip pal">Domanda finale</span>':''}`;
  const strip=stripH(s,i=>({c:QPC[i%6],b:QUIZ.wedges(s,i)+'/6'}));
  const pl=s.names.map((n,i)=>`<div class="pl ${i===s.cur&&!s.over?'act':''}"><div class="av" style="background:${QPC[i%6]}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc qwed">${DOMANDE.CATS.map((c,k)=>`<i style="background:${s.wedge[i]&(1<<k)?c.c:'#0000'};border-color:${c.c}"></i>`).join('')}</span></div>`).join('');

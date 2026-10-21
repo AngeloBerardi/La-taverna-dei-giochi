@@ -9,7 +9,11 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'rmguest':R.mine.guests=(R.mine.guests||[]).filter(g=>g.k!==v);delete R.mine.votes[v];return saveMine();
  case'rmmember':if(R.on){try{await R.db.doc('rooms/'+R.code+'/members/'+v).delete()}catch(x){ui.err=netErr(x)}}return render();
  case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
- case'start':return startGame(v);
+ case'start':{const g=GAMES.find(x=>x.id===v);if(g&&g.prep&&g.ok(lobbySeats().length))return Prep.open(v);return Prep.launch(v,defOpts(v))}
+ case'pteam':case'pspy':case'psq':case'pk':case'pghost':return Prep.set(a,v);
+ case'ppre':return Prep.preset(v);case'pmix':return Prep.mescola();case'pok':return Prep.conferma();case'pcanc':return Prep.annulla();
+ case'cfgall':ui.cfgAll=true;return render();
+ case'vsi':return Voto.rispondi(true);case'vno':return Voto.rispondi(false);
  case'join':{R.jt=(R.jt||0)+1;const c=(($('#plc')||$('#jc'))?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}
   if(R.mode==='p2p'){try{ui.err='';R.db=await p2pJoin(c);ST('rg-role','guest')}catch(x){ui.err=netErr(x);return render()}}
   try{const sn=await R.db.doc('rooms/'+c).get();if(!sn.exists){ui.err='Stanza '+c+' non trovata';return render()}const d=sn.data();if(d.phase==='play'&&!(d.seats||[]).some(x=>x.dev===ME.dev)){ui.err='In quella stanza c’è una partita in corso: riprova quando tornano alla stanza'}
@@ -37,12 +41,12 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'resume':try{const o=JSON.parse(ST('rg-off'));R.offSeats=o.game.seats;ui.screen='game';G=null;fxDone=null;pushState(o.game.G,false)}catch(x){}return;
  case'rematch':return rematch();
  case'tolobby':return toLobby();
- case'askstop':ui.confirm=true;return render();case'nostop':ui.confirm=false;return render();
+ case'askstop':if(R.on&&members().length>=2&&Voto.proponi('stop',G.g)){ui.cfg=false;return render()}ui.confirm=true;return render();case'nostop':ui.confirm=false;return render();
  case'reveal':ui.shown=G.cur;Snd.play('deal');return render();
  case'story':ui.story=false;ST('rg-intro','1');render();if(G&&G.en&&ui.screen==='game')splash(G.en.c,true);return;
  case'm-story':ui.story=true;return render();
  case'rules':ui.rules=ui.rules?null:(v||(G&&G.g)||'regicide');return render();
- case'cfg':ui.cfg=!ui.cfg;return render();
+ case'cfg':ui.cfg=!ui.cfg;if(!ui.cfg){ui.cfgAll=false;ui.confirm=false}return render();
  case'pwainstall':PWA.install();return;
  case'shop':case'shopx':case'shopbuy':case'shopuse':return Shop.act(a,v);
  case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accgoogle':case'accreset':case'accout':return Acc.act(a,v);

@@ -1,5 +1,5 @@
 /* ---- Lobby: falò + scaffale ---- */
-const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'SQUADRA E RISATE'}};
+const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'}};
 const TVG={fantasma:['squadra', 'FANTASMA'],zucca:['squadra', 'ZUCCA'],quiz:['classici', 'QUIZ'],spie:['squadra', 'AGENTI'],briscola:['classici','BRISCOLA'],scopa:['classici','SCOPA'],burraco:['classici','BURRACO'],machiavelli:['classici','MACHIAVELLI'],uno:['classici','UNO'],perudo:['classici','PERUDO'],catan:['strategia','CATAN'],azul:['strategia','AZUL'],valle:['strategia','VALLE'],harvest:['strategia','HARVEST'],discesa:['strategia','DISCESA'],regicide:['strategia','REGICIDE'],island:['strategia','ISOLA'],scoundrel:['strategia','SCOUNDREL'],gang:['squadra','THE GANG'],mind:['squadra','THE MIND'],mindx:['squadra','MIND EXTREME'],saboteur:['squadra','SABOTEUR'],kittens:['squadra','KITTENS'],pets:['squadra','PETS'],trono:['squadra','TRONO']};
 const tvInfo=g=>TVG[g.id]||['strategia',g.name.toUpperCase().slice(0,11)];
 /* Scatole in proporzioni reali (misure approssimate in mm: altezza in piedi, spessore, larghezza del fronte).
@@ -93,7 +93,7 @@ function tvDet(pick,N,MD,myKeys,busy){
  const g=pick&&pick.g,ok=pick&&pick.ok,v=pick?pick.v:0;
  return g?`<div class="tvdet"><div class="tvdh"><div><div class="tvdn">${g.name}</div><div class="tvdm">${g.range} giocatori${ok?' · '+g.mode(N):' · non disponibile con '+N}</div></div>${MD?`<div class="tvdv"><b>${v}</b><small>VOTI</small></div>`:''}</div>
   <p class="tvdd">${g.desc}</p>${ok&&MD?`<div class="tvdl">VOTA QUESTO GIOCO (tocca il tuo nome)</div><div class="votes">${myKeys.map(x=>{const on=(R.mine.votes[x.k]||[]).includes(g.id);return`<button class="vote ${on?'on':''}" data-a="vote" data-v="${g.id}|${x.k}">${ic('star',14)} ${esc(x.name)}</button>`}).join('')}</div>`:''}
-  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>Gioca</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:''}
+  <div class="row">${g.opts&&ok?`<select class="sel sm" id="opt-${g.id}" aria-label="${g.opts.label}">${g.opts.vals.map(([k,l])=>`<option value="${k}" ${(ui.opts[g.id]||g.opts.vals[0][0])===k?'selected':''}>${l}</option>`).join('')}</select>`:''}<button class="b sm ${ok?'play':''}" data-a="start" data-v="${g.id}" ${ok&&!busy?'':'disabled'}>${MD?'Proponi':'Gioca'}</button><button class="b sm" data-a="rules" data-v="${g.id}">Regole</button></div></div>`:''}
 function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
@@ -125,7 +125,7 @@ function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEd
  if(tab==='games'){const games=tvShelf(list,top,N,myKeys,busy);
   body=`<div class="gtop"><div class="tvplq mini">${R.on?`<span>STANZA</span><b>${isGen()?'GENERALE':esc(R.code||'…')}</b>`:`<span>SU QUESTO TELEFONO</span>`}</div><span class="chip">${N} giocator${N===1?'e':'i'}</span></div>${busyB}
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
-  ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Gioca a ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
+  ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Proponi ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
  else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
   <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button>${infoH("Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.")}</div></div>
@@ -138,7 +138,7 @@ function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEd
 function avEditH(){if(ui.avk==null)return'';const k=ui.avk,g=k==='m'?null:(R.mine.guests||[]).find(x=>x.k===k);if(k!=='m'&&!g)return'';
  const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),av=avOf({dev:ME.dev,k},i),nm=g?g.name:(R.mine.name||ME.name);
  const sw=(f,arr,lab)=>`<div class="avrow"><span>${lab}</span><div class="avsw">${arr.map((c,n)=>`<button class="avc ${av[f]===n?'on':''}" style="background:${Array.isArray(c)?c[0]:c}" data-a="avset" data-v="${f}|${n}" aria-label="${lab} ${n+1}"></button>`).join('')}</div></div>`;
- return`<div class="modal"><div class="box col avbox"><h2>${esc(nm)}</h2><div class="avprev">${tvSprite(av,96)}</div>
- <div class="avrow"><span>Copricapo</span><div class="avsw">${AVT.map((t,n)=>`<button class="b sm ${av.t===n?'gold':''}" data-a="avset" data-v="t|${n}">${t}</button>`).join('')}</div></div>
- ${sw('h',AVC,'Colore copricapo')}${sw('c',AVC,'Vestito')}${sw('s',AVS,'Carnagione')}
- <div class="row"><button class="b sm" data-a="avrand">${ic('dado',16)} A caso</button><button class="b gold" data-a="avedit" data-v="">Fatto</button></div></div></div>`}
+ return`<div class="modal edfull"><div class="box avbox"><header class="edh"><h2>${esc(nm)}</h2><div class="avprev">${tvSprite(av,96)}</div></header>
+ <div class="edbody col"><div class="avrow"><span>Copricapo</span><div class="avsw">${AVT.map((t,n)=>`<button class="b sm ${av.t===n?'gold':''}" data-a="avset" data-v="t|${n}">${t}</button>`).join('')}</div></div>
+ ${sw('h',AVC,'Colore copricapo')}${sw('c',AVC,'Vestito')}${sw('s',AVS,'Carnagione')}</div>
+ <footer class="edf row"><button class="b sm" data-a="avrand">${ic('dado',16)} A caso</button><button class="b gold" data-a="avedit" data-v="">Salva</button></footer></div></div>`}
