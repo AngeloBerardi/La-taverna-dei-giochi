@@ -1189,7 +1189,7 @@ function sceneLocanda3(){
   S.ctab='corpo';
   function renderCust(){
     var el=$('cust'),bath=S.cust==='bath',MY=TABS.filter(function(t){return bath?['corpo','viso','capelli'].indexOf(t[0])>=0:['abiti','extra'].indexOf(t[0])>=0});if(!MY.some(function(t){return t[0]===S.ctab}))S.ctab=MY[0][0];var tab=MY.filter(function(t){return t[0]===S.ctab})[0];
-    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button> <button type="button" class="x" id="cspin">Gira</button></div></div>'+
+    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button> <button type="button" class="x" id="cspin">Gira</button> <button type="button" class="x save" id="cdone2">Salva ed esci</button></div></div>'+
       '<div class="ctabs">'+MY.map(function(t){return '<button type="button" data-t="'+t[0]+'" class="'+(t[0]===S.ctab?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div>'+
       '<div class="cscroll">'+tab[3].map(function(r){return row(r[0],r[1])}).join('')+(S.ctab==='viso'&&S.cust==='bath'?'<button type="button" class="btn ghost" id="wash">Lavati la faccia</button>':'')+'</div><button type="button" class="btn" id="cdone">Salva ed esci</button>';
     [].forEach.call(el.querySelectorAll('.ctabs button'),function(b){b.onclick=function(){S.ctab=b.dataset.t;renderCust()}});
@@ -1197,7 +1197,7 @@ function sceneLocanda3(){
     $('cspin').onclick=function(){S.spin=1};
     $('crnd').onclick=function(){var FS=[];MY.forEach(function(t){t[3].forEach(function(r){FS.push(r[1])})});FS.forEach(function(f){var L=OPT[f],v=L[Math.floor(Math.random()*L.length)];FIG[6][f]=typeof v==='number'?v:v[0]});FIG[6].hat=null;rebuildMe();renderCust();S.spin=.6};
     var w=$('wash');if(w)w.onclick=function(){rebuildMe();say(me,'Splash! Pulito.')};
-    $('cdone').onclick=function(){document.body.classList.remove('cust-open');E.saveLook();var kd=S.cust;S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys')};
+    var done=function(){document.body.classList.remove('cust-open');E.saveLook();var kd=S.cust;S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys')};$('cdone').onclick=done;$('cdone2').onclick=done;
   }
   S.openCust=function(kind){S.cust=kind;S.ctab=kind==='bath'?'viso':'abiti';
     var dir=new T.Vector3(-S.pos.x,0,-S.pos.z).normalize(),cp=S.pos.clone().addScaledVector(dir,13.5);cp.y=3.8;

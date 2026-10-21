@@ -112,7 +112,8 @@
 #l3d #vote .vres.y{color:#8fe0a4}
 #l3d #vote .vres.n{color:#ff9a8a}
 #l3d #cust h3{margin:0;font:700 19px 'Alegreya SC',Georgia,serif;color:var(--amber);letter-spacing:.05em}
-#l3d #cust{max-height:42vh;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);gap:7px;padding:10px 12px;z-index:140}
+#l3d #cust .x.save{background:linear-gradient(#ffc866,#e8962a);color:#1f1206;border-color:#ffd592;font-weight:800}
+#l3d #cust{position:fixed;max-height:42vh;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);gap:7px;padding:10px 12px;z-index:140}
 #l3d #cust .btn{flex:none}
 #l3d .cust-open #plancia,#l3d .cust-open #dock{display:none!important}
 #l3d #cust .ch{display:flex;justify-content:space-between;align-items:center}
