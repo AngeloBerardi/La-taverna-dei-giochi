@@ -2,6 +2,8 @@
    Non occupa un posto e non scrive nulla (niente membri, niente chat): legge lo stato e mostra il tavolo grande, con il
    codice QR per unirsi dal telefono e l'elenco dei giocatori. I telefoni restano i comandi. Funziona con le stanze p2p
    (codice di 4 lettere) e con le partite a distanza (8 caratteri). Dati: stessa stanza di tutti (R.doc, G). */
+// ID dell'app Google Cast (vuoto finché non è registrata: vedi docs/CAST.md)
+const CAST_APP_ID='';
 const TV={
  code:'',strict:false,
  // legge il link: ?tv=CODICE (&b=indice del broker, come negli inviti)
@@ -26,16 +28,31 @@ const TV={
 <div class="tvm-qr">${QR.svg(u)}</div><input class="acc-in" readonly value="${esc(u)}" onfocus="this.select()">
 ${TV.puoiCondividere()?'<button class="b gold" data-a="tvshare">Invia il link al PC o alla TV</button>':''}
 <p class="muted" style="margin:0;font-size:13px">Per il Chromecast: apri questo link su un PC con Chrome, poi menu ⋮ → <b>Trasmetti</b> → scegli il Chromecast → <b>Trasmetti scheda</b>. Con una smart TV puoi aprire il link nel suo browser. I telefoni restano i comandi.</p>
-${TV.puoiCast()?`<button class="b sm" data-a="tvcast">Prova il cast diretto dal telefono</button>${TV._conn?'<p class="muted" style="margin:0">Trasmissione attiva: la TV mostra il tavolo.</p>':''}`:''}
+${TV.puoiCast()?(TV.inCast()?`<button class="b" data-a="tvcastx">Interrompi la trasmissione</button><p class="muted" style="margin:0">Il Chromecast mostra il tavolo: puoi continuare a giocare dal telefono.</p>`:`<button class="b gold" data-a="tvcast">Trasmetti al Chromecast</button>`):''}
 <div class="row"><button class="b sm gold" data-a="tvcopy">Copia link</button><button class="b sm" data-a="tvmx">Chiudi</button></div></div></div>`},
  // dal telefono: il foglio di condivisione manda il link a un altro dispositivo (Chrome: «Invia ai tuoi dispositivi»), da cui si trasmette
  puoiCondividere(){return typeof navigator.share==='function'&&!ui.tv},
  async condividi(){try{await navigator.share({title:'Schermo comune · La Taverna dei Giochi',url:TV.linkSchermo()})}catch(e){if(!e||e.name!=='AbortError')say('Condivisione non riuscita: usa «Copia link»',3500)}},
- // Trasmissione a un Chromecast con la Presentation API di Chrome: la TV apre il link dello schermo comune da sola
- puoiCast(){return typeof window.PresentationRequest==='function'&&!ui.tv&&location.protocol==='https:'},
- async cast(){try{const rq=new PresentationRequest([TV.linkSchermo()]);const c=await rq.start();TV._conn=c;c.onterminate=c.onclose=()=>{TV._conn=null;render()};say('Trasmissione avviata',2500);render()}
-  catch(e){const n=e&&e.name;say(n==='NotAllowedError'||n==='AbortError'?'Trasmissione annullata':n==='NotFoundError'?'Il telefono non vede schermi per questo link: invialo a un PC e trasmetti da lì':'Trasmissione non riuscita: invia il link a un PC e trasmetti da lì',4500)}},
- async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();if(a==='tvshare')return TV.condividi();
+ // Chromecast: ricevitore Google Cast (src/pwa/receiver.html) che apre da solo lo schermo comune; il telefono resta il comando.
+ // Serve l'ID dell'app registrata su Google Cast (docs/CAST.md): CAST_APP_ID, oppure una volta sola ?castid=ID sul telefono.
+ castId(){try{const q=new URLSearchParams(location.search).get('castid');if(q&&/^[A-F0-9]{6,12}$/i.test(q)){ST('rg-castid',q.toUpperCase());return q.toUpperCase()}}catch(e){}
+  const v=CAST_APP_ID||ST('rg-castid')||'';return/^[A-F0-9]{6,12}$/i.test(v)?v.toUpperCase():''},
+ puoiCast(){return!ui.tv&&location.protocol==='https:'&&!!TV.castId()&&/Chrome\//.test(navigator.userAgent)&&!/SamsungBrowser|OPR\/|Edg\/|Firefox/.test(navigator.userAgent)},
+ inCast(){try{return!!(window.cast&&cast.framework&&cast.framework.CastContext.getInstance().getCurrentSession())}catch(e){return false}},
+ // carica l'SDK Cast solo quando serve
+ castSdk(){if(TV._sdk)return TV._sdk;return TV._sdk=new Promise((ok,ko)=>{if(window.cast&&cast.framework)return ok();const t=setTimeout(()=>ko(new Error('sdk')),10000);
+  window.__onGCastApiAvailable=d=>{clearTimeout(t);d?ok():ko(new Error('sdk'))};const sc=document.createElement('script');sc.src='https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';sc.onerror=()=>{clearTimeout(t);ko(new Error('sdk'))};document.head.appendChild(sc)}).catch(e=>{TV._sdk=null;throw e})},
+ async cast(){if(!R.code)return say('Entra prima in una stanza',2500);
+  try{await TV.castSdk();const cx=cast.framework.CastContext.getInstance();
+   cx.setOptions({receiverApplicationId:TV.castId(),autoJoinPolicy:chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,language:'it'});
+   const err=await cx.requestSession();if(err&&err!=='cancel'&&err!=='session_error'){throw new Error(err)}if(err==='cancel')return;
+   const ss=cx.getCurrentSession();if(!ss)throw new Error('nessuna sessione');
+   await ss.sendMessage(TV.NS,{code:R.code,b:R.mode==='p2p'&&P2P.tr==='mq'?MQ.bi:null});
+   say('Trasmissione avviata',2500);render()}
+  catch(e){say(e&&e.message==='sdk'?'Cast non disponibile su questo browser':e&&e.message==='receiver_unavailable'?'Il Chromecast non riesce ad aprire l’app: controlla l’ID Cast':'Trasmissione non riuscita: '+(e&&e.message||e),4500)}},
+ async castStop(){try{cast.framework.CastContext.getInstance().endCurrentSession(true)}catch(e){}render()},
+ NS:'urn:x-cast:app.web.latavernadeigiochi',
+ async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();if(a==='tvcastx')return TV.castStop();if(a==='tvshare')return TV.condividi();
   if(a==='tvm'){ui.tvm=true;ui.cfg=false;return render()}if(a==='tvmx'){ui.tvm=false;ui.cfg=true;return render()}
   if(a==='tvcopy'){const u=TV.linkSchermo();try{await navigator.clipboard.writeText(u);say('Link copiato',1800)}catch(e){say(u,4000)}}},
  sveglio(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}},
