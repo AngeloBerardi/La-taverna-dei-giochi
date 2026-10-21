@@ -8,24 +8,30 @@ const FANTASMA=(()=>{
 let RND=Math.random;
 const clone=s=>JSON.parse(JSON.stringify(s));
 const W=8,H=9,N=W*H,ROUNDS=24,REVEAL=[3,8,13,18,24],TYPES=['taxi','bus','metro'];
+/* Il fiume attraversa la città tra le colonne 3 e 4: lo si passa solo ai ponti (righe BR) o con i traghetti (solo biglietto nero) */
+const BR=[1,4,7],FERRY=[[2,2,5,2],[1,5,6,5]];
 const idx=(x,y)=>y*W+x,X=i=>i%W,Y=i=>Math.floor(i/W);
 /* mappa deterministica */
-const G=(()=>{const adj={taxi:Array.from({length:N},()=>[]),bus:Array.from({length:N},()=>[]),metro:Array.from({length:N},()=>[])};
+const G=(()=>{const adj={taxi:Array.from({length:N},()=>[]),bus:Array.from({length:N},()=>[]),metro:Array.from({length:N},()=>[]),ferry:Array.from({length:N},()=>[])};
  const add=(t,a,b)=>{if(!adj[t][a].includes(b)){adj[t][a].push(b);adj[t][b].push(a)}};
  const h=(x,y,k)=>((x*73856093^y*19349663^k*83492791)>>>0)%7;
- const cand=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(x<W-1)cand.push([idx(x,y),idx(x+1,y),h(x,y,1)]);if(y<H-1)cand.push([idx(x,y),idx(x,y+1),h(x,y,2)])}
+ const cand=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(x<W-1&&(x!==3||BR.includes(y)))cand.push([idx(x,y),idx(x+1,y),h(x,y,1)]);if(y<H-1)cand.push([idx(x,y),idx(x,y+1),h(x,y,2)])}
  const conn=(skip)=>{const a=Array.from({length:N},()=>[]);cand.forEach((e,i)=>{if(i!==skip&&!e.cut){a[e[0]].push(e[1]);a[e[1]].push(e[0])}});
-  for(let y=0;y<H-1;y++)for(let x=0;x<W-1;x++)if((x+y)%5===0){a[idx(x,y)].push(idx(x+1,y+1));a[idx(x+1,y+1)].push(idx(x,y))}
+  for(let y=0;y<H-1;y++)for(let x=0;x<W-1;x++)if((x+y)%5===0&&x!==3){a[idx(x,y)].push(idx(x+1,y+1));a[idx(x+1,y+1)].push(idx(x,y))}
   const seen=new Set([0]),q=[0];while(q.length){const v=q.pop();for(const w of a[v])if(!seen.has(w)){seen.add(w);q.push(w)}}return seen.size===N};
  cand.forEach((e,i)=>{if(e[2]===0&&conn(i))e.cut=true});
  cand.forEach(e=>{if(!e.cut)add('taxi',e[0],e[1])});
- for(let y=0;y<H-1;y++)for(let x=0;x<W-1;x++)if((x+y)%5===0)add('taxi',idx(x,y),idx(x+1,y+1));
+ for(let y=0;y<H-1;y++)for(let x=0;x<W-1;x++)if((x+y)%5===0&&x!==3)add('taxi',idx(x,y),idx(x+1,y+1));
+ FERRY.forEach(f=>add('ferry',idx(f[0],f[1]),idx(f[2],f[3])));
  const bus=i=>(X(i)*3+Y(i)*2)%5===0,metro=i=>X(i)%3===1&&Y(i)%3===1;
- const nextIn=(i,dx,dy,f)=>{let x=X(i)+dx,y=Y(i)+dy;while(x>=0&&x<W&&y>=0&&y<H){if(f(idx(x,y)))return idx(x,y);x+=dx;y+=dy}return-1};
+ const nextIn=(i,dx,dy,f)=>{let x=X(i)+dx,y=Y(i)+dy;while(x>=0&&x<W&&y>=0&&y<H){if(dx&&X(i)<=3&&x>=4&&!BR.includes(Y(i)))return-1;if(f(idx(x,y)))return idx(x,y);x+=dx;y+=dy}return-1};
  for(let i=0;i<N;i++){if(bus(i)){for(const[dx,dy]of[[1,0],[0,1]]){const j=nextIn(i,dx,dy,bus);if(j>=0)add('bus',i,j)}}
   if(metro(i)){for(const[dx,dy]of[[1,0],[0,1]]){const j=nextIn(i,dx,dy,metro);if(j>=0)add('metro',i,j)}}}
  return{adj,bus,metro}})();
-const nbr=(from,tk)=>tk==='black'?[...new Set(TYPES.flatMap(t=>G.adj[t][from]))]:G.adj[tk][from];
+const nbr=(from,tk)=>tk==='black'?[...new Set([...TYPES,'ferry'].flatMap(t=>G.adj[t][from]))]:G.adj[tk][from];
+/* posizione sulla mappa in unità di griglia (stessa per tutte le viste): incroci un po' sfalsati come in una vera città */
+const pos=i=>{const h=(i*2654435761>>>0),jx=((h%1000)/1000-.5)*.5,jy=(((h>>>10)%1000)/1000-.5)*.5;return{x:X(i)+jx,y:Y(i)+jy}};
+const river=y=>3.5+.22*Math.sin(y*.8+.4);
 const L=(s,t)=>{s.log.push(t);if(s.log.length>40)s.log.shift()};
 const nm=(s,i)=>s.names[i];
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(RND()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -60,5 +66,6 @@ function act(st,a){const s=clone(st);if(s.over)return fail('Partita finita');s.e
  return fail('Azione non valida adesso')}
 /* distanza (in mosse con i mezzi indicati) per i bot */
 function dist(from,to,types=TYPES){const d=new Map([[from,0]]),q=[from];while(q.length){const v=q.shift();if(v===to)return d.get(v);for(const t of types)for(const w of G.adj[t][v])if(!d.has(w)){d.set(w,d.get(v)+1);q.push(w)}}return 99}
-return{newGame,act,setRnd:f=>{RND=f},W,H,N,ROUNDS,REVEAL,TYPES,adj:G.adj,isBus:G.bus,isMetro:G.metro,moves,dist}})();
+const isFerry=i=>G.adj.ferry[i].length>0;
+return{newGame,act,setRnd:f=>{RND=f},W,H,N,ROUNDS,REVEAL,TYPES,BR,FERRY,adj:G.adj,isBus:G.bus,isMetro:G.metro,isFerry,pos,river,moves,dist}})();
 if(typeof module!=='undefined')module.exports=FANTASMA;

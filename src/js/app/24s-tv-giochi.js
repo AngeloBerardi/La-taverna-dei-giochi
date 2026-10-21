@@ -79,13 +79,18 @@ function zuccaTVH(){const s=G,ok=ZUTV.sync(s),o=s.over,tn=i=>esc(ZUCCA.tn(s,i)),
  return LP.shell({cls:'zutv n'+s.n,logo:'Zucca Matta',sub:'Casella '+(s.pos[s.cur]+1)+' di '+ZUCCA.PATH,state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`${q}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
 /* ================= CACCIA AL FANTASMA ================= */
 const FATV=TVM('fatv3d','fantasma',{fw:11.4,fd:9.8,cx:0},(R_,s)=>{LP.table(R_,{w:10.6,d:9.2,felt:'#1c1a26',frame:'#4a2f18'});
- const T=LP.T,b=LP.builder(),P=i=>[(i%FANTASMA.W-(FANTASMA.W-1)/2)*1.2,(Math.floor(i/FANTASMA.W)-(FANTASMA.H-1)/2)*1.0];
+ const T=LP.T,b=LP.builder(),P=i=>{const q=FANTASMA.pos(i);return[(q.x-(FANTASMA.W-1)/2)*1.2,(q.y-(FANTASMA.H-1)/2)*1.0]};
  const line=(i,j,w,h,col)=>{const[a,c]=P(i),[d,e]=P(j),l=Math.hypot(d-a,e-c)||1,nx=-(e-c)/l*w/2,nz=(d-a)/l*w/2;b.prism([[a+nx,c+nz],[d+nx,e+nz],[d-nx,e-nz],[a-nx,c-nz]],LP.TOP,LP.TOP+h,col,{side:col})};
+ /* fiume: striscia blu che segue FANTASMA.river */
+ for(let k=0;k<24;k++){const y0=-.6+k*(FANTASMA.H+.2)/24,y1=-.6+(k+1)*(FANTASMA.H+.2)/24,x0=FANTASMA.river(y0)+.5,x1=FANTASMA.river(y1)+.5,X=v=>(v-(FANTASMA.W-1)/2)*1.2,Z=v=>(v-(FANTASMA.H-1)/2)*1.0,w=.5;
+  b.prism([[X(x0)-w,Z(y0)],[X(x0)+w,Z(y0)],[X(x1)+w,Z(y1)],[X(x1)-w,Z(y1)]],LP.TOP,LP.TOP+.012,'#2b6cb0',{side:'#2b6cb0'})}
+ FANTASMA.FERRY.forEach(f=>{const i=f[1]*FANTASMA.W+f[0],j=f[3]*FANTASMA.W+f[2],[a,c]=P(i),[d,e]=P(j);for(let k=0;k<7;k++){const t0=k/7+.03,t1=k/7+.09,x0=a+(d-a)*t0,z0=c+(e-c)*t0,x1=a+(d-a)*t1,z1=c+(e-c)*t1,l=Math.hypot(x1-x0,z1-z0)||1,nx=-(z1-z0)/l*.08,nz=(x1-x0)/l*.08;b.prism([[x0+nx,z0+nz],[x1+nx,z1+nz],[x1-nx,z1-nz],[x0-nx,z0-nz]],LP.TOP,LP.TOP+.06,'#0b0b10',{side:'#0b0b10'})}
+  const mx=(a+d)/2,mz=(c+e)/2;b.prism(LP.ngon(mx,mz,.2,6),LP.TOP,LP.TOP+.1,'#0b0b10',{side:'#0b0b10'});b.cone(mx,mz,.12,.3,3,LP.TOP+.1,'#ffffff')});
  for(const t of['taxi','bus','metro']){const w={metro:.16,bus:.1,taxi:.06}[t],h={metro:.05,bus:.035,taxi:.02}[t];for(let i=0;i<FANTASMA.N;i++)for(const j of FANTASMA.adj[t][i])if(j>i)line(i,j,w,h,FTC[t])}
  for(let i=0;i<FANTASMA.N;i++){const[x,z]=P(i),col=FANTASMA.isMetro(i)?'#8a2a24':FANTASMA.isBus(i)?'#2a6a3a':'#4a4438',h=FANTASMA.isMetro(i)||FANTASMA.isBus(i)?.2:.12;b.prism(LP.ngon(x,z,.3,10),LP.TOP,LP.TOP+h,col,{side:dkc(col,.4)});b.prism(LP.ngon(x,z,.2,10),LP.TOP+h,LP.TOP+h+.02,'#f2ead0')}
  R_.stat.add(bmesh(T,b));
  for(let i=0;i<FANTASMA.N;i++){const[x,z]=P(i),h=FANTASMA.isMetro(i)||FANTASMA.isBus(i)?.2:.12,pl=LP.plate(String(i+1),.3,.2,{bg:'#f2ead0',fg:'#241c12',edge:'#f2ead0'});pl.position.set(x,LP.TOP+h+.03,z+.01);R_.stat.add(pl)}},(R_,s,anim)=>{
- const T=LP.T,b=LP.builder(),P=i=>[(i%FANTASMA.W-(FANTASMA.W-1)/2)*1.2,(Math.floor(i/FANTASMA.W)-(FANTASMA.H-1)/2)*1.0],end=!!s.over;
+ const T=LP.T,b=LP.builder(),P=i=>{const q=FANTASMA.pos(i);return[(q.x-(FANTASMA.W-1)/2)*1.2,(q.y-(FANTASMA.H-1)/2)*1.0]},end=!!s.over;
  for(let i=1;i<s.n;i++){const[x,z]=P(s.pos[i]);pawn(b,x+(i%2?.1:-.1),z-.05,LP.TOP+.2,FAC[(i-1)%5],i===s.cur&&!end?1.7:1.4)}
  if(end){const[x,z]=P(s.pos[0]);pawn(b,x,z,LP.TOP+.2,'#8a6fd0',1.7)}
  R_.dyn.add(bmesh(T,b));
