@@ -2,7 +2,7 @@
 
 Hub di giochi multiplayer per telefono, in italiano: una locanda 3D (con il falò pixel-art come modalità semplice) dove ci si siede al tavolo con gli amici e si sceglie un gioco dallo scaffale.
 
-**Giochi (21 voci nello scaffale):** Regicide, Briscola, Scopa, Burraco, The Gang, Saboteur, Azul, L'isola dei predatori, Machiavelli, The Mind (+ Extreme), Harvest Valley, Scoundrel, Valle Selvaggia, Discesa Tascabile, Perudo, Exploding Kittens (2-10, con edizione Implosione), Catan (2-8, con ampliamenti 5-6 e 7-8), Power Hungry Pets, Uno, Behind the Throne.
+**Giochi (25 voci nello scaffale):** Regicide, Briscola, Scopa, Burraco, The Gang, Saboteur, Azul, L'isola dei predatori, Machiavelli, The Mind (+ Extreme), Harvest Valley, Scoundrel, Valle Selvaggia, Discesa Tascabile, Perudo, Exploding Kittens (2-10, con edizione Implosione), Catan (2-8, con ampliamenti 5-6 e 7-8), Power Hungry Pets, Uno, Behind the Throne, Agenti Segreti, Quiz della Taverna, Zucca Matta, Caccia al Fantasma.
 
 ## Come si usa
 - Tutti entrano nella **stanza generale** ("PIAZZA"); le stanze private si creano dal pannello della stanza e si invitano con un link o un codice.

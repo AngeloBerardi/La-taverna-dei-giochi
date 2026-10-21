@@ -70,6 +70,13 @@ const RULES={
 <li><b>Il turno:</b> tocca «Pesca la carta»: solo chi fa la prova vede la carta, quindi passa il telefono e gli altri non devono guardare. Avete un minuto. Se la squadra indovina premi <b>Indovinato!</b> e avanzi del <b>dado</b>; altrimenti resti dove sei. In Cultura basta toccare la risposta giusta.</li>
 <li><b>Il traguardo:</b> arrivato in fondo, il giocatore dopo di te sceglie la categoria della <b>prova finale</b>: se riesci vinci, altrimenti riprovi al prossimo turno.</li>
 <li>Vale la parola dei giocatori: chi fa la prova dichiara onestamente se è stata indovinata.</li></ul>`,
+ fantasma:`<p>Inseguimento su mappa per 3–6: un <b>Fantasma</b> nascosto contro i <b>detective</b>. Ispirato ai giochi di caccia al fuggitivo; mappa, grafica e testi sono nostri. Il primo in lista è il Fantasma, gli altri sono detective.</p>
+<ul><li><b>La città:</b> 72 incroci numerati. I <b>taxi</b> (linea gialla) collegano incroci vicini; il <b>bus</b> (verde) e la <b>metro</b> (rossa) saltano più lontano, ma solo tra le loro fermate.</li>
+<li><b>I biglietti:</b> ogni mossa costa un biglietto del mezzo usato. Detective: 10 taxi, 8 bus, 4 metro; quelli che spendono passano al Fantasma. Fantasma: 4 taxi, 3 bus, 3 metro, un <b>biglietto nero</b> per ogni detective (vale per qualunque mezzo e nasconde quale hai usato) e <b>2 doppie mosse</b>.</li>
+<li><b>Il Fantasma:</b> si muove per primo e di nascosto: gli altri vedono solo quale biglietto ha usato. Ai round <b>3, 8, 13, 18 e 24</b> la sua posizione viene rivelata (segnata sulla mappa fino al prossimo avvistamento).</li>
+<li><b>I detective:</b> poi si muovono uno alla volta, anche se nessuno ha notizie fresche. Non possono fermarsi sulla stessa casella; chi non ha mosse salta il turno. Chi arriva sul Fantasma lo prende.</li>
+<li><b>Fine:</b> i detective vincono se prendono il Fantasma o se il Fantasma non può muoversi. Il Fantasma vince se resiste <b>24 round</b> o se nessun detective può più muoversi.</li>
+<li><b>Su un telefono solo:</b> il Fantasma muove da solo (gli altri non guardano) e poi si passa il telefono ai detective.</li></ul>`,
  uno:`<p>Il classico gioco di scarto a colori per 2–10: <b>resta senza carte per primo</b>. Si gioca una mano. Regole del celebre gioco; grafica e testi sono nostri.</p>
 <ul><li><b>Preparazione:</b> 7 carte a testa; si scopre una carta di partenza. Con più di 6 giocatori si usano due mazzi.</li>
 <li><b>Il turno:</b> giochi una carta dello <b>stesso colore o stesso numero/simbolo</b> di quella in cima, oppure un jolly. Se non puoi (o non vuoi) peschi una carta: se si può giocare, la giochi subito o passi.</li>

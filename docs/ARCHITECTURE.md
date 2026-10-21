@@ -105,6 +105,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/27-pets.css` | 2 |  |
 | `css/28-uno.css` | 2 |  |
 | `css/29-trono.css` | 6 |  |
+| `css/29b-spie.css` | 1 |  |
+| `css/29c-quiz.css` | 1 |  |
+| `css/29d-zucca.css` | 1 |  |
+| `css/29e-fantasma.css` | 1 |  |
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
@@ -152,21 +156,26 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/26-qr.js` | 6 | QR |
 | `js/motori/27-eroi.js` | 9 | EROI |
 | `js/motori/28-campagna.js` | 12 | CAMP |
+| `js/motori/29-spie.js` | 7 | SPIE, RND, clone, TN, WORDS, L, nm |
+| `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
+| `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
+| `js/motori/32-zucca.js` | 9 | ZUCCA, RND, clone, CATS, NC, MIMO, DISEGNO |
+| `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, idx, G, nbr |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 14 | Snd |
+| `js/app/03-audio.js` | 15 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 10 | G, ui, ME, R, ENG, GAMES, GN |
+| `js/app/07-nucleo.js` | 11 | G, ui, ME, R, ENG, GAMES, GN |
 | `js/app/07a-rete-stanza.js` | 8 | netInit, netInit0, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter |
 | `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
 | `js/app/07c-comandi.js` | 7 |  |
-| `js/app/07d-regole.js` | 30 | RULES |
+| `js/app/07d-regole.js` | 35 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, storyH, nameH |
-| `js/app/07e-lobby-falo.js` | 25 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
+| `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
@@ -198,6 +207,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
 | `js/app/22i-uno.js` | 6 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
+| `js/app/22k-spie.js` | 4 | SPCOL, SPT, spieH, spieClick, SPFX |
+| `js/app/22l-quiz.js` | 5 | QPC, qcol, quizBoardH, quizH, quizClick, QZFX |
+| `js/app/22m-zucca.js` | 5 | ZPC, zcat, zuccaBoardH, zuccaH, zuccaClick, ZUFX |
+| `js/app/22n-fantasma.js` | 6 | FAC, FTK, fpos, fantasmaMapH, fantasmaH, fantasmaClick, FAFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 8 | FB |
