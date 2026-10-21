@@ -58,8 +58,10 @@
 .gl-grid{display:grid;grid-template-columns:1fr 1fr}
 .gl-t{display:block;padding:0;border:0;border-right:1px solid rgba(245,205,150,.16);border-bottom:1px solid rgba(245,205,150,.16);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
 .gl-t:nth-child(2n){border-right:0}
-.gl-t .cv{display:flex;flex-direction:column;justify-content:space-between;height:92px;padding:8px 10px;background:linear-gradient(160deg,var(--c1),var(--c2))}
+.gl-t .cv{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:92px;padding:8px 10px;background:linear-gradient(160deg,var(--c1),var(--c2))}
 .gl-t .cv i{font:800 9px var(--f-b);letter-spacing:.1em;font-style:normal;background:rgba(21,16,13,.78);color:#f0c166;padding:3px 6px;align-self:flex-start}
+.gl-t .cv .art{position:absolute;inset:0;width:100%;height:100%}
+.gl-t .cv i{position:relative;z-index:1}
 .gl-t .cv b{font:800 22px/1 var(--f-d);color:#fff3c4;text-shadow:0 2px 0 rgba(0,0,0,.35);word-break:break-word}
 .gl-t .tx{display:block;padding:8px 10px 10px}.gl-t .tx b{display:block;font:800 15px var(--f-d)}.gl-t .tx small{font-size:11px;color:var(--mu,#b8a68d)}
 .gl-t.off{opacity:.45}.gl-t.on{box-shadow:inset 0 0 0 3px #f0c166}
@@ -114,3 +116,4 @@ button.hm-st.off{border:0;cursor:pointer;min-height:32px;background:#5c3a1e;colo
 .hm-c small{display:block}.hm-c{min-height:104px}
 .rw3 .g small{display:block;font-size:12px;color:var(--mu,#b8a68d)}
 @media(prefers-reduced-motion:reduce){.hm-win,.hm-stars{animation:none}}
+.gl-cr{margin:10px 14px 90px;font-size:11px;color:var(--mu,#b8a68d);text-align:center}.gl-cr a{color:inherit}
