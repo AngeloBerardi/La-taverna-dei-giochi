@@ -1,0 +1,8 @@
+/* ZUCCA MATTA: percorso a serpentina, carta prova con conto alla rovescia */
+.zb{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:3px;width:100%;max-width:400px;margin:0 auto;padding:0 4px}
+.zs{position:relative;aspect-ratio:1;border-radius:7px;background:var(--zc);border:2px solid #0006;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1px;box-shadow:0 2px 0 #0008;min-height:36px}
+.zs>b{position:absolute;inset:0;display:grid;place-items:center;font:900 15px var(--f-d);color:#fff9;pointer-events:none}.zs.here{outline:3px solid #ffe27a;z-index:1}
+.zs u{position:relative;z-index:2;text-decoration:none;width:17px;height:17px;border-radius:50%;border:2px solid #fff;display:grid;place-items:center;font:900 9px var(--f-d);color:#fff;text-shadow:0 1px 0 #000a}.zs u.act{box-shadow:0 0 0 2px #ffe27a}
+.zcard{border-left:6px solid var(--zc);background:#0009;border-radius:10px;padding:8px 10px;text-align:left}.zcard small{display:block;color:var(--zc);filter:brightness(1.35);font-weight:900;letter-spacing:.04em;text-transform:uppercase;font-size:10px}.zcard b{font:700 14px/1.25 var(--f-d)}
+.zcard.big b{font-size:20px}.ztime{height:6px;border-radius:3px;background:#0008;margin-top:8px;overflow:hidden}.ztime i{display:block;height:100%;width:100%;background:var(--zc);transform-origin:left;animation:ztm 60s linear forwards}@keyframes ztm{to{transform:scaleX(0)}}
+.zpick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}.zpick .b{font-size:11px;padding:6px 2px}

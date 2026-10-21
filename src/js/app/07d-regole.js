@@ -65,6 +65,11 @@ const RULES={
 <li><b>Giusto:</b> tiri ancora. Se eri su uno spicchio che non avevi, lo <b>guadagni</b>. <b>Sbagliato:</b> tocca al prossimo.</li>
 <li><b>Al centro:</b> con tutti e sei gli spicchi vai al centro. Il giocatore dopo di te sceglie la <b>categoria</b> della domanda finale: se rispondi giusto <b>vinci</b>, altrimenti riparti da uno spicchio e passa il turno.</li>
 <li>Le domande non si ripetono finché ne restano nella categoria.</li></ul>`,
+ zucca:`<p>Gioco di squadre con prove miste, per 2–6 squadre (ogni giocatore in lista è una squadra: ai compagni di squadra e agli amici accanto a lui tocca indovinare). Ispirato ai party game a prove miste; carte, grafica e testi sono nostri.</p>
+<ul><li><b>Il percorso:</b> 40 caselle colorate. Il colore dice la prova: <b>Mimo</b> (a gesti, senza parlare), <b>Disegno</b> (su un foglio, senza scrivere), <b>Parole</b> (enigmi, anagrammi, indovinelli), <b>Canto</b> (canticchia o fischietta senza dire il titolo), <b>Cultura</b> (domanda con 4 risposte). Sulle caselle ★ <b>Jolly</b> scegli tu la prova.</li>
+<li><b>Il turno:</b> tocca «Pesca la carta»: solo chi fa la prova vede la carta, quindi passa il telefono e gli altri non devono guardare. Avete un minuto. Se la squadra indovina premi <b>Indovinato!</b> e avanzi del <b>dado</b>; altrimenti resti dove sei. In Cultura basta toccare la risposta giusta.</li>
+<li><b>Il traguardo:</b> arrivato in fondo, il giocatore dopo di te sceglie la categoria della <b>prova finale</b>: se riesci vinci, altrimenti riprovi al prossimo turno.</li>
+<li>Vale la parola dei giocatori: chi fa la prova dichiara onestamente se è stata indovinata.</li></ul>`,
  uno:`<p>Il classico gioco di scarto a colori per 2–10: <b>resta senza carte per primo</b>. Si gioca una mano. Regole del celebre gioco; grafica e testi sono nostri.</p>
 <ul><li><b>Preparazione:</b> 7 carte a testa; si scopre una carta di partenza. Con più di 6 giocatori si usano due mazzi.</li>
 <li><b>Il turno:</b> giochi una carta dello <b>stesso colore o stesso numero/simbolo</b> di quella in cima, oppure un jolly. Se non puoi (o non vuoi) peschi una carta: se si può giocare, la giochi subito o passi.</li>

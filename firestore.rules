@@ -139,6 +139,7 @@ service cloud.firestore {
                 || elo('uno')
                 || elo('spie')
                 || elo('quiz')
+                || elo('zucca')
                 || elo('trono')
                 || elo('scoundrel')
                 || elo('machiavelli')
