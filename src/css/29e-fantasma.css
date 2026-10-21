@@ -1,0 +1,5 @@
+/* CACCIA AL FANTASMA: mappa della città, percorso dei biglietti del Fantasma */
+.fmw{width:100%;max-width:400px;margin:0 auto}.fm{width:100%;height:auto;display:block;max-height:52vh}
+.fn{font:800 8.5px var(--f-d);fill:#f4ead0;text-anchor:middle;pointer-events:none}.fn.w{fill:#fff;font-size:10px}.ft.act circle{stroke:#ffe27a}
+.fd{cursor:pointer}.fp{animation:qp 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.fl text{fill:#b79cff;font-size:8px}
+.ftr{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;min-height:20px}.ftr i{font:900 9px var(--f-d);font-style:normal;color:#161616;border-radius:5px;padding:2px 5px;min-width:18px;text-align:center}.ftr i.rv{outline:2px solid #fff}

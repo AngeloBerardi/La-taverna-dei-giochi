@@ -2,7 +2,7 @@
    Per i giochi in FIXED la pagina occupa esattamente lo schermo: in alto titolo e dati, striscia giocatori compatta, al centro il tavolo
    (si adatta allo spazio che resta), in basso messaggio, comandi e mano. Giocatori, registro e regole stanno in pannelli a scorrimento
    interno che si aprono dalla barra in fondo. */
-const FIXED=new Set(['perudo','kittens','catan','pets','uno','trono']);
+const FIXED=new Set(['fantasma','zucca','quiz','perudo','kittens','catan','pets','uno','trono','spie']);
 const fxOn=()=>ui.screen==='game'&&G&&FIXED.has(G.g);
 /* striscia giocatori: f(i) → {b: badge, c: colore, out: eliminato} */
 function stripH(s,f){return`<div class="fx-strip n${Math.min(s.names.length,10)}">`+s.names.map((n,i)=>{const o=f(i)||{};
