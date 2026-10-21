@@ -59,6 +59,12 @@ const RULES={
 <li><b>Se sbagli:</b> una parola neutra chiude il turno; una parola dell’altra squadra la avvicina alla vittoria e chiude il turno; la <b>trappola</b> fa perdere subito la tua squadra.</li>
 <li><b>Vittoria:</b> vince la squadra che trova tutte le sue parole, o quella a cui l’avversaria fa toccare la trappola.</li>
 <li><b>Su un telefono solo:</b> passate il telefono alla spia quando tocca a lei e poi agli agenti: la chiave si vede solo quando il telefono è in mano a una spia.</li></ul>`,
+ quiz:`<p>Gioco di domande su percorso per 2–6, ispirato ai classici quiz da tavolo. Domande, grafica e testi sono nostri: 120 domande in sei categorie (geografia, storia, arte e libri, scienza e natura, spettacolo e musica, sport e hobby).</p>
+<ul><li><b>Il percorso:</b> un anello di 42 caselle. Ogni 7 caselle c’è uno <b>spicchio</b> (una categoria ciascuno, in grande); le caselle <b>↻ Rilancia</b> fanno tirare ancora; le altre sono caselle di categoria.</li>
+<li><b>Il turno:</b> tira il dado e scegli se andare <b>avanti o indietro</b> (tocca una delle due caselle che brillano). Poi rispondi alla domanda della categoria della casella, con quattro risposte.</li>
+<li><b>Giusto:</b> tiri ancora. Se eri su uno spicchio che non avevi, lo <b>guadagni</b>. <b>Sbagliato:</b> tocca al prossimo.</li>
+<li><b>Al centro:</b> con tutti e sei gli spicchi vai al centro. Il giocatore dopo di te sceglie la <b>categoria</b> della domanda finale: se rispondi giusto <b>vinci</b>, altrimenti riparti da uno spicchio e passa il turno.</li>
+<li>Le domande non si ripetono finché ne restano nella categoria.</li></ul>`,
  uno:`<p>Il classico gioco di scarto a colori per 2–10: <b>resta senza carte per primo</b>. Si gioca una mano. Regole del celebre gioco; grafica e testi sono nostri.</p>
 <ul><li><b>Preparazione:</b> 7 carte a testa; si scopre una carta di partenza. Con più di 6 giocatori si usano due mazzi.</li>
 <li><b>Il turno:</b> giochi una carta dello <b>stesso colore o stesso numero/simbolo</b> di quella in cima, oppure un jolly. Se non puoi (o non vuoi) peschi una carta: se si può giocare, la giochi subito o passi.</li>
