@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "stanze": {
+      "$code": {
+        ".read": "auth != null",
+        "d": {
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['j', 'rev']) && newData.child('j').isString() && newData.child('j').val().length <= 900000 && newData.child('rev').isNumber()"
+        },
+        "m": {
+          "$dev": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChild('j') && newData.child('j').isString() && newData.child('j').val().length <= 20000"
+          }
+        },
+        "c": {
+          "$id": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChild('j') && newData.child('j').isString() && newData.child('j').val().length <= 4000"
+          }
+        },
+        "p": {
+          "$dev": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChild('t')"
+          }
+        }
+      }
+    }
+  }
+}

@@ -59,6 +59,9 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati ricalcolati, `prova` d20) salvati in `players/{uid}/eroi/e1..e5` via `FB.eroi/salvaEroe/eliminaEroe`; vista `app/24g-eroi.js` (`Eroi`). Le regole `eroi` di `firestore.rules` sono generate da `scripts/regole.js`. Campagna: `motori/28-campagna.js` (`CAMP`, stato JSON puro, `act(stato, azione, rnd)` → `{s}`|`{err}`), anteprima `app/24h-campagna.js` (`Camp`). Piano: `docs/CAMPAGNE.md`.
 
 ## Rete
+**Stanze sul database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Terzo trasporto, con la stessa interfaccia `doc/collection/onSnapshot` di `R.db`: le stanze vivono su Firebase Realtime Database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`) e nessun telefono fa da host. Ogni documento è un testo JSON (`j`); la stanza si scrive in transazione con controllo di `rev` (stato più vecchio ⇒ `conflitto`). Chi non ha presenza da più di `RT.TOLLERANZA` ms viene tolto dalla stanza **in attesa** (mai durante la partita) e rientra da solo alla riconnessione. **Spento di default** (`RT.PREDEFINITO=false`): si prova con `?net=rt`; se il database non risponde in 10 s si ripiega sul p2p. I link d'invito e dello schermo portano `net=rt` finché non è il predefinito (`RT.link`). Regole: `database.rules.json` (da pubblicare nella console, come `firestore.rules`).
+
+**Trasporti p2p (ripiego).**
 Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Firebase Hosting la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
 - **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
 - **Invito**: `?room=CODICE&b=indice_broker` per le private. L'ospite riprova con pazienza fino a ~75 s (l'host può essere in background) senza creare stanze di ripiego; poi ripiega sulla stanza generale.
@@ -97,7 +100,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/22-discesa-tascabile.css` | 3 |  |
 | `css/23-scaffale-scatole.css` | 4 |  |
 | `css/24-gattini.css` | 3 |  |
-| `css/25-catan.css` | 5 |  |
+| `css/25-catan.css` | 9 |  |
 | `css/26-fisso.css` | 4 |  |
 | `css/27-pets.css` | 2 |  |
 | `css/28-uno.css` | 2 |  |
@@ -106,12 +109,15 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
 | `css/33-dorsi.css` | 2 |  |
-| `css/34-account.css` | 1 |  |
+| `css/34-account.css` | 2 |  |
 | `css/35-locandiere.css` | 1 |  |
 | `css/36-distanza.css` | 1 |  |
 | `css/37-schermo.css` | 2 |  |
-| `css/38-eroi.css` | 2 |  |
-| `css/39-campagna.css` | 1 |  |
+| `css/38-eroi.css` | 5 |  |
+| `css/39-campagna.css` | 3 |  |
+| `css/40-legno-ottone.css` | 13 |  |
+| `css/41-regicide-tv.css` | 6 |  |
+| `css/42-catan-tv.css` | 5 |  |
 | `css/90-lobby-3d.css` | 19 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -132,7 +138,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/15-discesa-tascabile.js` | 20 | DISC, RND, W, L, MAPS, BOSSMAP, MON |
 | `js/motori/16-perudo.js` | 5 | PERU, RND, FN, clone, L, alive, total |
 | `js/motori/17-gattini.js` | 11 | KITT, RND, clone, T, NAMES, CATS, IMPC |
-| `js/motori/18-catan.js` | 19 | CATAN, RND, clone, RES, RN, COST, LIM |
+| `js/motori/18-catan.js` | 32 | CATAN, RND, clone, EXT, X, XS, RES |
+| `js/motori/18b-catan-marinai.js` | 8 | DIRS, key, dist, split, SC, landOf, tryGen |
+| `js/motori/18c-catan-cek.js` | 21 | K, TR, LV, KN, PC, HAND, F |
 | `js/motori/19-pets.js` | 8 | PETS, RND, clone, COUNTS, NAMES, TARGET, L |
 | `js/motori/20-uno.js` | 6 | UNO, RND, clone, COLORS, col, pts, L |
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
@@ -141,21 +149,22 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/24-locandiere.js` | 6 | LOC |
 | `js/motori/25-distanza.js` | 3 | DIST |
 | `js/motori/26-qr.js` | 6 | QR |
-| `js/motori/27-eroi.js` | 8 | EROI |
+| `js/motori/27-eroi.js` | 9 | EROI |
 | `js/motori/28-campagna.js` | 12 | CAMP |
 | `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
+| `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 14 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
 | `js/app/07-nucleo.js` | 10 | G, ui, ME, R, ENG, GAMES, GN |
-| `js/app/07a-rete-stanza.js` | 7 | netInit, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter, p2pGeneral |
+| `js/app/07a-rete-stanza.js` | 8 | netInit, netInit0, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter |
 | `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
 | `js/app/07c-comandi.js` | 7 |  |
 | `js/app/07d-regole.js` | 30 | RULES |
-| `js/app/07d-viste-comuni.js` | 4 | seen, hudH, rulesH, cfgH, storyH, nameH |
+| `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, storyH, nameH |
 | `js/app/07e-lobby-falo.js` | 25 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
@@ -179,21 +188,30 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22c-discesa-tascabile.js` | 14 | DMEA, DSN, DPIP, ddieH, dMonIcon, dGridH, dStatsH |
 | `js/app/22d-perudo.js` | 6 | PDP, dieH, peruDefault, peruH, peruClick, PEFX |
 | `js/app/22e-gattini.js` | 12 | KST, KORD, kcardH, kSort, kEffTxt, kittH, kittClick |
-| `js/app/22f-catan.js` | 17 | CPC, CTC, CRI, CDV, CS, cbx, cGeo |
+| `js/app/22f-catan.js` | 8 | CPC, CTC, CKC, CRN, CRG, resI, CDV |
+| `js/app/22f2-catan-mano.js` | 19 | CXUI, cxs, cScr, CKEYS, cName, costH, CMODE |
+| `js/app/22f3-catan-cek.js` | 12 | CTK, cekE, cekKn, cekAct, cekTrack, cekDie, cekCanKnNew |
+| `js/app/22f4-catan-tavolo.js` | 25 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
+| `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
 | `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanH, fanFit |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
 | `js/app/22i-uno.js` | 6 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
-| `js/app/24a-firebase.js` | 7 | FB |
+| `js/app/24a-firebase.js` | 8 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
-| `js/app/24c-account.js` | 5 | Acc |
+| `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 9 | FsDb, Dist |
-| `js/app/24f-schermo.js` | 5 | TV |
-| `js/app/24g-eroi.js` | 11 | Eroi |
-| `js/app/24h-campagna.js` | 6 | Camp |
+| `js/app/24f-schermo.js` | 7 | TV |
+| `js/app/24g-eroi.js` | 13 | Eroi |
+| `js/app/24h-campagna.js` | 8 | Camp |
+| `js/app/24i-plancia.js` | 12 | Plancia |
+| `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
+| `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
+| `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |
+| `js/app/24m-rete-rtdb.js` | 7 | RT |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

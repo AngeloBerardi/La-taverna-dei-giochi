@@ -10,6 +10,16 @@ Scelte dell'utente: **Firebase**, identità **anonima poi email**. Idee collegat
 - **Partite a distanza fatte** (fase D, senza notifiche push a app chiusa): collezione `partite` con regole proprie. Ripubblica `firestore.rules`. Per le notifiche a app chiusa serve un server: *Cloud Functions* (piano Blaze con carta) che reagisce al cambio di `turno` in `partite/{codice}` e invia FCM. I dati ci sono già (`turno`, `uids`); manca solo l'invio e la registrazione dei token FCM.
 - Provato in Chromium con un SDK simulato (profilo, premio, coda, errore di accesso). **Non provato** con il vero Firebase né con l'emulatore delle regole (non scaricabile da qui): il primo giro vero è il sito su Firebase Hosting.
 
+## Stanze live sul Realtime Database (ramo `feat/stanze-rtdb`)
+Perché: le stanze p2p dipendono dal telefono che le ospita e da broker MQTT pubblici (vedi `docs/ARCHITECTURE.md`, «Rete»). Con il database non c'è un host: chi esce o va in background non ferma gli altri, la riconnessione la fa l'SDK.
+- **Cosa deve fare l'utente (una volta):** console Firebase → **Build → Realtime Database → Crea database** → località **europe-west1 (Belgio)** → modalità **bloccata**. Poi scheda **Regole**: incolla `database.rules.json` e **Pubblica**. Se la località è diversa, copia l'indirizzo che compare in cima ai dati e mettilo in `RT.URL` (`app/24m-rete-rtdb.js`).
+- **Provarlo:** apri il sito con `?net=rt` su due telefoni (i link «Copia invito» e dello schermo comune lo portano da soli). In Impostazioni deve comparire la stanza generale; se il database non risponde il gioco ripiega sul p2p come prima.
+- **Renderlo predefinito:** dopo una prova dal vivo, `RT.PREDEFINITO=true`.
+- **Limiti del piano Spark:** 100 connessioni simultanee (per un gruppo di amici bastano), 1 GB di dati, traffico in uscita mensile limitato (circa 10 GB: controlla in console). Lo stato di una partita è un unico testo: ogni mossa lo rimanda a chi guarda la stanza. Se il traffico diventa un problema si può dividere lo stato in parti.
+- **Pulizia:** le stanze non si cancellano da sole (`t` = ultimo salvataggio). Un piccolo script con le credenziali del progetto può eliminare quelle vecchie; non c'è ancora.
+- **Non provato** con il vero database né con il simulatore regole: provate solo con lo stub (`npm run test:browser`, scenario `stanze_database`). Prima di renderlo predefinito, nel **Simulatore regole** della console prova una lettura e una scrittura di `stanze/ABCD/d` con un utente autenticato (devono passare) e senza (devono fallire).
+- Informazioni nascoste: come nel p2p, lo stato contiene anche le mani degli altri (va bene tra amici).
+
 ## Pubblicare le regole (una volta, e a ogni modifica di `firestore.rules`)
 1. Console Firebase → **Build → Firestore Database → scheda Regole**.
 2. Cancella tutto, incolla il contenuto di `firestore.rules` e tocca **Pubblica**: la console segnala eventuali errori di sintassi.

@@ -413,6 +413,70 @@ async def sc_distanza_due_telefoni(b, srv):
     for p in (A, B): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
     await ctxA.close(); await ctxB.close()
 
+async def telefono_rt(b, srv, sh, nome, seq, query='?net=rt', rt=True, wait=5000):
+    ctx = await new_context(b, srv.port, name=nome, shared=sh, extra_init=f"localStorage.setItem('__stubseq','{seq}');" + ('window.__stubRt=true;' if rt else ''))
+    pg = await page(ctx, srv.url + query, wait); return ctx, pg
+
+async def sc_stanze_database(b, srv):
+    """Stanze live sul Realtime Database (stub condiviso): ingresso, invito, partita, conflitti, presenza e schermo comune."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    check(await A.evaluate('[R.mode,R.on,R.code]') == ['rt', True, 'PIAZZA'], 'A: entra nella stanza generale sul database')
+    devA = await A.evaluate('ME.dev')
+    check('stanze/PIAZZA/d' in sh.d and isinstance(sh.d['stanze/PIAZZA/d'].get('j'), str) and sh.d['stanze/PIAZZA/d']['rev'] == 0, 'la stanza è salvata come testo JSON con rev')
+    check('stanze/PIAZZA/m/' + devA in sh.d and 'stanze/PIAZZA/p/' + devA in sh.d, 'A ha il documento di membro e la presenza')
+    await A.evaluate('RT.TOLLERANZA=2500')
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 2)
+    await B.wait_for_function("R.mode==='rt'&&R.members.length>=2", timeout=30000); await A.wait_for_timeout(1200)
+    check(await A.evaluate('R.members.length') == 2 and await B.evaluate('R.members.length') == 2, 'A e B si vedono nella stanza generale')
+    # stanza privata e invito con il link (porta con sé net=rt)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    link = await A.evaluate("RT.link(location.origin+location.pathname+'?room='+R.code)")
+    check(len(code) == 4 and 'net=rt' in link and 'room=' + code in link, f'A: stanza privata {code}, link {link.split("/")[-1]}')
+    ctxC, C = await telefono_rt(b, srv, sh, 'Carla', 3, '?room=' + code + '&net=rt')
+    await C.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000); await A.wait_for_timeout(1200)
+    check(await A.evaluate('R.members.map(m=>m.name).sort()') == ['Ada', 'Carla'], 'C entra dal link e A la vede al tavolo')
+    # la stanza non dipende da chi l'ha creata: A esce dalla pagina, C ci resta e B può entrare
+    await A.close()
+    await B.evaluate(f"(async()=>{{await joinRoom({code!r})}})()"); await B.wait_for_timeout(1500)
+    check(await B.evaluate('R.members.length') >= 2, 'B entra nella stanza privata anche se chi l\'ha creata ha chiuso la pagina')
+    # partita: parte su entrambi, la mossa passa, e uno stato più vecchio viene rifiutato
+    await C.evaluate("startGame('uno')"); await C.wait_for_timeout(3500)
+    check(await C.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'] and await B.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'], 'la partita parte su entrambi i telefoni')
+    rev = await C.evaluate('R.doc.rev')
+    await C.evaluate("(async()=>{await writeRoom({rev:R.doc.rev+1});await writeRoom({rev:R.doc.rev+1})})()"); await C.wait_for_timeout(600); rev = await C.evaluate('R.doc.rev')
+    esito = await C.evaluate("RT.setRoom(R.code,{...R.doc,rev:R.doc.rev-1}).then(()=>'scritto',e=>e.code)")
+    check(esito == 'conflitto', f'stato più vecchio rifiutato ({esito})')
+    check(await C.evaluate('R.doc.rev') == rev, 'lo stato resta quello più recente')
+    # presenza: B perde la linea in attesa; dopo la tolleranza gli altri la tolgono dall'elenco, al ritorno rientra da sola
+    await C.evaluate("writeRoom({phase:'lobby',game:null,s:null,seats:[],rev:R.doc.rev+1})"); await C.wait_for_timeout(1500)
+    await C.evaluate('RT.TOLLERANZA=2500')
+    await B.evaluate('__rtDrop()'); await B.wait_for_timeout(5200)
+    devB = await B.evaluate('ME.dev')
+    check('stanze/' + code + '/p/' + devB not in sh.d, 'B: il server ha tolto la sua presenza')
+    check('Connessione persa' in (await B.evaluate('ui.err') or ''), 'B: vede «Connessione persa»')
+    await C.wait_for_function(f"R.members.every(m=>m.id!=={devB!r})", timeout=20000)
+    check('stanze/' + code + '/m/' + devB not in sh.d, 'C: B tolta dall\'elenco dopo la tolleranza')
+    await B.evaluate('__rtBack()'); await B.wait_for_timeout(2500)
+    check(await B.evaluate("ui.err||''") == '' and 'stanze/' + code + '/p/' + devB in sh.d, 'B: linea tornata, presenza rimessa, messaggio sparito')
+    await C.wait_for_function(f"R.members.some(m=>m.id==={devB!r})", timeout=20000)
+    check('stanze/' + code + '/m/' + devB in sh.d, 'B: rientra da sola tra i membri')
+    # schermo comune: legge la stanza senza sedersi
+    n_membri = len([k for k in sh.d if k.startswith('stanze/' + code + '/m/')])
+    ctxT, T = await telefono_rt(b, srv, sh, '', 4, '?tv=' + code + '&net=rt')
+    await T.wait_for_function("ui.tv&&R.mode==='rt'&&R.doc", timeout=30000)
+    check(await T.evaluate('[ui.tv,R.mode,R.code]') == [True, 'rt', code], 'TV: collegata alla stanza dal database')
+    check(len([k for k in sh.d if k.startswith('stanze/' + code + '/m/')]) == n_membri, 'TV: non occupa un posto')
+    # senza ?net=rt resta tutto com'era; con il database irraggiungibile si ripiega
+    ctxD, D = await telefono_rt(b, srv, sh, 'Dino', 5, '')
+    check(await D.evaluate('R.mode') != 'rt', 'spento di default: senza ?net=rt non si usa il database')
+    ctxE, E = await telefono_rt(b, srv, sh, 'Elsa', 6, '?net=rt', rt=False, wait=6000)
+    check(await E.evaluate('R.mode') != 'rt', 'database irraggiungibile: si ripiega sul trasporto di prima')
+    for p in (B, C, T, D, E): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
+    for c in (ctxB, ctxC, ctxT, ctxD, ctxE): await c.close()
+    await ctxA.close()
+
 async def sc_schermo_tutti_i_giochi(b, srv):
     # lo schermo comune non ha posti: ogni gioco deve disegnarsi senza errori e senza mostrare una mano
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)

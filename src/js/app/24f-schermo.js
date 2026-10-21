@@ -8,11 +8,12 @@ const TV={
  leggi(){try{const q=new URLSearchParams(location.search),c=(q.get('tv')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
    if(c.length<3||c.length>DIST.LUN)return false;TV.code=c;TV.strict=q.has('b');return true}catch(e){return false}},
  // link per aprire lo schermo (dal telefono di un giocatore) e link per unirsi (nel QR)
- linkSchermo(){return location.origin+location.pathname+'?tv='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')},
- linkGioco(){return R.mode==='fs'?Dist.invito(R.code):location.origin+location.pathname+'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:'')},
+ linkSchermo(){return RT.link(location.origin+location.pathname+'?tv='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:''))},
+ linkGioco(){return R.mode==='fs'?Dist.invito(R.code):RT.link(location.origin+location.pathname+'?room='+R.code+(R.mode==='p2p'&&P2P.tr==='mq'?'&b='+MQ.bi:''))},
  async avvia(){ui.tv=true;document.documentElement.dataset.tv='1';ME.name=ME.name||'Schermo';R.mine.name=ME.name;ui.screen='tv';ui.err='';render();TV.sveglio();
   try{await netInit();const c=TV.code;
    if(c.length===DIST.LUN){await FB.start();if(!Dist.ok())throw new Error('profilo online non disponibile');R.db=FsDb;R.mode='fs';R.on=true;ME.dev='tv-'+rid()}
+   else if(R.mode==='rt'){/* stanze sul database: lo schermo legge direttamente, senza collegarsi a un host */}
    else{if(R.mode!=='p2p')throw new Error('servono le stanze online');
     const t0=Date.now();let ultimo;while(Date.now()-t0<75000){try{R.db=await p2pJoin(c,8000,TV.strict);ultimo=null;break}catch(e){ultimo=e;await new Promise(r=>setTimeout(r,2500))}}
     if(ultimo)throw ultimo}
