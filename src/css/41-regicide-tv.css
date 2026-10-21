@@ -45,3 +45,11 @@
 .rtv-endbox h2{font:800 8vh/1.05 var(--f-d);margin:1vh 0}.rtv-endbox p{font-size:3vh;margin:1vh 0}.rtv-sub{color:var(--mu,#b8a68d)}
 @media (max-aspect-ratio:1/1){.rtv{position:absolute;min-height:100%;height:auto;grid-template-columns:1fr;grid-template-rows:none;overflow:auto}.rtv-left,.rtv-right{flex-direction:row;flex-wrap:wrap}.rtv-path{width:100%}}
 @media (prefers-reduced-motion:reduce){.rtv-hp i{transition:none}}
+/* tavolo 3D (app/24k-regicide-tavolo.js): il canvas #rtv3d sta dietro, qui restano intestazione, giocatori e cronaca */
+#rtv3d{position:fixed;left:0;top:0;z-index:1;display:none;pointer-events:none}
+.rtv.d3{background:none;pointer-events:none;grid-template-columns:minmax(0,1fr) clamp(260px,24vw,430px);grid-template-rows:auto 1fr auto}
+.rtv.d3 .rtv-top{background:linear-gradient(180deg,rgba(20,12,6,.88),rgba(20,12,6,0));padding:0 0 3vh}
+.rtv.d3 .rtv-top .rtv-state{flex:1;max-width:46vw;font-size:3.2vh}
+.rtv.d3 .rtv-right{grid-column:2;grid-row:2;background:linear-gradient(180deg,#3a2616,#2a1b0f);border:.4vh solid #c9973b;border-radius:1.6vh;padding:1.6vh 1vw;box-shadow:0 1vh 3vh rgba(0,0,0,.5)}
+.rtv.d3 .rtv-foot{grid-column:1/-1;background:linear-gradient(0deg,rgba(20,12,6,.9),rgba(20,12,6,0))}
+html[data-rtv3] #tvpanel{display:none}

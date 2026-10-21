@@ -159,18 +159,22 @@ function loop(t){raf=requestAnimationFrame(loop);if(!ren||document.hidden)return
   else{const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;a.o.position.x=a.from[0]+(a.to[0]-a.from[0])*e+(a.o.userData.slot==='rob'?0:0);a.o.position.z=a.from[1]+(a.to[1]-a.from[1])*e;a.o.position.y=a.y0+Math.sin(k*Math.PI)*.5}
   if(k>=1){if(a.k==='drop')a.o.position.y=a.y0;anims.splice(i,1)}}
  ren.render(scn,cam)}
-async function init(){if(T||failed)return;if(!loading)loading=(async()=>{try{if(!VENDOR.gl())throw new Error('niente WebGL');await VENDOR.load('three');T=window.THREE;
-  cv=document.createElement('canvas');cv.id='ctv3d';cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
-  ren=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});ren.setPixelRatio(Math.min(2,devicePixelRatio||1));ren.outputEncoding=T.sRGBEncoding;ren.toneMapping=T.ACESFilmicToneMapping;ren.toneMappingExposure=.92;ren.shadowMap.enabled=true;ren.shadowMap.type=T.PCFSoftShadowMap;
-  scn=new T.Scene();scn.background=new T.Color('#1a120a');scn.fog=new T.Fog('#1a120a',40,90);cam=new T.PerspectiveCamera(34,1,.5,200);
+async function lib(){if(!T){if(!VENDOR.gl())throw new Error('niente WebGL');await VENDOR.load('three');T=window.THREE}return T}
+/* palcoscenico condiviso con gli altri tavoli 3D (Regicide): renderer, scena, camera e luci nello stesso stile */
+function stage(id){const cv=document.createElement('canvas');cv.id=id;cv.setAttribute('aria-hidden','true');document.body.appendChild(cv);
+  const ren=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});ren.setPixelRatio(Math.min(2,devicePixelRatio||1));ren.outputEncoding=T.sRGBEncoding;ren.toneMapping=T.ACESFilmicToneMapping;ren.toneMappingExposure=.92;ren.shadowMap.enabled=true;ren.shadowMap.type=T.PCFSoftShadowMap;
+  const scn=new T.Scene();scn.background=new T.Color('#1a120a');scn.fog=new T.Fog('#1a120a',40,90);const cam=new T.PerspectiveCamera(34,1,.5,200);
   scn.add(new T.HemisphereLight('#dbe8ff','#5a4026',.62));const sun=new T.DirectionalLight('#fff1d4',1.15);sun.position.set(7,16,9);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
   Object.assign(sun.shadow.camera,{left:-17,right:17,top:17,bottom:-17,near:2,far:50});sun.shadow.bias=-.0006;scn.add(sun);const lamp=new T.PointLight('#ffb865',.9,40);lamp.position.set(-8,9,-6);scn.add(lamp);
+  return{cv,ren,scn,cam}}
+async function init(){if(scn||failed)return;if(!loading)loading=(async()=>{try{if(!VENDOR.gl())throw new Error('niente WebGL');await lib();
+  const st=stage('ctv3d');cv=st.cv;ren=st.ren;scn=st.scn;cam=st.cam;
   addEventListener('resize',size);raf=requestAnimationFrame(loop);if(typeof G!=='undefined'&&G&&G.g==='catan'&&typeof render==='function')render()}catch(e){failed=true;console.warn('Catan 3D non disponibile:',e&&e.message);if(typeof render==='function')render()}})();return loading}
 /* bersagli da evidenziare sulla TV: le mosse obbligate del giocatore di turno */
 function targets(s){if(s.over)return null;const C=CATAN;try{if(s.phase==='setup')return s.setup.step==='v'?{k:'v',l:C.settleSpots(s,s.cur,true)}:{k:'e',l:C.roadSpots(s,s.cur,s.setup.v).concat(C.shipSpots(s,s.cur,{from:s.setup.v}))};
  if(s.phase==='robber')return{k:'h',l:C.geo(s).HX.map((h,i)=>i).filter(i=>i!==s.robber&&(C.landH(s,i)||(s.pirate!=null&&s.hexes[i].t==='sea'&&!s.hexes[i].fog&&i!==s.pirate)))};
  if(s.phase==='rb')return{k:'e',l:C.roadSpots(s,s.cur).concat(C.shipSpots(s,s.cur))}}catch(e){}return null}
-function sync(s){if(failed)return false;if(!T){init();return false}if(!scn)return false;
+function sync(s){if(failed)return false;if(!scn){init();return false}
  const Gm=CATAN.geo(s),gk=(s.lay?'L'+s.lay.length+':'+s.hexes.map(h=>h.t[0]+h.num+(h.fog?'f':'')).join('').length:'P'+s.prof)+':'+(s.gid||'')+':'+(s.ports||[]).map(p=>p.e+p.k).join(','),nk=(s.gid||'')+':'+s.evn;
  const rebuilt=gk!==geoKey,fogK=s.hexes.map(h=>h.fog?1:0).join('');
  if(rebuilt||fogK!==sync.fk){geoKey=gk;sync.fk=fogK;buildBoard(s,Gm);size();prevKeys=new Set();lastRob=lastPir=null}
@@ -178,4 +182,4 @@ function sync(s){if(failed)return false;if(!T){init();return false}if(!scn)retur
   buildPieces(s,Gm,!first);buildMarks(s,Gm,targets(s))}
  cv.style.display='block';return true}
 function hide(){if(cv)cv.style.display='none'}
-return{sync,hide,init,get failed(){return failed},get ready(){return !!scn},debug:()=>({cam,scn,ren,T})}})();
+return{sync,hide,init,lib,stage,kit:()=>({T,mul,shade,mat,geo,canv,ctex,woodTex}),get failed(){return failed},get ready(){return !!scn},debug:()=>({cam,scn,ren,T})}})();
