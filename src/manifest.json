@@ -42,6 +42,7 @@
  "src/css/40-legno-ottone.css",
  "src/css/41-regicide-tv.css",
   "src/css/42-catan-tv.css",
+  "src/css/43-tv-lowpoly.css",
  "src/css/90-lobby-3d.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -136,6 +137,9 @@
  "src/js/app/24k-regicide-tavolo.js",
  "src/js/app/24l-regicide-attori.js",
  "src/js/app/24m-rete-rtdb.js",
+ "src/js/app/24n-tv-lowpoly.js",
+ "src/js/app/24o-azul-tv.js",
+ "src/js/app/24p-valle-tv.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]

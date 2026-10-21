@@ -22,7 +22,7 @@ function azBoard(s,p,o={}){const b=s.boards[p],act=o.act,sel=ui.azs,tilePh=s.pha
  let fl='';for(let i=0;i<7;i++){const t=b.floor[i];fl+=`<i class="azf">${t==null?'':t==='F'?azFirst:azT(t)}<em>${AZUL.FLOOR[i]}</em></i>`}
  return`<div class="azb ${o.mini?'mini':''} ${s.cur===p&&!s.over?'cur':''}" id="azb${p}"><div class="azh"><b>${esc(s.names[p])}</b><span class="azsc" id="azsc${p}">${b.score}</span></div><div class="azg"><div class="azls">${ln}</div><div class="azwall ${s.grey?'grey':''}">${wl}</div></div>
  <div class="azfl ${fh?'hot':''}" id="azf${p}" ${fh?`data-a="azfloor" role="button" tabindex="0"`:''}>${fl}</div></div>`}
-function azulH(){const s=G,mine=myTurn(),v=viewer();const L=local();if(needCover())return`${hudH('Azul')}${coverH(s.cur)}${rulesH()}${cfgH()}`;
+function azulH(){if(ui.tv)return azulTVH();const s=G,mine=myTurn(),v=viewer();const L=local();if(needCover())return`${hudH('Azul')}${coverH(s.cur)}${rulesH()}${cfgH()}`;
  const me=isMine(s.cur)?s.cur:v>=0?v:(L[0]??0);const sel=ui.azs;
  const fac=s.factories.map((f,i)=>`<div class="azfa ${f.length?'':'e'}" id="azfa${i}">${f.map(c=>{const h=sel&&sel.src===i&&sel.color===c;return`<span class="azp ${h?'hl':''}" ${mine&&s.phase==='pick'?`data-a="azp" data-v="${i}|${c}" role="button" tabindex="0"`:''}>${azT(c)}</span>`}).join('')}</div>`).join('');
  const cen=`<div class="azcen" id="azfc">${s.firstInCenter?`<span class="azp">${azFirst}</span>`:''}${[...s.center].sort().map(c=>{const h=sel&&sel.src==='c'&&sel.color===c;return`<span class="azp ${h?'hl':''}" ${mine&&s.phase==='pick'?`data-a="azp" data-v="c|${c}" role="button" tabindex="0"`:''}>${azT(c)}</span>`}).join('')}${!s.center.length&&!s.firstInCenter?'<em class="muted">centro vuoto</em>':''}</div>`;
@@ -44,11 +44,11 @@ function azClick(a,v){const s=G;if(a==='azno'){ui.azs=null;return render()}
  if(a==='azfloor'){if(s.phase==='tile')return dispatch({t:'wall',col:-1});const z=ui.azs;if(!z)return;ui.azs=null;return dispatch({t:'take',src:z.src,color:z.color,line:'f'})}
  if(a==='azline'){const z=ui.azs;if(!z)return;ui.azs=null;return dispatch({t:'take',src:z.src,color:z.color,line:+v})}}
 const AZFX={async pre(){return{}},
- async run(prev,ns){for(const e of ns.ev){
+ async run(prev,ns){const P3=ui.tv&&AZ3.ready;for(const e of ns.ev){
   if(e.t==='round'){banner('ROUND '+e.r,'Le fabbriche si riempiono');Snd.play('deal');await W(500)}
-  else if(e.t==='take'){Snd.play('draw');const t=e.line==='f'?'#azf'+e.p:'#azl'+e.p+'_'+e.line;const c=ctr(t);burst(c.x,c.y,AZC[e.color].slice(0,2),10,{v:3,sq:true});if(e.over)flt(t,'−'+e.over,'red');await W(180)}
-  else if(e.t==='first'){flt('#azf'+e.p,'1° giocatore','gold')}
-  else if(e.t==='wall'){await W(160);Snd.play('pick');const q='#azc'+e.p+'_'+e.r+'_'+e.col,c=ctr(q);bump(q,'newt',700);burst(c.x,c.y,['#f5efe0','#2f8be6','#ffd34d'],10+e.pts*3,{v:3+e.pts/2,sq:true});flt(q,'+'+e.pts,'gold');if(e.pts>=6)Snd.play('gold')}
-  else if(e.t==='floor'){Snd.play('impact');flt('#azf'+e.p,String(e.pen),'red');await W(250)}
+  else if(e.t==='take'){Snd.play('draw');if(!P3){const t=e.line==='f'?'#azf'+e.p:'#azl'+e.p+'_'+e.line;const c=ctr(t);burst(c.x,c.y,AZC[e.color].slice(0,2),10,{v:3,sq:true});if(e.over)flt(t,'−'+e.over,'red')}await W(180)}
+  else if(e.t==='first'){if(!P3)flt('#azf'+e.p,'1° giocatore','gold')}
+  else if(e.t==='wall'){await W(160);Snd.play('pick');if(!P3){const q='#azc'+e.p+'_'+e.r+'_'+e.col,c=ctr(q);bump(q,'newt',700);burst(c.x,c.y,['#f5efe0','#2f8be6','#ffd34d'],10+e.pts*3,{v:3+e.pts/2,sq:true});flt(q,'+'+e.pts,'gold')}if(e.pts>=6)Snd.play('gold');if(P3)await W(120)}
+  else if(e.t==='floor'){Snd.play('impact');if(!P3)flt('#azf'+e.p,String(e.pen),'red');await W(250)}
   else if(e.t==='tofloor'){Snd.play('impact')}
   else if(e.t==='win'){Snd.play('win');confetti()}}}};
