@@ -1,5 +1,5 @@
 /* ---- Lobby: falò + scaffale ---- */
-const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'SQUADRA E RISATE'}};
+const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'}};
 const TVG={fantasma:['squadra', 'FANTASMA'],zucca:['squadra', 'ZUCCA'],quiz:['classici', 'QUIZ'],spie:['squadra', 'AGENTI'],briscola:['classici','BRISCOLA'],scopa:['classici','SCOPA'],burraco:['classici','BURRACO'],machiavelli:['classici','MACHIAVELLI'],uno:['classici','UNO'],perudo:['classici','PERUDO'],catan:['strategia','CATAN'],azul:['strategia','AZUL'],valle:['strategia','VALLE'],harvest:['strategia','HARVEST'],discesa:['strategia','DISCESA'],regicide:['strategia','REGICIDE'],island:['strategia','ISOLA'],scoundrel:['strategia','SCOUNDREL'],gang:['squadra','THE GANG'],mind:['squadra','THE MIND'],mindx:['squadra','MIND EXTREME'],saboteur:['squadra','SABOTEUR'],kittens:['squadra','KITTENS'],pets:['squadra','PETS'],trono:['squadra','TRONO']};
 const tvInfo=g=>TVG[g.id]||['strategia',g.name.toUpperCase().slice(0,11)];
 /* Scatole in proporzioni reali (misure approssimate in mm: altezza in piedi, spessore, larghezza del fronte).
@@ -138,7 +138,7 @@ function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEd
 function avEditH(){if(ui.avk==null)return'';const k=ui.avk,g=k==='m'?null:(R.mine.guests||[]).find(x=>x.k===k);if(k!=='m'&&!g)return'';
  const S=lobbySeats(),i=Math.max(0,S.findIndex(x=>x.dev===ME.dev&&x.k===k)),av=avOf({dev:ME.dev,k},i),nm=g?g.name:(R.mine.name||ME.name);
  const sw=(f,arr,lab)=>`<div class="avrow"><span>${lab}</span><div class="avsw">${arr.map((c,n)=>`<button class="avc ${av[f]===n?'on':''}" style="background:${Array.isArray(c)?c[0]:c}" data-a="avset" data-v="${f}|${n}" aria-label="${lab} ${n+1}"></button>`).join('')}</div></div>`;
- return`<div class="modal"><div class="box col avbox"><h2>${esc(nm)}</h2><div class="avprev">${tvSprite(av,96)}</div>
- <div class="avrow"><span>Copricapo</span><div class="avsw">${AVT.map((t,n)=>`<button class="b sm ${av.t===n?'gold':''}" data-a="avset" data-v="t|${n}">${t}</button>`).join('')}</div></div>
- ${sw('h',AVC,'Colore copricapo')}${sw('c',AVC,'Vestito')}${sw('s',AVS,'Carnagione')}
- <div class="row"><button class="b sm" data-a="avrand">${ic('dado',16)} A caso</button><button class="b gold" data-a="avedit" data-v="">Fatto</button></div></div></div>`}
+ return`<div class="modal edfull"><div class="box avbox"><header class="edh"><h2>${esc(nm)}</h2><div class="avprev">${tvSprite(av,96)}</div></header>
+ <div class="edbody col"><div class="avrow"><span>Copricapo</span><div class="avsw">${AVT.map((t,n)=>`<button class="b sm ${av.t===n?'gold':''}" data-a="avset" data-v="t|${n}">${t}</button>`).join('')}</div></div>
+ ${sw('h',AVC,'Colore copricapo')}${sw('c',AVC,'Vestito')}${sw('s',AVS,'Carnagione')}</div>
+ <footer class="edf row"><button class="b sm" data-a="avrand">${ic('dado',16)} A caso</button><button class="b gold" data-a="avedit" data-v="">Salva</button></footer></div></div>`}

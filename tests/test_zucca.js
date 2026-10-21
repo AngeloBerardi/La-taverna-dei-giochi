@@ -40,3 +40,17 @@ function gioca(seed,rates){const R=carica.rng(seed);Z.setRnd(R);let s=mk(rates.l
 let w=0,N=40;for(let i=0;i<N;i++)w+=gioca(40+i,[1,.3])===0?1:0;assert(w>=N*.9,'squadra sicura vince ('+w+'/'+N+')');
 let w2=0;for(let i=0;i<20;i++)w2+=gioca(700+i,[.6,.6,.6])<3?1:0;assert.strictEqual(w2,20);
 console.log('zucca OK',w);
+// squadre: 5 giocatori in 2 squadre (0,1,0,1,0 / 1,0,1,0,1 non vale: usiamo [0,0,1,1,1]); la pedina è condivisa e chi fa la prova ruota
+{Z.setRnd(carica.rng(9));const sq=[0,0,1,1,1],q=Z.newGame(5,['a','b','c','d','e'],{squads:sq});
+ assert.strictEqual(JSON.stringify(q.sq),JSON.stringify(sq));
+ q.cur=0;q.rot={};q.pos=[0,0,0,0,0];q.phase='play';q.cat=0;q.card={cat:0,t:'x'};
+ let n1=A(q,{t:'result',ok:true});assert(n1.pos[0]>0&&n1.pos[0]===n1.pos[1],'pedina condivisa');assert.strictEqual(n1.pos[2],0);assert.strictEqual(n1.sq[n1.cur],1,'tocca all’altra squadra');
+ const ex=n1.cur;n1.phase='play';n1.card={cat:0,t:'x'};let n2=A(n1,{t:'result',ok:false});assert.strictEqual(n2.sq[n2.cur],0);
+ n2.phase='play';n2.card={cat:0,t:'x'};let n3=A(n2,{t:'result',ok:false});assert.strictEqual(n3.sq[n3.cur],1);assert.notStrictEqual(n3.cur,ex,'ruota il performer');
+ // vittoria di squadra
+ const w=Z.newGame(5,['a','b','c','d','e'],{squads:sq});w.cur=2;w.final=true;w.who=2;w.phase='play';w.card={cat:0,t:'x'};w.pos=[0,0,39,39,39];
+ const fw=A(w,{t:'result',ok:true});assert.strictEqual(JSON.stringify(fw.over.winners),JSON.stringify([2,3,4]));
+ // squadre non valide: si torna a una squadra per posto
+ assert.strictEqual(Z.newGame(3,['a','b','c'],{squads:[0,0,0]}).sq.join(),'0,1,2');
+ assert.strictEqual(Z.newGame(3,['a','b','c'],{squads:[0,2,2]}).sq.join(),'0,1,2')}
+console.log('zucca squadre ok');

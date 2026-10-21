@@ -11,10 +11,10 @@ function attiva(){if(!R.on)return null;const now=Date.now();let best=null;member
 const ans=P=>{const a={};members().forEach(m=>{if(m.pv&&m.pv.id===P.id)a[m.id]=m.pv.a});return a};
 const resto=P=>Math.max(0,VOTO.DUR-(Date.now()-seen[P.id])/1000);
 const label=P=>P.k==='stop'?'interrompere la partita di '+GN(P.g):'giocare a '+GN(P.g)+(P.sel?' ('+P.sel+')':'');
-function proponi(k,g,o,sel){
+function proponi(k,g,o,sel,seats){
  if(!R.on||members().length<2)return false;
  if(attiva()){ui.err='C’è già una proposta in corso';render();return true}
- const id=rid();R.mine.prop={id,k,g,o:o||null,sel:sel||'',t:Date.now(),by:R.mine.name||ME.name};R.mine.pv={id,a:true};saveMine();return true}
+ const id=rid();R.mine.prop={id,k,g,o:o||null,sel:sel||'',t:Date.now(),by:R.mine.name||ME.name};if(seats)R.mine.prop.seats=seats;R.mine.pv={id,a:true};saveMine();return true}
 function rispondi(a){const P=attiva();if(!P)return;R.mine.pv={id:P.id,a};saveMine()}
 function box(){if(el)return el;el=document.createElement('div');el.id='votoov';el.className='votoov';el.setAttribute('role','alertdialog');el.setAttribute('aria-live','polite');document.body.appendChild(el);return el}
 function html(P,e,mio,left){const A=ans(P),N=nomi();
@@ -32,7 +32,7 @@ function tick(){
  if(e.fine){done[P.id]=1;res={t:Date.now(),ok:e.ok};
   const N=nomi(),chi=VOTO.chi(devs(),A,N);
   box().innerHTML=`<div class="box col"><h2>${e.ok?(P.k==='stop'?'Si interrompe':'Si gioca!'):'Proposta bocciata'}</h2><p class="muted">${e.ok?'':esc(chi.join(', '))+(e.tempo?' non ha risposto in tempo.':' non ci sta.')}</p></div>`;box().classList.add('on');sig='';
-  if(P.dev===ME.dev){R.mine.prop=null;R.mine.pv=null;const ag=()=>{if(!e.ok)return;if(P.k==='stop')toLobby();else startGame(P.g,undefined,P.o||defOpts(P.g))};
+  if(P.dev===ME.dev){R.mine.prop=null;R.mine.pv=null;const ag=()=>{if(!e.ok)return;if(P.k==='stop')toLobby();else startGame(P.g,P.seats||undefined,P.o||defOpts(P.g))};
    saveMine().then(()=>setTimeout(ag,500))}
   return}
  if(s!==sig){sig=s;box().innerHTML=html(P,e,mio,left);box().classList.add('on')}

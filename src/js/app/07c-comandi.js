@@ -9,7 +9,9 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'rmguest':R.mine.guests=(R.mine.guests||[]).filter(g=>g.k!==v);delete R.mine.votes[v];return saveMine();
  case'rmmember':if(R.on){try{await R.db.doc('rooms/'+R.code+'/members/'+v).delete()}catch(x){ui.err=netErr(x)}}return render();
  case'vote':{if(!multiDev())return;const[g,k]=v.split('|');const vs=R.mine.votes[k]||[];if(vs.includes(g))R.mine.votes[k]=vs.filter(x=>x!==g);else{if(vs.length>=3){ui.err='Ogni giocatore può votare al massimo 3 giochi';Snd.play('err');return render()}R.mine.votes[k]=[...vs,g]}ui.err='';return saveMine()}
- case'start':{if(R.on&&members().length>=2&&Voto.proponi('play',v,defOpts(v),(GAMES.find(x=>x.id===v)||{}).mode?GAMES.find(x=>x.id===v).mode(lobbySeats().length):''))return;return startGame(v)}
+ case'start':{const g=GAMES.find(x=>x.id===v);if(g&&g.prep&&g.ok(lobbySeats().length))return Prep.open(v);return Prep.launch(v,defOpts(v))}
+ case'pteam':case'pspy':case'psq':case'pk':case'pghost':return Prep.set(a,v);
+ case'ppre':return Prep.preset(v);case'pmix':return Prep.mescola();case'pok':return Prep.conferma();case'pcanc':return Prep.annulla();
  case'cfgall':ui.cfgAll=true;return render();
  case'vsi':return Voto.rispondi(true);case'vno':return Voto.rispondi(false);
  case'join':{R.jt=(R.jt||0)+1;const c=(($('#plc')||$('#jc'))?.value||'').trim().toUpperCase();if(c.length<3){ui.err='Inserisci il codice della stanza';return render()}if(!R.on){ui.err='Le stanze online non sono disponibili in questa visualizzazione';return render()}

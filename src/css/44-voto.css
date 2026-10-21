@@ -9,3 +9,16 @@
 .votoov .vbar i{display:block;height:100%;background:#f0c166;transition:width .4s linear}
 .votoov .vt{margin:0}
 .votoov .row .b{flex:1;min-height:46px}.votoov .row .b.on{outline:3px solid #fff3c4}
+/* Editor a tutta altezza (avatar, creazione eroe): sopra barra in basso e dock; anteprima e pulsanti sempre visibili, scorre solo il centro */
+.modal.edfull{z-index:130;padding:0;display:block;inset:0;background:var(--bg,#15100d)}
+.has-pl .modal.edfull,.pg .modal.edfull{padding:0;inset:0}
+.modal.edfull>.box{display:flex;flex-direction:column;height:100%;max-height:none;width:100%;max-width:520px;margin:0 auto;border-radius:0;border-width:0;overflow:hidden;padding:0;box-sizing:border-box}
+.edh{flex:none;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 6px;text-align:center;border-bottom:2px solid rgba(255,255,255,.08)}
+.edh h2{margin:0 0 4px}
+.edbody{flex:1;min-height:0;overflow-y:auto;padding:12px 14px;gap:12px;-webkit-overflow-scrolling:touch}
+.edf{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));border-top:2px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25)}
+.edf .b{flex:1;min-height:48px}
+.edfull .avprev{padding:6px 0}
+.prep .pcol{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.22)}
+.prep .pcol h3{margin:0;font-size:15px}.prep .prow{display:flex;gap:6px}.prep .prow .b:first-child{flex:1;text-align:left}
+.prep .row{align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
