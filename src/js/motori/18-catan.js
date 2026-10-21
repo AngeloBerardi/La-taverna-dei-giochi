@@ -59,7 +59,13 @@ function defaultMap(n){const prof=profOf(n),Kt=KIT[prof];use({prof});
   if(!num.some((x,i)=>(x===6||x===8)&&HN[i].some(j=>num[j]===6||num[j]===8)))break}
  const pk=shuffle([...Array(Kt.ports.any).fill('any'),...RES]);
  return{prof,hexes:terr.map((t,i)=>({t,num:num[i]})),ports:PORT_AT.map((e,i)=>({e,k:pk[i]})),robber:terr.indexOf('desert')}}
+/* partite predefinite per la stanza: opts.x sceglie un modo (espansioni e scenari) senza dover conoscere i singoli interruttori */
+const PRE=[['base','Gioco base · 10 punti',{}],['rapida','Gioco base · partita rapida (8 punti)',{vp:8}],
+ ['nt','Marinai · Terre da scoprire',{ext:['mar'],scen:'nt'}],['qi','Marinai · Le quattro isole',{ext:['mar'],scen:'qi'}],['ne','Marinai · Mare di nebbia',{ext:['mar'],scen:'ne'}],['ar','Marinai · Arcipelago',{ext:['mar'],scen:'ar'}],
+ ['cek','Città e Cavalieri',{ext:['cek']}],['cekmar','Città e Cavalieri sul mare',{ext:['mar','cek'],scen:'nt'}]];
+const presets=()=>PRE.filter(p=>(p[2].ext||[]).every(k=>EXT[k]));
 function newGame(n,names,o={}){
+ if(o.x){const pr=PRE.find(p=>p[0]===o.x);if(pr)o=Object.assign({},pr[2],o)}
  const xt=(o.ext||[]).filter(k=>EXT[k]),mapper=xt.map(k=>EXT[k]).find(e=>e.map);
  const M=mapper?mapper.map(KX,n,o):defaultMap(n),Kt=KIT[profOf(n)];
  if(M.lay)use({lay:M.lay});else use({prof:M.prof});
@@ -258,5 +264,5 @@ function moves(s,p){use(s);const out=[],ph=s.phase,rnd=()=>RND();if(s.over)retur
 const w=f=>(s,...r)=>{use(s);return f(s,...r)};
 KX={RND:()=>RND(),shuffle,clone,RES,KEYS,RN,COST,LIM,KIT,profOf,zero,tot,pips,L,use,other,defaultMap,doRoll,afterSeven,produce,roadSpots,settleSpots,citySpots,points,ratio,buildHexes,geoLay,coastOf,count,roadsOf,shipsOf,landH,seaH,cardsOf,handOf,has,pay,nbBuilt,updateLongest,updateArmy,startRobber,endRobber,reveal,canSettle,canRoad,canShip,roadLen,
  g:()=>({HX,V,E,HN}),X,XS,EXT};
-return{moves,newGame,act,KEYS,ext:(n,m)=>{EXT[n]=m},EXTS:EXT,setRnd:f=>{RND=f},canShip:w(canShip),shipSpots:w(shipSpots),shipOpen:w(shipOpen),shipsOf,landH,seaH,geo:s=>{const g=use(s);return{HX:g.HX,V:g.V,E:g.E,HN:g.HN,PORT_AT:g.PORT_AT}},KIT,profOf,HX:GEO.a.HX,V:GEO.a.V,E:GEO.a.E,HN:GEO.a.HN,RES,RN,COST,LIM,canSettle:w(canSettle),canRoad:w(canRoad),settleSpots:w(settleSpots),roadSpots:w(roadSpots),citySpots,roadLen:w(roadLen),points,ratio:w(ratio),has,pips,count,roadsOf,cardsOf,tot}})();
+return{moves,newGame,act,KEYS,presets,ext:(n,m)=>{EXT[n]=m;if(m.attach)m.attach(KX)},EXTS:EXT,setRnd:f=>{RND=f},canShip:w(canShip),shipSpots:w(shipSpots),shipOpen:w(shipOpen),shipsOf,landH,seaH,geo:s=>{const g=use(s);return{HX:g.HX,V:g.V,E:g.E,HN:g.HN,PORT_AT:g.PORT_AT}},KIT,profOf,HX:GEO.a.HX,V:GEO.a.V,E:GEO.a.E,HN:GEO.a.HN,RES,RN,COST,LIM,canSettle:w(canSettle),canRoad:w(canRoad),settleSpots:w(settleSpots),roadSpots:w(roadSpots),citySpots,roadLen:w(roadLen),points,ratio:w(ratio),has,pips,count,roadsOf,cardsOf,tot}})();
 if(typeof module!=='undefined')module.exports=CATAN;

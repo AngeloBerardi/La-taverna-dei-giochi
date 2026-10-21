@@ -1,4 +1,4 @@
-/* Catan sullo schermo comune (app/22f3-catan-tv.js): il tavolo 3D sta in un canvas fisso (#ctv3d), questo è il HUD sopra. Tutto in vh/vw per vedersi da lontano. */
+/* Catan sullo schermo comune (app/22f5-catan-tv.js): il tavolo 3D sta in un canvas fisso (#ctv3d), questo è il HUD sopra. Tutto in vh/vw per vedersi da lontano. */
 #ctv3d{position:fixed;left:var(--tvp,0);top:0;z-index:1;display:none;pointer-events:none}
 html[data-tv] #app:has(.ctv){position:relative;z-index:5}
 .ctv{position:fixed;left:var(--tvp,0);top:0;right:0;bottom:0;pointer-events:none;color:#f6ead0;font-family:var(--f-b,inherit);--ctvr:clamp(230px,20vw,350px)}

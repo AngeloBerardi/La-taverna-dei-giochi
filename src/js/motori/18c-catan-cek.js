@@ -46,7 +46,7 @@ const cardsIn=(s,p)=>{const h=[];K.KEYS(s).forEach(k=>{for(let i=0;i<s.res[p][k]
 function take(s,from,to,n){const h=K.shuffle(cardsIn(s,from)).slice(0,n);h.forEach(k=>{s.res[from][k]--;s.res[to][k]++});return h.length}
 function draw(s,p,t){const d=s.pdeck[t];if(!d.length)return;const c=d.shift();
  if(c==='constitution'||c==='printer'){s.pgvp[p]++;s.ev.push({t:'prog',p,vp:1});K.L(s,s.names[p]+' pesca «'+PC[c][0]+'»: +1 punto');return}
- s.pg[p].push(c);if(s.pg[p].length>4)d.push(s.pg[p].shift());s.ev.push({t:'prog',p});K.L(s,s.names[p]+' pesca una carta progresso')}
+ s.pg[p].push(c);if(s.pg[p].length>(s.n>=5?5:4))d.push(s.pg[p].shift());s.ev.push({t:'prog',p});K.L(s,s.names[p]+' pesca una carta progresso')}
 /* strada → incroci raggiungibili da un cavaliere (non si attraversano avversari); destinazione: libera o un cavaliere avversario più debole */
 function reach(s,p,from){const{V}=K.g(),me=s.kn[from],seen=new Set([from]),q=[from],out=[];
  while(q.length){const v=q.shift();for(const e of V[v].e){if(s.roads[e]!==p)continue;const w=K.other(e,v);if(seen.has(w))continue;seen.add(w);
@@ -69,8 +69,8 @@ function attack(s){const ct=Object.values(s.bld).filter(b=>b.k===2).length,per=A
  if(win){const M=Math.max(...per);if(M>0){const w=per.map((x,i)=>x===M?i:-1).filter(i=>i>=0);
    if(w.length===1){s.dof[w[0]]++;K.L(s,s.names[w[0]]+' è il Difensore di Catan: +1 punto')}else{w.forEach(p=>draw(s,p,TR[Math.floor(K.RND()*3)]));K.L(s,'Pari merito: ogni difensore pesca una carta progresso')}}
   else K.L(s,'Nessuna città da difendere: i barbari se ne vanno')}
- else{const has=[];for(let p=0;p<s.n;p++)if(cities(s,p).length)has.push(p);const m=Math.min(...has.map(p=>per[p]));
-  has.filter(p=>per[p]===m).forEach(p=>{const cand=cities(s,p).filter(v=>!isMetro(s,v)).sort((a,b)=>pips(s,a)-pips(s,b));if(!cand.length){K.L(s,s.names[p]+' ha solo metropoli: i barbari non possono saccheggiarle');return}
+ else{const has=[];for(let p=0;p<s.n;p++)if(cities(s,p).some(v=>!isMetro(s,v)))has.push(p);const m=Math.min(...has.map(p=>per[p]));
+  has.filter(p=>per[p]===m).forEach(p=>{const cand=cities(s,p).filter(v=>!isMetro(s,v)).sort((a,b)=>pips(s,a)-pips(s,b));
    const v=cand[0];s.bld[v].k=1;delete s.wall[v];s.ev.push({t:'pillage',p,v});K.L(s,'I barbari saccheggiano una città di '+s.names[p])})}
  for(const v in s.kn)s.kn[v].a=false;s.bar=0;if(s.robOff){s.robOff=false;s.ev.push({t:'robber',h:s.robber});K.L(s,'Dopo l’attacco il ladro entra in gioco')}}
 function playCard(s,p,a){const c=a.card,{HX,V}=K.g();if(!PC[c])return F('Carta sconosciuta');const i=s.pg[p].indexOf(c);if(i<0)return F('Non hai quella carta');
@@ -104,6 +104,7 @@ function playCard(s,p,a){const c=a.card,{HX,V}=K.g();if(!PC[c])return F('Carta s
  case'inventor':{const x=a.h1,y=a.h2,ok=h=>Number.isInteger(h)&&s.hexes[h]&&K.landH(s,h)&&s.hexes[h].num&&![2,6,8,12].includes(s.hexes[h].num);if(x===y||!ok(x)||!ok(y))return F('Scegli due gettoni diversi (non 2, 6, 8, 12)');use();const t=s.hexes[x].num;s.hexes[x].num=s.hexes[y].num;s.hexes[y].num=t;return true}}
  return F('Carta non giocabile')}
 return{vp:13,PC,TR,TN,COM,CN,LV,KN,
+ attach(KX){K=KX},
  init(KX,s){K=KX;s.xk=['cloth','coin','paper'];s.xn=CN;s.res.forEach(r=>s.xk.forEach(k=>{r[k]=0}));s.xk.forEach(k=>{s.bank[k]=12});
   s.imp=Array.from({length:s.n},()=>({tr:0,po:0,sc:0}));s.kn={};s.wall={};s.metro={tr:null,po:null,sc:null};s.bar=0;s.dof=Array(s.n).fill(0);s.pg=Array.from({length:s.n},()=>[]);s.pgvp=Array(s.n).fill(0);
   s.pdeck={};TR.forEach(t=>{s.pdeck[t]=K.shuffle(deck(t))});s.ed=null;s.merch=null;s.fleet=null;s.crane=Array(s.n).fill(0);s.robOff=true;s.deck=[];s.noDev=true;
@@ -163,5 +164,5 @@ return{vp:13,PC,TR,TN,COM,CN,LV,KN,
    else if(c!=='alchemist')m({})})},
  /* per la vista: forza attuale dei barbari e difesa */
  barb(KX,s){const ct=Object.values(s.bld).filter(b=>b.k===2).length,per=Array(s.n).fill(0);for(const v in s.kn)if(s.kn[v].a)per[s.kn[v].p]+=s.kn[v].l;return{str:ct,def:per.reduce((a,b)=>a+b,0),per}},
- helpers:{cities,knOf,walls,isMetro,knSpots,reach,promoteOk}};
+ helpers:{cities,knOf,walls,isMetro,knSpots:(s,p)=>{K.use(s);return knSpots(s,p)},reach:(s,p,v)=>{K.use(s);return reach(s,p,v)},promoteOk}};
 })());

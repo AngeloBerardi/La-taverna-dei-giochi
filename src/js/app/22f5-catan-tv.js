@@ -1,10 +1,6 @@
-/* ---- Catan sullo schermo comune (?tv=CODICE): la plancia 3D (22f2-catan-tavolo.js) con il HUD sopra ----
+/* ---- Catan sullo schermo comune (?tv=CODICE): la plancia 3D (22f4-catan-tavolo.js) con il HUD sopra ----
    La TV mostra solo informazioni pubbliche: punti, numero di carte in mano, sviluppi, cavalieri, strada più lunga; mai le carte. Le mani stanno sui telefoni.
    Se WebGL non c'è, la TV disegna la plancia 2D (SVG) al posto del tavolo 3D. */
-const CRG={wood:'<path d="M12 3l5 7h-3l4 6H6l4-6H7zM12 16v5"/>',brick:'<rect x="3" y="7" width="18" height="10"/><path d="M3 12h18M9 7v5M15 12v5"/>',
- wool:'<circle cx="8" cy="11" r="4"/><circle cx="14" cy="9" r="4"/><circle cx="16" cy="14" r="3"/><path d="M8 16v4M15 17v3"/>',
- grain:'<path d="M12 21V8M12 8C9 7 8 5 8 3c3 0 4 2 4 5zM12 8c3-1 4-3 4-5-3 0-4 2-4 5zM12 14c-3-1-4-3-4-5M12 14c3-1 4-3 4-5"/>',ore:'<path d="M2 19l7-12 4 7 3-4 6 9z"/>',road:'<path d="M7 21L10 3M17 21L14 3M12 5v3M12 11v3M12 17v3"/>'};
-const resI=(k,sz)=>`<svg class="rgl ${k}" viewBox="0 0 24 24" width="${sz||20}" height="${sz||20}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${CRG[k]||''}</svg>`;
 const CTVP={setup:s=>s.setup&&s.setup.step==='v'?'posa una colonia':'posa una strada (o una nave)',roll:()=>'tira i dadi',main:()=>'costruisce e scambia',sbp:()=>'costruzione speciale',rb:()=>'posa le strade gratuite',
  robber:s=>'sposta il ladro'+(s.pirate!=null?' o il pirata':''),steal:()=>'sceglie a chi rubare una carta'};
 function catanTVstato(s){if(s.over)return'<b>'+esc(s.names[s.over.win])+'</b> vince la partita';
