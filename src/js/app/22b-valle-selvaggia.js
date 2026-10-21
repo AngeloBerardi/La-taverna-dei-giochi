@@ -26,7 +26,7 @@ function vBoardH(s,p,o){const B=s.boards[p].cells,z0=30;const keys=Object.keys(B
  if(ghost){const[x,y]=vPix(ghost.q,ghost.r,z);g+=`<g class="vghost">${vTileSVG({t:ghost.t,rot:ghost.rot,tok:null},ox+x,oy+y,z-1,{sel:1})}</g>`}
  return`<svg class="vboard" viewBox="0 0 ${W} ${H.toFixed(0)}" width="${W}" height="${H.toFixed(0)}" role="img" aria-label="Valle di ${esc(s.names[p])}">${g}</svg>`}
 function vMiniTile(t,sel){const c={t,rot:0,tok:null};return`<svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">${vTileSVG(c,28,28,25,{sel})}</svg>`}
-function valleH(){const s=G,mine=myTurn(),me=s.cur,L=local();
+function valleH(){if(ui.tv)return valleTVH();const s=G,mine=myTurn(),me=s.cur,L=local();
  const view=ui.vview!=null&&ui.vview<s.n?ui.vview:(mine?me:(L.length?L[0]:me));const b=s.boards[me];
  const live=(()=>{try{return VALLE.score(s).map(d=>d.tot)}catch(e){return s.names.map(()=>0)}})();
  const pl=`<div class="players" id="players">${s.names.map((n,i)=>`<div class="pl ${i===s.cur&&!s.over?'act':''} ${i===view?'vsee':''}" style="border-color:${VPC[i]}" data-a="vview" data-v="${i}" role="button" tabindex="0"><div class="av" style="background:${VPC[i]}">${esc(n[0]||'?')}</div><span class="n">${esc(n)}${seatTag(i)}</span><span class="hc">🌰${s.boards[i].nature} ${s.over?s.over.scores[i]:live[i]}★</span></div>`).join('')}</div>`;
