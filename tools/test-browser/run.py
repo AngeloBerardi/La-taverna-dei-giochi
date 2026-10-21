@@ -433,7 +433,7 @@ async def sc_stanze_database(b, srv):
     # stanza privata e invito con il link (porta con sé net=rt)
     code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
     link = await A.evaluate("RT.link(location.origin+location.pathname+'?room='+R.code)")
-    check(len(code) == 4 and 'net=rt' in link and 'room=' + code in link, f'A: stanza privata {code}, link {link.split("/")[-1]}')
+    check(len(code) == 4 and 'net=rt' not in link and 'room=' + code in link, f'A: stanza privata {code}, link {link.split("/")[-1]}')
     ctxC, C = await telefono_rt(b, srv, sh, 'Carla', 3, '?room=' + code + '&net=rt')
     await C.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000); await A.wait_for_timeout(1200)
     check(await A.evaluate('R.members.map(m=>m.name).sort()') == ['Ada', 'Carla'], 'C entra dal link e A la vede al tavolo')
@@ -469,12 +469,14 @@ async def sc_stanze_database(b, srv):
     check(await T.evaluate('[ui.tv,R.mode,R.code]') == [True, 'rt', code], 'TV: collegata alla stanza dal database')
     check(len([k for k in sh.d if k.startswith('stanze/' + code + '/m/')]) == n_membri, 'TV: non occupa un posto')
     # senza ?net=rt resta tutto com'era; con il database irraggiungibile si ripiega
-    ctxD, D = await telefono_rt(b, srv, sh, 'Dino', 5, '')
-    check(await D.evaluate('R.mode') != 'rt', 'spento di default: senza ?net=rt non si usa il database')
+    ctxD, D = await telefono_rt(b, srv, sh, 'Dino', 5, '?net=p2p')
+    check(await D.evaluate('R.mode') != 'rt', '?net=p2p esclude il database')
+    ctxF, F = await telefono_rt(b, srv, sh, 'Fabio', 7, '')
+    check(await F.evaluate('R.mode') == 'rt', 'predefinito: senza parametri si usa il database')
     ctxE, E = await telefono_rt(b, srv, sh, 'Elsa', 6, '?net=rt', rt=False, wait=6000)
     check(await E.evaluate('R.mode') != 'rt', 'database irraggiungibile: si ripiega sul trasporto di prima')
-    for p in (B, C, T, D, E): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
-    for c in (ctxB, ctxC, ctxT, ctxD, ctxE): await c.close()
+    for p in (B, C, T, D, E, F): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
+    for c in (ctxB, ctxC, ctxT, ctxD, ctxE, ctxF): await c.close()
     await ctxA.close()
 
 async def sc_schermo_tutti_i_giochi(b, srv):

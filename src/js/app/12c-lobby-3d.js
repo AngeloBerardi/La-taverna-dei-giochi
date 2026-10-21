@@ -887,7 +887,8 @@ function sceneLocanda3(){
     var Wd=cols*cw,zb=.95,Hh=rows*ch,per=cols*rows;
     bc.add(box(Wd+.6,Hh+.5,.3,M.dark,0,.3+Hh/2,.15));
     for(var r=0;r<=rows;r++)bc.add(box(Wd+.5,.3,1.9,M.tableEdge,0,.3+r*ch,zb));
-    for(var c=0;c<=cols;c++)bc.add(box(.3,Hh,1.9,M.dark,-Wd/2+c*cw,.3+Hh/2,zb));
+    // i montanti sporgono di .08 davanti e .02 dietro alle assi: facce alla stessa profondità = sfarfallio nei punti di congiunzione
+    for(var c=0;c<=cols;c++)bc.add(box(.3,Hh,2.0,M.dark,-Wd/2+c*cw,.3+Hh/2,zb+.03));
     var list=[];GAMES.forEach(function(G,i){if(G.k===C.k)list.push(i)});
     var sw=Math.min(Wd,5.6);
     var sg=mesh(new T.PlaneGeometry(sw,1.0),std({map:signTex([C.k.toUpperCase()+' · '+list.length],512,128,{fs:58,fg:C.c,bd:C.c}),roughness:.7}),0,Hh+1.25,zb-.6,false,true);bc.add(sg);
