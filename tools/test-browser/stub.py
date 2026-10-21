@@ -1,6 +1,6 @@
 """SDK Firebase simulato (in memoria, persistente tra i ricarichi nello stesso test) per provare l'app senza rete.
 Imita solo ciò che l'app usa. Le regole di sicurezza NON sono simulate, tranne il tempo minimo tra due premi (50 s) e il limite ELO (±32, un gioco per volta)."""
-APP = "export const initializeApp=c=>({c});"
+APP = "export const initializeApp=c=>({c});export const getApp=()=>({});"
 AUTH = """
 const U=()=>JSON.parse(localStorage.getItem('__stubuser')||'null');
 const save=u=>localStorage.setItem('__stubuser',JSON.stringify(u));
@@ -89,4 +89,37 @@ export const runTransaction=async(db,fn)=>{const w=[];const tx={get:async r=>sna
   await store.put(k,nuovo);window.__w.push([o,k])}
  return out};
 """
-MODULES = {'firebase-app.js': APP, 'firebase-auth.js': AUTH, 'firebase-firestore.js': FIRESTORE}
+
+# Realtime Database simulato. Spento se la pagina non imposta window.__stubRt (getDatabase fallisce, come un database
+# irraggiungibile): così gli scenari che non lo chiedono restano sul p2p come prima. Archivio come per Firestore
+# (locale o condiviso tra più telefoni via /__fs). Prove di rete: window.__rtDrop() = il telefono perde la linea (il
+# «server» toglie i nodi di presenza registrati con onDisconnect), window.__rtBack() = torna la linea.
+DATABASE = r"""
+const SH=!!window.__stubShared;const LS=JSON.parse(localStorage.getItem('__stubrt')||'{}');
+const call=async o=>(await fetch('/__fs',{method:'POST',body:JSON.stringify(o)})).json();
+const store=SH?{get:async k=>{const v=(await call({op:'get',k})).v;return v===undefined?null:v},put:async(k,v)=>{await call({op:'put',k,v})},del:async k=>{await call({op:'del',k})},list:async c=>(await call({op:'list',c})).rows}
+ :{get:async k=>LS[k]===undefined?null:JSON.parse(JSON.stringify(LS[k])),put:async(k,v)=>{LS[k]=v;localStorage.setItem('__stubrt',JSON.stringify(LS))},del:async k=>{delete LS[k];localStorage.setItem('__stubrt',JSON.stringify(LS))},
+  list:async c=>Object.keys(LS).filter(k=>k.startsWith(c+'/')&&k.split('/').length===c.split('/').length+1).map(k=>({id:k.split('/').pop(),d:JSON.parse(JSON.stringify(LS[k]))}))};
+const clone=x=>x==null?null:JSON.parse(JSON.stringify(x));
+const stamp=d=>{if(d&&typeof d==='object'){for(const k of Object.keys(d)){if(d[k]&&d[k].__ts)d[k]=Date.now();else if(d[k]&&typeof d[k]==='object')stamp(d[k])}}return d};
+const RTS=window.__rt={on:true,dis:[],w:[]};
+window.__rtDrop=async()=>{for(const k of RTS.dis)await store.del(k);RTS.dis=[];RTS.on=false};
+window.__rtBack=()=>{RTS.on=true};
+const COLL=k=>/\/(m|c|p)$/.test(k);
+const leggi=async k=>{if(COLL(k)){const rows=await store.list(k);if(!rows.length)return null;const o={};rows.forEach(x=>{o[x.id]=x.d});return o}return clone(await store.get(k))};
+const snapOf=(k,v)=>({key:k.split('/').pop(),val:()=>clone(v),forEach:f=>{if(v&&typeof v==='object')for(const[i,x]of Object.entries(v)){if(f({key:i,val:()=>clone(x)})===true)break}}});
+export const getDatabase=(app,url)=>{if(!window.__stubRt)throw new Error('database non disponibile (stub)');window.__rtUrl=url;return{url}};
+export const ref=(db,k)=>({k});
+export const serverTimestamp=()=>({__ts:1});
+export const get=async r=>snapOf(r.k,await leggi(r.k));
+export const set=async(r,v)=>{if(!RTS.on)throw new Error('offline');await store.put(r.k,stamp(clone(v)));RTS.w.push(['set',r.k])};
+export const remove=async r=>{await store.del(r.k);RTS.w.push(['del',r.k])};
+export const runTransaction=async(r,fn)=>{const cur=await store.get(r.k);const out=fn(cur==null?null:clone(cur));if(out===undefined)return{committed:false};
+ await store.put(r.k,stamp(clone(out)));RTS.w.push(['tx',r.k]);return{committed:true}};
+export const onDisconnect=r=>({remove:async()=>{if(!RTS.dis.includes(r.k))RTS.dis.push(r.k)},cancel:async()=>{RTS.dis=RTS.dis.filter(x=>x!==r.k)}});
+export const goOffline=()=>{RTS.on=false};export const goOnline=()=>{RTS.on=true};
+export const onValue=(r,cb,er)=>{let vivo=true,ultimo;const giro=async()=>{if(!vivo)return;try{
+  const v=r.k==='.info/connected'?RTS.on:await leggi(r.k),j=JSON.stringify(v===undefined?null:v);
+  if(j!==ultimo){ultimo=j;if(vivo)cb(snapOf(r.k,v))}}catch(e){if(er&&vivo)er(e)}if(vivo)setTimeout(giro,200)};giro();return()=>{vivo=false}};
+"""
+MODULES = {'firebase-app.js': APP, 'firebase-auth.js': AUTH, 'firebase-firestore.js': FIRESTORE, 'firebase-database.js': DATABASE}

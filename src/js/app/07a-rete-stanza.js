@@ -3,6 +3,7 @@
 async function netInit(){if(R.tried)return;try{await netInit0()}finally{R.net=R.on?'ok':'off'}}
 async function netInit0(){R.tried=true;const nq=new URLSearchParams(location.search).get('net');
  ME.dev=ST('rg-dev')||('d'+rid()+rid());ST('rg-dev',ME.dev);
+ if(nq!=='db'&&!window.__NETDB&&await RT.prova()){R.mode='rt';R.db=RT;R.on=true;return}
  if(nq!=='db'&&!window.__NETDB&&await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true;return}
  try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
 function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
@@ -33,7 +34,7 @@ async function p2pGeneral(){const c=GENROOM;
  for(let k=0;k<3;k++){try{R.db=await p2pJoin(c,4000);ST('rg-role','guest');ui.err='';await joinRoom(c);return}catch(e){}
   try{R.db=await p2pHost(c,true,null,true);ST('rg-role','host');if(!(await R.db.doc('rooms/'+c).get()).exists)await R.db.doc('rooms/'+c).set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});ui.err='';await joinRoom(c);return}catch(e){if(e.code!=='unavailable-id')throw e}}
  throw Object.assign(new Error('Stanza generale non raggiungibile'),{code:'timeout'})}
-const netErr=e=>e&&e.code==='broker'?'Il server di incontro non è raggiungibile: controlla la connessione.':e&&(e.code==='peer-unavailable'||e.code==='timeout'||e.code==='close')&&R.mode==='p2p'?'Stanza non trovata: controlla il codice (l’host deve avere la pagina aperta).':e&&e.code==='invalid_argument'?'Non hai il permesso di scrivere in questa pagina: chiedi al proprietario di condividerla come Contributor.':'Errore di rete: '+(e&&(e.message||e.code)||e);
+const netErr=e=>e&&e.code==='PERMISSION_DENIED'?'Il database rifiuta la scrittura: le regole non sono pubblicate o non sono aggiornate.':e&&e.code==='conflitto'?'Un altro telefono ha mosso un attimo prima: riprova.':e&&e.code==='broker'?'Il server di incontro non è raggiungibile: controlla la connessione.':e&&(e.code==='peer-unavailable'||e.code==='timeout'||e.code==='close')&&R.mode==='p2p'?'Stanza non trovata: controlla il codice (l’host deve avere la pagina aperta).':e&&e.code==='invalid_argument'?'Non hai il permesso di scrivere in questa pagina: chiedi al proprietario di condividerla come Contributor.':'Errore di rete: '+(e&&(e.message||e.code)||e);
 async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
 async function joinRoom(code,spett){const old=R.code;unsubAll();
  if(old&&old!==code){try{await R.db.doc('rooms/'+old+'/members/'+ME.dev).delete()}catch(e){}}
@@ -54,5 +55,5 @@ async function writeRoom(patch){if(patch.rev!=null)R.rev=patch.rev;R.doc={...R.d
 async function saveMine(){if(!R.on){ST('rg-off',JSON.stringify({mine:R.mine,game:G&&ui.screen==='game'?{G,seats:R.offSeats}:null}));render();return}
  try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){ui.err=netErr(e)}render()}
 /* solo la posizione (pupazzo che cammina): scrive il documento del membro senza ridisegnare la pagina */
-async function savePos(){if(!R.on||!R.code||R.mode==='fs')return;try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){}}
+async function savePos(){if(!R.on||!R.code||R.mode==='fs'||ui.tv)return;try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){}}
 function saveOff(s){if(!R.on)ST('rg-off',JSON.stringify({mine:R.mine,game:s?{G:s,seats:R.offSeats}:null}))}
