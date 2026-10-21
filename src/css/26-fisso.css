@@ -15,7 +15,7 @@
 .fx-bot{flex:none;display:flex;flex-direction:column;gap:4px;max-height:46%;overflow-y:auto;scrollbar-width:none}.fx-bot::-webkit-scrollbar{display:none}
 .fx-bot .bubble{padding:5px 10px;font-size:14px}.fx-bot .bubble .nar{font-size:11px;margin-bottom:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fx-bot .bubble small{font-size:11px}
 .fx-bot .err:empty{display:none}.fx-bot .ctl{margin:0}
-.fx-hand{flex:none;padding-bottom:2px}
+.fx-hand{flex:none;padding-bottom:2px}.fx-act{flex:none}.fx-act .ctl{margin:0}
 .fx-tabs{display:flex;gap:6px;flex:none}
 .fxt{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:12px;border:2px solid var(--line);background:var(--panel);color:var(--fg);font:800 12px var(--f-b);cursor:pointer}.fxt i{font-style:normal;font-size:15px}.fxt.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .fx-sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
@@ -31,5 +31,5 @@
 .fx .khand{display:block}.fx .khand .kc{width:58px}
 .fx .chand{margin-top:0;gap:4px}.fx .crc{padding:2px;max-width:70px}.fx .crc i{font-size:17px}.fx .crc b{font-size:16px}.fx .crc small{font-size:8px}
 .fx .cdev{flex-direction:row;flex-wrap:wrap;margin-top:3px}.fx .cdc{flex:1 1 45%;padding:2px 6px;font-size:11px}
-.fx .cbar{margin:0}.fx .cbtn{min-width:62px;padding:3px 6px}.fx .cbtn i{font-size:16px}
+.fx .ckbar{margin:0}.fx .cbtn{min-width:62px;padding:3px 6px}.fx .cbtn i{font-size:16px}
 .fx .ptable{margin:0}

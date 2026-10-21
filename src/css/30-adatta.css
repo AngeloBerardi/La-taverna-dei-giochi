@@ -9,9 +9,9 @@
 /* schermi larghi o telefono in orizzontale: tavolo a sinistra, comandi e mano a destra */
 @media (min-width:820px),(orientation:landscape) and (max-height:520px){
  .wrap.fixed{max-width:1180px}
- .fx{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,420px);grid-template-rows:auto auto minmax(0,1fr) auto auto;grid-template-areas:"top top" "strip strip" "mid bot" "mid hand" "tabs tabs";column-gap:12px;row-gap:4px}
+ .fx{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,420px);grid-template-rows:auto auto minmax(0,1fr) auto auto auto;grid-template-areas:"top top" "strip strip" "mid bot" "mid act" "mid hand" "tabs tabs";column-gap:12px;row-gap:4px}
  .fx-top{grid-area:top;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}.fx-top .hud{flex:none}.fx-chips{flex:1;justify-content:flex-end}
- .fx-strip{grid-area:strip}.fx-mid{grid-area:mid}.fx-bot{grid-area:bot;align-self:end;max-height:none}.fx-hand{grid-area:hand;align-self:end}.fx-tabs{grid-area:tabs}
+ .fx-strip{grid-area:strip}.fx-mid{grid-area:mid}.fx-bot{grid-area:bot;align-self:end;max-height:none}.fx-act{grid-area:act}.fx-hand{grid-area:hand;align-self:end}.fx-tabs{grid-area:tabs}
  .fx-strip .fxp{max-width:90px}
 }
 @media (orientation:landscape) and (max-height:520px){.fx-top .hud .logo{display:none}.fx-bot .bubble .nar{display:none}.fx .cwrap{border-width:2px}}
