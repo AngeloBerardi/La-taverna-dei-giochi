@@ -110,7 +110,9 @@ function shell(o){const url=TV.linkGioco();
 const feedH=s=>'<div class="tv3-lt">Cronaca</div><ul class="tv3-feed">'+(s.log||[]).slice(-5).reverse().map((t,i)=>`<li class="${i?'':'new'}">${esc(t)}</li>`).join('')+'</ul>';
 const endH=(ok,title,sub,rows)=>`<div class="tv3-end"><div class="tv3-endbox"><div class="tv3-crown">${ic(ok?'corona':'stretta',72)}</div><h2>${title}</h2><p>${sub||''}</p>${rows||''}</div></div>`;
 /* chiamato da afterRender: fuori dal gioco i canvas si nascondono e il pannello QR di sinistra torna */
-function away(){const on=ui.tv&&ui.screen==='game'&&G&&(G.g==='azul'||G.g==='valle');if(!on){document.documentElement.dataset.tv3='';if(typeof AZ3!=='undefined')AZ3.hide();if(typeof VL3!=='undefined')VL3.hide()}
- else{if(G.g!=='azul'&&typeof AZ3!=='undefined')AZ3.hide();if(G.g!=='valle'&&typeof VL3!=='undefined')VL3.hide()}}
-return{init,builder,runtime,table,glow,plate,cplate,cutRect,ngon,hexPts,mix,lin,gsvg,shell,feedH,endH,away,rr,TOP,AIDX,FIRST,get T(){return T},get K(){return K},atlas};
+function away(){const reg=Object.assign({},LP.reg||{});if(typeof AZ3!=='undefined')reg.azul=AZ3;if(typeof VL3!=='undefined')reg.valle=VL3;
+ const on=ui.tv&&ui.screen==='game'&&G&&reg[G.g];if(!on)document.documentElement.dataset.tv3='';
+ Object.keys(reg).forEach(k=>{if(!(on&&G.g===k))reg[k].hide()})}
+const LPreg={};
+return{reg:LPreg,init,builder,runtime,table,glow,plate,cplate,cutRect,ngon,hexPts,mix,lin,gsvg,shell,feedH,endH,away,rr,TOP,AIDX,FIRST,get T(){return T},get K(){return K},atlas};
 })();

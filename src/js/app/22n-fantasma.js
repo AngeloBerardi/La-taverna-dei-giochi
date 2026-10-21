@@ -11,7 +11,7 @@ function fantasmaMapH(s,opts){const v=viewer(),seeGhost=s.over||v===0,dest=opts.
  if(seeGhost){const[x,y]=fpos(s.pos[0]);o+=`<g class="fg"><circle cx="${x}" cy="${y}" r="13" fill="#8a6fd0" stroke="#fff" stroke-width="2.5"/><text x="${x}" y="${y+4}" class="fn w">F</text></g>`}
  for(let i=1;i<s.n;i++){const[x,y]=fpos(s.pos[i]);o+=`<g class="ft ${i===s.cur&&!s.over?'act':''}"><circle cx="${x}" cy="${y-1}" r="12" fill="${FAC[(i-1)%5]}" stroke="#fff" stroke-width="2.5"/><text x="${x}" y="${y+3}" class="fn w">${esc((s.names[i][0]||'?').toUpperCase())}</text></g>`}
  return o+`</svg>`}
-function fantasmaH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,ph=s.phase,cur=s.cur;
+function fantasmaH(){if(ui.tv)return fantasmaTVH();const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,ph=s.phase,cur=s.cur;
  const key=s.gid+':'+s.evn;if(ui.fk!==key){ui.fk=key;ui.fsel=null}
  const mv=mine&&(ph==='ghost'||ph==='det')?FANTASMA.moves(s,cur):[];
  const toMap={};mv.forEach(m=>{(toMap[m.to]=toMap[m.to]||[]).push(m.tk)});const dest=Object.keys(toMap).map(k=>({to:+k}));

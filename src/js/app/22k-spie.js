@@ -1,7 +1,7 @@
 /* ================= AGENTI SEGRETI (gioco di parole a squadre) ================= */
 const SPCOL={R:'#d8342c',B:'#2468c9',N:'#cdbb91',A:'#1b1b24'};
 const SPT=['Rossi','Blu'];
-function spieH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,t=s.turnT,spy=s.spies.includes(v),show=!cover&&(spy||!!s.over);
+function spieH(){if(ui.tv)return spieTVH();const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,t=s.turnT,spy=s.spies.includes(v),show=!cover&&(spy||!!s.over);
  const lr=SPIE.left(s,0),lb=SPIE.left(s,1);
  const chips=`<span class="chip" style="border-color:${SPCOL.R}">Rossi ${lr}</span><span class="chip" style="border-color:${SPCOL.B}">Blu ${lb}</span>${s.clue?`<span class="chip pal">Indizio «${esc(s.clue.w)}» ${s.clue.k}</span>`:''}${show&&!s.over?'<span class="chip">Vedi la chiave</span>':''}`;
  const strip=stripH(s,i=>({c:SPCOL[s.teams[i]?'B':'R'],b:s.spies.includes(i)?'★':''}));

@@ -8,7 +8,7 @@ function zuccaBoardH(s){const cols=8,rows=Math.ceil(ZUCCA.PATH/cols),cell=[];
  const at={};s.pos.forEach((p,i)=>{if(s.sq.indexOf(s.sq[i])===i)(at[p]=at[p]||[]).push(i)});
  return`<div class="zb" style="--cols:${cols}">`+cell.map(p=>{if(p==null)return'<i></i>';const k=ZUCCA.sq(p),col=k>=0?zcat(k).c:k===-1?'#6b4a1d':'#2a2a30';
   return`<div class="zs ${k===-1?'jol':''} ${k===-2?'goal':''} ${p===s.pos[s.cur]?'here':''}" style="--zc:${col}"><b>${k===-1?'★':k===-2?'⚑':''}</b>${(at[p]||[]).map(i=>`<u class="${s.sq[i]===s.sq[s.cur]&&!s.over?'act':''}" style="background:${ZPC[s.sq[i]%6]}">${esc((s.names[i][0]||'?').toUpperCase())}</u>`).join('')}</div>`}).join('')+`</div>`}
-function zuccaH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,ph=s.phase,c=s.card,cat=zcat(s.cat),seen=!cover&&v===s.cur;
+function zuccaH(){if(ui.tv)return zuccaTVH();const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.over,ph=s.phase,c=s.card,cat=zcat(s.cat),seen=!cover&&v===s.cur;
  const key=s.gid+':'+s.evn;if(ui.zk!==key){ui.zk=key;ui.zt0=Date.now()}
  const chips=`<span class="chip" style="border-color:${cat.c}">${ph==='pick'||ph==='choose'?'Prova da scegliere':cat.n}</span>${s.final?'<span class="chip pal">Prova finale</span>':''}`;
  const strip=stripH(s,i=>({c:ZPC[s.sq[i]%6],b:Math.round(s.pos[i]/ZUCCA.GOAL*100)+'%'}));

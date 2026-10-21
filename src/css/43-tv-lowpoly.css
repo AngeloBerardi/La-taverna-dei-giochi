@@ -1,6 +1,6 @@
 /* HUD 2D sopra i tavoli low-poly dello schermo comune (app/24n-tv-lowpoly.js, 24o-azul-tv.js, 24p-valle-tv.js).
    Tutto in vh/vw per leggersi da lontano. I canvas 3D stanno dietro (#aztv3d, #vltv3d); senza WebGL il centro mostra il tavolo piatto (.tv3-mid). */
-#aztv3d,#vltv3d{position:fixed;left:0;top:0;z-index:1;display:none;pointer-events:none}
+#aztv3d,#vltv3d,#sptv3d,#qztv3d,#zutv3d,#fatv3d{position:fixed;left:0;top:0;z-index:1;display:none;pointer-events:none}
 html[data-tv3] #tvpanel{display:none}
 .tv3{position:fixed;inset:0;z-index:60;display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,22vw,400px);grid-template-rows:auto 1fr auto;gap:1.4vh 1.6vw;padding:2vh 2vw;box-sizing:border-box;pointer-events:none;color:#f6ead0;font-family:var(--f-b,inherit)}
 .tv3:has(.tv3-mid){background:linear-gradient(180deg,#241a10,#130d07)}
@@ -49,3 +49,16 @@ html[data-tv3] #tvpanel{display:none}
 .vtv-fb .vboard{width:100%;height:auto;max-height:28vh}
 .vtv-fd{grid-column:1/-1;display:flex;gap:2vw;justify-content:center}.vtv-fp{display:flex;align-items:center;gap:.8vw;padding:.6vh 1vw;background:rgba(255,255,255,.06);border-radius:1vh}
 .vtv-fp svg{width:7vh;height:7vh}.vtv-fp em{display:block;width:6vh;height:6vh;color:#f6ead0}.vtv-fp em .lpg{width:100%;height:100%}
+/* Agenti Segreti, Quiz, Zucca Matta, Fantasma sulla TV (app/24s-tv-giochi.js) */
+.tv3-fb{margin:auto;font-size:3vh;opacity:.8;text-align:center}
+.tv3-w{display:inline-block;width:1.8vh;height:1.8vh;border-radius:50%;border:.3vh solid;margin-right:.3vw}
+.sptv-scs{display:flex;gap:1vw}.sptv-sc{flex:1;text-align:center;padding:1vh;border-radius:1vh;background:var(--pc);color:#fff;display:flex;flex-direction:column}
+.sptv-sc b{font:900 8vh/1 var(--f-d,Georgia,serif)}.sptv-sc span{font-size:2.2vh;opacity:.9}
+.tv3-pl li.tv3-team{grid-template-areas:"n" "s";grid-template-columns:1fr}.tv3-team .tv3-st{flex-wrap:wrap}
+.qztv-q{padding:1.4vh 1.2vw;border-radius:1.2vh;background:rgba(18,12,7,.85);border:.4vh solid var(--qc);display:flex;flex-direction:column;gap:1vh}
+.qztv-q small{color:var(--qc);font:800 2vh var(--f-d,Georgia,serif);text-transform:uppercase;letter-spacing:.1em}.qztv-q b{font:700 3.2vh/1.25 var(--f-d,Georgia,serif)}
+.qztv-q ol{margin:0;padding-left:2.2vw;font-size:2.6vh;display:flex;flex-direction:column;gap:.6vh;list-style:upper-alpha}
+.fatv .ftr{justify-content:flex-start;gap:.4vw}.fatv .ftr i{font-size:2vh;padding:.4vh .6vw;min-width:3vh}.fatv .ftr small{font-size:2vh;opacity:.7}
+.sptv-flat{display:grid;grid-template-columns:repeat(5,1fr);gap:.6vh;margin:auto;width:70%}.sptv-flat i{font-style:normal;padding:2vh 0;text-align:center;border-radius:.8vh;background:#e9dcb8;color:#2a1f12;font-size:2.4vh}
+.sptv-flat i.rR{background:#d8342c;color:#fff}.sptv-flat i.rB{background:#2468c9;color:#fff}.sptv-flat i.rN{background:#cdbb91}.sptv-flat i.rA{background:#1b1b24;color:#fff}
+.qztv .tv3-feed li:nth-child(n+3),.zutv .tv3-feed li:nth-child(n+4){display:none}
