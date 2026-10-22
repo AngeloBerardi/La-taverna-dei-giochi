@@ -25,7 +25,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Rete, stanze | `src/js/app/07a-rete-stanza.js` (avvio e riprova), `24m-rete-rtdb.js` (unico trasporto). Mosse atomiche: `motori/35-sync.js` + `tests/test_sync.js`. p2p solo per prove: `09-rete-p2p.js`, `08-relay-mqtt.js` |
 | Stanze live sul database (`R.mode='rt'`, presenza, nessun host) | `app/24m-rete-rtdb.js` (`RT`), regole `database.rules.json`, scenario `stanze_database` in `tools/test-browser/` |
 | Lobby 3D | **`tools/taverna3d/`** poi `python3 tools/taverna3d/mk.py` (non toccare `app/12c-lobby-3d.js`, è generato) |
-| Lobby falò / sala | `src/js/app/07e-lobby-falo.js`, `12-sala-hall.js`, `12b-lobby-diorama.js` |
+| Lobby falò / sala | `src/js/app/07e-lobby-falo.js`, `12b-lobby-diorama.js` (falò, unica lobby di ripiego) |
 | App installabile, offline, notifiche push | `src/pwa/` (`sw.js`, manifest, icone: `python3 tools/pwa/mk-icone.py`), `src/js/app/24-pwa.js` |
 | Profilo online, monete (Firebase) | `src/js/app/24a-firebase.js`, regole in `firestore.rules`, piano in `docs/FIREBASE-PIANO.md` |
 | Bottega, cosmetici, prezzi | catalogo `src/js/motori/22-bottega.js` (unica fonte), `app/24b-bottega.js`, `css/33-dorsi.css`; dopo aver cambiato i prezzi: `npm run regole` e ripubblica `firestore.rules` |

@@ -814,8 +814,8 @@ async def sc_font_locali(b, srv):
     pg.on('request', lambda r: ext.append(r.url) if 'googleapis' in r.url or 'fonts.gstatic' in r.url else None)
     pg.on('response', lambda r: woff.append(r.status) if '/assets/fonts/' in r.url else None)
     await pg.goto(srv.url); await pg.wait_for_timeout(3000)
-    ok = await pg.evaluate("""(async()=>{await Promise.all(['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].map(f=>document.fonts.load(f,'àèé')));
-      return ['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].every(f=>document.fonts.check(f,'àèé'))})()""")
+    ok = await pg.evaluate("""(async()=>{await Promise.all(['700 16px "Alegreya SC"','500 16px "Alegreya Sans"','16px Silkscreen'].map(f=>document.fonts.load(f,'àèé')));
+      return ['700 16px "Alegreya SC"','500 16px "Alegreya Sans"','16px Silkscreen'].every(f=>document.fonts.check(f,'àèé'))})()""")
     check(not ext, f'nessuna richiesta a Google Fonts {ext[:2]}')
     check(ok and woff and all(x == 200 for x in woff), f'font locali caricati ({len(woff)} file)')
     await ctx.close()

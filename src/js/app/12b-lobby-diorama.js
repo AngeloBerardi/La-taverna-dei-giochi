@@ -1,4 +1,4 @@
-/* Lobby a diorama (falò isometrico, canvas) ripristinata: predefinita. La sala dark fantasy (12-sala-hall.js) è scelta dalle impostazioni. */
+/* Lobby a diorama (falò isometrico, canvas) ripristinata: predefinita. */
 /* ---- Lobby isometrica: diorama del falò (canvas 2D) ----
    API: const c=ISO.create(host,{players:[{id,name,own,guest,idx}],onShelf,onMove,onEmote});
         c.setPlayers(list) · c.setRemote(id,x,y) · c.emote(id,'👋') · c.destroy()
@@ -55,7 +55,7 @@ function create(host,o){
   box(x0-.1,y-.1,.18,.18,zt+u*.4,'#8a5a30','#5a3414','#3d2410');box(x1-.08,y-.1,.18,.18,zt+u*.4,'#8a5a30','#5a3414','#3d2410');
   poly([q(0,0),q(1,0),q(1,1),q(0,1)],'#7a4a24','#3d2410');
   const cols=['#c8434a','#e8b83a','#3f8fe0','#8a62d6'];for(let r=0;r<2;r++)for(let c=0;c<4;c++){const a=.07+c*.235,b=.1+r*.46;poly([q(a,b),q(a+.2,b),q(a+.2,b+.38),q(a,b+.38)],cols[(c+r*2)%4],'#05081c')}
-  const m=I((x0+x1)/2,y,zt+u*.95);ctx.fillStyle='#fff3c4';ctx.strokeStyle='#05081c';ctx.lineWidth=2;const tw=u*3.2;ctx.fillRect(m[0]-tw/2,m[1]-u*.3,tw,u*.6);ctx.strokeRect(m[0]-tw/2,m[1]-u*.3,tw,u*.6);ctx.fillStyle='#1a1206';ctx.font=`${Math.max(7,Math.round(u*.4))}px "Press Start 2P",monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('GIOCHI',m[0],m[1]+1);
+  const m=I((x0+x1)/2,y,zt+u*.95);ctx.fillStyle='#fff3c4';ctx.strokeStyle='#05081c';ctx.lineWidth=2;const tw=u*3.2;ctx.fillRect(m[0]-tw/2,m[1]-u*.3,tw,u*.6);ctx.strokeRect(m[0]-tw/2,m[1]-u*.3,tw,u*.6);ctx.fillStyle='#1a1206';ctx.font=`${Math.max(7,Math.round(u*.4))}px 'Silkscreen',monospace`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('GIOCHI',m[0],m[1]+1);
   if(hint){const b=Math.sin(t*5)*3;ctx.fillStyle='#ffe83d';ctx.strokeStyle='#05081c';poly([[m[0]-7,m[1]-u*.95+b],[m[0]+7,m[1]-u*.95+b],[m[0],m[1]-u*.55+b]],'#ffe83d','#05081c')}}
  function fire(t){const c=I(CX,CY,0);ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(c[0],c[1]+2,u*1.2,u*.6,0,0,7);ctx.fill();
   ctx.fillStyle='#4a2c14';ctx.save();ctx.translate(c[0],c[1]-3);ctx.rotate(.45);ctx.fillRect(-u*.9,-3,u*1.8,7);ctx.rotate(-.9);ctx.fillRect(-u*.9,-3,u*1.8,7);ctx.restore();
@@ -68,7 +68,7 @@ function create(host,o){
   const legs=[[5,14,3,3],[8,14,3,3]],boots=[[4,17,4,1],[8,17,4,1]];const lo=[mv&&ph>0?-1:0,mv&&ph<0?-1:0];
   const all=[...SPR.map(r=>[r[0],r[1],r[2],r[3],col(r[4])]),...legs.map((r,i)=>[r[0],r[1]+lo[i],r[2],r[3],'#3a2f6b']),...boots.map((r,i)=>[r[0],r[1]+lo[i],r[2],r[3],'#4a2c14'])];
   ctx.fillStyle='#05081c';all.forEach(r=>ctx.fillRect(x0+r[0]*ps-ol,y0+r[1]*ps-ol,r[2]*ps+ol*2,r[3]*ps+ol*2));all.forEach(r=>{ctx.fillStyle=r[4];ctx.fillRect(x0+r[0]*ps,y0+r[1]*ps,r[2]*ps,r[3]*ps)});
-  const fs=Math.max(7,Math.round(u*.4));ctx.font=`${fs}px "Press Start 2P",monospace`;ctx.textAlign='center';ctx.textBaseline='middle';const nm=p.name.length>8?p.name.slice(0,7)+'…':p.name,tw=ctx.measureText(nm).width+8,ty=y0-fs*.9;
+  const fs=Math.max(7,Math.round(u*.4));ctx.font=`${fs}px 'Silkscreen',monospace`;ctx.textAlign='center';ctx.textBaseline='middle';const nm=p.name.length>8?p.name.slice(0,7)+'…':p.name,tw=ctx.measureText(nm).width+8,ty=y0-fs*.9;
   ctx.fillStyle=p.own&&!p.guest?'#ffb347':'#fff3c4';ctx.strokeStyle='#05081c';ctx.lineWidth=2;if(p.guest)ctx.setLineDash([3,2]);ctx.fillRect(gx-tw/2,ty-fs*.7,tw,fs*1.4);ctx.strokeRect(gx-tw/2,ty-fs*.7,tw,fs*1.4);ctx.setLineDash([]);ctx.fillStyle='#1a1206';ctx.fillText(nm,gx,ty+1);
   if(p.say){const age=Date.now()-p.say.t;if(age<7000&&age>-3000){const bf=Math.max(7,Math.round(u*.38));ctx.font=`${bf}px "Silkscreen",monospace`;const bw=ctx.measureText(p.say.text).width+10,by=ty-fs*2.1-(p.em?u*1.2:0);ctx.fillStyle='#fff';ctx.strokeStyle='#05081c';ctx.lineWidth=2;ctx.fillRect(gx-bw/2,by-bf,bw,bf*1.7);ctx.strokeRect(gx-bw/2,by-bf,bw,bf*1.7);ctx.fillStyle='#1a1206';ctx.fillText(p.say.text,gx,by-bf*.1)}}
   if(p.em){const a=(performance.now()-p.em.t)/2400;if(a>=1)p.em=null;else{const k=a<.12?a/.12:1,fy=a*u*.9;ctx.globalAlpha=a>.75?(1-a)*4:1;ctx.font=`${Math.round(u*1.15*(.6+.4*k))}px sans-serif`;ctx.fillText(p.em.s,gx,ty-fs*1.4-fy);ctx.globalAlpha=1}}}
@@ -121,5 +121,5 @@ function tvIso(){const h=document.getElementById('isohost');if(!h)return;
  for(let i=R.chat.length-1;i>=0&&i>R.chat.length-8;i--){const x=R.chat[i];if(now-x.t>7000)break;isoC.say(x.dev+'|'+(x.k||'m'),x.text,x.t)}
  if(ui.screen==='name'&&!tvHi){tvHi=1;setTimeout(()=>isoC&&isoC.emote(ME.dev+'|m','👋',true),600)}}
 const tvNameIso=()=>{tvSeats=[{dev:ME.dev,k:'m',name:ME.name||'Tu'}];return`<div class="tvscene2 namesc" role="group" aria-label="Il tuo omino al falò"><div id="isohost"></div></div>`};
-document.addEventListener('input',e=>{if(e.target.id==='myname'&&tvSeats[0]&&ui.lobby!=='hall'){tvSeats[0].name=e.target.value.trim().slice(0,14)||'Tu';tvIso()}});
-document.addEventListener('change',e=>{if(e.target.id==='lb'){ui.lobby=['hall','iso','3d'].includes(e.target.value)?e.target.value:'3d';ST('rg-lb',ui.lobby);if(ui.lobby==='3d'&&VENDOR.gl()&&!window.THREE){VENDOR.prova('three',15000).then(render);return}render()}});
+document.addEventListener('input',e=>{if(e.target.id==='myname'&&tvSeats[0]){tvSeats[0].name=e.target.value.trim().slice(0,14)||'Tu';tvIso()}});
+document.addEventListener('change',e=>{if(e.target.id==='lb'){ui.lobby=['iso','3d'].includes(e.target.value)?e.target.value:'3d';ST('rg-lb',ui.lobby);if(ui.lobby==='3d'&&VENDOR.gl()&&!window.THREE){VENDOR.prova('three',15000).then(render);return}render()}});

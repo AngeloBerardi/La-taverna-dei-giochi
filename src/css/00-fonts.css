@@ -1,17 +1,9 @@
-/* Caratteri locali (sottoinsieme latino, da Fontsource/OFL): niente più Google Fonts, funzionano offline e non rallentano il primo disegno.
-   File in assets/fonts/. */
-@font-face{font-family:'Cinzel Decorative';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/cinzel-decorative-latin-700-normal.woff2) format('woff2')}
-@font-face{font-family:'Cinzel Decorative';font-style:normal;font-weight:900;font-display:swap;src:url(/assets/fonts/cinzel-decorative-latin-900-normal.woff2) format('woff2')}
-@font-face{font-family:'Cinzel';font-style:normal;font-weight:600 900;font-display:swap;src:url(/assets/fonts/cinzel-latin-wght-normal.woff2) format('woff2')}
-@font-face{font-family:'Nunito';font-style:normal;font-weight:600 900;font-display:swap;src:url(/assets/fonts/nunito-latin-wght-normal.woff2) format('woff2')}
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/press-start-2p-latin-400-normal.woff2) format('woff2')}
-@font-face{font-family:'Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/silkscreen-latin-400-normal.woff2) format('woff2')}
-@font-face{font-family:'Silkscreen';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/silkscreen-latin-700-normal.woff2) format('woff2')}
-@font-face{font-family:'VT323';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/vt323-latin-400-normal.woff2) format('woff2')}
+/* Tre famiglie locali (sottoinsieme latino, Fontsource/OFL): Alegreya SC per i titoli, Alegreya Sans per il testo, Silkscreen per il pixel-art.
+   Niente Google Fonts: funzionano offline. File in assets/fonts/. */
 @font-face{font-family:'Alegreya SC';font-style:normal;font-weight:500;font-display:swap;src:url(/assets/fonts/alegreya-sc-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Alegreya SC';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/alegreya-sc-latin-700-normal.woff2) format('woff2')}
 @font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/alegreya-sans-latin-400-normal.woff2) format('woff2')}
 @font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:500;font-display:swap;src:url(/assets/fonts/alegreya-sans-latin-500-normal.woff2) format('woff2')}
 @font-face{font-family:'Alegreya Sans';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/alegreya-sans-latin-700-normal.woff2) format('woff2')}
-@font-face{font-family:'IM Fell English';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/im-fell-english-latin-400-normal.woff2) format('woff2')}
-@font-face{font-family:'IM Fell English';font-style:italic;font-weight:400;font-display:swap;src:url(/assets/fonts/im-fell-english-latin-400-italic.woff2) format('woff2')}
+@font-face{font-family:'Silkscreen';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/silkscreen-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Silkscreen';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/silkscreen-latin-700-normal.woff2) format('woff2')}

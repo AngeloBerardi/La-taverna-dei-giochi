@@ -1,6 +1,6 @@
 /* ================= SABOTEUR ================= */
 const SEP={1:[25,0],2:[50,35],4:[25,70],8:[0,35]};
-function tileSVG(id,r,o={}){if(o.hidden)return`<svg viewBox="0 0 50 70" class="tile"><rect width="50" height="70" rx="5" fill="#2b1d14"/><rect x="3" y="3" width="44" height="64" rx="4" fill="none" stroke="#c8a24a" stroke-width="2"/><text x="25" y="44" text-anchor="middle" font-size="26" font-weight="900" fill="#c8a24a" font-family="Cinzel,serif">?</text></svg>`;
+function tileSVG(id,r,o={}){if(o.hidden)return`<svg viewBox="0 0 50 70" class="tile"><rect width="50" height="70" rx="5" fill="#2b1d14"/><rect x="3" y="3" width="44" height="64" rx="4" fill="none" stroke="#c8a24a" stroke-width="2"/><text x="25" y="44" text-anchor="middle" font-size="26" font-weight="900" fill="#c8a24a" font-family="Alegreya SC,serif">?</text></svg>`;
  const K=SAB.C[id];let g='';const segs=K.segs;
  const line=(d,len=1)=>{const[x,y]=SEP[d];return`<line x1="25" y1="35" x2="${25+(x-25)*len}" y2="${35+(y-35)*len}"/>`};
  segs.forEach((m,si)=>{const ds=[1,2,4,8].filter(d=>m&d);if(K.dead)ds.forEach(d=>{const[x,y]=SEP[d];g+=`<line x1="${x}" y1="${y}" x2="${25+(x-25)*.35}" y2="${35+(y-35)*.35}"/>`});
