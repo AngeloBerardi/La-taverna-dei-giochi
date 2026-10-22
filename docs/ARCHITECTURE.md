@@ -239,3 +239,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
+
+## Caricamento a richiesta, errori, finestre
+- La Taverna 3D (`app/12c-lobby-3d.js`, generato) non sta in `dist/index.html`: il build la scrive in `dist/vendor/lobby3d.<hash>.js` e il guscio `app/12d-lobby-3d-guscio.js` (`L3D`) la carica con `VENDOR.load('lobby3d')` solo a chi usa la lobby 3D. Se non arriva, si torna al falò. Pagina: ~414 KB compressa; il file 3D ~60 KB, three.js ~149 KB.
+- Un solo ripiego: la lobby falò (`07e-lobby-falo.js`, `12b-lobby-diorama.js`). Font: tre famiglie locali in `assets/fonts` (`css/00-fonts.css`).
+- `ERR` (`app/01-base.js`): errori globali e `catch` annotati, copia nel nodo `errori/`. `ui.modal`: una sola finestra aperta (`cfg`, `shop`, `acc`/`top`, `oste`, `dist`, `tvm`, `amici`, `eroi`, `camp`); i vecchi flag `ui.cfg`… sono accessori.
+- Formattazione: `npm run formatta -- <file>` (Prettier, 120 colonne); applicata ai moduli nuovi o riscritti, non all'intero repository (molte righe lunghe sono volute).
