@@ -25,6 +25,7 @@ const RT={
  doc(path){const seg=RT.P(path),stanza=seg.length===3,id=String(path).split('/').pop();return{path,id,
   get:async()=>RT.snap(await RT.m.get(RT.ref(seg)),id),
   set:async d=>stanza?RT.setRoom(seg[1],d):RT.setMem(seg,d),
+  transact:stanza?fn=>RT.transactRoom(seg[1],fn):undefined,
   delete:async()=>RT.del(seg),
   onSnapshot:(n,er)=>RT.m.onValue(RT.ref(seg),s=>n(RT.snap(s,id)),er)}},
  collection(path){const a=String(path).split('/');
@@ -34,10 +35,19 @@ const RT={
    onSnapshot:(n,er)=>{if(mem)RT.guarda(code);
     const un=RT.m.onValue(RT.ref(seg),s=>{const docs=[];s.forEach(c=>{docs.push(RT.snap(c,c.key))});n({docs})},er);
     return()=>{un();if(mem)RT.smetti(code)}}}},
- // la stanza si scrive in transazione: un telefono rimasto indietro (rev più vecchio) non cancella una mossa più recente
+ // modifica atomica della stanza: fn(documentoAttuale|null) restituisce il documento nuovo, o undefined per non scrivere nulla.
+ // Il database la riesegue da solo se nel frattempo un altro telefono ha scritto (vedi motori/35-sync.js per le regole delle mosse).
+ // Al primo giro il documento può arrivare dalla copia locale (anche vecchia): per questo fn deve essere pura.
+ async transactRoom(code,fn){const M=RT.m;
+  const r=await M.runTransaction(RT.ref(['stanze',code,'d']),raw=>{
+   const cur=raw&&typeof raw.j==='string'?DIST.de(raw):null,out=fn(cur);
+   if(out===undefined||out===null)return;
+   return{j:DIST.ser(out),rev:out.rev||0,t:M.serverTimestamp()}});
+  return{committed:!!(r&&r.committed)}},
+ // scrittura semplice (creazione della stanza): non cancella mai una versione uguale o più recente di quella che porta
  async setRoom(code,d){const j=DIST.ser(d),rev=d.rev||0,M=RT.m;let vecchio=false;
   await M.runTransaction(RT.ref(['stanze',code,'d']),cur=>{
-   if(cur&&cur.rev!=null&&cur.rev>rev){vecchio=true;return}
+   if(cur&&cur.rev!=null&&cur.rev>=rev){vecchio=true;return}
    return{j,rev,t:M.serverTimestamp()}});
   // la creazione (rev 0) che arriva dopo che la stanza esiste già non è un errore: qualcuno l'ha aperta un attimo prima
   if(vecchio&&rev>0){const e=new Error('conflitto');e.code='conflitto';throw e}},

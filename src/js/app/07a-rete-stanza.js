@@ -38,7 +38,7 @@ const netErr=e=>e&&e.code==='PERMISSION_DENIED'?'Il database rifiuta la scrittur
 async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
 async function joinRoom(code,spett){const old=R.code;unsubAll();
  if(old&&old!==code){try{await R.db.doc('rooms/'+old+'/members/'+ME.dev).delete()}catch(e){}}
- R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.doc=null;R.members=[];R.chat=[];G=null;fxDone=null;
+ R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.grev=null;R.doc=null;R.members=[];R.chat=[];G=null;fxDone=null;
  if(spett){subscribe();return}
  const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
  R.mine={name:ME.name,uid:FB.uid||null,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){}subscribe()}
@@ -46,12 +46,11 @@ function subscribe(){
  R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();if(ui.tv){ui.screen='tv';ui.err='Il tavolo non c’è più';G=null;render();setTimeout(()=>TV.avvia(),6000);return}if(R.mode==='fs'){say('La partita è stata eliminata',3000);Dist.esci();return}enterHub();return}
   const d=sn.data();R.doc=d;const seated=d.phase==='play'&&!!d.s&&(ui.tv||(d.seats||[]).some(x=>x.dev===ME.dev)),was=ui.screen;
   ui.screen=ui.screen==='name'?'name':seated?'game':ui.tv?'tv':'room';
-  if(seated){if(d.rev>=R.rev){const ch=d.rev>R.rev;R.rev=d.rev;if(ch){ui.sel=[];ui.tsel=[]}if(was!=='game'){fxDone=null;G=null;ui.shown=-1}pushState(d.s,false);return}}
+  if(seated){if(d.rev>=R.rev){const ch=d.rev>R.rev;R.rev=d.rev;if(ch){ui.sel=[];ui.tsel=[]}if(was!=='game'){fxDone=null;G=null;ui.shown=-1}pushState(d.s,false,d.rev||0);return}}
   else{R.rev=Math.max(R.rev,d.rev||0);if(was==='game'){G=null;ui.anim=false}}
   render()},e=>{ui.err='Connessione persa ('+e.code+')';render()}));
  R.un.push(R.db.collection('rooms/'+R.code+'/members').onSnapshot(q=>{R.members=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));if(ui.screen==='room'){render();tvLater()}else if(ui.screen==='tv')render()},()=>{}));
  R.un.push(R.db.collection('rooms/'+R.code+'/chat').onSnapshot(q=>{const n0=R.chat.length;R.chat=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.t-b.t);if(ui.screen==='room'){render();tvLater();const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight}else if(R.chat.length>n0&&ui.screen==='game'){const l=R.chat[R.chat.length-1];if(ui.cd){render();const lg=$('#chatlog');if(lg)lg.scrollTop=lg.scrollHeight}else if(l&&l.dev!==ME.dev){ui.unread=(ui.unread||0)+1;say(l.name+': '+(l.text.length>60?l.text.slice(0,59)+'…':l.text));render()}}},()=>{}))}
-async function writeRoom(patch){if(patch.rev!=null)R.rev=patch.rev;R.doc={...R.doc,...patch};await R.ref.set(R.doc)}
 async function saveMine(){if(!R.on){ST('rg-off',JSON.stringify({mine:R.mine,game:G&&ui.screen==='game'?{G,seats:R.offSeats}:null}));render();return}
  try{await R.db.doc('rooms/'+R.code+'/members/'+ME.dev).set(R.mine)}catch(e){ui.err=netErr(e)}render()}
 /* solo la posizione (pupazzo che cammina): scrive il documento del membro senza ridisegnare la pagina */

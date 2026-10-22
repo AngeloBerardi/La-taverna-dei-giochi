@@ -8,11 +8,18 @@ const FsDb={
  // la stanza si scrive in transazione: gli uid già presenti non si perdono e un telefono rimasto indietro non cancella una mossa più recente
  async setRoom(code,d){const F=FB.m.F,ref=F.doc(FB.db,'partite',code);
   await F.runTransaction(FB.db,async tx=>{const cur=await tx.get(ref),old=cur.exists()?cur.data():null;
-   if(old&&old.rev!=null&&d.rev!=null&&old.rev>d.rev){const e=new Error('conflitto');e.code='conflitto';throw e}
+   if(old&&old.rev!=null&&d.rev!=null&&old.rev>=d.rev){const e=new Error('conflitto');e.code='conflitto';throw e}
    tx.set(ref,{j:DIST.ser(d),...DIST.meta(d,old,FB.uid),rev:d.rev||0,upd:F.serverTimestamp()})})},
+ // modifica atomica della stanza (stessa idea di RT.transactRoom): fn(documentoAttuale|null) -> documento nuovo, o undefined per non scrivere
+ async transactRoom(code,fn){const F=FB.m.F,ref=F.doc(FB.db,'partite',code);let scritto=false;
+  await F.runTransaction(FB.db,async tx=>{scritto=false;const cur=await tx.get(ref),old=cur.exists()?cur.data():null,out=fn(old?DIST.de(old):null);
+   if(out===undefined||out===null)return;
+   tx.set(ref,{j:DIST.ser(out),...DIST.meta(out,old,FB.uid),rev:out.rev||0,upd:F.serverTimestamp()});scritto=true});
+  return{committed:scritto}},
  doc(path){const seg=FsDb.P(path),stanza=seg.length===2,F=()=>FB.m.F;return{
   get:async()=>FsDb.snap(await F().getDoc(FsDb.ref(path))),
   set:async d=>stanza?FsDb.setRoom(seg[1],d):F().setDoc(FsDb.ref(path),{j:DIST.ser(d),t:d.t||Date.now()}),
+  transact:stanza?fn=>FsDb.transactRoom(seg[1],fn):undefined,
   delete:()=>F().deleteDoc(FsDb.ref(path)),
   onSnapshot:(n,er)=>F().onSnapshot(FsDb.ref(path),s=>n(FsDb.snap(s)),er)}},
  collection(path){return{doc:id=>FsDb.doc(path+'/'+id),
