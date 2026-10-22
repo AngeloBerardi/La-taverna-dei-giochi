@@ -1,0 +1,4 @@
+dist/
+node_modules/
+src/js/vendor/
+src/js/app/12c-lobby-3d.js
