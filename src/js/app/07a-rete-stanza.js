@@ -50,7 +50,7 @@ const netErr=e=>e&&e.code==='PERMISSION_DENIED'?'Il database rifiuta la scrittur
 async function createRoom(){for(let i=0;i<6;i++){const c=newCode(),ref=R.db.doc('rooms/'+c);const sn=await ref.get();if(!sn.exists){await ref.set({host:ME.dev,t:Date.now(),phase:'lobby',game:null,opts:{},seats:[],s:null,rev:0});return c}}throw new Error('nessun codice libero')}
 async function joinRoom(code,spett){const old=R.code;unsubAll();
  if(old&&old!==code){try{await R.db.doc('rooms/'+old+'/members/'+ME.dev).delete()}catch(e){ERR.n(e)}}
- R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.grev=null;R.doc=null;R.members=[];R.pos={};R.chat=[];G=null;fxDone=null;
+ R.code=code;R.ref=R.db.doc('rooms/'+code);R.rev=0;R.grev=null;R.doc=null;R.members=[];R.msig="";R.pos={};R.chat=[];G=null;fxDone=null;
  if(spett){subscribe();return}
  const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
  R.mine={name:ME.name,uid:FB.uid||null,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){ERR.n(e)}subscribe()}
@@ -61,7 +61,8 @@ function subscribe(){
   if(seated){if(d.rev>=R.rev){const ch=d.rev>R.rev;R.rev=d.rev;if(ch){ui.sel=[];ui.tsel=[]}if(was!=='game'){fxDone=null;G=null;ui.shown=-1}pushState(d.s,false,d.rev||0);return}}
   else{R.rev=Math.max(R.rev,d.rev||0);if(was==='game'){G=null;ui.anim=false}}
   render()},e=>{ui.err='Connessione persa ('+e.code+')';render()}));
- R.un.push(R.db.collection('rooms/'+R.code+'/members').onSnapshot(q=>{R.members=q.docs.map(d=>({id:d.id,...d.data(),...(R.pos[d.id]?{pos3:R.pos[d.id]}:{})})).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));if(ui.screen==='room'){render();tvLater()}else if(ui.screen==='tv')render()},()=>{}));
+ R.un.push(R.db.collection('rooms/'+R.code+'/members').onSnapshot(q=>{R.members=q.docs.map(d=>({id:d.id,...d.data(),...(R.pos[d.id]?{pos3:R.pos[d.id]}:{})})).sort((a,b)=>a.t-b.t||(a.id<b.id?-1:1));const sg=JSON.stringify(R.members,(k,v)=>k==='pos3'?undefined:v);if(sg===R.msig)return;R.msig=sg; /* ridisegna solo se i membri sono cambiati davvero (le posizioni non contano) */
+  if(ui.screen==='room'){render();tvLater()}else if(ui.screen==='tv')render()},()=>{}));
  /* posizioni dei pupazzi: nodo a parte, si aggiornano sul posto e rimuovono la pagina da ridisegnare solo per il 3D */
  if(R.mode==='rt')R.un.push(R.db.collection('rooms/'+R.code+'/pos').onSnapshot(q=>{R.pos={};q.docs.forEach(d=>{R.pos[d.id]=d.data()});
   for(const m of R.members){if(R.pos[m.id])m.pos3=R.pos[m.id];else delete m.pos3}L3D.sync()},()=>{}));
