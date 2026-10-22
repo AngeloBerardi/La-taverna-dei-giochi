@@ -2,7 +2,7 @@
    con cache lunga e caricati solo quando servono. scripts/build.js riempie la mappa nome -> url. */
 const VENDOR=(()=>{
  const MAP=/*VENDOR*/{};
- const PRONTO={three:()=>!!window.THREE,peerjs:()=>!!(window.Peer||(window.peerjs&&window.peerjs.Peer))};
+ const PRONTO={three:()=>!!window.THREE,peerjs:()=>!!(window.Peer||(window.peerjs&&window.peerjs.Peer)),lobby3d:()=>!!window.__L3D};
  const dentro={};
  const gl=()=>{try{const c=document.createElement('canvas');return!!(window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl')))}catch(e){return false}};
  function load(n){

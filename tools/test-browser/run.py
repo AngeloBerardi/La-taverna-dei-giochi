@@ -200,7 +200,7 @@ async def sc_vendor_offline_e_cache(b, srv):
     pg = await vendor_pg(ctx, srv.url + '?net=p2p', 500)
     await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
     nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
-    check(len(nomi) == 2 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
+    check(len(nomi) == 3 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
     await pg.reload(); await pg.wait_for_timeout(800)
     await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1500)
     check(await pg.evaluate('VENDOR.load("peerjs").then(()=>typeof Peer!=="undefined",()=>false)'), 'offline: PeerJS arriva dalla cache')

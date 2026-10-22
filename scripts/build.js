@@ -4,14 +4,14 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src/manifest.json'), 'utf8'));
 // librerie esterne (src/js/vendor/): non nella pagina ma in dist/vendor/<nome>.<hash>.js, caricate da VENDOR.load
-const NOMI = { '09-peerjs.js': 'peerjs', '09c-three.min.js': 'three' };
+const NOMI = { '09-peerjs.js': 'peerjs', '09c-three.min.js': 'three', '12c-lobby-3d.js': 'lobby3d' }; // lobby3d: generato da tools/taverna3d, caricato a richiesta (guscio in app/12d-lobby-3d-guscio.js)
 const vendor = {};
 fs.mkdirSync(path.join(root, 'dist/vendor'), { recursive: true });
 for (const f of fs.readdirSync(path.join(root, 'dist/vendor'))) fs.rmSync(path.join(root, 'dist/vendor', f));
 let html = manifest.map(f => {
   const src = fs.readFileSync(path.join(root, f), 'utf8');
-  if (!f.startsWith('src/js/vendor/')) return src;
   const nome = NOMI[path.basename(f)];
+  if (!nome && !f.startsWith('src/js/vendor/')) return src;
   if (!nome) throw new Error('vendor senza nome in scripts/build.js: ' + f);
   const h = require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10);
   const file = `${nome}.${h}.js`;

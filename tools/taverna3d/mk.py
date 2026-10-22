@@ -14,7 +14,7 @@ js="""/* ---- La Taverna 3D: ingresso, locanda e boschetto (estetica di base del
    e usa le sue azioni (setname, addguest, join, copy, chatsend, emo, rules…) e startGame per avviare le partite.
    Motori, viste dei giochi e rete non sono toccati. Senza WebGL o se il 3D è troppo lento si torna al falò (modalità semplice).
    Generato da tools/taverna3d/mk.py (python3 tools/taverna3d/mk.py): le parti 3D vengono da lì. */
-const L3D=(()=>{
+window.__L3D=(()=>{
  const A={
   R:()=>R,ME:()=>ME,ui:()=>ui,members:()=>members(),seats:()=>lobbySeats(),games:()=>GAMES,
   info:g=>tvInfo(g),box:id=>(typeof TVB!=='undefined'&&TVB[id])||null,cat:k=>TVC[k],avc:()=>AVC,avs:()=>AVS,

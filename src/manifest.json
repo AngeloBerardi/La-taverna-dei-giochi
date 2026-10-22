@@ -111,6 +111,7 @@
  "src/js/app/11-carte-napoletane.js",
  "src/js/app/12b-lobby-diorama.js",
  "src/js/app/12c-lobby-3d.js",
+ "src/js/app/12d-lobby-3d-guscio.js",
  "src/js/app/13-regicide.js",
  "src/js/app/14-the-gang.js",
  "src/js/app/15-saboteur.js",
