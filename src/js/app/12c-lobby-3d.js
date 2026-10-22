@@ -21,7 +21,6 @@ const L3D=(()=>{
   if(state!=='idle')return state==='ready';
   if(!window.THREE||!hasGL()){state='fail';return false}
   try{
-   const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&family=IM+Fell+English:ital@0;1&display=swap';document.head.appendChild(l);
    wrap=document.createElement('div');wrap.id='l3d';wrap.innerHTML=`<div id="l3dapp">
   <div id="stage"></div>
   <div class="vig"></div>

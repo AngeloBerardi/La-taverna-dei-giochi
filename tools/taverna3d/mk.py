@@ -32,7 +32,6 @@ const L3D=(()=>{
   if(state!=='idle')return state==='ready';
   if(!window.THREE||!hasGL()){state='fail';return false}
   try{
-   const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&family=IM+Fell+English:ital@0;1&display=swap';document.head.appendChild(l);
    wrap=document.createElement('div');wrap.id='l3d';wrap.innerHTML=`"""+mark+"""`;document.body.appendChild(wrap);A.root=wrap.querySelector('#l3dapp');
    E=(function(A){
 """+inner+"""

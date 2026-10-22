@@ -1,5 +1,6 @@
 [
  "src/html/head.html",
+ "src/css/00-fonts.css",
  "src/css/01-base.css",
  "src/css/02-carte.css",
  "src/css/03-arena-e-boss.css",
