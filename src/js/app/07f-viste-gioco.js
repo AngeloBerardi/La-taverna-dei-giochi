@@ -35,5 +35,5 @@ let lastChat=0;
 async function chatSend(){const t=(ui.cm||'').trim().slice(0,120);if(!t||!R.on||!R.code)return;if(Date.now()-lastChat<600)return;lastChat=Date.now();
  const k=ui.ek||'m',g=(R.mine.guests||[]).find(x=>x.k===k),nm=g?g.name:(R.mine.name||ME.name),id=Date.now()+'_'+rid();ui.cm='';
  try{await R.db.doc('rooms/'+R.code+'/chat/'+id).set({dev:ME.dev,k:g?k:'m',name:nm,text:t,t:Date.now()});
-  const old=R.chat.slice(0,Math.max(0,R.chat.length-39));for(const o of old){try{await R.db.doc('rooms/'+R.code+'/chat/'+o.id).delete()}catch(e){}}}catch(e){ui.err=netErr(e)}
+  const old=R.chat.slice(0,Math.max(0,R.chat.length-39));for(const o of old){try{await R.db.doc('rooms/'+R.code+'/chat/'+o.id).delete()}catch(e){ERR.n(e)}}}catch(e){ui.err=netErr(e)}
  render();const l=$('#chatlog');if(l)l.scrollTop=l.scrollHeight;const el=$('#cmsg');if(el)el.focus({preventScroll:true})}

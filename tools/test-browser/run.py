@@ -786,6 +786,19 @@ async def sc_posizioni_separate(b, srv):
     check(not A.errs and not B.errs, f'nessun errore JS {A.errs[:1]} {B.errs[:1]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_errori_globali(b, srv):
+    """Gestore globale: errori e promesse rifiutate vengono annotati (con limite di frequenza) senza rompere la pagina."""
+    ctx = await new_context(b, srv.port); pg = await vendor_pg(ctx, srv.url, 3000)
+    await pg.evaluate("Promise.reject(new Error('prova-promessa'));setTimeout(()=>{throw new Error('prova-finestra')},0)")
+    await pg.evaluate("for(let i=0;i<20;i++)ERR.n(new Error('ripetuto'),'t')")
+    await pg.wait_for_timeout(500)
+    m = await pg.evaluate("ERR.b.map(x=>x.m)")
+    check('prova-promessa' in m and 'prova-finestra' in m, f'errori globali annotati {m}')
+    check(m.count('ripetuto') == 1, 'stesso errore ripetuto: una sola voce in 2 s')
+    check('prova-finestra' in (await pg.evaluate("localStorage.getItem('rg-err')")), 'gli ultimi errori restano in rg-err')
+    check(len(await pg.inner_html('#app')) > 300, 'la pagina resta viva')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

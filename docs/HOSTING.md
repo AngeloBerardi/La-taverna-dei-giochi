@@ -10,7 +10,9 @@ Limiti Spark: 10 GB di file, ~360 MB/giorno di traffico. Il service worker tiene
 3. Unisci questo ramo in main: da quel momento ogni unione pubblica il sito.
 
 ## A mano (senza GitHub Actions)
-`node scripts/check.js && npx firebase-tools deploy --only hosting`
+`node scripts/check.js && npx firebase-tools deploy --only hosting,firestore:rules,database`
+
+A ogni unione in main la pubblicazione automatica (`.github/workflows/pubblica.yml`) esegue prima `npm run verifica`, poi pubblica le regole (database e Firestore), poi il sito. Se l account di servizio non ha il permesso «Firebase Rules Admin» il passo delle regole dà solo un avviso: pubblicale a mano. Ogni ramo e ogni richiesta di unione sono controllati da `verifica.yml`.
 
 ## Cosa non c'è
 Il locandiere risponde con i copioni scritti: risposte libere con Claude richiederebbero Cloud Functions (piano Blaze).

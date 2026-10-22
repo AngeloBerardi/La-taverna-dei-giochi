@@ -76,9 +76,9 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
    else if(T.drum==='anvil'){if(i===0||i===4)I.timp(mf(c[0]-24),t,.4,mg);if(i===2||i===6){osc('square',1900,t,.08,.04,mg);osc('sine',2600,t,.25,.05,mg)}noise(t,.03,.015,mg,6000)}
    else{if(i%4===0)I.timp(mf(c[0]-24),t,.45,mg);if(i===2||i===6)noise(t,.16,.1,mg,900);if(b%4===3&&i>=4)I.timp(mf(c[0]-12),t,.2,mg)}
    nt+=T.sd;st++}}
- function start(){if(!init())return;try{ctx.resume()}catch(e){}if(!tm){nt=ctx.currentTime+.1;tm=setInterval(sched,60)}}
- document.addEventListener('visibilitychange',()=>{if(!ctx)return;try{document.hidden?ctx.suspend():ctx.resume()}catch(e){}});
- function play(n){if(!sfx||!init())return;const t=ctx.currentTime+.01,o=sg;try{ctx.resume()}catch(e){}switch(n){
+ function start(){if(!init())return;try{ctx.resume()}catch(e){ERR.n(e)}if(!tm){nt=ctx.currentTime+.1;tm=setInterval(sched,60)}}
+ document.addEventListener('visibilitychange',()=>{if(!ctx)return;try{document.hidden?ctx.suspend():ctx.resume()}catch(e){ERR.n(e)}});
+ function play(n){if(!sfx||!init())return;const t=ctx.currentTime+.01,o=sg;try{ctx.resume()}catch(e){ERR.n(e)}switch(n){
   case'sel':osc('triangle',1250,t,.07,.16,o);noise(t,.02,.08,o,3500);break;case'unsel':osc('triangle',820,t,.07,.13,o);break;
   case'deal':noise(t,.08,.14,o,2500,'bandpass');break;
   case'whoosh':{const f=noise(t,.35,.22,o,500,'bandpass');f.frequency.exponentialRampToValueAtTime(3500,t+.3);break}

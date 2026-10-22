@@ -72,17 +72,17 @@ const RT={
  async del(seg){await RT.m.remove(RT.ref(seg));if(seg[2]==='m'&&seg[3]===ME.dev){RT.m.remove(RT.ref(['stanze',seg[1],'pos',ME.dev])).catch(()=>{});RT.assenza(seg[1])}},
  // presenza: un nodo che il server toglie da solo quando il telefono si scollega; si ripristina a ogni riconnessione
  presenza(code){RT.pc[code]=1;if(RT.on)RT.segna(code)},
- assenza(code){delete RT.pc[code];try{const r=RT.ref(['stanze',code,'p',ME.dev]);RT.m.onDisconnect(r).cancel().catch(()=>{});RT.m.remove(r).catch(()=>{})}catch(e){}},
+ assenza(code){delete RT.pc[code];try{const r=RT.ref(['stanze',code,'p',ME.dev]);RT.m.onDisconnect(r).cancel().catch(()=>{});RT.m.remove(r).catch(()=>{})}catch(e){ERR.n(e)}},
  segna(code){try{const r=RT.ref(['stanze',code,'p',ME.dev]);
   RT.m.onDisconnect(r).remove().then(()=>RT.m.set(r,{t:RT.m.serverTimestamp()})).catch(()=>{});
   RT.m.onDisconnect(RT.ref(['stanze',code,'pos',ME.dev])).remove().catch(()=>{});
   // se nel frattempo gli altri mi hanno tolto dai membri (ero sparito dalla stanza in attesa), rientro
-  if(code===R.code&&R.mode==='rt')RT.doc('rooms/'+code+'/members/'+ME.dev).get().then(s=>{if(!s.exists&&R.mode==='rt'&&R.code===code&&RT.pc[code])RT.setMem(['stanze',code,'m',ME.dev],R.mine)}).catch(()=>{})}catch(e){}},
+  if(code===R.code&&R.mode==='rt')RT.doc('rooms/'+code+'/members/'+ME.dev).get().then(s=>{if(!s.exists&&R.mode==='rt'&&R.code===code&&RT.pc[code])RT.setMem(['stanze',code,'m',ME.dev],R.mine)}).catch(()=>{})}catch(e){ERR.n(e)}},
  // chi c'è davvero (presenza) nella stanza che si guarda: serve a togliere dall'attesa chi è sparito senza salutare
  guarda(code){const w=RT.pw[code];if(w){w.n++;return}
   const un=RT.m.onValue(RT.ref(['stanze',code,'p']),s=>{const h=new Set();s.forEach(c=>{h.add(c.key)});RT.here[code]=h},()=>{});
   RT.pw[code]={n:1,un};if(!RT.tm)RT.tm=setInterval(()=>RT.pota(),5000)},
- smetti(code){const w=RT.pw[code];if(!w||--w.n>0)return;try{w.un()}catch(e){}delete RT.pw[code];delete RT.here[code];
+ smetti(code){const w=RT.pw[code];if(!w||--w.n>0)return;try{w.un()}catch(e){ERR.n(e)}delete RT.pw[code];delete RT.here[code];
   if(!Object.keys(RT.pw).length){clearInterval(RT.tm);RT.tm=0}},
  // nella stanza in attesa, chi non ha presenza da più di 20 s (e non sono io) esce dall'elenco; durante la partita nessuno viene tolto
  pota(){const h=RT.here[R.code],d=R.doc;if(R.mode!=='rt'||!R.code||!RT.on||!h||!d||d.phase!=='lobby'){RT.ass={};return}
@@ -97,7 +97,7 @@ const RT={
    else{RT.on=false;clearTimeout(RT.tp);RT.tp=setTimeout(()=>{if(!RT.on&&R.mode==='rt'&&R.code){RT.mio=ui.err='Connessione persa… riprovo';render()}},4000)}});
   // rientrando in primo piano dopo un po' i socket possono essere morti senza che nessuno se ne sia accorto: si riparte
   document.addEventListener('visibilitychange',()=>{if(document.hidden){RT.hid=Date.now();return}
-   if(R.mode==='rt'&&RT.hid&&Date.now()-RT.hid>15000){try{RT.m.goOffline(RT.db);RT.m.goOnline(RT.db)}catch(e){}}RT.hid=0})},
+   if(R.mode==='rt'&&RT.hid&&Date.now()-RT.hid>15000){try{RT.m.goOffline(RT.db);RT.m.goOnline(RT.db)}catch(e){ERR.n(e)}}RT.hid=0})},
  // sonda: l'accesso anonimo di Firebase è pronto e il database risponde entro il tempo dato? Altrimenti si ripiega sul p2p
  async prova(ms){ms=ms||10000;if(!RT.attivo())return false;
   const t0=Date.now(),res=()=>Math.max(0,ms-(Date.now()-t0)),pausa=t=>new Promise(r=>setTimeout(r,t));

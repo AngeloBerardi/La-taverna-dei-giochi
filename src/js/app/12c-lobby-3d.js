@@ -1581,14 +1581,14 @@ function avTo3(av,av3,i){if(av3&&typeof av3==='object')return normFig(av3);var a
   return normFig({robe:hx(Cc[0]),skin:hx(sk),head:hd,hatc:hx(H[0]),hair:hd==='none'?'short':'bald',hairc:hx(H[1]||H[0])})}
 function near(list,c){var best=0,bd=1e9;list.forEach(function(x,k){var v=hx(Array.isArray(x)?x[0]:x),d=Math.abs((v>>16)-(c>>16))+Math.abs((v>>8&255)-(c>>8&255))+Math.abs((v&255)-(c&255));if(d<bd){bd=d;best=k}});return best}
 function pixFrom3(o){var t={beret:0,crown:1,hood:2,elmo:3,none:4,top:5,brim:5,bandana:0,fiori:4}[o.head];return{t:t==null?4:t,h:near(A.avc(),o.head==='none'?o.hairc:o.hatc),c:near(A.avc(),o.robe),s:near(A.avs(),o.skin)}}
-function myLook(){var m=A.R().mine;if(m.av3)return normFig(m.av3);var s=null;try{s=JSON.parse(A.ST('rg-av3')||'null')}catch(e){}if(s)return normFig(s);return avTo3(m.av,null,0)}
+function myLook(){var m=A.R().mine;if(m.av3)return normFig(m.av3);var s=null;try{s=JSON.parse(A.ST('rg-av3')||'null')}catch(e){ERR.n(e)}if(s)return normFig(s);return avTo3(m.av,null,0)}
 E.saveLook=function(){var o=Object.assign({},FIG[6]);delete o.hat;var m=A.R().mine;m.av3=o;m.av=pixFrom3(o);A.ST('rg-av3',JSON.stringify(o));A.ST('rg-av',JSON.stringify(m.av));A.save()};
 /* ---- aree ---- */
 function build(n){if(n==='ing')return sceneSolo();if(n==='bosco')return sceneBosco();ROOM=A.R().on?A.R().code||'…':'—';FIG[6]=myLook();var S=sceneLocanda3();return S}
 function uiFor(n){var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
   ['zbar','vote','cust','zpg','juke'].forEach(function(x){$(x).classList.remove('show')});closePage();closeList();closeRooms();$('chat').classList.remove('open')}
 /* pupazzi remoti: vanno tolti dalla scena a cui appartengono (le scene restano in cache), altrimenti al ritorno ne compare uno fermo accanto a quello che cammina */
-function clearWalkers(){Object.keys(walk).forEach(function(id){var W=walk[id],S0=W.S||cur;try{(S0?S0.g:W.f.parent).remove(W.f)}catch(e){}if(W.tag){W.tag.el.remove();if(S0){var k=S0.tags.indexOf(W.tag);if(k>=0)S0.tags.splice(k,1)}}});walk={};peopleSig=''}
+function clearWalkers(){Object.keys(walk).forEach(function(id){var W=walk[id],S0=W.S||cur;try{(S0?S0.g:W.f.parent).remove(W.f)}catch(e){ERR.n(e)}if(W.tag){W.tag.el.remove();if(S0){var k=S0.tags.indexOf(W.tag);if(k>=0)S0.tags.splice(k,1)}}});walk={};peopleSig=''}
 function disposeScene(S0){if(!S0)return;var keys=['map','normalMap','roughnessMap','metalnessMap','emissiveMap','alphaMap','bumpMap','aoMap'];
   S0.g.traverse(function(o){if(o.geometry&&o.geometry.dispose)o.geometry.dispose();var m=o.material;if(m)(Array.isArray(m)?m:[m]).forEach(function(mm){keys.forEach(function(k){if(mm[k]&&mm[k].dispose)mm[k].dispose()});if(mm.dispose)mm.dispose()})});
   S0.tags.forEach(function(t){t.el.remove()});S0.tags.length=0}
