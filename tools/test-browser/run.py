@@ -820,6 +820,17 @@ async def sc_font_locali(b, srv):
     check(ok and woff and all(x == 200 for x in woff), f'font locali caricati ({len(woff)} file)')
     await ctx.close()
 
+async def sc_errori_nel_database(b, srv):
+    """Un errore con la rete pronta finisce anche nel nodo errori/, con limite di frequenza."""
+    sh = Shared()
+    ctx, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&RT.on", timeout=30000)
+    await A.evaluate("for(let i=0;i<5;i++)ERR.n(new Error('guasto '+i),'prova')")
+    await A.wait_for_timeout(800)
+    w = await A.evaluate("__rt.w.filter(x=>x[1].startsWith('errori/')).length")
+    check(w == 1, f'5 errori ravvicinati: una sola scrittura in errori/ ({w})')
+    check(not A.errs, f'nessun errore JS {A.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

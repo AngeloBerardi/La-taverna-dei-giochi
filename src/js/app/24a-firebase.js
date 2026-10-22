@@ -3,7 +3,8 @@
    configurato il gioco funziona come prima e i premi restano in coda sul telefono (localStorage rg-fbq). */
 const FB={
  CFG:{apiKey:'AIzaSyBhLn7ArFoHOtumCZpMb0LlRb23mOblLGM',authDomain:'la-taverna-dei-giochi.firebaseapp.com',projectId:'la-taverna-dei-giochi',storageBucket:'la-taverna-dei-giochi.firebasestorage.app',messagingSenderId:'879748781861',appId:'1:879748781861:web:d67778b6e973f1fc19eccc'},
- V:'12.11.0',
+ V:'12.11.0',AC_KEY:'', // chiave pubblica reCAPTCHA v3 per App Check: vuota = App Check spento
+
  PREMIO:{gioca:10,vinci:15}, // monete per partita finita e in più per la vittoria (le regole accettano al massimo 30 per volta)
  st:'idle',err:'',uid:null,p:null,m:null,db:null,ready:null,last:null,
  q:(()=>{try{return JSON.parse(ST('rg-fbq')||'[]')}catch(e){return[]}})(),
@@ -14,7 +15,10 @@ const FB={
   return FB.ready=Promise.race([FB._init(),lento]).then(()=>{FB.st='ok';if(ui.cfg)render()}).catch(e=>{FB.st='err';FB.err=String((e&&e.code)||e);console.warn('Firebase',e);if(ui.cfg)render()})},
  async _init(){const B='https://www.gstatic.com/firebasejs/'+FB.V+'/';
   const [A,Au,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
-  FB.m={A,Au,F};const app=A.initializeApp(FB.CFG),auth=Au.getAuth(app);
+  FB.m={A,Au,F};const app=A.initializeApp(FB.CFG);
+  /* App Check (reCAPTCHA v3): attivo solo con FB.AC_KEY compilata (console Firebase > App Check). Poi si può imporre sul database e su Firestore. */
+  if(FB.AC_KEY){try{const AC=await import(B+'firebase-app-check.js');AC.initializeAppCheck(app,{provider:new AC.ReCaptchaV3Provider(FB.AC_KEY),isTokenAutoRefreshEnabled:true})}catch(e){ERR.n(e,'appcheck')}}
+  const auth=Au.getAuth(app);
   await auth.authStateReady();if(!auth.currentUser)await Au.signInAnonymously(auth);
   FB.auth=auth;FB.uid=auth.currentUser.uid;FB.db=F.getFirestore(app);
   await FB.load();Shop.sync();R.mine.uid=FB.uid;if(R.on)savePos();Dist.init();await FB.flush()},

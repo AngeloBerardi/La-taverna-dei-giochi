@@ -2,6 +2,12 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "errori": {
+      "$id": {
+        ".write": "auth != null && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['t', 'm']) && newData.child('t').isNumber() && newData.child('m').isString() && newData.child('m').val().length <= 200 && (!newData.hasChild('s') || newData.child('s').val().length <= 300)"
+      }
+    },
     "stanze": {
       "$code": {
         ".read": "auth != null",

@@ -49,6 +49,8 @@ const S = 'stanze/' + CODE + '/';
     ck(!prova(b, S + 'c/1', { j: 'x'.repeat(4001) }, 'ua'), 'chat: oltre 4000 caratteri, negato');
     ck(prova(b, S + 'pos/da', { j: '{"x":1}', t: 1 }, 'ua') && !prova(b, S + 'pos/da', { j: '{"x":1}', t: 1 }, 'ub'), 'posizione: solo del proprio dispositivo');
     ck(!prova(b, S + 'pos/da', { j: 'x'.repeat(401), t: 1 }, 'ua'), 'posizione: oltre 400 caratteri, negata');
+    ck(prova(b, 'errori/1-x', { t: 1, m: 'boom' }, 'ub') && !prova(b, 'errori/1-x', { t: 1, m: 'boom' }, null), 'errori: li scrive chi è autenticato, nessun accesso senza');
+    ck(!prova(b, 'errori/1-x', { t: 1, m: 'x'.repeat(201) }, 'ub') && !R.puoLeggere(regole, R.albero(b), 'errori', 'ub').ok, 'errori: messaggio troppo lungo negato, lettura negata');
     ck(!prova(b, S + 'altro', 1, 'ua') && !prova(b, 'fuori', 1, 'ua'), 'chiavi non previste: negate');
   }
 

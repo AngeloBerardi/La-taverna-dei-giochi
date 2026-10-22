@@ -69,6 +69,7 @@ const RT={
   if(mio){await RT.claim(seg[1]);seg=[seg[0],seg[1],seg[2],ME.dev]}
   await RT.m.set(RT.ref(seg),{j,t:Date.now()});
   if(seg[2]==='m'&&seg[3]===ME.dev)RT.presenza(seg[1])},
+ async errore(r){await RT.m.set(RT.ref(['errori',r.t+'-'+rid()]),r)},
  async del(seg){await RT.m.remove(RT.ref(seg));if(seg[2]==='m'&&seg[3]===ME.dev){RT.m.remove(RT.ref(['stanze',seg[1],'pos',ME.dev])).catch(()=>{});RT.assenza(seg[1])}},
  // presenza: un nodo che il server toglie da solo quando il telefono si scollega; si ripristina a ogni riconnessione
  presenza(code){RT.pc[code]=1;if(RT.on)RT.segna(code)},
