@@ -5,25 +5,43 @@
     "stanze": {
       "$code": {
         ".read": "auth != null",
+
         "d": {
-          ".write": "auth != null",
-          ".validate": "newData.hasChildren(['j', 'rev']) && newData.child('j').isString() && newData.child('j').val().length <= 900000 && newData.child('rev').isNumber()"
+          ".write": "auth != null && newData.exists() && (!data.exists() || root.child('stanze').child($code).child('k').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['j', 'rev']) && newData.child('j').isString() && newData.child('j').val().length <= 900000 && newData.child('rev').isNumber() && (!data.exists() || newData.child('rev').val() > data.child('rev').val())"
         },
+
+        "dv": {
+          "$dev": {
+            ".write": "auth != null && newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)",
+            ".validate": "$dev.matches(/^[\\w:-]{1,64}$/) && newData.isString()"
+          }
+        },
+
+        "k": {
+          "$uid": {
+            ".write": "auth != null && $uid === auth.uid",
+            ".validate": "newData.val() === true"
+          }
+        },
+
         "m": {
           "$dev": {
-            ".write": "auth != null",
+            ".write": "auth != null && ((newData.exists() && root.child('stanze').child($code).child('dv').child($dev).val() === auth.uid) || (!newData.exists() && (root.child('stanze').child($code).child('dv').child($dev).val() === auth.uid || root.child('stanze').child($code).child('k').child(auth.uid).exists())))",
             ".validate": "newData.hasChild('j') && newData.child('j').isString() && newData.child('j').val().length <= 20000"
           }
         },
+
         "c": {
           "$id": {
-            ".write": "auth != null",
+            ".write": "auth != null && root.child('stanze').child($code).child('k').child(auth.uid).exists()",
             ".validate": "newData.hasChild('j') && newData.child('j').isString() && newData.child('j').val().length <= 4000"
           }
         },
+
         "p": {
           "$dev": {
-            ".write": "auth != null",
+            ".write": "auth != null && root.child('stanze').child($code).child('dv').child($dev).val() === auth.uid",
             ".validate": "newData.hasChild('t')"
           }
         }

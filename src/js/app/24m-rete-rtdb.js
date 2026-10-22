@@ -51,7 +51,20 @@ const RT={
    return{j,rev,t:M.serverTimestamp()}});
   // la creazione (rev 0) che arriva dopo che la stanza esiste già non è un errore: qualcuno l'ha aperta un attimo prima
   if(vecchio&&rev>0){const e=new Error('conflitto');e.code='conflitto';throw e}},
+ // identità: in ogni stanza il dispositivo (ME.dev) si lega al profilo (uid di Firebase) che lo usa per primo (stanze/CODICE/dv/DEV) e il
+ // profilo risulta «dentro» la stanza (stanze/CODICE/k/UID). Le regole (database.rules.json) lasciano scrivere il proprio membro e la propria
+ // presenza solo a chi possiede il dispositivo, e la stanza solo a chi è dentro: nessuno può scrivere al posto di un altro né rovinare le stanze altrui.
+ cl:{},
+ uid(){const u=typeof FB!=='undefined'&&FB.auth&&FB.auth.currentUser;return u?u.uid:(typeof FB!=='undefined'&&FB.uid)||''},
+ async claim(code){const uid=RT.uid(),M=RT.m;
+  if(!uid)throw Object.assign(new Error('Accesso non pronto'),{code:'PERMISSION_DENIED'});
+  for(let giro=0;giro<2;giro++){const chiave=code+'|'+uid+'|'+ME.dev;if(RT.cl[chiave])return;
+   try{await M.set(RT.ref(['stanze',code,'dv',ME.dev]),uid)}
+   catch(e){ // quel dispositivo è già legato a un altro profilo in questa stanza (di solito dopo un cambio di account): se ne prende uno nuovo
+    if(e&&e.code==='PERMISSION_DENIED'&&giro===0){ME.dev='d'+rid()+rid();ST('rg-dev',ME.dev);continue}throw e}
+   await M.set(RT.ref(['stanze',code,'k',uid]),true);RT.cl[chiave]=1;return}},
  async setMem(seg,d){const j=DIST.ser(d);if(j.length>20000){const e=new Error('troppo grande');e.code='troppo-grande';throw e}
+  if(seg[2]==='m'&&seg[3]===ME.dev){await RT.claim(seg[1]);seg=[seg[0],seg[1],seg[2],ME.dev]}
   await RT.m.set(RT.ref(seg),{j,t:Date.now()});
   if(seg[2]==='m'&&seg[3]===ME.dev)RT.presenza(seg[1])},
  async del(seg){await RT.m.remove(RT.ref(seg));if(seg[2]==='m'&&seg[3]===ME.dev)RT.assenza(seg[1])},
