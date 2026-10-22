@@ -96,7 +96,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/17-machiavelli.css` | 1 |  |
 | `css/18-lobby-falo.css` | 8 |  |
 | `css/19-lobby-iso.css` | 1 |  |
-| `css/20-lobby-campeggio-e-sala.css` | 16 |  |
+| `css/20-lobby-campeggio-e-sala.css` | 15 |  |
 | `css/21-valle-selvaggia.css` | 2 |  |
 | `css/22-discesa-tascabile.css` | 3 |  |
 | `css/23-scaffale-scatole.css` | 4 |  |
@@ -165,7 +165,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
 | `js/motori/35-sync.js` | 3 | SYNC |
-| `js/app/01-base.js` | 1 | $, ERR, SYM, ST, RM, SP |
+| `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
@@ -185,7 +185,6 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
 | `js/app/11-carte-napoletane.js` | 12 | NAP |
-| `js/app/12-sala-hall.js` | 17 | HALL, hallScene |
 | `js/app/12b-lobby-diorama.js` | 17 | ISO, N, PAL, SPR, FIX, EMO, STUMPS |
 | `js/app/12c-lobby-3d.js` | 169 |  |
 | `js/app/13-regicide.js` | 7 | pileH, regicideH, regClick, regPre |
@@ -217,7 +216,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22n-fantasma.js` | 10 | FAC, FTK, FSX, fpos, FZ, fantasmaMapH, fleg |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
-| `js/app/24a-firebase.js` | 8 | FB |
+| `js/app/24a-firebase.js` | 9 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
@@ -240,3 +239,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
+
+## Caricamento a richiesta, errori, finestre
+- La Taverna 3D (`app/12c-lobby-3d.js`, generato) non sta in `dist/index.html`: il build la scrive in `dist/vendor/lobby3d.<hash>.js` e il guscio `app/12d-lobby-3d-guscio.js` (`L3D`) la carica con `VENDOR.load('lobby3d')` solo a chi usa la lobby 3D. Se non arriva, si torna al falò. Pagina: ~414 KB compressa; il file 3D ~60 KB, three.js ~149 KB.
+- Un solo ripiego: la lobby falò (`07e-lobby-falo.js`, `12b-lobby-diorama.js`). Font: tre famiglie locali in `assets/fonts` (`css/00-fonts.css`).
+- `ERR` (`app/01-base.js`): errori globali e `catch` annotati, copia nel nodo `errori/`. `ui.modal`: una sola finestra aperta (`cfg`, `shop`, `acc`/`top`, `oste`, `dist`, `tvm`, `amici`, `eroi`, `camp`); i vecchi flag `ui.cfg`… sono accessori.
+- Formattazione: `npm run formatta -- <file>` (Prettier, 120 colonne); applicata ai moduli nuovi o riscritti, non all'intero repository (molte righe lunghe sono volute).

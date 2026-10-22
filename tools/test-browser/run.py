@@ -200,7 +200,7 @@ async def sc_vendor_offline_e_cache(b, srv):
     pg = await vendor_pg(ctx, srv.url + '?net=p2p', 500)
     await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
     nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
-    check(len(nomi) == 2 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
+    check(len(nomi) == 3 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
     await pg.reload(); await pg.wait_for_timeout(800)
     await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1500)
     check(await pg.evaluate('VENDOR.load("peerjs").then(()=>typeof Peer!=="undefined",()=>false)'), 'offline: PeerJS arriva dalla cache')
@@ -814,11 +814,22 @@ async def sc_font_locali(b, srv):
     pg.on('request', lambda r: ext.append(r.url) if 'googleapis' in r.url or 'fonts.gstatic' in r.url else None)
     pg.on('response', lambda r: woff.append(r.status) if '/assets/fonts/' in r.url else None)
     await pg.goto(srv.url); await pg.wait_for_timeout(3000)
-    ok = await pg.evaluate("""(async()=>{await Promise.all(['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].map(f=>document.fonts.load(f,'àèé')));
-      return ['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].every(f=>document.fonts.check(f,'àèé'))})()""")
+    ok = await pg.evaluate("""(async()=>{await Promise.all(['700 16px "Alegreya SC"','500 16px "Alegreya Sans"','16px Silkscreen'].map(f=>document.fonts.load(f,'àèé')));
+      return ['700 16px "Alegreya SC"','500 16px "Alegreya Sans"','16px Silkscreen'].every(f=>document.fonts.check(f,'àèé'))})()""")
     check(not ext, f'nessuna richiesta a Google Fonts {ext[:2]}')
     check(ok and woff and all(x == 200 for x in woff), f'font locali caricati ({len(woff)} file)')
     await ctx.close()
+
+async def sc_errori_nel_database(b, srv):
+    """Un errore con la rete pronta finisce anche nel nodo errori/, con limite di frequenza."""
+    sh = Shared()
+    ctx, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&RT.on", timeout=30000)
+    await A.evaluate("for(let i=0;i<5;i++)ERR.n(new Error('guasto '+i),'prova')")
+    await A.wait_for_timeout(800)
+    w = await A.evaluate("__rt.w.filter(x=>x[1].startsWith('errori/')).length")
+    check(w == 1, f'5 errori ravvicinati: una sola scrittura in errori/ ({w})')
+    check(not A.errs, f'nessun errore JS {A.errs[:1]}'); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

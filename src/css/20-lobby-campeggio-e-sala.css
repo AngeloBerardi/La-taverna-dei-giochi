@@ -75,24 +75,6 @@
 .cdr .emos.cde{position:static;margin:0;overflow-x:auto}
 .ib.sm{width:34px;height:34px;font-size:14px}
 
-/* sala dark fantasy */
-.hall{position:relative;border-radius:18px;overflow:hidden;border:4px solid #05090f;box-shadow:0 6px 0 #05090f,0 14px 30px rgba(0,0,0,.6);background:#05060a;isolation:isolate;flex:none;aspect-ratio:390/346}
-.hh-svg{display:block;width:100%;height:100%}
-.hall .tvplq{z-index:30}
-.hlq{position:absolute;inset:0;pointer-events:none}
-.hlp{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;pointer-events:none;z-index:5}
-.hlp.me{pointer-events:auto;cursor:pointer}
-.hlp .tvtag{margin-bottom:2px}
-.hlp .tvbub{bottom:100%;margin-bottom:22px}
-.hh-fl,.hh-fire{transform-box:fill-box;transform-origin:50% 100%;animation:hhfl .9s steps(4) infinite alternate}
-.hh-fire{animation-duration:.6s}
-@keyframes hhfl{0%{transform:scale(1,1)}50%{transform:scale(.94,1.1)}100%{transform:scale(1.04,.95)}}
-.hh-tg{animation:tvflk 2.6s linear infinite}
-.hh-em{animation:hhem 4s linear infinite}
-@keyframes hhem{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-70px) translateX(8px);opacity:0}}
-.hh-tb:hover,.hh-tb:focus-visible{filter:brightness(1.25)}.hh-tb.on .hh-plq rect{fill:#4a2e0c}
-.hh-tb:focus-visible{outline:none}
-@media(prefers-reduced-motion:reduce){.hh-fl,.hh-fire,.hh-tg,.hh-em{animation:none}}
 .mtop{display:flex;justify-content:space-between;align-items:center;padding:6px 4px}.mlv{font-size:18px}.mlv b{font-size:26px;color:var(--gold,#f7c948)}.mlv small{opacity:.6;margin-left:4px}
 .mst{display:flex;gap:12px;font-size:22px}.mlife{color:#e8574a;letter-spacing:2px}.mstar{color:#f7c948;letter-spacing:2px}.mstar s{opacity:.35}
 .mpiles{display:flex;justify-content:center;gap:22px;padding:10px 0;min-height:130px}

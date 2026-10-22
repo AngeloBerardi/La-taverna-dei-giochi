@@ -10,6 +10,8 @@
     "test:rapido": "node tests/tutti.js --lenti",
     "verifica": "node scripts/check.js && node scripts/struttura.js && node tests/tutti.js --lenti",
     "test:browser": "node scripts/build.js && python3 tools/test-browser/run.py",
-    "regole": "node scripts/regole.js"
+    "regole": "node scripts/regole.js",
+    "test:emulatore": "npx --yes firebase-tools@13 emulators:exec --only database --project demo-taverna \"npm i --no-save --silent @firebase/rules-unit-testing firebase && node tests/emulatore/regole.js\"",
+    "formatta": "npx --yes prettier@3 --write"
   }
 }

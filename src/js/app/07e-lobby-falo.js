@@ -127,7 +127,7 @@ function roomH(){if(ui.glist||ui.tab==='games')return`${Plancia.giochiH()}${avEd
   ${N>10?'<p class="err">Massimo 10 giocatori per tavolo: togliete qualche ospite.</p>':''}
   ${top&&!busy&&MD&&top.v?`<button class="b play big" data-a="start" data-v="${top.g.id}">Proponi ${top.g.name}${top.v?` · ${top.v} vot${top.v===1?'o':'i'}`:''}</button>`:''}
   ${games}${resume}`}
- else{body=`${ui.lobby==='hall'?hallScene(S)+emoBar():tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
+ else{body=`${tvSceneIso(S)}<div class="panel col">${hint}<div class="mems">${mem}</div>
   <div class="row"><input type="text" id="gname" maxlength="14" placeholder="Nome ospite" style="flex:1"><button class="b sm disc" data-a="addguest">+ Ospite</button>${infoH("Gli ospiti giocano su questo telefono: ve lo passate a ogni turno. Tocca il tuo pupazzetto per personalizzarlo.")}</div></div>
   ${busyB}
   ${top&&!busy?`<button class="tvnext" data-a="tab" data-v="games"><span>${ic('dado',16)} ${!MD?'Scegli un gioco dallo scaffale':top.v?'In testa: <b>'+esc(top.g.name)+'</b> · '+top.v+' vot'+(top.v===1?'o':'i'):'Votate il gioco di stasera'}</span><b>Vai ai giochi ›</b></button>`:''}

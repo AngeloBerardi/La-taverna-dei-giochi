@@ -33,7 +33,6 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
   if(a==='avrand'){const r=n=>Math.floor(Math.random()*n);nv={t:r(AVT.length),h:r(AVC.length),c:r(AVC.length),s:r(AVS.length)}}else{const[f,n]=v.split('|');nv={...cur,[f]:+n}}
   if(k==='m')R.mine.av=nv;else R.mine.guests=(R.mine.guests||[]).map(g=>g.k===k?{...g,av:nv}:g);ST('rg-av',JSON.stringify(R.mine.av||null));return saveMine()}
  case'tvcat':ui.cat=v;return render();
- case'hallgo':ui.cat=v;ui.tab='games';ui.err='';render();scrollTo(0,0);return;
  case'tvpick':ui.pick=v;return render();
  case'pickx':ui.pick=null;return render();
  case'newroom':if(!R.on)return;R.jt=(R.jt||0)+1;try{const c=R.mode==='p2p'?await p2pCreate():await createRoom();await joinRoom(c);setRoomUrl(c);say('Stanza privata '+c+': condividi il codice')}catch(x){ui.err=netErr(x);render()}return;

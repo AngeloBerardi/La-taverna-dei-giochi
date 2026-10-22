@@ -21,3 +21,8 @@ Il locandiere risponde con i copioni scritti: risposte libere con Claude richied
 Nel gioco: Impostazioni › Account › «Continua con Google» (`FB.google()` in `app/24a-firebase.js`: `linkWithPopup`, o `signInWithCredential` se quel Google ha già un profilo).
 Da attivare una volta nella console Firebase: **Authentication › Metodo di accesso › Google › Abilita** (email di assistenza del progetto) e controllare che il dominio `la-taverna-dei-giochi.web.app` sia in **Impostazioni › Domini autorizzati**.
 Nessun dato di Google (nome, email, foto) viene scritto in Firestore né nel profilo del gioco: l'account resta in Firebase Authentication, che serve a riconoscere la persona.
+
+## App Check e controllo errori
+- **Errori:** `ERR` (app/01-base.js) annota gli errori in locale e, con la rete pronta, nel nodo `errori/` del Realtime Database (al massimo 10 per sessione, uno ogni 5 s). Si leggono dalla console Firebase.
+- **App Check (da fare nella console):** App Check › registra l'app web con reCAPTCHA v3, copia la chiave pubblica in `FB.AC_KEY` (app/24a-firebase.js), controlla per qualche giorno che le richieste risultino verificate e solo poi attiva «Imponi» per Realtime Database e Firestore. Con `AC_KEY` vuota App Check resta spento.
+- **Regole sull'emulatore vero:** `npm run test:emulatore` (serve rete e Java; in CI è il job `emulatore`, non bloccante).

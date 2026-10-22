@@ -3,7 +3,7 @@
    e usa le sue azioni (setname, addguest, join, copy, chatsend, emo, rules…) e startGame per avviare le partite.
    Motori, viste dei giochi e rete non sono toccati. Senza WebGL o se il 3D è troppo lento si torna al falò (modalità semplice).
    Generato da tools/taverna3d/mk.py (python3 tools/taverna3d/mk.py): le parti 3D vengono da lì. */
-const L3D=(()=>{
+window.__L3D=(()=>{
  const A={
   R:()=>R,ME:()=>ME,ui:()=>ui,members:()=>members(),seats:()=>lobbySeats(),games:()=>GAMES,
   info:g=>tvInfo(g),box:id=>(typeof TVB!=='undefined'&&TVB[id])||null,cat:k=>TVC[k],avc:()=>AVC,avs:()=>AVS,
@@ -605,10 +605,10 @@ function drawLedger(){
   var g=LED.c.getContext('2d');g.fillStyle='#dccaa0';g.fillRect(0,0,512,512);
   var gr=g.createLinearGradient(0,0,512,0);gr.addColorStop(0,'rgba(80,50,20,.35)');gr.addColorStop(.06,'rgba(80,50,20,0)');gr.addColorStop(.94,'rgba(80,50,20,0)');gr.addColorStop(1,'rgba(80,50,20,.3)');g.fillStyle=gr;g.fillRect(0,0,512,512);
   g.strokeStyle='rgba(90,60,30,.35)';g.lineWidth=2;for(var y=130;y<500;y+=52){g.beginPath();g.moveTo(34,y);g.lineTo(478,y);g.stroke()}
-  g.fillStyle='#2a1a10';g.textAlign='left';g.font='700 40px "IM Fell English",Georgia,serif';g.fillText('Registro degli ospiti',34,76);
-  g.font='italic 36px "IM Fell English",Georgia,serif';g.fillStyle='rgba(42,26,16,.7)';
+  g.fillStyle='#2a1a10';g.textAlign='left';g.font='700 40px "Alegreya SC",Georgia,serif';g.fillText('Registro degli ospiti',34,76);
+  g.font='italic 36px "Alegreya SC",Georgia,serif';g.fillStyle='rgba(42,26,16,.7)';
   ['Anselmo','Giulia','Marco'].forEach(function(s,i){g.save();g.translate(44,122+i*52);g.rotate(-.01*(i+1));g.fillText(s,0,0);g.restore()});
-  var nm=NAME||'';g.fillStyle='#10101e';g.font='italic 700 42px "IM Fell English",Georgia,serif';g.fillText(nm,44,122+3*52);
+  var nm=NAME||'';g.fillStyle='#10101e';g.font='italic 700 42px "Alegreya SC",Georgia,serif';g.fillText(nm,44,122+3*52);
   var w=g.measureText(nm).width;g.fillStyle='rgba(16,16,30,.65)';if(Math.floor(performance.now()/500)%2===0)g.fillRect(48+w,122+3*52-30,3,36);
   LED.t.needsUpdate=true;
 }
@@ -662,9 +662,9 @@ function drawParchment(){
   var rg=g.createRadialGradient(256,256,120,256,256,360);rg.addColorStop(0,'rgba(255,240,200,0)');rg.addColorStop(1,'rgba(80,50,20,.55)');g.fillStyle=rg;g.fillRect(0,0,512,512);
   g.strokeStyle='#6b4527';g.lineWidth=5;g.strokeRect(26,26,460,460);g.lineWidth=1.5;g.strokeRect(38,38,436,436);
   g.fillStyle='#2a1a0e';g.textAlign='center';g.font='700 34px "Alegreya SC",Georgia,serif';g.font='700 40px "Alegreya SC",Georgia,serif';g.fillText('Modulo di Registrazione',256,100,440);
-  g.font='italic 26px "IM Fell English",Georgia,serif';g.fillStyle='rgba(42,26,14,.9)';g.fillText('Taverna dei Giochi · ospite n. 37',256,140);g.textAlign='left';g.font='600 26px "Alegreya SC",Georgia,serif';g.fillStyle='rgba(42,26,14,.85)';g.fillText('Nome:',70,238);g.textAlign='center';
+  g.font='italic 26px "Alegreya SC",Georgia,serif';g.fillStyle='rgba(42,26,14,.9)';g.fillText('Taverna dei Giochi · ospite n. 37',256,140);g.textAlign='left';g.font='600 26px "Alegreya SC",Georgia,serif';g.fillStyle='rgba(42,26,14,.85)';g.fillText('Nome:',70,238);g.textAlign='center';
   g.strokeStyle='rgba(74,46,28,.5)';g.lineWidth=2;g.beginPath();g.moveTo(90,300);g.lineTo(422,300);g.stroke();
-  var nm=NAME||'';g.fillStyle='#08070f';g.font='italic 700 '+(NAME.length>9?60:76)+'px "IM Fell English",Georgia,serif';g.fillText(nm,256,286,380);
+  var nm=NAME||'';g.fillStyle='#08070f';g.font='italic 700 '+(NAME.length>9?60:76)+'px "Alegreya SC",Georgia,serif';g.fillText(nm,256,286,380);
   var w=Math.min(380,g.measureText(nm).width);if(Math.floor(performance.now()/500)%2===0){g.fillStyle='rgba(20,18,31,.6)';g.fillRect(256+w/2+6,236,4,60)}
   g.fillStyle='#9b2a2a';g.beginPath();g.arc(256,400,38,0,7);g.fill();g.fillStyle='#7a1d1d';g.beginPath();g.arc(256,400,28,0,7);g.fill();
   g.fillStyle='#d9a98c';g.font='700 34px "Alegreya SC",Georgia,serif';g.fillText('T',256,412);
