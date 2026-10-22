@@ -173,7 +173,7 @@ async function init(){if(scn||failed)return;if(!loading)loading=(async()=>{try{i
 /* bersagli da evidenziare sulla TV: le mosse obbligate del giocatore di turno */
 function targets(s){if(s.over)return null;const C=CATAN;try{if(s.phase==='setup')return s.setup.step==='v'?{k:'v',l:C.settleSpots(s,s.cur,true)}:{k:'e',l:C.roadSpots(s,s.cur,s.setup.v).concat(C.shipSpots(s,s.cur,{from:s.setup.v}))};
  if(s.phase==='robber')return{k:'h',l:C.geo(s).HX.map((h,i)=>i).filter(i=>i!==s.robber&&(C.landH(s,i)||(s.pirate!=null&&s.hexes[i].t==='sea'&&!s.hexes[i].fog&&i!==s.pirate)))};
- if(s.phase==='rb')return{k:'e',l:C.roadSpots(s,s.cur).concat(C.shipSpots(s,s.cur))}}catch(e){}return null}
+ if(s.phase==='rb')return{k:'e',l:C.roadSpots(s,s.cur).concat(C.shipSpots(s,s.cur))}}catch(e){ERR.n(e)}return null}
 function sync(s){if(failed)return false;if(!scn){init();return false}
  const Gm=CATAN.geo(s),gk=(s.lay?'L'+s.lay.length+':'+s.hexes.map(h=>h.t[0]+h.num+(h.fog?'f':'')).join('').length:'P'+s.prof)+':'+(s.gid||'')+':'+(s.ports||[]).map(p=>p.e+p.k).join(','),nk=(s.gid||'')+':'+s.evn;
  const rebuilt=gk!==geoKey,fogK=s.hexes.map(h=>h.fog?1:0).join('');

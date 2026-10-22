@@ -35,6 +35,10 @@ class Shared:
         if op == 'get': out = {'v': self.d.get(o['k'])}
         elif op == 'put': self.d[o['k']] = o['v']
         elif op == 'del': self.d.pop(o['k'], None)
+        elif op == 'cas':
+            ok = self.d.get(o['k']) == o['e']
+            if ok: self.d[o['k']] = o['v']
+            out = {'ok': ok}
         elif op == 'list':
             c = o['c']; n = len(c.split('/')) + 1
             out = {'rows': [{'id': k.split('/')[-1], 'd': v} for k, v in self.d.items() if k.startswith(c + '/') and len(k.split('/')) == n]}
@@ -152,8 +156,13 @@ async def vendor_pg(ctx, url, wait=3500):
 def vendor_chiesti(pg): return sorted(re.findall(r'/vendor/([a-z]+)\.', ' '.join(pg.reqs)))
 
 async def sc_vendor_su_richiesta(b, srv):
-    # falò: three.js non viene nemmeno scaricato, PeerJS sì (serve alla stanza)
-    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await vendor_pg(ctx, srv.url)
+    # database (predefinito): niente librerie esterne né PeerJS né three.js
+    ctx = await new_context(b, srv.port, shared=Shared(), extra_init="localStorage.setItem('rg-lb','iso');window.__stubRt=true;"); pg = await vendor_pg(ctx, srv.url, 5000)
+    check(await pg.evaluate('R.mode') == 'rt' and vendor_chiesti(pg) == [], f'database: nessuna libreria scaricata {vendor_chiesti(pg)}')
+    check(await pg.evaluate('!window.THREE && typeof Peer==="undefined"'), 'database: né THREE né Peer')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # p2p (solo prove, ?net=p2p): three.js non viene nemmeno scaricato, PeerJS sì (serve alla stanza)
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await vendor_pg(ctx, srv.url + '?net=p2p')
     check(vendor_chiesti(pg) == ['peerjs'], f'falò: scaricato solo peerjs {vendor_chiesti(pg)}')
     check(await pg.evaluate('!window.THREE && typeof Peer!=="undefined"'), 'falò: THREE assente, Peer presente')
     check(len(await pg.inner_html('#app')) > 500, 'falò: la lobby è disegnata')
@@ -182,13 +191,13 @@ async def sc_vendor_guasto(b, srv):
     # PeerJS non scaricabile: si usa il relay, l'app non si blocca
     ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');")
     await ctx.route('**/vendor/peerjs.*', lambda r: r.abort())
-    pg = await vendor_pg(ctx, srv.url, 5000)
+    pg = await vendor_pg(ctx, srv.url + '?net=p2p', 5000)
     check(len(await pg.inner_html('#app')) > 500, 'peerjs guasto: l\'app si disegna comunque')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
 async def sc_vendor_offline_e_cache(b, srv):
     ctx = await new_context(b, srv.port, name=None, sw=True, extra_init="localStorage.setItem('rg-lb','iso');")
-    pg = await vendor_pg(ctx, srv.url, 500)
+    pg = await vendor_pg(ctx, srv.url + '?net=p2p', 500)
     await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
     nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
     check(len(nomi) == 2 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
@@ -445,12 +454,14 @@ async def sc_stanze_database(b, srv):
     await C.evaluate("startGame('uno')"); await C.wait_for_timeout(3500)
     check(await C.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'] and await B.evaluate('[ui.screen,G&&G.g]') == ['game', 'uno'], 'la partita parte su entrambi i telefoni')
     rev = await C.evaluate('R.doc.rev')
-    await C.evaluate("(async()=>{await writeRoom({rev:R.doc.rev+1});await writeRoom({rev:R.doc.rev+1})})()"); await C.wait_for_timeout(600); rev = await C.evaluate('R.doc.rev')
+    await C.evaluate("(async()=>{const r=R.doc.rev;await RT.setRoom(R.code,{...R.doc,rev:r+1});await RT.setRoom(R.code,{...R.doc,rev:r+2})})()"); await C.wait_for_timeout(600); rev = await C.evaluate('R.doc.rev')
     esito = await C.evaluate("RT.setRoom(R.code,{...R.doc,rev:R.doc.rev-1}).then(()=>'scritto',e=>e.code)")
     check(esito == 'conflitto', f'stato più vecchio rifiutato ({esito})')
+    esito = await C.evaluate("RT.setRoom(R.code,{...R.doc,rev:R.doc.rev}).then(()=>'scritto',e=>e.code)")
+    check(esito == 'conflitto', f'stato con la stessa rev rifiutato ({esito})')
     check(await C.evaluate('R.doc.rev') == rev, 'lo stato resta quello più recente')
     # presenza: B perde la linea in attesa; dopo la tolleranza gli altri la tolgono dall'elenco, al ritorno rientra da sola
-    await C.evaluate("writeRoom({phase:'lobby',game:null,s:null,seats:[],rev:R.doc.rev+1})"); await C.wait_for_timeout(1500)
+    await C.evaluate("SYNC.esegui(R.ref,cur=>({doc:{...cur,phase:'lobby',game:null,s:null,seats:[],rev:cur.rev+1}}))"); await C.wait_for_timeout(1500)
     await C.evaluate('RT.TOLLERANZA=2500')
     await B.evaluate('__rtDrop()'); await B.wait_for_timeout(5200)
     devB = await B.evaluate('ME.dev')
@@ -474,7 +485,9 @@ async def sc_stanze_database(b, srv):
     ctxF, F = await telefono_rt(b, srv, sh, 'Fabio', 7, '')
     check(await F.evaluate('R.mode') == 'rt', 'predefinito: senza parametri si usa il database')
     ctxE, E = await telefono_rt(b, srv, sh, 'Elsa', 6, '?net=rt', rt=False, wait=6000)
-    check(await E.evaluate('R.mode') != 'rt', 'database irraggiungibile: si ripiega sul trasporto di prima')
+    await E.wait_for_function("R.net==='off'", timeout=60000)  # 3 tentativi con pause prima di dichiarare Offline
+    check(await E.evaluate('[R.mode,R.on,R.net]') == [None, False, 'off'], 'database irraggiungibile: Offline, nessun ripiego silenzioso su altri trasporti')
+    check(await E.evaluate("document.querySelector('button.hm-st.off[data-a=retrynet]')!==null"), 'database irraggiungibile: pulsante per riprovare')
     for p in (B, C, T, D, E, F): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
     for c in (ctxB, ctxC, ctxT, ctxD, ctxE, ctxF): await c.close()
     await ctxA.close()
@@ -578,6 +591,9 @@ async def sc_stato_connessione(b, srv):
     check(await pg.query_selector('button.hm-st.off[data-a=retrynet]') is not None, 'offline: pulsante per riprovare nella Taverna')
     await pg.click('button.hm-st.off'); await pg.wait_for_timeout(100)
     check(await pg.evaluate("R.net")=='prova' or await pg.evaluate("R.net")=='off', 'riprova: la ricerca riparte')
+    await pg.wait_for_function("R.net==='off'", timeout=60000)
+    # tornata la rete, da Offline si riprova da soli (senza toccare il pulsante)
+    check(await pg.evaluate("(()=>{dispatchEvent(new Event('online'));return R.net})()") == 'prova', 'evento «online»: la ricerca riparte da sola')
     await pg.wait_for_function("R.net==='off'", timeout=60000)
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
@@ -710,6 +726,99 @@ async def sc_eroi(b, srv):
     await pg.click('[data-a=eroielimina]'); await pg.wait_for_timeout(600)
     check(await pg.evaluate("window.__db['players/u-1/eroi/e1']") is None and '5 posti liberi' in await pg.inner_text('.ecard.nuovo'), 'eliminato: il posto torna libero')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def sc_mosse_simultanee(b, srv):
+    """Due telefoni nella stessa stanza sul Realtime Database: «Pronto» in contemporanea (The Mind), doppio tocco a turni e riallineamento."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 2, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    # 1) The Mind: tutti toccano «Pronto» nello stesso istante, nessuno deve andare perso
+    await A.evaluate("startGame('mind')")
+    for p in (A, B): await p.wait_for_function("ui.screen==='game'&&G&&G.g==='mind'", timeout=20000)
+    await A.wait_for_timeout(2500)
+    rev0 = await A.evaluate('R.doc.rev')
+    await asyncio.gather(A.evaluate("dispatch({t:'ready'})"), B.evaluate("dispatch({t:'ready'})"))
+    await A.wait_for_timeout(2500)
+    check(await A.evaluate('G.phase') == 'play' and await B.evaluate('G.phase') == 'play', 'Mind: i due «Pronto» simultanei sono arrivati entrambi, la partita è partita')
+    check(await A.evaluate('R.doc.rev') == rev0 + 2, f'Mind: rev +2 sulla stanza ({rev0} -> {await A.evaluate("R.doc.rev")})')
+    check(await A.evaluate('JSON.stringify(G)') == await B.evaluate('JSON.stringify(G)'), 'Mind: i due telefoni hanno lo stesso stato')
+    # 2) gioco a turni: doppio tocco di chi ha il turno, la seconda mossa parte dallo stesso stato e deve essere rifiutata
+    await A.evaluate("toLobby()")
+    for p in (A, B): await p.wait_for_function("ui.screen==='room'", timeout=20000)
+    await A.evaluate("startGame('briscola')")
+    for p in (A, B): await p.wait_for_function("ui.screen==='game'&&G&&G.g==='briscola'", timeout=20000)
+    await A.wait_for_timeout(3500)
+    att = A if await A.evaluate('isMine(G.cur)') else B
+    altro = B if att is A else A
+    rev1 = await att.evaluate('R.doc.rev')
+    err = await att.evaluate("""(async()=>{const h=G.hands[G.cur].slice();const p1=dispatch({t:'play',c:h[0]});ui.busy=false;ui.anim=false;
+      const p2=dispatch({t:'play',c:h[1]});await Promise.all([p1,p2]);await new Promise(r=>setTimeout(r,1500));return ui.err})()""")
+    await A.wait_for_timeout(1500)
+    check('Un altro telefono' in (err or ''), f'doppio tocco: la seconda mossa è rifiutata con messaggio ({err!r})')
+    check(await att.evaluate('R.doc.rev') == rev1 + 1 and await altro.evaluate('R.doc.rev') == rev1 + 1, 'doppio tocco: rev +1, una sola mossa salvata')
+    check(await att.evaluate('G.trick.length') == 1 and await altro.evaluate('G.trick.length') == 1, 'doppio tocco: una sola carta sul tavolo, su entrambi')
+    check(await A.evaluate('JSON.stringify(G)') == await B.evaluate('JSON.stringify(G)'), 'doppio tocco: dopo il riallineamento i due telefoni sono identici')
+    check(await att.evaluate('R.grev') == rev1 + 1, 'la versione di base della prossima mossa è quella nuova')
+    check(not A.errs and not B.errs, f'nessun errore JS {A.errs[:1]} {B.errs[:1]}')
+    await ctxA.close(); await ctxB.close()
+
+async def sc_posizioni_separate(b, srv):
+    """Camminare scrive solo il nodo pos/: l'altro telefono vede la posizione senza che i membri cambino né la pagina si ridisegni."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 2, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await B.evaluate("window.__rn=0;const _r=render;render=function(){window.__rn++;return _r.apply(this,arguments)}")
+    n0 = await B.evaluate('window.__rn')
+    for i in range(6):
+        await A.evaluate(f"R.mine.pos3={{a:'loc',x:{i}.5,z:2,sit:false,t:Date.now()}};savePos()")
+        await A.wait_for_timeout(150)
+    await B.wait_for_function("(R.members.find(m=>m.id!==ME.dev)||{}).pos3&&R.members.find(m=>m.id!==ME.dev).pos3.x===5.5", timeout=10000)
+    check(await B.evaluate('window.__rn') == n0, f'6 spostamenti: nessun render sull\'altro telefono ({n0} -> {await B.evaluate("window.__rn")})')
+    check(await B.evaluate("R.pos[R.members.find(m=>m.id!==ME.dev).id].x") == 5.5, 'la posizione arriva dal nodo pos/')
+    check(not A.errs and not B.errs, f'nessun errore JS {A.errs[:1]} {B.errs[:1]}')
+    await ctxA.close(); await ctxB.close()
+
+async def sc_errori_globali(b, srv):
+    """Gestore globale: errori e promesse rifiutate vengono annotati (con limite di frequenza) senza rompere la pagina."""
+    ctx = await new_context(b, srv.port); pg = await vendor_pg(ctx, srv.url, 3000)
+    await pg.evaluate("Promise.reject(new Error('prova-promessa'));setTimeout(()=>{throw new Error('prova-finestra')},0)")
+    await pg.evaluate("for(let i=0;i<20;i++)ERR.n(new Error('ripetuto'),'t')")
+    await pg.wait_for_timeout(500)
+    m = await pg.evaluate("ERR.b.map(x=>x.m)")
+    check('prova-promessa' in m and 'prova-finestra' in m, f'errori globali annotati {m}')
+    check(m.count('ripetuto') == 1, 'stesso errore ripetuto: una sola voce in 2 s')
+    check('prova-finestra' in (await pg.evaluate("localStorage.getItem('rg-err')")), 'gli ultimi errori restano in rg-err')
+    check(len(await pg.inner_html('#app')) > 300, 'la pagina resta viva')
+    await ctx.close()
+
+async def sc_modale_unica(b, srv):
+    """Una sola finestra aperta alla volta (ui.modal), con i vecchi flag che continuano a funzionare."""
+    ctx = await new_context(b, srv.port); pg = await vendor_pg(ctx, srv.url, 3000)
+    r = await pg.evaluate("""(()=>{const o=[];ui.cfg=true;o.push(ui.modal);ui.shop=true;o.push(ui.modal+'/'+ui.cfg);ui.cfg=false;o.push(ui.modal);
+      ui.acc='top';o.push(ui.modal+'/'+ui.acc+'/'+ui.shop);ui.cfg=ui.acc=ui.shop=ui.oste=ui.dist=ui.tvm=ui.eroi=ui.camp=false;o.push(String(ui.modal));
+      ui.eroi=true;ui.eroi=false;ui.camp=true;o.push(ui.modal);ui.camp=false;o.push(String(ui.modal));return o})()""")
+    check(r == ['cfg', 'shop/false', 'shop', 'top/top/false', 'null', 'camp', 'null'], f'finestre esclusive {r}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def sc_font_locali(b, srv):
+    """I caratteri vengono dal sito stesso (assets/fonts): nessuna richiesta a Google e i font si caricano davvero."""
+    ctx = await new_context(b, srv.port); pg = await ctx.new_page(); ext = []; woff = []
+    pg.on('request', lambda r: ext.append(r.url) if 'googleapis' in r.url or 'fonts.gstatic' in r.url else None)
+    pg.on('response', lambda r: woff.append(r.status) if '/assets/fonts/' in r.url else None)
+    await pg.goto(srv.url); await pg.wait_for_timeout(3000)
+    ok = await pg.evaluate("""(async()=>{await Promise.all(['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].map(f=>document.fonts.load(f,'àèé')));
+      return ['700 16px Cinzel','800 16px Nunito','16px "Press Start 2P"','500 16px "Alegreya SC"','italic 16px "IM Fell English"'].every(f=>document.fonts.check(f,'àèé'))})()""")
+    check(not ext, f'nessuna richiesta a Google Fonts {ext[:2]}')
+    check(ok and woff and all(x == 200 for x in woff), f'font locali caricati ({len(woff)} file)')
+    await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

@@ -40,7 +40,11 @@ function islAll(){return`<div class="modal"><div class="box" style="max-width:52
 function islSummary(s){const o=s.over;return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${o.win?'win':'lose'}"><div class="crown">${o.win?'🏝️':'🦴'}</div><h2>${esc(o.txt)}</h2><p>${o.left} ${o.left===1?'animale rimasto':'animali rimasti'} sull’isola.</p><div class="col"><button class="b gold" data-a="iundo" ${(ui.ih||[]).length?'':'disabled'}>↶ Annulla ultima mossa</button><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
 async function islUndo(){if(!ui.ih||!ui.ih.length||ui.busy||ui.anim)return;const prev=JSON.parse(ui.ih.pop());ui.isel=null;ui.wm=null;ui.isw=null;ui.iinfo=null;ui.err='';fxDone=prev.evn;
  if(!R.on){pushState(prev,true);saveOff(prev);return}
- ui.busy=true;pushState(prev,true);try{await writeRoom({s:prev,rev:R.rev+1})}catch(e){ui.err='Annullamento non inviato: '+netErr(e)}ui.busy=false;render()}
+ const base=R.grev!=null?R.grev:R.rev,gid=G.gid;R.rev=Math.max(R.rev,base+1);
+ ui.busy=true;pushState(prev,true,base+1);
+ try{const e=await SYNC.esegui(R.ref,cur=>SYNC.mossa(cur,{base,gid,s:prev},ENG));if(e.err){ui.err='Annullamento non inviato: '+e.err;await risincronizza()}}
+ catch(e){ui.err='Annullamento non inviato: '+netErr(e);await risincronizza()}
+ ui.busy=false;render()}
 function islClick(a,v){const s=G;
  if(a==='iundo')return islUndo();
  if(a==='iinfo'){ui.iall=!ui.iall;return render()}if(a==='iall'){ui.iall=false;return render()}

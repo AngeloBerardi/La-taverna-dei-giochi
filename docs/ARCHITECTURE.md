@@ -59,16 +59,16 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati ricalcolati, `prova` d20) salvati in `players/{uid}/eroi/e1..e5` via `FB.eroi/salvaEroe/eliminaEroe`; vista `app/24g-eroi.js` (`Eroi`). Le regole `eroi` di `firestore.rules` sono generate da `scripts/regole.js`. Campagna: `motori/28-campagna.js` (`CAMP`, stato JSON puro, `act(stato, azione, rnd)` → `{s}`|`{err}`), anteprima `app/24h-campagna.js` (`Camp`). Piano: `docs/CAMPAGNE.md`.
 
 ## Rete
-**Stanze sul database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Terzo trasporto, con la stessa interfaccia `doc/collection/onSnapshot` di `R.db`: le stanze vivono su Firebase Realtime Database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`) e nessun telefono fa da host. Ogni documento è un testo JSON (`j`); la stanza si scrive in transazione con controllo di `rev` (stato più vecchio ⇒ `conflitto`). Chi non ha presenza da più di `RT.TOLLERANZA` ms viene tolto dalla stanza **in attesa** (mai durante la partita) e rientra da solo alla riconnessione. **Predefinito** (`RT.PREDEFINITO=true`; `?net=p2p` lo esclude, `?net=rt` lo forza): se il database non risponde in 10 s si ripiega sul p2p. Regole: `database.rules.json` (da pubblicare nella console, come `firestore.rules`).
+**Un solo trasporto: il Realtime Database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Stessa interfaccia `doc/collection/onSnapshot` di `R.db`, ma nessun telefono fa da host: lo stato sta nel database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`, `/pos/DEV` posizione del pupazzo 3D: camminare scrive solo qui e non ridisegna la pagina; `/dv/DEV` e `/k/UID` legano dispositivo e profilo alla stanza) e l'SDK riconnette e risincronizza da solo. Ogni documento è un testo JSON (`j`) perché RTDB toglie null e array vuoti. Regole: `database.rules.json` (da pubblicare, come `firestore.rules`).
 
-**Trasporti p2p (ripiego).**
-Due modalità: stanze su database di Claude (`R.mode='db'`, solo dentro Claude) e p2p (`R.mode='p2p'`) con due trasporti: PeerJS/WebRTC (`pj`) e relay MQTT su WebSocket (`mq`, `08-relay-mqtt.js`, broker pubblici non cifrati: niente dati sensibili). Su Firebase Hosting la strada prevista è un server a parte (vedi il backlog tecnico in `docs/GAMES-BACKLOG.md`).
-- **Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui; se nessuno la ospita la ospita il primo arrivato. Se chi la ospita se ne va, il primo ospite che ci riesce subentra con lo stato già in mano (`p2pRecoverGeneral`, `p2pTakeover`). Le stanze private si creano con `newroom`.
-- **Invito**: `?room=CODICE&b=indice_broker` per le private. L'ospite riprova con pazienza fino a ~75 s (l'host può essere in background) senza creare stanze di ripiego; poi ripiega sulla stanza generale.
-- **Rientro in primo piano**: `p2pWake` (visibilitychange, pageshow, online) controlla il broker con un ping (`revive`), riallinea i timer dei collegamenti e accelera il recupero. Un socket morto in silenzio è il caso tipico dopo il foglio di condivisione.
-- **Scritture**: gli ospiti inviano `set` all'host, che le valida con `p2pValid` (solo la stanza ospitata, il proprio documento tra i membri, oggetti fino a 256 KB) e le trasmette a tutti con `put`.
-- **Posizioni 3D**: `savePos` scrive la posizione nel documento del membro; la lobby 3D la manda circa ogni 0,45 s mentre ci si muove.
-- **Test**: `tools/test-rete/` (broker locale e due browser headless), fuori da `npm test` perché servono dipendenze extra.
+**Avvio.** `netInit0` prova il database 3 volte (12 s, poi 8 s, con pause); se non risponde resta **Offline** (`R.net='off'`, pulsante «riprova» nella Taverna) e riprova da sola quando torna la rete o l'app torna in primo piano (`retryNet`, `app/07a`). Nessun ripiego silenzioso: telefoni su trasporti diversi finivano in stanze diverse. PeerJS/MQTT (`?net=p2p`) e il database di Claude (`?net=db`) restano solo per prove.
+
+**Le mosse sono atomiche** (`motori/35-sync.js`, `SYNC`). Ogni scrittura della stanza è una transazione (`RT.transactRoom`, `FsDb.transactRoom`) che decide sul documento *attuale*, non su quello che il telefono ricordava: `SYNC.mossa` accetta una mossa solo se la stanza è ancora alla versione (`rev`) da cui è partita (`base`, cioè `R.grev`, la versione dello stato che il telefono sta mostrando); altrimenti è un *conflitto* («un altro telefono ha mosso un attimo prima»), `risincronizza()` riprende lo stato vero e annulla ciò che era stato mostrato in anticipo. Nei giochi simultanei (`s.sim`, The Mind) la mossa porta il proprio posto e viene rigiocata sullo stato nuovo, quindi nessuna azione va persa. `SYNC.partita` (avvio e rivincita: una sola rivincita per partita) e `SYNC.lobby` (ritorno alla lobby della partita giusta) usano lo stesso meccanismo. Il telefono continua a mostrare subito il proprio risultato (animazioni), e il risultato scritto è proprio quello calcolato in locale (niente casualità rigiocata) tranne nel caso di conflitto. Dove il trasporto non ha transazioni (p2p) `SYNC.esegui` ricade su leggi-modifica-scrivi. La scrittura semplice `setRoom` serve solo a creare la stanza e non cancella mai una `rev` uguale o più recente. Test: `tests/test_sync.js` (database finto `tests/rtdb_finto.js` con la semantica vera delle transazioni, partite intere in parallelo) e lo scenario `mosse_simultanee` (due browser) in `tools/test-browser/`.
+
+**Stanza generale** (`GENROOM`, "PIAZZA"): tutti entrano qui. Le stanze private si creano con `newroom` e si invitano con `?room=CODICE`.
+**Presenza:** chi non ha presenza da più di `RT.TOLLERANZA` ms viene tolto dalla stanza **in attesa** (mai durante la partita) e rientra da solo alla riconnessione.
+**Posizioni 3D:** `savePos` scrive la posizione nel documento del membro; la lobby 3D la manda circa ogni 0,45 s mentre ci si muove.
+**Solo per prove (`?net=p2p`):** PeerJS/WebRTC e relay MQTT (`08-relay-mqtt.js`, broker pubblici non cifrati), con invito `?room=CODICE&b=indice_broker`; `tools/test-rete/` contiene i test manuali a due browser.
 
 ## Mappa dei moduli (generata)
 Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
@@ -76,6 +76,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | File | KB | Simboli principali |
 |---|---|---|
 | `html/head.html` | 1 |  |
+| `css/00-fonts.css` | 3 |  |
 | `css/01-base.css` | 5 |  |
 | `css/02-carte.css` | 3 |  |
 | `css/03-arena-e-boss.css` | 6 |  |
@@ -122,9 +123,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/40-legno-ottone.css` | 13 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
-| `css/44-voto.css` | 2 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
-| `css/90-lobby-3d.css` | 19 |  |
+| `css/44-voto.css` | 2 |  |
+| `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
 | `js/motori/02-briscola-scopa.js` | 7 | IT, RND, shuffle, P, deck, clone, SN |
@@ -163,7 +164,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/32-zucca.js` | 10 | ZUCCA, RND, clone, CATS, NC, MIMO, DISEGNO |
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
-| `js/app/01-base.js` | 1 | $, SYM, ST, RM, SP |
+| `js/motori/35-sync.js` | 3 | SYNC |
+| `js/app/01-base.js` | 1 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
@@ -171,9 +173,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 11 | G, ui, ME, R, ENG, GAMES, GN |
-| `js/app/07a-rete-stanza.js` | 8 | netInit, netInit0, unsubAll, enterHub, enterHub0, p2pCreate, p2pEnter |
-| `js/app/07b-partita.js` | 3 | defOpts, startGame, rematch, toLobby, Q, pushState, coverCheck |
+| `js/app/07-nucleo.js` | 12 | G, ui, ME, R, ENG, GAMES, GN |
+| `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
+| `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
 | `js/app/07d-regole.js` | 35 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
@@ -203,7 +205,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22f-catan.js` | 8 | CPC, CTC, CKC, CRN, CRG, resI, CDV |
 | `js/app/22f2-catan-mano.js` | 19 | CXUI, cxs, cScr, CKEYS, cName, costH, CMODE |
 | `js/app/22f3-catan-cek.js` | 12 | CTK, cekE, cekKn, cekAct, cekTrack, cekDie, cekCanKnNew |
-| `js/app/22f4-catan-tavolo.js` | 25 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
+| `js/app/22f4-catan-tavolo.js` | 26 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
 | `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
 | `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanH, fanFit |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
@@ -219,21 +221,22 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
-| `js/app/24e-distanza.js` | 9 | FsDb, Dist |
-| `js/app/24f-schermo.js` | 7 | TV |
+| `js/app/24e-distanza.js` | 10 | FsDb, Dist |
+| `js/app/24f-schermo.js` | 8 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 13 | Eroi |
 | `js/app/24h-campagna.js` | 8 | Camp |
 | `js/app/24i-plancia.js` | 12 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
 | `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |
-| `js/app/24m-rete-rtdb.js` | 7 | RT |
+| `js/app/24m-rete-rtdb.js` | 10 | RT |
 | `js/app/24n-tv-lowpoly.js` | 14 | LP, T, TOP, cir, GLY, AIDX, gsvg |
 | `js/app/24o-azul-tv.js` | 9 | AZ3, R_, P, boardPos, lineAt, facPos, sq |
 | `js/app/24p-valle-tv.js` | 9 | VL3, R_, ZR, HC, pix, cells, maj |
 | `js/app/24q-voto.js` | 4 | Voto, seen, devs, nomi, attiva, ans, resto |
 | `js/app/24r-squadre.js` | 5 | Prep, TN, rnd, open, mescola, fixSpies, valid |
 | `js/app/24s-tv-giochi.js` | 16 | TVM, dkc, bmesh, pawn, SPTV, spieTVH, QZTV |
+| `js/app/24t-copertine.js` | 43 | COP, P, FAC, svg |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

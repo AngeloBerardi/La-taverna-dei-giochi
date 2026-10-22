@@ -35,7 +35,7 @@ ${TV.puoiCast()?(TV.inCast()?`<button class="b" data-a="tvcastx">Interrompi la t
  async condividi(){try{await navigator.share({title:'Schermo comune · La Taverna dei Giochi',url:TV.linkSchermo()})}catch(e){if(!e||e.name!=='AbortError')say('Condivisione non riuscita: usa «Copia link»',3500)}},
  // Chromecast: ricevitore Google Cast (src/pwa/receiver.html) che apre da solo lo schermo comune; il telefono resta il comando.
  // Serve l'ID dell'app registrata su Google Cast (docs/CAST.md): CAST_APP_ID, oppure una volta sola ?castid=ID sul telefono.
- castId(){try{const q=new URLSearchParams(location.search).get('castid');if(q&&/^[A-F0-9]{6,12}$/i.test(q)){ST('rg-castid',q.toUpperCase());return q.toUpperCase()}}catch(e){}
+ castId(){try{const q=new URLSearchParams(location.search).get('castid');if(q&&/^[A-F0-9]{6,12}$/i.test(q)){ST('rg-castid',q.toUpperCase());return q.toUpperCase()}}catch(e){ERR.n(e)}
   const v=CAST_APP_ID||ST('rg-castid')||'';return/^[A-F0-9]{6,12}$/i.test(v)?v.toUpperCase():''},
  puoiCast(){return!ui.tv&&location.protocol==='https:'&&!!TV.castId()&&/Chrome\//.test(navigator.userAgent)&&!/SamsungBrowser|OPR\/|Edg\/|Firefox/.test(navigator.userAgent)},
  inCast(){try{return!!(window.cast&&cast.framework&&cast.framework.CastContext.getInstance().getCurrentSession())}catch(e){return false}},
@@ -50,12 +50,12 @@ ${TV.puoiCast()?(TV.inCast()?`<button class="b" data-a="tvcastx">Interrompi la t
    await ss.sendMessage(TV.NS,{code:R.code,b:R.mode==='p2p'&&P2P.tr==='mq'?MQ.bi:null});
    say('Trasmissione avviata',2500);render()}
   catch(e){say(e&&e.message==='sdk'?'Cast non disponibile su questo browser':e&&e.message==='receiver_unavailable'?'Il Chromecast non riesce ad aprire l’app: controlla l’ID Cast':'Trasmissione non riuscita: '+(e&&e.message||e),4500)}},
- async castStop(){try{cast.framework.CastContext.getInstance().endCurrentSession(true)}catch(e){}render()},
+ async castStop(){try{cast.framework.CastContext.getInstance().endCurrentSession(true)}catch(e){ERR.n(e)}render()},
  NS:'urn:x-cast:app.web.latavernadeigiochi',
  async act(a){if(a==='tvfull')return TV.pieno();if(a==='tvcast')return TV.cast();if(a==='tvcastx')return TV.castStop();if(a==='tvshare')return TV.condividi();
   if(a==='tvm'){ui.tvm=true;ui.cfg=false;return render()}if(a==='tvmx'){ui.tvm=false;ui.cfg=true;return render()}
   if(a==='tvcopy'){const u=TV.linkSchermo();try{await navigator.clipboard.writeText(u);say('Link copiato',1800)}catch(e){say(u,4000)}}},
- sveglio(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}},
+ sveglio(){try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{})}catch(e){ERR.n(e)}},
  pieno(){const d=document;if(d.fullscreenElement)d.exitFullscreen();else if(d.documentElement.requestFullscreen)d.documentElement.requestFullscreen().catch(()=>{})},
  // posti con chi gioca; ▶ = a chi tocca
  giocatori(){const S=seatsNow();

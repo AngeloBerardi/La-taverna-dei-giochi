@@ -1,5 +1,13 @@
 /*ENGINE*/
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Errori: niente più catch vuoti né errori che spariscono. ERR.n(e) li annota (ultimi 30 in memoria, ultimi 10 in 'rg-err'),
+   uno stesso messaggio al massimo ogni 2 s; error/unhandledrejection globali finiscono qui. Non si mostra nulla a chi gioca. */
+const ERR={b:[],t:{},n(e,dove){try{const m=String((e&&e.message)||e||'?').slice(0,160),k=m+'|'+(dove||''),ora=Date.now();
+  if(/ResizeObserver|^Script error/.test(m)||ERR.t[k]&&ora-ERR.t[k]<2000)return;ERR.t[k]=ora;
+  ERR.b.push({t:ora,m,dove:dove||'',s:String((e&&e.stack)||'').split('\n').slice(1,3).join(' | ').slice(0,200)});if(ERR.b.length>30)ERR.b.shift();
+  try{localStorage.setItem('rg-err',JSON.stringify(ERR.b.slice(-10)))}catch(x){}console.warn('[errore]',dove||'',m)}catch(x){}}};
+addEventListener('error',ev=>ERR.n(ev.error||ev.message,'finestra'));
+addEventListener('unhandledrejection',ev=>ERR.n(ev.reason,'promessa'));
 const SYM=RG.SYM,P=RG.P,SN={H:'Cuori',D:'Quadri',C:'Fiori',S:'Picche'},RN={J:'Fante',Q:'Regina',K:'Re'};
 const ST=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;

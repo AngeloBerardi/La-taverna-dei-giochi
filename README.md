@@ -13,5 +13,5 @@ Hub di giochi multiplayer per telefono, in italiano: una locanda 3D (con il fal√
 - `src/`: sorgenti separati; `src/manifest.json` fissa l'ordine di concatenazione. `src/js/app/12c-lobby-3d.js` √® **generato** da `tools/taverna3d/` (`python3 tools/taverna3d/mk.py`): non modificarlo a mano.
 - `npm run check` = build + sintassi, prima di ogni push. `npm test` = simulazioni dei motori (`tests/`). `npm run mappa` aggiorna la mappa dei moduli in `docs/ARCHITECTURE.md`.
 - `tools/test-rete/`: test manuali della rete a due client (broker locale, invito, subentro dell'host, validazione); istruzioni nel README della cartella.
-- Multiplayer: PeerJS (WebRTC) con ripiego su relay MQTT (`js/app/08-relay-mqtt.js`) per reti 4G/NAT.
+- Multiplayer: Firebase Realtime Database (`js/app/24m-rete-rtdb.js`), nessun telefono fa da host. Le mosse sono transazioni sul documento della stanza (`js/motori/35-sync.js`). PeerJS/MQTT restano solo per prove con `?net=p2p`.
 - Documentazione: `docs/ARCHITECTURE.md` (moduli e contratti), `docs/STYLE.md`, `docs/GAMES-BACKLOG.md`, `docs/rules/` (schede regole).

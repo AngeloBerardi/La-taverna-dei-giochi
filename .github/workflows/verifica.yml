@@ -1,0 +1,14 @@
+# Controlla ogni ramo e ogni richiesta di unione: build, sintassi, struttura e test rapidi (stessi controlli di `npm run verifica`).
+name: Verifica
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+jobs:
+  verifica:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm run verifica

@@ -8,11 +8,18 @@ const FsDb={
  // la stanza si scrive in transazione: gli uid già presenti non si perdono e un telefono rimasto indietro non cancella una mossa più recente
  async setRoom(code,d){const F=FB.m.F,ref=F.doc(FB.db,'partite',code);
   await F.runTransaction(FB.db,async tx=>{const cur=await tx.get(ref),old=cur.exists()?cur.data():null;
-   if(old&&old.rev!=null&&d.rev!=null&&old.rev>d.rev){const e=new Error('conflitto');e.code='conflitto';throw e}
+   if(old&&old.rev!=null&&d.rev!=null&&old.rev>=d.rev){const e=new Error('conflitto');e.code='conflitto';throw e}
    tx.set(ref,{j:DIST.ser(d),...DIST.meta(d,old,FB.uid),rev:d.rev||0,upd:F.serverTimestamp()})})},
+ // modifica atomica della stanza (stessa idea di RT.transactRoom): fn(documentoAttuale|null) -> documento nuovo, o undefined per non scrivere
+ async transactRoom(code,fn){const F=FB.m.F,ref=F.doc(FB.db,'partite',code);let scritto=false;
+  await F.runTransaction(FB.db,async tx=>{scritto=false;const cur=await tx.get(ref),old=cur.exists()?cur.data():null,out=fn(old?DIST.de(old):null);
+   if(out===undefined||out===null)return;
+   tx.set(ref,{j:DIST.ser(out),...DIST.meta(out,old,FB.uid),rev:out.rev||0,upd:F.serverTimestamp()});scritto=true});
+  return{committed:scritto}},
  doc(path){const seg=FsDb.P(path),stanza=seg.length===2,F=()=>FB.m.F;return{
   get:async()=>FsDb.snap(await F().getDoc(FsDb.ref(path))),
   set:async d=>stanza?FsDb.setRoom(seg[1],d):F().setDoc(FsDb.ref(path),{j:DIST.ser(d),t:d.t||Date.now()}),
+  transact:stanza?fn=>FsDb.transactRoom(seg[1],fn):undefined,
   delete:()=>F().deleteDoc(FsDb.ref(path)),
   onSnapshot:(n,er)=>F().onSnapshot(FsDb.ref(path),s=>n(FsDb.snap(s)),er)}},
  collection(path){return{doc:id=>FsDb.doc(path+'/'+id),
@@ -45,7 +52,7 @@ ${'Notification'in window&&Notification.permission==='default'?'<button class="b
   if(ui.dist||ui.cfg)render()},
  // «tocca a te» mentre l'app è aperta: avviso a schermo e, se permesso e la pagina è in secondo piano, notifica
  avvisa(r){const t='Tocca a te: '+(r.gioco||r.code);if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){
-   try{navigator.serviceWorker.ready.then(s=>s.showNotification('La Taverna dei Giochi',{body:t,icon:'/icon-192.png',tag:'dist-'+r.code,data:{url:'/?dist='+r.code}}))}catch(e){}}
+   try{navigator.serviceWorker.ready.then(s=>s.showNotification('La Taverna dei Giochi',{body:t,icon:'/icon-192.png',tag:'dist-'+r.code,data:{url:'/?dist='+r.code}}))}catch(e){ERR.n(e)}}
   else say(t,3200)},
  avvia(){if(Dist.timer)return;Dist.timer=setInterval(()=>{if(!document.hidden)Dist.aggiorna()},90000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)Dist.aggiorna()})},
  async nuova(){const F=FB.m.F;
@@ -54,7 +61,7 @@ ${'Notification'in window&&Notification.permission==='default'?'<button class="b
   throw new Error('codice')},
  // entra in una stanza salvata: da ora la rete della stanza è Firestore e l'identità è l'uid
  async apri(code,crea){
-  try{await R.hub}catch(e){}
+  try{await R.hub}catch(e){ERR.n(e)}
   if(R.mode!=='fs')Dist.prev={db:R.db,mode:R.mode,on:R.on,dev:ME.dev};
   unsubAll();R.code='';
   const F=FB.m.F,ref=F.doc(FB.db,'partite',code);
@@ -71,7 +78,7 @@ ${'Notification'in window&&Notification.permission==='default'?'<button class="b
   if(a==='distx'){ui.dist=false;ui.cfg=true;return render()}
   if(!Dist.ok()||Dist.busy&&a!=='distexit')return;
   if(a==='distcopy'){const u=Dist.invito(R.code);try{if(navigator.share&&matchMedia('(pointer:coarse)').matches)await navigator.share({title:'La Taverna dei Giochi',text:'Siediti al mio tavolo, giochiamo a turni!',url:u});else await navigator.clipboard.writeText(u);Dist.msg='Invito copiato'}catch(e){if(!e||e.name!=='AbortError')Dist.msg=u}return render()}
-  if(a==='distnot'){try{await Notification.requestPermission()}catch(e){}return render()}
+  if(a==='distnot'){try{await Notification.requestPermission()}catch(e){ERR.n(e)}return render()}
   if(a==='distexit')return Dist.esci();
   Dist.busy=true;Dist.msg='';render();
   try{
@@ -86,7 +93,7 @@ ${'Notification'in window&&Notification.permission==='default'?'<button class="b
  // accetta il codice nudo o il link d'invito
  leggi(t){t=String(t||'').trim();const m=t.match(/[?&]dist=([A-Za-z0-9]+)/);return(m?m[1]:t).toUpperCase()},
  // invito aperto con ?dist=CODICE: entra appena il profilo online è pronto
- init(){Dist.avvia();const c=new URLSearchParams(location.search).get('dist');if(c&&!Dist.fatto){Dist.fatto=true;const k=Dist.leggi(c);try{history.replaceState(null,'',location.pathname)}catch(e){}
+ init(){Dist.avvia();const c=new URLSearchParams(location.search).get('dist');if(c&&!Dist.fatto){Dist.fatto=true;const k=Dist.leggi(c);try{history.replaceState(null,'',location.pathname)}catch(e){ERR.n(e)}
    if(DIST.codiceOk(k))Dist.apri(k,false).catch(e=>{ui.err=Dist.testo(e);render()});else{ui.err='Link di invito non valido';render()}}
   Dist.aggiorna()}};
 document.addEventListener('input',e=>{if(e.target.id==='dist-c')Dist.codice=e.target.value});

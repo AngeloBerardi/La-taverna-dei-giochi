@@ -1,8 +1,16 @@
 /* ================= STATO, STANZA, GIOCHI ================= */
 let G=null,fxDone=null;
 const ui={lobby:(()=>{try{const l=ST('rg-lb');return l==='iso'||l==='hall'?l:'3d'}catch(e){return'3d'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
+
+/* Una sola finestra aperta alla volta: ui.modal ('cfg'|'shop'|'acc'|'top'|'oste'|'dist'|'tvm'|'amici'|'eroi'|'camp'|null).
+   I vecchi flag (ui.cfg, ui.shop, ui.acc…) restano come accessori sopra ui.modal: aprirne uno chiude l'altro, chiudere quello sbagliato non fa nulla. */
+['cfg','shop','oste','dist','tvm','amici','eroi','camp'].forEach(k=>Object.defineProperty(ui,k,{enumerable:true,configurable:true,
+ get:()=>ui.modal===k,set:v=>{if(v)ui.modal=k;else if(ui.modal===k)ui.modal=null}}));
+Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.modal==='acc'||ui.modal==='top'?ui.modal:false,
+ set:v=>{if(v)ui.modal=v;else if(ui.modal==='acc'||ui.modal==='top')ui.modal=null}});
+ui.modal=null;
 const ME={name:ST('rg-name')||'',dev:'local'};
-const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
+const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
 const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC};
 const GAMES=[
  {id:'regicide',name:'Regicide',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},
@@ -51,7 +59,7 @@ const infoH=(t,cls='')=>t?`<span class="info ${cls}" tabindex="0" role="button" 
  document.addEventListener('focusin',e=>{const i=e.target.closest&&e.target.closest('.info');if(i)place(i)});
  addEventListener('scroll',()=>document.querySelectorAll('.info.open').forEach(x=>x.classList.remove('open')),{passive:true})})();
 const GENROOM='PIAZZA',isGen=()=>R.code===GENROOM;
-function setRoomUrl(c){try{const u=new URL(location.href);if(c&&c!==GENROOM)u.searchParams.set('room',c);else u.searchParams.delete('room');history.replaceState(null,'',u)}catch(e){}}
+function setRoomUrl(c){try{const u=new URL(location.href);if(c&&c!==GENROOM)u.searchParams.set('room',c);else u.searchParams.delete('room');history.replaceState(null,'',u)}catch(e){ERR.n(e)}}
 const INV=(()=>{try{const c=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length>=3&&c.length<=6?c:''}catch(e){return''}})();
 function lobbySeats(){return members().flatMap(m=>[{dev:m.id,k:'m',name:m.name||'?',uid:m.uid||null},...(m.guests||[]).map(g=>({dev:m.id,k:g.k,name:g.name}))])}
 function tally(n){const t={};members().forEach(m=>{const keys=['m',...(m.guests||[]).map(g=>g.k)];keys.forEach(k=>((m.votes||{})[k]||[]).forEach(g=>{const G0=GAMES.find(x=>x.id===g);if(G0&&G0.ok(n))t[g]=(t[g]||0)+1}))});return t}
