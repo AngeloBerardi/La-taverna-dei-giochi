@@ -156,8 +156,13 @@ async def vendor_pg(ctx, url, wait=3500):
 def vendor_chiesti(pg): return sorted(re.findall(r'/vendor/([a-z]+)\.', ' '.join(pg.reqs)))
 
 async def sc_vendor_su_richiesta(b, srv):
-    # falò: three.js non viene nemmeno scaricato, PeerJS sì (serve alla stanza)
-    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await vendor_pg(ctx, srv.url)
+    # database (predefinito): niente librerie esterne né PeerJS né three.js
+    ctx = await new_context(b, srv.port, shared=Shared(), extra_init="localStorage.setItem('rg-lb','iso');window.__stubRt=true;"); pg = await vendor_pg(ctx, srv.url, 5000)
+    check(await pg.evaluate('R.mode') == 'rt' and vendor_chiesti(pg) == [], f'database: nessuna libreria scaricata {vendor_chiesti(pg)}')
+    check(await pg.evaluate('!window.THREE && typeof Peer==="undefined"'), 'database: né THREE né Peer')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    # p2p (solo prove, ?net=p2p): three.js non viene nemmeno scaricato, PeerJS sì (serve alla stanza)
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');"); pg = await vendor_pg(ctx, srv.url + '?net=p2p')
     check(vendor_chiesti(pg) == ['peerjs'], f'falò: scaricato solo peerjs {vendor_chiesti(pg)}')
     check(await pg.evaluate('!window.THREE && typeof Peer!=="undefined"'), 'falò: THREE assente, Peer presente')
     check(len(await pg.inner_html('#app')) > 500, 'falò: la lobby è disegnata')
@@ -186,13 +191,13 @@ async def sc_vendor_guasto(b, srv):
     # PeerJS non scaricabile: si usa il relay, l'app non si blocca
     ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','iso');")
     await ctx.route('**/vendor/peerjs.*', lambda r: r.abort())
-    pg = await vendor_pg(ctx, srv.url, 5000)
+    pg = await vendor_pg(ctx, srv.url + '?net=p2p', 5000)
     check(len(await pg.inner_html('#app')) > 500, 'peerjs guasto: l\'app si disegna comunque')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
 async def sc_vendor_offline_e_cache(b, srv):
     ctx = await new_context(b, srv.port, name=None, sw=True, extra_init="localStorage.setItem('rg-lb','iso');")
-    pg = await vendor_pg(ctx, srv.url, 500)
+    pg = await vendor_pg(ctx, srv.url + '?net=p2p', 500)
     await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
     nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
     check(len(nomi) == 2 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
@@ -480,7 +485,9 @@ async def sc_stanze_database(b, srv):
     ctxF, F = await telefono_rt(b, srv, sh, 'Fabio', 7, '')
     check(await F.evaluate('R.mode') == 'rt', 'predefinito: senza parametri si usa il database')
     ctxE, E = await telefono_rt(b, srv, sh, 'Elsa', 6, '?net=rt', rt=False, wait=6000)
-    check(await E.evaluate('R.mode') != 'rt', 'database irraggiungibile: si ripiega sul trasporto di prima')
+    await E.wait_for_function("R.net==='off'", timeout=60000)  # 3 tentativi con pause prima di dichiarare Offline
+    check(await E.evaluate('[R.mode,R.on,R.net]') == [None, False, 'off'], 'database irraggiungibile: Offline, nessun ripiego silenzioso su altri trasporti')
+    check(await E.evaluate("document.querySelector('button.hm-st.off[data-a=retrynet]')!==null"), 'database irraggiungibile: pulsante per riprovare')
     for p in (B, C, T, D, E, F): check(not p.errs, f'nessun errore JS {p.errs[:1]}')
     for c in (ctxB, ctxC, ctxT, ctxD, ctxE, ctxF): await c.close()
     await ctxA.close()
@@ -584,6 +591,9 @@ async def sc_stato_connessione(b, srv):
     check(await pg.query_selector('button.hm-st.off[data-a=retrynet]') is not None, 'offline: pulsante per riprovare nella Taverna')
     await pg.click('button.hm-st.off'); await pg.wait_for_timeout(100)
     check(await pg.evaluate("R.net")=='prova' or await pg.evaluate("R.net")=='off', 'riprova: la ricerca riparte')
+    await pg.wait_for_function("R.net==='off'", timeout=60000)
+    # tornata la rete, da Offline si riprova da soli (senza toccare il pulsante)
+    check(await pg.evaluate("(()=>{dispatchEvent(new Event('online'));return R.net})()") == 'prova', 'evento «online»: la ricerca riparte da sola')
     await pg.wait_for_function("R.net==='off'", timeout=60000)
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 

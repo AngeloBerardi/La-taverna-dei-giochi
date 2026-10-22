@@ -1,11 +1,23 @@
 /* ---- rete ---- */
 // R.net: 'prova' mentre si cerca la rete (può durare ~20 s), poi 'ok' o 'off'; la Taverna lo mostra e, se è 'off', permette di riprovare
 async function netInit(){if(R.tried)return;try{await netInit0()}finally{R.net=R.on?'ok':'off'}}
+/* Il trasporto delle stanze è UNO: il Realtime Database (R.mode='rt'). Se non risponde si riprova con calma (3 tentativi) e poi si resta
+   «Offline» con il pulsante per riprovare (e un nuovo tentativo da solo quando torna la rete): niente ripiego silenzioso su altri
+   trasporti, che davano stanze diverse a telefoni diversi. PeerJS/MQTT (?net=p2p) e il database di Claude (?net=db) restano solo per prove. */
 async function netInit0(){R.tried=true;const nq=new URLSearchParams(location.search).get('net');
  ME.dev=ST('rg-dev')||('d'+rid()+rid());ST('rg-dev',ME.dev);
- if(nq!=='db'&&!window.__NETDB&&await RT.prova()){R.mode='rt';R.db=RT;R.on=true;return}
- if(nq!=='db'&&!window.__NETDB&&await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true;return}
+ if(nq==='p2p'){if(await VENDOR.prova('peerjs',8000)&&await p2pProbe()){R.mode='p2p';R.on=true}return}
+ if(nq!=='db'&&!window.__NETDB){
+  for(let k=0;k<3;k++){
+   if(await RT.prova(k?8000:12000)){R.mode='rt';R.db=RT;R.on=true;return}
+   if(!RT.attivo()||navigator.onLine===false)break;
+   await new Promise(r=>setTimeout(r,1500*(k+1)))}
+  return}
  try{const c=window.claude;if(!c)return;const[d,u]=await Promise.all([c.use('db'),c.use('user')]);const id=u?await u.id():null;if(d&&id){R.db=d;ME.dev=id;R.on=true;R.mode='db'}}catch(e){}}
+function retryNet(){R.tried=false;R.on=false;R.mode=null;R.net='prova';ui.err='';return enterHub()}
+/* tornata la rete (o l'app in primo piano) mentre si è Offline fuori partita: si riprova da soli */
+{const auto=()=>{if(R.net==='off'&&!R.on&&ui.screen!=='game'&&!document.hidden&&navigator.onLine!==false)retryNet()};
+ addEventListener('online',auto);document.addEventListener('visibilitychange',auto)}
 function unsubAll(){R.un.forEach(f=>{try{f()}catch(e){}});R.un=[]}
 // R.hub = l'ingresso in corso (rete + stanza generale): chi cambia la rete della stanza (partite a distanza) aspetta che finisca
 function enterHub(){return R.hub=enterHub0()}
