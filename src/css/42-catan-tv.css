@@ -1,8 +1,8 @@
 /* Catan sullo schermo comune (app/22f5-catan-tv.js): il tavolo 3D sta in un canvas fisso (#ctv3d), questo è il HUD sopra. Tutto in vh/vw per vedersi da lontano. */
 #ctv3d{position:fixed;left:var(--tvp,0);top:0;z-index:1;display:none;pointer-events:none}
-html[data-tv] #app:has(.ctv){position:relative;z-index:5}
-.ctv{position:fixed;left:var(--tvp,0);top:0;right:0;bottom:0;pointer-events:none;color:#f6ead0;font-family:var(--f-b,inherit);--ctvr:clamp(230px,20vw,350px)}
-.ctv::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,transparent 55%,rgba(8,5,2,.55) 100%);pointer-events:none}
+html[data-tv] #app:has(.ctv-root){position:relative;z-index:5}
+.ctv-root{position:fixed;left:var(--tvp,0);top:0;right:0;bottom:0;pointer-events:none;color:#f6ead0;font-family:var(--f-b,inherit);--ctvr:clamp(230px,20vw,350px)}
+.ctv-root::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,transparent 55%,rgba(8,5,2,.55) 100%);pointer-events:none}
 .ctv-top{position:absolute;left:0;right:0;top:0;display:grid;grid-template-columns:1fr auto auto;gap:2vw;align-items:center;padding:2vh 2vw;background:linear-gradient(180deg,rgba(10,7,4,.82),rgba(10,7,4,0))}
 .ctv-logo{font:800 5.4vh/1 var(--f-t,Georgia,serif);letter-spacing:.07em;color:#f0c166;text-shadow:0 .3vh .8vh rgba(0,0,0,.6)}
 .ctv-sub{font-size:1.9vh;color:#d8c49a;margin-top:.5vh}
