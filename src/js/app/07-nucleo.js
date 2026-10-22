@@ -1,6 +1,14 @@
 /* ================= STATO, STANZA, GIOCHI ================= */
 let G=null,fxDone=null;
 const ui={lobby:(()=>{try{const l=ST('rg-lb');return l==='iso'||l==='hall'?l:'3d'}catch(e){return'3d'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
+
+/* Una sola finestra aperta alla volta: ui.modal ('cfg'|'shop'|'acc'|'top'|'oste'|'dist'|'tvm'|'amici'|'eroi'|'camp'|null).
+   I vecchi flag (ui.cfg, ui.shop, ui.acc…) restano come accessori sopra ui.modal: aprirne uno chiude l'altro, chiudere quello sbagliato non fa nulla. */
+['cfg','shop','oste','dist','tvm','amici','eroi','camp'].forEach(k=>Object.defineProperty(ui,k,{enumerable:true,configurable:true,
+ get:()=>ui.modal===k,set:v=>{if(v)ui.modal=k;else if(ui.modal===k)ui.modal=null}}));
+Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.modal==='acc'||ui.modal==='top'?ui.modal:false,
+ set:v=>{if(v)ui.modal=v;else if(ui.modal==='acc'||ui.modal==='top')ui.modal=null}});
+ui.modal=null;
 const ME={name:ST('rg-name')||'',dev:'local'};
 const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
 const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC};

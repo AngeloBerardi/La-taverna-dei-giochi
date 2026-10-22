@@ -799,6 +799,15 @@ async def sc_errori_globali(b, srv):
     check(len(await pg.inner_html('#app')) > 300, 'la pagina resta viva')
     await ctx.close()
 
+async def sc_modale_unica(b, srv):
+    """Una sola finestra aperta alla volta (ui.modal), con i vecchi flag che continuano a funzionare."""
+    ctx = await new_context(b, srv.port); pg = await vendor_pg(ctx, srv.url, 3000)
+    r = await pg.evaluate("""(()=>{const o=[];ui.cfg=true;o.push(ui.modal);ui.shop=true;o.push(ui.modal+'/'+ui.cfg);ui.cfg=false;o.push(ui.modal);
+      ui.acc='top';o.push(ui.modal+'/'+ui.acc+'/'+ui.shop);ui.cfg=ui.acc=ui.shop=ui.oste=ui.dist=ui.tvm=ui.eroi=ui.camp=false;o.push(String(ui.modal));
+      ui.eroi=true;ui.eroi=false;ui.camp=true;o.push(ui.modal);ui.camp=false;o.push(String(ui.modal));return o})()""")
+    check(r == ['cfg', 'shop/false', 'shop', 'top/top/false', 'null', 'camp', 'null'], f'finestre esclusive {r}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
