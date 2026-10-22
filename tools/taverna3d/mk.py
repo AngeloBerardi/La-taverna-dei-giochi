@@ -44,7 +44,7 @@ const L3D=(()=>{
  return{
   ok:()=>state==='ready'||(state==='idle'&&!!window.THREE&&hasGL()),
   show:screen=>{if(!boot()){if(ui.lobby==='3d'){ui.lobby='iso';render()}return}wrap.style.display='';E.show(screen)},
-  hide,dbg:()=>E,
+  hide,dbg:()=>E,sync:()=>{if(E&&wrap&&wrap.style.display!=='none')E.sync()},
  };
 })();
 """

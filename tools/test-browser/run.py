@@ -766,6 +766,26 @@ async def sc_mosse_simultanee(b, srv):
     check(not A.errs and not B.errs, f'nessun errore JS {A.errs[:1]} {B.errs[:1]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_posizioni_separate(b, srv):
+    """Camminare scrive solo il nodo pos/: l'altro telefono vede la posizione senza che i membri cambino né la pagina si ridisegni."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 1)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 2, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await B.evaluate("window.__rn=0;const _r=render;render=function(){window.__rn++;return _r.apply(this,arguments)}")
+    n0 = await B.evaluate('window.__rn')
+    for i in range(6):
+        await A.evaluate(f"R.mine.pos3={{a:'loc',x:{i}.5,z:2,sit:false,t:Date.now()}};savePos()")
+        await A.wait_for_timeout(150)
+    await B.wait_for_function("(R.members.find(m=>m.id!==ME.dev)||{}).pos3&&R.members.find(m=>m.id!==ME.dev).pos3.x===5.5", timeout=10000)
+    check(await B.evaluate('window.__rn') == n0, f'6 spostamenti: nessun render sull\'altro telefono ({n0} -> {await B.evaluate("window.__rn")})')
+    check(await B.evaluate("R.pos[R.members.find(m=>m.id!==ME.dev).id].x") == 5.5, 'la posizione arriva dal nodo pos/')
+    check(not A.errs and not B.errs, f'nessun errore JS {A.errs[:1]} {B.errs[:1]}')
+    await ctxA.close(); await ctxB.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

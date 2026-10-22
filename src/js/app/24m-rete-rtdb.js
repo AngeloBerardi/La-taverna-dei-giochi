@@ -17,7 +17,7 @@ const RT={
  P(path){const a=String(path).split('/');
   if(a[0]!=='rooms'||!/^[\w-]{1,16}$/.test(a[1]||''))throw new Error('percorso non valido');
   if(a.length===2)return['stanze',a[1],'d'];
-  if(a.length===4&&(a[2]==='members'||a[2]==='chat')&&/^[\w:-]{1,64}$/.test(a[3]))return['stanze',a[1],a[2]==='members'?'m':'c',a[3]];
+  if(a.length===4&&(a[2]==='members'||a[2]==='chat'||a[2]==='pos')&&/^[\w:-]{1,64}$/.test(a[3]))return['stanze',a[1],{members:'m',chat:'c',pos:'pos'}[a[2]],a[3]];
   throw new Error('percorso non valido')},
  ref(seg){return RT.m.ref(RT.db,seg.join('/'))},
  snap(s,id){const v=s.val(),ex=v!==null&&typeof v==='object'&&typeof v.j==='string';
@@ -29,8 +29,8 @@ const RT={
   delete:async()=>RT.del(seg),
   onSnapshot:(n,er)=>RT.m.onValue(RT.ref(seg),s=>n(RT.snap(s,id)),er)}},
  collection(path){const a=String(path).split('/');
-  if(a.length!==3||a[0]!=='rooms'||!['members','chat'].includes(a[2]))throw new Error('percorso non valido');
-  const code=a[1],mem=a[2]==='members',seg=['stanze',code,mem?'m':'c'];
+  if(a.length!==3||a[0]!=='rooms'||!['members','chat','pos'].includes(a[2]))throw new Error('percorso non valido');
+  const code=a[1],mem=a[2]==='members',seg=['stanze',code,{members:'m',chat:'c',pos:'pos'}[a[2]]];
   return{doc:id=>RT.doc(path+'/'+id),
    onSnapshot:(n,er)=>{if(mem)RT.guarda(code);
     const un=RT.m.onValue(RT.ref(seg),s=>{const docs=[];s.forEach(c=>{docs.push(RT.snap(c,c.key))});n({docs})},er);
@@ -63,16 +63,19 @@ const RT={
    catch(e){ // quel dispositivo è già legato a un altro profilo in questa stanza (di solito dopo un cambio di account): se ne prende uno nuovo
     if(e&&e.code==='PERMISSION_DENIED'&&giro===0){ME.dev='d'+rid()+rid();ST('rg-dev',ME.dev);continue}throw e}
    await M.set(RT.ref(['stanze',code,'k',uid]),true);RT.cl[chiave]=1;return}},
- async setMem(seg,d){const j=DIST.ser(d);if(j.length>20000){const e=new Error('troppo grande');e.code='troppo-grande';throw e}
-  if(seg[2]==='m'&&seg[3]===ME.dev){await RT.claim(seg[1]);seg=[seg[0],seg[1],seg[2],ME.dev]}
+ // le posizioni (pos) stanno in un nodo a parte: camminare non riscrive il membro e non ridisegna le pagine degli altri
+ async setMem(seg,d){if(seg[2]==='m'&&d&&d.pos3){d={...d};delete d.pos3}const j=DIST.ser(d);if(j.length>20000){const e=new Error('troppo grande');e.code='troppo-grande';throw e}
+  const mio=(seg[2]==='m'||seg[2]==='pos')&&seg[3]===ME.dev;
+  if(mio){await RT.claim(seg[1]);seg=[seg[0],seg[1],seg[2],ME.dev]}
   await RT.m.set(RT.ref(seg),{j,t:Date.now()});
   if(seg[2]==='m'&&seg[3]===ME.dev)RT.presenza(seg[1])},
- async del(seg){await RT.m.remove(RT.ref(seg));if(seg[2]==='m'&&seg[3]===ME.dev)RT.assenza(seg[1])},
+ async del(seg){await RT.m.remove(RT.ref(seg));if(seg[2]==='m'&&seg[3]===ME.dev){RT.m.remove(RT.ref(['stanze',seg[1],'pos',ME.dev])).catch(()=>{});RT.assenza(seg[1])}},
  // presenza: un nodo che il server toglie da solo quando il telefono si scollega; si ripristina a ogni riconnessione
  presenza(code){RT.pc[code]=1;if(RT.on)RT.segna(code)},
  assenza(code){delete RT.pc[code];try{const r=RT.ref(['stanze',code,'p',ME.dev]);RT.m.onDisconnect(r).cancel().catch(()=>{});RT.m.remove(r).catch(()=>{})}catch(e){}},
  segna(code){try{const r=RT.ref(['stanze',code,'p',ME.dev]);
   RT.m.onDisconnect(r).remove().then(()=>RT.m.set(r,{t:RT.m.serverTimestamp()})).catch(()=>{});
+  RT.m.onDisconnect(RT.ref(['stanze',code,'pos',ME.dev])).remove().catch(()=>{});
   // se nel frattempo gli altri mi hanno tolto dai membri (ero sparito dalla stanza in attesa), rientro
   if(code===R.code&&R.mode==='rt')RT.doc('rooms/'+code+'/members/'+ME.dev).get().then(s=>{if(!s.exists&&R.mode==='rt'&&R.code===code&&RT.pc[code])RT.setMem(['stanze',code,'m',ME.dev],R.mine)}).catch(()=>{})}catch(e){}},
  // chi c'è davvero (presenza) nella stanza che si guarda: serve a togliere dall'attesa chi è sparito senza salutare

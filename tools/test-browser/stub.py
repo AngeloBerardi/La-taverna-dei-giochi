@@ -105,7 +105,7 @@ const stamp=d=>{if(d&&typeof d==='object'){for(const k of Object.keys(d)){if(d[k
 const RTS=window.__rt={on:true,dis:[],w:[]};
 window.__rtDrop=async()=>{for(const k of RTS.dis)await store.del(k);RTS.dis=[];RTS.on=false};
 window.__rtBack=()=>{RTS.on=true};
-const COLL=k=>/\/(m|c|p)$/.test(k);
+const COLL=k=>/\/(m|c|p|pos)$/.test(k);
 const leggi=async k=>{if(COLL(k)){const rows=await store.list(k);if(!rows.length)return null;const o={};rows.forEach(x=>{o[x.id]=x.d});return o}return clone(await store.get(k))};
 const snapOf=(k,v)=>({key:k.split('/').pop(),val:()=>clone(v),forEach:f=>{if(v&&typeof v==='object')for(const[i,x]of Object.entries(v)){if(f({key:i,val:()=>clone(x)})===true)break}}});
 export const getDatabase=(app,url)=>{if(!window.__stubRt)throw new Error('database non disponibile (stub)');window.__rtUrl=url;return{url}};

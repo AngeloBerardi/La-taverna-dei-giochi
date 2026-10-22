@@ -2,7 +2,7 @@
 let G=null,fxDone=null;
 const ui={lobby:(()=>{try{const l=ST('rg-lb');return l==='iso'||l==='hall'?l:'3d'}catch(e){return'3d'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
 const ME={name:ST('rg-name')||'',dev:'local'};
-const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
+const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
 const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC};
 const GAMES=[
  {id:'regicide',name:'Regicide',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},

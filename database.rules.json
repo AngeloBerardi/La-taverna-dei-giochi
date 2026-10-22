@@ -39,6 +39,13 @@
           }
         },
 
+        "pos": {
+          "$dev": {
+            ".write": "auth != null && root.child('stanze').child($code).child('dv').child($dev).val() === auth.uid",
+            ".validate": "newData.hasChild('j') && newData.child('j').isString() && newData.child('j').val().length <= 400"
+          }
+        },
+
         "p": {
           "$dev": {
             ".write": "auth != null && root.child('stanze').child($code).child('dv').child($dev).val() === auth.uid",

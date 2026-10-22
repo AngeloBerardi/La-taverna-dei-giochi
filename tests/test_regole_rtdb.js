@@ -47,6 +47,8 @@ const S = 'stanze/' + CODE + '/';
     ck(prova(b, S + 'p/da', { t: 5 }, 'ua') && !prova(b, S + 'p/da', { t: 5 }, 'ub'), 'presenza: solo del proprio dispositivo');
     ck(!prova(b, S + 'c/1', { j: '{}' }, 'ub') && prova(b, S + 'c/1', { j: '{}' }, 'ua'), 'chat: solo chi è dentro');
     ck(!prova(b, S + 'c/1', { j: 'x'.repeat(4001) }, 'ua'), 'chat: oltre 4000 caratteri, negato');
+    ck(prova(b, S + 'pos/da', { j: '{"x":1}', t: 1 }, 'ua') && !prova(b, S + 'pos/da', { j: '{"x":1}', t: 1 }, 'ub'), 'posizione: solo del proprio dispositivo');
+    ck(!prova(b, S + 'pos/da', { j: 'x'.repeat(401), t: 1 }, 'ua'), 'posizione: oltre 400 caratteri, negata');
     ck(!prova(b, S + 'altro', 1, 'ua') && !prova(b, 'fuori', 1, 'ua'), 'chiavi non previste: negate');
   }
 
@@ -89,6 +91,13 @@ const S = 'stanze/' + CODE + '/';
     ck(err === 'PERMISSION_DENIED', 'client: un estraneo non scrive in chat');
     await A.RT.del(['stanze', CODE, 'm', 'db']);
     ck(!db.store.has(S + 'm/db'), 'client: Alice toglie Bob (pulsante x)');
+    // le posizioni vanno nel nodo a parte e il membro non le contiene
+    await A.RT.doc('rooms/' + CODE + '/pos/da').set({ a: 'loc', x: 1.5, z: 2, sit: false, t: 1 });
+    ck(db.store.has(S + 'pos/da') && !db.store.get(S + 'm/da').j.includes('pos3'), 'client: la posizione sta in pos/, non nel membro');
+    await A.RT.setMem(['stanze', CODE, 'm', 'da'], { name: 'Alice', pos3: { x: 9 } });
+    ck(!db.store.get(S + 'm/da').j.includes('pos3'), 'client: scrivendo il membro la posizione viene tolta');
+    err = await B.RT.m.set(B.RT.ref(['stanze', CODE, 'pos', 'da']), { j: '{}', t: 1 }).then(() => null, e => e.code);
+    ck(err === 'PERMISSION_DENIED', 'client: nessuno sposta il pupazzo di un altro');
     // presenza: quando un telefono perde la linea il server toglie la sua presenza; gli altri possono togliere il suo membro
     ck(db.store.has(S + 'p/da'), 'presenza: Alice presente');
     db.scollega(A);
