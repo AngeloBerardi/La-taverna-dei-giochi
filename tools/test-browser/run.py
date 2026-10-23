@@ -831,6 +831,26 @@ async def sc_errori_nel_database(b, srv):
     check(w == 1, f'5 errori ravvicinati: una sola scrittura in errori/ ({w})')
     check(not A.errs, f'nessun errore JS {A.errs[:1]}'); await ctx.close()
 
+async def sc_catan_tocchi(b, srv):
+    """Catan: la preparazione e il primo tiro si giocano con tocchi veri sulla plancia. Lo scenario controlla anche che ogni bersaglio (cerchi degli incroci,
+    linee delle strade) sia davvero l'elemento colpito: una classe CSS in comune con la TV (.ctv, pointer-events:none) rendeva le colonie intoccabili."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
+    await pg.evaluate("async()=>{await startGame('catan',[{dev:ME.dev,name:'G1'},{dev:ME.dev,name:'G2'},{dev:ME.dev,name:'G3'}],{x:'base'});await Q;await new Promise(r=>setTimeout(r,800))}")
+    colpo = """()=>{const t=Array.from(document.querySelectorAll('[data-a=ctg]'));
+      const pt=e=>{const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2,h=document.elementFromPoint(x,y);return{x,y,ok:h===e||e.contains(h)||(!!h&&h.getAttribute('data-v')===e.getAttribute('data-v'))}};
+      return{n:t.length,ko:t.filter(e=>!pt(e).ok).length,mid:t.length?pt(t[Math.floor(t.length/2)]):null}}"""
+    for passo in range(12):
+        if await pg.evaluate('G.phase') != 'setup': break
+        r = await pg.evaluate(colpo)
+        if not check(r['n'] > 0 and r['ko'] == 0, f"preparazione, passo {passo}: {r['n']} bersagli, tutti colpibili ({r['ko']} coperti)"): break
+        e0 = await pg.evaluate('G.evn')
+        await pg.mouse.click(r['mid']['x'], r['mid']['y']); await pg.wait_for_timeout(700)
+        if not check(await pg.evaluate('G.evn') > e0, f'preparazione, passo {passo}: il tocco posa il pezzo'): break
+    check(await pg.evaluate('G.phase') == 'roll', 'la preparazione (6 colonie e 6 strade) finisce con i tocchi e si passa ai dadi')
+    await pg.locator('[data-a=croll]').click(timeout=4000); await pg.wait_for_timeout(900)
+    check(await pg.evaluate('!!G.dice'), 'il bottone «Tira i dadi» tira i dadi')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
