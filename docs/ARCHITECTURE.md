@@ -135,6 +135,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
 | `css/44-voto.css` | 2 |  |
+| `css/45-giallo.css` | 7 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -175,20 +176,20 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
 | `js/motori/35-sync.js` | 4 | SYNC |
-| `js/motori/36-giallo.js` | 12 | GIALLO |
+| `js/motori/36-giallo.js` | 13 | GIALLO |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 15 | Snd |
+| `js/app/03-audio.js` | 16 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 12 | G, ui, ME, R, ENG, GAMES, GN |
+| `js/app/07-nucleo.js` | 13 | G, ui, ME, R, ENG, GAMES, GN |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
-| `js/app/07d-regole.js` | 35 | RULES |
+| `js/app/07d-regole.js` | 36 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -233,7 +234,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 10 | FsDb, Dist |
-| `js/app/24f-schermo.js` | 8 | CAST_APP_ID, TV |
+| `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 13 | Eroi |
 | `js/app/24h-campagna.js` | 8 | Camp |
 | `js/app/24i-plancia.js` | 12 | Plancia |
@@ -249,6 +250,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24s-tv-giochi.js` | 16 | TVM, dkc, bmesh, pawn, SPTV, spieTVH, QZTV |
 | `js/app/24t-copertine.js` | 43 | COP, P, FAC, svg |
 | `js/app/24u-regia.js` | 6 | REGIA |
+| `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

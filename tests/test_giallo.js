@@ -109,6 +109,12 @@ for (const k of KIT) {
         tag + 'ogni indizio arriva a uno e uno solo (o a tutti)'
       );
       ck(!fughe(s), tag + 'anche a fine atti il pubblico non ha segreti');
+      // tempo dell'atto: la regia ne aggiunge, mai sotto «adesso»
+      {
+        const r5 = G.act(s, { t: 'tempo', ms: 300000 }, k, 0);
+        ck(!r5.err && r5.s.scade === s.scade + 300000, tag + 'la regia aggiunge 5 minuti');
+        ck(G.act(s, { t: 'tempo', ms: -1e12 }, k, 777).s.scade === 777, tag + 'togliendo tempo non si va prima di adesso');
+      }
       // mostra: regole
       const chiHa = uids.find(u => indiziDi(s, u).length),
         altro = uids.find(u => u !== chiHa),
@@ -134,7 +140,10 @@ for (const k of KIT) {
       );
       // obiettivi dell'atto in corso
       const ult = k.atti.length - 1;
-      ck(!G.act(s, { t: 'obiettivo', uid: 'u0', atto: ult, i: 0, fatto: true }, k).err, tag + 'obiettivo segnato');
+      {
+        const ro = G.act(s, { t: 'obiettivo', uid: 'u0', atto: ult, i: 0, fatto: true }, k);
+        ck(!ro.err && ro.s.mano.u0['ob' + ult].fatti[0] === true, tag + 'obiettivo segnato, e il telefono lo vede');
+      }
       ck(
         !!G.act(s, { t: 'obiettivo', uid: 'u0', atto: 0, i: 0, fatto: true }, k).err || ult === 0,
         tag + 'non quelli passati'
@@ -178,6 +187,8 @@ for (const k of KIT) {
         y = G.act(y, { t: 'attore', uid: u, per: uids[(uids.indexOf(u) + 1) % n] }, k).s;
       }
       ck(G.pubblico(y, k).votati.length === n, tag + 'il pubblico sa chi ha votato, non cosa');
+      ck(y.mano.u0.voto.risposte && y.mano.u0.voto.attore, tag + 'ognuno rivede il proprio voto');
+      ck(G.pubblico(intel, k).domande.length === k.domande.length && !G.pubblico(s, k).domande.length, tag + 'domande pubbliche solo all’accusa');
       ck(!JSON.stringify(G.pubblico(y, k)).includes('"voti"'), tag + 'i voti restano segreti fino al finale');
       ck(!!G.act(y, { t: 'attore', uid: 'u0', per: 'u0' }, k).err, tag + 'non ci si vota da soli come attore');
       ck(!!G.act(y, { t: 'voto', uid: 'u0', risposte: { chi: sol.chi } }, k).err, tag + 'voto incompleto rifiutato');

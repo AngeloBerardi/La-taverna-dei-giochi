@@ -65,13 +65,20 @@ Stato privato della regia (va in `regia/CODICE`): personaggi assegnati, `mano[ui
 - Punti: chi giusto 3, ogni altra risposta giusta 1, obiettivo fatto 1 (dichiarato dal giocatore), miglior attore 2, l'assassino che la maggioranza non scopre 3.
 - Test: `tests/test_giallo.js` (ogni kit, da min a max giocatori: nessun indizio perso, nessun segreto nel pubblico, chi condivide gli indizi ha le prove per tutte le domande, investigatori bravi battono quelli casuali).
 
+## Viste (`app/24v-giallo.js`, `css/45-giallo.css`)
+- **Registrazione**: riga in `GAMES` di `07-nucleo.js` (le regole ELO leggono gli id da lì: dopo averla cambiata `npm run regole`), con opzioni e range calcolati dall'indice dei kit (`GIA.kits/range/ok`) e il controllo `check` che `startGame` chiama prima di partire (stanza online, un telefono con profilo a testa, regia collegata, numero giusto per il kit). `ENG.giallo` crea solo la partita vuota (`fase: 'attesa'`), che poi riempie la regia.
+- **Telefono** (`gialloH`): schede Personaggio (segreto coperto finché non lo scopri), Indizi (propri, mostrati da altri, pubblici; «Mostra a…»), Obiettivi (si spuntano quelli dell'atto in corso), Accusa, Verità. Ogni azione è `REGIA.chiedi`; gli errori tornano come `avviso` nella propria mano.
+- **TV** (`GIA.tvH`): nella lobby dello schermo comune il pulsante «Fai da regista»; poi prologo, atti con timer ed eventi a sorpresa letti con la voce del browser, indizi pubblici, voti in arrivo, finale con ricostruzione e classifica. Comandi: atto successivo, +5 minuti, voce, schermo intero (`37-schermo.css` spegne i pulsanti della TV: `45-giallo.css` riaccende solo quelli del giallo).
+- **Regista** (`GIA.D`): carica il kit, crea o riprende la serata da `regia/CODICE`, consegna solo le chiavi cambiate, accetta dai telefoni solo `mostra`/`obiettivo`/`voto`/`attore` (l'uid è quello del percorso), pubblica la stanza con una transazione. Allo scadere dell'atto passa avanti da solo. A fine serata `over.winners` = chi ha più punti (premi e ELO come gli altri giochi).
+- **Prova nel browser**: `python3 tools/test-browser/run.py giallo` (sei telefoni e una TV sul database simulato, TV riavviata a metà; `SCHERMATE_DIR` per salvare le schermate).
+
 ## Limite: kit pubblici
 Il repo è pubblico e i file dei kit sono statici sul sito: chi va a cercarli di proposito legge la soluzione (come chi sfoglia il libretto del padrone di casa di un kit stampato). La regia protegge dalla sbirciata durante la serata: nessun telefono riceve i segreti degli altri. Per vendere i kit andranno spostati in un repo privato o in uno spazio letto solo dalla regista.
 
 ## Lavoro, in tre richieste di unione
 1. **Rete e regole** (`feat/gialli-rete`): `REGIA`, nodi `regia`/`segreti`/`azioni`, ruolo `r`, test con interprete ed emulatore.
 2. **Motore e kit 1** (`feat/gialli-motore`): `motori/36-giallo.js`, validatore, `src/kit/ultima-cena.json`, build dei kit a parte.
-3. **Viste**: TV regista (narrazione, timer, mappa, voti, finale) e telefono (scheda a schede, indizi, mostra a, accusa); voce in scaffale, regole in-game, musica.
+3. **Viste** (`feat/gialli-viste`): TV regista e telefono, voce nello scaffale, regole in-game (`docs/rules/cena-con-delitto.md`), musica.
 
 ## I primi cinque kit
 | Kit | Ambientazione | Giocatori | Nota |

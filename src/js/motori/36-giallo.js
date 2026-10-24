@@ -192,6 +192,12 @@ const GIALLO = (() => {
     if (!a || typeof a !== 'object') return { err: 'Azione non valida' };
     const s = clone(s0);
     ora = ora || 0;
+    // la regia aggiunge (o toglie) tempo all'atto in corso
+    if (a.t === 'tempo') {
+      if (s.fase !== 'atto') return { err: 'Il tempo conta solo durante gli atti' };
+      s.scade = Math.max(ora, s.scade + (Math.round(+a.ms) || 0));
+      return { s };
+    }
     if (a.t === 'avanti') {
       if (s.fase === 'prologo') apriAtto(s, k, 0, ora);
       else if (s.fase === 'atto' && s.atto < k.atti.length - 1) apriAtto(s, k, s.atto + 1, ora);
@@ -225,6 +231,8 @@ const GIALLO = (() => {
       const n = pgDi(k, s.pg[a.uid]).obiettivi[a.atto].length;
       if (!(a.i >= 0 && a.i < n)) return { err: 'Obiettivo inesistente' };
       (s.fatti[a.uid] = s.fatti[a.uid] || {})[a.atto + '-' + a.i] = !!a.fatto;
+      const ob = s.mano[a.uid]['ob' + a.atto];
+      ob.fatti = { ...(ob.fatti || {}), [a.i]: !!a.fatto };
       return { s };
     }
     if (a.t === 'voto') {
@@ -237,12 +245,14 @@ const GIALLO = (() => {
         v[q.id] = r;
       }
       s.voti[a.uid] = v;
+      s.mano[a.uid].voto = { t: 'voto', risposte: v, attore: (s.mano[a.uid].voto || {}).attore || null };
       return { s };
     }
     if (a.t === 'attore') {
       if (s.fase !== 'accusa') return { err: 'Il miglior attore si vota all’accusa' };
       if (!s.pg[a.per] || a.per === a.uid) return { err: 'Vota qualcun altro' };
       s.attore[a.uid] = a.per;
+      s.mano[a.uid].voto = { t: 'voto', risposte: null, ...(s.mano[a.uid].voto || {}), attore: a.per };
       return { s };
     }
     return { err: 'Azione non valida' };
@@ -260,6 +270,9 @@ const GIALLO = (() => {
       scade: s.scade,
       giocatori: Object.keys(s.pg).map(u => ({ uid: u, nome: s.nomi[u], pg: pgDi(k, s.pg[u]).nome })),
       pubblici: s.pubblici,
+      // per il modulo d'accusa: i personaggi in gioco (id e nome) e, dall'accusa in poi, le domande
+      personaggi: s.inGioco.map(id => ({ id, nome: pgDi(k, id).nome })),
+      domande: s.fase === 'accusa' || s.fase === 'finale' ? k.domande : [],
       votati: Object.keys(s.voti),
       attoreVotati: Object.keys(s.attore),
     };

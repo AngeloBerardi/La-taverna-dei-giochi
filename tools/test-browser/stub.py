@@ -97,23 +97,27 @@ export const runTransaction=async(db,fn)=>{const w=[];const tx={get:async r=>sna
 DATABASE = r"""
 const SH=!!window.__stubShared;const LS=JSON.parse(localStorage.getItem('__stubrt')||'{}');
 const call=async o=>(await fetch('/__fs',{method:'POST',body:JSON.stringify(o)})).json();
-const store=SH?{get:async k=>{const v=(await call({op:'get',k})).v;return v===undefined?null:v},put:async(k,v)=>{await call({op:'put',k,v})},cas:async(k,e,v)=>(await call({op:'cas',k,e,v})).ok,del:async k=>{await call({op:'del',k})},list:async c=>(await call({op:'list',c})).rows}
+const store=SH?{get:async k=>{const v=(await call({op:'get',k})).v;return v===undefined?null:v},put:async(k,v)=>{await call({op:'put',k,v})},cas:async(k,e,v)=>(await call({op:'cas',k,e,v})).ok,del:async k=>{await call({op:'del',k})},list:async c=>(await call({op:'list',c})).rows,tree:async c=>(await call({op:'tree',c})).rows,deltree:async k=>{await call({op:'deltree',k})}}
  :{get:async k=>LS[k]===undefined?null:JSON.parse(JSON.stringify(LS[k])),put:async(k,v)=>{LS[k]=v;localStorage.setItem('__stubrt',JSON.stringify(LS))},cas:async(k,e,v)=>{const c=LS[k]===undefined?null:LS[k];if(JSON.stringify(c)!==JSON.stringify(e))return false;LS[k]=v;localStorage.setItem('__stubrt',JSON.stringify(LS));return true},del:async k=>{delete LS[k];localStorage.setItem('__stubrt',JSON.stringify(LS))},
-  list:async c=>Object.keys(LS).filter(k=>k.startsWith(c+'/')&&k.split('/').length===c.split('/').length+1).map(k=>({id:k.split('/').pop(),d:JSON.parse(JSON.stringify(LS[k]))}))};
+  list:async c=>Object.keys(LS).filter(k=>k.startsWith(c+'/')&&k.split('/').length===c.split('/').length+1).map(k=>({id:k.split('/').pop(),d:JSON.parse(JSON.stringify(LS[k]))})),
+  tree:async c=>Object.keys(LS).filter(k=>k.startsWith(c+'/')).map(k=>({k:k.slice(c.length+1),v:JSON.parse(JSON.stringify(LS[k]))})),
+  deltree:async k=>{for(const x of Object.keys(LS))if(x===k||x.startsWith(k+'/'))delete LS[x];localStorage.setItem('__stubrt',JSON.stringify(LS))}};
 const clone=x=>x==null?null:JSON.parse(JSON.stringify(x));
 const stamp=d=>{if(d&&typeof d==='object'){for(const k of Object.keys(d)){if(d[k]&&d[k].__ts)d[k]=Date.now();else if(d[k]&&typeof d[k]==='object')stamp(d[k])}}return d};
 const RTS=window.__rt={on:true,dis:[],w:[]};
 window.__rtDrop=async()=>{for(const k of RTS.dis)await store.del(k);RTS.dis=[];RTS.on=false};
 window.__rtBack=()=>{RTS.on=true};
 const COLL=k=>/\/(m|c|p|pos)$/.test(k);
-const leggi=async k=>{if(COLL(k)){const rows=await store.list(k);if(!rows.length)return null;const o={};rows.forEach(x=>{o[x.id]=x.d});return o}return clone(await store.get(k))};
+const leggi=async k=>{if(COLL(k)){const rows=await store.list(k);if(!rows.length)return null;const o={};rows.forEach(x=>{o[x.id]=x.d});return o}
+ const v=await store.get(k);if(v!=null)return clone(v);const rows=await store.tree(k);if(!rows.length)return null;const o={};
+ for(const x of rows){const p=x.k.split('/');let t=o;p.slice(0,-1).forEach(s=>{t=t[s]=t[s]&&typeof t[s]==='object'?t[s]:{}});t[p[p.length-1]]=x.v}return o};
 const snapOf=(k,v)=>({key:k.split('/').pop(),val:()=>clone(v),forEach:f=>{if(v&&typeof v==='object')for(const[i,x]of Object.entries(v)){if(f({key:i,val:()=>clone(x)})===true)break}}});
 export const getDatabase=(app,url)=>{if(!window.__stubRt)throw new Error('database non disponibile (stub)');window.__rtUrl=url;return{url}};
 export const ref=(db,k)=>({k});
 export const serverTimestamp=()=>({__ts:1});
 export const get=async r=>snapOf(r.k,await leggi(r.k));
 export const set=async(r,v)=>{if(!RTS.on)throw new Error('offline');await store.put(r.k,stamp(clone(v)));RTS.w.push(['set',r.k])};
-export const remove=async r=>{await store.del(r.k);RTS.w.push(['del',r.k])};
+export const remove=async r=>{await store.deltree(r.k);RTS.w.push(['del',r.k])};
 // come l'SDK vero: si legge, si calcola, si scrive SOLO se il valore non è cambiato nel frattempo (altrimenti si riesegue)
 export const runTransaction=async(r,fn)=>{for(let i=0;i<25;i++){const cur=await store.get(r.k);const out=fn(cur==null?null:clone(cur));if(out===undefined)return{committed:false};
  if(await store.cas(r.k,cur==null?null:cur,stamp(clone(out)))){RTS.w.push(['tx',r.k]);return{committed:true}}}

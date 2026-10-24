@@ -1,0 +1,76 @@
+/* ---- Cena con delitto (app/24v-giallo.js): telefono a schede e TV regista. Stile legno e ottone, accento bordeaux da dossier ---- */
+.gia{--gia-r:#7a2228;--gia-c:#f3e6c8;--gia-i:#2a1a12;display:flex;flex-direction:column;gap:10px;padding:0 12px 16px;max-width:560px;margin:0 auto}
+.gia-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:linear-gradient(180deg,rgba(122,34,40,.55),rgba(36,7,9,.7))}
+.gia-top small{display:block;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.gia-top b{font:800 17px var(--f-d)}
+.gia-t{font:900 22px var(--f-d);color:var(--accent);font-variant-numeric:tabular-nums}
+.gia-tabs{display:flex;gap:4px;overflow-x:auto}
+.gia-tabs button{flex:1 0 auto;font:800 13px var(--f-d);letter-spacing:.05em;text-transform:uppercase;padding:10px 10px;min-height:44px;border:2px solid var(--line);border-radius:4px;background:rgba(0,0,0,.35);color:var(--muted);cursor:pointer}
+.gia-tabs button.sel{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08;border-color:#7a5410}
+.gia-body{display:flex;flex-direction:column;gap:10px}
+.gia-nome{font:900 26px var(--f-d);margin:4px 0 0;color:var(--accent)}
+.gia-ruolo{margin:0;color:var(--muted);font-style:italic}
+.gia-box,.gia-ind{background:var(--gia-c);color:var(--gia-i);border-radius:4px;padding:12px 14px;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 0 0 1px rgba(90,40,20,.25)}
+.gia-box h3,.gia-ind h4{margin:0 0 6px;font:800 13px var(--f-d);letter-spacing:.08em;text-transform:uppercase;color:var(--gia-r)}
+.gia-box p,.gia-ind p{margin:0 0 6px;line-height:1.45}
+.gia-box ul,.gia-box ol{margin:0;padding-left:18px;line-height:1.45}
+.gia-box.seg{border-left:6px solid var(--gia-r)}
+.gia-box.seg .muted{color:#7a6a5a}
+.gia-box.passato{opacity:.7}
+.gia-ind h4 small{display:block;font:600 11px var(--f-b,inherit);letter-spacing:0;text-transform:none;color:#7a6a5a}
+.gia-ind.mostrato{background:#e8dcc0;border-left:6px solid #3f6a8a}
+.gia-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.gia-h{margin:8px 0 0;font:800 13px var(--f-d);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gia-vuoto{color:var(--muted);text-align:center;padding:24px 8px}
+.gia-obs{list-style:none;padding:0!important}
+.gia-obs li{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.gia-obs li.fatto span:last-child{text-decoration:line-through;opacity:.7}
+.gia-ck{flex:0 0 28px;width:28px;height:28px;display:inline-grid;place-items:center;border:2px solid var(--gia-r);border-radius:3px;background:#fff8e8;color:var(--gia-r);cursor:pointer;padding:0}
+.gia-q{display:flex;flex-direction:column;gap:6px}
+.gia-q .sel{min-height:46px;width:100%}
+.gia-ok{color:#8fd19e;margin:0}
+.gia-chi{font:900 24px var(--f-d);color:var(--gia-r);margin:0 0 6px}
+.gia-cl{list-style:none;padding:0!important}
+.gia-cl li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed rgba(90,40,20,.3)}
+.gia-cl li.io{font-weight:800}
+.gia-piede{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* ---- TV regista ---- */
+.giatv{--gia-r:#7a2228;position:fixed;inset:0;z-index:60;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,26%);grid-template-rows:auto 1fr auto;grid-template-areas:'top top' 'main side' 'ctl ctl';gap:16px;padding:20px 24px;box-sizing:border-box;background:radial-gradient(ellipse at 30% 0,rgba(122,34,40,.45),transparent 60%),#120a0b}
+.giatv-top{grid-area:top;display:flex;align-items:center;gap:24px;border-bottom:2px solid var(--line);padding-bottom:12px}
+.giatv-top small{color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.giatv-top h1{margin:0;font:900 clamp(26px,3.4vw,48px) var(--f-d);color:var(--accent)}
+.giatv-fase{flex:1;font:800 clamp(18px,2.2vw,30px) var(--f-d)}
+.giatv-t{font:900 clamp(36px,5vw,72px) var(--f-d);color:var(--accent);font-variant-numeric:tabular-nums}
+.giatv-main{grid-area:main;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.giatv-narra{font-size:clamp(18px,1.8vw,26px);line-height:1.5;max-width:60ch}
+.giatv-narra h2{margin:0;font:900 clamp(28px,3vw,44px) var(--f-d)}
+.giatv-narra ol{padding-left:28px}
+.giatv-narra li small{display:block;color:var(--muted);font-size:.75em}
+.giatv-big{font:900 clamp(28px,3vw,44px) var(--f-d);color:var(--accent)}
+.giatv-h{margin:6px 0 0;font:800 16px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.giatv-inds{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.giatv-ind{background:#f3e6c8;color:#2a1a12;border-radius:4px;padding:14px 16px;font-size:clamp(15px,1.3vw,20px);box-shadow:0 4px 0 rgba(0,0,0,.4)}
+.giatv-ind h4{margin:0 0 6px;font:800 14px var(--f-d);letter-spacing:.08em;text-transform:uppercase;color:var(--gia-r)}
+.giatv-ind h4 small{margin-left:8px;color:#7a6a5a;text-transform:none;letter-spacing:0}
+.giatv-ev{padding:14px 18px;border-left:8px solid var(--accent);background:rgba(0,0,0,.45);font:800 clamp(20px,2vw,30px) var(--f-d);animation:giaev .6s ease-out}
+@keyframes giaev{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.giatv-chi{font-size:clamp(40px,5vw,80px)!important;color:var(--accent)}
+.giatv-ric li{opacity:0;animation:giaev .8s ease-out forwards;animation-delay:calc(var(--i) * 2.5s)}
+.giatv-cl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;font-size:clamp(15px,1.3vw,20px)}
+.giatv-cl li{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}
+.giatv-cl span{flex-basis:100%;color:var(--muted);font-size:.85em}
+.giatv-cl em{margin-left:auto;font:900 1.3em var(--f-d);font-style:normal;color:var(--accent)}
+.giatv-cl li:first-child b{color:var(--accent)}
+.giatv-side{grid-area:side;border-left:2px solid var(--line);padding-left:16px;overflow:auto}
+.giatv-side h3{margin:0 0 8px;font:800 16px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.giatv-side ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:clamp(15px,1.3vw,20px)}
+.giatv-side li{display:flex;flex-wrap:wrap;gap:0 8px;align-items:center}
+.giatv-side li span{color:var(--muted);flex-basis:100%;font-size:.85em}
+.giatv-side li i{color:#8fd19e}
+.giatv-ctl{grid-area:ctl;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+.giatv-c{margin:auto;text-align:center;font-size:clamp(18px,2vw,28px)}
+.giatv-ok{color:#8fd19e}
+@media (max-width:760px){.giatv{grid-template-columns:1fr;grid-template-areas:'top' 'main' 'side' 'ctl';padding:12px 16px}.giatv-side{border-left:0;padding-left:0}}
+/* lo schermo comune è di sola visione (37-schermo.css spegne i pulsanti): la regia del giallo invece si comanda dalla TV */
+html[data-tv] #app [data-a=giaregia],html[data-tv] #app .giatv [data-a]{pointer-events:auto;cursor:pointer}

@@ -55,6 +55,7 @@ async function joinRoom(code,spett){const old=R.code;unsubAll();
  const meRef=R.db.doc('rooms/'+code+'/members/'+ME.dev),ex=await meRef.get(),pv=ex.exists?ex.data():null;
  R.mine={name:ME.name,uid:FB.uid||null,t:pv?pv.t:Date.now(),guests:pv?pv.guests||[]:R.mine.guests||[],votes:pv?pv.votes||{}:{}};{const av=(pv&&pv.av)||R.mine.av||(()=>{try{return JSON.parse(ST('rg-av')||'null')}catch(e){return null}})();if(av)R.mine.av=av}await meRef.set(R.mine);ST('rg-room',code);if(INV&&code===INV)try{history.replaceState(null,'',location.pathname)}catch(e){ERR.n(e)}subscribe()}
 function subscribe(){
+ if(R.mode==='rt')REGIA.guarda(R.code,()=>{if(ui.screen==='game'||ui.screen==='tv')render()});
  R.un.push(R.ref.onSnapshot(sn=>{if(!sn.exists){ST('rg-room','');R.code='';unsubAll();if(ui.tv){ui.screen='tv';ui.err='Il tavolo non c’è più';G=null;render();setTimeout(()=>TV.avvia(),6000);return}if(R.mode==='fs'){say('La partita è stata eliminata',3000);Dist.esci();return}enterHub();return}
   const d=sn.data();R.doc=d;const seated=d.phase==='play'&&!!d.s&&(ui.tv||(d.seats||[]).some(x=>x.dev===ME.dev)),was=ui.screen;
   ui.screen=ui.screen==='name'?'name':seated?'game':ui.tv?'tv':'room';
