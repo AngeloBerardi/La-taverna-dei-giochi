@@ -13,6 +13,8 @@
    la TV lo segnala (REGIA.uid cambia) e il gioco la mostra a tutti. Tra amici basta, un server lo eviterebbe del tutto.
    Solo con le stanze sul database (R.mode==='rt'). Dati: DIST.ser/de, come gli altri nodi. */
 const REGIA = {
+  // indice dei kit (riempito dal build: titolo, giocatori, durata, url del file). Le trame stanno nei file, non qui.
+  KIT: /*KIT*/ {},
   uid: '',
   _un: null,
   _code: '',
@@ -88,6 +90,14 @@ const REGIA = {
   },
 
   // ---- lato regista (TV) ----
+  // scarica un kit intero (trama e soluzione): lo fa solo la TV regista, mai un telefono
+  async kit(id) {
+    const k = REGIA.KIT[id];
+    if (!k) throw new Error('Kit sconosciuto');
+    const r = await fetch(k.url);
+    if (!r.ok) throw new Error('Kit non scaricato (' + r.status + ')');
+    return r.json();
+  },
   async salva(code, stato) {
     await RT.m.set(RT.ref(REGIA.P.stato(code)), REGIA.pacco(stato));
   },

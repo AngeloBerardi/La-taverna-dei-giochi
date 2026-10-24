@@ -1,0 +1,564 @@
+{
+  "id": "ultima-cena",
+  "titolo": "L'ultima cena alla Taverna",
+  "sottotitolo": "La notte della Festa del Raccolto, qualcuno ha brindato per l'ultima volta",
+  "giocatori": [
+    6,
+    10
+  ],
+  "minuti": 90,
+  "tono": "leggero",
+  "prologo": [
+    "È la notte della Festa del Raccolto e la Taverna del Crocevia è piena come non mai: castagne sul fuoco, liuti, dadi che rotolano sui tavoli.",
+    "Mastro Ugolino Brace, l'oste, ha promesso a tutti un annuncio a mezzanotte, con il suo brindisi di sempre: un sorso di idromele dal Calice del Fondatore, che nessun altro può toccare.",
+    "Poco prima di mezzanotte Ugolino scende in cantina a prendere il calice. Non risale più.",
+    "Lo trovano disteso tra le botti, il calice rovesciato accanto a sé. Le porte della taverna sono sbarrate per la tempesta: chi l'ha ucciso è ancora qui, seduto a questa tavola."
+  ],
+  "vittima": {
+    "nome": "Mastro Ugolino Brace",
+    "chi": "l'oste della Taverna del Crocevia, burbero e generoso"
+  },
+  "luoghi": [
+    {
+      "id": "sala",
+      "nome": "Sala grande"
+    },
+    {
+      "id": "cucina",
+      "nome": "Cucina"
+    },
+    {
+      "id": "cantina",
+      "nome": "Cantina"
+    },
+    {
+      "id": "camere",
+      "nome": "Camere al piano di sopra"
+    },
+    {
+      "id": "stalla",
+      "nome": "Stalla"
+    }
+  ],
+  "personaggi": [
+    {
+      "id": "bettina",
+      "nome": "Bettina Mestolo",
+      "ruolo": "la cuoca",
+      "essenziale": true,
+      "costume": "Grembiule infarinato, fazzoletto in testa, un mestolo sempre in mano.",
+      "storia": "Cucini alla Taverna del Crocevia da vent'anni. Ugolino è burbero, ma è la cosa più vicina a una famiglia che hai. Senza di te questa taverna sarebbe chiusa da un pezzo, e lo sanno tutti.",
+      "segreto": "Oggi pomeriggio hai litigato forte con Ugolino: eri convinta che volesse sostituirti con un cuoco di città, e gli hai urlato che se ne sarebbe pentito. Mezza cucina ti ha sentita. Tu non c'entri con la sua morte, ma quella frase adesso suona malissimo.",
+      "alibi": "Verso le undici e mezza eri in cucina a sfornare il castagnaccio. Tobia è passato a prendere un vassoio, poi non l'hai più visto.",
+      "sa": {
+        "tobia": "Il nipote di Ugolino. Da qualche mese è nervoso e chiede soldi in prestito a tutti, te compresa.",
+        "gisella": "Gestisce i tavoli dei dadi. Ugolino le doveva dei soldi, questo lo sai per certo.",
+        "mirella": "L'erborista. Stasera ha lasciato la sua borsa delle erbe appesa in cucina, vicino al camino."
+      },
+      "obiettivi": [
+        [
+          "Scopri chi ha raccontato in giro del tuo litigio con Ugolino.",
+          "Convinci almeno una persona che non avresti mai fatto del male all'oste."
+        ],
+        [
+          "Scopri cosa contiene davvero il mestolo sporco trovato in cantina.",
+          "Fatti dire da Tobia dov'era alle undici e quaranta."
+        ],
+        [
+          "Racconta a qualcuno della sorpresa che Ugolino ti aveva promesso."
+        ]
+      ]
+    },
+    {
+      "id": "orlando",
+      "nome": "Ser Orlando di Ferrobianco",
+      "ruolo": "il cavaliere decaduto",
+      "essenziale": true,
+      "costume": "Mantello consunto, un'armatura che non chiude più, molta dignità.",
+      "storia": "Un tempo eri un cavaliere di gran nome. Oggi ti resta il titolo, una spada arrugginita e un conto aperto alla taverna che Ugolino ti ricordava ogni sera, davanti a tutti.",
+      "segreto": "Stasera, umiliato per l'ennesima volta, hai sfidato Ugolino a duello per l'alba. Lui ti ha riso in faccia. Non l'hai ucciso: un cavaliere sfida, non avvelena. Ma se si sapesse del duello, saresti il primo sospettato.",
+      "alibi": "Dalle undici alla mezzanotte eri nella sala grande, al tavolo dei dadi di Gisella, a perdere le ultime monete.",
+      "sa": {
+        "anselmo": "Il frate viandante ha una borsa troppo pesante per un uomo che ha fatto voto di povertà.",
+        "gisella": "Gisella ti ha visto perdere tutta la sera: può confermare dov'eri.",
+        "tobia": "Il ragazzo ti ha chiesto ieri se un cavaliere sa quanto vale una spada... o una taverna. Domanda strana."
+      },
+      "obiettivi": [
+        [
+          "Fatti confermare il tuo alibi da qualcuno senza parlare del duello.",
+          "Scopri cosa nasconde Frate Anselmo nella sua borsa."
+        ],
+        [
+          "Riguadagna un po' di onore: difendi in pubblico qualcuno ingiustamente accusato."
+        ],
+        [
+          "Se qualcuno ti accusa per il duello, rivela tu per primo la verità."
+        ]
+      ]
+    },
+    {
+      "id": "mirella",
+      "nome": "Mirella Corvina",
+      "ruolo": "l'erborista",
+      "essenziale": true,
+      "costume": "Scialle scuro, mazzetti di erbe secche alla cintura, sguardo che studia tutti.",
+      "storia": "Giri i villaggi curando febbri e mal di denti. Conosci ogni radice del bosco, comprese quelle che non curano niente: le tieni in fiale ben chiuse, per chi sa usarle bene.",
+      "segreto": "Nella tua borsa c'era una fiala di radice d'ombra, un veleno che sa di mandorla e ferma il cuore in pochi minuti. Stasera la fiala è sparita. Se si scopre che il veleno era tuo, ti accuseranno di sicuro.",
+      "alibi": "Verso le undici e mezza eri al piano di sopra a medicare la zampa del cane della locanda. Hai lasciato la borsa in cucina.",
+      "sa": {
+        "bettina": "La cuoca stasera era fuori di sé: ha borbottato tutta la sera contro Ugolino.",
+        "tobia": "Il ragazzo ti ha fatto mille domande sulle tue erbe la settimana scorsa. Soprattutto su quelle pericolose.",
+        "orlando": "Il cavaliere stasera ha detto ad alta voce che Ugolino non avrebbe visto l'alba."
+      },
+      "obiettivi": [
+        [
+          "Scopri chi è entrato in cucina mentre eri al piano di sopra.",
+          "Non rivelare a nessuno che la fiala era tua, almeno per questo atto."
+        ],
+        [
+          "Scopri chi ha l'odore di mandorla addosso."
+        ],
+        [
+          "Spiega a tutti come agisce la radice d'ombra, senza dire che era tua (o dillo, se ormai è chiaro chi l'ha presa)."
+        ]
+      ]
+    },
+    {
+      "id": "tobia",
+      "nome": "Tobia Lesto",
+      "ruolo": "il nipote dell'oste",
+      "essenziale": true,
+      "costume": "Camicia buona ma sgualcita, grembiule da garzone, sorriso pronto.",
+      "storia": "Sei il nipote di Ugolino e l'unico parente che gli resta. Lavori alla taverna da quando eri bambino, sempre convinto che un giorno sarebbe stata tua. Hai debiti con mezzo villaggio e un piano per pagarli tutti: vendere la taverna appena possibile.",
+      "segreto": "Sei tu l'assassino. Ieri sulla scrivania dello zio hai trovato una lettera del notaio: Ugolino stava cambiando il testamento per lasciare la taverna a Bettina. Stasera hai preso dalla borsa di Mirella la fiala di radice d'ombra, l'hai versata nel Calice del Fondatore in cantina (solo tu e lo zio avete la chiave) e sei risalito come se niente fosse. La lettera del notaio l'hai bruciata nel camino della sala. Non farti scoprire: punta i sospetti su Bettina, che aveva litigato con lo zio, o su Frate Anselmo, che nasconde qualcosa.",
+      "alibi": "Dici di essere stato in sala a servire idromele tutta la sera. In realtà verso le undici e quaranta sei sceso in cantina.",
+      "sa": {
+        "bettina": "Oggi ha litigato con lo zio e gli ha urlato che se ne sarebbe pentito. Usalo.",
+        "anselmo": "Hai visto il frate uscire dalla stanza dello zio con un fagotto sotto il saio.",
+        "mirella": "La sua borsa delle erbe era in cucina. Meglio che nessuno ricordi che sei passato di lì."
+      },
+      "obiettivi": [
+        [
+          "Fai sapere a più persone possibile del litigio tra Bettina e lo zio.",
+          "Racconta di aver visto Frate Anselmo uscire dalla stanza dello zio."
+        ],
+        [
+          "Inventa un alibi per le undici e quaranta e fattelo confermare da qualcuno."
+        ],
+        [
+          "Arriva all'accusa senza che la maggioranza voti per te."
+        ]
+      ]
+    },
+    {
+      "id": "gisella",
+      "nome": "Madama Gisella Dadi",
+      "ruolo": "la biscazziera",
+      "essenziale": true,
+      "costume": "Abito rosso, anelli a ogni dito, un sacchetto di dadi che tintinna.",
+      "storia": "Gestisci i tavoli da gioco della taverna in cambio di una parte delle vincite. Sai chi deve soldi a chi in tutto il villaggio: è il tuo mestiere saperlo.",
+      "segreto": "Ugolino ti doveva quaranta monete d'oro, perse ai dadi in una notte sfortunata. Con lui morto non le rivedrai mai più: eri l'ultima persona al mondo a volerlo morto. Ma se si sapesse del debito, qualcuno potrebbe pensare a una vendetta.",
+      "alibi": "Tutta la sera al tuo tavolo dei dadi in sala, con Ser Orlando che perdeva e perdeva.",
+      "sa": {
+        "orlando": "Il cavaliere stasera ha sfidato Ugolino a duello per l'alba. L'hai sentito con le tue orecchie.",
+        "tobia": "Il ragazzo deve soldi a tre dei tuoi clienti. Ieri ti ha chiesto quanto si ricava vendendo una taverna.",
+        "bettina": "La cuoca è l'unica in questa casa a cui Ugolino voleva bene davvero, anche se non lo diceva."
+      },
+      "obiettivi": [
+        [
+          "Conferma l'alibi di Ser Orlando, ma solo in cambio di un'informazione.",
+          "Scopri chi altro aveva debiti con Ugolino o per colpa sua."
+        ],
+        [
+          "Fai capire che con Ugolino morto tu ci hai perso, senza dire quanto."
+        ],
+        [
+          "Racconta a tutti della strana domanda di Tobia sulla vendita della taverna."
+        ]
+      ]
+    },
+    {
+      "id": "anselmo",
+      "nome": "Frate Anselmo",
+      "ruolo": "il monaco viandante",
+      "essenziale": true,
+      "costume": "Saio marrone con cappuccio, sandali, un rosario fin troppo lucido.",
+      "storia": "Ti presenti come un frate in pellegrinaggio. In realtà sei un ladro di reliquie, e piuttosto bravo. Sei qui perché Ugolino teneva nella sua stanza un medaglione d'argento che vale una fortuna.",
+      "segreto": "Stasera, verso le undici e mezza, sei entrato nella stanza di Ugolino e hai rubato il medaglione: ora è nel tuo saio. Non hai ucciso nessuno, ma se ti perquisiscono sei finito. Frugando nel camino spento della stanza, in cerca di altri nascondigli, hai trovato un foglio scritto da Ugolino e poi gettato via, mezzo bruciato.",
+      "alibi": "Dici di essere stato in preghiera nella stalla. In realtà eri nella stanza dell'oste, al piano di sopra.",
+      "sa": {
+        "mirella": "L'erborista conosce veleni: l'hai sentita spiegare a un cliente quale radice ferma il cuore.",
+        "orlando": "Il cavaliere guarda la tua borsa con troppo interesse.",
+        "tobia": "Il ragazzo ti ha incrociato sulle scale mentre scendevi dalle camere. Ti ha visto bene."
+      },
+      "obiettivi": [
+        [
+          "Tieni nascosto il medaglione per tutto l'atto.",
+          "Scopri chi ti ha visto sulle scale e cosa ha raccontato."
+        ],
+        [
+          "Mostra a qualcuno il foglio bruciato trovato nel camino, in cambio di silenzio sul tuo fagotto."
+        ],
+        [
+          "Alla fine confessa il furto, se serve a scagionarti dall'omicidio."
+        ]
+      ]
+    },
+    {
+      "id": "lia",
+      "nome": "Lia Liuto",
+      "ruolo": "la menestrella",
+      "essenziale": false,
+      "riserva": "orlando",
+      "costume": "Piume sul cappello, liuto a tracolla, voce per tutte le occasioni.",
+      "storia": "Canti per una cena e un letto. Stasera Ugolino ti aveva pagato il doppio per una canzone nuova da suonare dopo il suo annuncio.",
+      "segreto": "La canzone che Ugolino ti aveva commissionato si intitola «La cuoca e la taverna»: non sapevi perché, e ora ti mette i brividi. Da quando hai iniziato a cantare, tieni d'occhio la porta della cantina.",
+      "alibi": "Sul palchetto in sala per tutta la sera, tranne una pausa verso le undici e quaranta per bere qualcosa vicino alla scala della cantina.",
+      "sa": {
+        "orlando": "Il cavaliere stasera è rimasto inchiodato al tavolo dei dadi.",
+        "bettina": "Ugolino parlava di lei con un affetto che non mostrava a nessun altro."
+      },
+      "obiettivi": [
+        [
+          "Canta (o recita) a tutti un ritornello improvvisato sulla taverna.",
+          "Scopri chi conosceva il titolo della tua canzone."
+        ],
+        [
+          "Racconta chi hai visto uscire dalla cantina mentre facevi la pausa."
+        ],
+        [
+          "Vota il miglior attore della serata: lo scegli tu, da professionista."
+        ]
+      ]
+    },
+    {
+      "id": "bruno",
+      "nome": "Bruno Carro",
+      "ruolo": "il mercante di vino",
+      "essenziale": false,
+      "riserva": "bettina",
+      "costume": "Gilet di cuoio, pancia soddisfatta, macchie di vino sulle maniche.",
+      "storia": "Rifornisci la taverna di vino e idromele da quindici anni. Conosci quella cantina meglio di casa tua, e il Calice del Fondatore l'hai lucidato tu stesso una volta l'anno.",
+      "segreto": "Stasera dovevi a Ugolino una botte di idromele che non hai consegnato: l'hai venduta a un'altra locanda per un prezzo migliore. Una cosa da poco, ma non è il momento di farla sapere.",
+      "alibi": "In sala, a far assaggiare il vino nuovo a chiunque passasse.",
+      "sa": {
+        "tobia": "Il ragazzo ti ha chiesto la settimana scorsa a chi si potrebbe vendere una taverna con cantina piena.",
+        "gisella": "Ugolino perdeva ai dadi più di quanto ammettesse."
+      },
+      "obiettivi": [
+        [
+          "Fai assaggiare (per finta) il tuo vino a tre persone diverse."
+        ],
+        [
+          "Esamina il calice e spiega a tutti cosa c'è di strano."
+        ],
+        [
+          "Non far scoprire la botte che non hai consegnato."
+        ]
+      ]
+    },
+    {
+      "id": "nora",
+      "nome": "Nora del Bosco",
+      "ruolo": "la cacciatrice",
+      "essenziale": false,
+      "riserva": "mirella",
+      "costume": "Arco in spalla, giubba verde, foglie tra i capelli.",
+      "storia": "Porti selvaggina alla taverna in cambio di un posto vicino al fuoco. Hai un naso da segugio: riconosci un animale, una pianta o una bugia dall'odore.",
+      "segreto": "Hai venduto a Ugolino della carne di cervo presa nella riserva del barone, dove cacciare è proibito. Se qualcuno lo scopre, rischi la prigione.",
+      "alibi": "Nella stalla, a sistemare il tuo cavallo spaventato dalla tempesta, poi in sala.",
+      "sa": {
+        "mirella": "Conosce i veleni del bosco quanto te, e forse meglio.",
+        "anselmo": "Il frate non era nella stalla quando ci sei andata tu. Eppure dice di aver pregato lì."
+      },
+      "obiettivi": [
+        [
+          "Smentisci l'alibi di Frate Anselmo, con garbo."
+        ],
+        [
+          "Annusa (per finta) qualcuno e racconta cosa senti."
+        ],
+        [
+          "Tieni nascosta la storia del cervo fino alla fine."
+        ]
+      ]
+    },
+    {
+      "id": "gualtiero",
+      "nome": "Capitan Gualtiero",
+      "ruolo": "il capitano della guardia",
+      "essenziale": false,
+      "riserva": "anselmo",
+      "costume": "Elmo lucido, fascia rossa, un registro in cui annota tutto.",
+      "storia": "Comandi la guardia del villaggio. Sei qui per la festa, non in servizio. Ma un morto è un morto, e la tempesta ti obbliga a indagare con quello che hai.",
+      "segreto": "Il notaio del borgo ti ha affidato stamattina una seconda lettera sigillata da consegnare a Ugolino («la conferma», ha detto). Ti sei dimenticato di dargliela. Ora pesa come un macigno nella tua giubba.",
+      "alibi": "In sala, al banco, con un boccale che non hai mai finito.",
+      "sa": {
+        "gisella": "La biscazziera ha sempre un'informazione da vendere. A volte è vera.",
+        "orlando": "Il cavaliere stasera ha minacciato l'oste davanti a testimoni."
+      },
+      "obiettivi": [
+        [
+          "Interroga almeno tre persone e annota i loro alibi."
+        ],
+        [
+          "Decidi se aprire la lettera del notaio e con chi condividerla."
+        ],
+        [
+          "Guida l'accusa finale: proponi tu a voce chi arrestare."
+        ]
+      ]
+    }
+  ],
+  "atti": [
+    {
+      "titolo": "Il brindisi mancato",
+      "minuti": 20,
+      "narrazione": [
+        "Mastro Ugolino giace in cantina. Nessuna ferita, nessun segno di lotta: solo il Calice del Fondatore rovesciato accanto a lui.",
+        "Fuori la tempesta ulula. Nessuno può uscire, e nessuno può entrare. Guardatevi intorno: ognuno ha qualcosa da nascondere."
+      ],
+      "indizi": [
+        {
+          "id": "corpo",
+          "a": "tutti",
+          "titolo": "Il corpo",
+          "testo": "Ugolino ha le labbra bluastre e le dita contratte. Nessuna ferita, nessun livido: non è stato colpito.",
+          "prova": [
+            "come"
+          ]
+        },
+        {
+          "id": "fiala",
+          "a": "mirella",
+          "titolo": "La borsa delle erbe",
+          "testo": "La tua borsa, rimasta appesa in cucina, è stata aperta: manca la fiala di radice d'ombra. Sul fermaglio c'è un velo di farina di castagne.",
+          "prova": [
+            "chi",
+            "come"
+          ]
+        },
+        {
+          "id": "chiave",
+          "a": "bettina",
+          "titolo": "La chiave della cantina",
+          "testo": "Ti ricordi bene: una settimana fa hai restituito a Ugolino la tua chiave della cantina. Da allora ne esistono solo due, la sua e quella di Tobia.",
+          "prova": [
+            "chi"
+          ]
+        },
+        {
+          "id": "duello",
+          "a": "gisella",
+          "titolo": "Una minaccia",
+          "testo": "Stasera, verso le dieci, hai sentito Ser Orlando gridare a Ugolino: «All'alba saldiamo i conti, con la spada!»"
+        },
+        {
+          "id": "debito",
+          "a": "orlando",
+          "titolo": "Il registro di Ugolino",
+          "testo": "Sul bancone hai sbirciato il registro dei debiti di Ugolino. C'è una riga per te, e una al contrario: «Devo a Gisella 40 monete d'oro»."
+        },
+        {
+          "id": "scale",
+          "a": "tobia",
+          "titolo": "Sulle scale",
+          "testo": "Verso le undici e mezza hai incrociato Frate Anselmo che scendeva dalle camere con un fagotto sotto il saio. Ti ha guardato storto."
+        }
+      ],
+      "eventi": [
+        {
+          "dopo": 8,
+          "testo": "Un tuono fa tremare le finestre. Il camino della sala sputa scintille e cenere."
+        },
+        {
+          "dopo": 15,
+          "testo": "Il cane della locanda continua ad abbaiare verso la porta della cantina."
+        }
+      ]
+    },
+    {
+      "titolo": "La cantina",
+      "minuti": 25,
+      "narrazione": [
+        "Scendete tutti in cantina con le lanterne. Tra le botti, qualcuno nota oggetti che prima non c'erano.",
+        "Ognuno torna su con qualcosa in più da raccontare, o da tacere."
+      ],
+      "indizi": [
+        {
+          "id": "mestolo",
+          "a": "tutti",
+          "titolo": "Il mestolo",
+          "testo": "Accanto alla scala della cantina c'è un mestolo sporco di rosso. A guardarlo da vicino è salsa di pomodoro, non sangue."
+        },
+        {
+          "id": "calice",
+          "a": "bruno",
+          "titolo": "Il Calice del Fondatore",
+          "testo": "Sul fondo del calice c'è un residuo scuro che sa di mandorla amara. Nessun idromele ha quel profumo: qualcuno ci ha versato dentro qualcosa.",
+          "prova": [
+            "come"
+          ]
+        },
+        {
+          "id": "manica",
+          "a": "nora",
+          "titolo": "Un odore",
+          "testo": "Passando accanto a Tobia hai sentito sulla sua manica un odore di mandorla amara. Lo stesso che c'è in cantina.",
+          "prova": [
+            "chi",
+            "come"
+          ]
+        },
+        {
+          "id": "bruciato",
+          "a": "anselmo",
+          "titolo": "Il foglio bruciato",
+          "testo": "Nel camino spento della stanza di Ugolino c'era una brutta copia scritta da lui e gettata via, mezza bruciata: «...lascio la taverna a Bettina, che l'ha tenuta in piedi quando nessuno...». Il resto è cenere.",
+          "prova": [
+            "perche"
+          ]
+        },
+        {
+          "id": "pausa",
+          "a": "lia",
+          "titolo": "La pausa",
+          "testo": "Alle undici e quaranta, durante la tua pausa, hai visto Tobia risalire dalla cantina asciugandosi le mani sul grembiule. Senza nessun vassoio.",
+          "prova": [
+            "chi"
+          ]
+        },
+        {
+          "id": "vendita",
+          "a": "gisella",
+          "titolo": "Una domanda strana",
+          "testo": "Ieri Tobia ti ha chiesto quanto si ricava vendendo in fretta una taverna come questa, e se tu conoscessi compratori.",
+          "prova": [
+            "perche"
+          ]
+        },
+        {
+          "id": "medaglione",
+          "a": "orlando",
+          "titolo": "Un luccichio",
+          "testo": "Quando Frate Anselmo si è chinato tra le botti, dal saio è spuntato un medaglione d'argento. Sembrava quello che Ugolino teneva in camera."
+        }
+      ],
+      "eventi": [
+        {
+          "dopo": 10,
+          "testo": "Una lanterna si spegne. Per qualche istante, in cantina, si sente solo il respiro di tutti."
+        },
+        {
+          "dopo": 20,
+          "testo": "Qualcuno trova l'idromele della festa intatto nella botte: chiunque abbia avvelenato Ugolino, ha scelto solo il suo calice."
+        }
+      ]
+    },
+    {
+      "titolo": "Mezzanotte e un quarto",
+      "minuti": 20,
+      "narrazione": [
+        "La tempesta si calma. Tra poco arriverà l'alba e con lei le guardie del barone.",
+        "È l'ultima occasione per mettere insieme i pezzi, prima di puntare il dito."
+      ],
+      "indizi": [
+        {
+          "id": "lettera",
+          "a": "gualtiero",
+          "titolo": "La lettera del notaio",
+          "testo": "Hai aperto la lettera del notaio: «A conferma della mia lettera di ieri, il nuovo testamento a favore della signora Bettina Mestolo è pronto per la firma». Era questa la sorpresa di mezzanotte.",
+          "prova": [
+            "perche"
+          ]
+        },
+        {
+          "id": "sorpresa",
+          "a": "bettina",
+          "titolo": "Le parole di Ugolino",
+          "testo": "Ti torna in mente cosa ti ha detto Ugolino dopo il litigio: «Stasera non andartene presto. A mezzanotte ti faccio una sorpresa che ti farà vergognare di avermi urlato contro».",
+          "prova": [
+            "perche"
+          ]
+        },
+        {
+          "id": "vassoio",
+          "a": "bettina",
+          "titolo": "Il vassoio",
+          "testo": "Ripensandoci: stasera Tobia ha insistito per portare lui il calice in cantina e prepararlo per il brindisi. In dieci anni non l'aveva mai fatto.",
+          "prova": [
+            "chi"
+          ]
+        },
+        {
+          "id": "radice",
+          "a": "mirella",
+          "titolo": "La radice d'ombra",
+          "testo": "La radice d'ombra sa di mandorla amara, lascia le labbra bluastre e ferma il cuore in pochi minuti. Sciolta nell'idromele dolce, non si sente.",
+          "prova": [
+            "come"
+          ]
+        },
+        {
+          "id": "cenere",
+          "a": "tutti",
+          "titolo": "La cenere del camino",
+          "testo": "Nel camino della sala, sotto la cenere, c'è un angolo di carta bollata con il sigillo del notaio del borgo. Qualcuno ha bruciato un documento importante.",
+          "prova": [
+            "perche"
+          ]
+        }
+      ],
+      "eventi": [
+        {
+          "dopo": 12,
+          "testo": "Si sente il primo gallo. Fuori, in lontananza, dei cavalli si avvicinano."
+        }
+      ]
+    }
+  ],
+  "domande": [
+    {
+      "id": "chi",
+      "testo": "Chi ha ucciso Mastro Ugolino?",
+      "tipo": "personaggio"
+    },
+    {
+      "id": "come",
+      "testo": "Come è stato ucciso?",
+      "tipo": "scelta",
+      "scelte": [
+        "Veleno nel Calice del Fondatore",
+        "Un colpo di mestolo alla testa",
+        "Spinto giù dalla scala della cantina",
+        "Soffocato col fumo del camino"
+      ]
+    },
+    {
+      "id": "perche",
+      "testo": "Perché?",
+      "tipo": "scelta",
+      "scelte": [
+        "Per non perdere l'eredità della taverna",
+        "Per un debito di gioco",
+        "Per vendicare un'offesa all'onore",
+        "Per coprire un furto"
+      ]
+    }
+  ],
+  "soluzione": {
+    "risposte": {
+      "chi": "tobia",
+      "come": "Veleno nel Calice del Fondatore",
+      "perche": "Per non perdere l'eredità della taverna"
+    },
+    "ricostruzione": [
+      "Ieri, sulla scrivania dello zio, Tobia trova una lettera del notaio: Ugolino sta per lasciare la taverna a Bettina. Il ragazzo, pieno di debiti, contava di venderla.",
+      "Stasera, passando in cucina a prendere un vassoio con le mani sporche di farina di castagne, apre la borsa di Mirella e ruba la fiala di radice d'ombra.",
+      "Insiste per preparare lui il Calice del Fondatore. Alle undici e quaranta scende in cantina con la sua chiave, una delle due rimaste, e versa il veleno nell'idromele. Lia lo vede risalire.",
+      "Brucia nel camino della sala la lettera del notaio, ma un angolo con il sigillo resta sotto la cenere. Non sa che lo zio aveva già scritto e gettato una brutta copia del testamento: la trova Frate Anselmo mentre ruba il medaglione, e la conferma del notaio è ancora nella giubba di Capitan Gualtiero.",
+      "A mezzanotte meno dieci Ugolino scende a prendere il calice, beve il primo sorso come ogni anno, e il suo cuore si ferma tra le botti.",
+      "Bettina aveva litigato con lui, Orlando l'aveva sfidato, Gisella gli faceva credito, Anselmo lo derubava: tutti avevano un segreto, ma solo Tobia aveva un motivo, la chiave e il veleno."
+    ]
+  }
+}

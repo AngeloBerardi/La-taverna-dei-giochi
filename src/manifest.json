@@ -89,6 +89,7 @@
  "src/js/motori/33-fantasma.js",
  "src/js/motori/34-voto.js",
  "src/js/motori/35-sync.js",
+ "src/js/motori/36-giallo.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
  "src/js/app/01b-icone.js",

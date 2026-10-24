@@ -24,52 +24,53 @@ Rete e regole: `docs/ARCHITECTURE.md` → «Regia». Un telefono per giocatore (
 Un indizio privato resta di chi lo ha. «Mostra a…» manda una richiesta alla regia, che consegna al destinatario una copia marcata «mostrato da X» (solo lettura). Così si può far vedere senza cedere, come al tavolo vero.
 
 ## Formato di un kit (JSON, uno per file)
-I kit non entrano in `dist/index.html`: il build li scrive a parte e solo la TV li scarica.
+`src/kit/<id>.json` (nome del file = `id`). Il build li valida con `GIALLO.valida`, li scrive a parte in `dist/kit/<id>.<hash>.json` e nella pagina mette solo l'indice (`REGIA.KIT`: titolo, giocatori, durata, url). Solo la TV regista scarica il file (`REGIA.kit(id)`). Esempio completo: `src/kit/ultima-cena.json`.
 ```json
 {
-  "id": "villa-ombrosa",
-  "titolo": "Villa Ombrosa, 1926",
-  "giocatori": [6, 10],
-  "durata": 120,
-  "tono": "classico",
-  "prologo": ["testo letto dalla TV", "..."],
-  "vittima": { "nome": "...", "ritratto": "..." },
-  "luoghi": [{ "id": "biblioteca", "nome": "Biblioteca" }],
-  "personaggi": [
-    {
-      "id": "contessa",
-      "nome": "...",
-      "essenziale": true,
-      "costume": "...",
-      "storia": "...",
-      "segreto": "...",
-      "sa": { "maggiordomo": "cosa sa di lui" },
-      "alibi": "dov'era all'ora del delitto",
-      "obiettivi": [["atto 1: cosa fare"], ["atto 2"], ["atto 3"]]
-    }
-  ],
-  "atti": [
-    {
-      "titolo": "...",
-      "minuti": 25,
-      "narrazione": ["..."],
-      "indizi": [{ "id": "i1", "a": "contessa", "testo": "...", "img": null }],
-      "pubblici": ["i7"],
-      "eventi": [{ "dopo": 10, "testo": "Salta la luce..." }]
-    }
-  ],
-  "soluzione": { "chi": "maggiordomo", "come": "...", "perche": "...", "ricostruzione": ["..."] },
+  "id": "ultima-cena", "titolo": "...", "sottotitolo": "...", "giocatori": [6, 10], "minuti": 90, "tono": "leggero",
+  "prologo": ["paragrafi letti dalla TV"],
+  "vittima": { "nome": "...", "chi": "..." },
+  "luoghi": [{ "id": "cantina", "nome": "Cantina" }],
+  "personaggi": [{
+    "id": "tobia", "nome": "...", "ruolo": "...", "essenziale": true, "costume": "...",
+    "storia": "...", "segreto": "...", "alibi": "...",
+    "sa": { "bettina": "cosa sa di lei" },
+    "obiettivi": [["atto 1"], ["atto 2"], ["atto 3"]]
+  }, { "id": "lia", "essenziale": false, "riserva": "orlando", "...": "..." }],
+  "atti": [{
+    "titolo": "...", "minuti": 20, "narrazione": ["..."],
+    "indizi": [
+      { "id": "corpo", "a": "tutti", "titolo": "...", "testo": "...", "prova": ["come"] },
+      { "id": "fiala", "a": "mirella", "titolo": "...", "testo": "...", "prova": ["chi", "come"] }
+    ],
+    "eventi": [{ "dopo": 8, "testo": "minuto dell'atto in cui la TV lo annuncia" }]
+  }],
   "domande": [
-    { "id": "chi", "testo": "Chi è l'assassino?", "tipo": "personaggio" },
-    { "id": "come", "testo": "Con cosa?", "scelte": ["..."] }
-  ]
+    { "id": "chi", "testo": "Chi ha ucciso...?", "tipo": "personaggio" },
+    { "id": "come", "testo": "...", "tipo": "scelta", "scelte": ["...", "..."] }
+  ],
+  "soluzione": { "risposte": { "chi": "tobia", "come": "..." }, "ricostruzione": ["passi del finale"] }
 }
 ```
-Personaggi `essenziale: false` si tolgono con meno giocatori: i loro indizi passano a chi indica `riserva`.
+Regole che il validatore controlla:
+- con `giocatori: [min, max]`: `min` ≥ personaggi essenziali, `max` ≤ personaggi totali. Con n giocatori entrano gli essenziali e poi i facoltativi nell'ordine del file;
+- un facoltativo ha una `riserva` essenziale: se non è in gioco, i suoi indizi vanno a lei;
+- `a: "tutti"` = indizio pubblico (lo mostra la TV); gli altri vanno al personaggio indicato;
+- `prova`: le domande a cui l'indizio contribuisce. Ogni domanda deve avere almeno **due** indizi che la provano (il giallo è risolvibile);
+- la risposta a «chi» è un personaggio essenziale; le altre risposte sono tra le `scelte`; gli obiettivi sono uno per atto.
+
+## Motore (`motori/36-giallo.js`, `GIALLO`)
+Stato privato della regia (va in `regia/CODICE`): personaggi assegnati, `mano[uid]` (ciò che ognuno ha: scheda, obiettivi `obN`, indizi `i-ID`, copie mostrate `m-ID`), indizi pubblici, voti, punti. La TV consegna `mano[uid]` con `REGIA.consegna` (solo le chiavi nuove o cambiate) e scrive nella stanza `GIALLO.pubblico(s, kit)`, che non contiene segreti né soluzione prima del finale.
+- `nuova(kit, [{uid,nome}], {rnd, scelte})`, `act(s, azione, kit, ora)`: `{t:'avanti'}` dalla regia; dai telefoni `mostra {indizio, a}`, `obiettivo {atto, i, fatto}`, `voto {risposte}`, `attore {per}`, sempre con `uid`.
+- Punti: chi giusto 3, ogni altra risposta giusta 1, obiettivo fatto 1 (dichiarato dal giocatore), miglior attore 2, l'assassino che la maggioranza non scopre 3.
+- Test: `tests/test_giallo.js` (ogni kit, da min a max giocatori: nessun indizio perso, nessun segreto nel pubblico, chi condivide gli indizi ha le prove per tutte le domande, investigatori bravi battono quelli casuali).
+
+## Limite: kit pubblici
+Il repo è pubblico e i file dei kit sono statici sul sito: chi va a cercarli di proposito legge la soluzione (come chi sfoglia il libretto del padrone di casa di un kit stampato). La regia protegge dalla sbirciata durante la serata: nessun telefono riceve i segreti degli altri. Per vendere i kit andranno spostati in un repo privato o in uno spazio letto solo dalla regista.
 
 ## Lavoro, in tre richieste di unione
-1. **Rete e regole** (questo ramo): `REGIA`, nodi `regia`/`segreti`/`azioni`, ruolo `r`, test con interprete ed emulatore.
-2. **Motore e kit 1**: `motori/NN-giallo.js` (stato della regia puro: assegna, consegna per atto, richieste, voti, punteggio) + test con kit finto e partite simulate; validatore dei kit (ogni indizio ha un destinatario, la soluzione è deducibile dagli indizi); build che copia i kit a parte.
+1. **Rete e regole** (`feat/gialli-rete`): `REGIA`, nodi `regia`/`segreti`/`azioni`, ruolo `r`, test con interprete ed emulatore.
+2. **Motore e kit 1** (`feat/gialli-motore`): `motori/36-giallo.js`, validatore, `src/kit/ultima-cena.json`, build dei kit a parte.
 3. **Viste**: TV regista (narrazione, timer, mappa, voti, finale) e telefono (scheda a schede, indizi, mostra a, accusa); voce in scaffale, regole in-game, musica.
 
 ## I primi cinque kit

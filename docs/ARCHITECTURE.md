@@ -66,7 +66,7 @@ Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati 
 | `regia/CODICE` (kit, soluzione, atto, voti) | regista | regista |
 | `segreti/CODICE/UID/CHIAVE` (scheda, indizi) | regista | solo UID (e la regista) |
 | `azioni/CODICE/UID/ID` (mostra indizio, voto) | UID se è dentro | regista, che le consuma |
-La TV entra con `RT.claim` (dispositivo e `k`, nessun membro: non è un giocatore), poi `REGIA.prendi`. Le parti pubbliche della serata (atto, timer, indizi pubblici) vanno nel documento della stanza come negli altri giochi. A fine serata `REGIA.pulisci`. Limite: chi è dentro può liberare la regia e prenderla con gli strumenti da sviluppatore (il gioco mostra chi è la regista). Test: `tests/test_regia.js` (interprete delle regole + vero client), casi uguali in `tests/emulatore/regole.js`. Piano: `docs/GIALLI.md`.
+La TV entra con `RT.claim` (dispositivo e `k`, nessun membro: non è un giocatore), poi `REGIA.prendi`. Le parti pubbliche della serata (atto, timer, indizi pubblici) vanno nel documento della stanza come negli altri giochi. A fine serata `REGIA.pulisci`. Limite: chi è dentro può liberare la regia e prenderla con gli strumenti da sviluppatore (il gioco mostra chi è la regista). Test: `tests/test_regia.js` (interprete delle regole + vero client), casi uguali in `tests/emulatore/regole.js`. Kit: `src/kit/*.json`, scritti dal build in `dist/kit/` (nella pagina solo l'indice `REGIA.KIT`); motore della serata `motori/36-giallo.js` (`GIALLO`, contratto proprio, non a turni). Piano: `docs/GIALLI.md`.
 
 ## Rete
 **Un solo trasporto: il Realtime Database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Stessa interfaccia `doc/collection/onSnapshot` di `R.db`, ma nessun telefono fa da host: lo stato sta nel database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`, `/pos/DEV` posizione del pupazzo 3D: camminare scrive solo qui e non ridisegna la pagina; `/dv/DEV` e `/k/UID` legano dispositivo e profilo alla stanza) e l'SDK riconnette e risincronizza da solo. Ogni documento è un testo JSON (`j`) perché RTDB toglie null e array vuoti. Regole: `database.rules.json` (da pubblicare, come `firestore.rules`).
@@ -175,6 +175,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
 | `js/motori/35-sync.js` | 4 | SYNC |
+| `js/motori/36-giallo.js` | 12 | GIALLO |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
