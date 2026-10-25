@@ -851,6 +851,119 @@ async def sc_catan_tocchi(b, srv):
     check(await pg.evaluate('!!G.dice'), 'il bottone «Tira i dadi» tira i dadi')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+# Regicide Legacy: una missione giocata davvero dall'interfaccia (tocchi su carte e pulsanti), campagna salvata, missione successiva,
+# poi due telefoni sulla stessa stanza del database e lo schermo comune con la plancia 3D
+RL_STEP = """()=>{const q=s=>document.querySelector(s);if(ui.anim||ui.busy)return'wait';if(!G)return'nog';if(G.over)return'over';
+ const cv=q('.cover [data-a=reveal]');if(cv){cv.click();return'cover'}
+ if(!myTurn())return'other';
+ if(G.phase==='prep'){q('[data-a=rlstart]').click();return'start'}
+ if(G.phase==='magic'){const b=q('.rl-revc:not([disabled])');(b||q('[data-a=rlmago][data-v=""]')).click();return'mago'}
+ if(G.phase==='pick'){q('[data-a=rlpick]').click();return'pick'}
+ if(G.phase==='discard'){q('[data-a=rlauto]').click();const d=q('[data-a=rldisc]');if(d&&!d.disabled){d.click();return'disc'}const f=q('[data-a=rlfeign]');if(f){f.click();return'feign'}return'stuck'}
+ const h=G.hands[G.cur];let best=null;for(let i=0;i<h.length;i++)for(let j=i;j<h.length;j++){const k=i===j?[h[i]]:[h[i],h[j]];if(RLEG.checkPlay(G,k))continue;const p=RLEG.preview(G,k);if(!p||p.jester)continue;
+  const left=h.filter(c=>!k.includes(c)).reduce((t,c)=>t+RLEG.val(G,c),0),v=p.dmg*2+p.shield*3+p.draw*2+p.heal+(left>=RLEG.effStr(G)?40:0)-k.length*3;if(!best||v>best.v)best={v,k}}
+ if(!best){q('[data-a=rlyc]').click();const y=q('[data-a=rlyield]');if(y){y.click();return'yield'}return'stuck'}
+ ui.sel=[];best.k.forEach(c=>q('#hand [data-v="'+c+'"]').click());const b=q('[data-a=rlplay]');if(b.disabled)return'bad:'+best.k.join(',');b.click();return'play'}"""
+RL_TXT = "(()=>{const t=document.getElementById('app').innerText;return /\\bundefined\\b|\\bNaN\\b|\\bnull\\b|\\[object/.test(t)?t.slice(0,200):''})()"
+
+async def rl_gioca(pg, passi=900):
+    visti = set(); brutto = ''
+    for _ in range(passi):
+        r = await pg.evaluate(RL_STEP); visti.add(r.split(':')[0])
+        if r.startswith('bad') or r == 'stuck': return r, visti, brutto
+        t = await pg.evaluate(RL_TXT)
+        if t and not brutto: brutto = t
+        if r == 'over': return r, visti, brutto
+        await pg.wait_for_timeout(15 if r in ('wait', 'other') else 40)
+    return 'timeout', visti, brutto
+
+async def sc_regicide_legacy(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
+    await pg.evaluate("(()=>{SP=.02;localStorage.removeItem('rl-camp')})()")
+    # due eroi sullo stesso telefono (ospite): si passa il telefono
+    await pg.evaluate("startGame('rlegacy',[{dev:ME.dev,k:'m',name:'Ada'},{dev:ME.dev,k:'g1',name:'Bruno'}])"); await pg.wait_for_timeout(800)
+    check(await pg.evaluate("G.g==='rlegacy'&&G.phase==='prep'&&G.mis===1"), 'RL: si parte dalla preparazione della missione 1')
+    check('Chiamata alle armi' in await pg.inner_text('#app'), 'RL: storia della missione 1')
+    await pg.screenshot(path='/tmp/claude-0/rl-prep.png')
+    r, visti, brutto = await rl_gioca(pg)
+    check(r == 'over', f'RL: missione giocata fino alla fine dall\'interfaccia ({r}, azioni {sorted(visti)})')
+    check({'start', 'play', 'disc', 'cover'} <= visti, f'RL: usati inizio, attacco, parata e passaggio del telefono {sorted(visti)}')
+    check(brutto == '', f'RL: nessun testo undefined/NaN/null ({brutto[:80]})')
+    await pg.wait_for_timeout(600)
+    fine = await pg.evaluate("[G.over.win,JSON.parse(localStorage.getItem('rl-camp')),document.querySelector('.endbox')&&document.querySelector('.endbox').innerText]")
+    win, camp, txt = fine
+    check(camp is not None and camp['v'] >= 2, f'RL: campagna salvata sul telefono (v{camp and camp["v"]})')
+    check(txt and ('Missione compiuta' in txt or 'Missione fallita' in txt), 'RL: schermata di fine missione')
+    await pg.screenshot(path='/tmp/claude-0/rl-fine.png')
+    await pg.click('[data-a=rematch]'); await pg.wait_for_timeout(900)
+    nxt = await pg.evaluate("[G.phase,G.mis,G.coins,!!document.querySelector('.rl-merc')]")
+    if win: check(nxt[0] == 'prep' and nxt[1] == 2, f'RL: dopo la vittoria si passa alla missione 2 {nxt}')
+    else: check(nxt[0] == 'prep' and nxt[1] == 1 and nxt[2] == 1 and nxt[3], f'RL: dopo la sconfitta si riprova con 1 moneta e i mercenari {nxt}')
+    # missione avanzata (campagna fittizia alla 9): classi nuove, dispersi, reliquie; si gioca un po' e si fotografa a 390 px
+    await pg.evaluate("""(()=>{const c=RLEG.newCamp();c.id='prova';c.m=9;c.merc=true;c.fails[9]=1;c.beasts=true;c.rel=['flauto','fischietto','emblema'];c.party.push('tronco');c.mod.tronco='G';c.done=[1,2,3,4,5,6,7,8];c.v=20;
+      localStorage.setItem('rl-camp',JSON.stringify(c));G=null})()""")
+    await pg.evaluate("startGame('rlegacy',[{dev:ME.dev,k:'m',name:'Ada'}])"); await pg.wait_for_timeout(800)
+    check(await pg.evaluate("G.mis===9&&!!document.querySelector('.rl-merc')&&document.querySelectorAll('[data-a=rlbeast]').length===4"), 'RL: missione 9 con mercenari e belve in preparazione')
+    await pg.click('[data-a=rlmerc][data-v=mg1]'); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("G.prep.merc.includes('mg1')"), 'RL: mercenario scelto con un tocco')
+    await pg.click('[data-a=rlstart][data-v="0"]'); await pg.wait_for_timeout(900)
+    check(await pg.evaluate("!!G.stacks&&document.querySelectorAll('[data-a=rlsacr]').length===3"), 'RL: tre pile di dispersi sul tavolo')
+    for _ in range(12):
+        await pg.evaluate(RL_STEP); await pg.wait_for_timeout(120)
+    await pg.wait_for_timeout(500)
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth"), 'RL: niente scroll orizzontale a 390 px')
+    await pg.screenshot(path='/tmp/claude-0/rl-tavolo.png', full_page=True)
+    check(await pg.evaluate(RL_TXT) == '', 'RL: testi puliti in missione 9')
+    # schermo comune: plancia low-poly (WebGL software) e niente mani a vista
+    await pg.set_viewport_size({'width': 1920, 'height': 1080})
+    await pg.evaluate("(async()=>{ui.tv=true;document.documentElement.dataset.tv='1';const S=[{dev:'a',k:'m',name:'Ada'},{dev:'b',k:'m',name:'Bruno'},{dev:'c',k:'m',name:'Carla'}];await startGame('rlegacy',S);await Q;})()")
+    await pg.wait_for_timeout(800)
+    check('Regicide Legacy' in await pg.inner_text('#app'), 'RL TV: preparazione sullo schermo')
+    await pg.evaluate("(async()=>{const r=RLEG.act(G,{t:'start',first:1});pushState(r.s,false);await Q})()"); await pg.wait_for_timeout(500)
+    await pg.evaluate("(async()=>{let s=G;for(let i=0;i<4&&!s.over;i++){const h=s.hands[s.cur];const r=RLEG.act(s,{t:'play',cards:[h[h.length-1]]});if(r.err)break;s=r.s;if(s.phase==='discard'){const d=RLEG.bestDiscard(s);const r2=d.length?RLEG.act(s,{t:'discard',cards:d}):RLEG.act(s,{t:'feign'});if(r2.err)break;s=r2.s}if(s.phase==='magic')s=RLEG.act(s,{t:'mago',c:null}).s;if(s.phase==='pick')s=RLEG.act(s,{t:'pick',to:s.cur}).s}pushState(s,false);await Q})()")
+    await pg.wait_for_timeout(4000)
+    d3 = await pg.evaluate("document.documentElement.dataset.tv3==='1'")
+    check(await pg.evaluate("document.querySelectorAll('#hand .card:not(.back)').length") == 0, f'RL TV: nessuna mano a vista (3D: {d3})')
+    check(await pg.evaluate("document.querySelectorAll('.tv3-pl li').length") == 3, 'RL TV: tre giocatori con le carte in mano')
+    await pg.screenshot(path='/tmp/claude-0/rl-tv.png')
+    check(not pg.errs, f'RL: nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
+async def sc_regicide_legacy_due_telefoni(b, srv):
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 11)
+    await A.wait_for_function("R.mode==='rt'&&R.code&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 12, '?room=' + code + '&net=rt')
+    await B.wait_for_function("R.mode==='rt'&&R.members.length>=2", timeout=30000); await A.wait_for_timeout(1200)
+    for p_ in (A, B): await p_.evaluate("(()=>{SP=.02;localStorage.removeItem('rl-camp')})()")
+    await A.evaluate("startGame('rlegacy')"); await A.wait_for_timeout(3500)
+    check(await A.evaluate('G&&G.g') == 'rlegacy' and await B.evaluate('G&&G.g') == 'rlegacy', 'RL online: la missione parte su entrambi i telefoni')
+    fini = 0
+    for _ in range(500):
+        ra = await A.evaluate(RL_STEP); rb = await B.evaluate(RL_STEP)
+        if ra == 'over' and rb == 'over': fini = 1; break
+        if 'stuck' in (ra, rb) or ra.startswith('bad') or rb.startswith('bad'): break
+        await A.wait_for_timeout(120)
+    await A.wait_for_timeout(1500)
+    ga = await A.evaluate('JSON.stringify([G.evn,G.hands.map(h=>h.length),G.res.length,G.disc.length,G.kills,!!G.over])'); gb = await B.evaluate('JSON.stringify([G.evn,G.hands.map(h=>h.length),G.res.length,G.disc.length,G.kills,!!G.over])')
+    check(fini == 1, f'RL online: missione portata a termine a due telefoni ({ra}/{rb})')
+    check(ga == gb, f'RL online: stato uguale sui due telefoni {ga} {gb}')
+    ca = await A.evaluate("JSON.parse(localStorage.getItem('rl-camp')||'null')"); cb = await B.evaluate("JSON.parse(localStorage.getItem('rl-camp')||'null')")
+    check(ca and cb and ca['v'] == cb['v'] and ca['id'] == cb['id'], 'RL online: la campagna è salvata uguale su entrambi i telefoni')
+    vis = await B.evaluate("[...document.querySelectorAll('#hand .card')].map(c=>c.dataset.v)")
+    for p_ in (A, B): check(not p_.errs, f'RL online: nessun errore JS {p_.errs[:1]}')
+    for c in (ctxA, ctxB): await c.close()
+
+async def sc_mani_a_ventaglio(b, srv):
+    # fanH (mano a ventaglio con le carte disegnate) non deve essere coperta da fanRowsH del layout fisso
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
+    for gid, n in (('briscola', 2), ('scopa', 2), ('burraco', 2), ('saboteur', 3), ('gang', 3)):
+        r = await pg.evaluate("""async([gid,n])=>{const S=Array.from({length:n},(_,i)=>({dev:i?'altro'+i:ME.dev,k:'m',name:'G'+i}));await startGame(gid,S);await Q;await new Promise(r=>setTimeout(r,400));
+          const h=document.querySelector('#hand,.uhand');return h?[h.querySelectorAll('.card,.ucard,[data-a=sel],[data-v]').length,/^[A-Z0-9]+$/.test(h.innerText.replace(/\s/g,''))&&h.innerText.length>6]:[0,false]}""", [gid, n])
+        check(r[0] > 0 and not r[1], f'{gid}: la mano mostra carte disegnate ({r[0]})')
+        await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null})()")
+    check(not pg.errs, f'mani: nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
