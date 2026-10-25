@@ -16,16 +16,42 @@ s=base();s.hands[0]=['RV','R1','R2'];r=A(s,{t:'play',c:'RV'});assert.strictEqual
 s=base(2);s.hands[0]=['RV','R1','R2'];r=A(s,{t:'play',c:'RV'});assert.strictEqual(r.cur,0,'in due, Inverti vale Salta');
 s=base();s.hands[0]=['RD','R1','R2'];r=A(s,{t:'play',c:'RD'});assert.strictEqual(r.hands[1].length,7);assert.strictEqual(r.hands[1].length+0,7);
 const n1=r.hands[1].length;
-s=base();s.hands[0]=['RD','R1','R2'];const b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'});assert.strictEqual(r.hands[1].length,b1+2);assert.strictEqual(r.cur,2);
+s=base();s.hands[0]=['RD','R1','R2'];let b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'});assert.strictEqual(r.hands[1].length,b1+2);assert.strictEqual(r.cur,2);
 // Jolly: serve il colore
 s=base();s.hands[0]=['WW','R1','R2'];assert(U.act(s,{t:'play',c:'WW'}).err);r=A(s,{t:'play',c:'WW',color:'B'});assert.strictEqual(r.color,'B');
 // pesca: se giocabile puoi giocarla o passare
 s=base();s.hands[0]=['Y1','Y2'];s.deck=['R9','G1'];r=A(s,{t:'draw'});assert.strictEqual(r.phase,'pass');assert.strictEqual(r.drawn,'R9');assert(U.act(r,{t:'play',c:'Y1'}).err,'solo la carta pescata');
 let r2=A(r,{t:'play',c:'R9'});assert.strictEqual(r2.cur,1);r2=A(r,{t:'pass'});assert.strictEqual(r2.cur,1);
 s=base();s.hands[0]=['Y1','Y2'];s.deck=['B9','G1'];r=A(s,{t:'draw'});assert.strictEqual(r.cur,1,'non giocabile: passa da solo');
-// UNO dimenticato
-s=base();s.hands[0]=['R1','R2'];r=A(s,{t:'play',c:'R1'});assert.strictEqual(r.hands[0].length,3,'senza UNO pesca 2');
-r=A(s,{t:'play',c:'R1',uno:true});assert.strictEqual(r.hands[0].length,1);
+// UNO dimenticato: niente penalità automatica, ma il giocatore dopo può denunciarlo
+s=base();s.hands[0]=['R1','R2'];r=A(s,{t:'play',c:'R1'});assert.strictEqual(r.hands[0].length,1);assert.strictEqual(r.miss,0,'scoperto');assert.strictEqual(r.cur,1);
+let rk=A(r,{t:'catch'});assert.strictEqual(rk.hands[0].length,3,'denunciato: pesca 2');assert.strictEqual(rk.miss,null);assert.strictEqual(rk.cur,1,'la denuncia non consuma il turno');
+assert(U.act(rk,{t:'catch'}).err,'una sola denuncia');
+rk=A(r,{t:'draw'});assert.strictEqual(rk.miss,null,'se il prossimo muove, è tardi');assert(U.act(rk,{t:'catch'}).err);
+r=A(s,{t:'play',c:'R1',uno:true});assert.strictEqual(r.hands[0].length,1);assert.strictEqual(r.miss,null);assert(U.act(r,{t:'catch'}).err,'chi ha detto UNO non si denuncia');
+// in due: Salta riporta il turno al colpevole, che non si può più denunciare
+s=base(2);s.hands[0]=['RS','R1'];r=A(s,{t:'play',c:'RS'});assert.strictEqual(r.cur,0);assert.strictEqual(r.miss,null,'il turno è tornato al colpevole: niente denuncia');
+// UNO anche dopo aver pescato: con 1 carta pesco, gioco la pescata e resto con 1 carta
+s=base();s.hands[0]=['Y1'];s.deck=['R9','G1'];r=A(s,{t:'draw'});assert.strictEqual(r.phase,'pass');r=A(r,{t:'play',c:'R9'});assert.strictEqual(r.miss,0,'senza UNO è scoperto');
+s=base();s.hands[0]=['Y1'];s.deck=['R9','G1'];r=A(s,{t:'draw'});r=A(r,{t:'play',c:'R9',uno:true});assert.strictEqual(r.miss,null);
+// doppie: due carte identiche insieme
+s=base();s.hands[0]=['R7','R7','Y5','G9'];assert.strictEqual(U.maxN(s,0,'R7'),2);assert.strictEqual(U.maxN(s,0,'Y5'),1,'Y5 non è giocabile');
+assert(U.act(s,{t:'play',c:'R7',n:3}).err,'non hai 3 carte');assert(U.act(s,{t:'play',c:'Y5',n:2}).err);
+r=A(s,{t:'play',c:'R7',n:2});assert.strictEqual(r.hands[0].length,2);assert.strictEqual(r.discard.length,3);assert.strictEqual(r.discard[2],'R7');assert.strictEqual(r.cur,1);
+s=base();s.hands[0]=['R7','R7','Y5'];r=A(s,{t:'play',c:'R7',n:2});assert.strictEqual(r.miss,0,'doppia che lascia una carta: serve UNO');
+s=base();s.hands[0]=['R7','R7'];r=A(s,{t:'play',c:'R7',n:2});assert(r.over&&r.over.win===0,'si può chiudere con una doppia');
+s=base();s.hands[0]=['RS','RS','R1'];r=A(s,{t:'play',c:'RS',n:2});assert.strictEqual(r.cur,0,'due Salta: salta due giocatori (con tre torna a me)');
+s=base(4);s.hands[0]=['RS','RS','R1'];r=A(s,{t:'play',c:'RS',n:2});assert.strictEqual(r.cur,3);
+s=base(4);s.hands[0]=['RV','RV','R1'];r=A(s,{t:'play',c:'RV',n:2});assert.strictEqual(r.dir,1,'due Inverti si annullano');assert.strictEqual(r.cur,1);
+s=base(4);s.hands[0]=['RV','R1'];r=A(s,{t:'play',c:'RV'});assert.strictEqual(r.dir,-1);assert.strictEqual(r.cur,3);
+s=base(2);s.hands[0]=['RV','RV','R1'];r=A(s,{t:'play',c:'RV',n:2});assert.strictEqual(r.cur,1,'in due ogni Inverti vale Salta');
+s=base();s.hands[0]=['RD','RD','R1'];b1=s.hands[1].length;r=A(s,{t:'play',c:'RD',n:2});assert.strictEqual(r.hands[1].length,b1+4,'due +2 = 4 carte');assert.strictEqual(r.cur,2);
+s=base(3,'stack');s.hands[0]=['RD','RD','R1'];r=A(s,{t:'play',c:'RD',n:2});assert.strictEqual(r.pend,4);
+s=base();s.hands[0]=['WW','WW','R1'];assert(U.act(s,{t:'play',c:'WW',n:2,color:'B'}).err,'i jolly non si giocano in doppia');
+s=base();s.hands[0]=['Y1','Y1'];s.deck=['R9','R9','G1'];r=A(s,{t:'draw'});assert.strictEqual(r.phase,'pass');assert(U.act(r,{t:'play',c:'R9',n:2}).err,'dopo la pesca solo la carta pescata');
+// ultima carta +2 / +4: il prossimo pesca prima dei punti
+s=base();s.hands[0]=['RD'];b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'});assert(r.over);assert.strictEqual(r.hands[1].length,b1+2);assert.strictEqual(r.over.scores[0],r.hands[1].reduce((a,c)=>a+U.pts(c),0)+r.hands[2].reduce((a,c)=>a+U.pts(c),0));
+s=base();s.hands[0]=['WF'];b1=s.hands[1].length;r=A(s,{t:'play',c:'WF',color:'B'});assert(r.over);assert.strictEqual(r.hands[1].length,b1+4);
 // vittoria
 s=base();s.hands[0]=['R1'];r=A(s,{t:'play',c:'R1'});assert(r.over&&r.over.win===0);
 // +4 classico: accetta
@@ -43,9 +69,10 @@ let r3=A(r2,{t:'draw'});assert.strictEqual(r3.hands[2].length,9);assert.strictEq
 s=base();s.deck=[];s.discard=['R5','Y1','Y2','B3'];s.color='B';s.hands[0]=['Y9','G9'];r=A(s,{t:'draw'});assert(all(r).length>=4);
 // partite
 function bot(s){const p=s.cur,h=s.hands[p];
+ if(s.miss!=null&&s.miss!==p&&R()<.5)return{t:'catch'};
  if(s.phase==='challenge')return{t:R()<.4?'challenge':'accept'};
  const pl=U.canPlay(s,p).filter(c=>s.phase!=='pass'||c===s.drawn);
- if(pl.length&&(s.phase!=='pass'||R()<.9)){const c=pl[Math.floor(R()*pl.length)],cc=U.COLORS.slice().sort((a,b)=>h.filter(x=>x[0]===b).length-h.filter(x=>x[0]===a).length)[0];return{t:'play',c,color:cc,uno:R()<.9}}
+ if(pl.length&&(s.phase!=='pass'||R()<.9)){const c=pl[Math.floor(R()*pl.length)],cc=U.COLORS.slice().sort((a,b)=>h.filter(x=>x[0]===b).length-h.filter(x=>x[0]===a).length)[0];const mx=U.maxN(s,p,c),n=mx>1&&R()<.5?2:1;return{t:'play',c,n,color:cc,uno:R()<.9}}
  return{t:s.phase==='pass'?'pass':'draw'}}
 for(const edi of ['classic','stack'])for(const n of [2,3,5,7,10])for(let g=0;g<40;g++){let s=mk(n,edi),k=0;const N=all(s).length;while(!s.over&&k++<4000){const a=bot(s),r=U.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.stringify(a)+' '+s.phase);s=r.s;assert.strictEqual(all(s).length,N,'carte perse')}
  assert(s.over,'partita senza fine '+edi+n)}
