@@ -19,6 +19,9 @@ function unoH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s
  const mid=`<div class="utable"><div class="upile">${ubackH()}<span>${s.deck.length}</span></div><div class="uturn" style="--uc:${UCOL[s.color]}"><div class="ucol"></div>${ucardH(top,{cls:'big'+(fresh&&!ui.anim?' land':''),style:'--t:'+(((s.evn*37)%13)-6)+'deg'})}<span class="uarr">${s.dir===1?'↻':'↺'}</span></div></div>`;
  let ctl='',hint='';
  const h=v>=0?s.hands[v]:[];
+ /* chi ha giocato la penultima carta senza dire UNO può dirlo anche dopo, finché il prossimo non muove */
+ const late=!mine&&!s.over&&s.miss!=null&&isMine(s.miss)&&!multiLocal();
+ if(late){hint='Hai una carta sola: di’ UNO prima che il prossimo muova!';ctl=`<button class="b gold" data-a="ulate">${ic('megafono',16)} UNO!</button>`}
  if(mine){
   if(ph==='swap'){hint='Hai giocato un 7: scegli con chi scambiare la mano.';ctl=`<div class="ktg">${s.names.map((n,i)=>i===s.cur?'':`<button class="b disc" data-a="uswap" data-v="${i}">${ic('scambio',16)} ${esc(n)} (${s.hands[i].length})</button>`).join('')}</div>`}
   else if(ph==='challenge'){const w=s.w4;hint=`<b>${esc(s.names[w.by])}</b> ha giocato un +4: accettalo (pesca 4) o sfidalo. Se aveva in mano una carta del colore precedente pesca lui 4, altrimenti ne pesci 6 tu.`;
@@ -39,9 +42,11 @@ function unoH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s
  if(cover)hand=coverH(s.cur);
  else if(v>=0)hand=`<div class="uhand">${fanH(uSort(h).map(c=>{const can=mine&&(ph==='play'||ph==='pass')&&UNO.playable(s,c)&&(ph!=='pass'||c===s.drawn);return ucardH(c,{cls:(can?'can ':'dim ')+(ui.ucs===c||ui.udbl===c?'sel':''),attrs:`data-a="ucard" data-v="${c}" role="button" tabindex="0"`})}),10)}</div>`;
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">${ic('corona',40)}</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>${i===s.over.win?'punti presi':s.hands[i].length+' carte'}</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
- const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>`}${mine&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
+ const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>`}${(mine||late)&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
  return fixH({title:'Uno',chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand,players:pl,end})}
-function unoClick(a,v){const s=G;if(!myTurn())return;
+function unoClick(a,v){const s=G;
+ if(a==='ulate')return dispatch({t:'uno'});
+ if(!myTurn())return;
  if(a==='uswap')return dispatch({t:'swap',to:+v});
  if(a==='ucard'){if(s.phase==='challenge'||s.phase==='swap')return;const c=v;if(!UNO.playable(s,c)||(s.phase==='pass'&&c!==s.drawn)){ui.err=s.pend?'Devi rispondere con '+(s.pendK==='D'?'un +2':'un +4')+' o pescare':'Questa carta non si può giocare adesso';Snd.play('err');return render()}ui.err='';
   if(c[0]==='W'){if(s.hands[s.cur].length===1)return dispatch({t:'play',c,uno:false});ui.ucs=c;return render()}

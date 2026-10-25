@@ -6,12 +6,13 @@
    giocare uno 0 fa passare tutte le mani al giocatore successivo nel verso di gioco. 7 e 0 si giocano una carta alla volta.
    UNO: giocando la penultima carta si annuncia (uno:true). Chi se lo dimentica resta "scoperto" (s.miss): il giocatore dopo di lui
    può denunciarlo (azione catch) prima di muovere e il colpevole pesca 2; appena cur fa un'altra mossa il momento è passato.
+   Il colpevole può rimediare subito dopo aver giocato con l'azione uno (anche fuori turno), finché il prossimo non ha mosso.
    Doppie: si giocano insieme n copie identiche (stesso colore e valore, mai jolly) con a.n; gli effetti si ripetono n volte
    (Salta salta n giocatori, Inverti n volte, +2 fa pescare 2n). Dopo aver pescato si gioca solo la carta pescata, da sola.
    Si può chiudere con qualsiasi carta, anche speciale: se l'ultima è +2/+4 il prossimo pesca prima del conteggio dei punti (con l'accumulo
    anche il mucchio in corso), il +4 giocato per chiudere è sempre regolare e non si sfida, un jolly per chiudere non chiede il colore. Si gioca una mano: vince chi finisce le carte.
    Fasi: play (cur agisce) · pass (ha pescato: può giocare quella carta o passare) · challenge (cur può sfidare o accettare il +4) · swap (cur ha giocato un 7: sceglie con chi scambiare).
-   Azioni: play{c,n?,color?,uno?} draw pass challenge accept catch swap{to}. */
+   Azioni: play{c,n?,color?,uno?} draw pass challenge accept catch uno swap{to}. */
 const UNO=(()=>{
 let RND=Math.random;const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(RND()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const clone=s=>JSON.parse(JSON.stringify(s));
@@ -59,6 +60,7 @@ function doPlay(s,p,c,color,uno,n){n=n||1;const h=s.hands[p];for(let k=0;k<n;k++
  advance(s)}
 const fail=e=>({err:e});
 function act(st,a){const s=clone(st);if(s.over)return fail('Partita finita');s.ev=[];const p=s.cur;
+ if(a.t==='uno'){if(s.miss==null)return fail('Adesso non serve dire UNO');const q=s.miss;s.miss=null;s.ev.push({t:'uno',p:q});L(s,nm(s,q)+' dice UNO in tempo!');s.evn++;return{s}}
  if(a.t==='catch'){if(s.miss==null||s.miss===p)return fail('Nessuno da denunciare');const q=s.miss;s.miss=null;draw(s,q,2);s.ev.push({t:'catch',p,q});L(s,nm(s,p)+' denuncia '+nm(s,q)+': non ha detto UNO e pesca 2 carte');s.evn++;return{s}}
  if(a.t!=='swap')s.miss=null;
  if(s.phase==='swap'){if(a.t!=='swap')return fail('Hai giocato un 7: scegli con chi scambiare la mano');const q=a.to;if(!Number.isInteger(q)||q<0||q>=s.n||q===p)return fail('Scegli un altro giocatore');swapHands(s,p,q);advance(s);s.evn++;return{s}}

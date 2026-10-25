@@ -30,6 +30,11 @@ let rk=A(r,{t:'catch'});assert.strictEqual(rk.hands[0].length,3,'denunciato: pes
 assert(U.act(rk,{t:'catch'}).err,'una sola denuncia');
 rk=A(r,{t:'draw'});assert.strictEqual(rk.miss,null,'se il prossimo muove, è tardi');assert(U.act(rk,{t:'catch'}).err);
 r=A(s,{t:'play',c:'R1',uno:true});assert.strictEqual(r.hands[0].length,1);assert.strictEqual(r.miss,null);assert(U.act(r,{t:'catch'}).err,'chi ha detto UNO non si denuncia');
+// UNO detto subito dopo aver giocato (anche se il turno è già passato): niente più denuncia
+s=base();s.hands[0]=['R1','R2'];r=A(s,{t:'play',c:'R1'});assert.strictEqual(r.miss,0);rk=A(r,{t:'uno'});assert.strictEqual(rk.miss,null);assert.strictEqual(rk.cur,1,'non consuma il turno');assert.strictEqual(rk.hands[0].length,1);assert(U.act(rk,{t:'catch'}).err,'ormai non si denuncia più');assert(U.act(rk,{t:'uno'}).err,'una volta sola');
+assert(U.act(s,{t:'uno'}).err,'se nessuno è scoperto non serve');
+// +2 come penultima carta senza UNO: scoperto ma senza penalità automatica, e rimediabile
+s=base(3,'stack');s.pend=2;s.pendK='D';s.discard=['RD'];s.hands[0]=['BD','R5'];r=A(s,{t:'play',c:'BD'});assert.strictEqual(r.hands[0].length,1);assert.strictEqual(r.miss,0);r=A(r,{t:'uno'});assert.strictEqual(r.hands[0].length,1);assert.strictEqual(r.pend,4);
 // in due: Salta riporta il turno al colpevole, che non si può più denunciare
 s=base(2);s.hands[0]=['RS','R1'];r=A(s,{t:'play',c:'RS'});assert.strictEqual(r.cur,0);assert.strictEqual(r.miss,null,'il turno è tornato al colpevole: niente denuncia');
 // UNO anche dopo aver pescato: con 1 carta pesco, gioco la pescata e resto con 1 carta
