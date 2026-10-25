@@ -30,7 +30,7 @@ function turnNote(prev,ns){if(ns.sim||ns.over||!prev||prev.cur===ns.cur||ns.g===
  if(isMine(ns.cur)){if(!multiLocal()&&R.on){say('Tocca a te!',1400);Snd.play('turn')}}else say('Tocca a '+ns.names[ns.cur],1400)}
 function intro(ns){if(ns.g==='regicide'){if(!ui.story&&ns.en)splash(ns.en.c,true);return}
  const g=GAMES.find(x=>x.id===ns.g);banner(g.name.toUpperCase(),g.mode(ns.n));Snd.play('turn');setTimeout(()=>Snd.play('deal'),300)}
-async function dispatch(a){if(!myTurn())return;if(G.sim&&a.seat==null)a.seat=viewer();const r=ENG[G.g].act(G,a);if(r.err){ui.err=r.err;Snd.play('err');return render()}
+async function dispatch(a){if(!myTurn()&&!(G&&G.g==='uno'&&a.t==='uno'&&G.miss!=null&&isMine(G.miss)&&!G.over&&!ui.busy&&!ui.anim))return;if(G.sim&&a.seat==null)a.seat=viewer();const r=ENG[G.g].act(G,a);if(r.err){ui.err=r.err;Snd.play('err');return render()}
  if(G.g==='island'){(ui.ih=ui.ih||[]).push(JSON.stringify(G));if(ui.ih.length>200)ui.ih.shift()}
  ui.err='';if(['play','discard','meld','add'].includes(a.t))captureSel();ui.sel=[];ui.tsel=[];
  if(!R.on){pushState(r.s,true);saveOff(r.s);return}
