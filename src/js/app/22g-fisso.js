@@ -13,7 +13,7 @@ function fxSheetH(o){if(!ui.sheet)return'';const s=G;
 function fixH(o){const tab=(k,ic,l)=>`<button class="fxt ${ui.sheet===k?'sel':''}" data-a="fxsheet" data-v="${k}"><i>${ic}</i>${l}</button>`;
  return`<div class="fx"><div class="fx-top">${hudH(o.title)}${o.chips?`<div class="tinfo fx-chips">${o.chips}</div>`:''}</div>${o.strip||''}<div class="fx-mid">${o.mid||''}</div><div class="fx-bot">${o.bot||''}<div class="err" role="alert">${esc(ui.err)}</div></div>${o.act?`<div class="fx-act">${o.act}</div>`:''}${o.hand?`<div class="fx-hand">${o.hand}</div>`:''}<nav class="fx-tabs">${tab('players','👥','Giocatori')}${tab('log','📜','Registro')}<button class="fxt" data-a="rules" data-v="${G.g}"><i>❓</i>Regole</button></nav></div>${fxSheetH(o)}${o.end||''}${rulesH()}${cfgH()}`}
 /* mano a ventaglio su una o due file: le carte si sovrappongono quanto serve per stare nella larghezza */
-function fanH(cards,per){per=per||8;const rows=cards.length>per?[cards.slice(0,Math.ceil(cards.length/2)),cards.slice(Math.ceil(cards.length/2))]:[cards];
+function fanRowsH(cards,per){per=per||8;const rows=cards.length>per?[cards.slice(0,Math.ceil(cards.length/2)),cards.slice(Math.ceil(cards.length/2))]:[cards];
  return rows.map(r=>`<div class="fanrow">${r.join('')}</div>`).join('')}
 function fanFit(){document.querySelectorAll('.fanrow').forEach(r=>{const k=[...r.children],n=k.length;if(n<2){r.style.setProperty('--ov','0px');return}
  const w=r.clientWidth,cw=k[0].getBoundingClientRect().width||56,step=Math.min(cw+4,(w-cw)/(n-1));r.style.setProperty('--ov',(cw-step)+'px')})}

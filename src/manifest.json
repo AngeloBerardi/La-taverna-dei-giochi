@@ -34,6 +34,7 @@
  "src/css/29c-quiz.css",
  "src/css/29d-zucca.css",
  "src/css/29e-fantasma.css",
+ "src/css/29f-regicide-legacy.css",
  "src/css/30-adatta.css",
  "src/css/31-orizzontale.css",
  "src/css/32-perudo.css",
@@ -89,6 +90,7 @@
  "src/js/motori/33-fantasma.js",
  "src/js/motori/34-voto.js",
  "src/js/motori/35-sync.js",
+ "src/js/motori/36-regicide-legacy.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
  "src/js/app/01b-icone.js",
@@ -139,6 +141,8 @@
  "src/js/app/22l-quiz.js",
  "src/js/app/22m-zucca.js",
  "src/js/app/22n-fantasma.js",
+ "src/js/app/22o-rl-arte.js",
+ "src/js/app/22p-regicide-legacy.js",
  "src/js/app/23-registri-briscola-scopa-burraco.js",
  "src/js/app/24-pwa.js",
  "src/js/app/24a-firebase.js",
@@ -161,6 +165,7 @@
  "src/js/app/24r-squadre.js",
  "src/js/app/24s-tv-giochi.js",
  "src/js/app/24t-copertine.js",
+ "src/js/app/24u-regicide-legacy-tv.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]

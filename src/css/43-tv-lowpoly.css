@@ -1,6 +1,6 @@
 /* HUD 2D sopra i tavoli low-poly dello schermo comune (app/24n-tv-lowpoly.js, 24o-azul-tv.js, 24p-valle-tv.js).
    Tutto in vh/vw per leggersi da lontano. I canvas 3D stanno dietro (#aztv3d, #vltv3d); senza WebGL il centro mostra il tavolo piatto (.tv3-mid). */
-#aztv3d,#vltv3d,#sptv3d,#qztv3d,#zutv3d,#fatv3d{position:fixed;left:0;top:0;z-index:1;display:none;pointer-events:none}
+#aztv3d,#vltv3d,#sptv3d,#qztv3d,#zutv3d,#fatv3d,#rltv3d{position:fixed;left:0;top:0;z-index:1;display:none;pointer-events:none}
 html[data-tv3] #tvpanel{display:none}
 .tv3{position:fixed;inset:0;z-index:60;display:grid;grid-template-columns:minmax(0,1fr) clamp(250px,22vw,400px);grid-template-rows:auto 1fr auto;gap:1.4vh 1.6vw;padding:2vh 2vw;box-sizing:border-box;pointer-events:none;color:#f6ead0;font-family:var(--f-b,inherit)}
 .tv3:has(.tv3-mid){background:linear-gradient(180deg,#241a10,#130d07)}

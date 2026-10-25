@@ -76,7 +76,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | File | KB | Simboli principali |
 |---|---|---|
 | `html/head.html` | 1 |  |
-| `css/00-fonts.css` | 3 |  |
+| `css/00-fonts.css` | 1 |  |
 | `css/01-base.css` | 5 |  |
 | `css/02-carte.css` | 3 |  |
 | `css/03-arena-e-boss.css` | 6 |  |
@@ -110,6 +110,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/29c-quiz.css` | 1 |  |
 | `css/29d-zucca.css` | 1 |  |
 | `css/29e-fantasma.css` | 1 |  |
+| `css/29f-regicide-legacy.css` | 7 |  |
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
@@ -149,7 +150,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/18b-catan-marinai.js` | 8 | DIRS, key, dist, split, SC, landOf, tryGen |
 | `js/motori/18c-catan-cek.js` | 21 | K, TR, LV, KN, PC, HAND, F |
 | `js/motori/19-pets.js` | 8 | PETS, RND, clone, COUNTS, NAMES, TARGET, L |
-| `js/motori/20-uno.js` | 6 | UNO, RND, clone, COLORS, col, pts, L |
+| `js/motori/20-uno.js` | 8 | UNO, RND, clone, COLORS, col, pts, L |
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/motori/23-elo.js` | 2 | ELO |
@@ -164,20 +165,21 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/32-zucca.js` | 10 | ZUCCA, RND, clone, CATS, NC, MIMO, DISEGNO |
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
-| `js/motori/35-sync.js` | 3 | SYNC |
+| `js/motori/35-sync.js` | 4 | SYNC |
+| `js/motori/36-regicide-legacy.js` | 31 | RLEG, RND, clone, shuffle, pick, HL, CL |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 15 | Snd |
+| `js/app/03-audio.js` | 16 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 12 | G, ui, ME, R, ENG, GAMES, GN |
+| `js/app/07-nucleo.js` | 13 | G, ui, ME, R, ENG, GAMES, GN |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
-| `js/app/07d-regole.js` | 35 | RULES |
+| `js/app/07d-regole.js` | 37 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -187,6 +189,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/11-carte-napoletane.js` | 12 | NAP |
 | `js/app/12b-lobby-diorama.js` | 17 | ISO, N, PAL, SPR, FIX, EMO, STUMPS |
 | `js/app/12c-lobby-3d.js` | 169 |  |
+| `js/app/12d-lobby-3d-guscio.js` | 1 | L3D |
 | `js/app/13-regicide.js` | 7 | pileH, regicideH, regClick, regPre |
 | `js/app/14-the-gang.js` | 11 | GCOL, gcardH, chipH, gangH, specPanel, gcardModal, handGuide |
 | `js/app/15-saboteur.js` | 12 | SEP, tileSVG, SAI, SAN, sabCardH, sabTargets, sabotH |
@@ -206,14 +209,16 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22f3-catan-cek.js` | 12 | CTK, cekE, cekKn, cekAct, cekTrack, cekDie, cekCanKnNew |
 | `js/app/22f4-catan-tavolo.js` | 26 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
 | `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
-| `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanH, fanFit |
+| `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanRowsH, fanFit |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
-| `js/app/22i-uno.js` | 6 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
+| `js/app/22i-uno.js` | 7 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/22k-spie.js` | 4 | SPCOL, SPT, spieH, spieClick, SPFX |
 | `js/app/22l-quiz.js` | 6 | QPC, qcol, quizBoardH, quizH, quizClick, QZFX |
 | `js/app/22m-zucca.js` | 6 | ZPC, zcat, multiSq, nsqZ, zuccaBoardH, zuccaH, zuccaClick |
 | `js/app/22n-fantasma.js` | 10 | FAC, FTK, FSX, fpos, FZ, fantasmaMapH, fleg |
+| `js/app/22o-rl-arte.js` | 16 | RLA, ICO, icon, iconIn, P, C, EYE |
+| `js/app/22p-regicide-legacy.js` | 20 | RLV, rlegacyH, rlPrepH, rlEndH, rlClick, RLFX |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 9 | FB |
@@ -228,7 +233,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
 | `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |
-| `js/app/24m-rete-rtdb.js` | 10 | RT |
+| `js/app/24m-rete-rtdb.js` | 12 | RT |
 | `js/app/24n-tv-lowpoly.js` | 14 | LP, T, TOP, cir, GLY, AIDX, gsvg |
 | `js/app/24o-azul-tv.js` | 9 | AZ3, R_, P, boardPos, lineAt, facPos, sq |
 | `js/app/24p-valle-tv.js` | 9 | VL3, R_, ZR, HC, pix, cells, maj |
@@ -236,6 +241,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24r-squadre.js` | 5 | Prep, TN, rnd, open, mescola, fixSpies, valid |
 | `js/app/24s-tv-giochi.js` | 16 | TVM, dkc, bmesh, pawn, SPTV, spieTVH, QZTV |
 | `js/app/24t-copertine.js` | 43 | COP, P, FAC, svg |
+| `js/app/24u-regicide-legacy-tv.js` | 8 | RLTEX, rlTex, rlCard3, rlFace, RLC, RLTV, rlegacyTVH |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
