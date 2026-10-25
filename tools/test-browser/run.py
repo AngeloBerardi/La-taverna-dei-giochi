@@ -961,6 +961,9 @@ async def sc_mani_a_ventaglio(b, srv):
         r = await pg.evaluate("""async([gid,n])=>{const S=Array.from({length:n},(_,i)=>({dev:i?'altro'+i:ME.dev,k:'m',name:'G'+i}));await startGame(gid,S);await Q;await new Promise(r=>setTimeout(r,400));
           const h=document.querySelector('#hand,.uhand');return h?[h.querySelectorAll('.card,.ucard,[data-a=sel],[data-v]').length,/^[A-Z0-9]+$/.test(h.innerText.replace(/\s/g,''))&&h.innerText.length>6]:[0,false]}""", [gid, n])
         check(r[0] > 0 and not r[1], f'{gid}: la mano mostra carte disegnate ({r[0]})')
+        if gid == 'burraco':
+            bad = await pg.evaluate("[...document.querySelectorAll('#bdisc .card b')].filter(b=>getComputedStyle(b).position==='absolute').length")
+            check(bad == 0, f'burraco: gli scarti non diventano pallini dorati (simboli assoluti: {bad})')
         await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null})()")
     check(not pg.errs, f'mani: nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
