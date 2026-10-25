@@ -26,7 +26,7 @@ I contenuti delle singole buste non sono pubblici nel dettaglio: le missioni seg
 | 9 | Speranza dalle ceneri · Tempio dei Due Semi | 4×15, 5×20 | si comincia con 30 carte in 3 pile della zona missione: **sacrifica** una carta della mano per recuperarne una; il danno esatto ne riporta un'altra · si ottiene la Madre Sempreverde |
 | 10 | Orgoglio e caduta · Rovine del Tempio | 8 Traditori presi dal party (forza +8) | immuni alla loro classe, con un potere legato all'icona |
 | 11 | Discesa nel buio · Caverne del Marciume | 4 Giustizieri 10/20 + Tronco corrotto 20/40 | entra **Edera** (6, Chierico); alla vittoria Edera muore (carta strappata) e Tronco rinasce con il potere dell'Albero |
-| 12 | Dalla decadenza alla crescita · Trono | 4×15, 4×20 Mutati + Lira corrotta 25/80 | Lira è immune a liuto e scudo, ogni attacco perde 5 danni, e a ogni colpo brucia una carta della riserva |
+| 12 | Dalla decadenza alla crescita · Trono | 4×15, 4×20 Mutati + Lira corrotta 25/80 | Lira è immune a liuto e scudo, ogni attacco perde 3 danni, e a ogni colpo brucia una carta della riserva |
 
 Dopo la 12: **Spedizione libera** (12 nemici casuali dai pool delle missioni, un ostacolo e un aiuto a caso, party della campagna).
 

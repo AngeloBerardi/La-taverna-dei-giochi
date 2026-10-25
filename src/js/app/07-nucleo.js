@@ -11,7 +11,7 @@ Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.mod
 ui.modal=null;
 const ME={name:ST('rg-name')||'',dev:'local'};
 const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
-const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC};
+const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC,rlegacy:RLEG};
 const GAMES=[
  {id:'regicide',name:'Regicide',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},
  {id:'briscola',name:'Briscola',desc:'Carte napoletane: vince chi supera i 60 punti.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n===4?'A coppie, 2 contro 2':n===3?'Tutti contro tutti (senza il 2 di Coppe)':'Testa a testa'},
@@ -38,6 +38,7 @@ GAMES.push({id:'scoundrel',name:'Scoundrel',desc:'Solitario roguelike con un maz
 GAMES.push({id:'machiavelli',name:'Machiavelli',desc:'Cala tris e scale, riorganizza il tavolo e svuota per primo la mano.',range:'2–5',ok:n=>n>=2&&n<=5,mode:n=>n+' giocatori · 2 mazzi + 4 jolly'});
 GAMES.push({id:'azul',name:'Azul',desc:'Decora il palazzo di Evora con azulejos: prendi, incastra, posa sul muro.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' decoratori · '+({2:5,3:7,4:9}[n])+' fabbriche',opts:{k:'wall',label:'Muro',vals:[['classic','Classico'],['grey','Libero (variante)']]}});
 GAMES.push({id:'saboteur',name:'Saboteur',desc:'Nani cercatori d’oro contro sabotatori nascosti: scava le gallerie, ma di chi ti fidi?',range:'3–10',ok:n=>n>=3&&n<=10,mode:n=>{const r={3:'1 sabotatore',4:'1 sabotatore',5:'2 sabotatori',6:'2 sabotatori',7:'3 sabotatori',8:'3 sabotatori',9:'3 sabotatori',10:'4 sabotatori'}[n];return n+' nani · '+r},opts:{k:'exp',label:'Edizione',vals:[['base','Gioco base'],['sab2','Con Saboteur 2']]}});
+GAMES.push({id:'rlegacy',name:'Regicide Legacy',desc:'Campagna cooperativa in 12 missioni: la Compagnia cresce, si corrompe e cambia per sempre. Nuove classi, reliquie, mercenari e un finale da salvare.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>(n===1?'Solitario con 2 giullari':n+' eroi in cooperazione')+' · campagna salvata sul telefono',opts:{k:'modo',label:'Modalità',vals:[['camp','Campagna (prossima missione)'],['libera','Spedizione libera (dopo la campagna)']]}});
 const GN=id=>(GAMES.find(g=>g.id===id)||{}).name||id;
 /* posti: chi gioca su questo dispositivo */
 const seatsNow=()=>(R.on?(R.doc&&R.doc.seats):R.offSeats)||[];
@@ -46,7 +47,7 @@ const isMine=i=>local().includes(i);
 const multiLocal=()=>local().length>1;
 function viewer(){if(!G)return-1;const L=local();if(G.sim)return L.includes(ui.ms)?ui.ms:(L.length?L[0]:-1);if(L.length===1)return L[0];if(isMine(G.cur)&&ui.shown===G.cur)return G.cur;return-1}
 function needCover(){return!!(G&&!G.sim&&!G.over&&G.phase!=='summary'&&isMine(G.cur)&&multiLocal()&&ui.shown!==G.cur)}
-function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.sim)return local().length>0;if(G.g==='harvest'||G.g==='valle'||G.g==='quiz')return isMine(G.cur);if(!isMine(G.cur))return false;if(G.phase==='summary')return true;return!multiLocal()||ui.shown===G.cur}
+function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.sim)return local().length>0;if(G.g==='harvest'||G.g==='valle'||G.g==='quiz'||(G.g==='rlegacy'&&G.phase==='prep'))return isMine(G.cur);if(!isMine(G.cur))return false;if(G.phase==='summary')return true;return!multiLocal()||ui.shown===G.cur}
 function seatTag(i){const x=seatsNow()[i];if(!x||x.dev!==ME.dev||G&&G.n===1)return'';return x.k==='m'?' (tu)':' (ospite)'}
 const members=()=>R.on?R.members:[{id:ME.dev,...R.mine}];
 const multiDev=()=>members().length>=2;

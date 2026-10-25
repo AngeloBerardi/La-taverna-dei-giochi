@@ -145,6 +145,14 @@ const RULES={
 <li>Quando fabbriche e centro sono vuoti: ogni riga piena posa <b>una</b> piastrella sul muro (le altre vanno nel coperchio) e fa punti: 1 se isolata, altrimenti le piastrelle collegate in riga + colonna.</li>
 <li>Fine: appena un muro ha una riga completa. Bonus: riga +2, colonna +7, 5 piastrelle dello stesso colore +10.</li>
 <li><b>Muro libero</b> (variante ufficiale): niente colori stampati, scegli tu la colonna senza ripetere un colore in riga o colonna.</li></ul>`,
+  rlegacy:`<p>Campagna cooperativa (1–4) ispirata a <i>Regicide Legacy</i>: <b>12 missioni</b> in fila, poi le spedizioni libere. Personaggi, storia e grafica sono nostri; la campagna si salva su ogni telefono al tavolo.</p>
+<ul><li><b>Turno</b>: attacca con una carta, con un <b>animale</b> (asso, forza 1) più un'altra carta, o con una <b>combo di parentela</b> (stessa forza, totale ≤ 10). Poi si attivano le classi, il nemico subisce il danno e, se resta in piedi, colpisce: scarti carte per almeno la sua forza.</li>
+<li><b>Classi</b>: ascia = danno doppio · scudo = forza del nemico ridotta · pozione = scarti in fondo alla riserva · liuto = si pesca a giro. Più avanti: Mago (scopre carte e ne aggiunge una), Razziatore (danno doppio, divora la riserva), Guardiano (niente colpo), Druido (tutti gli scarti tornano), Cantore (tutti pescano).</li>
+<li><b>Immunità</b>: il nemico ignora le classi delle sue icone. Il <b>giullare</b> si gioca da solo: chi lo reclama attacca senza immunità. Nel solitario hai 2 giullari: forza 8 con la classe che scegli.</li>
+<li><b>Fingersi morti</b>: con la mano piena puoi scartarla tutta per parare qualsiasi colpo. Puoi <b>cedere</b> (subisci il colpo), ma non se tutti gli altri hanno appena ceduto.</li>
+<li><b>Danno esatto</b>: il nemico entra nella riserva, in cima, e combatte per voi (forza e classi, niente vita).</li>
+<li><b>Campagna</b>: chi inizia lo decidete voi. Dopo una sconfitta arriva oro per i <b>mercenari</b> (1, poi 2, 3…), validi solo per quel tentativo. Le vittorie portano reliquie, nuove classi, belve e cambi permanenti; dalla missione 5 la <b>corruzione</b> può prendere un eroe.</li>
+<li>Limite di mano: 8 da solo, 7 in due, 6 in tre (1 giullare), 5 in quattro (2 giullari). Si perde se qualcuno non riesce a parare o non può né attaccare né cedere.</li></ul>`,
   regicide:`<p>Gioco cooperativo (1–4): sconfiggete i 12 nemici del castello (4 Fanti, 4 Regine, 4 Re). Se un giocatore non può subire il danno, perdete tutti.</p>
 <ul><li><b>Turno</b>: gioca una carta (o un Asso + una carta, o carte uguali con somma ≤ 10, o il Jolly) oppure cedi; poi poteri dei semi, danno, e se il nemico sopravvive scarta carte per almeno il suo attacco.</li>
 <li>♥ rimetti in fondo alla Taverna carte dagli scarti. ♦ pesca (senza superare la mano massima). ♣ danno doppio. ♠ l’attacco del nemico cala.</li>

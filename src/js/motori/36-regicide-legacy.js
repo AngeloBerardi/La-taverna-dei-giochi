@@ -269,7 +269,7 @@ function resolve(s){const P=s.pend,all=P.cards.concat(P.add),{act,blk}=powers(s,
  if(act.B){const v=draw(s,atk);E(s,{t:'draw',v});L(s,'Si pescano '+v+' carte')}
  if(act.T){const r=chant(s,atk);E(s,{t:'draw',v:r.got});L(s,'Il Cantore fa pescare tutti ('+r.got+' carte'+(r.lost?', '+r.lost+' scartate per il limite':'')+')')}
  let mult=(act.G?2:1)*(act.R?2:1),dmg=atk*mult;
- if(s.en.boss)dmg=Math.max(0,dmg-5);if(s.en.trad==='P'||s.en.trad==='S')dmg=Math.max(0,dmg-3);
+ if(s.en.boss)dmg=Math.max(0,dmg-3);if(s.en.trad==='P'||s.en.trad==='S')dmg=Math.max(0,dmg-3);
  if(act.P){s.en.red+=atk;E(s,{t:'shield',v:atk})}
  s.en.dmg+=dmg;E(s,{t:'hit',v:dmg,x:mult});L(s,'Danno '+dmg+(mult>1?' (×'+mult+')':''));s.pend=null;
  if(s.en.dmg>=s.en.hp)return defeat(s,s.en.dmg===s.en.hp);
