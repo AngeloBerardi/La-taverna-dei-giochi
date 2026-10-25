@@ -16,9 +16,19 @@
   ],
   "vittima": {
     "nome": "Mastro Ugolino Brace",
-    "chi": "l'oste della Taverna del Crocevia, burbero e generoso"
+    "chi": "l'oste della Taverna del Crocevia, burbero e generoso",
+    "aspetto": {
+      "testa": "calvo",
+      "barba": true,
+      "colore": "#6a3a1a",
+      "capelli": "#bcb2a4"
+    }
   },
   "luoghi": [
+    {
+      "id": "esterno",
+      "nome": "La Taverna del Crocevia"
+    },
     {
       "id": "sala",
       "nome": "Sala grande"
@@ -67,7 +77,12 @@
         [
           "Racconta a qualcuno della sorpresa che Ugolino ti aveva promesso."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "fazzoletto",
+        "colore": "#b8452f",
+        "capelli": "#6b4a2e"
+      }
     },
     {
       "id": "orlando",
@@ -94,7 +109,13 @@
         [
           "Se qualcuno ti accusa per il duello, rivela tu per primo la verità."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "elmo",
+        "barba": true,
+        "colore": "#8a8f99",
+        "capelli": "#9a8a7a"
+      }
     },
     {
       "id": "mirella",
@@ -121,7 +142,12 @@
         [
           "Spiega a tutti come agisce la radice d'ombra, senza dire che era tua (o dillo, se ormai è chiaro chi l'ha presa)."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "cappuccio",
+        "colore": "#4a5a3a",
+        "capelli": "#2a2420"
+      }
     },
     {
       "id": "tobia",
@@ -148,7 +174,12 @@
         [
           "Arriva all'accusa senza che la maggioranza voti per te."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "corti",
+        "colore": "#c99a3a",
+        "capelli": "#8a5a2a"
+      }
     },
     {
       "id": "gisella",
@@ -175,7 +206,12 @@
         [
           "Racconta a tutti della strana domanda di Tobia sulla vendita della taverna."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "piuma",
+        "colore": "#a3202e",
+        "capelli": "#3a1a14"
+      }
     },
     {
       "id": "anselmo",
@@ -202,7 +238,13 @@
         [
           "Alla fine confessa il furto, se serve a scagionarti dall'omicidio."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "cappuccio",
+        "barba": true,
+        "colore": "#6b4a2a",
+        "capelli": "#4a3a2a"
+      }
     },
     {
       "id": "lia",
@@ -229,7 +271,12 @@
         [
           "Vota il miglior attore della serata: lo scegli tu, da professionista."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "lunghi",
+        "colore": "#3a6aa3",
+        "capelli": "#c9a050"
+      }
     },
     {
       "id": "bruno",
@@ -255,7 +302,13 @@
         [
           "Non far scoprire la botte che non hai consegnato."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "cappello",
+        "barba": true,
+        "colore": "#7a2a3a",
+        "capelli": "#5a3a2a"
+      }
     },
     {
       "id": "nora",
@@ -281,7 +334,12 @@
         [
           "Tieni nascosta la storia del cervo fino alla fine."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "raccolti",
+        "colore": "#3f6a3a",
+        "capelli": "#7a3a1a"
+      }
     },
     {
       "id": "gualtiero",
@@ -307,7 +365,13 @@
         [
           "Guida l'accusa finale: proponi tu a voce chi arrestare."
         ]
-      ]
+      ],
+      "aspetto": {
+        "testa": "elmo",
+        "barba": "baffi",
+        "colore": "#a3262e",
+        "capelli": "#3a2a1a"
+      }
     }
   ],
   "atti": [
@@ -369,13 +433,23 @@
       "eventi": [
         {
           "dopo": 8,
+          "fx": "lampo",
           "testo": "Un tuono fa tremare le finestre. Il camino della sala sputa scintille e cenere."
+        },
+        {
+          "dopo": 12,
+          "fx": "telegramma",
+          "testo": "Un garzone infila un biglietto piegato sotto il boccale di qualcuno.",
+          "a": "orlando",
+          "titolo": "Un biglietto senza firma",
+          "privato": "«Qualcuno ha visto il frate scendere dalle camere con un fagotto sotto il saio. Chiedi al ragazzo.»"
         },
         {
           "dopo": 15,
           "testo": "Il cane della locanda continua ad abbaiare verso la porta della cantina."
         }
-      ]
+      ],
+      "luogo": "sala"
     },
     {
       "titolo": "La cantina",
@@ -447,12 +521,29 @@
       "eventi": [
         {
           "dopo": 10,
+          "fx": "buio",
           "testo": "Una lanterna si spegne. Per qualche istante, in cantina, si sente solo il respiro di tutti."
+        },
+        {
+          "dopo": 15,
+          "testo": "Il cane della locanda ha fiutato qualcosa.",
+          "a": "mirella",
+          "titolo": "Il fiuto del cane",
+          "privato": "Il cane ringhia ogni volta che Tobia gli passa accanto. Stamattina gli faceva le feste come sempre."
         },
         {
           "dopo": 20,
           "testo": "Qualcuno trova l'idromele della festa intatto nella botte: chiunque abbia avvelenato Ugolino, ha scelto solo il suo calice."
         }
+      ],
+      "luogo": "cantina",
+      "ambiente": [
+        "pioggia"
+      ],
+      "strati": [
+        "polvere",
+        "vignetta",
+        "grana"
       ]
     },
     {
@@ -511,10 +602,24 @@
       ],
       "eventi": [
         {
+          "dopo": 5,
+          "fx": "orologio",
+          "testo": "La pendola della sala batte un colpo solo: mezzanotte e un quarto."
+        },
+        {
+          "dopo": 8,
+          "testo": "Qualcuno al tavolo sente il cuore battere troppo forte.",
+          "a": "tobia",
+          "titolo": "Il tempo stringe",
+          "privato": "Tra poco arrivano le guardie del barone. Se riesci a far accusare qualcun altro sei salvo: Bettina aveva litigato con lo zio, il frate nasconde un furto, il cavaliere voleva un duello. Scegli il tuo capro espiatorio."
+        },
+        {
           "dopo": 12,
+          "fx": "campana",
           "testo": "Si sente il primo gallo. Fuori, in lontananza, dei cavalli si avvicinano."
         }
-      ]
+      ],
+      "luogo": "sala"
     }
   ],
   "domande": [
@@ -560,5 +665,140 @@
       "A mezzanotte meno dieci Ugolino scende a prendere il calice, beve il primo sorso come ogni anno, e il suo cuore si ferma tra le botti.",
       "Bettina aveva litigato con lui, Orlando l'aveva sfidato, Gisella gli faceva credito, Anselmo lo derubava: tutti avevano un segreto, ma solo Tobia aveva un motivo, la chiave e il veleno."
     ]
+  },
+  "scena": {
+    "stile": "taverna",
+    "palette": {
+      "fondo": "#140c08",
+      "carta": "#f1e2c0",
+      "inchiostro": "#2b1a0e",
+      "accento": "#e8a33a",
+      "sangue": "#8e2a22"
+    },
+    "atmosfera": {
+      "strati": [
+        "fuoco",
+        "braci",
+        "pioggia",
+        "lampi",
+        "vignetta",
+        "grana"
+      ]
+    },
+    "ambiente": [
+      "pioggia",
+      "fuoco",
+      "folla"
+    ],
+    "musica": {
+      "bpm": 96,
+      "swing": 0.2,
+      "strumento": "flute",
+      "ritmo": "tav",
+      "prog": [
+        [
+          50,
+          0
+        ],
+        [
+          48,
+          1
+        ],
+        [
+          46,
+          1
+        ],
+        [
+          45,
+          1
+        ]
+      ],
+      "mel": [
+        [
+          62,
+          0,
+          65,
+          67,
+          69,
+          0,
+          67,
+          65
+        ],
+        [
+          64,
+          0,
+          0,
+          67,
+          64,
+          0,
+          60,
+          0
+        ],
+        [
+          62,
+          0,
+          65,
+          0,
+          70,
+          69,
+          67,
+          0
+        ],
+        [
+          69,
+          0,
+          0,
+          0,
+          73,
+          0,
+          0,
+          0
+        ],
+        [
+          74,
+          0,
+          72,
+          70,
+          69,
+          0,
+          67,
+          0
+        ],
+        [
+          67,
+          0,
+          64,
+          0,
+          60,
+          64,
+          67,
+          0
+        ],
+        [
+          65,
+          67,
+          69,
+          0,
+          67,
+          65,
+          64,
+          0
+        ],
+        [
+          62,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "voce": {
+      "velocita": 0.92,
+      "tono": 0.85
+    }
   }
 }

@@ -49,6 +49,24 @@ ck(KIT.length >= 1, 'almeno un kit');
   rompi(x => (x.personaggi[0].obiettivi = [['solo uno']]), 'obiettivi per ogni atto');
   rompi(x => (x.soluzione.risposte.chi = x.personaggi.find(p => !p.essenziale).id), 'personaggio essenziale');
   rompi(x => (x.giocatori = [2, 30]), 'giocatori');
+  // scena (facoltativa, ma se c'è deve essere giusta)
+  rompi(x => (x.scena = { palette: { fondo: 'rosso' } }), 'colore «fondo»');
+  rompi(
+    x =>
+      (x.scena = { ...clone(k.scena || {}), palette: (k.scena || {}).palette, atmosfera: { strati: ['arcobaleno'] } }),
+    'strato sconosciuto'
+  );
+  rompi(x => (x.scena = { ...clone(k.scena || {}), ambiente: ['discoteca'] }), 'ambiente sconosciuto');
+  rompi(
+    x => (x.scena = { ...clone(k.scena || {}), musica: { bpm: 90, prog: [[50, 0]], mel: [[1]] } }),
+    'musica non valida'
+  );
+  rompi(x => (x.atti[0].luogo = 'luna'), 'luogo sconosciuto');
+  rompi(x => (x.atti[0].eventi = [{ dopo: 5, testo: 'Bum', fx: 'esplosione' }]), 'effetto sconosciuto');
+  rompi(x => (x.atti[0].eventi = [{ dopo: 999, testo: 'Tardi' }]), 'minuto dentro l’atto');
+  rompi(x => (x.atti[0].eventi = [{ dopo: 1, testo: 'Psst', a: x.personaggi[0].id }]), 'messaggio privato');
+  rompi(x => (x.personaggi[0].aspetto = { testa: 'parrucca' }), 'testa sconosciuta');
+  rompi(x => (x.personaggi[0].aspetto = { colore: 'blu' }), 'colore «colore»');
 }
 
 for (const k of KIT) {
@@ -113,7 +131,10 @@ for (const k of KIT) {
       {
         const r5 = G.act(s, { t: 'tempo', ms: 300000 }, k, 0);
         ck(!r5.err && r5.s.scade === s.scade + 300000, tag + 'la regia aggiunge 5 minuti');
-        ck(G.act(s, { t: 'tempo', ms: -1e12 }, k, 777).s.scade === 777, tag + 'togliendo tempo non si va prima di adesso');
+        ck(
+          G.act(s, { t: 'tempo', ms: -1e12 }, k, 777).s.scade === 777,
+          tag + 'togliendo tempo non si va prima di adesso'
+        );
       }
       // mostra: regole
       const chiHa = uids.find(u => indiziDi(s, u).length),
@@ -188,7 +209,10 @@ for (const k of KIT) {
       }
       ck(G.pubblico(y, k).votati.length === n, tag + 'il pubblico sa chi ha votato, non cosa');
       ck(y.mano.u0.voto.risposte && y.mano.u0.voto.attore, tag + 'ognuno rivede il proprio voto');
-      ck(G.pubblico(intel, k).domande.length === k.domande.length && !G.pubblico(s, k).domande.length, tag + 'domande pubbliche solo all’accusa');
+      ck(
+        G.pubblico(intel, k).domande.length === k.domande.length && !G.pubblico(s, k).domande.length,
+        tag + 'domande pubbliche solo all’accusa'
+      );
       ck(!JSON.stringify(G.pubblico(y, k)).includes('"voti"'), tag + 'i voti restano segreti fino al finale');
       ck(!!G.act(y, { t: 'attore', uid: 'u0', per: 'u0' }, k).err, tag + 'non ci si vota da soli come attore');
       ck(!!G.act(y, { t: 'voto', uid: 'u0', risposte: { chi: sol.chi } }, k).err, tag + 'voto incompleto rifiutato');
@@ -218,6 +242,81 @@ for (const k of KIT) {
         tag + 'i bravi fanno più punti dei casuali (' + media(pi).toFixed(1) + ' > ' + media(fz).toFixed(1) + ')'
       );
     }
+}
+
+// ---- eventi, messaggi privati, immagini (su ogni kit che ne ha) ----
+for (const k0 of KIT) {
+  const k = clone(k0),
+    tag = k.id + ' scena: ';
+  // il build aggiunge le immagini presenti: qui una finta per ogni cosa
+  k.media = { ritratti: {}, oggetti: {}, luoghi: {}, font: '/assets/kit/x/titoli.woff2' };
+  for (const p of k.personaggi) k.media.ritratti[p.id] = '/r/' + p.id + '.webp';
+  for (const a of k.atti) for (const x of a.indizi) k.media.oggetti[x.id] = '/o/' + x.id + '.webp';
+  for (const l of k.luoghi || []) k.media.luoghi[l.id] = '/l/' + l.id + '.webp';
+  const n = k.giocatori[0];
+  let s = G.nuova(k, gioc(n), { rnd: carica.rng(9) }).s;
+  ck(
+    Object.values(s.mano).every(m => m.scheda.img === '/r/' + m.scheda.id + '.webp'),
+    tag + 'ogni scheda ha il proprio ritratto'
+  );
+  const pub0 = G.pubblico(s, k);
+  ck(
+    pub0.giocatori.every(g => g.img && g.id) && pub0.scena.font && (!k.scena || pub0.scena.palette),
+    tag + 'il pubblico ha ritratti, font e colori'
+  );
+  ck(!k.luoghi || (pub0.luogo && pub0.luogo.id === k.luoghi[0].id), tag + 'nel prologo il luogo è il primo del kit');
+  ck(!!G.act(s, { t: 'evento', i: 0 }, k).err, tag + 'nessun evento nel prologo');
+  s = avanti(s, k, 0);
+  const tutti = uid => Object.values(s.mano[uid]);
+  ck(
+    Object.keys(s.mano).every(u =>
+      tutti(u)
+        .filter(o => o.t === 'indizio')
+        .every(o => o.img === '/o/' + o.id + '.webp')
+    ),
+    tag + 'gli indizi portano la loro immagine'
+  );
+  const privati = [];
+  for (let i = 0; i < k.atti.length; i++) {
+    if (i) s = avanti(s, k, 0);
+    ck(!G.pubblico(s, k).ultimo, tag + 'atto ' + (i + 1) + ': nessun evento in sospeso');
+    const lu = k.atti[i].luogo;
+    ck(!lu || G.pubblico(s, k).luogo.id === lu, tag + 'atto ' + (i + 1) + ': luogo dell’atto');
+    (k.atti[i].eventi || []).forEach((ev, j) => {
+      const r = G.act(s, { t: 'evento', i: j }, k, 1234);
+      ck(!r.err, tag + 'evento ' + i + '-' + j + ' accade');
+      s = r.s;
+      const u = G.pubblico(s, k).ultimo;
+      ck(
+        u.testo === ev.testo && u.fx === (ev.fx || '') && u.t === 1234,
+        tag + 'evento ' + i + '-' + j + ' nel pubblico'
+      );
+      ck(!!G.act(s, { t: 'evento', i: j }, k).err, tag + 'evento ' + i + '-' + j + ' non si ripete');
+      if (ev.a) {
+        privati.push(ev.privato);
+        const chi = Object.keys(s.mano).find(x => s.mano[x]['e-' + i + '-' + j]);
+        const atteso = s.inGioco.includes(ev.a) ? ev.a : k.personaggi.find(p => p.id === ev.a).riserva;
+        ck(
+          !!chi && s.pg[chi] === atteso && s.mano[chi]['e-' + i + '-' + j].testo === ev.privato,
+          tag + 'messaggio privato al personaggio giusto (o alla sua riserva)'
+        );
+        ck(u.per === s.nomi[chi], tag + 'la TV sa a chi dire «guarda il telefono»');
+      }
+    });
+    ck(!!G.act(s, { t: 'evento', i: 99 }, k).err, tag + 'evento inesistente rifiutato');
+  }
+  ck(
+    !privati.some(t => JSON.stringify(G.pubblico(s, k)).includes(t.slice(0, 30))),
+    tag + 'i messaggi privati non finiscono nel pubblico'
+  );
+  s = avanti(s, k, 0);
+  ck(!G.pubblico(s, k).ultimo, tag + 'all’accusa l’ultimo evento si azzera');
+  s = avanti(s, k, 0);
+  const f = G.pubblico(s, k).finale;
+  ck(
+    f.img === '/r/' + k.soluzione.risposte.chi + '.webp' && f.chiId === k.soluzione.risposte.chi,
+    tag + 'il finale ha il ritratto dell’assassino'
+  );
 }
 
 // ---- l'assassino la fa franca se la maggioranza sbaglia ----

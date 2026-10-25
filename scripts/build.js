@@ -23,15 +23,44 @@ html = html.replace('/*VENDOR*/{}', JSON.stringify(vendor));
 // kit delle cene con delitto (src/kit/*.json): validati, scritti a parte in dist/kit/<id>.<hash>.json e scaricati solo dalla TV
 // regista (REGIA.kit). Nella pagina va solo l'indice senza trame né soluzioni. Formato: docs/GIALLI.md
 const GIALLO = require('../src/js/motori/36-giallo.js'), kitDir = path.join(root, 'src/kit'), kit = {};
+// assets/kit/<id>/: ritratti/<personaggio|vittima>.webp, luoghi/<luogo>.webp, oggetti/<indizio>.webp, copertina.webp, titoli.woff2.
+// Un nome che non corrisponde a niente nel kit ferma il build (di solito è un errore di battitura). Formati: docs/GIALLI-SCENA.md
+function mediaKit(k) {
+  const dir = path.join(root, 'assets/kit', k.id), url = (...p) => '/assets/kit/' + [k.id, ...p].join('/'), m = { ritratti: {}, luoghi: {}, oggetti: {} };
+  if (!fs.existsSync(dir)) return m;
+  const validi = {
+    ritratti: new Set(k.personaggi.map(p => p.id).concat('vittima')),
+    luoghi: new Set((k.luoghi || []).map(l => l.id)),
+    oggetti: new Set(k.atti.flatMap(a => a.indizi.map(x => x.id))),
+  };
+  const PESO = { ritratti: 160, luoghi: 400, oggetti: 120 };
+  for (const t of Object.keys(validi)) {
+    const d = path.join(dir, t);
+    if (!fs.existsSync(d)) continue;
+    for (const f of fs.readdirSync(d)) {
+      const id = f.replace(/\.webp$/, '');
+      if (!f.endsWith('.webp') || !validi[t].has(id)) throw new Error(`assets/kit/${k.id}/${t}/${f}: non corrisponde a niente nel kit (attesi: ${[...validi[t]].join(', ')}.webp)`);
+      const kb = fs.statSync(path.join(d, f)).size / 1024;
+      if (kb > PESO[t]) console.warn(`avviso: assets/kit/${k.id}/${t}/${f} pesa ${kb.toFixed(0)} KB (consigliati al massimo ${PESO[t]})`);
+      m[t][id] = url(t, f);
+    }
+  }
+  if (fs.existsSync(path.join(dir, 'copertina.webp'))) m.copertina = url('copertina.webp');
+  if (fs.existsSync(path.join(dir, 'titoli.woff2'))) m.font = url('titoli.woff2');
+  return m;
+}
 fs.rmSync(path.join(root, 'dist/kit'), { recursive: true, force: true });
 fs.mkdirSync(path.join(root, 'dist/kit'), { recursive: true });
 for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.endsWith('.json')).sort() : []) {
-  const src = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(src), err = GIALLO.valida(k);
+  const testo = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(testo), err = GIALLO.valida(k);
   if (err.length) throw new Error(`kit ${n} non valido: ${err.join('; ')}`);
   if (k.id + '.json' !== n) throw new Error(`kit ${n}: il nome del file deve essere uguale all'id (${k.id})`);
+  // immagini e font del kit (assets/kit/<id>/, copiati in dist/assets da sotto): nel file del kit va l'elenco di ciò che c'è
+  k.media = mediaKit(k);
+  const src = JSON.stringify(k);
   const file = `${k.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
-  fs.writeFileSync(path.join(root, 'dist/kit', file), JSON.stringify(k));
-  kit[k.id] = { titolo: k.titolo, sottotitolo: k.sottotitolo || '', giocatori: k.giocatori, minuti: k.minuti, tono: k.tono || '', url: '/kit/' + file };
+  fs.writeFileSync(path.join(root, 'dist/kit', file), src);
+  kit[k.id] = { copertina: k.media.copertina || '', font: k.media.font || '', titolo: k.titolo, sottotitolo: k.sottotitolo || '', giocatori: k.giocatori, minuti: k.minuti, tono: k.tono || '', url: '/kit/' + file };
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));

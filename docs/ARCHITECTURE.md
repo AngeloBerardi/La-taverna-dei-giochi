@@ -66,7 +66,7 @@ Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati 
 | `regia/CODICE` (kit, soluzione, atto, voti) | regista | regista |
 | `segreti/CODICE/UID/CHIAVE` (scheda, indizi) | regista | solo UID (e la regista) |
 | `azioni/CODICE/UID/ID` (mostra indizio, voto) | UID se è dentro | regista, che le consuma |
-La TV entra con `RT.claim` (dispositivo e `k`, nessun membro: non è un giocatore), poi `REGIA.prendi`. Le parti pubbliche della serata (atto, timer, indizi pubblici) vanno nel documento della stanza come negli altri giochi. A fine serata `REGIA.pulisci`. Limite: chi è dentro può liberare la regia e prenderla con gli strumenti da sviluppatore (il gioco mostra chi è la regista). Test: `tests/test_regia.js` (interprete delle regole + vero client), casi uguali in `tests/emulatore/regole.js`. Kit: `src/kit/*.json`, scritti dal build in `dist/kit/` (nella pagina solo l'indice `REGIA.KIT`); motore della serata `motori/36-giallo.js` (`GIALLO`, contratto proprio, non a turni). Piano: `docs/GIALLI.md`.
+La TV entra con `RT.claim` (dispositivo e `k`, nessun membro: non è un giocatore), poi `REGIA.prendi`. Le parti pubbliche della serata (atto, timer, indizi pubblici) vanno nel documento della stanza come negli altri giochi. A fine serata `REGIA.pulisci`. Limite: chi è dentro può liberare la regia e prenderla con gli strumenti da sviluppatore (il gioco mostra chi è la regista). Test: `tests/test_regia.js` (interprete delle regole + vero client), casi uguali in `tests/emulatore/regole.js`. Kit: `src/kit/*.json`, scritti dal build in `dist/kit/` (nella pagina solo l'indice `REGIA.KIT`); motore della serata `motori/36-giallo.js` (`GIALLO`, contratto proprio, non a turni). Messa in scena comune `app/24w-scena.js` (`SCENA`): fondo animato `#gia-fondo` e momenti `#gia-scena` fuori da `#app` (render() non li fa ripartire), chiamata da `afterRender` tramite `GIA.dopo()`; ambienti sonori `Snd.amb`, temi dei kit `Snd.def`. Immagini e font in `assets/kit/<id>/`, collegati dal build (`k.media`). Piano: `docs/GIALLI.md`, scena: `docs/GIALLI-SCENA.md`.
 
 ## Rete
 **Un solo trasporto: il Realtime Database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Stessa interfaccia `doc/collection/onSnapshot` di `R.db`, ma nessun telefono fa da host: lo stato sta nel database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`, `/pos/DEV` posizione del pupazzo 3D: camminare scrive solo qui e non ridisegna la pagina; `/dv/DEV` e `/k/UID` legano dispositivo e profilo alla stanza) e l'SDK riconnette e risincronizza da solo. Ogni documento è un testo JSON (`j`) perché RTDB toglie null e array vuoti. Regole: `database.rules.json` (da pubblicare, come `firestore.rules`).
@@ -135,7 +135,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
 | `css/44-voto.css` | 2 |  |
-| `css/45-giallo.css` | 7 |  |
+| `css/45-giallo.css` | 16 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -176,12 +176,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/33-fantasma.js` | 7 | FANTASMA, RND, clone, W, BR, idx, G |
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
 | `js/motori/35-sync.js` | 4 | SYNC |
-| `js/motori/36-giallo.js` | 13 | GIALLO |
+| `js/motori/36-giallo.js` | 19 | GIALLO |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 16 | Snd |
+| `js/app/03-audio.js` | 20 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
@@ -251,6 +251,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24t-copertine.js` | 43 | COP, P, FAC, svg |
 | `js/app/24u-regia.js` | 6 | REGIA |
 | `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
+| `js/app/24w-scena.js` | 30 | SCENA |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

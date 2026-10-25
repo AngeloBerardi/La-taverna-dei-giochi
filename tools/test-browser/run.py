@@ -862,6 +862,15 @@ async def sc_catan_tocchi(b, srv):
 async def sc_giallo(b, srv):
     """Cena con delitto: sei telefoni e una TV regista sul database condiviso, dall'avvio al finale (con la TV riavviata a metà)."""
     sh = Shared(); kit = json.load(open(os.path.join(DIST, '..', 'src', 'kit', 'ultima-cena.json')))
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    async def regia(sel):
+        # un momento a tutto schermo può comparire in qualsiasi istante (come per chi fa da regista): lo si salta e si riprova
+        for _ in range(8):
+            await T.evaluate('SCENA.salta(true)')
+            try:
+                await T.click(sel, timeout=4000); return
+            except Exception: await T.wait_for_timeout(300)
+        await T.click(sel)
     nomi = ['Ada', 'Bruno', 'Carla', 'Dino', 'Elsa', 'Fabio']
     ctxA, A = await telefono_rt(b, srv, sh, nomi[0], 11)
     await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
@@ -878,8 +887,8 @@ async def sc_giallo(b, srv):
     await T.set_viewport_size({'width': 1280, 'height': 720})
     await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
     await T.click('[data-a=giaregia]')
-    await T.wait_for_function('REGIA.sono()', timeout=15000)
-    await A.wait_for_function('!!REGIA.uid', timeout=15000)
+    await T.wait_for_function('REGIA.sono()', timeout=30000)
+    await A.wait_for_function('!!REGIA.uid', timeout=30000)
     check(sh.d.get('stanze/' + code + '/r') == await T.evaluate('RT.uid()'), 'la TV ha preso la regia')
     devT = await T.evaluate('ME.dev')
     check(not any(k.startswith('stanze/' + code + '/m/' + devT) for k in sh.d), 'la TV non è un giocatore')
@@ -887,6 +896,22 @@ async def sc_giallo(b, srv):
     await A.evaluate("ui.err='';startGame('giallo',null,{kit:'ultima-cena'})")
     for p in P: await p.wait_for_function("G&&G.g==='giallo'&&G.fase==='prologo'&&GIA.mano.scheda", timeout=40000)
     check(True, 'prologo: la stanza è in gioco e ogni telefono ha la sua scheda')
+    # sigla e cast sulla TV (la messa in scena comune)
+    await T.wait_for_function("document.querySelector('#gia-scena.sigla')", timeout=30000)
+    check(kit['titolo'] in await T.inner_text('#gia-scena'), 'TV: sigla con il titolo del kit')
+    check(await T.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--gk-acc').trim()") == kit['scena']['palette']['accento'], 'TV: colori del kit applicati')
+    await T.wait_for_function("getComputedStyle(document.documentElement).getPropertyValue('--gk-font').trim()!==''", timeout=30000)
+    check(True, 'TV: carattere dei titoli del kit caricato')
+    check(await T.evaluate("!!document.querySelector('#gia-fondo canvas')"), 'TV: atmosfera animata sotto la scena')
+    await T.evaluate("SCENA.salta(false)")
+    await T.wait_for_function("SCENA.visti.includes('cast')&&document.querySelector('#gia-scena.cast:not(.vittima) .gia-volto svg')", timeout=40000)
+    await T.wait_for_timeout(1200); await T.screenshot(path=os.path.join(SCH, 'giallo-tv-cast.png'))
+    await T.evaluate("SCENA.salta(true)")
+    visti = await T.evaluate('SCENA.visti')
+    check(visti[:3] == ['sigla', 'cast vittima', 'cast'], f'TV: sigla, vittima, poi il cast uno per uno ({visti})')
+    errs_tel = [e for p in P for e in p.errs]
+    check(not errs_tel, f'telefoni: nessun errore durante il prologo {errs_tel[:1]}')
+    check(await T.evaluate("document.querySelectorAll('.giatv-side .gia-volto').length") == 6, 'TV: ritratto disegnato per ogni giocatore')
     schede = [await p.evaluate('GIA.mano.scheda.nome') for p in P]
     chiavi = [set(await p.evaluate('Object.keys(GIA.mano)')) for p in P]
     check(len(set(schede)) == 6 and all(c == {'scheda'} for c in chiavi), f'personaggi diversi, solo la propria scheda: {schede}')
@@ -894,10 +919,35 @@ async def sc_giallo(b, srv):
     segreti = [x['segreto'][:40] for x in kit['personaggi']] + [x[:40] for x in kit['soluzione']['ricostruzione']]
     check(not any(t in stanza for t in segreti), 'il documento della stanza non contiene segreti né soluzione')
     check(await T.evaluate("document.body.innerText.includes(" + json.dumps(kit['vittima']['nome']) + ")"), 'TV: prologo con la vittima')
+    check(await A.evaluate("!!document.querySelector('.gia-io .gia-volto svg')"), 'telefono: il proprio ritratto in cima alla scheda')
     # primo atto
-    await T.click('[data-a=giaavanti]')
-    for p in P: await p.wait_for_function("G.fase==='atto'&&G.atto===0&&GIA.mano.ob0", timeout=20000)
+    await regia('[data-a=giaavanti]')
+    for p in P: await p.wait_for_function("G.fase==='atto'&&G.atto===0&&GIA.mano.ob0", timeout=40000)
     check(await A.evaluate("!!document.querySelector('.gia-t[data-scade]')"), 'atto 1: obiettivi a tutti, timer sul telefono')
+    await T.wait_for_function("SCENA.visti.includes('cartello')", timeout=30000)
+    check('Il brindisi mancato' in await T.inner_text('#gia-scena'), 'TV: cartello del primo atto')
+    await A.wait_for_function("document.querySelector('#gia-scena.tel [data-a=giabusta]')", timeout=30000)
+    await A.screenshot(path=os.path.join(SCH, 'giallo-tel-busta.png'))
+    # la busta si chiude da sola dopo qualche secondo: la si tocca appena c'è (stesso passo in cui la si trova)
+    await A.wait_for_function("(()=>{const b=document.querySelector('#gia-scena.tel [data-a=giabusta]');if(b)b.click();return !document.querySelector('#gia-scena.on')})()", timeout=30000)
+    check(await A.evaluate("!document.querySelector('#gia-scena.on')&&['indizi','obiettivi'].includes(ui.gtab)"), 'telefono: busta del nuovo atto, si tocca e apre la scheda giusta')
+    # evento con messaggio privato (biglietto per Ser Orlando): busta personale, la TV dice a chi guardare
+    io_orl = None
+    for p in P:
+        if await p.evaluate("GIA.mano.scheda.id") == 'orlando': io_orl = p
+    await T.evaluate("SCENA.salta(true);GIA.comanda({t:'evento',i:1})")
+    await io_orl.wait_for_function("document.querySelector('#gia-scena.tel.privato')", timeout=30000)
+    nome_orl = await io_orl.evaluate("G.giocatori.find(g=>g.uid===RT.uid()).nome")
+    await T.wait_for_function("SCENA.visti.includes('evento fx-telegramma')", timeout=30000)
+    check(nome_orl + ', guarda il telefono' in await T.inner_text('#gia-scena'), f'evento: la TV dice «{nome_orl}, guarda il telefono»')
+    await io_orl.wait_for_function("(()=>{const b=document.querySelector('#gia-scena.tel.privato [data-a=giabusta]');if(b)b.click();return ui.gtab==='indizi'})()", timeout=30000)
+    check('chiedi al ragazzo' in (await io_orl.inner_text('.gia-body')).lower(), 'messaggio privato: solo Orlando lo legge tra gli indizi')
+    altri_testo = [await p.evaluate("JSON.stringify(GIA.mano)") for p in P if p is not io_orl]
+    check(not any('Chiedi al ragazzo' in t for t in altri_testo), 'messaggio privato: nessun altro lo riceve')
+    await T.evaluate("SCENA.salta(true);GIA.comanda({t:'evento',i:0})")
+    await T.wait_for_function("SCENA.visti.includes('evento fx-lampo')", timeout=30000)
+    await T.wait_for_timeout(300); await T.screenshot(path=os.path.join(SCH, 'giallo-tv-evento.png'))
+    await T.evaluate("SCENA.salta(true)")
     # mostrare un indizio
     chi = None
     for i, p in enumerate(P):
@@ -908,29 +958,30 @@ async def sc_giallo(b, srv):
     await P[i].evaluate("v=>{gialloClick('giatab','indizi');gialloClick('giamostra',v)}", ind)
     check(await P[i].evaluate("document.querySelectorAll('[data-a=giamostraa]').length") == 5, 'mostra a…: si sceglie tra gli altri cinque')
     await P[i].evaluate("v=>gialloClick('giamostraa',v)", ind + '|' + uid_j)
-    await P[j].wait_for_function("k=>!!GIA.mano['m-'+k]", arg=ind, timeout=15000)
+    await P[j].wait_for_function("k=>!!GIA.mano['m-'+k]", arg=ind, timeout=30000)
     check(await P[j].evaluate("k=>GIA.mano['m-'+k].da", ind) == nomi[i] and await P[i].evaluate("k=>!!GIA.mano['i-'+k]", ind), f'{nomi[i]} mostra un indizio a {nomi[j]}: copia a lui, originale a lei')
     # obiettivo segnato dal telefono
     await A.evaluate("gialloClick('giaob','0|0')")
-    await A.wait_for_function("GIA.mano.ob0.fatti&&GIA.mano.ob0.fatti[0]===true", timeout=15000)
+    await A.wait_for_function("GIA.mano.ob0.fatti&&GIA.mano.ob0.fatti[0]===true", timeout=30000)
     check(True, 'obiettivo segnato dal telefono e confermato dalla regia')
     # un telefono non può comandare la regia
     await A.evaluate("REGIA.chiedi(R.code,{t:'avanti'})")
-    await A.wait_for_function("GIA.mano.avviso", timeout=15000); await A.wait_for_timeout(500)
+    await A.wait_for_function("GIA.mano.avviso", timeout=30000); await A.wait_for_timeout(500)
     check(await A.evaluate("G.fase==='atto'&&G.atto===0"), 'un telefono che prova a far avanzare la serata viene ignorato')
-    await T.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'giallo-tv-atto.png'))
-    s0 = await A.evaluate('G.scade'); await T.click('[data-a=giatempo]')
-    await A.wait_for_function("t=>G.scade>=t+290000", arg=s0, timeout=15000)
+    await T.evaluate('SCENA.salta(true)'); await T.wait_for_timeout(900); await T.screenshot(path=os.path.join(SCH, 'giallo-tv-atto.png'))
+    s0 = await A.evaluate('G.scade'); await regia('[data-a=giatempo]')
+    await A.wait_for_function("t=>G.scade>=t+290000", arg=s0, timeout=30000)
     check(True, 'la TV aggiunge 5 minuti e il telefono li vede')
     # secondo atto, poi la TV si riavvia e riprende
-    await T.click('[data-a=giaavanti]')
-    for p in P: await p.wait_for_function("G.atto===1&&GIA.mano.ob1", timeout=20000)
+    await regia('[data-a=giaavanti]')
+    for p in P: await p.wait_for_function("G.atto===1&&GIA.mano.ob1", timeout=40000)
+    await T.evaluate('SCENA.salta(true)'); await T.wait_for_timeout(2800); await T.screenshot(path=os.path.join(SCH, 'giallo-tv-cantina.png'))
     await T.reload(); await T.wait_for_function("ui.tv&&G&&G.g==='giallo'&&REGIA.sono()&&GIA.D.s&&GIA.D.s.atto===1", timeout=40000)
     check(await T.evaluate("GIA.D.s.mano&&Object.keys(GIA.D.s.mano).length") == 6, 'TV riavviata: riprende la serata dallo stato salvato')
-    await T.click('[data-a=giaavanti]')
-    for p in P: await p.wait_for_function("G.atto===2&&GIA.mano.ob2", timeout=20000)
-    await T.click('[data-a=giaavanti]')
-    for p in P: await p.wait_for_function("G.fase==='accusa'&&ui.gtab==='accusa'&&document.querySelector('#gq-chi')", timeout=20000)
+    await regia('[data-a=giaavanti]')
+    for p in P: await p.wait_for_function("G.atto===2&&GIA.mano.ob2", timeout=40000)
+    await regia('[data-a=giaavanti]')
+    for p in P: await p.wait_for_function("G.fase==='accusa'&&ui.gtab==='accusa'&&document.querySelector('#gq-chi')", timeout=40000)
     check(True, 'accusa: ogni telefono apre il modulo')
     # tutti accusano il giusto tranne l'assassino; l'attore è il vicino
     sol = kit['soluzione']['risposte']
@@ -940,10 +991,14 @@ async def sc_giallo(b, srv):
         uid_v = await P[(i + 1) % 6].evaluate('RT.uid()')
         await p.evaluate("([r,a])=>{for(const[k,v]of Object.entries(r))document.getElementById('gq-'+k).value=v;document.getElementById('gq-attore').value=a;gialloClick('giavota')}", [ris, uid_v])
     await A.wait_for_function("G.votati.length===6", timeout=30000)
-    await T.wait_for_function("document.body.innerText.includes('6 / 6')", timeout=15000)
+    await T.wait_for_function("document.body.innerText.includes('6 / 6')", timeout=30000)
     check(await T.evaluate("!document.body.innerText.includes(" + json.dumps(kit['soluzione']['ricostruzione'][0][:30]) + ")"), 'TV: sei voti su sei, senza sapere cosa')
-    await T.click('[data-a=giaavanti]')
-    for p in P: await p.wait_for_function("G.fase==='finale'&&G.finale&&G.over", timeout=20000)
+    await regia('[data-a=giaavanti]')
+    for p in P: await p.wait_for_function("G.fase==='finale'&&G.finale&&G.over", timeout=40000)
+    await T.wait_for_function("SCENA.visti.includes('riflettore')", timeout=40000)
+    check('Tobia Lesto' in await T.inner_text('#gia-scena'), 'TV: rivelazione con il riflettore sull’assassino')
+    await T.wait_for_timeout(1500); await T.screenshot(path=os.path.join(SCH, 'giallo-tv-rivelazione.png'))
+    await T.evaluate('SCENA.salta(true)')
     f = await A.evaluate('G.finale')
     check(f['chi'] == 'Tobia Lesto' and not f['punti']['franca'], f"finale: l'assassino era {f['chi']}, scoperto")
     vinti = await A.evaluate("ELO.vincitori(G)")

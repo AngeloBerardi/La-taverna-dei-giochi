@@ -110,9 +110,42 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   case'chip':noise(t,.05,.3,o,3500,'bandpass');osc('triangle',2300,t,.05,.1,o);noise(t+.04,.04,.15,o,4200,'bandpass');break;
   case'alarm':[0,.35,.7].forEach(d=>{osc('sawtooth',600,t+d,.32,.12,o,{sl:950,slt:.3,lp:2500})});break;
   case'vault':I.timp(55,t,.6,o);osc('square',90,t,.4,.1,o,{lp:500});[0,4,7,12].forEach((k,i)=>I.bell(mf(76+k),t+.3+i*.08,.1,o));break;
+  /* cene con delitto (app/24w-scena.js): stacchi dei momenti di scena */
+  case'gtuono':noise(t,2.6,.5,o,180,'lowpass');noise(t+.05,.5,.25,o,900,'lowpass');I.timp(42,t,.6,o);I.timp(36,t+.5,.4,o);break;
+  case'gcampana':[0,1.1,2.2].forEach(d=>{I.bell(mf(55),t+d,.22,o);osc('sine',mf(43),t+d,2.4,.12,o)});break;
+  case'gorologio':[76,72,74,67].forEach((m,i)=>I.bell(mf(m),t+i*.55,.13,o));[0,1.4].forEach(d=>{I.bell(mf(48),t+2.4+d,.22,o);osc('sine',mf(36),t+2.4+d,2,.1,o)});break;
+  case'gsparo':noise(t,.08,.9,o,1200);noise(t,.6,.4,o,300,'lowpass');I.timp(60,t,.5,o);break;
+  case'gbattito':I.timp(48,t,.5,o);I.timp(44,t+.2,.38,o);break;
+  case'grullo':for(let i=0;i<34;i++)noise(t+i*.075,.06,.04+i*.004,o,1800,'bandpass');I.timp(40,t+2.6,.8,o);noise(t+2.6,.5,.4,o,4000);I.brass(mf(50),t+2.6,.12,o,1.2);I.brass(mf(53),t+2.6,.1,o,1.2);I.brass(mf(57),t+2.6,.1,o,1.2);break;
+  case'gstacco':I.timp(45,t,.7,o);I.brass(mf(57),t,.1,o,.9);I.brass(mf(60),t,.08,o,.9);I.brass(mf(64),t,.08,o,.9);noise(t,.4,.12,o,3000);break;
+  case'gcarta':{const f=noise(t,.45,.16,o,1800,'bandpass');f.frequency.exponentialRampToValueAtTime(5200,t+.4);I.bell(mf(88),t+.3,.05,o);break}
+  case'gbusta':noise(t,.18,.1,o,3000,'bandpass');I.bell(mf(84),t+.12,.08,o);I.bell(mf(91),t+.24,.06,o);break;
+  case'gtelegramma':for(let i=0;i<9;i++){noise(t+i*.09+Math.random()*.03,.03,.22,o,2500,'bandpass');osc('square',180,t+i*.09,.02,.04,o)}I.bell(mf(96),t+.95,.12,o);break;
+  case'gapplauso':for(let i=0;i<70;i++)noise(t+Math.random()*2.6,.04,.05+Math.random()*.08,o,1500+Math.random()*2500,'bandpass');break;
+  case'gbuio':osc('sawtooth',180,t,.9,.12,o,{sl:40,lp:900});noise(t+.85,.04,.3,o,2000);break;
   case'err':osc('sawtooth',110,t,.18,.15,o,{lp:900});break;case'ok':osc('triangle',900,t,.06,.1,o);noise(t,.015,.06,o,4000);break}}
- return{start,play,init,get mus(){return mus},get sfx(){return sfx},track(k){want=TR[k]?k:'menu'},
+ /* ambienti sonori continui (pioggia, vento, fuoco, folla, orologio, mare): rumore filtrato, niente file. Seguono l'interruttore degli effetti. */
+ const AMB={},AT={};let ag=null,nb=null;
+ function rumore(){if(nb)return nb;const n=ctx.sampleRate*3|0;nb=ctx.createBuffer(1,n,ctx.sampleRate);const a=nb.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;return nb}
+ function filtro(type,f,q){const x=ctx.createBiquadFilter();x.type=type;x.frequency.value=f;if(q)x.Q.value=q;return x}
+ function lfo(par,hz,depth){const x=ctx.createOscillator(),g=ctx.createGain();x.frequency.value=hz;g.gain.value=depth;x.connect(g);g.connect(par);x.start();return x}
+ function loop(catena,vol){const src=ctx.createBufferSource();src.buffer=rumore();src.loop=true;src.loopStart=Math.random();let n=src;catena.forEach(f=>{n.connect(f);n=f});const g=ctx.createGain();g.gain.value=vol;n.connect(g);g.connect(ag);src.start();return{src,g}}
+ function ambAvvia(k){const H={nodi:[],tm:[]},t0=()=>ctx.currentTime;
+  if(k==='pioggia'){const a=loop([filtro('highpass',900),filtro('lowpass',6500)],.11);H.nodi.push(a.src);H.tm.push(setInterval(()=>{if(Math.random()<.5)noise(t0(),.02,.02+Math.random()*.03,ag,4000+Math.random()*3000,'bandpass')},120))}
+  else if(k==='vento'){const bp=filtro('bandpass',500,1.2),a=loop([bp],.09);H.nodi.push(a.src,lfo(bp.frequency,.07,280),lfo(a.g.gain,.05,.05))}
+  else if(k==='fuoco'){const a=loop([filtro('lowpass',420)],.06);H.nodi.push(a.src);H.tm.push(setInterval(()=>{if(Math.random()<.45)noise(t0(),.012+Math.random()*.02,.02+Math.random()*.07,ag,2200+Math.random()*3000,'highpass')},90))}
+  else if(k==='folla'){const b1=filtro('bandpass',520,.8),b2=filtro('bandpass',1150,2.5),a=loop([b1],.05),c=loop([b2],.025);H.nodi.push(a.src,c.src,lfo(c.g.gain,.31,.02),lfo(b2.frequency,.19,260),lfo(a.g.gain,.11,.02))}
+  else if(k==='orologio'){let p=0;H.tm.push(setInterval(()=>{const t=t0()+.01;osc('square',p++%2?1500:1900,t,.025,.03,ag,{lp:3000});noise(t,.015,.03,ag,5000)},1000))}
+  else if(k==='mare'){const a=loop([filtro('lowpass',700)],.07);H.nodi.push(a.src,lfo(a.g.gain,.11,.06))}
+  return H}
+ function ambFerma(H){H.tm.forEach(clearInterval);H.nodi.forEach(n=>{try{n.stop()}catch(e){/* già fermo */}})}
+ function amb(chiesti){AT.lista=chiesti||[];const lista=sfx?AT.lista:[];if(lista.length&&!init())return;if(lista.length&&!ag){ag=ctx.createGain();ag.gain.value=.6;ag.connect(comp)}
+  for(const k of Object.keys(AMB))if(!lista.includes(k)){ambFerma(AMB[k]);delete AMB[k]}
+  for(const k of lista)if(!AMB[k])AMB[k]=ambAvvia(k)}
+ return{start,play,init,amb,get mus(){return mus},get sfx(){return sfx},track(k){want=TR[k]?k:'menu'},
+  // un tema in più (per esempio la musica di un kit giallo): stesso formato delle tracce qui sopra
+  def(k,T){TR[k]=T},
   setMus(v){mus=v;ST('rg-mus',v?'1':'0');if(v){start();if(mg)mg.gain.setTargetAtTime(.5,ctx.currentTime,.15)}else if(mg)mg.gain.setTargetAtTime(0,ctx.currentTime,.1)},
-  setSfx(v){sfx=v;ST('rg-sfx',v?'1':'0')},
+  setSfx(v){sfx=v;ST('rg-sfx',v?'1':'0');amb(AT.lista)},
   duck(v){if(ctx&&mg)mg.gain.setTargetAtTime(v||!mus?0:.5,ctx.currentTime,.4)}}})();
 document.addEventListener('pointerdown',()=>{if(Snd.mus)Snd.start()},{once:true,capture:true});

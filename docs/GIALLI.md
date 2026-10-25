@@ -72,6 +72,9 @@ Stato privato della regia (va in `regia/CODICE`): personaggi assegnati, `mano[ui
 - **Regista** (`GIA.D`): carica il kit, crea o riprende la serata da `regia/CODICE`, consegna solo le chiavi cambiate, accetta dai telefoni solo `mostra`/`obiettivo`/`voto`/`attore` (l'uid è quello del percorso), pubblica la stanza con una transazione. Allo scadere dell'atto passa avanti da solo. A fine serata `over.winners` = chi ha più punti (premi e ELO come gli altri giochi).
 - **Prova nel browser**: `python3 tools/test-browser/run.py giallo` (sei telefoni e una TV sul database simulato, TV riavviata a metà; `SCHERMATE_DIR` per salvare le schermate).
 
+## Messa in scena
+Momenti condivisi da tutti i kit (sigla, cast, cartelli, indizi, eventi, messaggi privati, ultimo minuto, buste, rivelazione, premiazione), repertorio e formato delle immagini: `docs/GIALLI-SCENA.md`. Direzione artistica e prompt per le immagini di ogni kit: `docs/kit/<id>.md`.
+
 ## Limite: kit pubblici
 Il repo è pubblico e i file dei kit sono statici sul sito: chi va a cercarli di proposito legge la soluzione (come chi sfoglia il libretto del padrone di casa di un kit stampato). La regia protegge dalla sbirciata durante la serata: nessun telefono riceve i segreti degli altri. Per vendere i kit andranno spostati in un repo privato o in uno spazio letto solo dalla regista.
 

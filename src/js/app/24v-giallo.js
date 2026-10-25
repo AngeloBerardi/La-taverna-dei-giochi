@@ -96,17 +96,14 @@ const GIA = {
     un: null,
     q: Promise.resolve(),
     err: '',
-    voce: true,
     carica: false,
-    t0: 0,
-    ev: {},
-    evento: '',
     auto: '',
+    battito: 0,
   },
   async prendiRegia() {
     try {
       await REGIA.prendi(R.code);
-      GIA.D.voce = true;
+      SCENA.voce = true;
       say('Questo schermo fa da regia', 2500);
     } catch (e) {
       say(e && e.message ? e.message : String(e), 3500);
@@ -140,12 +137,8 @@ const GIA = {
       D.gid = g.gid;
       D.inv = {};
       D.vist = {};
-      D.ev = {};
-      D.evento = '';
-      D.t0 = D.s.fase === 'atto' ? D.s.scade - D.k.atti[D.s.atto].minuti * 60000 : 0;
       await GIA.salva();
       D.un = REGIA.ascoltaAzioni(R.code, l => GIA.richieste(l));
-      if (D.s.fase === 'prologo') GIA.annuncia();
     } catch (e) {
       D.err = String((e && e.message) || e);
     } finally {
@@ -241,64 +234,44 @@ const GIA = {
       r = GIALLO.act(D.s, a, D.k, Date.now());
     if (r.err) return say(r.err, 2500);
     D.s = r.s;
-    if (D.s.fase + D.s.atto !== prima) {
-      D.t0 = D.s.fase === 'atto' ? Date.now() : 0;
-      D.evento = '';
-      D.auto = '';
-      Snd.play('turn');
-      GIA.annuncia();
-    }
+    if (D.s.fase + D.s.atto !== prima) D.auto = '';
     GIA.salva();
     render();
   },
-  parla(t) {
-    try {
-      if (!GIA.D.voce || !window.speechSynthesis || !t) return;
-      const u = new SpeechSynthesisUtterance(t);
-      u.lang = 'it-IT';
-      u.rate = 0.95;
-      speechSynthesis.speak(u);
-    } catch (e) {
-      ERR.n(e);
-    }
-  },
-  annuncia() {
-    const D = GIA.D,
-      s = D.s,
-      k = D.k;
-    try {
-      speechSynthesis.cancel();
-    } catch (e) {
-      /* senza voce */
-    }
-    if (s.fase === 'prologo') GIA.parla(k.prologo.join(' '));
-    else if (s.fase === 'atto')
-      GIA.parla('Atto ' + (s.atto + 1) + '. ' + k.atti[s.atto].titolo + '. ' + k.atti[s.atto].narrazione.join(' '));
-    else if (s.fase === 'accusa') GIA.parla('È il momento di accusare. Votate in segreto dal vostro telefono.');
-    else if (s.fase === 'finale') GIA.parla('Ecco come è andata. ' + k.soluzione.ricostruzione.join(' '));
-  },
   // ogni secondo: orologi, eventi a sorpresa e fine dell'atto (solo la regia avanza)
   tick() {
-    for (const el of document.querySelectorAll('[data-scade]')) el.textContent = GIA.mmss(+el.dataset.scade);
+    for (const el of document.querySelectorAll('[data-scade]')) {
+      el.textContent = GIA.mmss(+el.dataset.scade);
+      el.classList.toggle('ultimo', +el.dataset.scade - Date.now() <= 60000);
+    }
     const D = GIA.D,
       s = D.s;
     if (!ui.tv || !G || G.g !== 'giallo' || !s || !REGIA.sono() || s.fase !== 'atto') return;
-    const min = (Date.now() - D.t0) / 60000;
+    // eventi a sorpresa: li fa accadere il motore (restano salvati se la TV si riavvia)
+    const min = (Date.now() - (s.inizio || Date.now())) / 60000;
     (D.k.atti[s.atto].eventi || []).forEach((e, i) => {
-      const id = s.atto + '-' + i;
-      if (!D.ev[id] && min >= e.dopo) {
-        D.ev[id] = 1;
-        D.evento = e.testo;
-        Snd.play('whoosh');
-        GIA.parla(e.testo);
-        render();
-      }
+      if (!s.eventi[s.atto + '-' + i] && min >= e.dopo) GIA.comanda({ t: 'evento', i });
     });
+    // ultimo minuto: il cuore batte (sempre più spesso negli ultimi 15 secondi)
+    const resto = s.scade - Date.now();
+    if (resto > 0 && resto <= 60000 && Date.now() - D.battito >= (resto <= 15000 ? 1000 : 2000)) {
+      D.battito = Date.now();
+      Snd.play('gbattito');
+    }
     const chiave = s.atto + '-' + s.scade;
     if (Date.now() >= s.scade && D.auto !== chiave) {
       D.auto = chiave;
-      banner('TEMPO SCADUTO', s.atto < D.k.atti.length - 1 ? 'Si passa all’atto successivo' : 'Si passa all’accusa');
       GIA.comanda({ t: 'avanti' });
+    }
+  },
+  // dopo ogni ridisegno (afterRender): la scena sta fuori da #app, così le animazioni non ripartono
+  dopo() {
+    const D = GIA.D;
+    if (ui.tv) SCENA.tv(G, REGIA.sono() && D.gid === G.gid ? D.k : null);
+    else {
+      GIA.ascolta();
+      SCENA.telefono(G, GIA.mano, RT.uid());
+      Snd.duck(true); // la musica la suona la TV: i telefoni al tavolo restano zitti
     }
   },
 
@@ -318,7 +291,8 @@ const GIA = {
     const p = io && D.s && D.gid === s.gid ? D.s : null,
       k = p ? D.k : null;
     const n = (s.giocatori || []).length,
-      votati = new Set(s.votati || []);
+      votati = new Set(s.votati || []),
+      pal = (s.scena && s.scena.palette) || {};
     let main = '',
       ctl = '',
       lato = '';
@@ -327,20 +301,21 @@ const GIA = {
     else if (D.err && io) main = `<div class="giatv-c"><p class="err">${esc(D.err)}</p></div>`;
     else if (s.fase === 'attesa' || (io && !p)) main = '<div class="giatv-c"><p>La regia prepara la cena…</p></div>';
     else if (s.fase === 'prologo') {
-      main = k
-        ? `<section class="giatv-narra"><h2>${esc(k.vittima.nome)}</h2><p class="muted">${esc(k.vittima.chi)}</p>${k.prologo.map(t => `<p>${esc(t)}</p>`).join('')}</section>`
+      main = s.vittima
+        ? `<section class="giatv-narra giatv-vit">${SCENA.volto(s.vittima, pal, 'medio')}<div><small>La vittima</small><h2>${esc(s.vittima.nome)}</h2><p class="muted">${esc(s.vittima.chi)}</p>${k ? k.prologo.map(t => `<p>${esc(t)}</p>`).join('') : ''}</div></section>`
         : '<div class="giatv-c"><p>Prologo: ascoltate la regia.</p></div>';
       if (io) ctl = '<button class="b play" data-a="giaavanti">Inizia il primo atto</button>';
     } else if (s.fase === 'atto') {
       const nar = k ? k.atti[s.atto].narrazione.map(t => `<p>${esc(t)}</p>`).join('') : '';
-      const ev = io && D.evento ? `<div class="giatv-ev">${esc(D.evento)}</div>` : '';
+      const ul = s.ultimo,
+        ev = ul && Date.now() - (ul.t || 0) < 90000 ? `<div class="giatv-ev">${esc(ul.testo)}</div>` : '';
       const pub = (s.pubblici || [])
         .map(
           o =>
-            `<article class="giatv-ind"><h4>${esc(o.titolo)}<small>atto ${o.atto + 1}</small></h4><p>${esc(o.testo)}</p></article>`
+            `<article class="giatv-ind">${o.img ? `<img src="${esc(o.img)}" alt="">` : ''}<h4>${esc(o.titolo)}<small>atto ${o.atto + 1}</small></h4><p>${esc(o.testo)}</p></article>`
         )
         .join('');
-      main = `${ev}<section class="giatv-narra">${nar}</section>${pub ? `<h3 class="giatv-h">Indizi pubblici</h3><div class="giatv-inds">${pub}</div>` : ''}`;
+      main = `${ev}<section class="giatv-narra">${s.luogo ? `<small class="giatv-luogo">${esc(s.luogo.nome)}</small>` : ''}${nar}</section>${pub ? `<h3 class="giatv-h">Indizi pubblici</h3><div class="giatv-inds">${pub}</div>` : ''}`;
       if (io)
         ctl = `<button class="b sm" data-a="giatempo" data-v="300000">+5 minuti</button><button class="b play" data-a="giaavanti">${s.atto < (k ? k.atti.length : 3) - 1 ? 'Atto successivo' : 'Passa all’accusa'}</button>`;
     } else if (s.fase === 'accusa') {
@@ -350,13 +325,14 @@ const GIA = {
         .map(q => `<li><b>${esc(q.testo)}</b>${q.scelte ? `<small>${q.scelte.map(esc).join(' · ')}</small>` : ''}</li>`)
         .join(
           ''
-        )}<li><b>Il miglior attore della serata</b></li></ol><p class="giatv-big">${votati.size} / ${n} hanno votato</p></section>`;
+        )}<li><b>Il miglior attore della serata</b></li></ol><p class="giatv-big">${votati.size} / ${n} hanno votato</p>
+<div class="giatv-buste">${(s.giocatori || []).map(g => `<span class="${votati.has(g.uid) ? 'piena' : ''}"><i></i>${esc(g.nome)}</span>`).join('')}</div></section>`;
       if (io) ctl = '<button class="b play" data-a="giaavanti">Rivela la verità</button>';
     } else if (s.fase === 'finale' && s.finale) {
       const f = s.finale,
         pt = f.punti,
         cl = (s.giocatori || []).slice().sort((a, b) => (pt.p[b.uid] || 0) - (pt.p[a.uid] || 0));
-      main = `<section class="giatv-narra giatv-fin"><p class="muted">L’assassino era</p><h2 class="giatv-chi">${esc(f.chi)}</h2>
+      main = `<section class="giatv-narra giatv-fin"><div class="giatv-vit">${SCENA.volto({ img: f.img, aspetto: f.aspetto, id: f.chiId }, pal, 'medio')}<div><p class="muted">L’assassino era</p><h2 class="giatv-chi">${esc(f.chi)}</h2></div></div>
 <p>${(s.domande || [])
         .filter(q => q.id !== 'chi')
         .map(q => `<b>${esc(q.testo)}</b> ${esc(f.risposte[q.id])}`)
@@ -374,11 +350,11 @@ ${pt.franca ? '<p class="giatv-ev">L’assassino l’ha fatta franca!</p>' : ''}
     const tav = (s.giocatori || [])
       .map(
         g =>
-          `<li><b>${esc(g.nome)}</b><span>${esc(g.pg)}</span>${s.fase === 'accusa' && votati.has(g.uid) ? `<i>${ic('stretta', 16)}</i>` : ''}</li>`
+          `<li>${SCENA.volto(g, pal, 'mini')}<b>${esc(g.nome)}</b><span>${esc(g.pg)}</span>${s.fase === 'accusa' && votati.has(g.uid) ? `<i>${ic('stretta', 16)}</i>` : ''}</li>`
       )
       .join('');
     const voce = io
-      ? `<button class="b sm" data-a="giavoce">${D.voce ? 'Voce sì' : 'Voce no'}</button><button class="b sm" data-a="tvfull">Schermo intero</button>`
+      ? `<button class="b sm" data-a="giavoce">${SCENA.voce ? 'Voce sì' : 'Voce no'}</button><button class="b sm" data-a="tvfull">Schermo intero</button>`
       : '';
     return `<div class="giatv"><header class="giatv-top"><div><small>Cena con delitto</small><h1>${esc(s.titolo || '')}</h1></div>
 <div class="giatv-fase">${esc(GIA.fase(s))}</div>${GIA.timerH(s, 'giatv-t')}</header>
@@ -413,7 +389,6 @@ setInterval(() => GIA.tick(), 1000);
 // ---- vista del telefono ----
 function gialloH() {
   if (ui.tv) return GIA.tvH();
-  GIA.ascolta();
   const s = G,
     m = GIA.mano,
     sc = m.scheda,
@@ -448,13 +423,24 @@ function giaSchedaH(s, m) {
   const sa = Object.entries(sc.sa || {})
     .map(([n, t]) => `<li><b>${esc(n)}</b>: ${esc(t)}</li>`)
     .join('');
-  const tav = (s.giocatori || []).map(g => `<li>${esc(g.nome)} è <b>${esc(g.pg)}</b></li>`).join('');
-  return `<h2 class="gia-nome">${esc(sc.nome)}</h2><p class="gia-ruolo">${esc(sc.ruolo)}</p>
+  const pal = (s.scena && s.scena.palette) || {};
+  const tav = (s.giocatori || [])
+    .map(g => `<li>${SCENA.volto(g, pal, 'mini')}<span>${esc(g.nome)} è <b>${esc(g.pg)}</b></span></li>`)
+    .join('');
+  return `<div class="gia-io">${SCENA.volto(sc, pal, 'medio')}<div><h2 class="gia-nome">${esc(sc.nome)}</h2><p class="gia-ruolo">${esc(sc.ruolo)}</p></div></div>
 ${sc.costume ? box('Costume', `<p>${esc(sc.costume)}</p>`) : ''}${box('La tua storia', `<p>${esc(sc.storia)}</p>`)}
 ${box('Il tuo segreto', (ui.gseg ? `<p>${esc(sc.segreto)}</p>` : '<p class="muted">Coperto: guardalo quando nessuno sbircia.</p>') + `<button class="b sm" data-a="giaseg">${ui.gseg ? 'Copri' : 'Scopri'}</button>`, 'seg')}
-${box('Il tuo alibi', `<p>${esc(sc.alibi)}</p>`)}${sa ? box('Cosa sai degli altri', `<ul>${sa}</ul>`) : ''}${tav ? box('Al tavolo', `<ul>${tav}</ul>`) : ''}`;
+${box('Il tuo alibi', `<p>${esc(sc.alibi)}</p>`)}${sa ? box('Cosa sai degli altri', `<ul>${sa}</ul>`) : ''}${tav ? box('Al tavolo', `<ul class="gia-tav">${tav}</ul>`) : ''}`;
 }
 function giaIndiziH(s, m, io) {
+  const msg = Object.values(m)
+    .filter(o => o.t === 'messaggio')
+    .sort((a, b) => b.atto - a.atto)
+    .map(
+      o =>
+        `<article class="gia-ind privato"><h4>${esc(o.titolo)}<small>atto ${o.atto + 1} · solo per te</small></h4><p>${esc(o.testo)}</p></article>`
+    )
+    .join('');
   const miei = Object.values(m)
       .filter(o => o.t === 'indizio')
       .sort((a, b) => a.atto - b.atto),
@@ -466,10 +452,11 @@ function giaIndiziH(s, m, io) {
         ui.gmostra === o.id
           ? `<div class="gia-a">${altri.map(g => `<button class="b sm" data-a="giamostraa" data-v="${esc(o.id)}|${esc(g.uid)}">${esc(g.nome)}</button>`).join('')}<button class="b sm disc" data-a="giamostra" data-v="${esc(o.id)}">Annulla</button></div>`
           : `<button class="b sm gold" data-a="giamostra" data-v="${esc(o.id)}">Mostra a…</button>`;
-    return `<article class="gia-ind ${o.da ? 'mostrato' : ''}"><h4>${esc(o.titolo)}<small>atto ${o.atto + 1}${o.da ? ' · te l’ha mostrato ' + esc(o.da) : ''}</small></h4><p>${esc(o.testo)}</p>${az}</article>`;
+    return `<article class="gia-ind ${o.da ? 'mostrato' : ''}">${o.img ? `<img src="${esc(o.img)}" alt="" loading="lazy">` : ''}<h4>${esc(o.titolo)}<small>atto ${o.atto + 1}${o.da ? ' · te l’ha mostrato ' + esc(o.da) : ''}</small></h4><p>${esc(o.testo)}</p>${az}</article>`;
   };
   const pub = (s.pubblici || []).map(o => card({ ...o, da: 'la TV' })).join('');
   return (
+    msg +
     (miei.length
       ? miei.map(card).join('')
       : '<p class="gia-vuoto">Ancora nessun indizio: arriveranno con gli atti.</p>') +
@@ -536,6 +523,11 @@ function giaFinaleH(s, m, io) {
 }
 function gialloClick(a, v) {
   const m = GIA.mano;
+  if (a === 'giabusta') {
+    ui.gtab = v || 'indizi';
+    SCENA.chiudiAvviso();
+    return render();
+  }
   if (a === 'giatab') {
     ui.gtab = v;
     return render();
@@ -570,16 +562,11 @@ function gialloClick(a, v) {
   }
   // comandi della regia (TV)
   if (!ui.tv || !REGIA.sono()) return;
+  if (a === 'giasalta') return SCENA.salta(false);
   if (a === 'giaavanti') return GIA.comanda({ t: 'avanti' });
   if (a === 'giatempo') return GIA.comanda({ t: 'tempo', ms: +v });
   if (a === 'giavoce') {
-    GIA.D.voce = !GIA.D.voce;
-    if (!GIA.D.voce)
-      try {
-        speechSynthesis.cancel();
-      } catch (e) {
-        ERR.n(e);
-      }
+    SCENA.voce = !SCENA.voce;
     return render();
   }
 }

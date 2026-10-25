@@ -6,11 +6,76 @@
    - nuova(kit, giocatori, opz) -> {s}|{err}   giocatori [{uid,nome}], opz {rnd, scelte:{uid:idPersonaggio}}
    - act(s, a, kit, ora) -> {s}|{err}   a = {t:'avanti'} dalla regia, oppure {t, uid, ...} dalle richieste dei telefoni
    - pubblico(s, kit) -> parte da mostrare a tutti (atto, timer, indizi pubblici, chi ha votato, finale)
-   Fasi: prologo -> atto 0..k-1 -> accusa -> finale. L'avanzare lo decide la regia (pulsante o timer scaduto). */
+   Fasi: prologo -> atto 0..k-1 -> accusa -> finale. L'avanzare lo decide la regia (pulsante o timer scaduto).
+   Scena (facoltativa, docs/GIALLI-SCENA.md): k.scena (palette, atmosfera, ambiente, musica, voce), k.media (immagini e
+   font, scritto dal build), atti[].luogo, eventi[].fx e messaggi privati, personaggi[].aspetto (ritratto disegnato). */
 const GIALLO = (() => {
   const clone = o => JSON.parse(JSON.stringify(o));
   const PUNTI = { chi: 3, altra: 1, obiettivo: 1, attore: 2, franca: 3 };
   const testo = v => typeof v === 'string' && v.trim().length > 0;
+  // repertorio comune a tutti i kit: ogni kit sceglie cosa usare (le viste in app/24w-scena.js li sanno disegnare e suonare)
+  const FX = ['lampo', 'buio', 'tremito', 'campana', 'telegramma', 'sparo', 'orologio'];
+  const STRATI = [
+    'pioggia',
+    'neve',
+    'nebbia',
+    'fuoco',
+    'braci',
+    'polvere',
+    'lampi',
+    'neon',
+    'riflettori',
+    'vignetta',
+    'grana',
+  ];
+  const AMBIENTI = ['pioggia', 'vento', 'fuoco', 'folla', 'orologio', 'mare'];
+  const TESTE = [
+    'corti',
+    'lunghi',
+    'raccolti',
+    'calvo',
+    'cappello',
+    'cilindro',
+    'cappuccio',
+    'fazzoletto',
+    'elmo',
+    'velo',
+    'piuma',
+  ];
+  const PALETTE = ['fondo', 'carta', 'inchiostro', 'accento', 'sangue'];
+  const hex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+  const img = (k, tipo, id) => (k.media && k.media[tipo] && k.media[tipo][id]) || '';
+
+  function validaScena(k, no) {
+    const sc = k.scena;
+    if (sc === undefined) return;
+    if (!sc || typeof sc !== 'object') return no('scena non valida');
+    const pal = sc.palette || {};
+    for (const c of PALETTE) if (!hex(pal[c])) no('scena: colore «' + c + '» mancante o non valido (#rrggbb)');
+    const at = sc.atmosfera || {};
+    for (const x of at.strati || []) if (!STRATI.includes(x)) no('scena: strato sconosciuto «' + x + '»');
+    for (const x of sc.ambiente || []) if (!AMBIENTI.includes(x)) no('scena: ambiente sconosciuto «' + x + '»');
+    const m = sc.musica;
+    if (m !== undefined) {
+      const ok =
+        m &&
+        m.bpm >= 40 &&
+        m.bpm <= 200 &&
+        Array.isArray(m.prog) &&
+        m.prog.length &&
+        m.prog.every(c => Array.isArray(c) && c[0] >= 24 && c[0] <= 84) &&
+        Array.isArray(m.mel) &&
+        m.mel.length === 8 &&
+        m.mel.every(b => Array.isArray(b) && b.length === 8);
+      if (!ok) no('scena: musica non valida (bpm, prog, 8 battute di 8 note)');
+    }
+    const v = sc.voce || {};
+    if (
+      (v.velocita !== undefined && !(v.velocita >= 0.5 && v.velocita <= 1.5)) ||
+      (v.tono !== undefined && !(v.tono >= 0 && v.tono <= 2))
+    )
+      no('scena: voce non valida (velocità 0,5–1,5, tono 0–2)');
+  }
 
   function valida(k) {
     const e = [],
@@ -33,6 +98,13 @@ const GIALLO = (() => {
       for (const c of ['nome', 'storia', 'segreto', 'alibi']) if (!testo(p[c])) no(d + c + ' mancante');
       if (!Array.isArray(p.obiettivi) || p.obiettivi.length !== atti.length) no(d + 'servono obiettivi per ogni atto');
       for (const x of Object.keys(p.sa || {})) if (!ids.has(x)) no(d + 'sa qualcosa di uno sconosciuto (' + x + ')');
+      const as = p.aspetto;
+      if (as !== undefined) {
+        if (as.testa !== undefined && !TESTE.includes(as.testa))
+          no(d + 'aspetto: testa sconosciuta «' + as.testa + '»');
+        for (const c of ['colore', 'capelli', 'pelle'])
+          if (as[c] !== undefined && !hex(as[c])) no(d + 'aspetto: colore «' + c + '» non valido');
+      }
       if (!p.essenziale) {
         const r = pg.find(q => q.id === p.riserva);
         if (!r || !r.essenziale) no(d + 'facoltativo senza riserva essenziale');
@@ -53,8 +125,13 @@ const GIALLO = (() => {
       no('ricostruzione mancante');
     const visti = new Set(),
       prove = {};
+    const luoghi = new Set((k.luoghi || []).map(l => l.id));
     atti.forEach((a, i) => {
       if (!testo(a.titolo) || !(a.minuti > 0)) no('atto ' + i + ': titolo o minuti mancanti');
+      if (a.luogo !== undefined && !luoghi.has(a.luogo)) no('atto ' + i + ': luogo sconosciuto «' + a.luogo + '»');
+      for (const x of a.strati || []) if (!STRATI.includes(x)) no('atto ' + i + ': strato sconosciuto «' + x + '»');
+      for (const x of a.ambiente || [])
+        if (!AMBIENTI.includes(x)) no('atto ' + i + ': ambiente sconosciuto «' + x + '»');
       for (const x of a.indizi || []) {
         if (!/^[a-z0-9-]{1,24}$/.test(x.id || '') || visti.has(x.id))
           no('indizio con id non valido o ripetuto: ' + x.id);
@@ -63,10 +140,17 @@ const GIALLO = (() => {
         if (!testo(x.testo)) no('indizio ' + x.id + ': testo mancante');
         for (const q of x.prova || []) prove[q] = (prove[q] || 0) + 1;
       }
-      for (const v of a.eventi || []) if (!testo(v.testo) || !(v.dopo >= 0)) no('atto ' + i + ': evento non valido');
+      for (const v of a.eventi || []) {
+        if (!testo(v.testo) || !(v.dopo >= 0) || v.dopo >= a.minuti)
+          no('atto ' + i + ': evento non valido (testo, minuto dentro l’atto)');
+        if (v.fx !== undefined && !FX.includes(v.fx)) no('atto ' + i + ': effetto sconosciuto «' + v.fx + '»');
+        if (v.a !== undefined && (!ids.has(v.a) || !testo(v.privato)))
+          no('atto ' + i + ': messaggio privato senza destinatario o testo');
+      }
     });
     for (const q of dom)
       if ((prove[q.id] || 0) < 2) no('domanda ' + q.id + ': servono almeno due indizi che la provino');
+    validaScena(k, no);
     return e;
   }
 
@@ -89,6 +173,9 @@ const GIALLO = (() => {
     for (const [x, v] of Object.entries(p.sa || {})) if (inGioco.includes(x)) sa[pgDi(k, x).nome] = v;
     return {
       t: 'scheda',
+      id: p.id,
+      img: img(k, 'ritratti', p.id),
+      aspetto: p.aspetto || null,
       nome: p.nome,
       ruolo: p.ruolo || '',
       costume: p.costume || '',
@@ -137,6 +224,8 @@ const GIALLO = (() => {
       attore: {},
       fatti: {},
       punti: null,
+      eventi: {},
+      ultimo: null,
       log: ['Si apre il sipario'],
     };
     for (const u of uids) s.mano[u] = { scheda: scheda(k, pgDi(k, pg[u]), inGioco) };
@@ -151,11 +240,13 @@ const GIALLO = (() => {
     s.fase = 'atto';
     s.atto = i;
     s.scade = ora + a.minuti * 60000;
+    s.inizio = ora; // gli eventi dell'atto si contano da qui (il tempo aggiunto non li sposta)
     for (const u of Object.keys(s.pg))
       s.mano[u]['ob' + i] = { t: 'obiettivi', atto: i, testi: pgDi(k, s.pg[u]).obiettivi[i] };
     for (const x of a.indizi) {
       const d = dest(k, s.inGioco, x.a);
       const o = { t: 'indizio', id: x.id, atto: i, titolo: x.titolo || 'Indizio', testo: x.testo };
+      if (img(k, 'oggetti', x.id)) o.img = img(k, 'oggetti', x.id);
       if (d === 'tutti') s.pubblici.push(o);
       else if (d) s.mano[chi[d]]['i-' + x.id] = o;
     }
@@ -198,7 +289,33 @@ const GIALLO = (() => {
       s.scade = Math.max(ora, s.scade + (Math.round(+a.ms) || 0));
       return { s };
     }
+    // un evento dell'atto in corso accade (lo decide la regia al minuto giusto): una volta sola, con l'eventuale messaggio privato
+    if (a.t === 'evento') {
+      const ev = s.fase === 'atto' && (k.atti[s.atto].eventi || [])[a.i];
+      if (!ev) return { err: 'Nessun evento da far accadere' };
+      const id = s.atto + '-' + a.i;
+      if (s.eventi[id]) return { err: 'È già successo' };
+      s.eventi[id] = true;
+      let per = '';
+      if (ev.a) {
+        const d = dest(k, s.inGioco, ev.a),
+          u = d && Object.keys(s.pg).find(x => s.pg[x] === d);
+        if (u) {
+          per = s.nomi[u];
+          s.mano[u]['e-' + id] = {
+            t: 'messaggio',
+            atto: s.atto,
+            titolo: ev.titolo || 'Messaggio per te',
+            testo: ev.privato,
+          };
+        }
+      }
+      s.ultimo = { id, testo: ev.testo, fx: ev.fx || '', per, t: ora };
+      s.log.push(ev.testo);
+      return { s };
+    }
     if (a.t === 'avanti') {
+      s.ultimo = null;
       if (s.fase === 'prologo') apriAtto(s, k, 0, ora);
       else if (s.fase === 'atto' && s.atto < k.atti.length - 1) apriAtto(s, k, s.atto + 1, ora);
       else if (s.fase === 'atto') {
@@ -268,7 +385,35 @@ const GIALLO = (() => {
       atto: s.atto,
       titoloAtto: s.atto >= 0 ? k.atti[s.atto].titolo : '',
       scade: s.scade,
-      giocatori: Object.keys(s.pg).map(u => ({ uid: u, nome: s.nomi[u], pg: pgDi(k, s.pg[u]).nome })),
+      giocatori: Object.keys(s.pg).map(u => {
+        const p = pgDi(k, s.pg[u]);
+        return {
+          uid: u,
+          nome: s.nomi[u],
+          id: p.id,
+          pg: p.nome,
+          ruolo: p.ruolo || '',
+          costume: p.costume || '',
+          img: img(k, 'ritratti', p.id),
+          aspetto: p.aspetto || null,
+        };
+      }),
+      luogo: luogoDi(k, s),
+      vittima: k.vittima
+        ? {
+            nome: k.vittima.nome,
+            chi: k.vittima.chi || '',
+            img: img(k, 'ritratti', 'vittima'),
+            aspetto: k.vittima.aspetto || null,
+          }
+        : null,
+      ultimo: s.ultimo,
+      // aspetto comune a telefoni e TV (niente segreti): colori, font dei titoli, stile
+      scena: {
+        palette: (k.scena && k.scena.palette) || null,
+        font: (k.media && k.media.font) || '',
+        stile: (k.scena && k.scena.stile) || '',
+      },
       pubblici: s.pubblici,
       // per il modulo d'accusa: i personaggi in gioco (id e nome) e, dall'accusa in poi, le domande
       personaggi: s.inGioco.map(id => ({ id, nome: pgDi(k, id).nome })),
@@ -280,6 +425,9 @@ const GIALLO = (() => {
       out.finale = {
         risposte: k.soluzione.risposte,
         chi: pgDi(k, k.soluzione.risposte.chi).nome,
+        chiId: k.soluzione.risposte.chi,
+        img: img(k, 'ritratti', k.soluzione.risposte.chi),
+        aspetto: pgDi(k, k.soluzione.risposte.chi).aspetto || null,
         ricostruzione: k.soluzione.ricostruzione,
         voti: s.voti,
         punti: s.punti,
@@ -287,6 +435,13 @@ const GIALLO = (() => {
     return out;
   }
 
-  return { valida, scegli, nuova, act, pubblico, PUNTI };
+  // il luogo dell'atto in corso (o il primo luogo del kit nel prologo)
+  function luogoDi(k, s) {
+    const id = s.atto >= 0 ? k.atti[s.atto].luogo : (k.luoghi || [])[0] && k.luoghi[0].id;
+    const l = (k.luoghi || []).find(x => x.id === id);
+    return l ? { id: l.id, nome: l.nome, img: img(k, 'luoghi', l.id) } : null;
+  }
+
+  return { valida, scegli, nuova, act, pubblico, PUNTI, FX, STRATI, AMBIENTI, TESTE };
 })();
 if (typeof module !== 'undefined') module.exports = GIALLO;
