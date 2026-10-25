@@ -4,7 +4,7 @@
 .side{display:flex;flex-direction:column;align-items:center;gap:10px}
 .pile{position:relative;text-align:center;font:800 11px var(--f-d);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .pile .stk{position:relative;width:42px;height:59px;margin:0 auto 3px}.pile .stk .card{--cw:42px;position:absolute;left:0;top:0;border-width:2px}.pile .stk .card:nth-child(2){transform:translate(-3px,-3px)}.pile .stk .card:nth-child(3){transform:translate(-6px,-6px)}
-.pile b{position:absolute;right:-8px;top:-10px;min-width:24px;height:24px;border-radius:12px;background:radial-gradient(circle at 35% 30%,var(--gold1),var(--gold2) 60%,var(--gold3));color:#2a1d03;font:900 13px/20px var(--f-d);border:2px solid #000;z-index:4;padding:0 4px}
+.pile>b{position:absolute;right:-8px;top:-10px;min-width:24px;height:24px;border-radius:12px;background:radial-gradient(circle at 35% 30%,var(--gold1),var(--gold2) 60%,var(--gold3));color:#2a1d03;font:900 13px/20px var(--f-d);border:2px solid #000;z-index:4;padding:0 4px}
 .pile.empty .stk{border:2px dashed var(--line);border-radius:6px}
 .boss{position:relative;justify-self:center;--glow:rgba(233,196,106,.55)}
 .boss.H{--glow:rgba(255,70,80,.6)}.boss.D{--glow:rgba(255,190,60,.6)}.boss.C{--glow:rgba(80,220,120,.5)}.boss.S{--glow:rgba(130,140,255,.6)}
