@@ -44,7 +44,7 @@ function unoH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s
 function unoClick(a,v){const s=G;if(!myTurn())return;
  if(a==='uswap')return dispatch({t:'swap',to:+v});
  if(a==='ucard'){if(s.phase==='challenge'||s.phase==='swap')return;const c=v;if(!UNO.playable(s,c)||(s.phase==='pass'&&c!==s.drawn)){ui.err=s.pend?'Devi rispondere con '+(s.pendK==='D'?'un +2':'un +4')+' o pescare':'Questa carta non si può giocare adesso';Snd.play('err');return render()}ui.err='';
-  if(c[0]==='W'){ui.ucs=c;return render()}
+  if(c[0]==='W'){if(s.hands[s.cur].length===1)return dispatch({t:'play',c,uno:false});ui.ucs=c;return render()}
   if(UNO.maxN(s,s.cur,c)>=2){ui.udbl=c;Snd.play('sel');return render()}
   return dispatch({t:'play',c,uno:ui.uuno})}
  if(a==='uplay'){const c=ui.udbl;ui.udbl=null;return dispatch({t:'play',c,n:+v,uno:ui.uuno})}

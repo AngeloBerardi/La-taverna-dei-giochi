@@ -8,7 +8,8 @@
    può denunciarlo (azione catch) prima di muovere e il colpevole pesca 2; appena cur fa un'altra mossa il momento è passato.
    Doppie: si giocano insieme n copie identiche (stesso colore e valore, mai jolly) con a.n; gli effetti si ripetono n volte
    (Salta salta n giocatori, Inverti n volte, +2 fa pescare 2n). Dopo aver pescato si gioca solo la carta pescata, da sola.
-   Se l'ultima carta è +2/+4 il prossimo pesca prima del conteggio dei punti. Si gioca una mano: vince chi finisce le carte.
+   Si può chiudere con qualsiasi carta, anche speciale: se l'ultima è +2/+4 il prossimo pesca prima del conteggio dei punti (con l'accumulo
+   anche il mucchio in corso), il +4 giocato per chiudere è sempre regolare e non si sfida, un jolly per chiudere non chiede il colore. Si gioca una mano: vince chi finisce le carte.
    Fasi: play (cur agisce) · pass (ha pescato: può giocare quella carta o passare) · challenge (cur può sfidare o accettare il +4) · swap (cur ha giocato un 7: sceglie con chi scambiare).
    Azioni: play{c,n?,color?,uno?} draw pass challenge accept catch swap{to}. */
 const UNO=(()=>{
@@ -75,7 +76,7 @@ function act(st,a){const s=clone(st);if(s.over)return fail('Partita finita');s.e
  if(a.t==='play'){const c=a.c;if(!s.hands[p].includes(c))return fail('Non hai quella carta');
   if(s.phase==='pass'&&c!==s.drawn)return fail('Puoi giocare solo la carta pescata');
   if(!playable(s,c))return fail(s.pend?'Devi rispondere con un '+(s.pendK==='D'?'+2':'+4')+' o pescare':'Carta non giocabile: serve '+CN[s.color]+' o lo stesso valore');
-  if(col(c)==='W'){if(!COLORS.includes(a.color))return fail('Scegli un colore')}
+  if(col(c)==='W'){if(!COLORS.includes(a.color)){if(s.hands[p].length===1)a={...a,color:s.color};else return fail('Scegli un colore')}}
   const n=a.n==null?1:a.n;if(!Number.isInteger(n)||n<1)return fail('Numero di carte non valido');
   if(n>1){if(col(c)==='W')return fail('I jolly si giocano uno alla volta');if(s.sw&&'70'.includes(val(c)))return fail('Il 7 e lo 0 si giocano una carta alla volta');if(s.phase==='pass')return fail('Dopo aver pescato giochi solo la carta pescata, da sola');
    if(s.hands[p].filter(x=>x===c).length<n)return fail('Non hai '+n+' carte uguali a quella')}

@@ -50,6 +50,19 @@ s=base();s.hands[0]=['RD','RD','R1'];b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'
 s=base(3,'stack');s.hands[0]=['RD','RD','R1'];r=A(s,{t:'play',c:'RD',n:2});assert.strictEqual(r.pend,4);
 s=base();s.hands[0]=['WW','WW','R1'];assert(U.act(s,{t:'play',c:'WW',n:2,color:'B'}).err,'i jolly non si giocano in doppia');
 s=base();s.hands[0]=['Y1','Y1'];s.deck=['R9','R9','G1'];r=A(s,{t:'draw'});assert.strictEqual(r.phase,'pass');assert(U.act(r,{t:'play',c:'R9',n:2}).err,'dopo la pesca solo la carta pescata');
+// Chiudere con una carta speciale (regolamento ufficiale: si vince con qualsiasi carta; +2/+4 fanno pescare il prossimo prima del conteggio)
+const pun=(r,w)=>r.hands.reduce((a,h,i)=>i===w?a:a+h.reduce((x,c)=>x+U.pts(c),0),0);
+for(const edi of ['classic','stack','sette','caos'])for(const n of [2,3,4]){
+ for(const [c,extra,pesca] of [['RS',{},0],['RV',{},0],['RD',{},2],['WW',{color:'B'},0],['WF',{color:'B'},4]]){
+  s=base(n,edi);s.hands[0]=[c];const nx=n===2?1:1,b=s.hands[nx].length;r=A(s,{t:'play',c,...extra});
+  assert(r.over&&r.over.win===0,'si vince chiudendo con '+c+' '+edi+n);assert.strictEqual(r.hands[nx].length,b+pesca,'pesca del prossimo con '+c);assert.strictEqual(r.over.scores[0],pun(r,0),'punti dopo la pesca con '+c);assert.strictEqual(r.hands[0].length,0)}}
+// il jolly come ultima carta non chiede il colore
+s=base();s.hands[0]=['WW'];r=A(s,{t:'play',c:'WW'});assert(r.over&&r.over.win===0);
+s=base();s.hands[0]=['WF'];r=A(s,{t:'play',c:'WF'});assert(r.over&&r.over.win===0,'+4 come ultima carta: sempre regolare, nessuna sfida');assert.strictEqual(r.phase,'play');
+s=base();s.hands[0]=['WW','R1'];assert(U.act(s,{t:'play',c:'WW'}).err,'con altre carte in mano il colore serve');
+// con l'accumulo in corso, chiudere con un +2 fa pescare tutto il mucchio al prossimo
+s=base(3,'stack');s.hands[0]=['RD','R1'];s.hands[1]=['YD','G1'];r=A(s,{t:'play',c:'RD'});r=A(r,{t:'play',c:'YD'});r=A(r,{t:'draw'});assert.strictEqual(r.pend,0);
+s=base(3,'stack');s.pend=4;s.pendK='D';s.hands[0]=['RD'];b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'});assert(r.over);assert.strictEqual(r.hands[1].length,b1+6,'4 già in tavola + 2');
 // ultima carta +2 / +4: il prossimo pesca prima dei punti
 s=base();s.hands[0]=['RD'];b1=s.hands[1].length;r=A(s,{t:'play',c:'RD'});assert(r.over);assert.strictEqual(r.hands[1].length,b1+2);assert.strictEqual(r.over.scores[0],r.hands[1].reduce((a,c)=>a+U.pts(c),0)+r.hands[2].reduce((a,c)=>a+U.pts(c),0));
 s=base();s.hands[0]=['WF'];b1=s.hands[1].length;r=A(s,{t:'play',c:'WF',color:'B'});assert(r.over);assert.strictEqual(r.hands[1].length,b1+4);

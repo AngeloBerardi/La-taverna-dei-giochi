@@ -12,7 +12,7 @@ Si gioca una carta dello **stesso colore o stesso numero/simbolo** di quella in 
 - **UNO!**: quando dopo la giocata resta **una carta sola** (anche dopo una pesca, o giocando una doppia) bisogna dire "UNO" prima di giocare. Chi se lo dimentica può essere **denunciato dal giocatore che gioca subito dopo**, prima che questi muova: pesca 2. Se il successivo muove senza denunciare, il momento è passato.
 
 ## Fine partita e punteggio
-Si gioca una mano. Chi finisce le carte vince e prende i punti delle carte rimaste agli altri: numeri = valore, Salta, Inverti e +2 = 20, jolly = 50. Se l'ultima carta è un +2 o un +4, il prossimo giocatore pesca prima del conteggio.
+Si gioca una mano. Chi finisce le carte vince e prende i punti delle carte rimaste agli altri: numeri = valore, Salta, Inverti e +2 = 20, jolly = 50. **Si può chiudere con qualsiasi carta**, anche speciale (Salta, Inverti, +2, jolly, +4). Se l'ultima carta è un +2 o un +4 il prossimo giocatore pesca prima del conteggio (con l'accumulo anche tutto il mucchio in corso); un +4 giocato per chiudere è sempre regolare (non hai altre carte del colore) quindi non si sfida; un jolly per chiudere non chiede il colore.
 
 ## Modalità (scelta in lobby)
 - **Classiche**: il +4 si può sfidare, niente accumulo.
@@ -26,7 +26,7 @@ Si gioca una mano. Chi finisce le carte vince e prende i punti delle carte rimas
 - Con più di 6 giocatori si usano due mazzi (216 carte).
 
 ## Test del motore
-1. Mazzo (108 o 216 carte, 7 a testa, nessun id duplicato) e giocabilità. 2. Effetti: Salta, Inverti (anche in due), +2, jolly, +4 con sfida, accumulo, Sette-Zero, doppie, UNO dimenticato e denuncia, UNO dopo la pesca, ultima carta +2/+4. 3. Partite complete anche con 10 giocatori e due mazzi.
+1. Mazzo (108 o 216 carte, 7 a testa, nessun id duplicato) e giocabilità. 2. Effetti: Salta, Inverti (anche in due), +2, jolly, +4 con sfida, accumulo, Sette-Zero, doppie, UNO dimenticato e denuncia, UNO dopo la pesca, chiusura con ogni carta speciale in tutte le modalità. 3. Partite complete anche con 10 giocatori e due mazzi.
 
 ## Fonti
 Regolamento ufficiale del gioco (meccaniche); i punteggi delle carte seguono il testo in-gioco di `RULES.uno`.
