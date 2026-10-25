@@ -2,6 +2,7 @@
 const carica=require('./carica.js'),U=carica('20-uno.js','UNO'),assert=require('assert');
 const R=carica.rng(4);U.setRnd(R);
 const mk=(n=3,edi)=>U.newGame(n,Array.from({length:n},(_,i)=>'g'+i),{edi});
+assert.strictEqual(mk(3,'caos').edi,'stack');assert(mk(3,'caos').sw);assert(mk(3,'sette').sw&&mk(3,'sette').edi==='classic');assert(!mk(3,'stack').sw);assert.strictEqual(mk(3,'boh').modo,'classic');
 const A=(s,a)=>{const r=U.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.stringify(a));return r.s};
 const all=s=>[...s.hands.flat(),...s.deck,...s.discard];
 for(const n of [2,6,7,10]){const s=mk(n);assert.strictEqual(all(s).length,n>6?216:108);assert(s.hands.every(h=>h.length===7));assert(!'SVDW'.includes(s.discard[0][1])&&s.discard[0][0]!=='W')}
@@ -67,13 +68,27 @@ assert(U.act(r,{t:'play',c:'G1'}).err,'devi rispondere col +2 o pescare');r2=A(r
 let r3=A(r2,{t:'draw'});assert.strictEqual(r3.hands[2].length,9);assert.strictEqual(r3.pend,0);assert.strictEqual(r3.cur,0);
 // mazzo finito: si rimescola
 s=base();s.deck=[];s.discard=['R5','Y1','Y2','B3'];s.color='B';s.hands[0]=['Y9','G9'];r=A(s,{t:'draw'});assert(all(r).length>=4);
+// Sette-Zero: il 7 scambia la mano, lo 0 fa girare le mani
+s=base(3,'sette');s.hands=[['R7','Y1','Y2'],['B1','B2'],['G1','G2','G3','G4']];r=A(s,{t:'play',c:'R7'});assert.strictEqual(r.phase,'swap');assert.strictEqual(r.cur,0,'il turno resta a chi ha giocato il 7');
+assert(U.act(r,{t:'draw'}).err,'prima scegli lo scambio');assert(U.act(r,{t:'swap',to:0}).err,'non con se stessi');assert(U.act(r,{t:'swap',to:7}).err);
+r=A(r,{t:'swap',to:2});assert.deepStrictEqual(r.hands[0],['G1','G2','G3','G4']);assert.deepStrictEqual(r.hands[2],['Y1','Y2']);assert.strictEqual(r.cur,1);assert.strictEqual(r.phase,'play');
+assert(U.act(s,{t:'swap',to:1}).err,'swap fuori fase');
+s=base(2,'sette');s.hands=[['R7','Y1','Y2'],['B1','B2','B3','B4']];r=A(s,{t:'play',c:'R7'});assert.strictEqual(r.phase,'play','in due lo scambio è automatico');assert.strictEqual(r.hands[0].length,4);assert.strictEqual(r.hands[1].length,2);assert.strictEqual(r.cur,1);
+s=base(3,'sette');s.hands=[['R0','Y1'],['B1','B2','B3'],['G1','G2','G3','G4']];s.discard=['R5'];r=A(s,{t:'play',c:'R0'});assert.deepStrictEqual(r.hands[1],['Y1']);assert.deepStrictEqual(r.hands[2],['B1','B2','B3']);assert.deepStrictEqual(r.hands[0],['G1','G2','G3','G4']);assert.strictEqual(r.cur,1);
+s=base(3,'sette');s.dir=-1;s.hands=[['R0','Y1'],['B1','B2','B3'],['G1','G2','G3','G4']];r=A(s,{t:'play',c:'R0'});assert.deepStrictEqual(r.hands[2],['Y1'],'le mani girano nel verso di gioco');
+s=base(3,'sette');s.hands=[['R7','R7','Y1'],['B1'],['G1']];assert.strictEqual(U.maxN(s,0,'R7'),1);assert(U.act(s,{t:'play',c:'R7',n:2}).err,'7 e 0 mai in doppia');
+s=base(3,'sette');s.hands=[['R7'],['B1','B2'],['G1']];r=A(s,{t:'play',c:'R7'});assert(r.over,'se il 7 è l\'ultima carta si vince subito, senza scambio');
+s=base(3,'classic');s.hands=[['R7','Y1'],['B1'],['G1']];r=A(s,{t:'play',c:'R7',uno:true});assert.strictEqual(r.phase,'play','fuori da Sette-Zero il 7 è una carta normale');
+// il colpevole del mancato UNO che scambia la mano non e' piu' denunciabile se non ha una carta sola
+s=base(3,'sette');s.hands=[['R7','Y1'],['B1','B2','B3'],['G1','G2']];r=A(s,{t:'play',c:'R7'});assert.strictEqual(r.miss,0);r=A(r,{t:'swap',to:1});assert.strictEqual(r.miss,null);
 // partite
 function bot(s){const p=s.cur,h=s.hands[p];
+ if(s.phase==='swap')return{t:'swap',to:(p+1+Math.floor(R()*(s.n-1)))%s.n};
  if(s.miss!=null&&s.miss!==p&&R()<.5)return{t:'catch'};
  if(s.phase==='challenge')return{t:R()<.4?'challenge':'accept'};
  const pl=U.canPlay(s,p).filter(c=>s.phase!=='pass'||c===s.drawn);
  if(pl.length&&(s.phase!=='pass'||R()<.9)){const c=pl[Math.floor(R()*pl.length)],cc=U.COLORS.slice().sort((a,b)=>h.filter(x=>x[0]===b).length-h.filter(x=>x[0]===a).length)[0];const mx=U.maxN(s,p,c),n=mx>1&&R()<.5?2:1;return{t:'play',c,n,color:cc,uno:R()<.9}}
  return{t:s.phase==='pass'?'pass':'draw'}}
-for(const edi of ['classic','stack'])for(const n of [2,3,5,7,10])for(let g=0;g<40;g++){let s=mk(n,edi),k=0;const N=all(s).length;while(!s.over&&k++<4000){const a=bot(s),r=U.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.stringify(a)+' '+s.phase);s=r.s;assert.strictEqual(all(s).length,N,'carte perse')}
+for(const edi of ['classic','stack','sette','caos'])for(const n of [2,3,5,7,10])for(let g=0;g<40;g++){let s=mk(n,edi),k=0;const N=all(s).length;while(!s.over&&k++<4000){const a=bot(s),r=U.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.stringify(a)+' '+s.phase);s=r.s;assert.strictEqual(all(s).length,N,'carte perse')}
  assert(s.over,'partita senza fine '+edi+n)}
 console.log('Uno: regole, +4 con sfida, accumulo, UNO e partite 2-10 giocatori ok');console.log('ALL OK');

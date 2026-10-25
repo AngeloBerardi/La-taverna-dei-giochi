@@ -14,8 +14,11 @@ Si gioca una carta dello **stesso colore o stesso numero/simbolo** di quella in 
 ## Fine partita e punteggio
 Si gioca una mano. Chi finisce le carte vince e prende i punti delle carte rimaste agli altri: numeri = valore, Salta, Inverti e +2 = 20, jolly = 50. Se l'ultima carta è un +2 o un +4, il prossimo giocatore pesca prima del conteggio.
 
-## Varianti
-**Accumulo** (opzione): un +2 si rimanda con un altro +2 e un +4 con un +4; chi non può risponde pescando tutto. Con l'accumulo il +4 non si sfida.
+## Modalità (scelta in lobby)
+- **Classiche**: il +4 si può sfidare, niente accumulo.
+- **Accumulo**: un +2 si rimanda con un altro +2 e un +4 con un +4; chi non può risponde pescando tutto. Con l'accumulo il +4 non si sfida.
+- **Sette-Zero**: giocando un **7** si scambia la propria mano con un giocatore a scelta (in due è automatico); giocando uno **0** tutte le mani passano al giocatore successivo nel verso di gioco. 7 e 0 si giocano una carta alla volta; se sono l'ultima carta si vince subito, senza scambio. Chi resta con una carta sola per uno scambio non deve dire UNO.
+- **Tutto insieme**: accumulo + Sette-Zero.
 
 ## Casi limite
 - In due giocatori Inverti vale Salta.
@@ -23,7 +26,7 @@ Si gioca una mano. Chi finisce le carte vince e prende i punti delle carte rimas
 - Con più di 6 giocatori si usano due mazzi (216 carte).
 
 ## Test del motore
-1. Mazzo (108 o 216 carte, 7 a testa, nessun id duplicato) e giocabilità. 2. Effetti: Salta, Inverti (anche in due), +2, jolly, +4 con sfida, accumulo, doppie, UNO dimenticato e denuncia, UNO dopo la pesca, ultima carta +2/+4. 3. Partite complete anche con 10 giocatori e due mazzi.
+1. Mazzo (108 o 216 carte, 7 a testa, nessun id duplicato) e giocabilità. 2. Effetti: Salta, Inverti (anche in due), +2, jolly, +4 con sfida, accumulo, Sette-Zero, doppie, UNO dimenticato e denuncia, UNO dopo la pesca, ultima carta +2/+4. 3. Partite complete anche con 10 giocatori e due mazzi.
 
 ## Fonti
 Regolamento ufficiale del gioco (meccaniche); i punteggi delle carte seguono il testo in-gioco di `RULES.uno`.

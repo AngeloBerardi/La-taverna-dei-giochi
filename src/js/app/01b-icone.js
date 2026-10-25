@@ -1,6 +1,7 @@
 /* ---- Icone a tratto (SVG, currentColor): al posto delle emoji nell'interfaccia ---- */
 const ICONE={
- chat:'<path d="M4 5h16v11H9l-5 4z"/>',nota:'<path d="M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3M19 16a3 3 0 1 1-3-3"/>',
+ chat:'<path d="M4 5h16v11H9l-5 4z"/>',megafono:'<path d="M3 10v4h4l8 5V5L7 10zM18 9a4 4 0 0 1 0 6"/>',bilancia:'<path d="M12 3v17M7 20h10M4 8h16M4 8l-2.5 6h5zM20 8l-2.5 6h5z"/>',scambio:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',spunta:'<path d="M4 12l5 5L20 6"/>',
+ nota:'<path d="M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3M19 16a3 3 0 1 1-3-3"/>',
  ingr:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',x:'<path d="M5 5l14 14M19 5L5 19"/>',
  star:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/>',fuoco:'<path d="M12 3c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-10z"/>',
  dado:'<rect x="4" y="4" width="16" height="16"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/>',
