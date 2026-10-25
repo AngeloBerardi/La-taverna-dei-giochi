@@ -43,6 +43,8 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 #sim button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,214,150,.35);background:#2a1a10;color:var(--ink);font:700 18px/1 'Alegreya Sans',sans-serif;cursor:pointer}
 .ov{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;background:rgba(8,6,10,.94);opacity:0;pointer-events:none;transition:opacity .3s;touch-action:auto;overflow:auto}
 .ov.on{opacity:1;pointer-events:auto}
+.has-pl .ov{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}/* la plancia in basso è fissa: il fondo delle schede deve poter salire sopra di lei */
+body:has(.ov.on) #zbar,body:has(.ov.on) #zpg{display:none!important}
 .ov .hd{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 10px}
 .ov .hd b{font:700 22px "Alegreya SC",Georgia,serif;letter-spacing:.06em;color:var(--amber)}
 .ov .x{height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,214,150,.3);background:rgba(255,255,255,.05);color:var(--ink);font:500 14px "Alegreya Sans",sans-serif;cursor:pointer}
@@ -52,7 +54,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 #gl-grid span{font:700 13px "Alegreya SC",Georgia,serif;letter-spacing:.03em;line-height:1.15}
 #gl-grid small{font:500 12px "Alegreya Sans",sans-serif;color:var(--muted)}
 .gp{padding:4px 18px 28px;display:flex;flex-direction:column;gap:12px}
-.gp img{width:62%;align-self:center;aspect-ratio:1;border-radius:6px;box-shadow:0 14px 30px rgba(0,0,0,.7)}
+.gp img{width:min(62%,32vh);align-self:center;aspect-ratio:1;border-radius:6px;box-shadow:0 14px 30px rgba(0,0,0,.7)}
 .gp h2{margin:6px 0 0;font:700 28px "Alegreya SC",Georgia,serif;letter-spacing:.04em;color:var(--amber);text-align:center}
 .gp .meta{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 .gp .meta span{padding:4px 10px;border-radius:999px;border:1px solid rgba(255,214,150,.3);font:500 13px "Alegreya Sans",sans-serif;color:var(--ink)}
