@@ -69,4 +69,4 @@ function azulTVH(){const s=G,ok=AZ3.sync(s),fail=AZ3.failed,nm=i=>esc(s.names[i]
   mid=`<div class="atv-flat"><div class="atv-fs">${fac}</div><div class="atv-c">${cen}</div><div class="atv-bs n${s.n}">${s.boards.map((_,i)=>azBoard(s,i)).join('')}</div></div>`}
  let end='';if(s.over){const R0=s.res||[],o=s.over;end=LP.endH(o.winners.length===1,o.winners.length>1?'Pareggio tra '+o.winners.map(i=>nm(i)).join(' e '):'Vince '+nm(o.win)+'!','Si contano righe, colonne e colori completi',
   `<ul>${s.names.map((n,i)=>`<li class="${o.winners.includes(i)?'w':''}"><span>${esc(n)}</span><small>${R0[i]?R0[i].rows+'×2 · '+R0[i].cols+'×7 · '+R0[i].colors+'×10':''}</small><b>${o.scores[i]}★</b></li>`).join('')}</ul>`)}
- return LP.shell({cls:'atv',logo:'Azul',sub:'Round '+s.round+' · sacchetto '+s.bag.length+(s.grey?' · muro libero':''),state,mid,right:`<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:track,end})}
+ return LP.shell({cls:'atv',logo:GN('azul'),sub:'Round '+s.round+' · sacchetto '+s.bag.length+(s.grey?' · muro libero':''),state,mid,right:`<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:track,end})}

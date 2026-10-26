@@ -53,12 +53,12 @@ const RLTV=TVM('rltv3d','rlegacy',{fw:15.6,fd:10.4,cx:0,cz:.2},(R_,s)=>{LP.table
  const mm=b.mesh();if(mm)R_.dyn.add(mm)});
 LP.reg.rlegacy=RLTV;
 function rlegacyTVH(){const s=G,ok=s.phase!=='prep'&&RLTV.sync(s),o=s.over,nm=i=>esc(s.names[i]),mi=RLV.info(s);document.documentElement.dataset.tv3=ok?'1':'';
- if(s.phase==='prep'){RLTV.hide();return LP.shell({cls:'rltv',logo:'Regicide Legacy',sub:esc(RLV.name(s)),state:`<b>${nm(s.cur)}</b> prepara la missione`,
+ if(s.phase==='prep'){RLTV.hide();return LP.shell({cls:'rltv',logo:GN('rlegacy'),sub:esc(RLV.name(s)),state:`<b>${nm(s.cur)}</b> prepara la missione`,
   mid:`<div class="rltv-prep"><h2>${esc(mi.n)}</h2><em>${esc(mi.luogo)}</em><p>${esc(mi.intro)}</p><div class="rl-rules">${RLV.rules(s).map(([a,b])=>`<span class="rl-rule"><b>${esc(a)}</b> · ${esc(b)}</span>`).join('')}</div></div>`,right:'',foot:''})}
  const en=s.en,state=o?(o.win?'<b>Missione compiuta!</b>':'<b>Missione fallita</b>'):s.phase==='discard'?`<b>${nm(s.cur)}</b> deve parare <b>${s.owed}</b>`:s.phase==='pick'?`<b>${nm(s.cur)}</b> ha giocato il giullare: chi lo reclama?`:s.phase==='magic'?`<b>${nm(s.cur)}</b> sceglie una carta del Mago`:`Tocca a <b>${nm(s.cur)}</b>`;
  const enH=en?`<div class="rltv-en"><b>${esc(en.nm)}</b><span>Vita ${Math.max(0,en.hp-en.dmg)} / ${en.hp}</span><span>Forza ${RLEG.effStr(s)}</span><span>Immune ${RLV.icons(en.c,22)}</span></div>`:'';
  const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!o?'act':''}"><i class="tv3-dot"></i><span class="tv3-n">${esc(n)}</span><b class="tv3-vp">${s.hands[i].length}<small> carte</small></b></li>`).join('');
  const flat=ok?'':`<div class="rltv-flat">${en?RLV.foeCard(s,en,'xl'):''}<div class="rl-field">${s.mats.map(m=>m.map(c=>RLV.card(c,{s,cls:'sm'})).join('')).join('')}</div></div>`;
  const end=o?LP.endH(o.win,o.win?'Missione compiuta!':'Missione fallita',esc(o.win?mi.win:mi.lose),`<p>Nemici sconfitti: ${s.kills}</p>`):'';
- return LP.shell({cls:'rltv n'+s.n,logo:'Regicide Legacy',sub:esc(RLV.name(s)),state,mid:flat,
+ return LP.shell({cls:'rltv n'+s.n,logo:GN('rlegacy'),sub:esc(RLV.name(s)),state,mid:flat,
   right:`${enH}<div class="rl-rules">${RLV.chips(s)}</div><ul class="tv3-pl">${pls}</ul>${(s.rel||[]).length?`<div class="rltv-rel">${s.rel.map(r=>`<span class="rl-relic">${esc(RLEG.REL[r].n)}</span>`).join('')}</div>`:''}${LP.feedH(s)}`,foot:'',end})}

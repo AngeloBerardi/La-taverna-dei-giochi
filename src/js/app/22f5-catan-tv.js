@@ -21,10 +21,10 @@ function catanTVH(){const s=G,C=CATAN,url=TV.linkGioco(),cols=typeof CPC!=='unde
   tr=`<div class="ctv-trade"><div class="ctv-tt">${esc(s.names[T_.from])} propone uno scambio${T_.to!=null?' a '+esc(s.names[T_.to]):''}</div><div class="ctv-tb"><div>${side(T_.give)}</div><span>per</span><div>${side(T_.want)}</div></div>
    <div class="ctv-ta">${T_.acc.length?'Accettano: '+T_.acc.map(i=>'<b>'+esc(s.names[i])+'</b>').join(', '):'Nessuno ha ancora accettato'}</div></div>`}
  const end=s.over?`<div class="ctv-end"><div class="ctv-endbox"><div class="ctv-crown">${ic('corona',72)}</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><p>${esc(s.over.reason||'')}</p><ul>${s.names.map((n,i)=>`<li class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}★</b></li>`).join('')}</ul></div></div>`:'';
- const xp=(s.xt||[]).map(k=>({mar:'Marinai',cek:'Città e Cavalieri',mb:'Mercanti e Barbari',ep:'Esploratori e Pirati'})[k]).filter(Boolean);
+ const xp=(s.xt||[]).map(k=>({mar:'Marinai',cek:'Città e Difensori',mb:'Carovane e Predoni',ep:'Rotte e Corsari'})[k]).filter(Boolean);
  const sc=s.scen&&CATAN.EXTS&&CATAN.EXTS.mar&&CATAN.EXTS.mar.SC[s.scen];
  return`<div class="ctv-root ${fail?'flat':''}">
-  <header class="ctv-top"><div><div class="ctv-logo">Catan</div><div class="ctv-sub">${esc(xp.join(' · ')||'Gioco base')}${sc?' · '+esc(sc.nome):''} · si vince a ${s.vp}★</div></div>
+  <header class="ctv-top"><div><div class="ctv-logo">${GN('catan')}</div><div class="ctv-sub">${esc(xp.join(' · ')||'Gioco base')}${sc?' · '+esc(sc.nome):''} · si vince a ${s.vp}★</div></div>
    <div class="ctv-st8">${catanTVstato(s)}</div>${dice}</header>
   ${fail||!ok&&CTV.failed?`<div class="ctv-flat">${boardH(s,null)}</div>`:''}
   <aside class="ctv-pl"><ul>${pls}</ul><div class="ctv-bank">${bank}</div></aside>
