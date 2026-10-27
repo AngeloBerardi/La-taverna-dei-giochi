@@ -50,6 +50,7 @@
   "src/css/42-catan-tv.css",
   "src/css/43-tv-lowpoly.css",
   "src/css/44-voto.css",
+ "src/css/45-giallo.css",
  "src/css/90-lobby-3d.css",
  "src/html/mid.html",
  "src/js/motori/01-regicide.js",
@@ -91,6 +92,7 @@
  "src/js/motori/34-voto.js",
  "src/js/motori/35-sync.js",
  "src/js/motori/36-regicide-legacy.js",
+ "src/js/motori/36-giallo.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",
  "src/js/app/01b-icone.js",
@@ -166,6 +168,9 @@
  "src/js/app/24s-tv-giochi.js",
  "src/js/app/24t-copertine.js",
  "src/js/app/24u-regicide-legacy-tv.js",
+ "src/js/app/24u-regia.js",
+ "src/js/app/24v-giallo.js",
+ "src/js/app/24w-scena.js",
  "src/js/app/25-avvio.js",
  "src/html/tail.html"
 ]

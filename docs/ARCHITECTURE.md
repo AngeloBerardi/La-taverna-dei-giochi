@@ -58,6 +58,16 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 ## Eroi e campagne
 Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati ricalcolati, `prova` d20) salvati in `players/{uid}/eroi/e1..e5` via `FB.eroi/salvaEroe/eliminaEroe`; vista `app/24g-eroi.js` (`Eroi`). Le regole `eroi` di `firestore.rules` sono generate da `scripts/regole.js`. Campagna: `motori/28-campagna.js` (`CAMP`, stato JSON puro, `act(stato, azione, rnd)` → `{s}`|`{err}`), anteprima `app/24h-campagna.js` (`Camp`). Piano: `docs/CAMPAGNE.md`.
 
+## Regia (cene con delitto)
+`app/24u-regia.js` (`REGIA`): per i giochi con segreti veri lo stato non sta tutto in `stanze/CODICE/d` (che ogni telefono legge), ma lo tiene la TV **regista**. Nodi (regole in `database.rules.json`, fuori da `stanze/` perché lì la lettura si eredita su tutto il ramo):
+| Percorso | Chi scrive | Chi legge |
+|---|---|---|
+| `stanze/CODICE/r` (uid della regista) | chi è dentro (`k`) se è libera; la lascia lei o la libera chi è dentro | tutti |
+| `regia/CODICE` (kit, soluzione, atto, voti) | regista | regista |
+| `segreti/CODICE/UID/CHIAVE` (scheda, indizi) | regista | solo UID (e la regista) |
+| `azioni/CODICE/UID/ID` (mostra indizio, voto) | UID se è dentro | regista, che le consuma |
+La TV entra con `RT.claim` (dispositivo e `k`, nessun membro: non è un giocatore), poi `REGIA.prendi`. Le parti pubbliche della serata (atto, timer, indizi pubblici) vanno nel documento della stanza come negli altri giochi. A fine serata `REGIA.pulisci`. Limite: chi è dentro può liberare la regia e prenderla con gli strumenti da sviluppatore (il gioco mostra chi è la regista). Test: `tests/test_regia.js` (interprete delle regole + vero client), casi uguali in `tests/emulatore/regole.js`. Kit: `src/kit/*.json`, scritti dal build in `dist/kit/` (nella pagina solo l'indice `REGIA.KIT`); motore della serata `motori/36-giallo.js` (`GIALLO`, contratto proprio, non a turni). Messa in scena comune `app/24w-scena.js` (`SCENA`): fondo animato `#gia-fondo` e momenti `#gia-scena` fuori da `#app` (render() non li fa ripartire), chiamata da `afterRender` tramite `GIA.dopo()`; ambienti sonori `Snd.amb`, temi dei kit `Snd.def`. Immagini e font in `assets/kit/<id>/`, collegati dal build (`k.media`). Piano: `docs/GIALLI.md`, scena: `docs/GIALLI-SCENA.md`.
+
 ## Rete
 **Un solo trasporto: il Realtime Database (`R.mode='rt'`, `app/24m-rete-rtdb.js`).** Stessa interfaccia `doc/collection/onSnapshot` di `R.db`, ma nessun telefono fa da host: lo stato sta nel database (`stanze/CODICE/d` stanza, `/m/DEV` membri, `/c/ID` chat, `/p/DEV` presenza con `onDisconnect`, `/pos/DEV` posizione del pupazzo 3D: camminare scrive solo qui e non ridisegna la pagina; `/dv/DEV` e `/k/UID` legano dispositivo e profilo alla stanza) e l'SDK riconnette e risincronizza da solo. Ogni documento è un testo JSON (`j`) perché RTDB toglie null e array vuoti. Regole: `database.rules.json` (da pubblicare, come `firestore.rules`).
 
@@ -104,7 +114,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/25-catan.css` | 9 |  |
 | `css/26-fisso.css` | 4 |  |
 | `css/27-pets.css` | 2 |  |
-| `css/28-uno.css` | 2 |  |
+| `css/28-uno.css` | 4 |  |
 | `css/29-trono.css` | 6 |  |
 | `css/29b-spie.css` | 1 |  |
 | `css/29c-quiz.css` | 1 |  |
@@ -126,6 +136,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
 | `css/44-voto.css` | 2 |  |
+| `css/45-giallo.css` | 16 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -150,7 +161,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/18b-catan-marinai.js` | 8 | DIRS, key, dist, split, SC, landOf, tryGen |
 | `js/motori/18c-catan-cek.js` | 21 | K, TR, LV, KN, PC, HAND, F |
 | `js/motori/19-pets.js` | 8 | PETS, RND, clone, COUNTS, NAMES, TARGET, L |
-| `js/motori/20-uno.js` | 8 | UNO, RND, clone, COLORS, col, pts, L |
+| `js/motori/20-uno.js` | 10 | UNO, RND, clone, COLORS, col, pts, L |
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/motori/23-elo.js` | 2 | ELO |
@@ -167,11 +178,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/34-voto.js` | 1 | VOTO, DUR, esito, chi |
 | `js/motori/35-sync.js` | 4 | SYNC |
 | `js/motori/36-regicide-legacy.js` | 31 | RLEG, RND, clone, shuffle, pick, HL, CL |
+| `js/motori/36-giallo.js` | 19 | GIALLO |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
-| `js/app/01b-icone.js` | 4 | ICONE, ic, glifo |
+| `js/app/01b-icone.js` | 5 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 16 | Snd |
+| `js/app/03-audio.js` | 20 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 23 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
@@ -179,7 +191,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
-| `js/app/07d-regole.js` | 37 | RULES |
+| `js/app/07d-regole.js` | 39 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -211,7 +223,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
 | `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanRowsH, fanFit |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
-| `js/app/22i-uno.js` | 7 | UCOL, USYM, UORD, ucardH, uSort, unoH, unoClick |
+| `js/app/22i-uno.js` | 10 | UCOL, USVG, USYM, UORD, ucardH, ubackH, uSort |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
 | `js/app/22k-spie.js` | 4 | SPCOL, SPT, spieH, spieClick, SPFX |
 | `js/app/22l-quiz.js` | 6 | QPC, qcol, quizBoardH, quizH, quizClick, QZFX |
@@ -226,7 +238,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 10 | FsDb, Dist |
-| `js/app/24f-schermo.js` | 8 | CAST_APP_ID, TV |
+| `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 13 | Eroi |
 | `js/app/24h-campagna.js` | 8 | Camp |
 | `js/app/24i-plancia.js` | 12 | Plancia |
@@ -242,6 +254,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24s-tv-giochi.js` | 16 | TVM, dkc, bmesh, pawn, SPTV, spieTVH, QZTV |
 | `js/app/24t-copertine.js` | 43 | COP, P, FAC, svg |
 | `js/app/24u-regicide-legacy-tv.js` | 8 | RLTEX, rlTex, rlCard3, rlFace, RLC, RLTV, rlegacyTVH |
+| `js/app/24u-regia.js` | 6 | REGIA |
+| `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
+| `js/app/24w-scena.js` | 30 | SCENA |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->

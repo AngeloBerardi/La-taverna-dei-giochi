@@ -1,0 +1,173 @@
+/* ---- Cena con delitto: telefono a schede (app/24v-giallo.js), TV regista e messa in scena (app/24w-scena.js) ----
+   I colori e il carattere dei titoli vengono dal kit (SCENA.tema scrive --gk-* su <html>); qui i valori di riserva. */
+:root{--g-fondo:var(--gk-fondo,#120a0b);--g-carta:var(--gk-carta,#f3e6c8);--g-ink:var(--gk-ink,#2a1a12);--g-acc:var(--gk-acc,#e9c46a);--g-r:var(--gk-r,#7a2228);--g-font:var(--gk-font,var(--f-d))}
+.gia{display:flex;flex-direction:column;gap:10px;padding:0 12px 16px;max-width:560px;margin:0 auto}
+.gia-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:linear-gradient(180deg,color-mix(in srgb,var(--g-r) 55%,transparent),rgba(0,0,0,.6))}
+.gia-top small{display:block;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.gia-top b{font:400 19px var(--g-font)}
+.gia-t{font:900 22px var(--f-d);color:var(--g-acc);font-variant-numeric:tabular-nums}
+.gia-t.ultimo,.giatv-t.ultimo{color:#ff5a4a;animation:giapulsa 1s ease-in-out infinite}
+@keyframes giapulsa{50%{transform:scale(1.08);opacity:.75}}
+.gia-tabs{display:flex;gap:4px;overflow-x:auto}
+.gia-tabs button{flex:1 0 auto;font:800 13px var(--f-d);letter-spacing:.05em;text-transform:uppercase;padding:10px 10px;min-height:44px;border:2px solid var(--line);border-radius:4px;background:rgba(0,0,0,.35);color:var(--muted);cursor:pointer}
+.gia-tabs button.sel{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#4a2a08;border-color:#7a5410}
+.gia-body{display:flex;flex-direction:column;gap:10px}
+.gia-io{display:flex;gap:14px;align-items:center;margin-top:4px}
+.gia-nome{font:400 28px/1.1 var(--g-font);margin:0;color:var(--g-acc)}
+.gia-ruolo{margin:2px 0 0;color:var(--muted);font-style:italic}
+.gia-box,.gia-ind{background:var(--g-carta);color:var(--g-ink);border-radius:4px;padding:12px 14px;box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 0 0 1px rgba(90,40,20,.25)}
+.gia-box h3,.gia-ind h4{margin:0 0 6px;font:400 15px var(--g-font);letter-spacing:.06em;text-transform:uppercase;color:var(--g-r)}
+.gia-box p,.gia-ind p{margin:0 0 6px;line-height:1.45}
+.gia-box ul,.gia-box ol{margin:0;padding-left:18px;line-height:1.45}
+.gia-box.seg{border-left:6px solid var(--g-r)}
+.gia-box.seg .muted{color:color-mix(in srgb,var(--g-ink) 60%,transparent)}
+.gia-box.passato{opacity:.7}
+.gia-ind img{display:block;width:100%;max-height:220px;object-fit:cover;border-radius:3px;margin:0 0 8px}
+.gia-ind h4 small{display:block;font:600 11px var(--f-b,inherit);letter-spacing:0;text-transform:none;color:color-mix(in srgb,var(--g-ink) 60%,transparent)}
+.gia-ind.mostrato{background:color-mix(in srgb,var(--g-carta) 88%,#3f6a8a);border-left:6px solid #3f6a8a}
+.gia-ind.privato{border:2px dashed var(--g-r);background:color-mix(in srgb,var(--g-carta) 90%,var(--g-r))}
+.gia-tav{list-style:none;padding:0!important}
+.gia-tav li{display:flex;align-items:center;gap:10px;padding:3px 0}
+.gia-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.gia-h{margin:8px 0 0;font:800 13px var(--f-d);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.gia-vuoto{color:var(--muted);text-align:center;padding:24px 8px}
+.gia-obs{list-style:none;padding:0!important}
+.gia-obs li{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.gia-obs li.fatto span:last-child{text-decoration:line-through;opacity:.7}
+.gia-ck{flex:0 0 28px;width:28px;height:28px;display:inline-grid;place-items:center;border:2px solid var(--g-r);border-radius:3px;background:#fff8e8;color:var(--g-r);cursor:pointer;padding:0}
+.gia-q{display:flex;flex-direction:column;gap:6px}
+.gia-q .sel{min-height:46px;width:100%}
+.gia-ok{color:#8fd19e;margin:0}
+.gia-chi{font:400 26px var(--g-font);color:var(--g-r);margin:0 0 6px}
+.gia-cl{list-style:none;padding:0!important}
+.gia-cl li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dashed rgba(90,40,20,.3)}
+.gia-cl li.io{font-weight:800}
+.gia-piede{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* ---- volti: immagine del kit o cammeo disegnato ---- */
+.gia-volto{display:inline-block;flex:none;aspect-ratio:4/5;object-fit:cover;border-radius:50%/42%;box-shadow:0 0 0 3px var(--g-acc),0 6px 18px rgba(0,0,0,.55);background:var(--g-fondo);overflow:hidden}
+span.gia-volto{box-shadow:0 6px 18px rgba(0,0,0,.45);background:none;border-radius:0}
+.gia-volto svg{display:block;width:100%;height:100%}
+.gia-volto.mini{height:42px}
+.gia-volto.medio{height:120px}
+.gia-volto.grande{height:min(62vh,52vw)}
+
+/* ---- TV regista: il testo sta sopra il fondo animato (#gia-fondo) ---- */
+.giatv{position:fixed;inset:0;z-index:60;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,26%);grid-template-rows:auto 1fr auto;grid-template-areas:'top top' 'main side' 'ctl ctl';gap:16px;padding:20px 24px;box-sizing:border-box;background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,.15) 30%,rgba(0,0,0,.25) 70%,rgba(0,0,0,.75))}
+.giatv-top{grid-area:top;display:flex;align-items:center;gap:24px;border-bottom:2px solid color-mix(in srgb,var(--g-acc) 40%,transparent);padding-bottom:12px}
+.giatv-top small{color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.giatv-top h1{margin:0;font:400 clamp(28px,3.6vw,52px) var(--g-font);color:var(--g-acc);text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.giatv-fase{flex:1;font:400 clamp(20px,2.3vw,32px) var(--g-font);text-shadow:0 2px 8px #000}
+.giatv-t{font:900 clamp(36px,5vw,72px) var(--f-d);color:var(--g-acc);font-variant-numeric:tabular-nums;text-shadow:0 2px 12px #000}
+.giatv-main{grid-area:main;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.giatv-narra{font-size:clamp(18px,1.8vw,26px);line-height:1.5;max-width:60ch;text-shadow:0 2px 10px #000,0 0 2px #000}
+.giatv-narra h2{margin:0;font:400 clamp(30px,3.2vw,48px) var(--g-font)}
+.giatv-narra ol{padding-left:28px}
+.giatv-narra li small{display:block;color:var(--muted);font-size:.75em}
+.giatv-luogo{display:block;color:var(--g-acc);letter-spacing:.14em;text-transform:uppercase;font-size:.7em}
+.giatv-vit{display:flex;gap:28px;align-items:center;max-width:none}
+.giatv-vit .gia-volto{height:min(38vh,300px)}
+.giatv-big{font:900 clamp(28px,3vw,44px) var(--f-d);color:var(--g-acc)}
+.giatv-h{margin:6px 0 0;font:800 16px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.giatv-inds{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.giatv-ind{background:var(--g-carta);color:var(--g-ink);border-radius:4px;padding:14px 16px;font-size:clamp(15px,1.3vw,20px);box-shadow:0 4px 0 rgba(0,0,0,.4)}
+.giatv-ind img{display:block;width:100%;height:140px;object-fit:cover;border-radius:3px;margin-bottom:8px}
+.giatv-ind h4{margin:0 0 6px;font:400 17px var(--g-font);letter-spacing:.06em;text-transform:uppercase;color:var(--g-r)}
+.giatv-ind h4 small{margin-left:8px;color:color-mix(in srgb,var(--g-ink) 60%,transparent);text-transform:none;letter-spacing:0;font:600 13px var(--f-b,inherit)}
+.giatv-ev{padding:14px 18px;border-left:8px solid var(--g-acc);background:rgba(0,0,0,.55);font:800 clamp(20px,2vw,30px) var(--f-d)}
+/* niente animazioni dentro #app: render() le farebbe ripartire a ogni aggiornamento (le entrate le fa #gia-scena) */
+@keyframes giaev{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.giatv-chi{font-size:clamp(40px,5vw,80px)!important;color:var(--g-acc)}
+.giatv-buste{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}
+.giatv-buste span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.7em;color:var(--muted)}
+.giatv-buste i{width:64px;height:44px;border:2px dashed color-mix(in srgb,var(--g-carta) 50%,transparent);border-radius:3px}
+.giatv-buste .piena{color:var(--fg)}
+.giatv-buste .piena i{border:0;background:linear-gradient(160deg,transparent 48%,rgba(0,0,0,.25) 50%,transparent 52%),linear-gradient(20deg,transparent 48%,rgba(0,0,0,.25) 50%,transparent 52%),var(--g-carta);box-shadow:0 3px 0 rgba(0,0,0,.4),inset 0 0 0 10px transparent}
+.giatv-cl{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;font-size:clamp(15px,1.3vw,20px)}
+.giatv-cl li{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}
+.giatv-cl span{flex-basis:100%;color:var(--muted);font-size:.85em}
+.giatv-cl em{margin-left:auto;font:900 1.3em var(--f-d);font-style:normal;color:var(--g-acc)}
+.giatv-cl li:first-child b{color:var(--g-acc)}
+.giatv-side{grid-area:side;border-left:2px solid color-mix(in srgb,var(--g-acc) 30%,transparent);padding-left:16px;overflow:auto;background:rgba(0,0,0,.35)}
+.giatv-side h3{margin:0 0 8px;font:800 16px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.giatv-side ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:clamp(15px,1.3vw,20px)}
+.giatv-side li{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center}
+.giatv-side li .gia-volto{grid-row:1/3}
+.giatv-side li>span:not(.gia-volto){color:var(--muted);font-size:.85em;grid-column:2}
+.giatv-side li i{color:#8fd19e;grid-column:3;grid-row:1/3}
+.giatv-ctl{grid-area:ctl;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+.giatv-c{margin:auto;text-align:center;font-size:clamp(18px,2vw,28px)}
+.giatv-ok{color:#8fd19e}
+@media (max-width:760px){.giatv{grid-template-columns:1fr;grid-template-areas:'top' 'main' 'side' 'ctl';padding:12px 16px}.giatv-side{border-left:0;padding-left:0}}
+/* lo schermo comune è di sola visione (37-schermo.css spegne i pulsanti): la regia del giallo invece si comanda dalla TV */
+html[data-tv] #app [data-a=giaregia],html[data-tv] #app .giatv [data-a]{pointer-events:auto;cursor:pointer}
+html.gia-trema .giatv,html.gia-trema #gia-scena{animation:giatrema .09s linear 12}
+@keyframes giatrema{25%{transform:translate(-6px,3px)}50%{transform:translate(5px,-4px)}75%{transform:translate(-3px,-2px)}}
+
+/* ---- fondo della TV: luogo con zoom lento e atmosfera ---- */
+#gia-fondo{position:fixed;inset:0;z-index:59;pointer-events:none;background:radial-gradient(ellipse at 40% 30%,color-mix(in srgb,var(--g-fondo) 70%,#fff 6%),var(--g-fondo) 70%)}
+#gia-fondo canvas{position:absolute;inset:0;width:100%;height:100%}
+.gf-img,.gf-l{position:absolute;inset:0}
+.gf-l{opacity:0;transition:opacity 2.4s ease;background-size:cover;background-position:center}
+.gf-l.on{opacity:1}
+.gf-l.img{animation:giazoom 70s ease-in-out infinite alternate}
+@keyframes giazoom{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.14) translate(-2%,-1.5%)}}
+
+/* ---- momenti a tutto schermo ---- */
+#gia-scena{position:fixed;inset:0;z-index:90;display:none;place-items:center;padding:4vh 5vw;box-sizing:border-box;background:rgba(6,4,3,.93);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--fg);animation:giaentra .5s ease-out;font-size:clamp(18px,2vw,30px)}
+#gia-scena.on{display:grid}
+.gs-salta{position:absolute;right:24px;bottom:20px;opacity:.75}
+#gia-scena.via{animation:giaesce .45s ease-in forwards}
+@keyframes giaentra{from{opacity:0}to{opacity:1}}
+@keyframes giaesce{to{opacity:0}}
+#gia-scena h1,#gia-scena h2{margin:0;font:400 clamp(44px,6.5vw,110px)/1.05 var(--g-font);color:var(--g-acc);text-shadow:0 4px 30px rgba(0,0,0,.8)}
+#gia-scena h2{font-size:clamp(38px,5vw,84px)}
+#gia-scena small{display:block;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-size:.65em;margin-bottom:.6em}
+.gs-c{text-align:center;max-width:62ch;line-height:1.5}
+.gs-c p{margin:.4em 0}
+#gia-scena.cartello h1{animation:giatitolo 1.2s cubic-bezier(.2,.8,.2,1)}
+@keyframes giatitolo{from{opacity:0;letter-spacing:.3em;filter:blur(6px)}to{opacity:1;letter-spacing:0;filter:none}}
+.gs-sigla{position:absolute;inset:0;display:flex;align-items:center;padding:0 7vw}
+.gs-sigla img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75;animation:giazoom 30s ease-out forwards}
+.gs-sigla>div{position:relative;max-width:48vw;text-shadow:0 2px 20px #000}
+.gs-sigla h1{animation:giatitolo 2s cubic-bezier(.2,.8,.2,1)}
+.gs-cast{display:flex;align-items:center;gap:5vw;max-width:90vw}
+.gs-cast>div{max-width:46vw}
+.gs-cast .gia-volto{animation:giavolto 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes giavolto{from{opacity:0;transform:scale(.85) rotate(-3deg)}to{opacity:1;transform:none}}
+.gs-cast p{margin:.3em 0}
+.gs-costume{font-style:italic;color:var(--muted)}
+#gia-scena.vittima .gia-volto{filter:sepia(.7) grayscale(.4)}
+.gs-ind{display:flex;gap:3vw;align-items:center;max-width:min(1100px,90vw);background:var(--g-carta);color:var(--g-ink);padding:4vh 3vw;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.7);animation:giacarta .9s cubic-bezier(.2,.8,.2,1)}
+@keyframes giacarta{from{transform:perspective(900px) rotateY(80deg) scale(.7);opacity:0}to{transform:none;opacity:1}}
+.gs-ind img{width:min(34vw,420px);aspect-ratio:1;object-fit:cover;border-radius:4px}
+#gia-scena .gs-ind h2{color:var(--g-r);text-shadow:none;font-size:clamp(32px,3.6vw,60px)}
+#gia-scena .gs-ind small{color:color-mix(in srgb,var(--g-ink) 60%,transparent)}
+.gs-ev{text-align:center;max-width:56ch;font:800 clamp(24px,2.6vw,40px)/1.35 var(--f-d)}
+.gs-per{margin-top:1em;color:var(--g-acc);font:400 clamp(30px,3.4vw,56px) var(--g-font);animation:giapulsa 1.4s ease-in-out infinite}
+#gia-scena.fx-buio{background:#000}
+#gia-scena.fx-buio .gs-ev{opacity:0;animation:giaentra 1.2s 2.2s ease-out forwards}
+#gia-scena.fx-lampo,#gia-scena.fx-sparo{background:rgba(6,4,3,.8)}
+.gs-foglio{width:min(420px,60vw);height:120px;margin:0 auto 24px;background:repeating-linear-gradient(180deg,transparent 0 18px,rgba(0,0,0,.12) 18px 19px),var(--g-carta);box-shadow:0 10px 30px rgba(0,0,0,.6);animation:giafoglio 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes giafoglio{from{transform:translateY(-70vh) rotate(-8deg)}to{transform:rotate(-2deg)}}
+#gia-scena.busta{background:rgba(6,4,3,.7)}
+.gs-busta{text-align:center}
+.gs-b{display:block;width:120px;height:80px;margin:0 auto 14px;background:linear-gradient(160deg,transparent 48%,rgba(0,0,0,.28) 50%,transparent 52%),linear-gradient(20deg,transparent 48%,rgba(0,0,0,.28) 50%,transparent 52%),var(--g-carta);border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,.6);position:relative}
+.gs-b::after{content:'';position:absolute;left:50%;top:44%;width:22px;height:22px;margin:-11px;border-radius:50%;background:var(--g-r);box-shadow:inset 0 0 0 4px color-mix(in srgb,var(--g-r) 70%,#000)}
+#gia-scena.busta .gs-b{animation:giacade .7s cubic-bezier(.3,1.4,.5,1)}
+@keyframes giacade{from{transform:translateY(-60vh) rotate(-20deg)}to{transform:none}}
+#gia-scena.buio{background:#000}
+#gia-scena.riflettore{background:radial-gradient(circle at 30% 50%,#3a3226,#0b0806 34%,#000 60%)}
+#gia-scena.riflettore h1{animation:giatitolo 2.2s cubic-bezier(.2,.8,.2,1)}
+
+/* sul telefono: una busta in basso, si tocca per aprire */
+#gia-scena.tel{place-items:end center;background:rgba(0,0,0,.4);padding:16px;animation:none}
+.gs-tbusta{display:flex;flex-direction:column;align-items:center;gap:4px;width:min(420px,100%);padding:18px 16px 16px;border:2px solid var(--g-acc);border-radius:10px;background:color-mix(in srgb,var(--g-fondo) 85%,#000);color:var(--fg);font:inherit;font-size:16px;cursor:pointer;animation:giasu .5s cubic-bezier(.2,1.3,.5,1);box-shadow:0 -6px 30px rgba(0,0,0,.6)}
+.gs-tbusta b{font:400 22px var(--g-font);color:var(--g-acc)}
+.gs-tbusta small{color:var(--fg)}
+.gs-tbusta em{font-size:12px;color:var(--muted);font-style:normal;letter-spacing:.06em;text-transform:uppercase}
+.gs-tbusta .gs-b{width:84px;height:56px;margin:0 0 6px;animation:giadondola 1.2s ease-in-out infinite}
+#gia-scena.privato .gs-tbusta{border-color:var(--g-r)}
+@keyframes giasu{from{transform:translateY(120%)}to{transform:none}}
+@keyframes giadondola{50%{transform:rotate(-5deg) translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){#gia-scena *,.gf-l.img{animation:none!important}}
