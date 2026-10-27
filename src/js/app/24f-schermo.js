@@ -71,5 +71,5 @@ ${G&&G.over?'<div class="tvp-fine">Partita finita</div>':''}
  panel(){if(!ui.tv)return;let el=document.getElementById('tvpanel');if(!el){el=document.createElement('aside');el.id='tvpanel';document.body.appendChild(el)}
   if(!R.code){el.innerHTML='';return}el.innerHTML=TV.panelH()},
  lobbyH(){const gg=R.doc&&R.doc.game&&GAMES.find(x=>x.id===R.doc.game);
-  return`<div class="tvwait"><h1>La Taverna dei Giochi</h1>${ui.err?`<p class="err">${esc(ui.err)}</p>`:R.code?`<p>${gg?'Si sta per giocare a <b>'+esc(gg.name)+'</b>':'Il tavolo sta scegliendo un gioco…'}</p>`:'<p>Mi collego al tavolo…</p>'}</div>`}};
+  return`<div class="tvwait"><h1>La Taverna dei Giochi</h1>${ui.err?`<p class="err">${esc(ui.err)}</p>`:R.code?`<p>${gg?'Si sta per giocare a <b>'+esc(gg.name)+'</b>':'Il tavolo sta scegliendo un gioco…'}</p>`:'<p>Mi collego al tavolo…</p>'}${GIA.tvLobbyH()}</div>`}};
 document.addEventListener('keydown',e=>{if(ui.tv&&(e.key==='f'||e.key==='F')&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||''))TV.pieno()});

@@ -3,6 +3,7 @@ function defOpts(id){const g=GAMES.find(x=>x.id===id);const o={};if(g&&g.opts)o[
 async function startGame(id,seats,opts){const S=seats||lobbySeats(),g=GAMES.find(x=>x.id===id);
  if(!g||!g.ok(S.length)){ui.err=g?g.name+' si gioca con '+g.range+' giocatori':'Gioco sconosciuto';return render()}
  if(R.on&&R.doc&&R.doc.phase==='play'&&!seats){ui.err='C’è già una partita in corso in questa stanza';return render()}
+ if(g.check){const m=g.check(S,opts||defOpts(id));if(m){ui.err=m;return render()}}
  const o=opts||defOpts(id);if(id==='mindx')o.x=1;const s=ENG[id].newGame(S.length,S.map(x=>x.name),id==='rlegacy'?Object.assign({},o,{camp:RLV.campFor()}):o);s.g=id;s.gid=rid();ui.err='';
  if(id==='regicide'&&ST('rg-intro')!=='1')ui.story=true;
  if(R.on){try{const e=await SYNC.esegui(R.ref,cur=>SYNC.partita(cur,{dopo:seats&&G?G.gid:null,patch:{phase:'play',game:id,opts:o,seats:S,s}}));

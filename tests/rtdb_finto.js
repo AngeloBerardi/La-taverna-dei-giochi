@@ -58,6 +58,13 @@ function creaDb(seme, opz) {
     stanza(code, doc) {
       db.metti('stanze/' + code + '/d', { j: DIST.ser(doc), rev: doc.rev || 0, t: 1 });
     },
+    // un ramo letto tutto insieme: le foglie sotto p ricomposte in un oggetto (null se non c'è nulla)
+    ramo(p) {
+      let t = null;
+      for (const [k, v] of store)
+        if (k.startsWith(p + '/')) t = R.scrivi(t, k.slice(p.length + 1).split('/'), clone(v));
+      return t;
+    },
     leggi(code) {
       const v = store.get('stanze/' + code + '/d');
       return v ? DIST.de(v) : null;
@@ -73,8 +80,14 @@ function creaDb(seme, opz) {
     },
     scrivi(p, v, uid) {
       db.verifica(p, v, uid);
-      if (v === null) store.delete(p);
-      else store.set(p, risolvi(clone(v)));
+      // cancellare un ramo cancella anche tutto ciò che sta sotto (come in Firebase)
+      if (v === null)
+        for (const k of [...store.keys()])
+          if (k === p || k.startsWith(p + '/')) {
+            store.delete(k);
+            if (k !== p) db.spingi(k, null);
+          }
+      if (v !== null) store.set(p, risolvi(clone(v)));
       db.commit++;
       db.spingi(p, v === null ? null : store.get(p));
     },
@@ -98,7 +111,7 @@ function creaDb(seme, opz) {
           await db.ritardo();
           if (regole && !R.puoLeggere(regole, R.albero(store), r.path, uid).ok)
             throw Object.assign(new Error('Permission denied'), { code: 'PERMISSION_DENIED' });
-          const v = store.has(r.path) ? clone(store.get(r.path)) : null;
+          const v = store.has(r.path) ? clone(store.get(r.path)) : db.ramo(r.path);
           return { val: () => v, exists: () => v !== null };
         },
         async set(r, v) {

@@ -63,6 +63,26 @@ const nega = async p => {
   ck(await prova(0, B.ref(`stanze/${C}/pos/db`).set({ j: '{}', t: 1 })), 'posizione propria');
   ck(await prova(0, B.ref('errori/1-x').set({ t: 1, m: 'boom' })), 'errori: scrittura');
   ck(await nega(B.ref('errori').get()), 'errori: lettura negata');
+  // regia (cene con delitto): la TV (ut) è regista, ognuno legge solo i propri segreti
+  const T = env.authenticatedContext('ut').database(),
+    E = env.authenticatedContext('ue').database();
+  ck(await nega(E.ref(`stanze/${C}/r`).set('ue')), 'regia: chi è fuori non la prende');
+  ck(await prova(0, T.ref(`stanze/${C}/k/ut`).set(true)), 'regia: la TV entra nella stanza');
+  ck(await prova(0, T.ref(`stanze/${C}/r`).set('ut')), 'regia: la TV prende il ruolo');
+  ck(await nega(A.ref(`stanze/${C}/r`).set('ua')), 'regia: occupata, non si ruba');
+  ck(await prova(0, T.ref(`segreti/${C}/ua/scheda`).set({ j: '{}', t: 1 })), 'segreti: la TV consegna ad Alice');
+  ck(await prova(0, T.ref(`segreti/${C}/ub/scheda`).set({ j: '{}', t: 1 })), 'segreti: la TV consegna a Bob');
+  ck(await prova(0, A.ref(`segreti/${C}/ua`).get()), 'segreti: Alice legge i propri');
+  ck(await nega(A.ref(`segreti/${C}/ub/scheda`).get()), 'segreti: Alice non legge quelli di Bob');
+  ck(await nega(A.ref(`segreti/${C}`).get()), 'segreti: Alice non legge quelli di tutti');
+  ck(await nega(A.ref(`segreti/${C}/ua/x`).set({ j: '{}', t: 1 })), 'segreti: Alice non si consegna nulla');
+  ck(await prova(0, T.ref(`regia/${C}`).set({ j: '{}', t: 1 })), 'regia: la TV salva il suo stato');
+  ck(await nega(A.ref(`regia/${C}`).get()), 'regia: Alice non legge la soluzione');
+  ck(await prova(0, A.ref(`azioni/${C}/ua/1-x`).set({ j: '{}', t: 1 })), 'azioni: Alice chiede alla regia');
+  ck(await nega(A.ref(`azioni/${C}/ub/1-x`).set({ j: '{}', t: 1 })), 'azioni: non a nome di Bob');
+  ck(await nega(B.ref(`azioni/${C}/ua`).get()), 'azioni: Bob non legge le richieste di Alice');
+  ck(await prova(0, T.ref(`azioni/${C}`).get()), 'azioni: la TV le legge');
+  ck(await prova(0, A.ref(`stanze/${C}/r`).remove()), 'regia: chi è dentro libera la TV morta');
   await env.cleanup();
   console.log(fails ? fails + ' CONTROLLI FALLITI' : 'ALL OK');
   process.exit(fails ? 1 : 0);
