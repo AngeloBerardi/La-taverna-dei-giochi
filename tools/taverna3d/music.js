@@ -27,6 +27,7 @@ var TRACKS=[
    bass:[43,48,43,50,43,48,50,43],bassAt:[0,3],ch:[[55,59,62],[60,64,67],[55,59,62],[57,62,66],[55,59,62],[60,64,67],[57,62,66],[55,59,62]]}
 ];
 var MUS={ctx:null,cur:-1,vol:.55,step:0,next:0,timer:null};
+try{var sv=parseFloat(A.ST('rg-jvol'));if(sv>=0&&sv<=1)MUS.vol=sv}catch(e){}/* volume scelto e salvato dal jukebox */
 function mtof(m){return 440*Math.pow(2,(m-69)/12)}
 function musInit(){
   if(MUS.ctx)return true;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
@@ -82,18 +83,34 @@ function musTick(){
   }
 }
 function musPlay(i){
-  if(!musInit())return false;if(MUS.ctx.state==='suspended')MUS.ctx.resume();
+  if(!musInit())return false;
+  if(MUS.ctx.state==='suspended'){try{MUS.ctx.resume()}catch(e){}if(!MUS.rs){MUS.rs=1;document.addEventListener('pointerdown',function(){MUS.rs=0;if(MUS.ctx&&MUS.ctx.state==='suspended'){try{MUS.ctx.resume()}catch(e){}}},{once:true})}}/* il browser blocca l'audio finché non c'è un tocco */
   MUS.cur=i;MUS.step=0;MUS.next=MUS.ctx.currentTime+.08;clearInterval(MUS.timer);
   if(i>=0)MUS.timer=setInterval(musTick,30);return true;
 }
 function musVol(v){MUS.vol=v;if(MUS.master)MUS.master.gain.setTargetAtTime(MUS.mute?0:v*.5,MUS.ctx.currentTime,.05)}
+/* Jukebox: i brani si provano subito; «Salva e chiudi» li conferma (e li condivide con la stanza), «Annulla» torna a come era */
+var JK=null;
+function jukeName(i){return i>=0&&TRACKS[i]?TRACKS[i].n:'Silenzio'}
+function jukeMark(){[].forEach.call($('juke').querySelectorAll('.jt'),function(b){var on=+b.dataset.i===MUS.cur;b.classList.toggle('on',on);b.firstChild.textContent=on?(MUS.cur<0?'■':'♫'):(+b.dataset.i<0?'■':'♪')})}
+function closeJuke(commit){
+  var el=$('juke');if(!el.classList.contains('show')){JK=null;return}
+  var st=JK;JK=null;
+  if(st){
+    if(commit){if(MUS.cur!==st.cur||MUS.vol!==st.vol){E.setJuke(MUS.cur,MUS.cur===st.cur)}toast('Jukebox salvato: '+jukeName(MUS.cur))}
+    else{if(MUS.cur!==st.cur)musPlay(st.cur);musVol(st.vol)}
+  }
+  el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');
+}
 function openJuke(){
-  var el=$('juke');
-  el.innerHTML='<h3>Il jukebox</h3><div class="jl">'+TRACKS.map(function(t,i){return '<button type="button" class="jt'+(MUS.cur===i?' on':'')+'" data-i="'+i+'"><span>'+(MUS.cur===i?'♫':'♪')+'</span>'+esc(t.n)+'</button>'}).join('')+
-    '<button type="button" class="jt'+(MUS.cur<0?' on':'')+'" data-i="-1"><span>■</span>Silenzio</button></div>'+
-    '<label class="jv">Volume <input type="range" min="0" max="100" value="'+Math.round(MUS.vol*100)+'" id="jvol"></label><button type="button" class="btn" id="jx">Chiudi</button>';
-  [].forEach.call(el.querySelectorAll('.jt'),function(b){b.onclick=function(){E.setJuke(+b.dataset.i);openJuke()}});
+  var el=$('juke');if($('cust').classList.contains('show')||el.classList.contains('show'))return;
+  JK={cur:MUS.cur,vol:MUS.vol};
+  el.innerHTML='<h3>Il jukebox</h3>'+(MUS.mute?'<p class="jh">La musica è disattivata: riaccendila con il tasto ♪ in alto.</p>':'')+'<div class="jl">'+TRACKS.map(function(t,i){return '<button type="button" class="jt" data-i="'+i+'"><span>♪</span>'+esc(t.n)+'</button>'}).join('')+
+    '<button type="button" class="jt" data-i="-1"><span>■</span>Silenzio</button></div>'+
+    '<label class="jv">Volume <input type="range" min="0" max="100" value="'+Math.round(MUS.vol*100)+'" id="jvol"></label><div class="jfoot"><button type="button" class="btn ghost" id="jc">Annulla</button><button type="button" class="btn" id="jx">Salva e chiudi</button></div>';
+  [].forEach.call(el.querySelectorAll('.jt'),function(b){b.onclick=function(){var i=+b.dataset.i;if(i!==MUS.cur)musPlay(i);jukeMark()}});
+  jukeMark();
   $('jvol').oninput=function(){musVol(this.value/100)};
-  $('jx').onclick=function(){el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show')};
+  $('jx').onclick=function(){closeJuke(true)};$('jc').onclick=function(){closeJuke(false)};
   el.classList.add('show');$('sbar').classList.remove('show');$('chat').classList.remove('show');
 }

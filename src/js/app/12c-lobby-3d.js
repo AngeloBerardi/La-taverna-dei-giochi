@@ -1100,7 +1100,7 @@ function sceneLocanda3(){
     if(S.hearth)S.hearth.dim=S.zoomFire?.75:1;
     if(S.stoke>0){S.stoke=Math.max(0,S.stoke-dt);S.fireL.l.intensity=S.fireL.b*(1+S.stoke*1.6)}
     for(var sk=S.sparks.length-1;sk>=0;sk--){var spk=S.sparks[sk];spk.t+=dt;spk.v.y-=1.2*dt;spk.m.position.addScaledVector(spk.v,dt);spk.m.material.opacity=1-spk.t/1.6;if(spk.t>1.6){g.remove(spk.m);spk.m.material.dispose();S.sparks.splice(sk,1)}}
-    if(S.spin>0){S.spin=Math.max(0,S.spin-dt*.8);me.rotation.y+=dt*PI*1.6}
+    if(S.spinT>0){S.spinT=Math.max(0,S.spinT-dt/1.1);var su=1-S.spinT,se=su<.5?2*su*su:1-Math.pow(-2*su+2,2)/2;me.rotation.y=S.spinT>0?S.spinA0+se*PI*2:S.spinA0}
     S.tick2(t,dt);
     (function(F){var on=MUS.cur>=0;F.light.intensity+=((on?1.4:0)-F.light.intensity)*Math.min(1,dt*4);F.tube.emissiveIntensity=on?1.2+Math.sin(t*4)*.5:.5;
       F.bubbles.forEach(function(b,k){b.emissiveIntensity=on?.7+Math.sin(t*3+k)*.6:.35});if(on)F.disc.rotation.y+=dt*5;
@@ -1188,17 +1188,27 @@ function sceneLocanda3(){
   S.ctab='corpo';
   function renderCust(){
     var el=$('cust'),bath=S.cust==='bath',MY=TABS.filter(function(t){return bath?['corpo','viso','capelli'].indexOf(t[0])>=0:['abiti','extra'].indexOf(t[0])>=0});if(!MY.some(function(t){return t[0]===S.ctab}))S.ctab=MY[0][0];var tab=MY.filter(function(t){return t[0]===S.ctab})[0];
-    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button> <button type="button" class="x" id="cspin">Gira</button> <button type="button" class="x save" id="cdone2">Salva ed esci</button></div></div>'+
+    var oldSc=el.querySelector('.cscroll'),keepY=oldSc&&renderCust.last===S.ctab?oldSc.scrollTop:0;renderCust.last=S.ctab;
+    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button><button type="button" class="x" id="cspin">Gira</button></div></div>'+
       '<div class="ctabs">'+MY.map(function(t){return '<button type="button" data-t="'+t[0]+'" class="'+(t[0]===S.ctab?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div>'+
-      '<div class="cscroll">'+tab[3].map(function(r){return row(r[0],r[1])}).join('')+(S.ctab==='viso'&&S.cust==='bath'?'<button type="button" class="btn ghost" id="wash">Lavati la faccia</button>':'')+'</div><button type="button" class="btn" id="cdone">Salva ed esci</button>';
+      '<div class="cscroll">'+tab[3].map(function(r){return row(r[0],r[1])}).join('')+(S.ctab==='viso'&&S.cust==='bath'?'<button type="button" class="btn ghost" id="wash">Lavati la faccia</button>':'')+'</div><div class="cfoot"><button type="button" class="btn ghost" id="ccancel">Annulla</button><button type="button" class="btn" id="cdone">Salva ed esci</button></div>';
+    var nsc=el.querySelector('.cscroll');if(nsc&&keepY)nsc.scrollTop=keepY;
     [].forEach.call(el.querySelectorAll('.ctabs button'),function(b){b.onclick=function(){S.ctab=b.dataset.t;renderCust()}});
     [].forEach.call(el.querySelectorAll('.sw'),function(b){b.onclick=function(){var f=b.dataset.f,v=OPT[f][+b.dataset.k],val=typeof v==='number'?v:v[0];FIG[6][f]=val;if(!updateFigure(me,f,val))rebuildMe();[].forEach.call(b.parentNode.children,function(x){x.classList.toggle('on',x===b)})}});
-    $('cspin').onclick=function(){S.spin=1};
-    $('crnd').onclick=function(){var FS=[];MY.forEach(function(t){t[3].forEach(function(r){FS.push(r[1])})});FS.forEach(function(f){var L=OPT[f],v=L[Math.floor(Math.random()*L.length)];FIG[6][f]=typeof v==='number'?v:v[0]});FIG[6].hat=null;rebuildMe();renderCust();S.spin=.6};
+    $('cspin').onclick=function(){if(S.spinT>0)return;S.spinA0=me.rotation.y;S.spinT=1};
+    $('crnd').onclick=function(){var FS=[];MY.forEach(function(t){t[3].forEach(function(r){FS.push(r[1])})});FS.forEach(function(f){var L=OPT[f],v=L[Math.floor(Math.random()*L.length)];FIG[6][f]=typeof v==='number'?v:v[0]});FIG[6].hat=null;rebuildMe();renderCust()};
     var w=$('wash');if(w)w.onclick=function(){rebuildMe();say(me,'Splash! Pulito.')};
-    var done=function(){document.body.classList.remove('cust-open');E.saveLook();var kd=S.cust;S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys')};$('cdone').onclick=done;$('cdone2').onclick=done;
+    $('cdone').onclick=function(){S.closeCust(true)};$('ccancel').onclick=function(){S.closeCust(false)};
   }
-  S.openCust=function(kind){S.cust=kind;S.ctab=kind==='bath'?'viso':'abiti';
+  /* chiude lo specchio/guardaroba: salva il look oppure torna a quello di quando si è aperto */
+  S.closeCust=function(save){
+    if(!S.cust)return;var el=$('cust'),kd=S.cust;
+    document.body.classList.remove('cust-open');if(S.spinT>0){S.spinT=0;me.rotation.y=S.spinA0}
+    if(save)E.saveLook();else if(S.custSnap){FIG[6]=Object.assign({},S.custSnap);rebuildMe()}
+    S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');
+    if(save)chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys');else toast('Look di prima ripristinato');
+  };
+  S.openCust=function(kind){if(S.cust)return;closeJuke(false);S.custSnap=Object.assign({},FIG[6]);S.spinT=0;S.cust=kind;S.ctab=kind==='bath'?'viso':'abiti';
     var dir=new T.Vector3(-S.pos.x,0,-S.pos.z).normalize(),cp=S.pos.clone().addScaledVector(dir,13.5);cp.y=3.8;
     me.rotation.y=faceTo(S.pos.x,S.pos.z,cp.x,cp.z);S.view={pos:cp,look:new T.Vector3(S.pos.x,-1.9,S.pos.z)};document.body.classList.add('cust-open');S.vp=null;tu.el.style.visibility='hidden';$('sim').classList.remove('show');renderCust();$('cust').classList.add('show');$('sbar').classList.remove('show');$('chat').classList.remove('show')};
 
@@ -1461,6 +1471,7 @@ var TRACKS=[
    bass:[43,48,43,50,43,48,50,43],bassAt:[0,3],ch:[[55,59,62],[60,64,67],[55,59,62],[57,62,66],[55,59,62],[60,64,67],[57,62,66],[55,59,62]]}
 ];
 var MUS={ctx:null,cur:-1,vol:.55,step:0,next:0,timer:null};
+try{var sv=parseFloat(A.ST('rg-jvol'));if(sv>=0&&sv<=1)MUS.vol=sv}catch(e){}/* volume scelto e salvato dal jukebox */
 function mtof(m){return 440*Math.pow(2,(m-69)/12)}
 function musInit(){
   if(MUS.ctx)return true;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
@@ -1516,19 +1527,35 @@ function musTick(){
   }
 }
 function musPlay(i){
-  if(!musInit())return false;if(MUS.ctx.state==='suspended')MUS.ctx.resume();
+  if(!musInit())return false;
+  if(MUS.ctx.state==='suspended'){try{MUS.ctx.resume()}catch(e){}if(!MUS.rs){MUS.rs=1;document.addEventListener('pointerdown',function(){MUS.rs=0;if(MUS.ctx&&MUS.ctx.state==='suspended'){try{MUS.ctx.resume()}catch(e){}}},{once:true})}}/* il browser blocca l'audio finché non c'è un tocco */
   MUS.cur=i;MUS.step=0;MUS.next=MUS.ctx.currentTime+.08;clearInterval(MUS.timer);
   if(i>=0)MUS.timer=setInterval(musTick,30);return true;
 }
 function musVol(v){MUS.vol=v;if(MUS.master)MUS.master.gain.setTargetAtTime(MUS.mute?0:v*.5,MUS.ctx.currentTime,.05)}
+/* Jukebox: i brani si provano subito; «Salva e chiudi» li conferma (e li condivide con la stanza), «Annulla» torna a come era */
+var JK=null;
+function jukeName(i){return i>=0&&TRACKS[i]?TRACKS[i].n:'Silenzio'}
+function jukeMark(){[].forEach.call($('juke').querySelectorAll('.jt'),function(b){var on=+b.dataset.i===MUS.cur;b.classList.toggle('on',on);b.firstChild.textContent=on?(MUS.cur<0?'■':'♫'):(+b.dataset.i<0?'■':'♪')})}
+function closeJuke(commit){
+  var el=$('juke');if(!el.classList.contains('show')){JK=null;return}
+  var st=JK;JK=null;
+  if(st){
+    if(commit){if(MUS.cur!==st.cur||MUS.vol!==st.vol){E.setJuke(MUS.cur,MUS.cur===st.cur)}toast('Jukebox salvato: '+jukeName(MUS.cur))}
+    else{if(MUS.cur!==st.cur)musPlay(st.cur);musVol(st.vol)}
+  }
+  el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');
+}
 function openJuke(){
-  var el=$('juke');
-  el.innerHTML='<h3>Il jukebox</h3><div class="jl">'+TRACKS.map(function(t,i){return '<button type="button" class="jt'+(MUS.cur===i?' on':'')+'" data-i="'+i+'"><span>'+(MUS.cur===i?'♫':'♪')+'</span>'+esc(t.n)+'</button>'}).join('')+
-    '<button type="button" class="jt'+(MUS.cur<0?' on':'')+'" data-i="-1"><span>■</span>Silenzio</button></div>'+
-    '<label class="jv">Volume <input type="range" min="0" max="100" value="'+Math.round(MUS.vol*100)+'" id="jvol"></label><button type="button" class="btn" id="jx">Chiudi</button>';
-  [].forEach.call(el.querySelectorAll('.jt'),function(b){b.onclick=function(){E.setJuke(+b.dataset.i);openJuke()}});
+  var el=$('juke');if($('cust').classList.contains('show')||el.classList.contains('show'))return;
+  JK={cur:MUS.cur,vol:MUS.vol};
+  el.innerHTML='<h3>Il jukebox</h3>'+(MUS.mute?'<p class="jh">La musica è disattivata: riaccendila con il tasto ♪ in alto.</p>':'')+'<div class="jl">'+TRACKS.map(function(t,i){return '<button type="button" class="jt" data-i="'+i+'"><span>♪</span>'+esc(t.n)+'</button>'}).join('')+
+    '<button type="button" class="jt" data-i="-1"><span>■</span>Silenzio</button></div>'+
+    '<label class="jv">Volume <input type="range" min="0" max="100" value="'+Math.round(MUS.vol*100)+'" id="jvol"></label><div class="jfoot"><button type="button" class="btn ghost" id="jc">Annulla</button><button type="button" class="btn" id="jx">Salva e chiudi</button></div>';
+  [].forEach.call(el.querySelectorAll('.jt'),function(b){b.onclick=function(){var i=+b.dataset.i;if(i!==MUS.cur)musPlay(i);jukeMark()}});
+  jukeMark();
   $('jvol').oninput=function(){musVol(this.value/100)};
-  $('jx').onclick=function(){el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show')};
+  $('jx').onclick=function(){closeJuke(true)};$('jc').onclick=function(){closeJuke(false)};
   el.classList.add('show');$('sbar').classList.remove('show');$('chat').classList.remove('show');
 }
 
@@ -1584,7 +1611,7 @@ function myLook(){var m=A.R().mine;if(m.av3)return normFig(m.av3);var s=null;try
 E.saveLook=function(){var o=Object.assign({},FIG[6]);delete o.hat;var m=A.R().mine;m.av3=o;m.av=pixFrom3(o);A.ST('rg-av3',JSON.stringify(o));A.ST('rg-av',JSON.stringify(m.av));A.save()};
 /* ---- aree ---- */
 function build(n){if(n==='ing')return sceneSolo();if(n==='bosco')return sceneBosco();ROOM=A.R().on?A.R().code||'…':'—';FIG[6]=myLook();var S=sceneLocanda3();return S}
-function uiFor(n){var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
+function uiFor(n){closeJuke(false);document.body.classList.remove('cust-open');var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
   ['zbar','vote','cust','zpg','juke'].forEach(function(x){$(x).classList.remove('show')});closePage();closeList();closeRooms();$('chat').classList.remove('open')}
 /* pupazzi remoti: vanno tolti dalla scena a cui appartengono (le scene restano in cache), altrimenti al ritorno ne compare uno fermo accanto a quello che cammina */
 function clearWalkers(){Object.keys(walk).forEach(function(id){var W=walk[id],S0=W.S||cur;try{(S0?S0.g:W.f.parent).remove(W.f)}catch(e){ERR.n(e)}if(W.tag){W.tag.el.remove();if(S0){var k=S0.tags.indexOf(W.tag);if(k>=0)S0.tags.splice(k,1)}}});walk={};peopleSig=''}
@@ -1708,7 +1735,8 @@ function renderVote(P,gi,ppl,left,end,ok,mine){var el=$('vote'),G=GAMES[gi],gs=(
      (mine==null?'<div class="vbtn"><button type="button" class="btn ghost" data-v="0">✗ Rifiuto</button><button type="button" class="btn" data-v="1">✓ Accetto</button></div>':'<div class="vwait">Hai votato '+(mine?'✓':'✗')+(gs?' anche per i tuoi ospiti':'')+'. Si aspetta il resto del tavolo…</div>'));
   el.classList.add('show');[].forEach.call(el.querySelectorAll('[data-v]'),function(b){b.onclick=function(){myAnswer(b.dataset.v==='1')}})}
 /* ---- jukebox condiviso ---- */
-E.setJuke=function(i){musPlay(i);var R0=A.R();R0.mine.juke={i:i,t:Date.now()};jukeT=R0.mine.juke.t;chatPush('',(NAME||'Tu')+(i>=0?' mette su «'+TRACKS[i].n+'»':' spegne il jukebox'),'sys');if(R0.on)A.save()};
+/* brano e volume si salvano sempre: online nel documento del membro (lo sente tutta la stanza), da soli nella memoria del telefono */
+E.setJuke=function(i,quiet){if(MUS.cur!==i)musPlay(i);var R0=A.R();R0.mine.juke={i:i,t:Date.now()};jukeT=R0.mine.juke.t;A.ST('rg-jvol',String(MUS.vol));if(!quiet)chatPush('',(NAME||'Tu')+(i>=0?' mette su «'+TRACKS[i].n+'»':' spegne il jukebox'),'sys');A.save()};
 /* ---- la stanza: persone, ospiti, inviti, cambio stanza ---- */
 function openRooms(focus){renderRooms(true);$('roomp').classList.add('on');$('roomp').setAttribute('aria-hidden','false');if(focus)setTimeout(function(){var i=$(focus);if(i)i.focus()},60)}
 function closeRooms(){$('roomp').classList.remove('on');$('roomp').setAttribute('aria-hidden','true')}
@@ -1726,11 +1754,13 @@ $('sim-p').onclick=function(){openRooms('gname')};
 $('sim-m').onclick=function(){var g=(A.R().mine.guests||[]).slice(-1)[0];if(g)A.act('rmguest',g.k)};
 /* ---- input: tocca per camminare o scegliere ---- */
 var ptr=null,ray=new T.Raycaster(),ndc=new T.Vector2();
+/* con un menù azione aperto (jukebox, specchio, guardaroba) i tocchi sulla scena non fanno nulla */
+function modalOpen(){return $('juke').classList.contains('show')||$('cust').classList.contains('show')}
 stage.addEventListener('pointerdown',function(e){ptr={x:e.clientX,y:e.clientY,t:performance.now()};A.audioKick()});
 stage.addEventListener('pointerup',function(e){
   if(!ptr)return;var p=ptr;ptr=null;
   if(cur&&cur.zoom>=0&&cur.pageStep&&Math.abs(e.clientX-p.x)>45&&Math.abs(e.clientX-p.x)>Math.abs(e.clientY-p.y)){cur.pageStep(e.clientX<p.x?1:-1);return}
-  if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>10||busy||!cur||!cur.walkTo)return;
+  if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>10||busy||!cur||!cur.walkTo||modalOpen())return;
   var r=stage.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(ndc,cam);var h=ray.intersectObjects(cur.hit,false).filter(function(x){for(var o=x.object;o;o=o.parent)if(!o.visible)return false;return true});
   if(h.length&&h[0].object.userData.item!=null)cur.walkTo(h[0].object.position,h[0].object.userData.item,h[0].object);
@@ -1773,13 +1803,15 @@ function loop(){if(!raf&&E.on){frame.l=0;raf=requestAnimationFrame(frame)}}
 document.addEventListener('visibilitychange',function(){fpsT=0;fpsN=0;frame.p=0;if(!document.hidden)loop()});
 /* ---- chiamate dall'app a ogni render ---- */
 E.show=function(screen){
-  E.on=true;app.style.display='';
+  E.on=true;app.style.display='';setPl();
   if(screen==='name'){if(area!=='ing'){CACHE={};setArea('ing',true)}var inv=A.inv();$('lq').textContent=inv?'Sei invitato alla stanza '+inv+'. Come ti chiami?':'Benvenuto! Come ti chiami?';$('enter').textContent=inv?'Siediti al tavolo':'Siediti'}
   else{if(area==='ing'||!area)setArea('loc',area!=='ing');else sync()}
   loop();
 };
-E.hide=function(){if(cur&&cur.clearGame&&!activeProp())cur.clearGame();E.on=false;app.style.display='none';if(MUS.ctx)musPlay(-1);jukeT=0;A.duck(false)};
-E.sync=function(){if(E.on)sync()};
+/* la barra in basso dell'app (plancia) è fissa sopra la lobby: i pannelli salgono di quanto è alta */
+function setPl(){var w=app.parentNode;if(w&&w.style)w.style.setProperty('--pl',document.documentElement.classList.contains('has-pl')?'64px':'0px')}
+E.hide=function(){closeJuke(false);document.body.classList.remove('cust-open');if(cur&&cur.clearGame&&!activeProp())cur.clearGame();E.on=false;app.style.display='none';if(MUS.ctx)musPlay(-1);jukeT=0;A.duck(false)};
+E.sync=function(){if(E.on){setPl();sync()}};
 E.go=function(n){goArea(n)};E.openJuke=function(){openJuke()};
 return E;
 
