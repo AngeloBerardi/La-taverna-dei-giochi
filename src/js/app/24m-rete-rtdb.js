@@ -18,6 +18,7 @@ const RT = {
   ass: {},
   mio: '',
   TOLLERANZA: 20000, // ms senza presenza prima di togliere un membro dall'attesa
+  FONDO: 30000, // ms in background (schermo spento, altra app) prima di staccarsi: gli altri smettono di vederci
 
   attivo() {
     const n = new URLSearchParams(location.search).get('net');
@@ -306,10 +307,44 @@ const RT = {
         }, 4000);
       }
     });
+    // un telefono in tasca o con un'altra app davanti resta collegato e per il server è ancora «presente»: dopo RT.FONDO in
+    // background ci si stacca davvero (goOffline fa scattare subito gli onDisconnect, cioè la presenza sparisce) e si torna al rientro.
+    // Lo schermo comune (TV) non si stacca mai. Chiudendo la pagina ci si stacca subito, senza aspettare che il server se ne accorga.
+    const stacca = () => {
+      if (R.mode !== 'rt' || ui.tv || RT.spento) return;
+      RT.spento = true;
+      try {
+        RT.m.goOffline(RT.db);
+      } catch (e) {
+        ERR.n(e);
+      }
+    };
+    const riattacca = () => {
+      if (!RT.spento) return false;
+      RT.spento = false;
+      try {
+        RT.m.goOnline(RT.db);
+      } catch (e) {
+        ERR.n(e);
+      }
+      return true;
+    };
+    addEventListener('pagehide', stacca);
+    addEventListener('pageshow', e => {
+      if (e.persisted) riattacca();
+    });
     // rientrando in primo piano dopo un po' i socket possono essere morti senza che nessuno se ne sia accorto: si riparte
     document.addEventListener('visibilitychange', () => {
+      clearTimeout(RT.tf);
       if (document.hidden) {
         RT.hid = Date.now();
+        RT.tf = setTimeout(() => {
+          if (document.hidden) stacca();
+        }, RT.FONDO);
+        return;
+      }
+      if (riattacca()) {
+        RT.hid = 0;
         return;
       }
       if (R.mode === 'rt' && RT.hid && Date.now() - RT.hid > 15000) {
