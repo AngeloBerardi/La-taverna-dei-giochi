@@ -18,7 +18,7 @@ function myLook(){var m=A.R().mine;if(m.av3)return normFig(m.av3);var s=null;try
 E.saveLook=function(){var o=Object.assign({},FIG[6]);delete o.hat;var m=A.R().mine;m.av3=o;m.av=pixFrom3(o);A.ST('rg-av3',JSON.stringify(o));A.ST('rg-av',JSON.stringify(m.av));A.save()};
 /* ---- aree ---- */
 function build(n){if(n==='ing')return sceneSolo();if(n==='bosco')return sceneBosco();ROOM=A.R().on?A.R().code||'…':'—';FIG[6]=myLook();var S=sceneLocanda3();return S}
-function uiFor(n){var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
+function uiFor(n){closeJuke(false);document.body.classList.remove('cust-open');var room=n!=='ing';$('login').classList.toggle('show',!room);$('sbar').classList.toggle('show',room);$('chat').classList.toggle('show',room);$('sim').classList.toggle('show',n==='loc');
   ['zbar','vote','cust','zpg','juke'].forEach(function(x){$(x).classList.remove('show')});closePage();closeList();closeRooms();$('chat').classList.remove('open')}
 /* pupazzi remoti: vanno tolti dalla scena a cui appartengono (le scene restano in cache), altrimenti al ritorno ne compare uno fermo accanto a quello che cammina */
 function clearWalkers(){Object.keys(walk).forEach(function(id){var W=walk[id],S0=W.S||cur;try{(S0?S0.g:W.f.parent).remove(W.f)}catch(e){ERR.n(e)}if(W.tag){W.tag.el.remove();if(S0){var k=S0.tags.indexOf(W.tag);if(k>=0)S0.tags.splice(k,1)}}});walk={};peopleSig=''}
@@ -142,7 +142,8 @@ function renderVote(P,gi,ppl,left,end,ok,mine){var el=$('vote'),G=GAMES[gi],gs=(
      (mine==null?'<div class="vbtn"><button type="button" class="btn ghost" data-v="0">✗ Rifiuto</button><button type="button" class="btn" data-v="1">✓ Accetto</button></div>':'<div class="vwait">Hai votato '+(mine?'✓':'✗')+(gs?' anche per i tuoi ospiti':'')+'. Si aspetta il resto del tavolo…</div>'));
   el.classList.add('show');[].forEach.call(el.querySelectorAll('[data-v]'),function(b){b.onclick=function(){myAnswer(b.dataset.v==='1')}})}
 /* ---- jukebox condiviso ---- */
-E.setJuke=function(i){musPlay(i);var R0=A.R();R0.mine.juke={i:i,t:Date.now()};jukeT=R0.mine.juke.t;chatPush('',(NAME||'Tu')+(i>=0?' mette su «'+TRACKS[i].n+'»':' spegne il jukebox'),'sys');if(R0.on)A.save()};
+/* brano e volume si salvano sempre: online nel documento del membro (lo sente tutta la stanza), da soli nella memoria del telefono */
+E.setJuke=function(i,quiet){if(MUS.cur!==i)musPlay(i);var R0=A.R();R0.mine.juke={i:i,t:Date.now()};jukeT=R0.mine.juke.t;A.ST('rg-jvol',String(MUS.vol));if(!quiet)chatPush('',(NAME||'Tu')+(i>=0?' mette su «'+TRACKS[i].n+'»':' spegne il jukebox'),'sys');A.save()};
 /* ---- la stanza: persone, ospiti, inviti, cambio stanza ---- */
 function openRooms(focus){renderRooms(true);$('roomp').classList.add('on');$('roomp').setAttribute('aria-hidden','false');if(focus)setTimeout(function(){var i=$(focus);if(i)i.focus()},60)}
 function closeRooms(){$('roomp').classList.remove('on');$('roomp').setAttribute('aria-hidden','true')}
@@ -160,11 +161,13 @@ $('sim-p').onclick=function(){openRooms('gname')};
 $('sim-m').onclick=function(){var g=(A.R().mine.guests||[]).slice(-1)[0];if(g)A.act('rmguest',g.k)};
 /* ---- input: tocca per camminare o scegliere ---- */
 var ptr=null,ray=new T.Raycaster(),ndc=new T.Vector2();
+/* con un menù azione aperto (jukebox, specchio, guardaroba) i tocchi sulla scena non fanno nulla */
+function modalOpen(){return $('juke').classList.contains('show')||$('cust').classList.contains('show')}
 stage.addEventListener('pointerdown',function(e){ptr={x:e.clientX,y:e.clientY,t:performance.now()};A.audioKick()});
 stage.addEventListener('pointerup',function(e){
   if(!ptr)return;var p=ptr;ptr=null;
   if(cur&&cur.zoom>=0&&cur.pageStep&&Math.abs(e.clientX-p.x)>45&&Math.abs(e.clientX-p.x)>Math.abs(e.clientY-p.y)){cur.pageStep(e.clientX<p.x?1:-1);return}
-  if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>10||busy||!cur||!cur.walkTo)return;
+  if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>10||busy||!cur||!cur.walkTo||modalOpen())return;
   var r=stage.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(ndc,cam);var h=ray.intersectObjects(cur.hit,false).filter(function(x){for(var o=x.object;o;o=o.parent)if(!o.visible)return false;return true});
   if(h.length&&h[0].object.userData.item!=null)cur.walkTo(h[0].object.position,h[0].object.userData.item,h[0].object);
@@ -207,12 +210,14 @@ function loop(){if(!raf&&E.on){frame.l=0;raf=requestAnimationFrame(frame)}}
 document.addEventListener('visibilitychange',function(){fpsT=0;fpsN=0;frame.p=0;if(!document.hidden)loop()});
 /* ---- chiamate dall'app a ogni render ---- */
 E.show=function(screen){
-  E.on=true;app.style.display='';
+  E.on=true;app.style.display='';setPl();
   if(screen==='name'){if(area!=='ing'){CACHE={};setArea('ing',true)}var inv=A.inv();$('lq').textContent=inv?'Sei invitato alla stanza '+inv+'. Come ti chiami?':'Benvenuto! Come ti chiami?';$('enter').textContent=inv?'Siediti al tavolo':'Siediti'}
   else{if(area==='ing'||!area)setArea('loc',area!=='ing');else sync()}
   loop();
 };
-E.hide=function(){if(cur&&cur.clearGame&&!activeProp())cur.clearGame();E.on=false;app.style.display='none';if(MUS.ctx)musPlay(-1);jukeT=0;A.duck(false)};
-E.sync=function(){if(E.on)sync()};
+/* la barra in basso dell'app (plancia) è fissa sopra la lobby: i pannelli salgono di quanto è alta */
+function setPl(){var w=app.parentNode;if(w&&w.style)w.style.setProperty('--pl',document.documentElement.classList.contains('has-pl')?'64px':'0px')}
+E.hide=function(){closeJuke(false);document.body.classList.remove('cust-open');if(cur&&cur.clearGame&&!activeProp())cur.clearGame();E.on=false;app.style.display='none';if(MUS.ctx)musPlay(-1);jukeT=0;A.duck(false)};
+E.sync=function(){if(E.on){setPl();sync()}};
 E.go=function(n){goArea(n)};E.openJuke=function(){openJuke()};
 return E;

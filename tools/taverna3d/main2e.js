@@ -356,7 +356,7 @@ function sceneLocanda3(){
     if(S.hearth)S.hearth.dim=S.zoomFire?.75:1;
     if(S.stoke>0){S.stoke=Math.max(0,S.stoke-dt);S.fireL.l.intensity=S.fireL.b*(1+S.stoke*1.6)}
     for(var sk=S.sparks.length-1;sk>=0;sk--){var spk=S.sparks[sk];spk.t+=dt;spk.v.y-=1.2*dt;spk.m.position.addScaledVector(spk.v,dt);spk.m.material.opacity=1-spk.t/1.6;if(spk.t>1.6){g.remove(spk.m);spk.m.material.dispose();S.sparks.splice(sk,1)}}
-    if(S.spin>0){S.spin=Math.max(0,S.spin-dt*.8);me.rotation.y+=dt*PI*1.6}
+    if(S.spinT>0){S.spinT=Math.max(0,S.spinT-dt/1.1);var su=1-S.spinT,se=su<.5?2*su*su:1-Math.pow(-2*su+2,2)/2;me.rotation.y=S.spinT>0?S.spinA0+se*PI*2:S.spinA0}
     S.tick2(t,dt);
     (function(F){var on=MUS.cur>=0;F.light.intensity+=((on?1.4:0)-F.light.intensity)*Math.min(1,dt*4);F.tube.emissiveIntensity=on?1.2+Math.sin(t*4)*.5:.5;
       F.bubbles.forEach(function(b,k){b.emissiveIntensity=on?.7+Math.sin(t*3+k)*.6:.35});if(on)F.disc.rotation.y+=dt*5;
@@ -444,17 +444,27 @@ function sceneLocanda3(){
   S.ctab='corpo';
   function renderCust(){
     var el=$('cust'),bath=S.cust==='bath',MY=TABS.filter(function(t){return bath?['corpo','viso','capelli'].indexOf(t[0])>=0:['abiti','extra'].indexOf(t[0])>=0});if(!MY.some(function(t){return t[0]===S.ctab}))S.ctab=MY[0][0];var tab=MY.filter(function(t){return t[0]===S.ctab})[0];
-    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button> <button type="button" class="x" id="cspin">Gira</button> <button type="button" class="x save" id="cdone2">Salva ed esci</button></div></div>'+
+    var oldSc=el.querySelector('.cscroll'),keepY=oldSc&&renderCust.last===S.ctab?oldSc.scrollTop:0;renderCust.last=S.ctab;
+    el.innerHTML='<div class="ch"><h3>'+(bath?'Lo specchio':'Il guardaroba')+'</h3><div><button type="button" class="x" id="crnd">Casuale</button><button type="button" class="x" id="cspin">Gira</button></div></div>'+
       '<div class="ctabs">'+MY.map(function(t){return '<button type="button" data-t="'+t[0]+'" class="'+(t[0]===S.ctab?'on':'')+'">'+t[1]+'</button>'}).join('')+'</div>'+
-      '<div class="cscroll">'+tab[3].map(function(r){return row(r[0],r[1])}).join('')+(S.ctab==='viso'&&S.cust==='bath'?'<button type="button" class="btn ghost" id="wash">Lavati la faccia</button>':'')+'</div><button type="button" class="btn" id="cdone">Salva ed esci</button>';
+      '<div class="cscroll">'+tab[3].map(function(r){return row(r[0],r[1])}).join('')+(S.ctab==='viso'&&S.cust==='bath'?'<button type="button" class="btn ghost" id="wash">Lavati la faccia</button>':'')+'</div><div class="cfoot"><button type="button" class="btn ghost" id="ccancel">Annulla</button><button type="button" class="btn" id="cdone">Salva ed esci</button></div>';
+    var nsc=el.querySelector('.cscroll');if(nsc&&keepY)nsc.scrollTop=keepY;
     [].forEach.call(el.querySelectorAll('.ctabs button'),function(b){b.onclick=function(){S.ctab=b.dataset.t;renderCust()}});
     [].forEach.call(el.querySelectorAll('.sw'),function(b){b.onclick=function(){var f=b.dataset.f,v=OPT[f][+b.dataset.k],val=typeof v==='number'?v:v[0];FIG[6][f]=val;if(!updateFigure(me,f,val))rebuildMe();[].forEach.call(b.parentNode.children,function(x){x.classList.toggle('on',x===b)})}});
-    $('cspin').onclick=function(){S.spin=1};
-    $('crnd').onclick=function(){var FS=[];MY.forEach(function(t){t[3].forEach(function(r){FS.push(r[1])})});FS.forEach(function(f){var L=OPT[f],v=L[Math.floor(Math.random()*L.length)];FIG[6][f]=typeof v==='number'?v:v[0]});FIG[6].hat=null;rebuildMe();renderCust();S.spin=.6};
+    $('cspin').onclick=function(){if(S.spinT>0)return;S.spinA0=me.rotation.y;S.spinT=1};
+    $('crnd').onclick=function(){var FS=[];MY.forEach(function(t){t[3].forEach(function(r){FS.push(r[1])})});FS.forEach(function(f){var L=OPT[f],v=L[Math.floor(Math.random()*L.length)];FIG[6][f]=typeof v==='number'?v:v[0]});FIG[6].hat=null;rebuildMe();renderCust()};
     var w=$('wash');if(w)w.onclick=function(){rebuildMe();say(me,'Splash! Pulito.')};
-    var done=function(){document.body.classList.remove('cust-open');E.saveLook();var kd=S.cust;S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys')};$('cdone').onclick=done;$('cdone2').onclick=done;
+    $('cdone').onclick=function(){S.closeCust(true)};$('ccancel').onclick=function(){S.closeCust(false)};
   }
-  S.openCust=function(kind){S.cust=kind;S.ctab=kind==='bath'?'viso':'abiti';
+  /* chiude lo specchio/guardaroba: salva il look oppure torna a quello di quando si è aperto */
+  S.closeCust=function(save){
+    if(!S.cust)return;var el=$('cust'),kd=S.cust;
+    document.body.classList.remove('cust-open');if(S.spinT>0){S.spinT=0;me.rotation.y=S.spinA0}
+    if(save)E.saveLook();else if(S.custSnap){FIG[6]=Object.assign({},S.custSnap);rebuildMe()}
+    S.cust=null;S.view=null;S.vp=null;tu.el.style.visibility='';$('sim').classList.add('show');el.classList.remove('show');$('sbar').classList.add('show');$('chat').classList.add('show');
+    if(save)chatPush('',(NAME||'Tu')+' esce dal '+(kd==='bath'?'bagno':'guardaroba')+' con un look nuovo','sys');else toast('Look di prima ripristinato');
+  };
+  S.openCust=function(kind){if(S.cust)return;closeJuke(false);S.custSnap=Object.assign({},FIG[6]);S.spinT=0;S.cust=kind;S.ctab=kind==='bath'?'viso':'abiti';
     var dir=new T.Vector3(-S.pos.x,0,-S.pos.z).normalize(),cp=S.pos.clone().addScaledVector(dir,13.5);cp.y=3.8;
     me.rotation.y=faceTo(S.pos.x,S.pos.z,cp.x,cp.z);S.view={pos:cp,look:new T.Vector3(S.pos.x,-1.9,S.pos.z)};document.body.classList.add('cust-open');S.vp=null;tu.el.style.visibility='hidden';$('sim').classList.remove('show');renderCust();$('cust').classList.add('show');$('sbar').classList.remove('show');$('chat').classList.remove('show')};
 

@@ -20,7 +20,7 @@
 #l3d .tag small{font:500 12px "Alegreya Sans",sans-serif;color:var(--muted);margin-left:6px;letter-spacing:0}
 #l3d .tag.on{border-color:var(--amber);color:var(--amber);box-shadow:0 0 14px rgba(255,178,62,.6)}
 #l3d .tag.bub{background:#f2e3c0;color:#2a1a10;border-color:#8a5d33;font:600 italic 14px "Alegreya SC",Georgia,serif;letter-spacing:0;white-space:normal;width:150px;text-align:center;border-radius:12px}
-#l3d .panel{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;flex-direction:column;gap:9px;padding:14px;border-radius:8px;background:linear-gradient(#3d2616,#26160c);border:1px solid #8a5d33;box-shadow:inset 0 1px 0 rgba(255,214,150,.25),0 10px 24px rgba(0,0,0,.6);touch-action:auto;z-index:4}
+#l3d .panel{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px + var(--pl,0px));display:none;flex-direction:column;gap:9px;padding:14px;border-radius:8px;background:linear-gradient(#3d2616,#26160c);border:1px solid #8a5d33;box-shadow:inset 0 1px 0 rgba(255,214,150,.25),0 10px 24px rgba(0,0,0,.6);touch-action:auto;z-index:4}
 #l3d .panel.show{display:flex}
 #l3d #cust.show{display:flex}
 #l3d .panel label{font:700 17px "Alegreya SC",Georgia,serif;letter-spacing:.05em;color:var(--amber)}
@@ -34,7 +34,7 @@
 #l3d #sheet p{margin:0;font:500 15px "Alegreya Sans",sans-serif;color:var(--ink)}
 #l3d #sheet .row{display:flex;gap:10px}
 #l3d #sheet .row .btn{flex:1}
-#l3d #sbar{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;align-items:center;justify-content:space-between;gap:10px;z-index:3}
+#l3d #sbar{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px + var(--pl,0px));display:none;align-items:center;justify-content:space-between;gap:10px;z-index:3}
 #l3d #sbar.show{display:flex}
 #l3d #sbar span{padding:7px 14px;border-radius:999px;background:rgba(10,7,6,.7);border:1px solid rgba(255,214,150,.2);font:500 15px "Alegreya Sans",sans-serif}
 #l3d #l3dtoast{z-index:9;position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:999px;background:rgba(10,7,6,.85);border:1px solid var(--amber);font:700 17px "Alegreya SC",Georgia,serif;color:var(--amber);opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;z-index:6}
@@ -45,8 +45,8 @@
 #l3d #sim button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,214,150,.35);background:#2a1a10;color:var(--ink);font:700 18px/1 'Alegreya Sans',sans-serif;cursor:pointer}
 #l3d .ov{position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;background:rgba(8,6,10,.94);opacity:0;pointer-events:none;transition:opacity .3s;touch-action:auto;overflow:auto}
 #l3d .ov.on{opacity:1;pointer-events:auto}
-#l3d .has-pl .ov{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
-#l3d /* la plancia in basso è fissa: il fondo delle schede deve poter salire sopra di lei */
+#l3d .ov{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px + var(--pl,0px))}
+#l3d /* la plancia in basso è fissa (--pl la imposta il JS): il fondo delle schede deve poter salire sopra di lei */
 body:has(.ov.on) #zbar,#l3d body:has(.ov.on) #zpg{display:none!important}
 #l3d .ov .hd{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 10px}
 #l3d .ov .hd b{font:700 22px "Alegreya SC",Georgia,serif;letter-spacing:.06em;color:var(--amber)}
@@ -64,7 +64,7 @@ body:has(.ov.on) #zbar,#l3d body:has(.ov.on) #zpg{display:none!important}
 #l3d .gp p{margin:0;font:500 17px/1.45 'Alegreya Sans',sans-serif;color:var(--ink);text-align:center}
 #l3d .gp .row{display:flex;gap:10px}
 #l3d .gp .row .btn{flex:1;padding:0 10px;font-size:16px;white-space:nowrap}
-#l3d #chat{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);display:none;flex-direction:column;gap:6px;z-index:4;pointer-events:none}
+#l3d #chat{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 72px + var(--pl,0px));display:none;flex-direction:column;gap:6px;z-index:4;pointer-events:none}
 #l3d #chat.show{display:flex}
 #l3d #clog{display:flex;flex-direction:column;gap:3px;max-height:118px;overflow:hidden;justify-content:flex-end;padding:4px 2px;border-radius:8px;transition:background .25s}
 #l3d .cm{font:500 15px/1.3 'Alegreya Sans',sans-serif;color:#f6ead0;text-shadow:0 1px 3px #000,0 0 8px rgba(0,0,0,.9);transition:opacity 1s}
@@ -115,10 +115,9 @@ body:has(.ov.on) #zbar,#l3d body:has(.ov.on) #zpg{display:none!important}
 #l3d #vote .vres.y{color:#8fe0a4}
 #l3d #vote .vres.n{color:#ff9a8a}
 #l3d #cust h3{margin:0;font:700 19px "Alegreya SC",Georgia,serif;color:var(--amber);letter-spacing:.05em}
-#l3d #cust .x.save{background:linear-gradient(#ffc866,#e8962a);color:#1f1206;border-color:#ffd592;font-weight:800}
-#l3d #cust{position:fixed;max-height:42vh;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);gap:7px;padding:10px 12px;z-index:140}
-#l3d #cust .btn{flex:none}
-#l3d .cust-open #plancia,#l3d .cust-open #dock{display:none!important}
+#l3d #cust{max-height:46vh;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);gap:7px;padding:10px 12px;z-index:140}
+#l3d /* dentro la colonna come gli altri pannelli; la plancia è nascosta mentre è aperto (40-legno-ottone.css) */
+#cust .btn{flex:none}
 #l3d #cust .ch{display:flex;justify-content:space-between;align-items:center}
 #l3d #cust .ch .x{height:32px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,214,150,.35);background:#2a1a10;color:var(--ink);font:600 13px "Alegreya Sans",sans-serif;cursor:pointer}
 #l3d #cust .cscroll{overflow:auto;display:flex;flex-direction:column;gap:9px;min-height:0;flex:1}
@@ -135,6 +134,10 @@ body:has(.ov.on) #zbar,#l3d body:has(.ov.on) #zpg{display:none!important}
 #l3d #cust .sw.on{border-color:var(--amber);box-shadow:0 0 0 2px rgba(255,178,62,.45)}
 #l3d #cust .sw.tx.on{background:var(--amber);color:#1f1206}
 #l3d #cust .btn{height:44px;font-size:16px}
+#l3d #cust .cfoot,#l3d #juke .jfoot{display:flex;gap:8px;flex:none}
+#l3d #cust .cfoot .btn,#l3d #juke .jfoot .btn{flex:1}
+#l3d #cust .cfoot .btn:last-child,#l3d #juke .jfoot .btn:last-child{flex:1.6}
+#l3d #cust .ch>div{display:flex;gap:6px}
 #l3d #roomp .rp{margin:0 18px;padding:18px;border-radius:10px;background:linear-gradient(#3d2616,#26160c);border:1px solid #8a5d33;box-shadow:0 14px 30px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px}
 #l3d #roomp h3{margin:0;font:700 22px "Alegreya SC",Georgia,serif;color:var(--amber);letter-spacing:.05em}
 #l3d #roomp p{margin:0;font:500 15px/1.4 'Alegreya Sans',sans-serif;color:var(--ink)}
@@ -155,6 +158,7 @@ body:has(.ov.on) #zbar,#l3d body:has(.ov.on) #zpg{display:none!important}
 #l3d #juke .jv{display:flex;align-items:center;gap:10px;font:500 14px "Alegreya Sans",sans-serif;color:var(--muted)}
 #l3d #juke .jv input{flex:1;accent-color:#e8962a}
 #l3d #juke .btn{height:44px;font-size:16px}
+#l3d #juke .jh{margin:0;font:500 13px "Alegreya Sans",sans-serif;color:#ff9a8a}
 #l3d #gp-o .gopt{display:flex;flex-direction:column;gap:12px;padding:12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,214,150,.18)}
 #l3d #gp-o .gol{display:flex;flex-direction:column;gap:6px}
 #l3d #gp-o .gol>span{font:600 13px "Alegreya Sans",sans-serif;color:var(--muted)}
