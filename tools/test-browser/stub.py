@@ -123,7 +123,8 @@ export const runTransaction=async(r,fn)=>{for(let i=0;i<25;i++){const cur=await 
  if(await store.cas(r.k,cur==null?null:cur,stamp(clone(out)))){RTS.w.push(['tx',r.k]);return{committed:true}}}
  throw Object.assign(new Error('maxretry'),{code:'maxretry'})};
 export const onDisconnect=r=>({remove:async()=>{if(!RTS.dis.includes(r.k))RTS.dis.push(r.k)},cancel:async()=>{RTS.dis=RTS.dis.filter(x=>x!==r.k)}});
-export const goOffline=()=>{RTS.on=false};export const goOnline=()=>{RTS.on=true};
+// come l'SDK vero: staccarsi a mano chiude la linea in modo pulito, quindi il «server» esegue subito gli onDisconnect
+export const goOffline=()=>{const d=RTS.dis;RTS.dis=[];RTS.on=false;d.forEach(k=>store.del(k))};export const goOnline=()=>{RTS.on=true};
 export const onValue=(r,cb,er)=>{let vivo=true,ultimo;const giro=async()=>{if(!vivo)return;try{
   const v=r.k==='.info/connected'?RTS.on:await leggi(r.k),j=JSON.stringify(v===undefined?null:v);
   if(j!==ultimo){ultimo=j;if(vivo)cb(snapOf(r.k,v))}}catch(e){if(er&&vivo)er(e)}if(vivo)setTimeout(giro,200)};giro();return()=>{vivo=false}};

@@ -430,6 +430,40 @@ async def telefono_rt(b, srv, sh, nome, seq, query='?net=rt', rt=True, wait=5000
     ctx = await new_context(b, srv.port, name=nome, shared=sh, extra_init=f"localStorage.setItem('__stubseq','{seq}');" + ('window.__stubRt=true;' if rt else ''))
     pg = await page(ctx, srv.url + query, wait); return ctx, pg
 
+NASCOSTA = "(v=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>v});Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>v?'hidden':'visible'});document.dispatchEvent(new Event('visibilitychange'))})"
+
+async def sc_piazza_fondo(b, srv):
+    """Stanza generale: chi mette il telefono in tasca (pagina in background) o chiude la pagina sparisce dall'elenco degli altri, e chi torna rientra da solo."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 21)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 22)
+    ctxC, C = await telefono_rt(b, srv, sh, 'Carla', 23)
+    for p_ in (B, C): await p_.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+    await A.wait_for_function("R.members.length>=3", timeout=20000)
+    await A.evaluate('RT.TOLLERANZA=2500'); await B.evaluate('RT.FONDO=800')
+    devB = await B.evaluate('ME.dev'); devC = await C.evaluate('ME.dev')
+    # B in tasca: dopo FONDO si stacca, la presenza sparisce e A lo toglie dall'elenco
+    await B.evaluate(NASCOSTA + '(true)'); await B.wait_for_timeout(1500)
+    check('stanze/PIAZZA/p/' + devB not in sh.d, 'in tasca: la presenza sparisce dopo il tempo in background')
+    await A.wait_for_function(f"R.members.every(m=>m.id!=={devB!r})", timeout=20000)
+    check(True, 'in tasca: gli altri non lo vedono più in piazza')
+    # B torna: si riattacca, rimette la presenza e rientra tra i membri
+    await B.evaluate(NASCOSTA + '(false)'); await B.wait_for_timeout(2500)
+    check('stanze/PIAZZA/p/' + devB in sh.d, 'di ritorno: presenza rimessa')
+    await A.wait_for_function(f"R.members.some(m=>m.id==={devB!r})", timeout=20000)
+    check(await B.evaluate("ui.err||''") == '', 'di ritorno: nessun messaggio di errore rimasto')
+    # un attimo in background (meno di FONDO) non stacca nessuno
+    await B.evaluate(NASCOSTA + '(true)'); await B.wait_for_timeout(300); await B.evaluate(NASCOSTA + '(false)'); await B.wait_for_timeout(1200)
+    check('stanze/PIAZZA/p/' + devB in sh.d and not await B.evaluate('!!RT.spento'), 'un attimo in background: resta collegato')
+    # C chiude la pagina: si stacca subito
+    await C.evaluate("dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false}))"); await C.wait_for_timeout(400)
+    check('stanze/PIAZZA/p/' + devC not in sh.d, 'pagina chiusa: presenza tolta subito')
+    await A.wait_for_function(f"R.members.every(m=>m.id!=={devC!r})", timeout=20000)
+    check(True, 'pagina chiusa: sparisce dall\'elenco')
+    for p_ in (A, B): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
+    for c in (ctxA, ctxB, ctxC): await c.close()
+
 async def sc_stanze_database(b, srv):
     """Stanze live sul Realtime Database (stub condiviso): ingresso, invito, partita, conflitti, presenza e schermo comune."""
     sh = Shared()

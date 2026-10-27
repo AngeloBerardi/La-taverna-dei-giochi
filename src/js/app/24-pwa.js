@@ -16,5 +16,5 @@ if(PWA.sw){
  // nuova versione attiva: ricarica solo se non c'è una partita in corso
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!aveva||ricarica)return;if(ui.screen==='game'&&G)return;ricarica=true;location.reload()});
  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').then(r=>{PWA.reg=r;
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&r)r.update().catch(()=>{})})}).catch(()=>{}));
 }
