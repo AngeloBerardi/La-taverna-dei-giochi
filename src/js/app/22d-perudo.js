@@ -28,7 +28,7 @@ function peruH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn(),sum=s.phas
    ${s.bid?`<div class="ctl"><button class="b gold sm" data-a="pdudo">🗡 Dudo!</button><button class="b grn sm" data-a="pcalza" ${PERU.canCalza(s)?'':'disabled'}>🎯 Calza</button></div>`:''}`}}
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">🏆</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>dadi</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const strip=stripH(s,i=>({b:s.hands[i].length||'',out:!s.hands[i].length&&!(sum&&res&&res.hands[i].length),trn:!!(s.bid&&s.bid.p===i&&!sum)}));
- return fixH({title:'Perudo',chips:info,strip,mid:table,bot:bubbleH(s,sum?'Guarda i dadi, poi si riparte.':'Alza la dichiarazione, sfida con Dudo o prova la Calza.',null)+ctl,hand:mine_dice?`<div class="handbox pdhand">${mine_dice}</div>`:'',players:pl,end})}
+ return fixH({title:GN('perudo'),chips:info,strip,mid:table,bot:bubbleH(s,sum?'Guarda i dadi, poi si riparte.':'Alza la dichiarazione, sfida con Dudo o prova la Calza.',null)+ctl,hand:mine_dice?`<div class="handbox pdhand">${mine_dice}</div>`:'',players:pl,end})}
 function peruClick(a,v){const s=G;if(!myTurn())return;
  if(a==='pq'){ui.pq=Math.max(1,Math.min(PERU.total(s),ui.pq+(+v)));return render()}
  if(a==='pf'){ui.pf=+v;return render()}

@@ -48,7 +48,7 @@ function thH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!s.
   hand=`<div class="hlabel">I tuoi mazzetti · ${THRONE.score(s,v)} punti</div><div class="thand">${fanRowsH(ts.map(t=>tcH(t,{cls:'hnd '+(THRONE.largest(s,v,t)?'big ':'')+(s.used[v][t]&&THRONE.largest(s,v,t)?'spent':''),n:THRONE.cnt(s,v,t)})),8)||'<small class="muted">Nessun mazzetto: raccogli qualche carta</small>'}</div>`}
  const win=s.over?s.over.wins:null;
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">👑</div><h2>Vince ${win.map(i=>esc(s.names[i])).join(' e ')}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${win.includes(i)?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>pt</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
- return fixH({title:'Behind the Throne',chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand:hand?`<div class="tmine">${hand}</div>`:'',players:pl,end})}
+ return fixH({title:GN('trono'),chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand:hand?`<div class="tmine">${hand}</div>`:'',players:pl,end})}
 function thClick(a,v){const s=G;if(!myTurn())return;
  if(a==='treveal')return dispatch({t:'reveal'});
  if(a==='tcollect')return dispatch({t:'collect'});

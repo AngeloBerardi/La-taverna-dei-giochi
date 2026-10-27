@@ -30,7 +30,7 @@ function regicideTVH(){
  const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!s.over?'act':''}"><span class="av">${esc(n[0]||'?')}</span><span class="n">${esc(n)}</span><span class="hc"><b>${s.hands[i].length}</b> carte</span></li>`).join('')+(s.n===1?`<li class="jk"><span class="av">J</span><span class="n">Jolly</span><span class="hc"><b>${s.jl}</b></span></li>`:'');
  const feed=s.log.slice(-5).reverse().map((t,i)=>`<li class="${i?'':'new'}">${esc(t)}</li>`).join('');
  return`<div class="rtv${d3?' d3':''}">
-  <header class="rtv-top"><div><div class="rtv-logo">Regicide</div><div class="rtv-act">${head}</div></div>${d3?`<div class="rtv-state">${RTV.stato(s)}</div>`:''}
+  <header class="rtv-top"><div><div class="rtv-logo">${GN('regicide')}</div><div class="rtv-act">${head}</div></div>${d3?`<div class="rtv-state">${RTV.stato(s)}</div>`:''}
    <div class="rtv-join"><div class="rtv-qr">${QR.svg(url,{scuro:'#1a1208',chiaro:'#f6ecd2'})}</div><div><div class="rtv-code">${esc(R.code||TV.code)}</div><div class="rtv-hint">Inquadra per sederti al tavolo</div></div></div></header>
   ${d3?'':`<aside class="rtv-left">${RTV.percorsoH(s)}<div class="rtv-piles"><div><b>${s.castle.length}</b><small>Castello</small></div><div><b>${s.tav.length}</b><small>Taverna</small></div><div><b>${s.disc.length}</b><small>Scarti</small></div></div></aside>
   <main class="rtv-main">${boss}<div class="rtv-state">${RTV.stato(s)}</div><div class="rtv-field">${played}</div></main>`}

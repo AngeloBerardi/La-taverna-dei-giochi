@@ -83,8 +83,8 @@ function catanH(){if(ui.tv)return catanTVH();const s=G,C=CATAN,key=s.gid+':'+s.e
  const showBoard=!ctl||tg||ui.cpeek;
  const mid=showBoard?`<div class="cwrap">${boardH(s,tg,{mini:ctl})}${ctl&&!tg?`<button class="b sm disc cpeekx" data-a="cpeek">Nascondi la plancia</button>`:''}</div>`:`<div class="cctl">${xs.map(x=>x.mid?x.mid(s):'').join('')}<div class="cctl-st">${s.over?'':me?'Tocca a te':'Tocca a <b>'+esc(s.names[s.cur])+'</b>'}</div><div class="cctl-pl">${s.names.map((n,i)=>`<div class="${i===s.cur?'act':''}" style="--pc:${CPC[i]}"><i></i><span>${esc(n)}</span><b>${C.points(s,i,false)}★</b></div>`).join('')}</div><button class="b sm disc" data-a="cpeek">Guarda la plancia</button></div>`;
  const hand=v>=0?cHandH(s,v):'';
- return fixH({title:'Catan',chips:info,strip,mid:xs.map(x=>x.top?x.top(s):'').join('')+mid,bot:seats+bub+trade,act:ctl_?`<div class="cact">${ctl_}</div>`:'',hand,players:pl,end:modal+end})}
-function cXpName(s){const n={mar:'Marinai',cek:'Città e Cavalieri',meb:'Mercanti e Barbari',eep:'Esploratori e Pirati'},a=(s.xt||[]).map(k=>n[k]).filter(Boolean);const sc=s.scen&&CATAN.EXTS.mar&&CATAN.EXTS.mar.SC[s.scen];return a.join(' + ')+(sc?' · '+sc.nome:'')}
+ return fixH({title:GN('catan'),chips:info,strip,mid:xs.map(x=>x.top?x.top(s):'').join('')+mid,bot:seats+bub+trade,act:ctl_?`<div class="cact">${ctl_}</div>`:'',hand,players:pl,end:modal+end})}
+function cXpName(s){const n={mar:'Marinai',cek:'Città e Difensori',meb:'Carovane e Predoni',eep:'Rotte e Corsari'},a=(s.xt||[]).map(k=>n[k]).filter(Boolean);const sc=s.scen&&CATAN.EXTS.mar&&CATAN.EXTS.mar.SC[s.scen];return a.join(' + ')+(sc?' · '+sc.nome:'')}
 /* un tocco sulla plancia: l'azione dipende dalla fase e dalla modalità */
 function cTap(kind,id){const s=G,C=CATAN,ph=s.phase,v=viewer();id=+id;
  if(ph==='setup'){if(kind==='v')return dispatch({t:'settle',v:id});return dispatch({t:C.roadSpots(s,v,s.setup.v).includes(id)?'road':'ship',e:id})}

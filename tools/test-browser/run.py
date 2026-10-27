@@ -348,8 +348,8 @@ async def sc_locandiere(b, srv):
     await pg.click('[data-a=osteq] >> nth=2'); await pg.wait_for_timeout(600)
     txt = await pg.inner_text('#oste-log')
     check('10 monete' in txt and 'Come guadagno monete?' in txt, 'chip: domanda e risposta a copioni')
-    await pg.fill('#oste-q', 'regole di perudo'); await pg.press('#oste-q', 'Enter'); await pg.wait_for_timeout(500)
-    check('Perudo' in (await pg.inner_text('#oste-log')).split('regole di perudo')[-1], 'invio con Enter: regole del gioco')
+    await pg.fill('#oste-q', 'regole di dadi del bugiardo'); await pg.press('#oste-q', 'Enter'); await pg.wait_for_timeout(500)
+    check('Dadi del Bugiardo' in (await pg.inner_text('#oste-log')).split('regole di dadi del bugiardo')[-1], 'invio con Enter: regole del gioco')
     await pg.fill('#oste-q', 'che gioco ci consigli'); await pg.click('[data-a=osteok]'); await pg.wait_for_timeout(500)
     check('proverei' in await pg.inner_text('#oste-log'), 'consiglio per il tavolo')
     check(await pg.evaluate('document.getElementById("oste-q").value') == '', 'campo svuotato dopo l\'invio')
@@ -544,7 +544,7 @@ async def sc_schermo_comune(b, srv):
     on = await T.eval_on_selector_all('.tvp-pl li.on', 'e=>e.map(x=>x.textContent.replace("▶",""))')
     tur = sh.d['partite/' + code]['turno'][0]; nome_t = 'Ada' if tur == 'u-1' else 'Bruno'
     check(on == [nome_t], f'TV: freccia sul giocatore di turno {on} (turno di {nome_t})')
-    check('Uno' in await T.inner_text('#tvpanel'), 'TV: pannello con il nome del gioco')
+    check('Ultima Carta' in await T.inner_text('#tvpanel'), 'TV: pannello con il nome del gioco')
     # il turno passa: la freccia si sposta
     att, altro_nome = (A, 'Bruno') if tur == 'u-1' else (B, 'Ada'); uid_altro = 'u-2' if tur == 'u-1' else 'u-1'
     for _ in range(4):
@@ -918,7 +918,7 @@ async def sc_regicide_legacy(b, srv):
     await pg.set_viewport_size({'width': 1920, 'height': 1080})
     await pg.evaluate("(async()=>{ui.tv=true;document.documentElement.dataset.tv='1';const S=[{dev:'a',k:'m',name:'Ada'},{dev:'b',k:'m',name:'Bruno'},{dev:'c',k:'m',name:'Carla'}];await startGame('rlegacy',S);await Q;})()")
     await pg.wait_for_timeout(800)
-    check('Regicide Legacy' in await pg.inner_text('#app'), 'RL TV: preparazione sullo schermo')
+    check('Regicidio: la Campagna' in await pg.inner_text('#app'), 'RL TV: preparazione sullo schermo')
     await pg.evaluate("(async()=>{const r=RLEG.act(G,{t:'start',first:1});pushState(r.s,false);await Q})()"); await pg.wait_for_timeout(500)
     await pg.evaluate("(async()=>{let s=G;for(let i=0;i<4&&!s.over;i++){const h=s.hands[s.cur];const r=RLEG.act(s,{t:'play',cards:[h[h.length-1]]});if(r.err)break;s=r.s;if(s.phase==='discard'){const d=RLEG.bestDiscard(s);const r2=d.length?RLEG.act(s,{t:'discard',cards:d}):RLEG.act(s,{t:'feign'});if(r2.err)break;s=r2.s}if(s.phase==='magic')s=RLEG.act(s,{t:'mago',c:null}).s;if(s.phase==='pick')s=RLEG.act(s,{t:'pick',to:s.cur}).s}pushState(s,false);await Q})()")
     await pg.wait_for_timeout(4000)

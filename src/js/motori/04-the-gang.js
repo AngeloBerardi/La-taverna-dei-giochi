@@ -75,7 +75,7 @@ function startNext(s){s.chal=s.perm.slice();s.spec=null;const nx=s.next||{};
  if(s.mode==='maestro'){s.mchal=s.mchal.slice().sort((a,b)=>a-b);s.mchal.shift();if(nx.chal)s.mchal.push(nx.chal);s.chal=s.mchal.slice()}
  else{if(nx.chal&&!s.chal.includes(nx.chal))s.chal.push(nx.chal);if(nx.spec)s.spec=nx.spec}
  s.next=null;newHeist(s)}
-const GANG={id:'gang',name:'The Gang',ok:n=>n>=3&&n<=6,P,fmt,best,handOf,CAT,CHAL,SPEC,COL,RND_N,locked,
+const GANG={id:'gang',name:'La Banda',ok:n=>n>=3&&n<=6,P,fmt,best,handOf,CAT,CHAL,SPEC,COL,RND_N,locked,
  newGame(n,names,opts={}){const mode=opts.mode||'base';const s={g:'gang',n,names:names.slice(0,n),mode,heist:0,dealer:n-1,vaults:0,alarms:0,maxAlarm:mode==='maestro'?2:3,
   cdeck:[1,2,3,4,5,6,7,8,9,10],sdeck:[1,2,3,4,5,6,7,8,9,10],cdrawn:0,sdrawn:0,perm:[],chal:[],spec:null,mchal:[],log:[],ev:[],evn:0,over:null,teams:1};
   if(mode==='pro'||mode==='maestro'){s.cdeck=s.cdeck.filter(x=>x!==1)}

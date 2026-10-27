@@ -1,6 +1,6 @@
 /* ---- testi delle regole in-game: RULES[id] (una scheda per riga; la fonte è docs/rules/<gioco>.md) ---- */
 const RULES={
- discesa:`<p>Solitario a dadi ispirato a <i>One Card Dungeon</i>: scendi <b>12 livelli</b> e sconfiggi tutti i mostri di ognuno. Parti con Velocità 1, Attacco 1, Difesa 1, Gittata 2 e 6 di salute.</p>
+ discesa:`<p>Solitario a dadi: scendi <b>12 livelli</b> e sconfiggi tutti i mostri di ognuno. Parti con Velocità 1, Attacco 1, Difesa 1, Gittata 2 e 6 di salute.</p>
 <ul><li><b>Energia</b>: tiri 3 dadi e ne assegni uno a Velocità, uno ad Attacco e uno a Difesa; valgono per questo turno (la Gittata non prende dadi).</li>
 <li><b>Il tuo turno</b>: spendi Velocità per muoverti (2 in orizzontale o verticale, 3 in diagonale) e Attacco per colpire: ogni volta che spendi punti pari alla Difesa del mostro gli togli 1 salute. Per colpire serve che il mostro sia entro la tua Gittata (misurata come il movimento) e in linea di vista (una linea da un angolo all’altro che non attraversa muri o altri mostri).</li>
 <li><b>Mostri</b>: si muovono uno alla volta, dal più vicino, cercando la casella più lontana da cui ti vedono restando in gittata; se non ce n’è, si avvicinano. Poi sommano l’Attacco di chi ti colpisce: perdi salute pari a quel totale diviso la tua Difesa, per difetto.</li>
@@ -86,7 +86,7 @@ const RULES={
 <li><b>Modalità:</b> scegli in lobby. <b>Classiche</b> (sfida al +4), <b>Accumulo</b>, <b>Sette-Zero</b> o <b>Tutto insieme</b> (accumulo + Sette-Zero).</li>
 <li><b>Sette-Zero:</b> quando giochi un <b>7</b> scambi la tua mano con un giocatore a tua scelta (in due è automatico); quando giochi uno <b>0</b> tutte le mani passano al giocatore successivo, nel verso del gioco. Il 7 e lo 0 si giocano una carta alla volta; se è la tua ultima carta vinci subito.</li>
 <li><b>Doppie:</b> se hai <b>due (o più) carte identiche</b>, stesso colore e stesso valore, le giochi insieme: toccane una e scegli quante. Gli effetti si ripetono: due ⊘ saltano due giocatori, due ⇄ si annullano (in due valgono due Salta), due +2 fanno pescare 4. I jolly si giocano sempre uno alla volta, e dopo aver pescato giochi solo la carta pescata.</li>
-<li><b>UNO!</b> Quando ti resta <b>una carta sola</b> (anche dopo aver pescato, o con una doppia) tocca <b>“Di’ UNO”</b> prima di giocare. Se te lo dimentichi puoi dirlo <b>subito dopo aver giocato</b> (tocca «UNO!»), finché il prossimo non muove. Se non lo dici, il giocatore che gioca dopo di te può <b>denunciarti</b> prima di muovere: peschi 2 carte. Se muove senza denunciare, ti sei salvato.</li>
+<li><b>ULTIMA!</b> Quando ti resta <b>una carta sola</b> (anche dopo aver pescato, o con una doppia) tocca <b>“Di’ ULTIMA”</b> prima di giocare. Se te lo dimentichi puoi dirlo <b>subito dopo aver giocato</b> (tocca «ULTIMA!»), finché il prossimo non muove. Se non lo dici, il giocatore che gioca dopo di te può <b>denunciarti</b> prima di muovere: peschi 2 carte. Se muove senza denunciare, ti sei salvato.</li>
 <li><b>Fine mano:</b> chi finisce le carte vince e prende i punti delle carte rimaste agli altri (numeri = valore, ⊘ ⇄ +2 = 20, jolly = 50). <b>Si può chiudere con qualsiasi carta</b>, anche speciale: se l’ultima è un +2 o un +4 il prossimo pesca prima del conteggio (con l’accumulo anche tutto il mucchio in corso); il +4 giocato per chiudere è sempre regolare e non si sfida, e un jolly per chiudere non chiede il colore.</li></ul>`,
  trono:`<p>Gioco di carte per 2–4 che si gioca <b>pescando in fila</b>: rischi di far saltare tutto, ma ogni mazzetto raccolto vale punti. Ispirato all’omonimo gioco; nomi, grafica e testi sono nostri.</p>
 <ul><li><b>Il turno:</b> rivela una carta alla volta (fino a <b>5</b>) mettendole in fila. Ogni carta deve avere <b>valore più basso</b> della precedente: se è più alta (dopo i poteri) la fila <b>salta</b> e finisce nel mazzo degli scarti.</li>
@@ -118,20 +118,20 @@ const RULES={
 <li><b>Stop ✋</b>: ferma il gioco per ricalibrarvi (ma non parlate!).</li>
 <li>Premi: dopo i livelli 2, 5 e 8 ottenete uno shuriken; dopo i livelli 3, 6 e 9 una vita (massimo 5 vite e 3 shuriken).</li>
 <li>Vite iniziali: 2 giocatori 2, 3 giocatori 3, 4 giocatori 4. Livelli totali: 12, 10 o 8. Vincete completando l’ultimo livello.</li></ul>`,
- mindx:`<p>Come <b>The Mind</b> (cooperativo, 2–4, <b>senza comunicare</b>) ma con 100 carte di due colori.</p>
+ mindx:`<p>Come <b>Telepatia</b> (cooperativo, 2–4, <b>senza comunicare</b>) ma con 100 carte di due colori.</p>
 <ul><li><b>Bianche 1–50</b>: si giocano in ordine <b>crescente</b>. <b>Rosse 1–50</b>: si giocano in ordine <b>decrescente</b> (dal 50 giù). Due pile separate.</li>
 <li>Ognuno riceve N carte al livello N. Quando tutti sono pronti si parte; chiunque gioca quando sente che è il momento: tocca la tua carta <b>bianca più bassa</b> o la <b>rossa più alta</b>.</li>
 <li><b>Errore</b>: carta giocata mentre qualcuno ne ha una che andava prima (nello stesso colore): <b>−1 vita</b> e carte saltate scartate.</li>
 <li><b>Carte coperte</b> (livelli avanzati): le carte di quel colore si giocano a faccia in giù; gli errori si scoprono solo <b>a fine livello</b> e costano una vita per ogni carta giocata troppo presto.</li>
 <li><b>Shuriken ★</b> (tutti d’accordo): ognuno scarta la propria carta più bassa bianca o la più alta rossa. <b>Stop ✋</b> per ricalibrarsi.</li>
-<li>Premi e vite come in The Mind: shuriken dopo i livelli 2, 5 e 8; vita dopo 3, 6 e 9.</li></ul><p class="muted">Nota: la distribuzione esatta dei livelli a carte coperte è ricostruita dal regolamento: confrontala con la tua scatola.</p>`,
+<li>Premi e vite come in Telepatia: shuriken dopo i livelli 2, 5 e 8; vita dopo 3, 6 e 9.</li></ul><p class="muted">Nota: la distribuzione esatta dei livelli a carte coperte è ricostruita dal regolamento: confrontala con la tua scatola.</p>`,
  machiavelli:`<p>Si gioca con 2 mazzi francesi + 4 jolly (108 carte). Ognuno riceve 13 carte; vince chi <b>finisce per primo le carte in mano</b>.</p>
 <ul><li><b>Combinazioni</b>: <b>tris o quartetti</b> (stesso valore, semi tutti diversi) e <b>scale</b> (almeno 3 carte consecutive dello stesso seme; l’asso vale 1 o sta dopo il re, ma non si «gira»: K-A-2 non vale).</li>
 <li>Il <b>jolly</b> sostituisce qualsiasi carta.</li>
 <li><b>Turno</b>: puoi calare carte dalla mano e <b>riorganizzare liberamente il tavolo</b> (spezzare, unire, riprendere un jolly sostituendolo con la carta vera...), purché alla fine <b>ogni combinazione sia valida</b>, tutte le carte del tavolo restino in gioco e tu cali <b>almeno una carta</b> dalla tua mano.</li>
 <li>Se non puoi o non vuoi giocare, <b>peschi una carta</b> e il turno passa.</li>
 <li>Se il mazzo è finito e nessuno riesce a calare, vince chi ha meno carte.</li></ul><p><b>Come si fa qui</b>: tocca le carte (mano o tavolo) per selezionarle, poi «Nuova combinazione» o «+ qui» su una combinazione esistente. «Suggerisci» propone la miglior giocata, «Conferma» la gioca.</p>`,
- island:`<p>Siete su un’isola dimenticata: gli animali hanno fame e <b>dovete far mangiare tutti finché ne resta uno solo</b>. Gioco ispirato a <i>Food Chain Island</i> di Scott Almes.</p>
+ island:`<p>Siete su un’isola dimenticata: gli animali hanno fame e <b>dovete far mangiare tutti finché ne resta uno solo</b>.</p>
 <ul><li>16 animali di terra (valore 0–15) in griglia 4×4, più <b>squalo</b> e <b>balena</b>.</li>
 <li><b>Turno</b>: muovi un animale di 1 casella (su, giù, sinistra, destra) sopra un altro che vale <b>da 1 a 3 in meno</b>. Lo impila sopra: la pila vale il numero in cima e si muove insieme.</li>
 <li>Quando mangi scatta <b>il potere</b> dell’animale che ha mangiato (obbligatorio, se puoi). Poi fai un altro turno, con lo stesso animale o con un altro.</li>
@@ -145,7 +145,7 @@ const RULES={
 <li>Quando fabbriche e centro sono vuoti: ogni riga piena posa <b>una</b> piastrella sul muro (le altre vanno nel coperchio) e fa punti: 1 se isolata, altrimenti le piastrelle collegate in riga + colonna.</li>
 <li>Fine: appena un muro ha una riga completa. Bonus: riga +2, colonna +7, 5 piastrelle dello stesso colore +10.</li>
 <li><b>Muro libero</b> (variante ufficiale): niente colori stampati, scegli tu la colonna senza ripetere un colore in riga o colonna.</li></ul>`,
-  rlegacy:`<p>Campagna cooperativa (1–4) ispirata a <i>Regicide Legacy</i>: <b>12 missioni</b> in fila, poi le spedizioni libere. Personaggi, storia e grafica sono nostri; la campagna si salva su ogni telefono al tavolo.</p>
+  rlegacy:`<p>Campagna cooperativa (1–4) ispirata ai giochi di carte cooperativi a campagna: <b>12 missioni</b> in fila, poi le spedizioni libere. Personaggi, storia e grafica sono nostri; la campagna si salva su ogni telefono al tavolo.</p>
 <ul><li><b>Turno</b>: attacca con una carta, con un <b>animale</b> (asso, forza 1) più un'altra carta, o con una <b>combo di parentela</b> (stessa forza, totale ≤ 10). Poi si attivano le classi, il nemico subisce il danno e, se resta in piedi, colpisce: scarti carte per almeno la sua forza.</li>
 <li><b>Classi</b>: ascia = danno doppio · scudo = forza del nemico ridotta · pozione = scarti in fondo alla riserva · liuto = si pesca a giro. Più avanti: Mago (scopre carte e ne aggiunge una), Razziatore (danno doppio, divora la riserva), Guardiano (niente colpo), Druido (tutti gli scarti tornano), Cantore (tutti pescano).</li>
 <li><b>Immunità</b>: il nemico ignora le classi delle sue icone. Il <b>giullare</b> si gioca da solo: chi lo reclama attacca senza immunità. Nel solitario hai 2 giullari: forza 8 con la classe che scegli.</li>
@@ -188,7 +188,7 @@ const RULES={
 <li><b>Frana</b>: togli una galleria. <b>Mappa</b>: guarda in segreto una delle 3 mete.</li>
 <li>Le 3 mete in fondo: una è l’oro, due sono carbone. Quando una galleria le raggiunge si girano.</li>
 <li>Oro trovato: chi l’ha raggiunto pesca tante pepite quanti sono i giocatori, ne sceglie una e passa le altre ai cercatori (in senso antiorario). Oro non trovato a fine mazzo: vincono i sabotatori (4 pepite se è uno solo, 3 se sono 2–3, 2 se sono 4).</li>
-<li>Si giocano 3 round: vince chi ha più pepite.</li></ul><p><b>Saboteur 2</b>: squadre di cercatori blu e verdi (le porte del colore avversario bloccano), Capo, Profittatore, Geologi (contano i cristalli), scale collegate alla superficie, ponti, e nuove azioni: prigione, libertà, furto, giù le mani, cambio cappello, ispezione, scambio delle mani. Pepite: 1 vincitore 5, 2 vincitori 4, 3 vincitori 3, 4 vincitori 2, di più 1 (Capo −1, Profittatore −2). Le forme delle 30 nuove gallerie sono ricostruite.</p>`,
+<li>Si giocano 3 round: vince chi ha più pepite.</li></ul><p><b>Espansione</b>: squadre di cercatori blu e verdi (le porte del colore avversario bloccano), Capo, Profittatore, Geologi (contano i cristalli), scale collegate alla superficie, ponti, e nuove azioni: prigione, libertà, furto, giù le mani, cambio cappello, ispezione, scambio delle mani. Pepite: 1 vincitore 5, 2 vincitori 4, 3 vincitori 3, 4 vincitori 2, di più 1 (Capo −1, Profittatore −2). Le forme delle 30 nuove gallerie sono ricostruite.</p>`,
  burraco:`<ul><li>2 mazzi francesi + 4 jolly. 11 carte a testa e due pozzetti da 11. In 4 si gioca a coppie.</li>
 <li>Turno: <b>pesca</b> una carta dal mazzo oppure <b>raccogli tutti gli scarti</b>; poi cala o attacca combinazioni; infine <b>scarta</b> una carta.</li>
 <li>Combinazioni: scala (3+ carte consecutive dello stesso seme, Asso basso o alto) o tris (3+ carte dello stesso valore). Massimo un jolly o una pinella (il 2) per combinazione.</li>

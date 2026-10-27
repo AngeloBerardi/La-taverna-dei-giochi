@@ -778,7 +778,7 @@ $('csend').onclick=chatSend;
 $('cin').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();chatSend()}});
 
 var NPCN=['Giulia','Marco','Anselmo','Bice','Tano','Nora','Ugo','Lia','Rocco'];
-var CHATTER=['Chi ha finito la birra?','Stasera a Briscola vi distruggo','Oste! Un altro giro!','Il gatto mi sta fissando','Qualcuno ha visto il mio cappello?','Marco bara, lo sanno tutti','Proviamo The Mind?','Passami il formaggio','Questa panca traballa','Saboteur? Mi fido di nessuno'];
+var CHATTER=['Chi ha finito la birra?','Stasera a Briscola vi distruggo','Oste! Un altro giro!','Il gatto mi sta fissando','Qualcuno ha visto il mio cappello?','Marco bara, lo sanno tutti','Proviamo Telepatia?','Passami il formaggio','Questa panca traballa','In miniera? Non mi fido di nessuno'];
 var REPLY=['Ahah, vero!','Ma che dici','Concordo','Seee, figurati','Giusto!','Dopo questo giro','Ci sto!'];
 var OUCH=['Ehi!','Me la paghi!','Ma sei matto?','Buona però…','Questa era alla crema'];
 

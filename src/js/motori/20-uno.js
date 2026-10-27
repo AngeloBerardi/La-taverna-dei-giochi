@@ -1,10 +1,10 @@
-/* UNO (regole del classico gioco di scarto a colori; grafica e testi nostri). 2-10 giocatori (oltre 6 due mazzi).
+/* ULTIMA (regole del classico gioco di scarto a colori; grafica e testi nostri). 2-10 giocatori (oltre 6 due mazzi).
    Carte: stringhe "colore+valore": R/Y/G/B + 0-9, S (Salta), V (Inverti), D (+2); jolly W+W (Cambia colore) e W+F (+4).
    Modalità (opzione edi): 'classic' (il +4 si può sfidare, niente accumulo) · 'stack' (+2 su +2 e +4 su +4 si accumulano, il +4 non si sfida)
    · 'sette' (classiche + Sette-Zero) · 'caos' (accumulo + Sette-Zero). s.edi resta 'classic'|'stack', s.sw=true se c'è Sette-Zero, s.modo = modalità scelta.
    Sette-Zero: giocare un 7 fa scambiare la propria mano con un giocatore a scelta (fase swap, azione swap{to}; in due è automatico),
    giocare uno 0 fa passare tutte le mani al giocatore successivo nel verso di gioco. 7 e 0 si giocano una carta alla volta.
-   UNO: giocando la penultima carta si annuncia (uno:true). Chi se lo dimentica resta "scoperto" (s.miss): il giocatore dopo di lui
+   ULTIMA: giocando la penultima carta si annuncia (uno:true). Chi se lo dimentica resta "scoperto" (s.miss): il giocatore dopo di lui
    può denunciarlo (azione catch) prima di muovere e il colpevole pesca 2; appena cur fa un'altra mossa il momento è passato.
    Il colpevole può rimediare subito dopo aver giocato con l'azione uno (anche fuori turno), finché il prossimo non ha mosso.
    Doppie: si giocano insieme n copie identiche (stesso colore e valore, mai jolly) con a.n; gli effetti si ripetono n volte
@@ -50,7 +50,7 @@ function doPlay(s,p,c,color,uno,n){n=n||1;const h=s.hands[p];for(let k=0;k<n;k++
  if(h.length===0){/* l'ultima carta pesca per il prossimo prima del conteggio dei punti */
   const k=v==='D'?2*n:v==='F'?4:0;if(k){const tot=k+(s.edi==='stack'?s.pend:0);draw(s,nx,tot);s.pend=0;s.pendK=null;L(s,nm(s,nx)+' pesca '+tot+' carte')}
   finish(s,p);return}
- if(h.length===1){if(uno){s.ev.push({t:'uno',p});L(s,nm(s,p)+' dice UNO!')}else{s.miss=p;L(s,nm(s,p)+' ha una carta sola e non ha detto UNO!')}}
+ if(h.length===1){if(uno){s.ev.push({t:'uno',p});L(s,nm(s,p)+' dice ULTIMA!')}else{s.miss=p;L(s,nm(s,p)+' ha una carta sola e non ha detto ULTIMA!')}}
  if(s.sw&&v==='7'){if(s.n===2){swapHands(s,p,nx);advance(s);return}s.phase='swap';s.ev.push({t:'turn',p});return}
  if(s.sw&&v==='0'){rotateHands(s);advance(s);return}
  if(v==='V'){if(s.n===2){advance(s,n);return}if(n%2){s.dir=-s.dir;s.ev.push({t:'reverse'})}advance(s);return}
@@ -60,8 +60,8 @@ function doPlay(s,p,c,color,uno,n){n=n||1;const h=s.hands[p];for(let k=0;k<n;k++
  advance(s)}
 const fail=e=>({err:e});
 function act(st,a){const s=clone(st);if(s.over)return fail('Partita finita');s.ev=[];const p=s.cur;
- if(a.t==='uno'){if(s.miss==null)return fail('Adesso non serve dire UNO');const q=s.miss;s.miss=null;s.ev.push({t:'uno',p:q});L(s,nm(s,q)+' dice UNO in tempo!');s.evn++;return{s}}
- if(a.t==='catch'){if(s.miss==null||s.miss===p)return fail('Nessuno da denunciare');const q=s.miss;s.miss=null;draw(s,q,2);s.ev.push({t:'catch',p,q});L(s,nm(s,p)+' denuncia '+nm(s,q)+': non ha detto UNO e pesca 2 carte');s.evn++;return{s}}
+ if(a.t==='uno'){if(s.miss==null)return fail('Adesso non serve dire ULTIMA');const q=s.miss;s.miss=null;s.ev.push({t:'uno',p:q});L(s,nm(s,q)+' dice ULTIMA in tempo!');s.evn++;return{s}}
+ if(a.t==='catch'){if(s.miss==null||s.miss===p)return fail('Nessuno da denunciare');const q=s.miss;s.miss=null;draw(s,q,2);s.ev.push({t:'catch',p,q});L(s,nm(s,p)+' denuncia '+nm(s,q)+': non ha detto ULTIMA e pesca 2 carte');s.evn++;return{s}}
  if(a.t!=='swap')s.miss=null;
  if(s.phase==='swap'){if(a.t!=='swap')return fail('Hai giocato un 7: scegli con chi scambiare la mano');const q=a.to;if(!Number.isInteger(q)||q<0||q>=s.n||q===p)return fail('Scegli un altro giocatore');swapHands(s,p,q);advance(s);s.evn++;return{s}}
  if(a.t==='swap')return fail('Nessuno scambio in corso');

@@ -67,7 +67,7 @@ function promoteOk(s,p,v){const k=s.kn[v];if(!k||k.p!==p)return'Quello non è un
 function attack(s){const ct=Object.values(s.bld).filter(b=>b.k===2).length,per=Array(s.n).fill(0);for(const v in s.kn)if(s.kn[v].a)per[s.kn[v].p]+=s.kn[v].l;
  const def=per.reduce((a,b)=>a+b,0),win=def>=ct;s.ev.push({t:'attack',str:ct,def,win});K.L(s,'I barbari attaccano! Forza '+ct+' contro difesa '+def);
  if(win){const M=Math.max(...per);if(M>0){const w=per.map((x,i)=>x===M?i:-1).filter(i=>i>=0);
-   if(w.length===1){s.dof[w[0]]++;K.L(s,s.names[w[0]]+' è il Difensore di Catan: +1 punto')}else{w.forEach(p=>draw(s,p,TR[Math.floor(K.RND()*3)]));K.L(s,'Pari merito: ogni difensore pesca una carta progresso')}}
+   if(w.length===1){s.dof[w[0]]++;K.L(s,s.names[w[0]]+' è il Difensore dell’Isola: +1 punto')}else{w.forEach(p=>draw(s,p,TR[Math.floor(K.RND()*3)]));K.L(s,'Pari merito: ogni difensore pesca una carta progresso')}}
   else K.L(s,'Nessuna città da difendere: i barbari se ne vanno')}
  else{const has=[];for(let p=0;p<s.n;p++)if(cities(s,p).some(v=>!isMetro(s,v)))has.push(p);const m=Math.min(...has.map(p=>per[p]));
   has.filter(p=>per[p]===m).forEach(p=>{const cand=cities(s,p).filter(v=>!isMetro(s,v)).sort((a,b)=>pips(s,a)-pips(s,b));
@@ -108,7 +108,7 @@ return{vp:13,PC,TR,TN,COM,CN,LV,KN,
  init(KX,s){K=KX;s.xk=['cloth','coin','paper'];s.xn=CN;s.res.forEach(r=>s.xk.forEach(k=>{r[k]=0}));s.xk.forEach(k=>{s.bank[k]=12});
   s.imp=Array.from({length:s.n},()=>({tr:0,po:0,sc:0}));s.kn={};s.wall={};s.metro={tr:null,po:null,sc:null};s.bar=0;s.dof=Array(s.n).fill(0);s.pg=Array.from({length:s.n},()=>[]);s.pgvp=Array(s.n).fill(0);
   s.pdeck={};TR.forEach(t=>{s.pdeck[t]=K.shuffle(deck(t))});s.ed=null;s.merch=null;s.fleet=null;s.crane=Array(s.n).fill(0);s.robOff=true;s.deck=[];s.noDev=true;
-  K.L(s,'Città e Cavalieri: la seconda posa è una città, i barbari arrivano dopo 7 navi')},
+  K.L(s,'Città e Difensori: la seconda posa è una città, i barbari arrivano dopo 7 navi')},
  setupK(KX,s,p,second){return second?2:1},
  yield(KX,s,b,t){if(b.k!==2)return;if(t==='wood')return{wood:1,paper:1};if(t==='wool')return{wool:1,cloth:1};if(t==='ore')return{ore:1,coin:1}},
  discardLimit(KX,s,p){K=KX;return 7+2*walls(s,p)},

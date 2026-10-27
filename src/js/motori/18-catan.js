@@ -62,7 +62,7 @@ function defaultMap(n){const prof=profOf(n),Kt=KIT[prof];use({prof});
 /* partite predefinite per la stanza: opts.x sceglie un modo (espansioni e scenari) senza dover conoscere i singoli interruttori */
 const PRE=[['base','Gioco base · 10 punti',{}],['rapida','Gioco base · partita rapida (8 punti)',{vp:8}],
  ['nt','Marinai · Terre da scoprire',{ext:['mar'],scen:'nt'}],['qi','Marinai · Le quattro isole',{ext:['mar'],scen:'qi'}],['ne','Marinai · Mare di nebbia',{ext:['mar'],scen:'ne'}],['ar','Marinai · Arcipelago',{ext:['mar'],scen:'ar'}],
- ['cek','Città e Cavalieri',{ext:['cek']}],['cekmar','Città e Cavalieri sul mare',{ext:['mar','cek'],scen:'nt'}]];
+ ['cek','Città e Difensori',{ext:['cek']}],['cekmar','Città e Difensori sul mare',{ext:['mar','cek'],scen:'nt'}]];
 const presets=()=>PRE.filter(p=>(p[2].ext||[]).every(k=>EXT[k]));
 function newGame(n,names,o={}){
  if(o.x){const pr=PRE.find(p=>p[0]===o.x);if(pr)o=Object.assign({},pr[2],o)}

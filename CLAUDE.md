@@ -64,5 +64,6 @@ Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `doc
 ## Decisioni dell'utente (vincolanti)
 - Niente effetto olografico/foil sulle carte.
 - Grafica originale: ispirarsi a titoli famosi per HUD e atmosfera, ma niente illustrazioni, nomi, loghi o testi di regole copiati. Le regole (meccaniche) non sono protette, il testo e l'arte sì.
+- **Mai nomi di marchi** (repo e sito sono pubblici): nessun titolo di gioco commerciale (Catan, Uno, Azul…), di sue espansioni o di sue parole chiave (es. il grido «UNO») nei testi visibili. Ogni gioco ha un nome nostro, generico o inventato, in `GAMES` (`07-nucleo.js`); le viste lo leggono con `GN(id)`, mai scritto a mano. Gli `id` interni e i nomi dei file possono restare. Giochi tradizionali (Briscola, Scopa, Burraco, Machiavelli) vanno bene.
 - Stile: la lobby di base è la Taverna 3D (ingresso, locanda, boschetto; sorgenti in `tools/taverna3d/`), con il falò pixel-art come modalità semplice per i telefoni senza 3D; carte figura dipinte per Regicide, 3D dove sensato. Dettagli in `docs/STYLE.md`.
 - Ogni gioco ha: schede regole in-game, musica propria, suoni, vista dedicata, test del motore (bot intelligente vince, bot casuale perde).

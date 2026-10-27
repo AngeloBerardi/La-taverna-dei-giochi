@@ -55,7 +55,7 @@ function kittH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn(),ph=s.phase
  const bub=`<div class="bubble ${mine&&!cover&&!s.over?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${s.over?'':(mine&&!cover?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>`)}${hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">😼</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><p>L’ultimo gatto rimasto in piedi.</p><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const strip=stripH(s,i=>({b:s.alive[i]?s.hands[i].length+(i===s.turner&&s.turns>1?'×'+s.turns:''):'',out:!s.alive[i],trn:i===s.turner&&i!==s.cur&&!s.over}));
- return fixH({title:'Exploding Kittens',chips:chips,strip,mid:table,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand,players:pl,end})}
+ return fixH({title:GN('kittens'),chips:chips,strip,mid:table,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand,players:pl,end})}
 function kittClick(a,v){const s=G;if(!myTurn())return;
  if(a==='ksel'){const t=KITT.T(v);if(['defuse','nope','bomb'].includes(t)){ui.err=t==='nope'?'Il Niet si gioca solo in risposta a un’altra carta':t==='defuse'?'Il Disinnesco scatta da solo quando peschi una bomba':'';return render()}
   ui.err='';const cur=ui.ksel||[];

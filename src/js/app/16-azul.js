@@ -22,7 +22,7 @@ function azBoard(s,p,o={}){const b=s.boards[p],act=o.act,sel=ui.azs,tilePh=s.pha
  let fl='';for(let i=0;i<7;i++){const t=b.floor[i];fl+=`<i class="azf">${t==null?'':t==='F'?azFirst:azT(t)}<em>${AZUL.FLOOR[i]}</em></i>`}
  return`<div class="azb ${o.mini?'mini':''} ${s.cur===p&&!s.over?'cur':''}" id="azb${p}"><div class="azh"><b>${esc(s.names[p])}</b><span class="azsc" id="azsc${p}">${b.score}</span></div><div class="azg"><div class="azls">${ln}</div><div class="azwall ${s.grey?'grey':''}">${wl}</div></div>
  <div class="azfl ${fh?'hot':''}" id="azf${p}" ${fh?`data-a="azfloor" role="button" tabindex="0"`:''}>${fl}</div></div>`}
-function azulH(){if(ui.tv)return azulTVH();const s=G,mine=myTurn(),v=viewer();const L=local();if(needCover())return`${hudH('Azul')}${coverH(s.cur)}${rulesH()}${cfgH()}`;
+function azulH(){if(ui.tv)return azulTVH();const s=G,mine=myTurn(),v=viewer();const L=local();if(needCover())return`${hudH(GN('azul'))}${coverH(s.cur)}${rulesH()}${cfgH()}`;
  const me=isMine(s.cur)?s.cur:v>=0?v:(L[0]??0);const sel=ui.azs;
  const fac=s.factories.map((f,i)=>`<div class="azfa ${f.length?'':'e'}" id="azfa${i}">${f.map(c=>{const h=sel&&sel.src===i&&sel.color===c;return`<span class="azp ${h?'hl':''}" ${mine&&s.phase==='pick'?`data-a="azp" data-v="${i}|${c}" role="button" tabindex="0"`:''}>${azT(c)}</span>`}).join('')}</div>`).join('');
  const cen=`<div class="azcen" id="azfc">${s.firstInCenter?`<span class="azp">${azFirst}</span>`:''}${[...s.center].sort().map(c=>{const h=sel&&sel.src==='c'&&sel.color===c;return`<span class="azp ${h?'hl':''}" ${mine&&s.phase==='pick'?`data-a="azp" data-v="c|${c}" role="button" tabindex="0"`:''}>${azT(c)}</span>`}).join('')}${!s.center.length&&!s.firstInCenter?'<em class="muted">centro vuoto</em>':''}</div>`;
@@ -32,7 +32,7 @@ function azulH(){if(ui.tv)return azulTVH();const s=G,mine=myTurn(),v=viewer();co
   else{const src=sel.src==='c'?s.center:s.factories[sel.src];const n=src.filter(c=>c===sel.color).length;hint=`<span class="chip">Prendi ${n} ${n>1?AZUL.CN[sel.color]:AZUL.CN1[sel.color]}: scegli una riga o il pavimento</span><button class="b sm disc" data-a="azno">Annulla</button>`}}
  const others=s.names.map((_,i)=>i).filter(i=>i!==me).map(i=>azBoard(s,i,{mini:true})).join('');
  const sum=s.over&&!ui.anim?azSummary(s):'';
- return`${hudH('Azul')}<div class="tinfo"><span class="chip">Round ${s.round}</span><span class="chip">Sacchetto ${s.bag.length}</span>${s.grey?'<span class="chip sh">Muro libero</span>':''}</div>
+ return`${hudH(GN('azul'))}<div class="tinfo"><span class="chip">Round ${s.round}</span><span class="chip">Sacchetto ${s.bag.length}</span>${s.grey?'<span class="chip sh">Muro libero</span>':''}</div>
  <div class="azx"><div class="azL"><div class="az"><div class="azfs">${fac}</div>${cen}</div>${bubbleH(s,'Scegli un colore: prendi tutte le piastrelle di quel colore.',null)}<div class="prev">${hint}</div><div class="err" role="alert">${esc(ui.err)}</div>${others?`<div class="azo">${others}</div>`:''}</div>
  <div class="azR"><div class="az">${azBoard(s,me,{act:mine})}</div></div></div>${sum}${rulesH()}${cfgH()}`}
 function azSummary(s){const o=s.over,R0=s.res||[];const rows=s.names.map((n,i)=>`<tr class="${o.winners.includes(i)?'w':''}"><td>${esc(n)}</td><td>${R0[i].rows}×2</td><td>${R0[i].cols}×7</td><td>${R0[i].colors}×10</td><td><b>${o.scores[i]}</b></td></tr>`).join('');

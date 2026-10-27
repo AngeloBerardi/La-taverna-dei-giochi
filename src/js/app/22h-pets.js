@@ -34,7 +34,7 @@ function petsH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn()&&!cover&&!
  const wn=s.over?s.over.wins:null;
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">🏆</div><h2>Vince ${wn.map(i=>esc(s.names[i])).join(' e ')}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${wn.includes(i)?'w':''}"><span>${esc(n)}</span><b>${s.tok[i]}</b><small>🪙</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${ph==='round'?`<b>Round finito</b>`:mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>`}${mine&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
- return fixH({title:'Power Hungry Pets',chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand:hand?`<div class="pmine">${hand}</div>`:'',players:pl,end})}
+ return fixH({title:GN('pets'),chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,hand:hand?`<div class="pmine">${hand}</div>`:'',players:pl,end})}
 function petsClick(a,v){const s=G;if(!myTurn())return;
  if(a==='pw'){ui.pw=ui.pw===v?null:v;ui.pt=null;ui.pn=null;Snd.play('sel');return render()}
  if(a==='pt'){ui.pt=+v;return render()}
