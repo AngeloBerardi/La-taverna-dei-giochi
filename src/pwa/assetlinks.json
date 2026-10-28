@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.web.latavernadeigiochi",
+      "sha256_cert_fingerprints": [
+        "A6:14:98:80:50:3A:AC:FC:49:C8:63:17:89:DE:CF:2F:13:CA:28:CD:78:5B:17:A6:3E:60:98:0B:92:BA:31:E1"
+      ]
+    }
+  }
+]

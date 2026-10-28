@@ -1,0 +1,55 @@
+# App Android (android/, guida docs/ANDROID.md): compila l'APK sui runner di GitHub, che hanno già l'SDK Android.
+# Con i segreti ANDROID_KEYSTORE (file .jks in base64) e ANDROID_KEYSTORE_PASSWORD l'APK esce firmato con la chiave
+# della Taverna (aggiornabile, senza barra del browser); senza, esce non firmato (da firmare a mano).
+# Su main l'APK firmato va anche nella release «android»: link fisso per gli amici
+# https://github.com/AngeloBerardi/La-taverna-dei-giochi/releases/download/android/taverna.apk
+name: App Android
+on:
+  push:
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.10.2' }
+      - name: Chiave di firma
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE }}
+        run: |
+          if [ -n "$KS" ]; then
+            printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/taverna.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/taverna.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::Manca il segreto ANDROID_KEYSTORE: l'APK esce non firmato (docs/ANDROID.md)."
+          fi
+      - name: Compila
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          gradle -p android assembleRelease --no-daemon
+          f=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          cp "$f" taverna.apk
+          rm -f "$RUNNER_TEMP/taverna.jks"
+      - uses: actions/upload-artifact@v4
+        with: { name: taverna-apk, path: taverna.apk }
+      - name: Release «android» con il link fisso
+        if: github.ref == 'refs/heads/main' && env.ANDROID_KEYSTORE_FILE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android >/dev/null 2>&1 || gh release create android --title "App Android" --notes "APK della Taverna: scaricalo dal telefono e installalo."
+          gh release upload android taverna.apk --clobber
+      - name: Pre-release «android-non-firmato» (senza chiave, per firmarlo a mano)
+        if: env.ANDROID_KEYSTORE_FILE == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-non-firmato >/dev/null 2>&1 || gh release create android-non-firmato --prerelease --target "$GITHUB_SHA" --title "APK non firmato" --notes "Solo per firmarlo a mano: non installabile così."
+          gh release upload android-non-firmato taverna.apk --clobber
