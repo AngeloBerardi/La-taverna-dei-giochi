@@ -46,3 +46,10 @@ jobs:
         run: |
           gh release view android >/dev/null 2>&1 || gh release create android --title "App Android" --notes "APK della Taverna: scaricalo dal telefono e installalo."
           gh release upload android taverna.apk --clobber
+      - name: Pre-release «android-non-firmato» (senza chiave, per firmarlo a mano)
+        if: env.ANDROID_KEYSTORE_FILE == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-non-firmato >/dev/null 2>&1 || gh release create android-non-firmato --prerelease --target "$GITHUB_SHA" --title "APK non firmato" --notes "Solo per firmarlo a mano: non installabile così."
+          gh release upload android-non-firmato taverna.apk --clobber
