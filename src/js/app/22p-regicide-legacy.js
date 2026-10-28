@@ -36,12 +36,14 @@ function rlegacyH(){if(ui.tv)return rlegacyTVH();const s=G;if(s.phase==='prep')r
  const en=ui.viewEn||s.en;let foe='';
  if(en){const str=RLEG.effStr(s),left=Math.max(0,en.hp-en.dmg),tot=s.castle.length+1+s.kills;
   const mods=[];if(en.red)mods.push('scudo −'+en.red);if(s.fx.esp&&s.ban.length)mods.push('banditi +'+Math.min(5,s.ban.length));if(s.fx.zona&&s.mz.length)mods.push('zona +'+s.mz.filter(c=>RLEG.def(s,c).k!=='p').length);
-  foe=`<section class="rl-foe"><div class="rl-en" id="boss">${RLV.foeCard(s,en,'xl')}</div><div class="rl-st">
+  // tracciati come sulla plancia: forza a sinistra, vita a destra (0-60), con il segnalino d'ottone sul valore
+  const trk=(v,lab,cls)=>`<div class="rl-trk ${cls}" aria-label="${lab} ${v}"><small>${lab}</small><div class="rl-rul"><i style="bottom:${Math.min(60,v)/60*100}%"><b>${v}</b></i></div></div>`;
+  foe=`<section class="rl-foe">${RLA.mappa()}${trk(str,'FORZA','l')}<div class="rl-en" id="boss">${RLV.foeCard(s,en,'xl')}</div><div class="rl-st">
    <div class="rl-enm">${esc(en.nm)}</div>
    <div class="rl-hp"><i style="width:${left/en.hp*100}%"></i><b>${left}<small> / ${en.hp}</small></b></div>
    <div class="rl-stats"><span class="rl-str" title="Forza: il colpo che subirai">${ic('spada',16)}<b>${str}</b></span><span class="rl-imm">Immune ${RLV.icons(en.c,20)}</span></div>
    ${mods.length?`<div class="rl-mods">${mods.join(' · ')}</div>`:''}
-   <div class="rl-prog" aria-label="Nemici">${Array.from({length:tot},(_,i)=>`<i class="${i<s.kills?'ok':i===s.kills?'now':''}"></i>`).join('')}</div></div></section>`}
+   <div class="rl-prog" aria-label="Nemici">${Array.from({length:tot},(_,i)=>`<i class="${i<s.kills?'ok':i===s.kills?'now':''}"></i>`).join('')}</div></div>${trk(left,'VITA','r')}</section>`}
  const piles=`<div class="rl-piles"><div class="pile" id="pres">${RLV.card(s.res.length?'':null,{cls:'mini'})}<span>Riserva <b>${s.res.length}</b></span></div>
   <div class="pile" id="pdisc">${s.disc.length?RLV.card(s.disc[s.disc.length-1],{cls:'mini'}):'<i class="rl-empty"></i>'}<span>Scarti <b>${s.disc.length}</b></span></div>
   <div class="pile" id="pban">${s.ban.length?RLV.card(s.ban[s.ban.length-1],{cls:'mini ban'}):'<i class="rl-empty"></i>'}<span>Banditi <b>${s.ban.length}</b></span></div>

@@ -1,7 +1,8 @@
 /* ---- Regicide Legacy: arte delle carte (originale) ----
-   Stile: figure a inchiostro nero su fondo verde sfumato, come le carte dell'edizione Legacy, ma disegni nostri.
-   Nemici e carte corrotte nella «custodia» viola con le spine. Tutto SVG: la vista del telefono lo inserisce nel DOM,
-   il tavolo 3D della TV lo dipinge su canvas (RLA.img). Nessuna immagine esterna. */
+   Stile come l'edizione Legacy (docs/rules/regicide-legacy.md, «Riferimento visivo»): carte bianche, numero grande colorato
+   in alto a sinistra con le icone di classe sotto, NOME in maiuscolo e classe in piccolo, figura a colori piatti senza contorni;
+   dorso verde a paesaggio con la corona. Disegni, nomi e testi nostri. Le carte corrotte tengono la cornice viola con le spine.
+   Tutto SVG: la vista del telefono lo inserisce nel DOM, il tavolo 3D della TV lo dipinge su canvas (RLA.img). Nessuna immagine esterna. */
 const RLA=(()=>{
 /* icone di classe in un quadrato 24×24: f = riempimento, l = tratto */
 const ICO={
@@ -24,9 +25,10 @@ const C=(x,y,r,f)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f||'var(--ink)'
 const EYE=(x,y)=>C(x,y,1.6,'var(--bg)');
 // corpo umano di base: testa, mantello, gambe. w = larghezza spalle, h = cappuccio/cappello
 function body(o){o=o||{};const w=o.w||17,cx=50;let g='';
- g+=P(`M${cx-w} 42Q${cx-w-3} 70 ${cx-w-8} 92H${cx+w+8}Q${cx+w+3} 70 ${cx+w} 42Q${cx} 36 ${cx-w} 42Z`);// mantello
+ g+=P(`M${cx-w} 42Q${cx-w-3} 70 ${cx-w-8} 92H${cx+w+8}Q${cx+w+3} 70 ${cx+w} 42Q${cx} 36 ${cx-w} 42Z`,'var(--cl)');// mantello
+ g+=P(`M${cx-w+4} 46Q${cx} 52 ${cx+w-4} 46L${cx+w-2} 58Q${cx} 64 ${cx-w+2} 58Z`,'var(--cl2)');// colletto
  g+=P(`M${cx-9} 88L${cx-11} 97H${cx-3}L${cx-2} 88ZM${cx+9} 88L${cx+11} 97H${cx+3}L${cx+2} 88Z`);// piedi
- g+=C(cx,30,o.r||10);// testa
+ g+=C(cx,30,o.r||10,'var(--sk)');// testa
  if(o.hood)g+=P(`M${cx-13} 34Q${cx-12} 14 ${cx} 15Q${cx+12} 14 ${cx+13} 34Q${cx} 27 ${cx-13} 34Z`);
  if(o.hat==='mago')g+=P(`M${cx-17} 24Q${cx} 18 ${cx+17} 24L${cx+12} 21L${cx+6} 2L${cx-8} 20Z`);
  if(o.hat==='elmo')g+=P(`M${cx-12} 30Q${cx-12} 15 ${cx} 15Q${cx+12} 15 ${cx+12} 30H${cx+3}V24H${cx-3}V30Z`)+P(`M${cx-1.5} 6H${cx+1.5}V16H${cx-1.5}Z`);
@@ -34,7 +36,7 @@ function body(o){o=o||{};const w=o.w||17,cx=50;let g='';
  if(o.hat==='giullare')g+=P(`M${cx-11} 24Q${cx-24} 18 ${cx-26} 6Q${cx-16} 12 ${cx-6} 20L${cx} 6L${cx+6} 20Q${cx+16} 12 ${cx+26} 6Q${cx+24} 18 ${cx+11} 24Z`)+C(cx-26,6,3)+C(cx,5,3)+C(cx+26,6,3);
  if(o.hat==='corona')g+=P(`M${cx-10} 22L${cx-11} 12L${cx-5} 17L${cx} 9L${cx+5} 17L${cx+11} 12L${cx+10} 22Z`);
  if(o.hat==='cappello')g+=P(`M${cx-20} 24Q${cx} 16 ${cx+20} 24Q${cx} 21 ${cx-20} 24ZM${cx-10} 22Q${cx-9} 12 ${cx} 12Q${cx+9} 12 ${cx+10} 22Z`)+S(`M${cx+6} 14Q${cx+14} 4 ${cx+22} 8`,2);
- if(o.eyes)g+=EYE(cx-4,30)+EYE(cx+4,30);
+ if(o.eyes)g+=C(cx-4,30,1.5,'#2b2620')+C(cx+4,30,1.5,'#2b2620');
  return g}
 const ARM={// braccio con oggetto, coordinate della mano
  ascia:(x,y)=>S(`M${x} ${y}L${x+14} ${y-34}`,3.4)+P(`M${x+9} ${y-30}Q${x+24} ${y-44} ${x+28} ${y-26}Q${x+20} ${y-28} ${x+14} ${y-20}Z`),
@@ -97,25 +99,44 @@ const art=(d)=>{if(d.k==='e')return(FOE[d.f]||FOE.mutato)(d.v);if(d.f&&HUM[d.f])
 /* ---------- carta intera (viewBox 100×140) ---------- */
 const esc2=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let uid=0;
+// colore di classe: numero grande, mantello, icone
+const CC={G:'#c4552f',P:'#6b7480',C:'#b8352d',B:'#cf9a1a',M:'#2e5fb3',R:'#4f7a2f',S:'#5d6470',D:'#7e4aa8',T:'#d07a1c',W:'#3f7a3a',x:'#8a4fb0',p:'#8a7a5a',a:'#a0683a',e:'#4a4458'};
+const CN={G:'GUERRIERO',P:'PALADINO',C:'CHIERICO',B:'BARDO',M:'MAGO',R:'RAZZIATORE',S:'GUARDIANO',D:'DRUIDO',T:'CANTORE',W:'ALBERO'};
+const SK=['#f2c9a5','#d9a679','#b47a4e','#8a5634','#f5d6bd'];
+const mix=(a,b,t)=>'#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');
+function sottotitolo(d,cls){if(d.k==='e')return'NEMICO';if(d.k==='a')return'COMPAGNO ANIMALE';if(d.k==='b')return'BELVA';if(d.k==='x')return'GIULLARE';if(d.k==='p')return'PELLEGRINO';
+ if(d.k==='m')return'MERCENARIO'+(CN[cls[0]]?' · '+CN[cls[0]]:'');return cls.map(k=>CN[k]).filter(Boolean).join(' · ')}
 function svg(d,o={}){const id='rl'+(++uid),foe=d.k==='e'||o.foe,cor=o.corr&&!foe,cls=d.c==='W'?['W']:(d.c||'').split('');
- const bg=foe?['#5b3a73','#22142e']:d.k==='p'?['#d4d8bf','#8f9a72']:d.k==='m'?['#e7d9a6','#b08a3a']:['#dcebc0','#6f9a52'];
- const ink=foe?'#efe3ff':'#16180f',inkBg=foe?'#3a2450':bg[0];
- const num=d.k==='x'&&!d.solo?'★':d.k==='b'?'×2':d.v;
- let frame=`<rect x="1.5" y="1.5" width="97" height="137" rx="7" fill="url(#${id}g)" stroke="${foe||cor?'#2a1638':'#33402a'}" stroke-width="3"/>`;
- if(foe||cor){let sp='';for(let i=0;i<9;i++){const x=10+i*10;sp+=`M${x} 2l5 7l5-7M${x} 138l5-7l5 7`}for(let i=0;i<12;i++){const y=12+i*10;sp+=`M2 ${y}l7 5l-7 5M98 ${y}l-7 5l7 5`}
-  frame+=`<path d="${sp}" fill="#2a1638"/><rect x="7" y="7" width="86" height="126" rx="4" fill="none" stroke="#a77bd0" stroke-width="1.2"/>`}
- else frame+=`<rect x="5.5" y="5.5" width="89" height="129" rx="4.5" fill="none" stroke="${d.k==='m'?'#7a5a1a':'#4d6a3a'}" stroke-width="1"/>`;
- const fig=`<g style="--ink:${ink};--bg:${inkBg}" transform="translate(14 26) scale(.72)">${art(Object.assign({id:o.id},d))}</g>`;
- const icons=cls.map((k,i)=>iconIn(k,8,35+i*13,12,foe?'#e9dcff':null)).join('');
- const big=`<text x="15" y="25" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="${String(num).length>1?17:21}" fill="${foe?'#f4e9ff':'#16180f'}">${num}</text>`;
- const hp=foe&&o.hp?`<g><circle cx="85" cy="16" r="10" fill="#7a1f2a" stroke="#f4e9ff" stroke-width="1.2"/><text x="85" y="20.5" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="${o.hp>99?9:12}" fill="#fff">${o.hp}</text></g>`:'';
- const cost=d.cost&&o.cost!==false?`<g><circle cx="86" cy="16" r="8.5" fill="#e3b53a" stroke="#7a5a1a" stroke-width="1.2"/><text x="86" y="20" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="11" fill="#3a2a08">${d.cost}</text></g>`:'';
- const v2=d.v2?`<text x="15" y="36" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="#16180f">/${d.v2}</text>`:'';
- const name=esc2(o.name||d.nm||'');const fs=name.length>16?6.2:name.length>11?7.4:8.6;
- const plate=`<path d="M10 118H90L94 124L90 130H10L6 124Z" fill="${foe?'#2a1638':'#f2ead2'}" stroke="${foe?'#a77bd0':'#4d6a3a'}" stroke-width="1"/><text x="50" y="126.8" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="${fs}" fill="${foe?'#f4e9ff':'#23281a'}">${name}</text>`;
- return`<svg class="rlsvg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name}"><defs><linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/></linearGradient></defs>${frame}${fig}${big}${v2}${icons}${hp}${cost}${plate}</svg>`}
-function back(){return`<svg class="rlsvg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1.5" y="1.5" width="97" height="137" rx="7" fill="#1f3a26" stroke="#0f1f14" stroke-width="3"/><rect x="7" y="7" width="86" height="126" rx="4" fill="none" stroke="#c9a54a" stroke-width="1.4"/><path d="M50 22L56 64L50 118L44 64Z" fill="#c9a54a"/><path d="M32 58H68V64H32Z" fill="#c9a54a"/><circle cx="50" cy="50" r="22" fill="none" stroke="#c9a54a" stroke-width="1.2"/><path d="M50 20l2 6h-4z" fill="#e9d48a"/></svg>`}
+ const key=foe?'e':d.k==='x'?'x':d.k==='p'?'p':(d.k==='a'||d.k==='b')&&!CC[cls[0]]?'a':cls[0]||'G',col=CC[key]||'#555';
+ const num=d.k==='x'&&!d.solo?'★':d.k==='b'?'×2':d.v,seed=(String(d.nm||'').length*7+(+d.v||0)*3)%SK.length;
+ let frame=`<rect x="1.5" y="1.5" width="97" height="137" rx="6" fill="#f8f6f0" stroke="${foe?'#3c3a44':'#cfcabe'}" stroke-width="${foe?3:1.6}"/>`;
+ if(foe){let sp='';for(let i=0;i<10;i++){const x=6+i*9.2;sp+=`M${x} 2l4.6 5l4.6-5M${x} 138l4.6-5l4.6 5`}for(let i=0;i<14;i++){const y=6+i*9.4;sp+=`M2 ${y}l5 4.7l-5 4.7M98 ${y}l-5 4.7l5 4.7`}
+  frame+=`<path d="${sp}" fill="#8d8a96"/><rect x="7" y="7" width="86" height="126" rx="3" fill="none" stroke="#8d8a96" stroke-width="1"/>`}
+ if(cor){let sp='';for(let i=0;i<9;i++){const x=10+i*10;sp+=`M${x} 2l5 7l5-7M${x} 138l5-7l5 7`}for(let i=0;i<12;i++){const y=12+i*10;sp+=`M2 ${y}l7 5l-7 5M98 ${y}l-7 5l7 5`}
+  frame+=`<path d="${sp}" fill="#4a2463"/><rect x="7" y="7" width="86" height="126" rx="4" fill="none" stroke="#a77bd0" stroke-width="1.4"/>`}
+ // figura: macchia di terreno chiara, poi la figura a colori piatti
+ const vars=`--ink:${mix(col,'#2a2622',.55)};--bg:#f8f6f0;--cl:${mix(col,'#ffffff',.12)};--cl2:${mix(col,'#000000',.25)};--sk:${SK[seed]}`;
+ const fig=`<ellipse cx="57" cy="122" rx="32" ry="5" fill="${mix(col,'#ffffff',.78)}"/><g style="${vars}" transform="translate(16 38) scale(.84)">${art(Object.assign({id:o.id},d))}</g>`;
+ const icons=cls.filter(k=>ICO[k]).map((k,i)=>iconIn(k,6,31+i*13,12,col)).join('');
+ const big=`<text x="12" y="25" text-anchor="middle" font-family="'Alegreya Sans',Georgia,sans-serif" font-weight="800" font-size="${String(num).length>1?18:24}" fill="${col}">${num}</text>`;
+ const name=esc2(o.name||d.nm||'').toUpperCase(),fs=name.length>13?7:name.length>9?8.4:9.6,sub=sottotitolo(d,cls);
+ const head=`<text x="24" y="15.5" font-family="'Alegreya Sans',Georgia,sans-serif" font-weight="800" font-size="${fs}" letter-spacing=".3" fill="#2e2a26">${name}</text><text x="24.5" y="22.5" font-family="'Alegreya Sans',Georgia,sans-serif" font-weight="600" font-size="${sub.length>24?3.6:4.4}" letter-spacing=".5" fill="#8a8478">${sub}</text>`;
+ const hp=foe&&o.hp?`<text x="88" y="132" text-anchor="end" font-family="'Alegreya Sans',Georgia,sans-serif" font-weight="800" font-size="${o.hp>99?14:19}" fill="#b0283a">${o.hp}</text>`:'';
+ const cost=d.cost&&o.cost!==false?`<g><circle cx="88" cy="13" r="8" fill="#e3b53a" stroke="#7a5a1a" stroke-width="1.1"/><text x="88" y="17" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="10.5" fill="#3a2a08">${d.cost}</text></g>`:'';
+ const v2=d.v2?`<text x="12" y="${31+cls.length*13+6}" text-anchor="middle" font-family="Georgia,serif" font-size="8" fill="${col}">/${d.v2}</text>`:'';
+ return`<svg class="rlsvg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc2(o.name||d.nm||'')}">${frame}${fig}${big}${v2}${icons}${head}${hp}${cost}</svg>`}
+// dorso: paesaggio verde chiaro con la corona e il nome del gioco
+function back(){return`<svg class="rlsvg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="rlbk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f6dc"/><stop offset=".55" stop-color="#bcd98f"/><stop offset="1" stop-color="#5f9a58"/></linearGradient></defs>
+<rect x="1.5" y="1.5" width="97" height="137" rx="6" fill="url(#rlbk)" stroke="#4a4458" stroke-width="2.4"/><path d="M2 46Q20 34 34 42T64 36T98 42V60Q76 52 56 58T20 56T2 62Z" fill="#9cc27a" opacity=".8"/><path d="M2 78Q30 62 52 72T98 66V100Q70 86 46 96T2 92Z" fill="#7fae63" opacity=".85"/><path d="M2 108Q36 94 60 104T98 98V138H2Z" fill="#5b8f4f"/>
+<path d="M30 62L35 50L42 58L50 44L58 58L65 50L70 62Z" fill="#3f3654"/><text x="50" y="80" text-anchor="middle" font-family="'Alegreya SC',Georgia,serif" font-weight="700" font-size="11" letter-spacing="1" fill="#3f3654">REGICIDIO</text><text x="50" y="88" text-anchor="middle" font-family="'Alegreya Sans',Georgia,sans-serif" font-weight="700" font-size="4.6" letter-spacing="1.6" fill="#3f3654">LA CAMPAGNA</text></svg>`}
+/* plancia: isola verde su fondo viola, come la plancia della campagna (disegno nostro); sta dietro il nemico e i tracciati */
+function mappa(){return`<svg class="rlmap" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="200" fill="#3b3157"/>
+<path d="M40 30Q90 8 150 22T262 30Q284 70 268 112Q280 150 240 178Q180 196 120 184Q60 192 34 160Q14 120 30 82Q18 50 40 30Z" fill="#a9cf78"/>
+<path d="M60 52Q110 34 170 48T250 60Q262 92 246 120Q200 140 150 128Q96 140 62 116Q46 84 60 52Z" fill="#8fbd64"/>
+<path d="M190 120Q214 112 228 128Q232 150 208 156Q186 152 190 120Z" fill="#3b3157"/>
+<g fill="#5f8f45">${[[70,70],[84,62],[98,74],[120,60],[200,80],[214,70],[228,84],[90,140],[104,150],[150,150],[164,142]].map(([x,y])=>`<path d="M${x} ${y}l6 -16l6 16z"/>`).join('')}</g>
+<g fill="#e8e2cf" opacity=".9"><path d="M138 90h12v-8l6-6l6 6v8h12v12h-36z"/><path d="M226 44h8v8h-8z"/><path d="M60 120l8-8l8 8v8h-16z"/></g></svg>`}
 /* immagine per le texture (TV): SVG → Image, con cache */
 const IMG={};
 function img(key,markup){if(IMG[key])return IMG[key];const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(markup);IMG[key]=im;return im}
-return{icon,svg,back,img,ICO,art}})();
+return{icon,svg,back,mappa,img,ICO,art,CC}})();

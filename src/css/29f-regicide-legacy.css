@@ -3,10 +3,20 @@
 .card.rlc .rlsvg{display:block;width:100%;height:100%}
 .card.rlc.xl{--cw:112px}.card.rlc.sm{--cw:46px}.card.rlc.mini{--cw:34px;box-shadow:0 2px 4px rgba(0,0,0,.4)}
 .card.rlc.ban{filter:grayscale(.8) brightness(.7)}
-.card.rlc.foe{box-shadow:0 0 0 2px rgba(167,123,208,.35),0 0 22px rgba(120,60,170,.55),0 8px 14px rgba(0,0,0,.5)}
+.card.rlc.foe{box-shadow:0 0 0 2px rgba(255,255,255,.25),0 8px 14px rgba(0,0,0,.5)}
 .rli{vertical-align:-3px;flex:none}
 .rl{display:flex;flex-direction:column;gap:8px;padding:0 10px 10px;max-width:560px;margin:0 auto}
-.rl-foe{display:flex;gap:12px;align-items:center;padding:10px;border-radius:12px;background:radial-gradient(120% 140% at 20% 0%,rgba(118,72,160,.45),transparent 60%),rgba(20,12,30,.55);border:1px solid rgba(167,123,208,.35)}
+.rl-foe{position:relative;overflow:hidden;display:flex;gap:10px;align-items:center;padding:10px 8px;border-radius:10px;background:#3b3157;border:2px solid #2a2340;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+/* plancia: isola verde (RLA.mappa) dietro, tracciati di forza e vita ai lati */
+.rl-foe .rlmap{position:absolute;inset:0;width:100%;height:100%;opacity:.95;pointer-events:none}
+.rl-foe>*:not(.rlmap){position:relative}
+.rl-trk{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;gap:3px;width:24px}
+.rl-trk small{font:800 8px var(--f-b);letter-spacing:.08em;color:#efe8ff;writing-mode:vertical-rl;transform:rotate(180deg)}
+.rl-rul{position:relative;flex:1;width:14px;min-height:90px;border-radius:3px;background:repeating-linear-gradient(0deg,#efe8ff 0 1px,transparent 1px 10%),#2a2340;border:1px solid #6b5d8f}
+.rl-rul i{position:absolute;left:50%;transform:translate(-50%,50%);width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe7a0,#d9a83a 55%,#9a6a14);border:2px solid #fff3c4;box-shadow:0 2px 4px rgba(0,0,0,.5);display:grid;place-items:center;transition:bottom .6s ease}
+.rl-rul b{font:900 10px/1 var(--f-d);color:#3a2408}
+.rl-foe .rl-st{background:rgba(248,246,240,.92);border-radius:8px;padding:7px 8px;color:#2e2a26}
+.rl-foe .rl-mods{color:#6b4a8f}.rl-foe .rl-prog i{background:rgba(0,0,0,.14)}.rl-foe .rl-enm{color:#2e2a26}.rl-foe .rl-stats{color:#4a4458}.rl-foe .rl-str{background:#3b3157;color:#fff}
 .rl-en{flex:none}
 .rl-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .rl-enm{font:700 17px/1.1 Georgia,'Times New Roman',serif;color:#f1e6ff}

@@ -50,6 +50,13 @@ Corruzione (dalla missione 5): dopo il 2º e il 6º nemico caduto si estrae un v
 
 Zona missione (missione 7): quando scarti per un colpo, la carta che ha esattamente il prossimo valore della scala (asso, 2, 3…) va nella zona invece che negli scarti; ogni carta non-pellegrino nella zona dà +1 alla forza del nemico; al 10 la scala si chiude: scarti in fondo alla riserva (pellegrini banditi) e la zona torna negli scarti.
 
+## Riferimento visivo (com'è il gioco vero, da riprodurre nello stile)
+- **Plancia:** un'isola verde in illustrazione piatta (colline, boschi, laghi, villaggi) su fondo viola scuro; ai due lati lunghi due tracciati numerati 0–60, a sinistra la forza del nemico e a destra la sua vita, con un segnalino d'ottone su ciascuno. Zone stampate: reliquie, carte bandite, zona missione.
+- **Carte personaggio:** fondo bianco, numero grande colorato in alto a sinistra con l'icona di classe sotto, NOME in maiuscolo e razza/classe in piccolo accanto, figura a colori piatti senza contorni, niente cornice decorata.
+- **Nemici:** stessa carta bianca con una cornice grigia frastagliata, forza in alto a sinistra e vita in basso a destra.
+- **Dorso:** paesaggio verde chiaro sfumato con la corona e il nome del gioco.
+- **Da noi** (`app/22o-rl-arte.js`, `css/29f-regicide-legacy.css`): stessa struttura e palette, ma figure, nomi, testi e isola disegnati da zero; sul dorso «Regicidio · La campagna».
+
 ## Casi limite
 - Giullare: va giocato da solo; poi si sceglie chi lo reclama (anche chi l'ha giocato); il suo attacco successivo ignora tutte le immunità; il Paladino di quell'attacco resta valido nei turni seguenti.
 - Fingersi morti: solo con la mano esattamente al limite; vale qualunque sia la somma.
