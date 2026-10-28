@@ -1,13 +1,12 @@
 /* Armonie: plancia in prospettiva, dischi presi, centro, carte con schema e traccia; vista TV */
-.ac-wrap{display:flex;justify-content:center;padding:6px 0 2px;background:radial-gradient(ellipse at 50% 35%,#3a4a2c 0%,#1d1a12 78%);border-radius:14px;margin:4px 0;box-shadow:inset 0 0 26px #000b;overflow:hidden}
+.ac-wrap{display:flex;justify-content:center;padding:4px 0 2px;margin:4px -4px!important;background:radial-gradient(ellipse at 50% 35%,#3a4a2c 0%,#1d1a12 78%);border-radius:14px;margin:4px 0;box-shadow:inset 0 0 26px #000b;overflow:hidden}
 .ac-board{max-width:100%;height:auto;touch-action:manipulation}
 .ac-board .ac-tap{cursor:pointer}
 .ac-board .ac-glow{animation:hpulse 1s infinite alternate}
 .ac-board .ac-ghost{opacity:.7}
 .ac-board .ac-cube{filter:drop-shadow(0 1px 1px #0008)}
-.pl.ac-see{box-shadow:0 0 0 2px #f7c94899}
 .ac-hold{display:flex;gap:10px;justify-content:center;align-items:center;min-height:52px;margin:2px 0}
-.ac-tok{min-width:52px;min-height:48px;border-radius:10px;border:2px solid #6b4a26;background:#2a1b0f;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.ac-tok{min-width:60px;min-height:56px;flex-direction:column;gap:0;color:#f6ecd2;font:inherit;border-radius:10px;border:2px solid #6b4a26;background:#2a1b0f;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .ac-tok.on{border-color:#ffd36b;box-shadow:0 0 0 2px #ffd36b55,0 0 12px #ffd36b66;transform:translateY(-3px)}
 .ac-hint{font-size:12px;opacity:.75}
 .ac-centre{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:2px}
@@ -39,7 +38,6 @@
 .ac-done{display:flex;flex-wrap:wrap;gap:4px;font-size:11px;margin:0 2px 4px}
 .ac-done span{background:#ffc35a2a;border:1px solid #ffc35a66;border-radius:8px;padding:1px 6px}
 .ac-done span.r{background:#c9973b2a;border-color:#c9973b}.ac-done span.s{background:#fbf6e82a;border-color:#fbf6e8aa}
-.ac-ctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:44px;align-items:center}
 .ac-gbtn{cursor:pointer;border:0;font:inherit}
 .ac-last{background:#a8261c;color:#fff}
 .ac-goals{font-size:12px;line-height:1.35;background:#00000055;border-radius:10px;padding:6px 8px;margin:4px 0;display:grid;gap:3px}
@@ -60,3 +58,39 @@
 .ac-tvfb.act{border-color:#ffd36b}
 .ac-tvfb .ac-board{width:100%}
 @media (prefers-reduced-motion:reduce){.ac-board .ac-glow{animation:none}.ac-card.sel,.ac-tok.on{transform:none}}
+/* giocatori: mini-plancia, nome, punti */
+.ac-pls{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px}
+.ac-pl{flex:1 0 0;min-width:96px;min-height:48px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;padding:4px 6px;border-radius:10px;border:2px solid var(--pc);background:#2a1b0f;color:#f6ecd2;font:inherit;cursor:pointer;text-align:left}
+.ac-pl span{font-size:12px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ac-pl em{font-style:normal;font-weight:800;font-size:16px;color:#ffd36b}
+.ac-pl.act{box-shadow:0 0 0 2px #ffd36b88,0 0 10px #ffd36b44}.ac-pl.see{background:#4a3018}
+.ac-mini{width:34px;height:26px}
+/* punti per voce */
+.ac-pts{display:flex;gap:4px;overflow-x:auto;padding:2px 0;font-size:11.5px}
+.ac-pts span{flex:0 0 auto;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;background:#ffffff14;white-space:nowrap}
+.ac-pts span.z{opacity:.5}.ac-pts b{color:#ffd36b}
+.ac-rico{display:inline-block;width:10px;height:12px;border-radius:3px;background:linear-gradient(#3b8fd4 50%,#9aa1aa 50%)}
+/* plancia: altezze, segnalini dei cubetti, anteprima */
+.ac-board .ac-mark{cursor:pointer;animation:ac-bob 1.2s ease-in-out infinite alternate}
+@keyframes ac-bob{to{transform:translateY(-3px)}}
+.ac-board .ac-delta{pointer-events:none}
+.ac-none{font-size:12px;opacity:.7;margin:2px 4px 6px}
+/* vassoio fisso in basso: segue le fasi del turno */
+.ac-tray{position:sticky;bottom:0;z-index:6;margin:8px -8px 0;padding:6px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(#2c1d10f2,#1a1109f7);border-top:2px solid #c9973b;box-shadow:0 -6px 18px #0009}
+.ac-steps{display:flex;gap:4px;justify-content:center;font-size:11px;margin-bottom:3px}
+.ac-steps span{padding:1px 7px;border-radius:10px;border:1px solid #c9973b55;opacity:.6}
+.ac-steps span.now{opacity:1;border-color:#ffd36b;color:#ffd36b}.ac-steps span.ok{opacity:1;background:#2f7d3a66;border-color:#5fae3d}
+.ac-step{font-size:13px;text-align:center;line-height:1.3;min-height:18px;margin:2px 0}
+.ac-step b{color:#ffd36b}
+.ac-acts{display:flex;gap:8px;justify-content:center;margin-top:6px}
+.ac-acts .b{flex:1;max-width:220px;min-height:44px}
+.ac-tray .err{min-height:0;margin:0}
+.ac-tray .ac-centre{margin-top:4px}
+/* foglio dal basso: carta ingrandita */
+.ac-sheet{position:fixed;inset:0;z-index:40;background:#0009;display:flex;align-items:flex-end;justify-content:center}
+.ac-sbox{width:100%;max-width:520px;background:linear-gradient(#3a2716,#24170c);border-top:3px solid #c9973b;border-radius:16px 16px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:flex-start;color:#f6ecd2}
+.ac-sbox h3{margin:0 0 4px;color:#ffd36b}.ac-sbox p{font-size:13px;line-height:1.35;margin:0 0 6px}.ac-st{color:#ffc35a}
+.ac-sinfo{flex:1;min-width:0}.ac-sinfo .col{display:flex;flex-direction:column;gap:6px}
+.ac-big .ac-card{width:132px;height:194px;transform:none}
+.ac-big .ac-card b{font-size:14px}.ac-big .ac-trk span{width:24px;height:21px;line-height:21px;font-size:12px}.ac-big .ac-pat{max-width:70px;width:70px;height:auto}
+.ac-pick{flex-direction:column;align-items:stretch}
+@media (prefers-reduced-motion:reduce){.ac-board .ac-mark{animation:none}}

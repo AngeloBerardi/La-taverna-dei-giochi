@@ -122,7 +122,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/29e-fantasma.css` | 1 |  |
 | `css/29f-regicide-legacy.css` | 8 |  |
 | `css/29g-regicide-x.css` | 15 |  |
-| `css/29h-accordi.css` | 5 |  |
+| `css/29h-accordi.css` | 9 |  |
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
@@ -237,7 +237,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22o-rl-arte.js` | 19 | RLA, ICO, icon, iconIn, P, C, EYE |
 | `js/app/22p-regicide-legacy.js` | 20 | RLV, rlegacyH, rlPrepH, rlEndH, rlClick, RLFX |
 | `js/app/22q-regicide-x.js` | 12 | RX, titolo, motto |
-| `js/app/22r-accordi.js` | 21 | ACOL, APC, ANEED, acMotif, acDisc, acStack, acCube |
+| `js/app/22r-accordi.js` | 28 | ACOL, APC, ANEED, acMotif, acDisc, acStack, acCube |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 10 | FB |
