@@ -19,6 +19,9 @@ Ogni versione dell'app va firmata con **la stessa chiave**, altrimenti Android r
 - Senza i segreti l'APK esce non firmato nella pre-release `android-non-firmato`; si firma con `KS_PASS=… python3 tools/android/firma-apk.py taverna.apk firmato.apk taverna-android.jks` (firma v2, serve `pip install cryptography`).
 
 ## Installare
+Link per gli amici: **https://la-taverna-dei-giochi.web.app/taverna.apk** (il file è `src/pwa/taverna.apk` nel repo, pubblicato con il sito) oppure la release `android` su GitHub.
+Quando cambia `android/` (nome, icona, colori), copia in `src/pwa/taverna.apk` l'APK firmato della release `android`. Le modifiche al gioco non richiedono un APK nuovo: l'app apre sempre il sito aggiornato.
+
 Sul telefono apri il link dell'APK, consenti a Chrome di «installare app sconosciute» quando lo chiede, poi Installa. Play Protect può avvisare che l'app non viene dal Play Store: «Installa comunque».
 
 ## Chromecast
