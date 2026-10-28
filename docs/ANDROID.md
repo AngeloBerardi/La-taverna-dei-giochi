@@ -19,6 +19,7 @@ Ogni versione dell'app va firmata con **la stessa chiave**, altrimenti Android r
 - Senza i segreti l'APK esce non firmato nella pre-release `android-non-firmato`; si firma con `KS_PASS=… python3 tools/android/firma-apk.py taverna.apk firmato.apk taverna-android.jks` (firma v2, serve `pip install cryptography`).
 
 ## Installare
+Dal sito, su un telefono Android: Profilo → Impostazioni → «Scarica l’app per Android» (`PWA.apkH` in `app/24-pwa.js`; non compare dentro l’app, riconosciuta da `?app=android`).
 Link per gli amici: **https://la-taverna-dei-giochi.web.app/taverna.apk** (il file è `src/pwa/taverna.apk` nel repo, pubblicato con il sito) oppure la release `android` su GitHub.
 Quando cambia `android/` (nome, icona, colori), copia in `src/pwa/taverna.apk` l'APK firmato della release `android`. Le modifiche al gioco non richiedono un APK nuovo: l'app apre sempre il sito aggiornato.
 
