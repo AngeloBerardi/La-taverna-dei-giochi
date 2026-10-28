@@ -1,0 +1,96 @@
+/* Schermo comune dei giochi di carte e da tavoliere senza scena 3D (app/24y-tv-tavoli.js): tavolo ovale, posti intorno, parte comune al centro.
+   Unità in vh/vw per leggersi da lontano; le carte sono quelle dei giochi, ingrandite con zoom (--cz). */
+.tvk{position:relative;height:100%;min-height:0}
+.tvk-felt{position:absolute;inset:7% 9%;border-radius:50%;background:radial-gradient(ellipse at 50% 42%,#2f6b45 0%,#1f4d32 55%,#163824 100%);
+ box-shadow:0 0 0 1.6vh #5a3a1e,0 0 0 2.1vh #c9973b,0 2.4vh 5vh rgba(0,0,0,.6),inset 0 0 6vh rgba(0,0,0,.45)}
+.tvk-c{position:absolute;inset:21% 20%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;zoom:var(--cz,1);text-align:center}
+.tvk-wide .tvk-c{inset:20% 17% 18%}
+.tvk-side{display:grid;grid-template-columns:clamp(170px,14vw,260px) minmax(0,1fr);gap:1.4vw}
+.tvk-col{display:flex;flex-direction:column;justify-content:center;gap:1vh;min-height:0}
+.tvk-side .tvk-seat{position:static;transform:none;width:auto;flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:center;padding:.6vh .6vw;gap:.3vh .4vw;border-top-width:.3vh;border-left:.7vh solid var(--pc)}
+.tvk-side .tvk-bk{height:4.4vh}.tvk-side .tvk-bk i{width:2.6vh;height:3.8vh;margin-left:-1.8vh}.tvk-side .tvk-tools{flex-basis:100%;justify-content:flex-start}
+.tvk-plan{position:relative;min-width:0;min-height:0;border-radius:3vh;background:radial-gradient(ellipse at 50% 42%,#2f6b45 0%,#1f4d32 60%,#163824 100%);box-shadow:0 0 0 1.2vh #5a3a1e,0 0 0 1.6vh #c9973b,inset 0 0 5vh rgba(0,0,0,.45);margin:1.6vh}
+.tvk-plan .tvk-c{inset:3vh 2vw}
+/* posti */
+.tvk-seat{position:absolute;transform:translate(-50%,-50%);width:clamp(150px,13vw,250px);display:flex;flex-direction:column;align-items:center;gap:.6vh;padding:.9vh .7vw;
+ background:linear-gradient(180deg,rgba(42,28,15,.94),rgba(24,16,8,.94));border:.3vh solid rgba(240,193,102,.35);border-top:.7vh solid var(--pc);border-radius:1.2vh;box-shadow:0 1vh 2.4vh rgba(0,0,0,.5);z-index:2}
+.tvk-seat.act{border-color:#f0c166;box-shadow:0 0 0 .4vh rgba(240,193,102,.55),0 0 3.4vh rgba(240,193,102,.55);background:linear-gradient(180deg,rgba(96,62,18,.96),rgba(52,34,10,.96))}
+.tvk-seat.out{opacity:.45;filter:grayscale(.7)}
+.tvk-seat.hot{border-color:#e0453a}
+.tvk-nm{display:flex;align-items:center;gap:.5vw;max-width:100%;font:700 2.5vh var(--f-d,Georgia,serif);color:#f6ead0}
+.tvk-nm i{flex:none;width:1.7vh;height:1.7vh;border-radius:50%;background:var(--pc)}
+.tvk-nm b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tvk-tag{font:700 1.7vh var(--f-b,inherit);font-style:normal;padding:.2vh .6vw;border-radius:.6vh;background:#c9973b;color:#2a1a0a}
+.tvk-seat.hot .tvk-tag{background:#e0453a;color:#fff}
+/* carte coperte: solo quante */
+.tvk-bk{position:relative;display:flex;align-items:center;justify-content:center;height:6vh;padding-right:2.4vh}
+.tvk-bk i{width:3.6vh;height:5.2vh;margin-left:-2.2vh;border-radius:.5vh;border:.25vh solid #e9d39a;background:repeating-linear-gradient(45deg,#7a2a1c 0 .5vh,#5e1f14 .5vh 1vh);box-shadow:0 .3vh .6vh rgba(0,0,0,.5)}
+.tvk-bk i:first-child{margin-left:0}
+.tvk-bk b{position:absolute;right:0;bottom:-.4vh;min-width:2.8vh;height:2.8vh;border-radius:1.4vh;display:grid;place-items:center;background:#f0c166;color:#2a1a0a;font:800 1.8vh var(--f-d,Georgia,serif)}
+.tvk-bk.none b{position:static;background:rgba(255,255,255,.12);color:#d8c49a}
+.tvk-bk.big{height:13vh;padding-right:3vh}.tvk-bk.big i{width:8vh;height:11.5vh;margin-left:-7.2vh;border-width:.35vh}.tvk-bk.big i:first-child{margin-left:0}
+.tvk-bk.big b{min-width:4vh;height:4vh;border-radius:2vh;font-size:2.4vh}
+/* centro */
+.tvk-row{display:flex;align-items:center;justify-content:center;gap:3vw;flex-wrap:wrap}
+.tvk-pile,.tvk-trump,.tvk-kdisc,.tvk-tdisc,.tvk-aside{display:flex;flex-direction:column;align-items:center;gap:.6vh}
+.tvk-pile small,.tvk-trump small,.tvk-kdisc small,.tvk-tdisc small,.tvk-aside small,.tvk-disc small,.tvk-hmk small{font:700 1.8vh var(--f-d,Georgia,serif);color:#f0d9ae;letter-spacing:.06em;text-transform:uppercase}
+.tvk-empty{font:600 2.4vh var(--f-d,Georgia,serif);color:rgba(246,234,208,.7)}
+.tvk-trick,.tvk-table{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:1.4vw;min-height:12vh;background:none}
+.tvk-trick .tc{display:flex;flex-direction:column;align-items:center;gap:.5vh}.tvk-trick .tc span{font:700 1.9vh var(--f-d,Georgia,serif);color:#f6ead0}
+.tvk-trick .tc.win .card{box-shadow:0 0 0 .4vh #ffd34d,0 0 2.4vh #ffd34d}
+.tvk-sum{padding:1.6vh 2vw;background:rgba(14,9,4,.82);border:.3vh solid #c9973b;border-radius:1.4vh;color:#f6ead0;max-width:100%}
+.tvk-sum h3{margin:0 0 1vh;font:800 3.4vh var(--f-t,Georgia,serif);color:#f0c166}.tvk-sum p{margin:.6vh 0;font-size:2.4vh}
+.tvk-tab{border-collapse:collapse;font-size:2.3vh;margin:0 auto}.tvk-tab th,.tvk-tab td{padding:.5vh 1.2vw;border-bottom:1px solid rgba(240,193,102,.2)}
+.tvk-tab th{color:#f0c166;font-family:var(--f-d,Georgia,serif)}.tvk-tab td:first-child{text-align:left;color:#d8c49a}.tvk-tab td.w{color:#ffd98a;font-weight:800}.tvk-tab tr.tot td{font-weight:800;color:#fff3c4}
+/* burraco */
+.tvk-disc{display:flex;flex-direction:column;align-items:center;gap:.6vh;padding:0;background:none;border:0}.tvk-disc .dfan{display:flex}.tvk-disc .dfan .card+.card{margin-left:-1.6vw}
+.tvk-teams{display:grid;grid-template-columns:1fr 1fr;gap:1.4vw;width:100%}
+.tvk-team{min-width:0;padding:1vh .8vw;background:rgba(0,0,0,.28);border-top:.5vh solid var(--pc);border-radius:1vh}
+.tvk-th{display:flex;flex-direction:column;align-items:center;gap:.2vh;font:700 1.9vh var(--f-d,Georgia,serif);color:#f6ead0;margin-bottom:.8vh}.tvk-th span{color:#d8c49a;font-weight:600}
+.tvk-team .melds{display:flex;flex-wrap:wrap;gap:.8vh .8vw;justify-content:center}.tvk-team .meld{zoom:1.35}
+/* machiavelli */
+.tvk .tvk-mtab{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:1.2vh 1.2vw;max-width:100%}.tvk-mtab .mm{padding:.4vh .4vw;margin:0;zoom:1.7;width:auto}
+/* ultima carta */
+.tvk-uno{gap:4vw}.tvk-uturn{position:relative}
+.tvk-pend{font:900 7vh var(--f-d,Georgia,serif);color:#ffd34d;text-shadow:0 .4vh 1vh #000}
+.tvk-ucol{display:flex;align-items:center;gap:.8vw;font:700 2.6vh var(--f-d,Georgia,serif);color:#f6ead0}.tvk-ucol i{width:3vh;height:3vh;border-radius:50%;border:.3vh solid #fff}
+/* dadi del bugiardo */
+.tvk-cup{display:flex;align-items:baseline;gap:.4vw;padding:.4vh 1vw;border-radius:1vh;background:rgba(0,0,0,.35);color:#f6ead0}.tvk-cup b{font:800 4vh var(--f-d,Georgia,serif);color:#ffd98a}.tvk-cup small{font-size:1.8vh}
+.tvk-dice{display:flex;flex-wrap:wrap;justify-content:center;gap:.4vw;zoom:1.2}.tvk-dice .miss{opacity:.35}
+.tvk-bid{display:flex;align-items:center;gap:1.4vw;flex-wrap:wrap;justify-content:center;color:#f6ead0}
+.tvk-bid>b{font:900 12vh/1 var(--f-d,Georgia,serif);color:#ffd98a;text-shadow:0 .5vh 1.2vh rgba(0,0,0,.6)}.tvk-bid>span{font:700 6vh var(--f-d,Georgia,serif)}
+.tvk-bd{display:inline-flex;zoom:3}.tvk-bid small{flex-basis:100%;font:700 2.6vh var(--f-d,Georgia,serif);color:#f0d9ae}
+.tvk-reveal{font:700 3vh var(--f-d,Georgia,serif);color:#f6ead0}.tvk-reveal b{color:#ffd98a}
+.tvk-pal{padding:.6vh 1.4vw;border-radius:1vh;background:#8a2a1a;color:#fff3c4;font:800 2.6vh var(--f-d,Georgia,serif);letter-spacing:.1em}
+/* la banda */
+.tvk-heist{display:flex;align-items:center;gap:2vw;font:800 3.2vh var(--f-d,Georgia,serif);color:#f6ead0}
+.tvk-vs,.tvk-as{display:flex;gap:.6vw}
+.tvk-vault{width:3.4vh;height:3.4vh;border-radius:50%;border:.4vh solid #d9b23a}.tvk-vault.on{background:#d9b23a;box-shadow:0 0 1.6vh #d9b23a}
+.tvk-alarm{width:3vh;height:3vh;border-radius:.6vh;border:.4vh solid #8a2a24}.tvk-alarm.on{background:#e0453a;box-shadow:0 0 1.6vh #e0453a}
+.tvk-board{display:flex;gap:1vw;justify-content:center;background:none}.tvk-chips{display:flex;gap:1vw;justify-content:center}
+.tvk-held{display:flex;gap:.3vw;zoom:1.1}
+.tvk-gord{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.8vh}.tvk-gord li{display:flex;align-items:center;gap:1vw;font-size:2.2vh}.tvk-gord li span{display:flex;gap:.3vw}.tvk-gord em{color:#d8c49a}
+/* telepatia */
+.tvk-lv{font:700 3vh var(--f-d,Georgia,serif);color:#f6ead0}.tvk-lv b{font-size:6vh;color:#ffd98a;margin:0 .4vw}.tvk-lv small{font-size:2.2vh;color:#d8c49a}
+.tvk-burn{display:flex;align-items:center;gap:.4vw;flex-wrap:wrap;justify-content:center}.tvk-burn small{font-size:1.8vh;color:#d8c49a;margin-right:.6vw}
+.tvk-ls{display:flex;justify-content:space-between;gap:1vw;padding:.8vh .6vw;background:rgba(18,12,7,.7)}.tvk-life{color:#e0453a;display:flex;gap:.2vw}.tvk-star{color:#f0c166;display:flex;gap:.2vw}.tvk-ls small{color:#d8c49a;font-size:1.8vh}
+/* valle del raccolto e miniera */
+.tvk-hgrid{gap:.4vh}.tvk-hgrid .hcell{width:var(--cs);height:var(--cs)}
+.tvk-hmk{display:flex;align-items:center;gap:2.6vw;flex-wrap:wrap;justify-content:center;zoom:1.5}
+.tvk-farm{display:grid;grid-template-columns:auto auto auto auto;align-items:baseline;gap:.2vh .5vw;color:#f6ead0}.tvk-farm b{font:800 3vh var(--f-d,Georgia,serif);color:#ffd98a}.tvk-farm small{font-size:1.6vh;color:#d8c49a}
+.tvk-mine{background:none;padding:0}.tvk-mine .cell{width:var(--tw);height:calc(var(--tw)*1.4)}
+.tvk-tools{display:flex;flex-wrap:wrap;gap:.3vw;justify-content:center}.tvk-brk{font-size:1.5vh;padding:.1vh .4vw;border-radius:.5vh;background:#8a2a24;color:#fff}
+/* micio bomba, bestiole, trame */
+.tvk-kdisc .kc{zoom:1.5}
+.tvk-bomb{font:700 3vh var(--f-d,Georgia,serif);color:#f6ead0}.tvk-bomb b{font-size:6vh;color:#e0453a;margin-right:.4vw}
+.tvk-pend2{padding:.6vh 1.2vw;border-radius:1vh;background:rgba(138,42,26,.85);color:#fff3c4;font:700 2.4vh var(--f-d,Georgia,serif)}
+.tvk-boom{font:800 2.2vh var(--f-d,Georgia,serif);color:#e0453a;text-transform:uppercase;letter-spacing:.1em}
+.tvk-pplayed{display:flex;flex-wrap:wrap;gap:.3vw;justify-content:center;zoom:1.6}.tvk-pshow{zoom:1.1}
+.tvk-aside{flex-direction:row;flex-wrap:wrap;justify-content:center}.tvk-aside small{flex-basis:100%;text-align:center}
+.tvk-trow{display:flex;flex-wrap:wrap;gap:1vw;justify-content:center}
+.tvk-stk{display:flex;flex-wrap:wrap;gap:.3vh .3vw;justify-content:center}.tvk-stk span{font-size:1.6vh;padding:.2vh .5vw;border-radius:.5vh;background:rgba(255,255,255,.08);color:#d8c49a}
+.tvk-stk span.ok{background:rgba(240,193,102,.25);color:#fff3c4}.tvk-stk small{font-size:1.6vh;color:#b8a68d}
+/* tanti giocatori: posti più piccoli */
+.tvk-pg.n7 .tvk-seat,.tvk-pg.n8 .tvk-seat,.tvk-pg.n9 .tvk-seat,.tvk-pg.n10 .tvk-seat{width:clamp(120px,10vw,190px);padding:.6vh .5vw}
+.tvk-pg.n7 .tvk-nm,.tvk-pg.n8 .tvk-nm,.tvk-pg.n9 .tvk-nm,.tvk-pg.n10 .tvk-nm{font-size:2.1vh}
+.tvk-pg .tv3-feed li:nth-child(n+5){display:none}

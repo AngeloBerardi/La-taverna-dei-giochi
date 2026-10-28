@@ -138,6 +138,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/43-tv-lowpoly.css` | 9 |  |
 | `css/44-voto.css` | 2 |  |
 | `css/45-giallo.css` | 16 |  |
+| `css/46-tv-tavoli.css` | 11 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -260,6 +261,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24u-regia.js` | 6 | REGIA |
 | `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
 | `js/app/24w-scena.js` | 30 | SCENA |
+| `js/app/24y-tv-tavoli.js` | 30 | TVT, briscolaTVH, scopaTVH, burracoTVH, machTVH, unoTVH, peruTVH |
 | `js/app/25-avvio.js` | 1 |  |
 | `html/tail.html` | 1 |  |
 <!-- mappa:fine -->
