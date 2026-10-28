@@ -72,7 +72,7 @@ function pawn(col){const g=new T.Group(),m=K.mat(col,{roughness:.5,flatShading:f
 function buildTable(){const t=new T.Group(),wood=K.woodTex();
  const floor=new T.Mesh(new T.PlaneGeometry(90,90),new T.MeshStandardMaterial({map:wood,roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=-.02;floor.receiveShadow=true;t.add(floor);
  const frame=new T.Mesh(new T.BoxGeometry(15.2,.3,10.6),M('#6f4726',{roughness:.7}));frame.position.set(0,.05,.3);frame.receiveShadow=true;frame.castShadow=true;t.add(frame);
- const felt=new T.Mesh(new T.BoxGeometry(14.4,.06,9.8),M('#3f7a66',{roughness:.95}));felt.position.set(0,.2,.3);felt.receiveShadow=true;t.add(felt);
+ const felt=new T.Mesh(new T.BoxGeometry(14.4,.06,9.8),M(typeof G!=='undefined'&&G&&G.g==='regix'?'#6a2226':'#3f7a66',{roughness:.95}));felt.position.set(0,.2,.3);felt.receiveShadow=true;t.add(felt);
  const inl=(x,z,w,d,c)=>{const m=new T.Mesh(new T.BoxGeometry(w,.02,d),M(c,{roughness:.95}));m.position.set(x,.235,z);m.receiveShadow=true;t.add(m)};
  inl(-5.9,.35,1.6,5.3,'#356a58');inl(4,1.3,5.7,3.2,'#356a58');inl(-.9,-.5,3.6,3.6,'#4b8a74');
  S.scn.add(t);return t}
@@ -90,19 +90,20 @@ function buildPieces(s,en,isNew){if(pcs)S.scn.remove(pcs);pcs=new T.Group();cons
  /* mazzi: l'altezza della pila è il numero di carte */
  [['Castello',s.castle.length,-2.2,0],['Taverna',s.tav.length,-.25,1],['Scarti',s.disc.length,1.7,1]].forEach(([nm,n,z,tl])=>{const st=stackM(n,tl);put(st,-5.9,Y,z);pcs.add(st);const p=plateM(nm+' '+n,1.5,.34);put(p,-5.9,Y+.01,z+1.0);pcs.add(p)});
  /* nemico: la carta poggia su un cavalletto (appoggio davanti, puntone dietro) */
- if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
+ if(en){const X=G.g==='regix',rk=P(en.c).r,su=P(en.c).s,hp=X?RGX.hpE(en):RG.hpOf[rk],atk=X?RGX.atkBase(en,s):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
   const ring=new T.Mesh(new T.CylinderGeometry(1.95,1.95,.04,36),new T.MeshBasicMaterial({color:lin(SUC[su]),transparent:true,opacity:.35}));put(ring,-.9,Y+.01,-.4);pcs.add(ring);pulses.push(ring);
   const ledge=new T.Mesh(new T.BoxGeometry(2.4,.235,.34),M('#6f4726'));put(ledge,-.9,Y+.1175,1.02);ledge.castShadow=true;pcs.add(ledge);
   const leg=new T.Mesh(new T.BoxGeometry(.22,2.2,.12),M('#6f4726'));put(leg,-.9,Y+.82,-1.71);leg.rotation.x=.7;leg.castShadow=true;pcs.add(leg);
   const bc=cardM(en.c,2.15);bc.scale.y=1.8;put(bc,-.9,Y+1.12,-.28);bc.rotation.x=.62;reg('en'+en.c,bc);
   const nm=plateM(RN[rk]+' di '+SN[su],3.1,.5);put(nm,-.9,Y+.02,1.55);pcs.add(nm);
-  const ti=plateM(TITLES[en.c]||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.0);pcs.add(ti);
+  const ti=plateM(titolo(en.c)||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.0);pcs.add(ti);
   const tr=new T.Mesh(new T.BoxGeometry(4.1,.12,.58),M('#3a2616'));put(tr,4.9,Y+.06,-3.0);tr.castShadow=true;pcs.add(tr);
   const fl=Math.max(.001,3.8*left/hp),fb=new T.Mesh(new T.BoxGeometry(fl,.16,.36),M('#e0504a',{roughness:.5}));put(fb,2.95+fl/2,Y+.12,-3.0);pcs.add(fb);
   for(let q=1;q<hp/10;q++){const tk=new T.Mesh(new T.BoxGeometry(.04,.2,.5),M('#1a120a'));put(tk,2.95+3.8*q*10/hp,Y+.13,-3.0);pcs.add(tk)}
   const hpl=plateM('Vita '+left+' / '+hp,2.4,.42);put(hpl,4.9,Y+.02,-2.4);pcs.add(hpl);
   const at=plateM('Attacco '+eff+(en.sh?'  (scudo −'+en.sh+')':''),3.2,.42,{bg:'#5a1f1f'});put(at,4.9,Y+.02,-1.9);pcs.add(at);
-  const im=plateM(en.can?'Immunità annullata dal Jolly':'Immune ai '+SN[su].toLowerCase()+' '+GL[su],3.8,.42,{bg:en.can?'#3a2d22':'#4a2a6a'});put(im,4.9,Y+.02,-1.4);pcs.add(im)}
+  const im=plateM(en.can?'Immunità annullata dal Jolly':'Immune ai '+SN[su].toLowerCase()+' '+GL[su]+(en.im2?' e ai '+SN[en.im2].toLowerCase()+' '+GL[en.im2]:''),3.8,.42,{bg:en.can?'#3a2d22':'#4a2a6a'});put(im,4.9,Y+.02,-1.4);pcs.add(im);
+  if(X&&en.tr){const t=plateM('Tratto: '+RGX.TR[en.tr].n,3.8,.42,{bg:'#7a1c22'});put(t,4.9,Y+.02,-.9);pcs.add(t)}}
  /* carte giocate: una accanto all'altra, ognuna un gradino sopra la precedente */
  s.played.forEach((c,i)=>{const col=i%5,row=Math.floor(i/5),m=cardM(c,.75);put(m,2.95+col*.82,Y+.01+i*(TH+.006),.45+row*1.1,((hsh(c)%9)-4)*.03);reg('p'+c,m)});
  if(!s.played.length){const p=plateM('Nessuna carta sul campo',3.4,.4,{bg:'#2e4a40',fg:'#cfe6da'});put(p,4.9,Y+.02,1.2);pcs.add(p)}
@@ -128,7 +129,7 @@ function loop(t){requestAnimationFrame(loop);if(!S||document.hidden||S.cv.style.
  for(let i=anims.length-1;i>=0;i--){const a=anims[i];a.t+=dt;const k=Math.min(1,a.t/a.d),e=1-Math.pow(1-k,3),b=k<1?Math.abs(Math.sin(k*Math.PI*2.4))*.1*(1-k):0;a.o.position.y=a.y0+(1-e)*2.2+b;if(k>=1){a.o.position.y=a.y0;anims.splice(i,1)}}
  S.ren.render(S.scn,S.cam)}
 async function init(){if(S||failed)return;if(!loading)loading=(async()=>{try{T=await CTV.lib();K=CTV.kit();S=CTV.stage('rtv3d');buildTable();RACT.init(T,K,S.scn);requestAnimationFrame(loop);addEventListener('resize',size);
-  if(typeof G!=='undefined'&&G&&G.g==='regicide'&&typeof render==='function')render()}catch(e){failed=true;console.warn('Regicide 3D non disponibile:',e&&e.message);if(typeof render==='function')render()}})();return loading}
+  if(typeof G!=='undefined'&&G&&isRG(G.g)&&typeof render==='function')render()}catch(e){failed=true;console.warn('Regicide 3D non disponibile:',e&&e.message);if(typeof render==='function')render()}})();return loading}
 let curN=3,lastGid='',fired=false;
 const GEO={spot:SP,card:{x:-.9,y:Y+1.3,z:-.28},tower:s=>({x:-5.775+(s.en?12-s.castle.length-1:11)*1.05,z:-3.9}),seat:p=>({x:curN===1?0:-5.2+(10.4/(curN-1))*p,z:4.25})};
 function sync(s,en){if(failed)return false;if(!S){init();return false}

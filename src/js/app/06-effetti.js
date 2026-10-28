@@ -28,13 +28,16 @@ async function flyCards(items,target,{dur=520,rot=0,scale=.55,fade=true}={},rend
   return a.finished.then(()=>c.remove(),()=>c.remove())}))}
 function avatarItems(p,cards){const a=document.getElementById('av'+p);const r=a?a.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight-120,width:40,height:56};return cards.map(id=>({id,r:{left:r.left,top:r.top,width:40,height:56}}))}
 /* splash del nemico in arrivo, stile duello */
-function splash(c,first){const rk=P(c).r,s=P(c).s,[a1,a2]=ACTS[rk],act=first||'JQK'.indexOf(rk)>0&&prevRank!==rk;prevRank=rk;
- add(`${act?`<div class="act">${a1}<b>${a2}</b></div>`:''}<div class="vs" style="--glow:${SUITC[s][0]}">${cardH(c,{boss:1,cls:'holo'})}</div><h2>${RN[rk]} di ${SN[s]}</h2><em>${esc(TITLES[c])}</em><q>${esc(QUOTES[c])}</q>`,'splash',null,null,2800*Math.max(SP,.05));
+function splash(c,first){const X=G&&G.g==='regix',rk=P(c).r,s=P(c).s,[a1,a2]=(X?RX.ACTS:ACTS)[rk],tr=X&&G.en&&G.en.c===c&&G.en.tr?G.en:null,act=first||'JQK'.indexOf(rk)>0&&prevRank!==rk;prevRank=rk;
+ add(`${act?`<div class="act">${a1}<b>${a2}</b></div>`:''}<div class="vs" style="--glow:${SUITC[s][0]}">${cardH(c,{boss:1,cls:'holo'})}</div><h2>${RN[rk]} di ${SN[s]}</h2><em>${esc(titolo(c))}</em>${tr?`<p class="rxspl">${RX.sigillo(tr)}${RGX.TR[tr.tr].n}</p>`:''}<q>${esc(motto(c))}</q>`,'splash',null,null,2800*Math.max(SP,.05));
  Snd.play('enemy');setTimeout(()=>{const c2=ctr('.splash .vs');burst(c2.x,c2.y,SUITC[s],40,{v:7,g:.05,dec:.02})},250*SP)}
 let prevRank=null;
 async function runFx(ev,own){const nm=i=>G.names[i]??'',B='#boss';let killed=null;
  for(const e of ev){const T=e.t;
   if(T==='play'){if(e.c[0][0]==='X'){}else say(nm(e.p)+' gioca '+e.c.map(RG.fmt).join(' + '),2200)}
+  else if(T==='power'){const k=RGX.CLS[e.k];banner(k.p.toUpperCase(),nm(e.p)+' · '+k.n);Snd.play('redeem');await W(700)}
+  else if(T==='regen'){flt(B,'+'+e.v+' vita','red',0,-30);Snd.play('heal');await W(400)}
+  else if(T==='curse'){flt('#ptav','−'+e.v+' carte','gry');Snd.play('immune');await W(400)}
   else if(T==='imm'){const c=ctr(B);flt(B,'IMMUNE '+SYM[e.s],'gry',0,-30);burst(c.x,c.y,['#999','#ccc'],14,{v:3});Snd.play('immune');await W(380)}
   else if(T==='heal'){const a=ctr('#pdisc'),b=ctr('#ptav');burst(a.x,a.y,SUITC.H,26,{v:3,tx:b.x,ty:b.y,dec:.012});flt('#ptav','+'+e.v+' ♥','grn');Snd.play('heal');await W(450)}
   else if(T==='draw'){Snd.play('draw');flt('#hand','+'+e.v+' carte','gold',0,-40);await W(420)}
@@ -43,7 +46,7 @@ async function runFx(ev,own){const nm=i=>G.names[i]??'',B='#boss';let killed=nul
    flt(B,'−'+e.v,'red',0,-10);bump('#ghp','bump');if(Math.random()<.5)speech(pick(HURT));await W(560)}
   else if(T==='shield'){const c=ctr(B);add(null,'ring',c.x,c.y,900);Snd.play('shield');flt('#gatk','−'+e.v,'blu',0,-30);bump('#gatk','bump');await W(450)}
   else if(T==='kill'){killed=e;const c=ctr(B);Snd.play(e.exact?'redeem':'kill');burst(c.x,c.y,e.exact?['#fff','#ffe9a0','#a0e8ff']:SUITC[P(e.c).s].concat(['#fff']),90,{v:9,g:.18,sq:true,dec:.012});add(null,'flash w',null,null,600);shake(16);
-   banner(e.exact?'REDENTO!':'SCONFITTO!',e.exact?RN[P(e.c).r]+' di '+SN[P(e.c).s]+' si unisce alla Taverna':TITLES[e.c]+' è caduto');await W(1300);ui.viewEn=null;render()}
+   banner(e.exact?'REDENTO!':'SCONFITTO!',e.exact?RN[P(e.c).r]+' di '+SN[P(e.c).s]+' si unisce alla Taverna':titolo(e.c)+' è caduto');await W(1300);ui.viewEn=null;render()}
   else if(T==='next'){await W(150);splash(e.c);await W(2300)}
   else if(T==='atk'){const b=$(B);if(b&&b.animate&&!RM)b.animate([{transform:'none'},{transform:'translateY(-14px) scale(1.05)',offset:.3},{transform:'translateY(70px) scale(1.12)',offset:.55},{transform:'none'}],{duration:620*SP,easing:'ease-in-out'});
    speech(pick(TAUNT));await W(330);Snd.play('atk');add('<i></i><i></i><i></i>','claw',null,null,700);add(null,'flash',null,null,600);shake(14);const h=ctr('#hand');burst(h.x,h.y-20,['#ff3b2f','#ff9a6a','#fff'],40,{v:7,ang:-1.57,spread:2.4});flt('#hand','⚔ −'+e.v,'red',0,-50);await W(500)}
