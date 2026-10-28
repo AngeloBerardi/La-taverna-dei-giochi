@@ -45,11 +45,24 @@ const FB={
    const u={coins:d.coins+r.n,played:(d.played||0)+1,wins:(d.wins||0)+(r.won?1:0),lastAward:F.serverTimestamp()};
    if(e){const mio=(d.elo||{})[e.g]||ELO.BASE,nuovo=ELO.nuovo(mio,altri,e.w.includes(FB.uid),e.w.length);u.elo={...(d.elo||{}),[e.g]:nuovo};FB.dElo=nuovo-mio}
    tx.update(ref,u);return{...d,...u,lastAward:null}})},
- // svuota la coda dei premi in attesa, in ordine; al primo errore si ferma e riprova alla prossima occasione
- async flush(){if(FB.st!=='ok'&&FB.st!=='load'||!FB.p||FB.busy)return;FB.busy=true;
-  try{while(FB.q.length){const r=FB.q[0];await FB.award(r);FB.q.shift();FB.saveQ();say('+'+r.n+' monete'+(FB.dElo?' · ELO '+(FB.dElo>0?'+':'')+FB.dElo:''),2600);if(ui.cfg)render();
+ // il profilo ha ricevuto un premio negli ultimi 2 minuti? (allora il rifiuto è solo il limite dei 50 s, non un premio guasto)
+ async recente(){try{const d=(await FB.m.F.getDoc(FB.ref())).data()||{},t=d.lastAward,ms=typeof t==='number'?t:t&&t.toMillis?t.toMillis():0;
+  return!!ms&&Date.now()-ms<120000}catch(e){return true}},
+ // svuota la coda dei premi in attesa, in ordine. Non si ferma più per sempre al primo rifiuto:
+ // - le regole accettano un premio ogni 50 s: dopo un rifiuto si riprova da soli fra un minuto (anche al ritorno sull'app);
+ // - un premio rifiutato più volte senza che ci sia stato un premio recente (FB.recente) perde prima la parte ELO (r.ko 2) e poi viene scartato (r.ko 4, finisce in ERR/errori),
+ //   così un premio guasto non blocca tutti quelli dietro di lui. Rete assente: si riprova senza contare il tentativo.
+ async flush(){if(FB.st!=='ok'&&FB.st!=='load'||!FB.p||FB.busy)return;FB.busy=true;clearTimeout(FB.tq);FB.tq=null;
+  const poi=ms=>{FB.tq=setTimeout(()=>{FB.tq=null;FB.flush()},ms)};
+  try{while(FB.q.length){const r=FB.q[0];
+    try{await FB.award(r)}catch(e){const c=String((e&&e.code)||e),limite=/permission/i.test(c)&&(await FB.recente());
+     FB.err=limite?'':c;if(!limite)console.warn('Firebase premio',e);
+     if(/permission/i.test(c)&&!limite){r.ko=(r.ko||0)+1;if(r.ko>=2&&r.elo){r.elo=null;ERR.n(e,'premio senza ELO')}
+      if(r.ko>=4){ERR.n(e,'premio scartato dopo 4 rifiuti');FB.q.shift()}FB.saveQ()}
+     if(ui.cfg)render();if(FB.q.length)poi(61000);return}
+    FB.err='';FB.q.shift();FB.saveQ();say('+'+r.n+' monete'+(FB.dElo?' · ELO '+(FB.dElo>0?'+':'')+FB.dElo:''),2600);if(ui.cfg)render();
     if(FB.q.length)await new Promise(ok=>setTimeout(ok,52000))}}
-  catch(e){FB.err=String((e&&e.code)||e);console.warn('Firebase premio',e)}finally{FB.busy=false}},
+  finally{FB.busy=false}},
  // dati per la classifica ELO, o null se la partita non vale (cooperativa, pareggio, ospiti, posti ripetuti)
  eloInfo(ns){const S=seatsNow(),w=ELO.vincitori(ns);if(!w||S.length<2||S.length!==ns.n||!FB.uid)return null;
   const u=S.map(x=>x.uid);if(!S.every(x=>x.k==='m'&&x.uid)||new Set(u).size!==u.length)return null;
@@ -76,8 +89,10 @@ const FB={
  matchEnd(ns){if(!ns.over||FB.last===ns.gid||!local().length)return;FB.last=ns.gid;
   const won=!!iWon(ns);FB.q.push({n:FB.PREMIO.gioca+(won?FB.PREMIO.vinci:0),won,gid:ns.gid,elo:FB.eloInfo(ns)});FB.saveQ();
   if(FB.st==='ok')FB.flush();else FB.start().then(()=>FB.flush())},
- cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">${ic('moneta',16)} ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+' premi in attesa':''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
+ cfgH(){if(FB.st==='ok'&&FB.p)return`<p class="muted" style="margin:0">${ic('moneta',16)} ${FB.p.coins} monete · ${FB.p.played||0} partite · ${FB.p.wins||0} vittorie${FB.q.length?' · '+FB.q.length+(FB.q.length===1?' premio':' premi')+' in attesa'+(FB.err?' (ultimo errore: '+esc(FB.err)+')':''):''}</p><p class="muted" style="margin:0">${FB.mail()?'Account: '+esc(FB.mail()):'Profilo anonimo su questo telefono'}</p>`;
   if(FB.st==='err')return`<p class="muted" style="margin:0">Profilo online non attivo (${esc(FB.err)}).</p><button class="b sm" data-a="fbstart">Riprova</button>`;
   if(FB.st==='load')return'<p class="muted" style="margin:0">Connessione al profilo online…</p>';
   return'<button class="b sm gold" data-a="fbstart">Attiva profilo online</button>'}};
-window.addEventListener('online',()=>{if(FB.st==='err'&&ME.name)FB.start()});
+window.addEventListener('online',()=>{if(FB.st==='err'&&ME.name)FB.start();else if(FB.q.length)FB.flush()});
+// al ritorno sull'app si riprova a consegnare i premi rimasti in coda
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&FB.q.length&&FB.st==='ok')FB.flush()});

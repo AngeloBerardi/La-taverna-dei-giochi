@@ -118,6 +118,21 @@ async def sc_firebase_profilo_e_premi(b, srv):
     check(await pg.evaluate('[FB.p.coins,FB.p.played]') == [25, 1], 'dopo il ricarico il profilo è quello salvato')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_firebase_coda_premi(b, srv):
+    # la coda dei premi non si blocca: il limite dei 50 s si riprova da solo; un premio guasto perde l'ELO e poi viene scartato
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    r = await pg.evaluate("(async()=>{const f=" + FINISH + ";await f(true);await f(false);return[FB.p.coins,FB.q.length,FB.q[0]&&FB.q[0].ko||0,!!FB.tq,FB.err]})()")
+    check(r == [25, 1, 0, True, ''], f'secondo premio entro 50 s: resta in coda senza contare come errore, riprova programmata {r}')
+    r = await pg.evaluate("""(async()=>{const vero=Date.now;Date.now=()=>vero()+70000;await FB.flush();Date.now=vero;return[FB.p.coins,FB.q.length]})()""")
+    check(r == [35, 0], f'passato il minuto il premio arriva {r}')
+    r = await pg.evaluate("""(async()=>{const a=FB.award,rc=FB.recente;FB.recente=async()=>false;
+      FB.award=async x=>{if(x.rotto){const e=new Error('permission-denied');e.code='permission-denied';throw e}return a(x)};
+      FB.q.push({n:10,won:false,gid:'x1',elo:{g:'scopa'},rotto:1},{n:10,won:false,gid:'x2',elo:null});FB.saveQ();const st=[];
+      for(let i=0;i<4;i++){await FB.flush();st.push([FB.q.length,FB.q[0]&&FB.q[0].ko||0,!!(FB.q[0]&&FB.q[0].elo)])}
+      ui.cfg=true;ui.cfgAll=true;render();const t=document.body.innerText;ui.cfg=false;ui.cfgAll=false;render();FB.award=a;FB.recente=rc;return[st,t.includes('ultimo errore: permission-denied')]})()""")
+    check(r[0][0] == [2, 1, True] and r[0][1] == [2, 2, False] and r[0][3][0] == 1 and r[1], f'premio guasto: ELO tolto al 2° rifiuto, scartato al 4°, errore mostrato {r}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 async def sc_firebase_accesso_negato(b, srv):
     ctx = await new_context(b, srv.port, auth_error='auth/admin-restricted-operation'); pg = await page(ctx, srv.url)
     r = await pg.evaluate("(async()=>{ui.cfg=true;render();const t=document.body.innerText;ui.cfg=false;render();const f=" + FINISH + ";await f(true);return[FB.st,t.includes('auth/admin-restricted-operation'),!!G.over,FB.q.length]})()")
