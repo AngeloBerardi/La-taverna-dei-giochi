@@ -5,7 +5,7 @@ L'app è una **Trusted Web Activity**: un guscio Android che apre il sito in Chr
 ## Dove sta
 - `android/`: progetto Gradle senza codice nostro (`app/build.gradle`, `AndroidManifest.xml`, icone generate da `src/pwa/icon-512.png`). Pacchetto `app.web.latavernadeigiochi`. Indirizzo d'avvio `https://la-taverna-dei-giochi.web.app/?app=android`.
 - I link d'invito (`https://la-taverna-dei-giochi.web.app/?room=…`) si aprono direttamente nell'app.
-- `src/pwa/assetlinks.json` (servito come `/.well-known/assetlinks.json` grazie alla riscrittura in `firebase.json`): dice a Chrome che l'app e il sito sono dello stesso proprietario. Finché il sito non lo pubblica, l'app mostra una sottile barra con l'indirizzo in alto.
+- `src/pwa/assetlinks.json` (il build lo copia anche in `dist/.well-known/`; `firebase.json` non esclude più le cartelle col punto: con una riscrittura Hosting rispondeva `[]`): dice a Chrome che l'app e il sito sono dello stesso proprietario. Finché il sito non lo pubblica, l'app mostra una sottile barra con l'indirizzo in alto.
 - `.github/workflows/android.yml`: compila l'APK sui runner di GitHub (hanno l'SDK Android) a ogni modifica di `android/`, o a mano da Actions → «App Android» → Run workflow.
 
 ## Chiave di firma (una volta sola)
