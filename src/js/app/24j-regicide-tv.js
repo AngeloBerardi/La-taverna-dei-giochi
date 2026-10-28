@@ -17,20 +17,20 @@ const RTV={
  legendaH(){return'<ul class="rtv-leg"><li><i class="H">♥</i><b>Cuori</b> curano: gli scarti tornano nella Taverna</li><li><i class="D">♦</i><b>Quadri</b> pescano carte</li><li><i class="C">♣</i><b>Fiori</b> fanno danno doppio</li><li><i class="S">♠</i><b>Picche</b> riducono l’attacco</li></ul>'}
 };
 function regicideTVH(){
- const s=G,en=ui.viewEn||s.en,url=TV.linkGioco(),d3=RTV3.sync(s,en);document.documentElement.dataset.rtv3=d3?'1':'';
+ const s=G,X=s.g==='regix',en=ui.viewEn||s.en,url=TV.linkGioco(),d3=RTV3.sync(s,en);document.documentElement.dataset.rtv3=d3?'1':'';
  let boss='',head='REGICIDE';
- if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
+ if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
   head=`${ACTS[rk][0]} · ${ACTS[rk][1]} · nemico ${Math.min(12,12-s.castle.length)} di 12`;
-  boss=`<div class="rtv-boss ${su}" id="boss"><div class="rtv-face">${cardH(en.c,{cls:'xl',boss:1,style:'--cw:min(29vh,17vw)'})}</div>
+  boss=`<div class="rtv-boss ${su}" id="boss"><div class="rtv-face">${cardH(en.c,{cls:'xl',boss:1,style:'--cw:min(29vh,17vw)'})}${X?RX.sigillo(en):''}</div>
    <div class="rtv-info"><div class="rtv-name">${RN[rk]} di ${SN[su]}</div><div class="rtv-title">${esc(TITLES[en.c])}</div>
-    <div class="rtv-imm ${en.can?'off':''}">${en.can?'Immunità annullata dal Jolly':'Immune ai '+SN[su].toLowerCase()+' '+SYM[su]+' · '+IMMTXT[su]}</div>
+    <div class="rtv-imm ${en.can?'off':''}">${en.can?'Immunità annullata dal Jolly':X?'Immune: '+RX.simboli(en)+' · '+RX.imm(en):'Immune ai '+SN[su].toLowerCase()+' '+SYM[su]+' · '+IMMTXT[su]}</div>${X&&en.tr?`<div class="rtv-tr">${ic(RGX.TR[en.tr].ic,22)}<b>${RGX.TR[en.tr].n}</b> ${esc(RGX.TR[en.tr].d)}</div>`:''}
     <div class="rtv-hp"><i style="width:${left/hp*100}%"></i><b>${left}<small> / ${hp} vita</small></b></div>
     <div class="rtv-stats"><span><b>${eff}</b> attacco${en.sh?` <small>(−${en.sh} scudo)</small>`:''}</span><span><b>${en.dmg}</b> danno subito</span></div></div></div>`}
  const played=s.played.map(c=>{const nw=!seen.p.has(c);return cardH(c,{cls:nw?'pop':'',style:`--cw:min(11vh,6.4vw);--r:${(hash(c)%9)-4}deg`})}).join('')||'<span class="rtv-empty">Nessuna carta sul campo</span>';seen.p=new Set(s.played);
- const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!s.over?'act':''}"><span class="av">${esc(n[0]||'?')}</span><span class="n">${esc(n)}</span><span class="hc"><b>${s.hands[i].length}</b> carte</span></li>`).join('')+(s.n===1?`<li class="jk"><span class="av">J</span><span class="n">Jolly</span><span class="hc"><b>${s.jl}</b></span></li>`:'');
+ const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!s.over?'act':''}${X?' rx':''}">${X?RX.carta(s.cls[i],{cls:s.pw[i]?'usato':'',style:'--cw:min(7vh,4.2vw)'}):''}<span class="av">${esc(n[0]||'?')}</span><span class="n">${esc(n)}${X?`<small>${RGX.CLS[s.cls[i]].p}${s.pw[i]?' · usato':' · pronto'}</small>`:''}</span><span class="hc"><b>${s.hands[i].length}</b> carte</span></li>`).join('')+(s.n===1?`<li class="jk"><span class="av">J</span><span class="n">Jolly</span><span class="hc"><b>${s.jl}</b></span></li>`:'');
  const feed=s.log.slice(-5).reverse().map((t,i)=>`<li class="${i?'':'new'}">${esc(t)}</li>`).join('');
  return`<div class="rtv${d3?' d3':''}">
-  <header class="rtv-top"><div><div class="rtv-logo">${GN('regicide')}</div><div class="rtv-act">${head}</div></div>${d3?`<div class="rtv-state">${RTV.stato(s)}</div>`:''}
+  <header class="rtv-top"><div><div class="rtv-logo">${GN(s.g)}</div><div class="rtv-act">${head}</div></div>${d3?`<div class="rtv-state">${RTV.stato(s)}</div>`:''}
    <div class="rtv-join"><div class="rtv-qr">${QR.svg(url,{scuro:'#1a1208',chiaro:'#f6ecd2'})}</div><div><div class="rtv-code">${esc(R.code||TV.code)}</div><div class="rtv-hint">Inquadra per sederti al tavolo</div></div></div></header>
   ${d3?'':`<aside class="rtv-left">${RTV.percorsoH(s)}<div class="rtv-piles"><div><b>${s.castle.length}</b><small>Castello</small></div><div><b>${s.tav.length}</b><small>Taverna</small></div><div><b>${s.disc.length}</b><small>Scarti</small></div></div></aside>
   <main class="rtv-main">${boss}<div class="rtv-state">${RTV.stato(s)}</div><div class="rtv-field">${played}</div></main>`}

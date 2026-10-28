@@ -35,6 +35,9 @@ let prevRank=null;
 async function runFx(ev,own){const nm=i=>G.names[i]??'',B='#boss';let killed=null;
  for(const e of ev){const T=e.t;
   if(T==='play'){if(e.c[0][0]==='X'){}else say(nm(e.p)+' gioca '+e.c.map(RG.fmt).join(' + '),2200)}
+  else if(T==='power'){const k=RGX.CLS[e.k];banner(k.p.toUpperCase(),nm(e.p)+' · '+k.n);Snd.play('redeem');await W(700)}
+  else if(T==='regen'){flt(B,'+'+e.v+' vita','red',0,-30);Snd.play('heal');await W(400)}
+  else if(T==='curse'){flt('#ptav','−'+e.v+' carte','gry');Snd.play('immune');await W(400)}
   else if(T==='imm'){const c=ctr(B);flt(B,'IMMUNE '+SYM[e.s],'gry',0,-30);burst(c.x,c.y,['#999','#ccc'],14,{v:3});Snd.play('immune');await W(380)}
   else if(T==='heal'){const a=ctr('#pdisc'),b=ctr('#ptav');burst(a.x,a.y,SUITC.H,26,{v:3,tx:b.x,ty:b.y,dec:.012});flt('#ptav','+'+e.v+' ♥','grn');Snd.play('heal');await W(450)}
   else if(T==='draw'){Snd.play('draw');flt('#hand','+'+e.v+' carte','gold',0,-40);await W(420)}

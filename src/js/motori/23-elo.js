@@ -4,7 +4,7 @@
 const ELO=(()=>{
  const BASE=1000,K=32,MIN=100,MAX=3000;
  // giochi in cui si vince o si perde tutti insieme: niente classifica ELO
- const COOPERATIVI=['regicide','rlegacy','gang','island','mind','mindx','scoundrel','discesa'];
+ const COOPERATIVI=['regicide','regix','rlegacy','gang','island','mind','mindx','scoundrel','discesa'];
  const competitivo=id=>!COOPERATIVI.includes(id);
  const SQUADRE={briscola:(s,i)=>s.n===4?i%2:i,burraco:(s,i)=>i%2};
  // posti vincitori di una partita finita, oppure null se non c'è una classifica da fare

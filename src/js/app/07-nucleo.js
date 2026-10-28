@@ -11,7 +11,9 @@ Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.mod
 ui.modal=null;
 const ME={name:ST('rg-name')||'',dev:'local'};
 const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
-const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC,rlegacy:RLEG};
+const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC,rlegacy:RLEG,regix:RGX};
+/* Regicidio e la sua variante con classi e tratti condividono vista, effetti e schermo comune */
+const isRG=g=>g==='regicide'||g==='regix';
 const GAMES=[
  {id:'regicide',name:'Regicidio',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},
  {id:'briscola',name:'Briscola',desc:'Carte napoletane: vince chi supera i 60 punti.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n===4?'A coppie, 2 contro 2':n===3?'Tutti contro tutti (senza il 2 di Coppe)':'Testa a testa'},
@@ -39,6 +41,7 @@ GAMES.push({id:'scoundrel',name:'Il Furfante',desc:'Solitario roguelike con un m
 GAMES.push({id:'machiavelli',name:'Machiavelli',desc:'Cala tris e scale, riorganizza il tavolo e svuota per primo la mano.',range:'2–5',ok:n=>n>=2&&n<=5,mode:n=>n+' giocatori · 2 mazzi + 4 jolly'});
 GAMES.push({id:'azul',name:'Mosaico',desc:'Decora il palazzo di Evora con azulejos: prendi, incastra, posa sul muro.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' decoratori · '+({2:5,3:7,4:9}[n])+' fabbriche',opts:{k:'wall',label:'Muro',vals:[['classic','Classico'],['grey','Libero (variante)']]}});
 GAMES.push({id:'saboteur',name:'Miniera dei Nani',desc:'Nani cercatori d’oro contro sabotatori nascosti: scava le gallerie, ma di chi ti fidi?',range:'3–10',ok:n=>n>=3&&n<=10,mode:n=>{const r={3:'1 sabotatore',4:'1 sabotatore',5:'2 sabotatori',6:'2 sabotatori',7:'3 sabotatori',8:'3 sabotatori',9:'3 sabotatori',10:'4 sabotatori'}[n];return n+' nani · '+r},opts:{k:'exp',label:'Edizione',vals:[['base','Gioco base'],['sab2','Con Saboteur 2']]}});
+GAMES.push({id:'regix',name:'Regicidio X',desc:'Regicidio con gli eroi: ogni giocatore ha una classe con un potere, e Regine e Re del castello hanno tratti che cambiano la battaglia.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>(n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione')+' · classi a caso, tutte diverse',opts:{k:'tratti',label:'Tratti dei nemici',vals:[['si','Regine e Re con un tratto'],['no','Nessun tratto (solo classi)']]}});
 GAMES.push({id:'rlegacy',name:'Regicidio: la Campagna',desc:'Campagna cooperativa in 12 missioni: la Compagnia cresce, si corrompe e cambia per sempre. Nuove classi, reliquie, mercenari e un finale da salvare.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>(n===1?'Solitario con 2 giullari':n+' eroi in cooperazione')+' · campagna salvata sul telefono',opts:{k:'modo',label:'Modalità',vals:[['camp','Campagna (prossima missione)'],['libera','Spedizione libera (dopo la campagna)']]}});
 const GN=id=>(GAMES.find(g=>g.id===id)||{}).name||id;
 /* posti: chi gioca su questo dispositivo */

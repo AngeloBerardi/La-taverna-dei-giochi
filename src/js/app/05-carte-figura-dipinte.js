@@ -186,6 +186,42 @@ F.X=()=>{const R='#c8262f',Y='#e8b83a';return p('M20 36C10 66 16 112 34 126C56 1
  head({brow:'sly',mouth:'grin',skin:'#f3d4b4'})+
  p('M40 30Q38 18 50 16Q62 18 60 30Z',R)+p('M50 16Q62 18 60 30H50Z',Y)+p('M42 22Q30 14 24 24Q32 20 40 28Z',R)+p('M58 22Q70 14 76 24Q68 20 60 28Z',Y)+p('M48 17Q50 4 54 2Q52 10 52 17Z',R)+
  c(24,25,2.6,Y)+c(76,25,2.6,R)+c(54,3,2.4,Y)+p('M39 28h22v4H39z',INK)};
+/* eroi di Regicidio X: una carta dipinta per classe, stesso pennello dei nemici, sfondo del bivacco */
+const HP={war:{m:'#a8282f',d:'#6e1f2c',l:'#e8574a',w:'#f3c1b6'},cle:{m:'#e9dcc0',d:'#b8a27a',l:'#fff6e0',w:'#f7ecd0'},ran:{m:'#3f7d4c',d:'#244f30',l:'#93c48e',w:'#cfe5c2'},
+ gua:{m:'#3b6a8e',d:'#1e3a52',l:'#8dbbe0',w:'#cfe0f0'},mag:{m:'#5a3a8a',d:'#2e1a52',l:'#b49ae0',w:'#ddd0f0'}};
+BG.E=()=>p('M4 104L18 76L32 104Z','#8a7a5c')+p('M15 104L18 88L21 104Z','#2a1a14')+ln('M18 76V70',INK,.8)+p('M18 70l6 2-6 2z','#a8282f')+
+ p('M74 106h20l-2 3H76z','#5a3414')+p('M78 106q2-12 6-16q1 8 4 6q3 6-1 10z','#e3a628')+p('M81 106q1-7 3-9q1 5 3 4q1 3-1 5z','#f6d9a8');
+const E={};
+E.war=()=>{const P=HP.war;return wash(P)+cape(P.d)+legs('#5a3a2a','#2a1a10')+
+ p('M33 52Q50 46 67 52L70 100Q50 106 30 100Z',STEEL)+p('M57 50L67 52L70 100Q64 103 58 104Z',STEELD,.45)+p('M44 56h12v46H44z',P.m)+p('M44 56h12v6H44z',GOLD)+p('M30 92h40v5H30z','#4a2a12')+coin(50,94.5,2.2)+
+ sword(24,10,52)+arm([35,56,22,58,24,62],STEEL,9,'#e6b48e')+
+ arm([65,56,74,74,64,84],STEEL,9,'#e6b48e')+c(70,86,9,P.d)+c(70,86,6,P.m)+c(70,86,2,GOLD)+
+ head({brow:'angry',mouth:'flat',skin:'#e6b48e',skind:'#c08a64',scar:1,beard:p('M42 41Q43 49 50 50Q57 49 58 41Q54 45 50 44Q46 45 42 41Z','#7a4a24',.9)})+
+ p('M39 34Q38 18 50 17Q62 18 61 34L58 31H42Z',STEEL)+p('M50 17Q62 18 61 34L58 31H50Z',STEELD,.5)+p('M48.8 26h2.4v11h-2.4z',STEELD)+p('M50 17Q46 6 54 2Q52 10 56 14Z',P.l)};
+E.cle=()=>{const P=HP.cle;return wash(P,1)+c(50,34,17,'#fff1b8',.45)+robe(P,P.m,P.d)+p('M46 52h8v80h-8z',GOLD,.85)+p('M47.6 60h4.8v16h-4.8zM43 64.4h14v4.8H43z','#a8282f')+
+ p('M73 22h3v44h-3z','#6a4020')+c(74.5,20,6,GOLD)+ln('M74.5 8v4M74.5 28v4M62.5 20h4M82.5 20h4M66 12l3 3M83 12l-3 3M66 28l3-3M83 28l-3-3',GOLD,1.1)+
+ arm([65,56,78,56,74.5,62],P.m,8)+arm([35,56,26,70,34,78],P.m,8)+p('M22 72l14-3 2 14-14 3z','#7a1c28')+p('M24 73l11-2.2 1.6 11-11 2.2z',CREAM)+
+ head({brow:'calm',mouth:'smirk',lids:1,skin:'#f0c7a0'})+
+ p('M36 46Q34 18 50 15Q66 18 64 46L60 44Q62 26 50 25Q38 26 40 44Z',P.d)};
+E.ran=()=>{const P=HP.ran;return wash(P)+p('M58 40l8-5 12 32-8 4z','#6a4020')+ln('M62 38l-2-8M66 36l-1-8M70 35l1-8',CREAM,1.2)+
+ cape(P.d,1)+legs('#4a3a2a','#2a1a10')+tunic(P,'#6a5a3a','#3a2a1a')+p('M34 52Q50 46 66 52L64 62Q50 58 36 62Z',P.m)+p('M30 92h40v5H30z','#3a2410')+
+ ln('M20 38Q4 70 20 102','#6a4020',2.6)+ln('M20 38L32 70L20 102',CREAM,.6)+ln('M32 70H8',INK,1)+p('M8 70l4-2.4v4.8z',STEEL)+p('M33 70l-3-2v4z',P.l)+
+ arm([35,56,22,66,20,70],'#6a5a3a',8,'#e0b08a')+arm([65,56,48,72,33,70],'#6a5a3a',8,'#e0b08a')+
+ head({brow:'sly',mouth:'smirk',skin:'#e0b08a',skind:'#b8865e',beard:ln('M43 44Q50 47 57 44',INK,.6,.5)})+
+ p('M36 46Q33 18 50 14Q67 18 64 46L61 42Q62 27 50 26Q38 27 39 42Z',P.m)+p('M50 14Q67 18 64 46L61 42Q62 27 50 26Z',P.d,.5)};
+E.gua=()=>{const P=HP.gua;return wash(P,1)+p('M74 8h2.6v112h-2.6z','#6a4020')+p('M75.3 0l4.4 10h-8.8z',STEEL)+
+ cape(P.d)+legs('#3a3a4a','#1a1a24')+p('M30 52Q50 44 70 52L74 104Q50 110 26 104Z',STEEL)+p('M58 50L70 52L74 104Q64 108 58 108Z',STEELD,.5)+fur(49)+
+ arm([66,56,80,64,75.3,70],STEEL,10,'#d9a07a')+
+ head({brow:'calm',mouth:'flat',skin:'#d9a07a',skind:'#b07850',beard:p('M40 39Q39 56 50 58Q61 56 60 39Q55 46 50 45Q45 46 40 39Z','#8a5a30')})+
+ p('M38 40Q36 17 50 15Q64 17 62 40L59 40Q59 26 50 26Q41 26 41 40Z',STEEL)+p('M50 15Q64 17 62 40L59 40Q59 26 50 26Z',STEELD,.5)+p('M38 24h24v3H38z',GOLD)+
+ p('M14 60h36v38q0 18-18 26-18-8-18-26z',P.m)+p('M18 64h28v33q0 14-14 21-14-7-14-21z',P.l,.45)+p('M30 66h4v50h-4zM18 86h28v4H18z',GOLD)+c(32,88,4.6,GOLD)+c(32,88,2,P.d)};
+E.mag=()=>{const P=HP.mag;return wash(P)+c(77.5,18,13,'#5cf0ff',.22)+p('M76 22h3v110h-3z','#5a3414')+c(77.5,18,6,'#5cf0ff')+c(75.6,16,2,'#fff',.8)+
+ robe(P,P.m,P.d,4)+[[38,74],[60,88],[44,104],[64,118],[34,120],[56,64]].map(([x,y])=>p(`M${x} ${y-2.4}l.8 1.6 1.6.8-1.6.8-.8 1.6-.8-1.6-1.6-.8 1.6-.8z`,P.l)).join('')+p('M30 88h40v4H30z',GOLDD)+
+ arm([66,56,84,62,77.5,70],P.m,8.5)+arm([34,56,20,62,22,48],P.m,8.5)+[[16,42],[22,38],[14,50],[26,42]].map(([x,y],i)=>c(x,y,1.4-i*.2,'#fff1b8')).join('')+
+ head({brow:'calm',mouth:'flat',lids:1,skin:'#f0d0b0',beard:p('M41 40Q40 62 50 72Q60 62 59 40Q55 47 50 46Q45 47 41 40Z','#efe9df')+ln('M44 45Q50 42 56 45','#d8d0c4',1.6)})+
+ p('M33 31L52 -2L66 31Q50 27 33 31Z',P.m)+p('M52 -2L66 31Q58 29 52 29Z',P.d,.5)+e(50,31,19,3.8,P.d)+c(49,14,1.6,'#5cf0ff')};
+const ecache={};
+function eroe(k){if(!E[k])return'';if(!ecache[k])ecache[k]=`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene('E')}</g><g transform="translate(6 9) scale(.88)">${E[k]()}</g></g></svg>`;return ecache[k]}
 /* filtro "pittura": bordi irregolari + grana di carta (definito una volta nella pagina) */
 const DEFS='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="fzh1" width="1.9" height="1.9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V1.9" stroke="#1c1008" stroke-width=".42" opacity=".6"/></pattern><pattern id="fzh2" width="1.9" height="1.9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><path d="M0 0V1.9M0 0H1.9" stroke="#1c1008" stroke-width=".42" opacity=".62"/></pattern><clipPath id="fzclip"><rect x="3" y="4" width="94" height="132" rx="4"/></clipPath><filter id="fzpaint" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="1" seed="8" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 .2  0 0 0 0 .12  0 0 0 0 .05  0 0 0 -.7 .42" result="ga"/><feComposite in="ga" in2="d" operator="in" result="gm"/><feMerge><feMergeNode in="d"/><feMergeNode in="gm"/></feMerge></filter></defs></svg>';
 const TILT={JH:-5,JD:4,JC:-2,JS:-3,QH:3,QD:-4,QC:5,QS:-2,KH:2,KD:-3,KC:1,KS:3,X:-6};const cache={};
@@ -194,7 +230,7 @@ function svg(id){if(!cache[id]){const k=id==='X'?'X':id.slice(-2);
  if(FZIMG.includes(id)){cache[id]=`<img class="fzimg" src="assets/cards/${id}.webp" alt="" draggable="false" decoding="async" onerror="this.remove()">`}
  else cache[id]=F[k]?`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene(k[0]==='X'?'D':k[1])}</g><g transform="translate(6 9) scale(.88)"><g transform="rotate(${TILT[k]||0} 50 80)">${F[k]()}</g></g></g></svg>`:''}return cache[id]}
 let dd=0;function ensureDefs(){if(dd)return;dd=1;if(typeof document!=='undefined'&&!document.getElementById('fzdefs')){const d=document.createElement('div');d.id='fzdefs';d.innerHTML=DEFS;document.body.appendChild(d)}}
-return{svg,ensureDefs,F}})();
+return{svg,ensureDefs,F,eroe}})();
 
 function cardH(id,o={}){FACE.ensureDefs();
  if(o.back)return`<div class="card back ${o.cls||''}"></div>`;
