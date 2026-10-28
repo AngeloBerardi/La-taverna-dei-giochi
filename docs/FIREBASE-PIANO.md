@@ -17,7 +17,7 @@ Perché: le stanze p2p dipendono dal telefono che le ospita e da broker MQTT pub
 - **Predefinito dal 21/10/2026** (provato dal vivo dall'utente). `?net=p2p` torna ai vecchi trasporti, `?net=rt` lo forza.
 - **Limiti del piano Spark:** 100 connessioni simultanee (per un gruppo di amici bastano), 1 GB di dati, traffico in uscita mensile limitato (circa 10 GB: controlla in console). Lo stato di una partita è un unico testo: ogni mossa lo rimanda a chi guarda la stanza. Se il traffico diventa un problema si può dividere lo stato in parti.
 - **Pulizia:** le stanze non si cancellano da sole (`d/t` = ultimo salvataggio). Ci pensa `scripts/pulizia-stanze.js`, ogni lunedì in automatico (`.github/workflows/pulizia.yml`): vedi `docs/HOSTING.md`, «Pulizia delle stanze».
-- **Non provato** con il vero database né con il simulatore regole: provate solo con lo stub (`npm run test:browser`, scenario `stanze_database`). Prima di renderlo predefinito, nel **Simulatore regole** della console prova una lettura e una scrittura di `stanze/ABCD/d` con un utente autenticato (devono passare) e senza (devono fallire).
+- **Provato dal vivo** dall'utente sul database vero (ottobre 2026): stanze, presenza e rientro funzionano. Lo stub (`npm run test:browser`, scenario `stanze_database`) resta per le prove automatiche.
 - Informazioni nascoste: come nel p2p, lo stato contiene anche le mani degli altri (va bene tra amici).
 
 ## Pubblicare le regole (una volta, e a ogni modifica di `firestore.rules`)
