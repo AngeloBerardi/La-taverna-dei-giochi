@@ -15,6 +15,9 @@ Questo documento sostituisce la sezione «Da fare» di `docs/CAMPAGNE.md`. Ogni 
 | Squadra | Fino a **4 posti**: eroi dell'account o **compagni** della storia reclutati, con approvazione e dialoghi |
 | Tono | **Fantasy classico**: regno in pericolo, torri, antri, draghi; serio ma luminoso |
 | Durata | **Capitolo da 3–5 sessioni di circa un'ora**, salvataggio tra una e l'altra |
+| Forma della battaglia | **Esagoni**, come la mappa del mondo |
+| Dadi | **Tutto si decide con i dadi**: anche il movimento sulla mappa e in battaglia ha una parte tirata |
+| Vita persa | Si perdono **oro e si alza la perdizione** |
 
 Vincoli sempre validi: costo zero (Firebase Spark, niente Cloud Functions), niente emoji, stile legno e ottone, mobile 390 px, motori puri con test (bot bravo vince, bot casuale perde), musica e suoni propri, schede regole in-game.
 
@@ -71,7 +74,7 @@ Scopo: fissare numeri, nomi e schermate prima del codice, così le task successi
 Scopo: rendere il codice esistente pronto a crescere senza rompere le campagne salvate.
 1. `ADADI`: generatore deterministico salvato nello stato (`s.rng`), funzioni `d(n)`, `d20({vant, svant})`, `danno('2d6+3')`, `prob(bonus, cd, vant)`. Test di distribuzione e riproducibilità.
 2. `CAMP.act` usa sempre `s.rng`; rimuovere il ripiego `Math.random`.
-3. Correggere `fuggi` (eroe scelto), nomi delle abilità con accenti in `EROI.NOME_AB` (un'unica fonte, la vista la rilegge), antro e torre con 2–3 abilità diverse per ogni prova.
+3. Rinominare la missione di prova «La Torre oscura» (è un titolo di libri famoso). Correggere `fuggi` (eroe scelto), nomi delle abilità con accenti in `EROI.NOME_AB` (un'unica fonte, la vista la rilegge), antro e torre con 2–3 abilità diverse per ogni prova.
 4. Stato `v:2` con migrazione da `v:1` (`CAMP.migra`), test con uno stato v1 salvato.
 5. Eroi fino a 4 nella compagnia (oggi 3): `nuova` accetta 1–4, test aggiornati.
 6. Tab «Avventura» come **pagina vera** (non modale): Continua la campagna, Nuova campagna, I tuoi eroi, Compagni sbloccati, Regole. Riuso `Plancia`.
@@ -102,10 +105,10 @@ Scopo: rendere ogni classe diversa da giocare.
 
 ## A4 — Battaglia tattica (motore)
 Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
-1. **Griglia**: quadrati (vedi Domande), dimensione 8×10 circa. Celle: pavimento, muro, ostacolo basso (mezza copertura +2 CA), ostacolo alto (copertura totale), terreno difficile (costo doppio), rialzo (altezza +1), superfici (fuoco, ghiaccio, veleno, acqua). Arene generate dall'ambiente della casella (bosco: alberi e radici; palude: fango; città: casse e muretti; antro: colonne) più arene scritte a mano per i capi.
+1. **Griglia a esagoni** (coordinate assiali, riuso di `CAMP.dist/vicini`), circa 9×11 esagoni. Celle: pavimento, muro, ostacolo basso (mezza copertura +2 CA), ostacolo alto (copertura totale), terreno difficile (costo doppio), rialzo (altezza +1), superfici (fuoco, ghiaccio, veleno, acqua). Arene generate dall'ambiente della casella (bosco: alberi e radici; palude: fango; città: casse e muretti; antro: colonne) più arene scritte a mano per i capi.
 2. **Schieramento**: eroi presenti nell'esagono e in quelli vicini entrano (chi è più lontano arriva dopo N turni); sorpresa e imboscata da prova di Percezione/Furtività.
 3. **Iniziativa**: d20 + DES, ordine visibile; turno di un singolo combattente.
-4. **Economia del turno**: movimento in caselle (`mov` dell'eroe), un'azione, un'azione bonus, una reazione per giro. Azioni base: attacca, scatto, disimpegno, nasconditi, aiuta, usa oggetto, spingi, alza un compagno, prepara (azione pronta).
+4. **Economia del turno**: movimento in esagoni tirato a inizio turno (metà fissa dalla razza + 1d4, ritirabile con Concentrazione), un'azione, un'azione bonus, una reazione per giro. Azioni base: attacca, scatto, disimpegno, nasconditi, aiuta, usa oggetto, spingi, alza un compagno, prepara (azione pronta).
 5. **Tiro per colpire**: d20 + bonus contro CA; vantaggio da altezza, da bersaglio a terra o nascosto, da aiuto; svantaggio da distanza lunga, da bersaglio in copertura per i tiri (o +CA), da accecato. Critico al 20 (dadi doppi), fallimento all'1. Probabilità esatta esposta alla vista prima di confermare.
 6. **Linea di vista e raggi**: algoritmo a linea tra centri delle celle, muri e ostacoli alti bloccano; gittate delle armi; aree dei poteri.
 7. **Reazioni**: attacco di opportunità all'uscita dalla portata, poteri di reazione (parata, contrattacco, scudo magico).
@@ -125,7 +128,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 7. Scenario `avv_battaglia` in `tools/test-browser/` e una schermata finale a 390 px.
 
 ## A6 — Mappa del mondo (evoluta)
-1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento con un piccolo tiro (base dalla razza + bonus) come elemento di rischio, oppure fisso (vedi Domande).
+1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento tirato a ogni turno: base dalla razza + dado (es. 1d4), con Concentrazione per ritirarlo.
 2. Chi è entro 1 esagono da una battaglia entra subito, entro 2 arriva dopo alcuni turni.
 3. Mappa per capitolo: dimensione maggiore, regioni con nome, luoghi scritti a mano (A8) più luoghi generati: città, villaggi, santuari (abbassano la perdizione), antri e rovine (sotterranei), accampamenti, mercanti erranti.
 4. **Nemici visibili** che si spostano a ogni fase e incontri casuali residui; di notte più forti.
@@ -154,7 +157,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 
 ## A9 — Orchestratore, vite, salvataggi, rientro sull'account
 1. `AVV`: stato unico con fasi `mappa` | `battaglia` | `dialogo` | `città` | `sotterraneo` | `fine`, che passa il controllo ai motori.
-2. **Vite di gruppo** (numero in Domande): una battaglia persa toglie una vita, la compagnia si risveglia nell'ultima città con metà PF e una penalità (oro o perdizione); a zero vite la campagna è persa.
+2. **Vite di gruppo** (3, da confermare in A13): una battaglia persa toglie una vita, la compagnia si risveglia nell'ultima città con metà PF e una penalità: metà dell'oro comune perso e perdizione +10; a zero vite la campagna è persa.
 3. Salvataggio: automatico a ogni cambio di fase, in locale e su Firestore (`players/{uid}/avventure/a1..a3`), con versione e migrazione.
 4. **Rientro sull'account**: a fine sessione XP, oro e oggetti tornano agli eroi; regole Firestore con aumento massimo per scrittura e intervallo minimo (senza Cloud Functions è una protezione leggera, sufficiente per giocare tra amici).
 5. Fine campagna: riepilogo, compagni sbloccati per il futuro, monete della Taverna come premio.
@@ -187,10 +190,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 ---
 
 ## Domande aperte (da chiudere all'inizio della task indicata)
-- A0: nome della modalità e del Capitolo 1.
+- A0: nome della modalità e del Capitolo 1 (proposte presentate all'utente il 28 ottobre: «Cantari di Ventura» e alternative).
 - A1: la tab Avventura sostituisce il pulsante «Eroi» nel profilo o restano entrambi?
 - A3: gli incantatori usano cariche per riposo o un'unica riserva di energia?
-- A4: griglia a **quadrati** (lettura più semplice, diagonali) o a **esagoni** come la mappa del mondo?
-- A6: movimento sulla mappa con un tiro di dado (rischio, come i modelli) o fisso?
-- A9: quante vite di gruppo (proposta: 3) e penalità quando se ne perde una?
 - A11: chi decide le scelte di dialogo in co-op: chi parla o voto?
