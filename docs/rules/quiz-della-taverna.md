@@ -1,4 +1,4 @@
-# Quiz della Taverna
+# Trivia a Spicchi
 **Giocatori** 2–6 · **Durata** ~30 min · **Tipo** domande su percorso · **Licenza/marchio**: meccanica libera; il quiz da tavolo a cui si ispira ha un nome protetto, qui rinominato
 ## Preparazione
 Anello di 42 caselle: spicchio ogni 7 caselle (6 categorie), «Rilancia» alle caselle 3, 10, 17…, il resto caselle di categoria. 120 domande nostre (20 per categoria) a 4 risposte. Tutti partono da uno spicchio.

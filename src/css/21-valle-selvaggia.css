@@ -1,4 +1,4 @@
-/* Valle Selvaggia: plancia esagonale, sentiero di 4 coppie, tabella finale */
+/* Terre di Cascata: plancia esagonale, sentiero di 4 coppie, tabella finale */
 .vwrap{display:flex;justify-content:center;padding:4px 0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#2b3a2a 0%,#1a1612 75%);border-radius:14px;margin:4px 0;box-shadow:inset 0 0 24px #000a}
 .vboard{max-width:100%;height:auto;touch-action:manipulation}
 .vboard .vtap{cursor:pointer}

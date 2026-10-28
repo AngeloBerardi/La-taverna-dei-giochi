@@ -50,7 +50,7 @@ function fantasmaH(){if(ui.tv)return fantasmaTVH();const s=G,v=viewer(),cover=ne
  const hidden=cover?'<div class="zcard" style="--zc:#8a6fd0"><small>Passa il telefono</small><b>Il Fantasma si nasconde: nessun altro guardi lo schermo.</b></div>':'';
  const z=FZ[ui.fz??1];if(!cover)fantasmaScroll(s);
  const mapHtml=cover?hidden:`<div class="fmw"><div class="fmi" style="width:${z*100}%">${fantasmaMapH(s,{dest:ui.fsel==null?dest:[]})}</div></div>${fleg()}`;
- return fixH({title:'Caccia al Fantasma',chips,strip,mid:mapHtml,bot:trail+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
+ return fixH({title:GN('fantasma'),chips,strip,mid:mapHtml,bot:trail+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
 function fantasmaClick(a,v){const s=G;if(a==='fzoom'){ui.fz=Math.max(0,Math.min(FZ.length-1,(ui.fz??1)+ +v));ui.fscr=null;return render()}if(!myTurn())return;
  if(a==='fmove'){const to=+v,opts=FANTASMA.moves(s,s.cur).filter(m=>m.to===to);if(!opts.length)return;
   if(opts.length===1)return dispatch({t:'move',to,tk:opts[0].tk});ui.fsel=to;return render()}

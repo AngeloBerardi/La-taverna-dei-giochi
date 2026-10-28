@@ -21,7 +21,7 @@ function finalScore(s){const res=s.boards.map(b=>{const rows=b.wall.filter(row=>
  s.res=res;const sc=s.boards.map(b=>b.score),mx=Math.max(...sc);let ws=sc.map((v,i)=>v===mx?i:-1).filter(i=>i>=0);
  if(ws.length>1){const mr=Math.max(...ws.map(i=>res[i].rows));ws=ws.filter(i=>res[i].rows===mr)}
  s.over={scores:sc,win:ws.length===1?ws[0]:null,winners:ws};s.phase='summary';E(s,{t:'win'});L(s,'Fine partita!')}
-const AZUL={id:'azul',name:'Mosaico',ok:n=>n>=2&&n<=4,CN,CN1,FLOOR,canLine,freeCols,colOf,
+const AZUL={id:'azul',name:'Azulejos',ok:n=>n>=2&&n<=4,CN,CN1,FLOOR,canLine,freeCols,colOf,
  newGame(n,names,opts={}){const s={g:'azul',n,names:names.slice(0,n),grey:opts.wall==='grey',bag:[],lid:[],factories:Array(NF[n]).fill(null),center:[],firstInCenter:true,round:0,startNext:0,
   boards:Array.from({length:n},()=>({lines:Array.from({length:5},()=>({c:-1,k:0})),wall:Array.from({length:5},()=>Array(5).fill(-1)),floor:[],score:0})),log:[],ev:[],evn:0,over:null,teams:n};
   for(let c=0;c<5;c++)for(let k=0;k<20;k++)s.bag.push(c);shuffle(s.bag);s.hands=Array.from({length:n},()=>[]);newRound(s);return s},

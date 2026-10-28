@@ -16,7 +16,7 @@ function spieH(){if(ui.tv)return spieTVH();const s=G,v=viewer(),cover=needCover(
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">${ic('corona',48)}</div><h2>Vincono i ${SPT[s.over.win]}!</h2><p class="muted">${s.over.why==='trappola'?'L’altra squadra ha toccato la trappola.':'Tutte le parole della squadra sono state trovate.'}</p><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const who=s.over?'':`<b style="color:${SPCOL[t?'B':'R']}">${SPT[t]}</b>`;
  const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Squadra ${who}: ${s.phase==='clue'?'la spia pensa all’indizio':'gli agenti scelgono'}<span class="dots"></span>`}${mine&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
- return fixH({title:'Agenti Segreti',chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
+ return fixH({title:GN('spie'),chips,strip,mid,bot:bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
 function spieClick(a,v){const s=G;if(!myTurn())return;
  if(a==='spclue'){const w=(document.getElementById('spw')||{}).value||ui.spw||'',k=+((document.getElementById('spk')||{}).value||ui.spk||2);ui.spw='';return dispatch({t:'clue',w,k})}
  if(a==='spcard')return dispatch({t:'guess',i:+v});

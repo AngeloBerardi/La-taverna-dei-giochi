@@ -706,11 +706,12 @@ function sceneSolo(){
 
 
 /* ================= catalogo: i giochi veri dell'app ================= */
-var CATN={classici:'Classici',strategia:'Strategia',squadra:'Cooperativi'};
+// nella locanda gli scaffali sono tre (il quarto posto è del bersaglio): cooperativi e giochi da festa stanno insieme in «Compagnia»
+var CATN={classici:'Classici',strategia:'Strategia',squadra:'Compagnia'},C3D={festa:'squadra'};
 var ICON={regicide:0,rlegacy:0,regix:0,briscola:1,burraco:2,gang:3,saboteur:4,azul:5,island:6,machiavelli:7,scopa:9,mind:10,mindx:11,harvest:12,valle:13,discesa:14,scoundrel:15,uno:16,pets:17,catan:18,kittens:19,perudo:20};
 function lum(h){var n=parseInt(h.slice(1),16);return(.3*(n>>16&255)+.59*(n>>8&255)+.11*(n&255))/255}
 var GAMES=A.games().map(function(g){var I=A.info(g),b=A.box(g.id);var c=b?b.c[0]:'#5a3a24';if(lum(c)>.62)c=b?b.c[1]:'#5a3a24';if(lum(c)>.62)c='#5a3a24';
-  return{id:g.id,g:g,t:g.name,l:I[1].length>13?I[1].slice(0,13):I[1],s:g.desc,r:g.range,k:CATN[I[0]]||I[0],ck:I[0],c:c,v:0,m:ICON[g.id]!=null?ICON[g.id]:(g.id.length%16)}});
+  return{id:g.id,g:g,t:g.name,l:I[1].length>13?I[1].slice(0,13):I[1],s:g.desc,r:g.range,k:CATN[C3D[I[0]]||I[0]]||I[0],ck:C3D[I[0]]||I[0],c:c,v:0,m:ICON[g.id]!=null?ICON[g.id]:(g.id.length%16)}});
 var CATS=[];['classici','strategia','squadra'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
   if(GAMES.some(function(G){return G.ck===k}))CATS.push({k:CATN[k]||k,c:(A.cat(k)||{f:'#e8b83a'}).f})});
 function boxTex(i){
@@ -778,7 +779,7 @@ $('csend').onclick=chatSend;
 $('cin').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();chatSend()}});
 
 var NPCN=['Giulia','Marco','Anselmo','Bice','Tano','Nora','Ugo','Lia','Rocco'];
-var CHATTER=['Chi ha finito la birra?','Stasera a Briscola vi distruggo','Oste! Un altro giro!','Il gatto mi sta fissando','Qualcuno ha visto il mio cappello?','Marco bara, lo sanno tutti','Proviamo Telepatia?','Passami il formaggio','Questa panca traballa','In miniera? Non mi fido di nessuno'];
+var CHATTER=['Chi ha finito la birra?','Stasera a Briscola vi distruggo','Oste! Un altro giro!','Il gatto mi sta fissando','Qualcuno ha visto il mio cappello?','Marco bara, lo sanno tutti','Proviamo La Mente?','Passami il formaggio','Questa panca traballa','In miniera? Non mi fido di nessuno'];
 var REPLY=['Ahah, vero!','Ma che dici','Concordo','Seee, figurati','Giusto!','Dopo questo giro','Ci sto!'];
 var OUCH=['Ehi!','Me la paghi!','Ma sei matto?','Buona però…','Questa era alla crema'];
 

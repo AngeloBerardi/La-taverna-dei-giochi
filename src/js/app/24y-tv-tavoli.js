@@ -1,5 +1,5 @@
-/* ---- Schermo comune (TV) per i giochi senza scena 3D: Briscola, Scopa, Burraco, Machiavelli, Ultima Carta, Dadi del Bugiardo,
-   La Banda, Telepatia, Valle del Raccolto, Miniera dei Nani, Micio Bomba, Bestiole Affamate, Trame di Corte.
+/* ---- Schermo comune (TV) per i giochi senza scena 3D: Briscola, Scopa, Burraco, Machiavelli, Ultima Carta, Dudo,
+   La Banda, La Mente, Valle del Raccolto, Sabotatori, Gattini al Botto, Bestie Assetate di Potere, Dietro il Trono.
    Stesso guscio delle altre TV (LP.shell: QR, stato, classifica e cronaca a destra); al centro un tavolo ovale con i posti
    tutt'intorno (nome, carte coperte, ciò che è pubblico) e in mezzo la parte comune del gioco, disegnata con le carte del gioco.
    Sulla TV NON compare mai un'informazione nascosta: solo il numero delle carte in mano, mai il loro valore (le mani si vedono
@@ -325,7 +325,7 @@ function mindTVH() {
   const burn = s.burn.length ? `<div class="tvk-burn"><small>Scartate per errore</small>${s.burn.slice(-10).map(b => mcardH(b.c, { cls: 'xs' })).join('')}</div>` : '';
   const center = `<div class="tvk-lv">Livello <b>${s.level}</b><small>/ ${s.maxLevel}</small></div>${piles}${burn}`;
   const st = { ready: 'Mano sul tavolo: quando tutti sono pronti si parte', play: 'Silenzio… si gioca', starvote: 'Proposta di shuriken: si vota', summary: 'Livello completato' }[ph] || '';
-  const end = o ? TVT.fine(o.win, o.win ? 'Telepatia perfetta!' : 'Le vite sono finite', o.win ? 'Tutti i ' + s.maxLevel + ' livelli superati' : esc(o.reason || '')) : '';
+  const end = o ? TVT.fine(o.win, o.win ? 'Mente perfetta!' : 'Le vite sono finite', o.win ? 'Tutti i ' + s.maxLevel + ' livelli superati' : esc(o.reason || '')) : '';
   return TVT.page(s, {
     sub: `${s.x ? 'Versione estrema · ' : ''}${s.blind ? 'livello a carte coperte · ' : ''}${s.n} giocatori`,
     state: o ? 'Partita finita' : st,

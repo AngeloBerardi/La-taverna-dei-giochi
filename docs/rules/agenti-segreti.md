@@ -1,4 +1,4 @@
-# Agenti Segreti
+# Parole in Codice
 **Giocatori** 4–10 · **Durata** ~15 min · **Tipo** parole a squadre · **Licenza/marchio**: meccanica libera (genere "indizio + parole"); il gioco di terzi a cui si ispira ha un nome protetto, qui rinominato
 ## Preparazione
 25 parole a caso da un elenco nostro di ~300 parole italiane. Chiave segreta: 9 parole della squadra che comincia, 8 dell'altra, 7 neutre, 1 trappola. Posti pari = Rossi, dispari = Blu; il posto 0 è la spia dei Rossi, il posto 1 la spia dei Blu.

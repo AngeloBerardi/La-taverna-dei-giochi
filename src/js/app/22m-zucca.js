@@ -29,7 +29,7 @@ function zuccaH(){if(ui.tv)return zuccaTVH();const s=G,v=viewer(),cover=needCove
  else if(ph==='pick'){body=`<div class="zcard" style="--zc:#2a2a30"><small>⚑ Traguardo</small><b>${esc(ZUCCA.tn(s,s.who))} ha tagliato il traguardo: ${esc(ZUCCA.tn(s,s.cur))} sceglie la prova finale.</b></div>`;if(mine)ctl=catBtns('zpick')}
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">${ic('corona',48)}</div><h2>Vince ${esc(ZUCCA.tn(s,s.over.win))}!</h2><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b>${multiSq(s)?' · squadra '+esc(ZUCCA.tn(s,s.cur)):''}<span class="dots"></span>`}${mine&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
- return fixH({title:'Zucca Matta',chips,strip,mid:zuccaBoardH(s),bot:body+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
+ return fixH({title:GN('zucca'),chips,strip,mid:zuccaBoardH(s),bot:body+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
 function zuccaClick(a,v){if(!myTurn())return;
  if(a==='zdraw')return dispatch({t:'draw'});
  if(a==='zres')return dispatch({t:'result',ok:v==='1'});

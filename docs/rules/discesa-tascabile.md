@@ -1,4 +1,4 @@
-# Discesa Tascabile
+# Dungeon in una Carta
 **Giocatori** 1 · **Durata** ~20-40 min · **Tipo** solitario a dadi, dungeon crawler · **Licenza/marchio**: ispirato a One Card Dungeon (Barny Skinner, Little Rocket Games; in Francia Matagot). Nome, mappe, mostri e testi originali; "One Card Dungeon" non si usa.
 ## Preparazione
 Griglia 5×6 con muri e terreni. Eroe: Velocità 1, Attacco 1, Difesa 1, Gittata 2, salute 6 (massimo 6 per tutto). 12 livelli; per ogni avventura 4 mappe, girate di 180° nei livelli 5-8 (come si gira la carta). Prima di scendere: classe e moduli.

@@ -1,6 +1,6 @@
 /* ---- Lobby: falò + scaffale ---- */
-const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'}};
-const TVG={giallo:['squadra','DELITTO'],rlegacy:['squadra','REGICIDIO C.'],regix:['squadra','REGICIDIO X'],fantasma:['squadra', 'FANTASMA'],zucca:['squadra', 'ZUCCA'],quiz:['classici', 'QUIZ'],spie:['squadra', 'AGENTI'],briscola:['classici','BRISCOLA'],scopa:['classici','SCOPA'],burraco:['classici','BURRACO'],machiavelli:['classici','MACHIAVELLI'],uno:['classici','ULTIMA CARTA'],perudo:['classici','BUGIARDO'],catan:['strategia','COLONI'],azul:['strategia','MOSAICO'],valle:['strategia','VALLE'],harvest:['strategia','RACCOLTO'],discesa:['strategia','DISCESA'],regicide:['strategia','REGICIDIO'],island:['strategia','ISOLA'],scoundrel:['strategia','FURFANTE'],gang:['squadra','LA BANDA'],mind:['squadra','TELEPATIA'],mindx:['squadra','TELEP. ESTREMA'],saboteur:['squadra','MINIERA'],kittens:['squadra','MICIO BOMBA'],pets:['squadra','BESTIOLE'],trono:['squadra','TRONO']};
+const TVC={classici:{f:'#c8434a',s:'#8e1b22',e:'#e8767c',n:'CLASSICI'},strategia:{f:'#e8b83a',s:'#a67d12',e:'#fff0a0',n:'STRATEGIA'},squadra:{f:'#3f8fe0',s:'#1d5aa0',e:'#7ab8f0',n:'COOPERATIVI'},festa:{f:'#a463e0',s:'#5e2a9a',e:'#d2a8ff',n:'FESTA'}};
+const TVG={giallo:['festa','DELITTO'],rlegacy:['squadra','REGICIDIO C.'],regix:['squadra','REGICIDIO X'],fantasma:['festa','RICERCATO'],zucca:['festa','TESTE MATTE'],quiz:['festa','TRIVIA'],spie:['festa','PAROLE'],briscola:['classici','BRISCOLA'],scopa:['classici','SCOPA'],burraco:['classici','BURRACO'],machiavelli:['classici','MACHIAVELLI'],uno:['classici','ULTIMA CARTA'],perudo:['classici','DUDO'],catan:['strategia','I COLONI'],azul:['strategia','AZULEJOS'],valle:['strategia','CASCATA'],harvest:['strategia','RACCOLTO'],discesa:['strategia','DUNGEON'],regicide:['squadra','REGICIDIO'],island:['strategia','ISOLA'],scoundrel:['strategia','FURFANTE'],gang:['squadra','LA BANDA'],mind:['squadra','LA MENTE'],mindx:['squadra','MENTE ESTR.'],saboteur:['festa','SABOTATORI'],kittens:['festa','GATTINI'],pets:['festa','BESTIE'],trono:['classici','TRONO']};
 const tvInfo=g=>TVG[g.id]||['strategia',g.name.toUpperCase().slice(0,11)];
 /* Scatole in proporzioni reali (misure approssimate in mm: altezza in piedi, spessore, larghezza del fronte).
    k: deck = astuccio di carte con linguetta, box = scatola con coperchio, wallet = bustina, flat = scatola grande coricata.
@@ -98,7 +98,7 @@ function tvShelf(list,top,N,myKeys,busy){
  const MD=multiDev();
  const cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase();
  const pick=list.find(x=>x.g.id===ui.pick)||top||list[0];
- const order=['classici','strategia','squadra'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k));
+ const order=['classici','strategia','squadra','festa'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k));
  const chips=[['tutti','TUTTI ('+list.length+')'],...order.map(k=>[k,TVC[k].n+' ('+list.filter(x=>tvInfo(x.g)[0]===k).length+')'])].map(([k,l])=>`<button class="tvchip ${cat===k?'on':''}" data-a="tvcat" data-v="${k}" aria-pressed="${cat===k}">${l}</button>`).join('');
  const vis=list.filter(x=>(cat==='tutti'||tvInfo(x.g)[0]===cat)&&(!q||x.g.name.toLowerCase().includes(q)));
  let rows='';

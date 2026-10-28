@@ -49,7 +49,7 @@ html[data-tv3] #tvpanel{display:none}
 .vtv-fb .vboard{width:100%;height:auto;max-height:28vh}
 .vtv-fd{grid-column:1/-1;display:flex;gap:2vw;justify-content:center}.vtv-fp{display:flex;align-items:center;gap:.8vw;padding:.6vh 1vw;background:rgba(255,255,255,.06);border-radius:1vh}
 .vtv-fp svg{width:7vh;height:7vh}.vtv-fp em{display:block;width:6vh;height:6vh;color:#f6ead0}.vtv-fp em .lpg{width:100%;height:100%}
-/* Agenti Segreti, Quiz, Zucca Matta, Fantasma sulla TV (app/24s-tv-giochi.js) */
+/* Parole in Codice, Quiz, Teste Matte, Fantasma sulla TV (app/24s-tv-giochi.js) */
 .tv3-fb{margin:auto;font-size:3vh;opacity:.8;text-align:center}
 .tv3-w{display:inline-block;width:1.8vh;height:1.8vh;border-radius:50%;border:.3vh solid;margin-right:.3vw}
 .sptv-scs{display:flex;gap:1vw}.sptv-sc{flex:1;text-align:center;padding:1vh;border-radius:1vh;background:var(--pc);color:#fff;display:flex;flex-direction:column}

@@ -1,5 +1,5 @@
 /* Banco di domande a risposta multipla (testi nostri, fatti verificabili). Ogni voce: [domanda, risposta giusta, errata, errata, errata].
-   Usato da Quiz della Taverna e dalla prova "Cultura" di Zucca Matta. Sei categorie, venti domande ciascuna. */
+   Usato da Trivia a Spicchi e dalla prova "Cultura" di Teste Matte. Sei categorie, venti domande ciascuna. */
 const DOMANDE=(()=>{
 const CATS=[{id:'geo',n:'Geografia',c:'#3b7fd8'},{id:'sto',n:'Storia',c:'#e0b040'},{id:'art',n:'Arte e libri',c:'#a0522d'},{id:'sci',n:'Scienza e natura',c:'#3aa05a'},{id:'spe',n:'Spettacolo e musica',c:'#d8479a'},{id:'spo',n:'Sport e hobby',c:'#e8782a'}];
 const Q={
