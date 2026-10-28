@@ -1,4 +1,4 @@
-# Accordi della Natura
+# Armonie
 **Giocatori** 1-4 · **Durata** ~30-45 min · **Tipo** tavolo, pile di dischi e schemi · **Licenza/marchio**: meccaniche ispirate a un gioco di Johan Benvenuto (Libellud, 2024) e alle sue due espansioni (2025-2026). Nomi, animali, schemi, punteggi delle carte, Custodi, Rifugi, Folletti e grafica sono nostri; i titoli originali non si usano.
 
 ## Preparazione
@@ -31,7 +31,7 @@ Pareggio: vince chi ha messo più cubetti.
 
 ## Varianti (opzione «Preparazione»)
 - **Custodi** (incluso nel base): al primo turno scegli 1 tra 2 Custodi. Il suo schema ospita un cubetto; se lo metti, a fine partita vale il suo obiettivo (10 Custodi nostri).
-- **Tre Toni** (espansione piccola): 10 animali con schemi a tre paesaggi, asimmetrici: lo specchio diventa decisivo.
+- **Battito** (espansione piccola): 10 animali con schemi a tre paesaggi, asimmetrici: lo specchio diventa decisivo.
 - **Fortissimo** (espansione grande), tre moduli combinabili:
   - **Rifugi**: 3 tessere scoperte; una volta per turno ne prendi una (conta nel limite di 4). Permette una pila di 4 dischi altrimenti vietata (es. due acque sopra un monte alto 2), una sola per tessera. Completo: vale 3 punti per ogni casella vicina con in cima uno dei suoi due colori, e può accogliere l'ultimo cubetto di una carta animale del suo colore. Incompleto: nessuna penalità.
   - **Folletti**: 10 carte nel mazzo animali, 2 cubetti ciascuna, schemi piccoli. Il cubetto folletto può stare con un cubetto animale o del Custode: 5 punti; da solo: 2.

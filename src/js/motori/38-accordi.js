@@ -1,7 +1,7 @@
-/* ACCORDI DELLA NATURA (1-4) – paesaggi a pile di dischi e animali che li abitano.
+/* ARMONIE (1-4) – paesaggi a pile di dischi e animali che li abitano.
    Meccaniche ispirate a un gioco commerciale del 2024 e alle sue due espansioni; nomi, animali, schemi, punteggi e testi sono nostri.
    Dischi: b acqua, g roccia, m tronco, v chioma, y campo, r tetto. Una casella tiene una pila (stringa dal basso all'alto, es. 'mmv').
-   Coordinate assiali 'q,r' (esagoni a punta in su). Moduli (opzione x): Custodi, Tre Toni (animali a tre paesaggi), Fortissimo
+   Coordinate assiali 'q,r' (esagoni a punta in su). Moduli (opzione x): Custodi, Battito (animali a tre paesaggi), Fortissimo
    (Rifugi, Folletti, lati C e D della plancia). */
 const ACC=(()=>{
 let RND=Math.random;const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(RND()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -32,7 +32,7 @@ const A_BASE=[
  ['rondine','Rondine','H;H@1,0',[5,11,18]],['pipistrello','Pipistrello','H;mmv@1,0',[6,13]],['gatto','Gatto selvatico','H;v@1,0',[3,7,12,18]],
  ['cicogna','Cicogna','H;b@1,0',[4,9,15]],['ape','Ape','y;y@1,0;y@0,1',[3,7,12,18]],['farfalla','Farfalla','y;v@1,0;v@-1,0',[3,7,12]],
  ['salamandra','Salamandra','g;b@1,0;b@0,1',[3,7,12,18]],['gabbiano','Gabbiano','b;H@1,0',[4,9,15]]];
-const A_TRE=[ /* Tre Toni: tre paesaggi diversi, schemi asimmetrici (lo specchio conta) */
+const A_TRE=[ /* Battito: tre paesaggi diversi, schemi asimmetrici (lo specchio conta) */
  ['lince','Lince','mmv;gg@1,0;y@0,1',[8,17,27]],['tritone','Tritone','b;v@1,0;g@0,1',[6,13,21]],['upupa','Upupa','y;H@1,0;mv@1,-1',[7,15,24]],
  ['cervovolante','Cervo volante','mv;y@1,0;b@-1,0',[5,11,18]],['gru','Gru','b;y@1,0;H@1,-1',[6,13,21]],['allocco','Allocco','mmv;H@1,0;b@0,1',[9,19]],
  ['ermellino','Ermellino','gg;v@1,0;y@2,0',[7,15]],['martora','Martora','mv;gg@1,0;b@1,-1',[8,17]],['tartaruga','Tartaruga','b;b@1,0;y@0,1;v@-1,1',[6,13,21]],
@@ -63,8 +63,8 @@ RIFUGI.forEach(([id,nm,st])=>CARDS[id]={id,nm,k:'f',st,cols:[...new Set(st)],set
 const topC=need=>need==='H'?'r':need[need.length-1];
 /* ---------- preparazioni (opzione x) ---------- */
 const PRESETS=[['A','Base · lato A (fiume)',{side:'A'}],['B','Base · lato B (isole)',{side:'B'}],['AS','Base con i Custodi · lato A',{side:'A',spi:1}],
- ['T','Tre Toni · lato A',{side:'A',tre:1}],['F1','Fortissimo: Rifugi · lato A',{side:'A',rif:1}],['F2','Fortissimo: Folletti · lato D (aride)',{side:'D',fol:1}],
- ['F3','Fortissimo: Rifugi e Folletti · lato C (cratere)',{side:'C',rif:1,fol:1}],['F4','Tutto insieme: Tre Toni, Fortissimo e Custodi · lato B',{side:'B',rif:1,fol:1,spi:1,tre:1}]];
+ ['T','Battito · lato A',{side:'A',tre:1}],['F1','Fortissimo: Rifugi · lato A',{side:'A',rif:1}],['F2','Fortissimo: Folletti · lato D (aride)',{side:'D',fol:1}],
+ ['F3','Fortissimo: Rifugi e Folletti · lato C (cratere)',{side:'C',rif:1,fol:1}],['F4','Tutto insieme: Battito, Fortissimo e Custodi · lato B',{side:'B',rif:1,fol:1,spi:1,tre:1}]];
 const presets=()=>PRESETS.map(p=>[p[0],p[1]]);
 const cfgOf=x=>(PRESETS.find(p=>p[0]===x)||PRESETS[0])[2];
 /* ---------- impilamento ---------- */
@@ -145,7 +145,7 @@ function endTurn(s){const p=s.cur,nm=s.names[p];
   s.over={scores:sc,det,win:ws.length===1?ws[0]:null,winners:ws,suns:s.n===1?suns(sc[0]):null};s.phase='summary';E(s,{t:'end'});L(s,'Il paesaggio è completo!');return}
  s.cur=nx;s.turn++;E(s,{t:'turn',p:nx})}
 /* ---------- motore ---------- */
-const ACCE={id:'accordi',name:'Accordi della Natura',ok:n=>n>=1&&n<=4,COL,CN,NTOK,DIRS,K,QR,CARDS,SIDES,ARID,PRESETS,presets,cfgOf,shape,legal,canPut,matchAt,cubeSpots,score,scoreP,suns,SUNS,fits,topC,nbs,isSite,held,empty,river,
+const ACCE={id:'accordi',name:'Armonie',ok:n=>n>=1&&n<=4,COL,CN,NTOK,DIRS,K,QR,CARDS,SIDES,ARID,PRESETS,presets,cfgOf,shape,legal,canPut,matchAt,cubeSpots,score,scoreP,suns,SUNS,fits,topC,nbs,isSite,held,empty,river,
  newGame(n,names,opts){const x=(opts&&opts.x)||'A',cfg=Object.assign({},cfgOf(x));
   const s={g:'accordi',n,names:names.slice(0,n),hands:Array.from({length:n},()=>[]),cur:0,turn:1,phase:'play',log:[],ev:[],evn:0,over:null,
    x,cfg,side:cfg.side,bag:[],box:[],gone:[],slots:[],deck:[],disp:[],rpile:[],rdisp:[],pl:[],took:null,hold:[],tookCard:false,tookRif:false,swapped:false,endTrig:false};

@@ -18,7 +18,7 @@ function bubbleH(s,mineTxt,waitTxt){if(s.over||ui.anim)return`<div class="bubble
  :`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>${waitTxt?`<small>${waitTxt}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`}
 function gameH(){if(!G)return hudH()+'<p class="muted" style="text-align:center">Caricamento…</p>';return VIEW[G.g]()}
 /* musica di sottofondo: gioco -> traccia (quelli non elencati usano 'it', i giochi a simulazione 'gang') */
-const MUSICA={giallo:'giallo',rlegacy:'rleg',gang:'gang',saboteur:'mine',azul:'azul',island:'island',machiavelli:'mach',valle:'valle',discesa:'disc',trono:'trono',spie:'spie',quiz:'quiz',zucca:'zucca',fantasma:'fantasma',uno:'uno',pets:'pets',catan:'cata',kittens:'kitt',perudo:'peru'};
+const MUSICA={giallo:'giallo',rlegacy:'rleg',gang:'gang',saboteur:'mine',azul:'azul',island:'island',machiavelli:'mach',valle:'valle',accordi:'accordi',discesa:'disc',trono:'trono',spie:'spie',quiz:'quiz',zucca:'zucca',fantasma:'fantasma',uno:'uno',pets:'pets',catan:'cata',kittens:'kitt',perudo:'peru'};
 const traccia=()=>!(ui.screen==='game'&&G&&!G.over)?'menu':G.g==='giallo'?(ui.tv&&Snd.__gk?'kit':'giallo'):isRG(G.g)?(G.en?P(G.en.c).r:'menu'):MUSICA[G.g]||(G.sim?'gang':'it');
 function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
  $('#app').classList.toggle('fixed',fxOn());

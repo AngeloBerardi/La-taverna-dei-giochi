@@ -15,6 +15,16 @@ const RULES={
 <li><b>Classi</b>: ognuna ha un potere (di solito una volta per livello).</li>
 <li><b>Espansioni</b>: <i>Porto delle Ombre</i> (acqua: i mostri in acqua guadagnano i bonus indicati; classe Corsaro), <i>Vetta Eterna</i> (bufera: se ci stai sopra hai −1 ad Attacco e Difesa base; classe Sherpa), <i>Soglia Infernale</i> (lava: se finisci il turno sopra perdi 1 salute; boss finale; classe Esorcista; Pietra della Perdizione), <i>Lo Scettro Risorge</i> (classi Monaco, Chierico e Assassino, forzieri, boss Scettrarca). Gli <b>oggetti</b> si pescano 3 a inizio partita e si usano una volta.</li></ul>`,
 
+ accordi:`<p>Ognuno fa crescere il proprio <b>paesaggio</b> impilando dischi di legno su una plancia di esagoni, e lo popola di <b>animali</b> che chiedono un paesaggio preciso. Vince chi ha più punti quando il paesaggio è pieno.</p>
+<ul><li><b>Turno</b>: prendi i <b>3 dischi</b> di uno spazio del centro e mettili tutti sulla plancia. Quando vuoi nel turno puoi anche prendere <b>una carta</b> (al massimo 4 da completare) e mettere <b>cubetti</b>.</li>
+<li><b>Pile</b>: roccia su roccia fino a 3 (monte); tronco su tronco fino a 2 e una chioma sopra (albero alto 1-3); un tetto sopra un solo disco di roccia, tronco o tetto (casa). Acqua e campo restano bassi e non reggono niente.</li>
+<li><b>Animali</b>: quando lo schema della carta è sulla plancia (giralo o specchialo come vuoi, altezze esatte) metti un cubetto sulla casella segnata. Una casella, un cubetto; sopra un cubetto non si impila più. Vale l’ultimo numero scoperto della traccia.</li>
+<li><b>Punti</b>: alberi 1/3/7; monti 1/3/7 se toccano un monte; 5 per ogni campo di almeno 2; 5 per ogni casa con 3 colori diversi attorno; fiume più lungo 2/5/8/11/15 e poi +4 (lato B: 5 per isola).</li>
+<li><b>Fine</b>: quando il sacchetto non basta o qualcuno ha 2 caselle vuote o meno, si finisce il giro. Pareggio: più cubetti.</li>
+<li><b>Custodi</b>: al primo turno scegline uno su due; con il suo cubetto vale il suo obiettivo.</li>
+<li><b>Battito</b>: dieci animali con schemi a tre paesaggi, dove lo specchio fa la differenza.</li>
+<li><b>Fortissimo</b>: <b>Rifugi</b> (una pila di 4 normalmente vietata; completo vale 3 per ogni vicino del suo colore e accoglie l’ultimo cubetto di un animale), <b>Folletti</b> (2 cubetti che possono stare con un animale: 5 punti, da soli 2), lato <b>C</b> (senza centro, case a 4 colori da 8) e lato <b>D</b> (caselle aride da irrigare con l’acqua accanto).</li>
+<li><b>Solitario</b>: 3 spazi, i dischi avanzati vanno via a ogni turno; da 1 a 6 soli a 40, 60, 80, 100, 120, 140 punti.</li></ul>`,
  valle:`<p>Ognuno costruisce la propria <b>valle</b> con tessere esagonali di habitat (🏔️ montagna, 🌲 foresta, 🌾 prateria, 🪷 palude, 🌊 fiume) e la popola di animali. Si giocano <b>20 turni a testa</b>, poi si contano i punti.</p>
 <ul><li><b>Turno</b>: prendi una delle 4 coppie <b>tessera + animale</b> del sentiero. Posa la tessera accanto alla tua valle (puoi ruotarla), poi metti l’animale su una tua tessera libera che lo mostra, oppure lascialo andare.</li>
 <li><b>Pigne 🌰</b>: le tessere col cerchio tratteggiato ospitano un solo animale; metterlo lì ti dà una pigna. Una pigna permette di prendere tessera e animale da coppie diverse, oppure di cambiare gli animali del sentiero che vuoi. Ogni pigna rimasta vale 1 punto.</li>

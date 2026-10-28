@@ -1,4 +1,4 @@
-// Accordi della Natura: impilamento, schemi con rotazioni e specchio, punteggi a mano (lati A-D, Rifugi, Folletti, Custodi),
+// Armonie: impilamento, schemi con rotazioni e specchio, punteggi a mano (lati A-D, Rifugi, Folletti, Custodi),
 // conservazione dei 120 dischi, partite da 1 a 4 in tutte le preparazioni, errori, bot goloso che batte il casuale.
 const A=require('../src/js/motori/38-accordi.js'),carica=require('./carica.js'),assert=require('assert');
 const K=A.K;

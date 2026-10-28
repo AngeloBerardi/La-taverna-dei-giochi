@@ -11,7 +11,7 @@ Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.mod
 ui.modal=null;
 const ME={name:ST('rg-name')||'',dev:'local'};
 const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{},chat:[],un:[],rev:0,mine:{name:'',t:0,guests:[],votes:{}},offSeats:null};
-const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,discesa:DISC,rlegacy:RLEG,regix:RGX};
+const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,accordi:ACC,discesa:DISC,rlegacy:RLEG,regix:RGX};
 /* Regicidio e la sua variante con classi e tratti condividono vista, effetti e schermo comune */
 const isRG=g=>g==='regicide'||g==='regix';
 const GAMES=[
@@ -25,6 +25,7 @@ GAMES.push({id:'mind',name:'La Mente',desc:'Cooperativo senza parole: giocate le
 GAMES.push({id:'mindx',name:'La Mente Estrema',desc:'La versione estrema: carte bianche crescenti e rosse decrescenti, e più avanti carte giocate coperte.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n+' giocatori · '+({2:12,3:10,4:8}[n])+' livelli'});
 GAMES.push({id:'harvest',name:'Valle del Raccolto',desc:'Costruisci la tua fattoria in una valle condivisa: ortaggi, frutteti e grano… ma attenti a corvi e cinghiali!',range:'2–5',ok:n=>n>=2&&n<=5,mode:n=>n+' contadini · valle '+(n%2?'6×5':'5×5')});
 GAMES.push({id:'valle',name:'Terre di Cascata',desc:'Fai crescere la tua valle con tessere di habitat e accogli orsi, alci, salmoni, falchi e volpi nei posti giusti.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario · 20 turni':n+' giocatori · 20 turni a testa'});
+GAMES.push({id:'accordi',name:'Armonie',desc:'Impila dischi di legno per far crescere monti, alberi, fiumi, campi e case, poi accogli gli animali che cercano proprio quel paesaggio. Con i Custodi e le espansioni Battito e Fortissimo.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario · punteggio in soli':n+' giocatori · finché il paesaggio è pieno',opts:{k:'x',label:'Preparazione',vals:ACC.presets()}});
 GAMES.push({id:'discesa',name:'Dungeon in una Carta',desc:'Solitario a dadi: scendi 12 livelli di dungeon su una sola carta, assegna l’energia, muoviti e colpisci prima che i mostri ti raggiungano.',range:'1',ok:n=>n===1,mode:n=>'Solitario · 12 livelli',opts:{k:'adv',label:'Avventura',vals:[['base','Le Cripte (gioco base)'],['porto','Porto delle Ombre'],['vetta','Vetta Eterna'],['soglia','Soglia Infernale']]}});
 GAMES.push({id:'perudo',name:'Dudo',desc:'Il gioco di bluff coi dadi: dichiara quanti ce ne sono sul tavolo, sfida con Dudo, calza al momento giusto. Gli assi sono jolly.',range:'2–6',ok:n=>n>=2&&n<=6,mode:n=>n+' giocatori · 5 dadi a testa'});
 GAMES.push({id:'kittens',name:'Gattini al Botto',desc:'Pesca, bluffa e sopravvivi: un Micio Bomba nel mazzo e un solo Disinnesco tra te e il botto. Attacchi, Niet a catena e gatti ladri.',range:'2–10',ok:n=>n>=2&&n<=10,mode:n=>n+' giocatori · '+(n-1)+' bombe nel mazzo'+(n>5?' · due mazzi':''),opts:{k:'edi',label:'Edizione',vals:[['base','Classica'],['imp','Implosione (con carte extra)']]}});
@@ -51,7 +52,7 @@ const isMine=i=>local().includes(i);
 const multiLocal=()=>local().length>1;
 function viewer(){if(!G)return-1;const L=local();if(G.sim)return L.includes(ui.ms)?ui.ms:(L.length?L[0]:-1);if(L.length===1)return L[0];if(isMine(G.cur)&&ui.shown===G.cur)return G.cur;return-1}
 function needCover(){return!!(G&&!G.sim&&!G.over&&G.phase!=='summary'&&isMine(G.cur)&&multiLocal()&&ui.shown!==G.cur)}
-function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.sim)return local().length>0;if(G.g==='harvest'||G.g==='valle'||G.g==='quiz'||(G.g==='rlegacy'&&G.phase==='prep'))return isMine(G.cur);if(!isMine(G.cur))return false;if(G.phase==='summary')return true;return!multiLocal()||ui.shown===G.cur}
+function myTurn(){if(!G||G.over||ui.busy||ui.anim||ui.story)return false;if(G.sim)return local().length>0;if(G.g==='harvest'||G.g==='valle'||G.g==='accordi'||G.g==='quiz'||(G.g==='rlegacy'&&G.phase==='prep'))return isMine(G.cur);if(!isMine(G.cur))return false;if(G.phase==='summary')return true;return!multiLocal()||ui.shown===G.cur}
 function seatTag(i){const x=seatsNow()[i];if(!x||x.dev!==ME.dev||G&&G.n===1)return'';return x.k==='m'?' (tu)':' (ospite)'}
 const members=()=>R.on?R.members:[{id:ME.dev,...R.mine}];
 const multiDev=()=>members().length>=2;
