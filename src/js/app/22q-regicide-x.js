@@ -2,6 +2,8 @@
    La vista è quella di Regicidio (13-regicide.js e, sullo schermo comune, 24j-regicide-tv.js): qui ci sono solo i pezzi in più,
    chiamati da lì quando G.g==='regix'. Motore: motori/37-regicide-x.js (RGX). */
 const RX={
+ /* atti dell'assedio: nomi propri di Regicidio X (Regicidio usa ACTS) */
+ ACTS:{J:['Assedio I','La Breccia'],Q:['Assedio II','Corte Ribelle'],K:['Assedio III','Trono Infranto']},
  /* carta dell'eroe: stessa carta crema di Regicidio, ritratto dipinto (FACE.eroe), nastro col nome della classe */
  carta(k,o={}){if(!k||!RGX.CLS[k])return'';const c=RGX.CLS[k];
   return`<div class="card fz eroe ${k} ${o.cls||''}" ${o.attrs||''} ${o.style?`style="${o.style}"`:''}><div class="ix">${ic(c.ic,16)}</div>${FACE.eroe(k)}<div class="enm">${c.n}</div></div>`},

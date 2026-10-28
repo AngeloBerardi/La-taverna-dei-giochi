@@ -121,7 +121,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/29d-zucca.css` | 1 |  |
 | `css/29e-fantasma.css` | 1 |  |
 | `css/29f-regicide-legacy.css` | 7 |  |
-| `css/29g-regicide-x.css` | 4 |  |
+| `css/29g-regicide-x.css` | 10 |  |
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |

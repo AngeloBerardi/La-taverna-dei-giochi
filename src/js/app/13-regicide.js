@@ -7,7 +7,7 @@ function regicideH(){
  const hand=okHand?s.hands[owner].slice().sort((a,b)=>E.cv(a)-E.cv(b)||(a<b?-1:1)):[];
  const ob=s.phase==='discard'&&mine;
  let boss='',act='';
- if(en){const rk=P(en.c).r,su=P(en.c).s,hp=E.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);act=`${ACTS[rk][0]} · ${ACTS[rk][1]} · nemico ${Math.min(12,12-s.castle.length)}/12`;
+ if(en){const rk=P(en.c).r,su=P(en.c).s,hp=E.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);act=`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)}/12`;
   boss=`<div class="arena3"><div class="side">${pileH('pcastle','Castello',s.castle.length)}</div>
   <div class="boss ${su}" id="boss"><div class="frame">${cardH(en.c,{cls:'xl holo',boss:1})}</div>
    <div class="imm ${en.can?'off':''}" title="${en.can?'Immunità annullata dal Jolly':'Immune: '+(X?RX.imm(en):IMMTXT[su])}">IMMUNE ${X?RX.simboli(en):SYM[su]}</div>${X?RX.sigillo(en):''}

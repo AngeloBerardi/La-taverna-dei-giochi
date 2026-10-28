@@ -20,7 +20,7 @@ function regicideTVH(){
  const s=G,X=s.g==='regix',en=ui.viewEn||s.en,url=TV.linkGioco(),d3=RTV3.sync(s,en);document.documentElement.dataset.rtv3=d3?'1':'';
  let boss='',head='REGICIDE';
  if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
-  head=`${ACTS[rk][0]} · ${ACTS[rk][1]} · nemico ${Math.min(12,12-s.castle.length)} di 12`;
+  head=`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)} di 12`;
   boss=`<div class="rtv-boss ${su}" id="boss"><div class="rtv-face">${cardH(en.c,{cls:'xl',boss:1,style:'--cw:min(29vh,17vw)'})}${X?RX.sigillo(en):''}</div>
    <div class="rtv-info"><div class="rtv-name">${RN[rk]} di ${SN[su]}</div><div class="rtv-title">${esc(TITLES[en.c])}</div>
     <div class="rtv-imm ${en.can?'off':''}">${en.can?'Immunità annullata dal Jolly':X?'Immune: '+RX.simboli(en)+' · '+RX.imm(en):'Immune ai '+SN[su].toLowerCase()+' '+SYM[su]+' · '+IMMTXT[su]}</div>${X&&en.tr?`<div class="rtv-tr">${ic(RGX.TR[en.tr].ic,22)}<b>${RGX.TR[en.tr].n}</b> ${esc(RGX.TR[en.tr].d)}</div>`:''}

@@ -28,8 +28,8 @@ async function flyCards(items,target,{dur=520,rot=0,scale=.55,fade=true}={},rend
   return a.finished.then(()=>c.remove(),()=>c.remove())}))}
 function avatarItems(p,cards){const a=document.getElementById('av'+p);const r=a?a.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight-120,width:40,height:56};return cards.map(id=>({id,r:{left:r.left,top:r.top,width:40,height:56}}))}
 /* splash del nemico in arrivo, stile duello */
-function splash(c,first){const rk=P(c).r,s=P(c).s,[a1,a2]=ACTS[rk],act=first||'JQK'.indexOf(rk)>0&&prevRank!==rk;prevRank=rk;
- add(`${act?`<div class="act">${a1}<b>${a2}</b></div>`:''}<div class="vs" style="--glow:${SUITC[s][0]}">${cardH(c,{boss:1,cls:'holo'})}</div><h2>${RN[rk]} di ${SN[s]}</h2><em>${esc(TITLES[c])}</em><q>${esc(QUOTES[c])}</q>`,'splash',null,null,2800*Math.max(SP,.05));
+function splash(c,first){const X=G&&G.g==='regix',rk=P(c).r,s=P(c).s,[a1,a2]=(X?RX.ACTS:ACTS)[rk],tr=X&&G.en&&G.en.c===c&&G.en.tr?G.en:null,act=first||'JQK'.indexOf(rk)>0&&prevRank!==rk;prevRank=rk;
+ add(`${act?`<div class="act">${a1}<b>${a2}</b></div>`:''}<div class="vs" style="--glow:${SUITC[s][0]}">${cardH(c,{boss:1,cls:'holo'})}</div><h2>${RN[rk]} di ${SN[s]}</h2><em>${esc(TITLES[c])}</em>${tr?`<p class="rxspl">${RX.sigillo(tr)}${RGX.TR[tr.tr].n}</p>`:''}<q>${esc(QUOTES[c])}</q>`,'splash',null,null,2800*Math.max(SP,.05));
  Snd.play('enemy');setTimeout(()=>{const c2=ctr('.splash .vs');burst(c2.x,c2.y,SUITC[s],40,{v:7,g:.05,dec:.02})},250*SP)}
 let prevRank=null;
 async function runFx(ev,own){const nm=i=>G.names[i]??'',B='#boss';let killed=null;

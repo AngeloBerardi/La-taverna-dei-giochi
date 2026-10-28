@@ -72,7 +72,7 @@ function pawn(col){const g=new T.Group(),m=K.mat(col,{roughness:.5,flatShading:f
 function buildTable(){const t=new T.Group(),wood=K.woodTex();
  const floor=new T.Mesh(new T.PlaneGeometry(90,90),new T.MeshStandardMaterial({map:wood,roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=-.02;floor.receiveShadow=true;t.add(floor);
  const frame=new T.Mesh(new T.BoxGeometry(15.2,.3,10.6),M('#6f4726',{roughness:.7}));frame.position.set(0,.05,.3);frame.receiveShadow=true;frame.castShadow=true;t.add(frame);
- const felt=new T.Mesh(new T.BoxGeometry(14.4,.06,9.8),M('#3f7a66',{roughness:.95}));felt.position.set(0,.2,.3);felt.receiveShadow=true;t.add(felt);
+ const felt=new T.Mesh(new T.BoxGeometry(14.4,.06,9.8),M(typeof G!=='undefined'&&G&&G.g==='regix'?'#6a2226':'#3f7a66',{roughness:.95}));felt.position.set(0,.2,.3);felt.receiveShadow=true;t.add(felt);
  const inl=(x,z,w,d,c)=>{const m=new T.Mesh(new T.BoxGeometry(w,.02,d),M(c,{roughness:.95}));m.position.set(x,.235,z);m.receiveShadow=true;t.add(m)};
  inl(-5.9,.35,1.6,5.3,'#356a58');inl(4,1.3,5.7,3.2,'#356a58');inl(-.9,-.5,3.6,3.6,'#4b8a74');
  S.scn.add(t);return t}
