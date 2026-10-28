@@ -121,7 +121,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/29d-zucca.css` | 1 |  |
 | `css/29e-fantasma.css` | 1 |  |
 | `css/29f-regicide-legacy.css` | 7 |  |
-| `css/29g-regicide-x.css` | 10 |  |
+| `css/29g-regicide-x.css` | 15 |  |
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
@@ -180,14 +180,14 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/35-sync.js` | 4 | SYNC |
 | `js/motori/36-regicide-legacy.js` | 31 | RLEG, RND, clone, shuffle, pick, HL, CL |
 | `js/motori/36-giallo.js` | 19 | GIALLO |
-| `js/motori/37-regicide-x.js` | 13 | RGX, SU, HAND, RND, P, cv, clone |
+| `js/motori/37-regicide-x.js` | 24 | RGX, SU, HAND, RND, P, cv, clone |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 5 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 20 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
-| `js/app/05-carte-figura-dipinte.js` | 27 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
+| `js/app/05-carte-figura-dipinte.js` | 39 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
 | `js/app/07-nucleo.js` | 14 | G, ui, ME, R, ENG, isRG, GAMES |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
@@ -196,7 +196,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07d-regole.js` | 40 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
-| `js/app/07f-viste-gioco.js` | 7 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
+| `js/app/07f-viste-gioco.js` | 8 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
@@ -233,7 +233,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22n-fantasma.js` | 10 | FAC, FTK, FSX, fpos, FZ, fantasmaMapH, fleg |
 | `js/app/22o-rl-arte.js` | 16 | RLA, ICO, icon, iconIn, P, C, EYE |
 | `js/app/22p-regicide-legacy.js` | 20 | RLV, rlegacyH, rlPrepH, rlEndH, rlClick, RLFX |
-| `js/app/22q-regicide-x.js` | 4 | RX |
+| `js/app/22q-regicide-x.js` | 12 | RX, titolo, motto |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 9 | FB |

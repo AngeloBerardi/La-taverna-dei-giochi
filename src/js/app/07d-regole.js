@@ -160,12 +160,12 @@ const RULES={
 <li><b>Danno esatto</b>: il nemico entra nella riserva, in cima, e combatte per voi (forza e classi, niente vita).</li>
 <li><b>Campagna</b>: chi inizia lo decidete voi. Dopo una sconfitta arriva oro per i <b>mercenari</b> (1, poi 2, 3…), validi solo per quel tentativo. Le vittorie portano reliquie, nuove classi, belve e cambi permanenti; dalla missione 5 la <b>corruzione</b> può prendere un eroe.</li>
 <li>Limite di mano: 8 da solo, 7 in due, 6 in tre (1 giullare), 5 in quattro (2 giullari). Si perde se qualcuno non riesce a parare o non può né attaccare né cedere.</li></ul>`,
-  regix:`<p>Regicidio con gli eroi (1–4): stesse carte e stesse regole di Regicidio, più una <b>classe</b> per giocatore e, se scelto, un <b>tratto</b> per ogni Regina e ogni Re.</p>
-<ul><li><b>Poteri</b>: uno per classe, una volta per nemico; si ricarica con il nemico successivo. Tocca la tua carta dell'eroe per leggerlo.</li>
-<li>Guerriero: +5 danni con l'attacco. Chierico: 3 carte dagli Scarti alla Taverna. Ranger: con l'attacco le immunità non contano. Mago: pesca 2 carte senza consumare il turno.</li>
-<li><b>Guardiano</b>: il Bastione toglie 5 danni a chi viene colpito, anche quando non è il suo turno.</li>
-<li><b>Tratti</b> (il sigillo rosso sulla carta del nemico): Corazzato, Rigenerante, Feroce, Spinoso, Doppia immunità, Maledizione, Anti-scudo, Silenzio, Brutale. Tocca il sigillo per leggerlo.</li>
-<li>I Fanti non hanno tratti: il primo atto serve a prendere la mano.</li></ul>`,
+  regix:`<p>Regicidio contro i mostri (1–4). Ogni seme è una razza: <b>Cuori</b> vampiri, <b>Quadri</b> golem, <b>Fiori</b> spiriti del bosco, <b>Picche</b> non morti. Semi a quattro colori; regole delle carte come in Regicidio.</p>
+<ul><li><b>Classi</b>: una per giocatore, con un potere una volta per nemico. Guerriero +5 danni; Chierico 3 carte dagli Scarti alla Taverna; Ranger ignora le immunità; Mago pesca 2 carte senza consumare il turno; Guardiano toglie 5 danni a chi viene colpito, anche fuori dal suo turno.</li>
+<li><b>Tratti</b> (il sigillo rosso sulla carta del nemico): Regine e Re ne hanno uno. Tocca il sigillo per leggerlo.</li>
+<li><b>Campagna</b> (da soli): scala la torre in 8 piani scegliendo la strada fra scontri, élite, fucina, falò e tesori. Parti con 20 carte (Asso–5 di ogni seme) e un mazzo che cresce.</li>
+<li><b>Sigilli</b> sulle carte: Affilata +3 danni, Vampirica cura 2, Egida −3 all'attacco, Rapida pesca 1, Spettrale ignora l'immunità del suo seme.</li>
+<li><b>Artefatti</b>: fino a 5, valgono per tutta la scalata. In fucina puoi forgiare, imprimere sigilli, fondere due carte dello stesso seme o rimuoverne una.</li></ul>`,
   regicide:`<p>Gioco cooperativo (1–4): sconfiggete i 12 nemici del castello (4 Fanti, 4 Regine, 4 Re). Se un giocatore non può subire il danno, perdete tutti.</p>
 <ul><li><b>Turno</b>: gioca una carta (o un Asso + una carta, o carte uguali con somma ≤ 10, o il Jolly) oppure cedi; poi poteri dei semi, danno, e se il nemico sopravvive scarta carte per almeno il suo attacco.</li>
 <li>♥ rimetti in fondo alla Taverna carte dagli scarti. ♦ pesca (senza superare la mano massima). ♣ danno doppio. ♠ l’attacco del nemico cala.</li>

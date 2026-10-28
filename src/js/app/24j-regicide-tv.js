@@ -17,12 +17,13 @@ const RTV={
  legendaH(){return'<ul class="rtv-leg"><li><i class="H">♥</i><b>Cuori</b> curano: gli scarti tornano nella Taverna</li><li><i class="D">♦</i><b>Quadri</b> pescano carte</li><li><i class="C">♣</i><b>Fiori</b> fanno danno doppio</li><li><i class="S">♠</i><b>Picche</b> riducono l’attacco</li></ul>'}
 };
 function regicideTVH(){
+ if(G.g==='regix'&&G.camp&&G.fase!=='fight')return`<div class="rxtvwrap">${RX.campH(G)}</div>`;
  const s=G,X=s.g==='regix',en=ui.viewEn||s.en,url=TV.linkGioco(),d3=RTV3.sync(s,en);document.documentElement.dataset.rtv3=d3?'1':'';
  let boss='',head='REGICIDE';
- if(en){const rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
-  head=`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)} di 12`;
+ if(en){const rk=P(en.c).r,su=P(en.c).s,hp=X?RGX.hpE(en):RG.hpOf[rk],atk=X?RGX.atkBase(en,s):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
+  head=X&&s.camp?RX.tappa(s):`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)} di 12`;
   boss=`<div class="rtv-boss ${su}" id="boss"><div class="rtv-face">${cardH(en.c,{cls:'xl',boss:1,style:'--cw:min(29vh,17vw)'})}${X?RX.sigillo(en):''}</div>
-   <div class="rtv-info"><div class="rtv-name">${RN[rk]} di ${SN[su]}</div><div class="rtv-title">${esc(TITLES[en.c])}</div>
+   <div class="rtv-info"><div class="rtv-name">${RN[rk]} di ${SN[su]}</div><div class="rtv-title">${esc(titolo(en.c))}</div>
     <div class="rtv-imm ${en.can?'off':''}">${en.can?'Immunità annullata dal Jolly':X?'Immune: '+RX.simboli(en)+' · '+RX.imm(en):'Immune ai '+SN[su].toLowerCase()+' '+SYM[su]+' · '+IMMTXT[su]}</div>${X&&en.tr?`<div class="rtv-tr">${ic(RGX.TR[en.tr].ic,22)}<b>${RGX.TR[en.tr].n}</b> ${esc(RGX.TR[en.tr].d)}</div>`:''}
     <div class="rtv-hp"><i style="width:${left/hp*100}%"></i><b>${left}<small> / ${hp} vita</small></b></div>
     <div class="rtv-stats"><span><b>${eff}</b> attacco${en.sh?` <small>(−${en.sh} scudo)</small>`:''}</span><span><b>${en.dmg}</b> danno subito</span></div></div></div>`}

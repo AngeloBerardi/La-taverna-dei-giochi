@@ -90,13 +90,13 @@ function buildPieces(s,en,isNew){if(pcs)S.scn.remove(pcs);pcs=new T.Group();cons
  /* mazzi: l'altezza della pila è il numero di carte */
  [['Castello',s.castle.length,-2.2,0],['Taverna',s.tav.length,-.25,1],['Scarti',s.disc.length,1.7,1]].forEach(([nm,n,z,tl])=>{const st=stackM(n,tl);put(st,-5.9,Y,z);pcs.add(st);const p=plateM(nm+' '+n,1.5,.34);put(p,-5.9,Y+.01,z+1.0);pcs.add(p)});
  /* nemico: la carta poggia su un cavalletto (appoggio davanti, puntone dietro) */
- if(en){const X=G.g==='regix',rk=P(en.c).r,su=P(en.c).s,hp=RG.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
+ if(en){const X=G.g==='regix',rk=P(en.c).r,su=P(en.c).s,hp=X?RGX.hpE(en):RG.hpOf[rk],atk=X?RGX.atkBase(en,s):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);
   const ring=new T.Mesh(new T.CylinderGeometry(1.95,1.95,.04,36),new T.MeshBasicMaterial({color:lin(SUC[su]),transparent:true,opacity:.35}));put(ring,-.9,Y+.01,-.4);pcs.add(ring);pulses.push(ring);
   const ledge=new T.Mesh(new T.BoxGeometry(2.4,.235,.34),M('#6f4726'));put(ledge,-.9,Y+.1175,1.02);ledge.castShadow=true;pcs.add(ledge);
   const leg=new T.Mesh(new T.BoxGeometry(.22,2.2,.12),M('#6f4726'));put(leg,-.9,Y+.82,-1.71);leg.rotation.x=.7;leg.castShadow=true;pcs.add(leg);
   const bc=cardM(en.c,2.15);bc.scale.y=1.8;put(bc,-.9,Y+1.12,-.28);bc.rotation.x=.62;reg('en'+en.c,bc);
   const nm=plateM(RN[rk]+' di '+SN[su],3.1,.5);put(nm,-.9,Y+.02,1.55);pcs.add(nm);
-  const ti=plateM(TITLES[en.c]||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.0);pcs.add(ti);
+  const ti=plateM(titolo(en.c)||'',3.1,.34,{bg:'#2a1b0f',fg:'#e6cf9a'});put(ti,-.9,Y+.02,2.0);pcs.add(ti);
   const tr=new T.Mesh(new T.BoxGeometry(4.1,.12,.58),M('#3a2616'));put(tr,4.9,Y+.06,-3.0);tr.castShadow=true;pcs.add(tr);
   const fl=Math.max(.001,3.8*left/hp),fb=new T.Mesh(new T.BoxGeometry(fl,.16,.36),M('#e0504a',{roughness:.5}));put(fb,2.95+fl/2,Y+.12,-3.0);pcs.add(fb);
   for(let q=1;q<hp/10;q++){const tk=new T.Mesh(new T.BoxGeometry(.04,.2,.5),M('#1a120a'));put(tk,2.95+3.8*q*10/hp,Y+.13,-3.0);pcs.add(tk)}

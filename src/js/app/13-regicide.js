@@ -2,18 +2,19 @@ function pileH(id,label,n,face){return`<div class="pile ${n?'':'empty'}" id="${i
 function regicideH(){
  if(ui.tv)return regicideTVH();
  const X=G.g==='regix',E=X?RGX:RG; /* Regicidio X: stessa vista, in più classi e tratti (22q-regicide-x.js) */
+ if(X&&G.camp&&G.fase!=='fight')return RX.campH(G);
  const s=G,en=ui.viewEn||s.en,cur=s.cur,cover=needCover(),mine=myTurn(),cname=esc(s.names[cur]),sel=ui.sel;
  const owner=viewer(),okHand=!cover&&owner>=0;
  const hand=okHand?s.hands[owner].slice().sort((a,b)=>E.cv(a)-E.cv(b)||(a<b?-1:1)):[];
  const ob=s.phase==='discard'&&mine;
  let boss='',act='';
- if(en){const rk=P(en.c).r,su=P(en.c).s,hp=E.hpOf[rk],atk=X?RGX.atkBase(en):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);act=`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)}/12`;
+ if(en){const rk=P(en.c).r,su=P(en.c).s,hp=X?RGX.hpE(en):RG.hpOf[rk],atk=X?RGX.atkBase(en,s):RG.atOf[rk],eff=Math.max(0,atk-en.sh),left=Math.max(0,hp-en.dmg);act=X&&s.camp?RX.tappa(s):`${(X?RX.ACTS:ACTS)[rk][0]} · ${(X?RX.ACTS:ACTS)[rk][1]} · nemico ${Math.min(12,12-s.castle.length)}/12`;
   boss=`<div class="arena3"><div class="side">${pileH('pcastle','Castello',s.castle.length)}</div>
   <div class="boss ${su}" id="boss"><div class="frame">${cardH(en.c,{cls:'xl holo',boss:1})}</div>
    <div class="imm ${en.can?'off':''}" title="${en.can?'Immunità annullata dal Jolly':'Immune: '+(X?RX.imm(en):IMMTXT[su])}">IMMUNE ${X?RX.simboli(en):SYM[su]}</div>${X?RX.sigillo(en):''}
    <div class="gem atk" id="gatk" title="Attacco">${eff}<small>ATT</small></div><div class="gem hp" id="ghp" title="Vita">${left}<small>VITA</small></div>${en.sh?`<div class="gem sh" title="Scudo dalle Picche">−${en.sh}</div>`:''}</div>
   <div class="side">${pileH('ptav','Taverna',s.tav.length)}${pileH('pdisc','Scarti',s.disc.length,s.disc.length?s.disc[s.disc.length-1]:null)}</div></div>
-  <div class="nameplate"><span class="rib">${RN[rk]} di ${SN[su]}</span><em>${esc(TITLES[en.c])}${X&&en.tr?' · <b class="rxtrn">'+RGX.TR[en.tr].n+'</b>':''} · ${X?RX.imm(en):en.can?'immunità annullata':IMMTXT[su]}</em><div class="hpbar"><i style="width:${left/hp*100}%"></i></div></div>`}
+  <div class="nameplate"><span class="rib">${RN[rk]} di ${SN[su]}</span><em>${esc(titolo(en.c))}${X&&en.tr?' · <b class="rxtrn">'+RGX.TR[en.tr].n+'</b>':''} · ${X?RX.imm(en):en.can?'immunità annullata':IMMTXT[su]}</em><div class="hpbar"><i style="width:${left/hp*100}%"></i></div></div>`}
  const played=s.played.map(c=>{const nw=!seen.p.has(c);return cardH(c,{cls:'sm '+(nw?'pop':''),style:`--r:${(hash(c)%9)-4}deg`})}).join('')||'<span class="muted">Il campo di battaglia è vuoto</span>';seen.p=new Set(s.played);
  const pls=`<div class="players" id="players">${s.names.map((n,i)=>`<div class="pl ${i===cur&&!s.over?'act':''}"><div class="av" id="av${i}">${esc(n[0]||'?')}</div><span class="n">${X?RX.mini(s,i):''}${esc(n)}${seatTag(i)}</span><span class="hc">${s.hands[i].length}🂠</span></div>`).join('')}${s.n===1?`<div class="pl row0"><div class="av">J</div><span class="n">Jolly</span><span class="hc">${s.jl}</span></div>`:''}</div>`;
  let bub='',prev='',ctl='';const nar=esc(s.log[s.log.length-1]||'');
@@ -33,7 +34,7 @@ function regicideH(){
  const n=hand.length,same=seen.h&&seen.h.owner===owner,prevIds=new Set(same?seen.h.ids:[]),now=Date.now()/1000;
  const handH=cover?coverH(cur)
  :`<div class="hand" id="hand">${hand.map((c,i)=>{const mid=(n-1)/2,rot=(i-mid)*(n>6?3.2:4),ty=Math.pow(Math.abs(i-mid),2)*1.8,isNew=seen.h!==null&&!prevIds.has(c);
-   return`<div class="slot ${sel.includes(c)?'sel':''}" style="--rot:${rot}deg;--ty:${ty}px">${cardH(c,{cls:(mine?'':'off ')+(isNew?'deal ':'fl8 '),style:`--fd:-${((now+i*.43)%3.6).toFixed(2)}s`,attrs:`data-a="sel" data-v="${c}" tabindex="0" role="button" aria-label="${E.fmt(c)}"`,dv:ob?E.cv(c):0})}</div>`}).join('')||(okHand?'<span class="muted">Nessuna carta in mano</span>':'')}</div>`;
+   return`<div class="slot ${sel.includes(c)?'sel':''}" style="--rot:${rot}deg;--ty:${ty}px">${X?RX.sig(s,c):''}${cardH(c,{cls:(mine?'':'off ')+(isNew?'deal ':'fl8 '),style:`--fd:-${((now+i*.43)%3.6).toFixed(2)}s`,attrs:`data-a="sel" data-v="${c}" tabindex="0" role="button" aria-label="${E.fmt(c)}"`,dv:ob?E.cv(c):0})}</div>`}).join('')||(okHand?'<span class="muted">Nessuna carta in mano</span>':'')}</div>`;
  seen.h=okHand?{owner,ids:hand}:null;
  const over=endH();
  return`${hudH(GN(s.g))}${act?`<div class="acttag">${act}</div>`:''}<div class="rgx"><section class="arena rgA">${boss}<div class="battle" id="played">${played}</div></section><div class="rgB">${pls}${X?RX.barra(s,okHand?owner:-1):''}${bub}<div class="prev">${prev}</div><div class="ctl">${ctl}</div><div class="err" role="alert">${esc(ui.err)}</div></div><div class="handbox rgH">${handH}</div></div>${over}${ui.yc&&s.phase==='play'&&mine?`<div class="modal"><div class="box col"><h2>Cedere il turno?</h2><p>Non giochi nessuna carta e subisci comunque l’attacco del nemico.</p><button class="b disc" data-a="yieldno">No, torna indietro</button><button class="b yld" data-a="yield">Sì, cedi</button></div></div>`:''}${X?RX.info(s):''}${rulesH()}${cfgH()}${storyH()}`}

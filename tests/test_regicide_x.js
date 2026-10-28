@@ -19,7 +19,7 @@ function subsets(h){const out=[];for(let m=1;m<1<<h.length;m++){const k=h.filter
 function plays(s){const r=[];for(const k of subsets(s.hands[s.cur]))if(!RX.checkPlay(s,k)){r.push({t:'play',cards:k});if(!s.pw[s.cur]&&RX.CLS[s.cls[s.cur]].use==='play'&&k[0][0]!=='X')r.push({t:'play',cards:k,pw:true})}
  if(s.cls[s.cur]==='mag'&&!s.pw[s.cur])r.push({t:'vision'});if(!(s.n>1&&s.yr>=s.n-1)&&!(s.n===1&&s.yr>=3&&s.hands[0].length))r.push({t:'yield'});return r}
 const killed=s=>12-s.castle.length-(s.en?1:0);
-function val(s){if(s.over)return s.over.win?1e6:-1e6+killed(s)*1000;const hp=RX.hpOf[RX.P(s.en.c).r],cards=s.hands.flat();
+function val(s){if(s.over)return s.over.win?1e6:-1e6+killed(s)*1000;if(s.camp&&s.fase!=='fight')return 1e6;const hp=RX.hpE(s.en),cards=s.hands.flat();
  return killed(s)*1000+s.en.dmg/hp*300+RX.sum(cards)*4+cards.length*6+s.tav.length*2+s.jl*60+s.pw.filter(x=>!x).length*25}
 function ward(s){const g=s.cls.findIndex((c,i)=>c==='gua'&&!s.pw[i]);return g>=0&&(RX.sum(s.hands[s.cur])<s.owed||s.owed>=12)?{t:'ward',by:g}:null}
 function settle(s){let g=0;while(!s.over&&s.phase==='discard'&&g++<4){const w=ward(s);const d=RX.bestDiscard(s);const r=w?RX.act(s,w):d.length?RX.act(s,{t:'discard',cards:d}):RX.act(s,{t:'flip'});if(r.err)break;s=r.s}
@@ -40,4 +40,21 @@ const R=carica.rng(7);
 for(const n of [1,2,3,4]){let ws=0,wr=0;const G=n===1?400:150;
  for(let g=0;g<G;g++){if(partita(n,smart,R))ws++;if(partita(n,rnd,R))wr++}
  console.log('giocatori',n,'bot',ws+'/'+G,'casuale',wr+'/'+G);if(!(ws>wr&&wr<=G*.01))ok=false}
+// --- campagna: scalate intere con scelte semplici; carte del mazzo mai perse durante gli scontri ---
+function campMove(s,bot,R){const r=s.camp,ch=r.choice;
+ if(s.fase==='fight')return bot(s,R);
+ if(r.phase==='map'){const ids=RX.reachable(r);return{t:'go',id:ids[Math.floor(R()*ids.length)]}}
+ if(ch.type==='reward'||ch.type==='chest'||ch.type==='fadd'||ch.type==='fsig')return{t:'take',i:0};
+ if(ch.type==='apply')return{t:'apply',c:r.deck[0]};
+ if(ch.type==='forge')return{t:'forge',k:'add'};
+ if(ch.type==='rest')return r.jl<4?{t:'rest',k:'jl'}:{t:'rest',k:'purge'};
+ if(ch.type==='purge')return r.deck.length>8?{t:'purge',c:r.deck[0]}:{t:'skip'};
+ if(ch.type==='fuse')return{t:'skip'};return{t:'skip'}}
+function scalata(bot,R){RX.setRnd(R);let s=RX.newGame(1,['Eroe'],{modo:'campagna',cls:['war']}),k=0,maxp=0;
+ while(!s.over&&k++<4000){const a=campMove(s,bot,R),r=RX.act(s,a);if(r.err)throw new Error(r.err+' '+JSON.stringify(a)+' fase '+s.fase);s=r.s;maxp=Math.max(maxp,s.camp.at+1);
+  if(s.fase==='fight'&&!s.over){const tot=s.tav.length+s.disc.length+s.played.length+s.hands.flat().length+(s.en&&s.tav.includes(s.en.c)?0:0);if(tot!==s.camp.deck.length&&!s.tav.some(c=>'JQK'.includes(RX.P(c).r)))throw new Error('campagna: carte perse '+tot+'/'+s.camp.deck.length)}}
+ if(!s.over)throw new Error('scalata senza fine');return{win:s.over.win,piano:maxp}}
+{const R2=carica.rng(11);let ps=0,pr=0,ws=0;const N=60;for(let i=0;i<N;i++){const a=scalata(smart,R2),b=scalata(rnd,R2);ps+=a.piano;pr+=b.piano;if(a.win)ws++}
+ console.log('campagna: piano medio bot',(ps/N).toFixed(1),'casuale',(pr/N).toFixed(1),'scalate vinte dal bot',ws+'/'+N);if(!(ps>pr))ok=false}
+{RX.setRnd(carica.rng(2));const s=RX.newGame(1,['Eroe'],{modo:'campagna',cls:['mag']});ck(s.fase==='map'&&s.camp.deck.length===20,'campagna: mappa e mazzo da 20');ck(RX.act(s,{t:'play',cards:['AH']}).err,'campagna: niente giocate fuori dagli scontri')}
 console.log(ok?'ALL OK':'FALLITO');process.exit(ok?0:1)

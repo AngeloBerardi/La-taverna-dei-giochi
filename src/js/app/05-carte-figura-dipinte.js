@@ -220,6 +220,81 @@ E.mag=()=>{const P=HP.mag;return wash(P)+c(77.5,18,13,'#5cf0ff',.22)+p('M76 22h3
  arm([66,56,84,62,77.5,70],P.m,8.5)+arm([34,56,20,62,22,48],P.m,8.5)+[[16,42],[22,38],[14,50],[26,42]].map(([x,y],i)=>c(x,y,1.4-i*.2,'#fff1b8')).join('')+
  head({brow:'calm',mouth:'flat',lids:1,skin:'#f0d0b0',beard:p('M41 40Q40 62 50 72Q60 62 59 40Q55 47 50 46Q45 47 41 40Z','#efe9df')+ln('M44 45Q50 42 56 45','#d8d0c4',1.6)})+
  p('M33 31L52 -2L66 31Q50 27 33 31Z',P.m)+p('M52 -2L66 31Q58 29 52 29Z',P.d,.5)+e(50,31,19,3.8,P.d)+c(49,14,1.6,'#5cf0ff')};
+/* mostri di Regicidio X: una razza per seme (Cuori vampiri, Quadri golem, Fiori spiriti del bosco, Picche non morti),
+   stesso pennello e stessa carta delle figure di Regicidio, sfondo inciso del bioma del seme */
+const MP={H:{m:'#a8282f',d:'#5e1226',l:'#e8574a',w:'#f3c1c6'},D:{m:'#d9981c',d:'#7a4a0a',l:'#ffe27a',w:'#f7e2a6'},C:{m:'#2f8a4c',d:'#0f4a28',l:'#8cd5a0',w:'#cfe5c2'},S:{m:'#4a3aa0',d:'#1e1660',l:'#a898f0',w:'#d8d0f4'}};
+BG.mH=()=>[14,86].map(x=>p(`M${x-5} 104V54L${x} 38L${x+5} 54V104Z`,'#8a7a5c')+p(`M${x-1.4} 62h2.8v8h-2.8z`,'#2a1a14')).join('')+[[24,100],[32,104],[70,102],[78,98]].map(([x,y])=>c(x,y,2.6,'#b8323a')+c(x,y,1,'#7a1c28')).join('')+ln('M20 106q8-8 16 0M66 104q8-8 16 0','#3f5a3a',.9,.7);
+BG.mD=()=>p('M2 104L22 74L42 104Z','#b9a070')+p('M22 74L42 104H30Z','#8a7450',.6)+p('M64 104L84 66L100 92V104Z','#b9a070')+[[12,108,6],[88,110,5],[52,106,4]].map(([x,y,h])=>p(`M${x} ${y-h*2}l${h*.6} ${h*2}h-${h*1.2}z`,'#f4d06c')).join('');
+BG.mC=()=>[[10,104,1.6],[90,106,1.4],[24,108,1]].map(([x,y,k])=>p(`M${x-1.4} ${y}h2.8v${-14*k}h-2.8z`,'#5a4026')+e(x,y-18*k,9*k,10*k,'#4a6a3c')).join('')+[[34,110],[70,108]].map(([x,y])=>p(`M${x-1} ${y}h2v-4h-2z`,'#e8dcc0')+e(x,y-4,3.4,2,'#c8262f')+c(x-1,y-4.6,.6,'#fff')).join('');
+BG.mS=()=>c(80,24,7,'#f3e6c8')+c(83,22,6,'#cdbf9c',.9)+[[16,104],[30,108],[72,106],[86,102]].map(([x,y])=>p(`M${x-4} ${y}v-9q4-5 8 0v9z`,'#8a8a90')+ln(`M${x} ${y-8}v4M${x-1.6} ${y-6.4}h3.2`,'#2a1a14',.6)).join('')+p('M48 108q2-26 1-40q-5-3-8-8q5 1 8 4q-1-6 2-11q2 6 0 12q4-4 9-5q-5 4-7 9q2 18 4 39z','#3a2a1c');
+const fang=(x,y)=>p(`M${x-2.6} ${y}l1 2.6 1-2.6zM${x+.6} ${y}l1 2.6 1-2.6z`,'#fff');
+const skull=(x,y,s,f,glow)=>e(x,y,9*s,10*s,f)+p(`M${x-5*s} ${y+7*s}h${10*s}v${5*s}h-${10*s}z`,f)+ln(`M${x-2.5*s} ${y+8*s}v${4*s}M${x} ${y+8*s}v${4*s}M${x+2.5*s} ${y+8*s}v${4*s}`,INK,.6)+
+ e(x-3.6*s,y+1*s,2.6*s,3*s,'#1a1020')+e(x+3.6*s,y+1*s,2.6*s,3*s,'#1a1020')+p(`M${x} ${y+4*s}l-1.4 2.6h2.8z`,'#1a1020')+(glow?c(x-3.6*s,y+1.4*s,1.1*s,glow)+c(x+3.6*s,y+1.4*s,1.1*s,glow)+c(x-3.6*s,y+1.4*s,3.4*s,glow,.25)+c(x+3.6*s,y+1.4*s,3.4*s,glow,.25):'');
+const block=(x,y,w,h,f,dk)=>p(`M${x} ${y}h${w}v${h}h-${w}z`,f)+ln(`M${x+w*.3} ${y+2}l${w*.2} ${h*.5}`,dk,.7,.7);
+const M={};
+M.JH=()=>{const P=MP.H;return wash(P)+cape('#2a0a10',1)+legs('#2a1a24','#140a10')+tunic(P,'#3a1420','#14060a')+p('M34 52Q50 46 66 52L64 60Q50 56 36 60Z',P.m)+
+ arm([35,56,26,70,30,80],'#3a1420',8,'#e8dcd8')+arm([65,56,74,62,72,48],'#3a1420',8,'#e8dcd8')+p('M66 40q6-8 12-2q4-6 10 0q-4 0-6 4q-2-2-6 0q-4-2-10-2z','#1a0a10')+c(73,40,.8,'#ff4a5a')+
+ p('M34 50Q30 36 38 26L42 46ZM66 50Q70 36 62 26L58 46Z','#5e1226')+
+ head({brow:'sly',mouth:'smirk',skin:'#e8dcd8',skind:'#b8a8b0',eyeGlow:'#ff4a5a',noblush:1,lip:'#5e1226',hairFront:p('M40 33Q40 21 50 21Q60 21 60 33Q56 25 50 27Q44 25 40 33Z','#1a0a10')})+fang(50,43.4)};
+M.QH=()=>{const P=MP.H;return wash(P,1)+p('M28 44Q20 22 30 14L44 40ZM72 44Q80 22 70 14L56 40Z','#7a1c28')+p('M30 30Q50 18 70 30L64 44Q50 36 36 44Z','#2a0a10',.85)+
+ gown(P,P.m,P.d)+p('M40 52Q50 60 60 52L58 58Q50 64 42 58Z','#2a0a10')+[[40,86],[60,86],[34,108],[66,108],[50,120]].map(([x,y])=>heart(x,y,2.6,'#2a0a10')).join('')+
+ arm([36,56,30,70,42,70],P.m,7.5,'#ece0e4')+arm([64,56,74,64,74,52],P.m,7.5,'#ece0e4')+p('M70 40h8q0 7-4 8-4-1-4-8z',GOLD)+p('M71 41h6q-1 4-3 4t-3-4z','#7a0a14')+p('M73 48h2v5h-2z',GOLDD)+
+ head({brow:'calm',lids:1,mouth:'lips',lip:'#7a0a14',skin:'#ece0e4',skind:'#c0a8b4',noblush:1,hairBack:p('M38 30Q34 56 42 60H58Q66 56 62 30Z','#14060a'),hairFront:p('M40 33Q40 21 50 21Q60 21 60 33Q55 25 50 27Q45 25 40 33Z','#14060a')})+fang(50,43.2)+tiara(50,25,GOLD,'#e8574a')};
+M.KH=()=>{const P=MP.H;return wash(P)+p('M50 40L6 30L12 46L2 52L14 60L6 76L22 74L20 96L36 80L50 92L64 80L80 96L78 74L94 76L86 60L98 52L88 46L94 30Z','#1a0a10')+ln('M50 44L12 36M50 44L8 56M50 44L14 74M50 44L88 36M50 44L92 56M50 44L86 74','#5e1226',1)+
+ robe(P,'#3a1420','#14060a')+fur()+p('M46 58h8v74h-8z',P.m)+
+ arm([34,56,22,64,18,54],'#3a1420',8,'#e4d4dc')+arm([66,56,78,64,82,54],'#3a1420',8,'#e4d4dc')+[[14,46],[86,46]].map(([x,y])=>p(`M${x-5} ${y}q2.5-4 5 0q2.5-4 5 0l-5 3z`,'#14060a')).join('')+
+ head({brow:'angry',mouth:'open',skin:'#e4d4dc',skind:'#b8a0b0',eyeGlow:'#ff3a4a',noblush:1,hairBack:e(50,30,11.5,9,'#14060a'),hairFront:p('M40 31Q44 22 50 26Q56 22 60 31Q56 24 50 25Q44 24 40 31Z','#14060a')})+fang(50,44)+crownK(50,26,GOLD,GOLDD,'#e8574a')};
+M.JD=()=>{const P=MP.D,S='#a8946e',SD='#6e5a3c';return wash(P,1)+
+ block(40,98,9,26,S,SD)+block(51,98,9,26,S,SD)+p('M30 54h40l4 46H26z',S)+p('M58 54h12l4 46H58z',SD,.5)+ln('M34 66l8 6-2 10M62 60l-6 10 4 12',SD,1.1)+c(50,74,5,P.l)+c(50,74,8,P.l,.3)+
+ p('M22 52l8-10 6 8zM78 52l-8-10-6 8z','#f4d06c')+p('M26 56h10v30H24z',S)+p('M64 56h10l2 30H64z',S)+p('M18 86h12v8H18zM70 86h12v8H70z',S)+
+ p('M76 92l4-22 3 1-4 22z','#5a3414')+p('M74 68q8-4 16 2l-2 2q-6-4-12-1z','#7a7f8e')+
+ p('M38 26h24l2 22H36z',S)+p('M54 26h8l2 22H54z',SD,.5)+p('M41 34h6v4h-6zM53 34h6v4h-6z','#2a1a10')+p('M42 35h4v2h-4zM54 35h4v2h-4z','#ffe27a')+ln('M44 42h12',SD,1.2)+p('M44 20l6-8 6 8z','#f4d06c')};
+M.QD=()=>{const P=MP.D;return wash(P)+p('M30 30L50 12L70 30L64 40H36Z',P.l,.35)+
+ p('M36 52L50 46L64 52L74 132H26Z','#c8a050')+[[34,70,50,64,44,86],[50,64,66,70,56,86],[30,96,44,86,40,112],[56,86,70,96,62,112],[40,112,50,104,60,112],[26,128,40,112,46,132],[60,112,74,128,54,132]].map(([a,b,c2,d,x,y])=>p(`M${a} ${b}L${c2} ${d}L${x} ${y}Z`,'#f4d06c',.85)+ln(`M${a} ${b}L${c2} ${d}L${x} ${y}Z`,'#7a4a0a',.5)).join('')+
+ arm([36,56,26,66,28,78],'#c8a050',7.5,'#e8c070')+arm([64,56,76,60,78,46],'#c8a050',7.5,'#e8c070')+p('M78 30l5 8-5 8-5-8z','#ffe27a')+c(78,38,8,'#ffe27a',.3)+
+ head({brow:'calm',lids:1,mouth:'flat',skin:'#e8c070',skind:'#b8904a',noblush:1,lip:'#7a4a0a',hairFront:p('M40 32Q40 20 50 20Q60 20 60 32L56 26L50 30L44 26Z','#d9981c')})+
+ ln('M44 30l3 6M56 30l-3 6M50 40v4','#7a4a0a',.6,.8)+p('M40 24L42 8L46 16L50 4L54 16L58 8L60 24Z','#f4d06c')+ln('M40 24L42 8L46 16L50 4L54 16L58 8L60 24Z','#7a4a0a',.5)};
+M.KD=()=>{const P=MP.D,S='#9a8a6a',SD='#5e4e34';return wash(P,1)+
+ block(36,100,12,28,S,SD)+block(52,100,12,28,S,SD)+p('M22 50h56l-4 52H26z',S)+p('M62 50h16l-4 52H62z',SD,.5)+ln('M28 62l10 8-4 14M72 58l-8 12 6 16M40 90l20 0',SD,1.2)+
+ c(50,72,9,'#ff9a3c')+c(50,72,5,'#ffe27a')+c(50,72,15,'#ff9a3c',.25)+ln('M50 63v-6M41 72h-6M59 72h6M50 81v6','#ff9a3c',1.2,.8)+
+ p('M10 52h14v34H12z',S)+p('M76 52h14l-2 34H76z',S)+p('M6 86h20v12H6zM74 86h20v12H74z',S)+p('M8 86l4-10 4 10zM84 86l4-10 4 10z','#f4d06c')+
+ p('M34 22h32l2 28H32z',S)+p('M58 22h10l2 28H58z',SD,.5)+p('M38 32h8v5h-8zM54 32h8v5h-8z','#2a1a10')+p('M39 33h6v3h-6zM55 33h6v3h-6z','#ff9a3c')+ln('M42 43h16',SD,1.4)+
+ p('M32 22L30 4L38 14L44 0L50 12L56 0L62 14L70 4L68 22Z','#f4d06c')+ln('M32 22L30 4L38 14L44 0L50 12L56 0L62 14L70 4L68 22Z','#7a4a0a',.6)+c(50,16,2.2,'#e8574a')};
+M.JC=()=>{const P=MP.C;return wash(P)+
+ p('M41 98h7.5l-2 14 4 10h-9l2-10zM51.5 98H59l-1.5 14 4 10h-9l2-10z','#7a5a3a')+p('M40 120h10v4H38zM52 120h10l2 4H52z','#2a1a10')+
+ p('M34 52Q50 46 66 52L68 100Q50 104 32 100Z','#5a7a3a')+[[38,64],[60,70],[44,84],[58,90],[36,94]].map(([x,y])=>e(x,y,4,2.4,P.m)).join('')+
+ arm([35,56,26,62,32,48],'#c8946a',8,'#c8946a')+p('M28 48h10v3H28z','#a8743a')+[29,32,35].map(x=>p(`M${x} 48v-8h2v8z`,'#a8743a')).join('')+arm([65,56,74,70,70,82],'#c8946a',8,'#c8946a')+
+ head({brow:'sly',mouth:'grin',skin:'#c8946a',skind:'#9a6a48',hairBack:e(50,30,11,9,'#4a2a14'),hairFront:p('M40 32Q38 20 50 20Q62 20 60 32Q56 24 50 26Q44 24 40 32Z','#4a2a14'),beard:p('M46 44Q50 52 54 44Q50 47 46 44Z','#4a2a14')})+
+ p('M41 24Q34 14 38 6Q40 14 44 22ZM59 24Q66 14 62 6Q60 14 56 22Z','#e8dcc0')+e(38,24,3,1.6,'#c8946a')+e(62,24,3,1.6,'#c8946a')};
+M.QC=()=>{const P=MP.C;return wash(P,1)+p('M20 120q4-40 2-90l3-1q4 50-1 91z','#5a4026')+[[22,30],[18,44],[26,56]].map(([x,y])=>e(x,y,4,2.4,P.l)).join('')+
+ gown(P,P.m,P.d,'M36 52Q50 46 64 52L66 78Q82 108 88 134L80 126 74 134 66 126 58 134 50 126 42 134 34 126 26 134 20 126 12 134Q18 108 34 78Z')+[[40,90],[58,96],[46,110],[64,116],[36,118]].map(([x,y])=>c(x,y,1.8,'#e8a0c0')+c(x,y,.7,'#fff1b8')).join('')+
+ arm([36,56,28,66,24,58],'#b89a6a',7,'#b89a6a')+arm([64,56,70,70,60,74],'#b89a6a',7,'#b89a6a')+
+ head({brow:'calm',mouth:'smirk',skin:'#b89a6a',skind:'#8a6a44',lip:'#5a7a3a',noblush:1,hairBack:p('M36 30Q28 60 36 70Q44 60 50 62Q56 60 64 70Q72 60 64 30Z',P.m),hairFront:p('M40 33Q40 20 50 20Q60 20 60 33Q55 25 50 27Q45 25 40 33Z',P.m)})+
+ ln('M44 38q-2 3 0 6M56 38q2 3 0 6','#8a6a44',.6,.7)+[[40,22],[46,17],[54,17],[60,22]].map(([x,y])=>e(x,y,3.4,2,P.l)).join('')+c(50,16,2.4,'#e8a0c0')};
+M.KC=()=>{const P=MP.C,B='#6a4a2a',BD='#3a2614';return wash(P)+
+ p('M36 132L40 96L44 132ZM56 132L60 96L64 132Z',B)+p('M30 52Q50 42 70 52L68 104Q50 110 32 104Z',B)+ln('M38 60q4 20 0 40M50 56v48M62 60q-4 20 0 40',BD,1.2)+
+ p('M30 52L12 34L8 40L26 58ZM70 52L88 34L92 40L74 58Z',B)+[[10,34],[90,34],[16,28],[84,28]].map(([x,y])=>e(x,y,7,5,P.m)).join('')+
+ p('M36 30h28l2 24H34z',B)+ln('M40 32q2 10 0 20M60 32q-2 10 0 20',BD,1)+e(44,40,2.4,1.6,'#b8ff86')+e(56,40,2.4,1.6,'#b8ff86')+c(44,40,4,'#b8ff86',.3)+c(56,40,4,'#b8ff86',.3)+p('M42 48Q50 64 58 48Q50 54 42 48Z','#5a7a3a')+
+ p('M34 30L28 10L38 20L42 4L50 18L58 4L62 20L72 10L66 30Z',B)+[[28,10],[42,4],[58,4],[72,10],[50,16]].map(([x,y])=>e(x,y,5,3.4,P.m)).join('')};
+M.JS=()=>{const P=MP.S,BN='#e8e4dc';return wash(P,1)+
+ p('M44 98h3v26h-3zM53 98h3v26h-3z',BN)+p('M40 122h9v4H38zM51 122h9l2 4H51z','#4a3a2a')+p('M40 94h20v6H40z','#7a5a3a')+
+ p('M48.6 52h2.8v42h-2.8z',BN)+[60,66,72,78,84].map(y=>ln(`M40 ${y}q10 4 20 0`,BN,1.6)).join('')+
+ arm([38,56,28,66,26,80],BN,3,BN)+arm([62,56,72,64,74,52],BN,3,BN)+
+ `<g transform="rotate(-20 74 50)">${sword(74,14,50,'#9a8a7a',GOLDD)}</g>`+c(24,88,10,'#5a4a3a')+c(24,88,7,'#7a6a5a')+c(24,88,2,'#3a2a1a')+
+ skull(50,34,1,BN,'#a898f0')+p('M39 28Q40 16 50 15Q60 16 61 28L58 24H42Z','#6a6f82')+p('M48.8 24h2.4v8h-2.4z','#3c3e4e')};
+M.QS=()=>{const P=MP.S;return wash(P)+
+ p('M34 52Q50 44 66 52L72 100Q78 110 70 116Q74 124 64 128Q60 136 52 130Q46 138 40 130Q30 132 32 122Q22 118 30 108Q24 98 28 90Z','#c8c4ec',.75)+ln('M36 70q6 20 0 40M50 60v60M64 70q-6 20 0 40',P.l,1,.6)+
+ p('M36 30Q20 60 16 96Q24 80 30 74Q26 100 22 120Q34 98 40 70ZM64 30Q80 60 84 96Q76 80 70 74Q74 100 78 120Q66 98 60 70Z','#e8e4f8',.55)+
+ arm([36,56,22,62,16,50],'#c8c4ec',6.5,'#e8e4f8')+arm([64,56,78,62,84,50],'#c8c4ec',6.5,'#e8e4f8')+
+ head({brow:'sad',mouth:'open',skin:'#e8e4f8',skind:'#b8b0d8',eyeGlow:'#a898f0',noblush:1,hairBack:p('M38 30Q30 60 40 66H60Q70 60 62 30Z','#d8d0f4',.8),hairFront:p('M40 33Q40 21 50 21Q60 21 60 33Q55 25 50 27Q45 25 40 33Z','#d8d0f4')})+
+ tiara(50,25,'#a9aecb','#a898f0')+ln('M44 50q6 4 12 0',P.l,1,.6)};
+M.KS=()=>{const P=MP.S,BN='#e8e4dc';return wash(P,1)+ln('M18 60q-6 10 2 18M82 70q6 10-2 18',P.l,2,.5)+
+ p('M50 30Q16 40 8 134l9-6 7 8 8-8 8 8 10-8 10 8 8-8 8 8 7-8 9 6Q84 40 50 30Z','#10132a')+robe(P,'#2a2264','#0c0e22')+ln('M40 70h20M38 84h24M36 98h28',P.l,.6,.5)+
+ p('M76 36h3v90h-3z',INK)+skull(77.5,28,.6,BN,'#a898f0')+c(77.5,28,10,'#a898f0',.22)+
+ arm([67,56,82,62,77.5,66],'#2a2264',8,BN)+arm([33,56,22,70,26,84],'#2a2264',8,BN)+c(26,84,6,'#a898f0',.3)+c(26,84,2,'#a898f0')+
+ skull(50,36,1,BN,'#a898f0')+p('M38 28L36 6L42 18L46 2L50 16L54 2L58 18L64 6L62 28Z',GOLDD)+p('M37 25h26v4H37z',GOLD)+c(50,26.8,1.6,'#a898f0')};
+const mcache={};
+function mostro(id){const k=id.slice(-2);if(!M[k])return'';if(!mcache[k])mcache[k]=`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene('m'+k[1])}</g><g transform="translate(6 9) scale(.88)"><g transform="rotate(${TILT[k]||0} 50 80)">${M[k]()}</g></g></g></svg>`;return mcache[k]}
 const ecache={};
 function eroe(k){if(!E[k])return'';if(!ecache[k])ecache[k]=`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene('E')}</g><g transform="translate(6 9) scale(.88)">${E[k]()}</g></g></svg>`;return ecache[k]}
 /* filtro "pittura": bordi irregolari + grana di carta (definito una volta nella pagina) */
@@ -230,7 +305,7 @@ function svg(id){if(!cache[id]){const k=id==='X'?'X':id.slice(-2);
  if(FZIMG.includes(id)){cache[id]=`<img class="fzimg" src="assets/cards/${id}.webp" alt="" draggable="false" decoding="async" onerror="this.remove()">`}
  else cache[id]=F[k]?`<svg class="fzsvg" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g filter="url(#fzpaint)"><g clip-path="url(#fzclip)" opacity=".62">${bgScene(k[0]==='X'?'D':k[1])}</g><g transform="translate(6 9) scale(.88)"><g transform="rotate(${TILT[k]||0} 50 80)">${F[k]()}</g></g></g></svg>`:''}return cache[id]}
 let dd=0;function ensureDefs(){if(dd)return;dd=1;if(typeof document!=='undefined'&&!document.getElementById('fzdefs')){const d=document.createElement('div');d.id='fzdefs';d.innerHTML=DEFS;document.body.appendChild(d)}}
-return{svg,ensureDefs,F,eroe}})();
+return{svg,ensureDefs,F,eroe,mostro}})();
 
 function cardH(id,o={}){FACE.ensureDefs();
  if(o.back)return`<div class="card back ${o.cls||''}"></div>`;
@@ -239,6 +314,6 @@ function cardH(id,o={}){FACE.ensureDefs();
  const ix=`<div class="ix"><span>${r}</span><i>${SYM[s]}</i></div><div class="ix r"><span>${r}</span><i>${SYM[s]}</i></div>`;
  if(PIPS[r])inner=`<div class="pips">${PIPS[r].map(([x,y])=>`<b class="${y>.5?'f':''}" style="left:${x*50}%;top:${y*100}%">${SYM[s]}</b>`).join('')}</div>`;
  else if(r==='A')inner=`<div class="art">${ART.A}<em>${SYM[s]}</em></div><div class="val">1</div>`;
- else inner=`${FACE.svg(r+s)}${o.boss?'':`<div class="val">${RG.cv(id)}</div>`}`;
+ else inner=`${(typeof G!=='undefined'&&G&&G.g==='regix'&&FACE.mostro(r+s))||FACE.svg(r+s)}${o.boss?'':`<div class="val">${RG.cv(id)}</div>`}`;
  return`<div class="${cls}" ${a} ${st}>${ix}${inner}${dv}</div>`}
 const hash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return h};
