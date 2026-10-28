@@ -16,7 +16,7 @@ function fixH(o){const tab=(k,ic,l)=>`<button class="fxt ${ui.sheet===k?'sel':''
 function fanRowsH(cards,per){per=per||8;const rows=cards.length>per?[cards.slice(0,Math.ceil(cards.length/2)),cards.slice(Math.ceil(cards.length/2))]:[cards];
  return rows.map(r=>`<div class="fanrow">${r.join('')}</div>`).join('')}
 function fanFit(){document.querySelectorAll('.fanrow').forEach(r=>{const k=[...r.children],n=k.length;if(n<2){r.style.setProperty('--ov','0px');return}
- const w=r.clientWidth,cw=k[0].getBoundingClientRect().width||56,step=Math.min(cw+4,(w-cw)/(n-1));r.style.setProperty('--ov',(cw-step)+'px')})}
+ const b=r.getBoundingClientRect(),w=Math.min(b.right,innerWidth-4)-Math.max(b.left,4),cw=k[0].offsetWidth||56,step=Math.min(cw+4,(w-cw)/(n-1));r.style.setProperty('--ov',(cw-step)+'px')})}
 /* ADATTAMENTO ALLO SCHERMO: --k scala carte e pezzi in base allo spazio; i giochi non ancora migrati al layout fisso vengono rimpiccioliti (zoom) quanto basta per non scorrere, fino a un minimo leggibile */
 const FITMIN=.58;
 function adaptScreen(){const root=document.documentElement,app=document.getElementById('app');if(!app)return;
