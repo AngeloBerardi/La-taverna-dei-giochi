@@ -548,6 +548,39 @@ async def sc_schermo_tutti_i_giochi(b, srv):
         await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null})()")
     check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
 
+async def sc_schermo_tavoli(b, srv):
+    # i giochi senza scena 3D hanno un tavolo TV dedicato (app/24y-tv-tavoli.js): posti, niente mani, niente scroll, fine partita
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500); await pg.set_viewport_size({'width': 1920, 'height': 1080})
+    for gid, n in [('briscola', 4), ('scopa', 2), ('burraco', 4), ('machiavelli', 3), ('uno', 6), ('perudo', 5), ('gang', 4), ('mind', 3), ('mindx', 2),
+                   ('harvest', 3), ('saboteur', 7), ('kittens', 8), ('pets', 4), ('trono', 3)]:
+        r = await pg.evaluate("""async(a)=>{const[gid,n]=a;const S=Array.from({length:n},(_,i)=>({dev:'altro'+i,k:'m',name:'G'+i}));ui.tv=true;document.documentElement.dataset.tv='1';
+          await startGame(gid,S);await Q;await new Promise(r=>setTimeout(r,300));ui.anim=false;render();
+          const d=document.documentElement,txt=document.querySelector('.tv3').innerText;
+          return{pg:!!document.querySelector('.tvk-pg'),posti:document.querySelectorAll('.tvk-seat').length,tv3:d.dataset.tv3,
+            scroll:d.scrollWidth<=innerWidth&&d.scrollHeight<=innerHeight,mano:document.querySelectorAll('#hand .card,.handbox .card').length,
+            bad:/undefined|NaN|null/.test(txt)}}""", [gid, n])
+        check(r['pg'] and r['posti'] == n and r['tv3'] == '1', f'{gid} TV: tavolo dedicato con {n} posti ({r})')
+        check(r['scroll'] and r['mano'] == 0 and not r['bad'], f'{gid} TV: niente scroll, niente mani, niente testi vuoti ({r})')
+        fine = await pg.evaluate("""(()=>{const s=JSON.parse(JSON.stringify(G));s.over={win:0,winners:[0],wins:[0],tie:[0],scores:s.names.map(()=>1),vaults:3,alarms:0,lvl:1,reason:'prova',txt:'prova'};
+          G=s;render();return!!document.querySelector('.tv3-end')&&!/undefined|NaN/.test(document.querySelector('.tv3-end').innerText)})()""")
+        check(fine, f'{gid} TV: schermata di fine partita')
+        await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null;render()})()")
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
+async def sc_impostazioni_android(b, srv):
+    # da Android (fuori dall'app) le impostazioni offrono l'APK; dentro l'app (?app=android) no; le pagine della barra coprono tutto lo schermo
+    ua = "Object.defineProperty(navigator,'userAgent',{get:()=>'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'});"
+    for q, atteso in (('', True), ('?app=android', False)):
+        ctx = await new_context(b, srv.port, extra_init=ua); pg = await page(ctx, srv.url + q, 2500); await pg.set_viewport_size({'width': 412, 'height': 915})
+        await pg.evaluate("(()=>{document.querySelector('#plancia [data-v=giochi]').click()})()"); await pg.wait_for_timeout(400)
+        await pg.evaluate("(()=>{document.querySelector('#plancia [data-v=profilo]').click()})()"); await pg.wait_for_timeout(500)
+        r = await pg.evaluate("""(()=>{const a=document.querySelector('.modal a.apkdl'),m=document.querySelector('.modal').getBoundingClientRect(),
+          vis=[...document.querySelectorAll('#app>:not(.modal)')].every(e=>getComputedStyle(e).visibility==='hidden');
+          return[!!a,a?a.getAttribute('href'):'',Math.round(m.bottom)===innerHeight,vis]})()""")
+        check(r[0] == atteso and (not atteso or r[1] == '/taverna.apk'), f'APK in impostazioni {"da Android" if atteso else "dentro l app"}: {r[:2]}')
+        check(r[2] and r[3], f'impostazioni a tutto schermo, pagina di sotto nascosta ({r[2:]})')
+        check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
 def leggi_qr(png):
     import cv2, numpy as np
     img = cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_GRAYSCALE)
