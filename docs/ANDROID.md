@@ -20,8 +20,8 @@ Ogni versione dell'app va firmata con **la stessa chiave**, altrimenti Android r
 
 ## Installare
 Dal sito, su un telefono Android: Profilo → Impostazioni → «Scarica l’app per Android» (`PWA.apkH` in `app/24-pwa.js`; non compare dentro l’app, riconosciuta da `?app=android`).
-Link per gli amici: **https://la-taverna-dei-giochi.web.app/taverna.apk** (il file è `src/pwa/taverna.apk` nel repo, pubblicato con il sito) oppure la release `android` su GitHub.
-Quando cambia `android/` (nome, icona, colori), copia in `src/pwa/taverna.apk` l'APK firmato della release `android`. Le modifiche al gioco non richiedono un APK nuovo: l'app apre sempre il sito aggiornato.
+Link per gli amici: **https://la-taverna-dei-giochi.web.app/taverna.apk** (un redirect in `firebase.json` verso la release `android` su GitHub) oppure direttamente la release.
+L'APK **non** va nel repo né in `dist`: il piano gratuito Spark di Firebase Hosting rifiuta i file eseguibili e fa fallire tutto il deploy (il build li salta). Quando cambia `android/` (nome, icona, colori), basta il workflow `android.yml`, che aggiorna la release `android`; il link del sito la segue da solo. Le modifiche al gioco non richiedono un APK nuovo: l'app apre sempre il sito aggiornato.
 
 Sul telefono apri il link dell'APK, consenti a Chrome di «installare app sconosciute» quando lo chiede, poi Installa. Play Protect può avvisare che l'app non viene dal Play Store: «Installa comunque».
 

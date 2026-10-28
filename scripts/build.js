@@ -79,6 +79,8 @@ if (fs.existsSync(pwa)) {
   const id = require('crypto').createHash('sha1').update(html).digest('hex').slice(0, 10);
   const urlVendor = JSON.stringify(Object.values(vendor));
   for (const n of fs.readdirSync(pwa)) {
+    // niente eseguibili in dist: il piano Spark di Hosting rifiuta l'intero deploy (l'APK sta nella release `android`, docs/ANDROID.md)
+    if (/\.(apk|aab|exe|dll|ipa|msi|bat|com|jar)$/i.test(n)) { console.warn(`build: salto ${n} (eseguibile, vietato su Firebase Hosting)`); continue; }
     const dst = path.join(root, 'dist', n);
     if (n === 'sw.js') fs.writeFileSync(dst, fs.readFileSync(path.join(pwa, n), 'utf8').split('__BUILD__').join(id).split('/*VENDOR*/[]').join(urlVendor));
     else fs.copyFileSync(path.join(pwa, n), dst);

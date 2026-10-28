@@ -9,7 +9,7 @@ const PWA={ev:null,
  // (l'app e Chrome condividono la memoria del sito, quindi niente localStorage)
  twa:(()=>{try{const t=/[?&]app=android\b/.test(location.search)||/^android-app:\/\/app\.web\.latavernadeigiochi/.test(document.referrer||'');
   if(t)sessionStorage.setItem('rg-twa','1');return t||sessionStorage.getItem('rg-twa')==='1'}catch(e){return false}})(),
- // da un telefono Android, fuori dall'app: scarica l'APK pubblicato con il sito (src/pwa/taverna.apk)
+ // da un telefono Android, fuori dall'app: scarica l'APK: /taverna.apk rimanda alla release `android` su GitHub (firebase.json)
  apkH(){return PWA.android&&!PWA.twa?'<a class="b sm gold apkdl" href="/taverna.apk" download="La-Taverna-dei-Giochi.apk">Scarica l’app per Android</a>':''},
  // pulsante o suggerimento per le impostazioni
  cfgH(){const apk=PWA.apkH();if(PWA.installed())return apk;
