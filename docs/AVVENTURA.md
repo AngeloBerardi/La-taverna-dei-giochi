@@ -1,4 +1,4 @@
-# Modalità Avventura — piano di lavoro
+# Cantari di Ventura (modalità Avventura) — piano di lavoro
 
 Obiettivo: dentro la Taverna, un gioco di ruolo a campagne che unisce il **viaggio a esagoni con perdizione** dei roguelite cooperativi da divano e la **battaglia tattica a turni su griglia** dei grandi giochi di ruolo d20. Tutto originale: nomi, testi, mostri, grafica. Nessun titolo commerciale nei testi visibili né nei documenti: qui si parla di «modelli di riferimento».
 
@@ -18,6 +18,7 @@ Questo documento sostituisce la sezione «Da fare» di `docs/CAMPAGNE.md`. Ogni 
 | Forma della battaglia | **Esagoni**, come la mappa del mondo |
 | Dadi | **Tutto si decide con i dadi**: anche il movimento sulla mappa e in battaglia ha una parte tirata |
 | Vita persa | Si perdono **oro e si alza la perdizione** |
+| Nome | Modalità **«Cantari di Ventura»**: ogni sessione è un «cantare» (Primo cantare, Secondo cantare…), il Locandiere fa da cantastorie e riassume la puntata precedente. Capitolo 1: **«La Corona Spezzata»** (il re è scomparso, i pezzi della corona sono sparsi in tre regioni, una per atto) |
 
 Vincoli sempre validi: costo zero (Firebase Spark, niente Cloud Functions), niente emoji, stile legno e ottone, mobile 390 px, motori puri con test (bot bravo vince, bot casuale perde), musica e suoni propri, schede regole in-game.
 
@@ -190,7 +191,6 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 ---
 
 ## Domande aperte (da chiudere all'inizio della task indicata)
-- A0: nome della modalità e del Capitolo 1 (proposte presentate all'utente il 28 ottobre: «Cantari di Ventura» e alternative).
 - A1: la tab Avventura sostituisce il pulsante «Eroi» nel profilo o restano entrambi?
 - A3: gli incantatori usano cariche per riposo o un'unica riserva di energia?
 - A11: chi decide le scelte di dialogo in co-op: chi parla o voto?
