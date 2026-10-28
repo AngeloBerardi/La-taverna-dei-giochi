@@ -83,5 +83,8 @@ if (fs.existsSync(pwa)) {
     if (n === 'sw.js') fs.writeFileSync(dst, fs.readFileSync(path.join(pwa, n), 'utf8').split('__BUILD__').join(id).split('/*VENDOR*/[]').join(urlVendor));
     else fs.copyFileSync(path.join(pwa, n), dst);
   }
+  // l'app Android (docs/ANDROID.md) cerca il file qui: una riscrittura non basta, Hosting risponde [] da solo
+  fs.mkdirSync(path.join(root, 'dist/.well-known'), { recursive: true });
+  fs.copyFileSync(path.join(pwa, 'assetlinks.json'), path.join(root, 'dist/.well-known/assetlinks.json'));
 }
 console.log(`dist/index.html: ${(html.length / 1024).toFixed(0)} KB da ${manifest.length} file; vendor: ${Object.values(vendor).join(' ')}; kit: ${Object.keys(kit).join(' ') || 'nessuno'}`);
