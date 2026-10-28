@@ -596,6 +596,26 @@ async def sc_impostazioni_android(b, srv):
         check(r[2] and r[3], f'impostazioni a tutto schermo, pagina di sotto nascosta ({r[2:]})')
         check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
 
+async def sc_mani_nello_schermo(b, srv):
+    # in ogni gioco la mano (anche piena, 12 carte) sta dentro lo schermo del telefono, sui telefoni stretti e larghi
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
+    ids = await pg.evaluate("GAMES.map(g=>g.id).filter(i=>i!=='giallo')")
+    for w, h in ((360, 740), (412, 915)):
+        await pg.set_viewport_size({'width': w, 'height': h})
+        for gid in ids:
+            m = await pg.evaluate("""async(gid)=>{const g=GAMES.find(x=>x.id===gid),n=g.ok(1)?1:g.ok(3)?3:g.ok(4)?4:2;
+              const S=[{dev:ME.dev,k:'m',name:'Angelo'},...Array.from({length:n-1},(_,i)=>({dev:'altro'+i,k:'m',name:'G'+i}))];
+              localStorage.setItem('rg-intro','1');await startGame(gid,S);await Q;
+              {const b=document.querySelector('[data-a=rlstart]');if(b){b.click();await Q;await new Promise(r=>setTimeout(r,300))}}
+              if(G&&Array.isArray(G.hands)&&Array.isArray(G.hands[0])){const s=JSON.parse(JSON.stringify(G)),src=s.deck||s.stock||s.res||null;
+                if(Array.isArray(src)){while(s.hands[0].length<12&&src.length)s.hands[0].push(src.pop());G=s}}
+              ui.story=null;ui.anim=false;render();await new Promise(r=>setTimeout(r,250));
+              const W=innerWidth;let fuori=0;
+              document.querySelectorAll('#hand .slot,.fanrow > *').forEach(e=>{if(!e.offsetParent)return;const r=e.getBoundingClientRect();fuori=Math.max(fuori,-r.left,r.right-W)});
+              G=null;ui.screen='room';R.offSeats=null;render();return Math.round(fuori)}""", gid)
+            check(m <= 1, f'{gid} a {w}px: la mano sta nello schermo (sporge di {m}px)')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
 def leggi_qr(png):
     import cv2, numpy as np
     img = cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_GRAYSCALE)
