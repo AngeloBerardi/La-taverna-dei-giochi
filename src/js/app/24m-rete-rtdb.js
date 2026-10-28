@@ -261,25 +261,36 @@ const RT = {
       RT.tm = 0;
     }
   },
-  // nella stanza in attesa, chi non ha presenza da più di 20 s (e non sono io) esce dall'elenco; durante la partita nessuno viene tolto
+  // chi non ha presenza da più di 20 s (e non sono io) esce dall'elenco. Durante una partita restano i giocatori seduti
+  // (possono tornare); se però nessuno dei seduti c'è più da ABBANDONO ms, la partita è abbandonata e la stanza torna libera:
+  // altrimenti (soprattutto nella stanza generale, che non si chiude mai) resterebbe «partita in corso» per sempre.
+  ABBANDONO: 90000,
   pota() {
     const h = RT.here[R.code],
       d = R.doc;
-    if (R.mode !== 'rt' || !R.code || !RT.on || !h || !d || d.phase !== 'lobby') {
+    if (R.mode !== 'rt' || !R.code || !RT.on || !h || !d || ui.tv) {
       RT.ass = {};
       return;
     }
-    const ora = Date.now();
+    const ora = Date.now(),
+      gioco = d.phase === 'play' && d.s,
+      seduti = new Set(gioco ? (d.seats || []).map(x => x.dev) : []),
+      via = id => {
+        if (id === ME.dev || h.has(id)) {
+          delete RT.ass[id];
+          return 0;
+        }
+        return ora - (RT.ass[id] || (RT.ass[id] = ora));
+      };
     for (const m of R.members || []) {
-      if (m.id === ME.dev || h.has(m.id)) {
-        delete RT.ass[m.id];
-        continue;
-      }
-      const t0 = RT.ass[m.id] || (RT.ass[m.id] = ora);
-      if (ora - t0 > RT.TOLLERANZA) {
+      if (via(m.id) > RT.TOLLERANZA && !seduti.has(m.id)) {
         delete RT.ass[m.id];
         RT.m.remove(RT.ref(['stanze', R.code, 'm', m.id])).catch(() => {});
       }
+    }
+    if (gioco && seduti.size && [...seduti].every(id => via(id) > RT.ABBANDONO)) {
+      const gid = d.s.gid;
+      SYNC.esegui(R.ref, cur => SYNC.lobby(cur, { gid })).catch(() => {});
     }
   },
   // collegamento: .info/connected dice se il telefono è collegato al server; a ogni (ri)connessione si rimette la presenza

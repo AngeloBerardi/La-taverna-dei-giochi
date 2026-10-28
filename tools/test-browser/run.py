@@ -479,6 +479,34 @@ async def sc_piazza_fondo(b, srv):
     for p_ in (A, B): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
     for c in (ctxA, ctxB, ctxC): await c.close()
 
+async def sc_piazza_abbandonata(b, srv):
+    """Stanza generale: una partita lasciata a metà da chi ha chiuso la pagina non blocca più la stanza; chi arriva dopo può giocare."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 31)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.members.length>0", timeout=30000)
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 32)
+    await B.wait_for_function("R.mode==='rt'&&R.members.length>=2", timeout=30000); await A.wait_for_timeout(1500)
+    await A.evaluate("Prep.launch('briscola',defOpts('briscola'))"); await A.wait_for_timeout(1500)
+    check(await B.evaluate("document.querySelector('#votoov.on')!==null"), 'B vede la proposta di A')
+    await B.evaluate("Voto.rispondi(true)"); await B.wait_for_timeout(4000)
+    check(await A.evaluate('[ui.screen,G&&G.g]') == ['game', 'briscola'] and await B.evaluate('[ui.screen,G&&G.g]') == ['game', 'briscola'], 'la partita parte dalla stanza generale')
+    # A e B chiudono la pagina a metà partita: la stanza resta «in partita» con due membri fantasma
+    for p_ in (A, B): await p_.evaluate("dispatchEvent(new PageTransitionEvent('pagehide',{persisted:false}))")
+    await A.wait_for_timeout(400); await ctxA.close(); await ctxB.close()
+    ctxC, C = await telefono_rt(b, srv, sh, 'Carla', 33)
+    await C.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'&&R.doc", timeout=30000)
+    check(await C.evaluate("R.doc.phase") == 'play', 'all\'arrivo la stanza ha ancora la partita abbandonata')
+    await C.evaluate('RT.TOLLERANZA=2500;RT.ABBANDONO=4000')
+    ctxD, D = await telefono_rt(b, srv, sh, 'Dino', 34)
+    await D.wait_for_function("R.mode==='rt'&&R.members.length>=2", timeout=30000)
+    await C.wait_for_function("R.doc.phase==='lobby'&&R.members.length===2", timeout=30000)
+    check(sorted(await C.evaluate('R.members.map(m=>m.name)')) == ['Carla', 'Dino'], 'partita abbandonata chiusa e fantasmi tolti')
+    await C.evaluate("Prep.launch('briscola',defOpts('briscola'))"); await C.wait_for_timeout(1500)
+    await D.evaluate("Voto.rispondi(true)"); await D.wait_for_timeout(4000)
+    check(await C.evaluate('[ui.screen,G&&G.g,G&&G.n]') == ['game', 'briscola', 2] and await D.evaluate('ui.screen') == 'game', 'chi arriva dopo gioca dalla stanza generale')
+    for p_ in (C, D): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
+    for c in (ctxC, ctxD): await c.close()
+
 async def sc_stanze_database(b, srv):
     """Stanze live sul Realtime Database (stub condiviso): ingresso, invito, partita, conflitti, presenza e schermo comune."""
     sh = Shared()
