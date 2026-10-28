@@ -55,12 +55,25 @@ function acPatSVG(id,px){const c=ACC.CARDS[id],z=9,cs=c.pat.map(([q,r,n])=>[z*Ma
   if(i===0)g+=`<rect x="${x-3}" y="${y-z*.95-1}" width="6" height="6" rx="1" fill="${c.k==='w'?'#c7a6f0':c.k==='s'?'#fbf6e8':'#ffc35a'}" stroke="#3a2510" stroke-width=".8"/>`});
  const w=x1-x0,h=y1-y0,k=(px||54)/Math.max(w,h);
  return`<svg class="ac-pat" viewBox="${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}" width="${(w*k).toFixed(0)}" height="${(h*k).toFixed(0)}" aria-hidden="true">${g}</svg>`}
-function acTrack(c,n){if(c.k==='w')return`<div class="ac-trk"><span class="${n>0?'on':''}">2-5</span><span class="${n>1?'on':''}">2-5</span></div>`;
- if(c.k==='s')return`<div class="ac-txt">${esc(c.txt)}</div>`;return`<div class="ac-trk">${c.pts.map((v,i)=>`<span class="${i<n?'on':''}">${v}</span>`).join('')}</div>`}
+/* carta animale come quella vera: illustrazione a campiture piatte in alto, schema in basso, traccia verticale a destra con i cubetti
+   che coprono i numeri (ogni cubetto messo sulla plancia scopre il valore sotto). Il paesaggio dipinto nasce dai bisogni della carta. */
+function acScene(id){const c=ACC.CARDS[id],ns=(c.pat||[]).map(x=>x[2]),has=t=>ns.some(n=>t(n)),h=[...id].reduce((a,ch)=>a*31+ch.charCodeAt(0)>>>0,7),r=k=>((h>>k)%100)/100;
+ const sky=c.k==='w'?['#e9dcf7','#c9b2ec']:c.k==='s'?['#fff6d8','#f0d48a']:['#cfe6f2','#f4e6c4'];let g=`<defs><linearGradient id="acs${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="60" height="56" fill="url(#acs${id})"/>`;
+ g+=`<circle cx="${12+r(3)*36}" cy="${9+r(5)*6}" r="5" fill="#fff6c8" opacity=".9"/>`;
+ if(has(n=>n[0]==='g'))g+=`<path d="M-2 40L${14+r(2)*6} ${12+r(4)*6}L26 30L${36+r(6)*6} ${10+r(7)*6}L62 38V56H-2Z" fill="#8d939b"/><path d="M${14+r(2)*6} ${12+r(4)*6}l-4 7h8ZM${36+r(6)*6} ${10+r(7)*6}l-4 7h8Z" fill="#eef2f6"/>`;
+ g+=`<path d="M-2 42Q15 ${30+r(8)*6} 30 38T62 36V56H-2Z" fill="${has(n=>n==='y')?'#d9b34a':'#7fae55'}"/>`;
+ if(has(n=>n==='b'))g+=`<path d="M-2 48Q20 42 34 47T62 45V56H-2Z" fill="#3b8fd4"/><path d="M8 50h10M30 51h12" stroke="#9fd0f5" stroke-width="1.2" stroke-linecap="round"/>`;
+ else g+=`<path d="M-2 49Q25 44 62 48V56H-2Z" fill="#5f8f3a"/>`;
+ if(has(n=>/v$/.test(n)))[[8+r(9)*8,1],[46+r(11)*8,.85]].forEach(([x,k])=>{g+=`<path d="M${x} ${44-22*k}l${7*k} ${14*k}h${-3*k}l${5*k} ${9*k}h${-18*k}l${5*k} ${-9*k}h${-3*k}Z" fill="#2f6b34"/><rect x="${x-1}" y="${45-(.5-k)*2}" width="2" height="4" fill="#5a3519"/>`});
+ if(has(n=>n==='H'))g+=`<path d="M${30+r(12)*8} 38l8-7 8 7v8h-16Z" fill="#efe2c4"/><path d="M${28+r(12)*8} 39l10-9 10 9" fill="none" stroke="#cf4a3d" stroke-width="3" stroke-linejoin="round"/>`;
+ return`<svg class="ac-scn" viewBox="0 0 60 56" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${g}</svg>`}
+function acTrack(c,n){const tot=c.k==='w'?2:c.pts.length,vals=c.k==='w'?['2·5','2·5']:c.pts;
+ return`<div class="ac-trk">${vals.map((v,i)=>`<span class="${i<n?'on':'cv'} ${c.k==='w'?'w':''}">${v}</span>`).join('')}</div>`}
 const AC_SET={base:'',tre:'Battito',fol:'Folletto',spi:'Custode',rif:'Rifugio'};
-function acCardH(id,n,o){o=o||{};const c=ACC.CARDS[id];
- if(c.k==='f')return`<button class="ac-card ac-rif ${o.sel?'sel':''} ${o.ok?'ok':''}" ${o.a?`data-a="${o.a}" data-v="${o.v}"`:'disabled'} aria-label="Rifugio ${esc(c.nm)}"><b>${esc(c.nm)}</b><span class="ac-rst">${c.st.split('').map(x=>`<i style="background:${ACOL[x][0]}"></i>`).join('')}</span><small>${o.done?'completo: 3 a vicino':'pila di 4'}</small></button>`;
- return`<button class="ac-card k${c.k} s-${c.set} ${o.sel?'sel':''} ${o.ok?'ok':''}" ${o.a?`data-a="${o.a}" data-v="${o.v}"`:'disabled'} aria-label="${esc(c.nm)}">${AC_SET[c.set]?`<em>${AC_SET[c.set]}</em>`:''}<b>${esc(c.nm)}</b>${acPatSVG(id,46)}${acTrack(c,n||0)}</button>`}
+function acCardH(id,n,o){o=o||{};const c=ACC.CARDS[id],at=o.a?`data-a="${o.a}" data-v="${o.v}"`:'disabled';
+ if(c.k==='f')return`<button class="ac-card ac-rif ${o.sel?'sel':''}" ${at} aria-label="Rifugio ${esc(c.nm)}"><b>${esc(c.nm)}</b><span class="ac-rst">${c.st.split('').map(x=>`<i style="background:${ACOL[x][0]}"></i>`).join('')}</span><small>${o.done?'completo: 3 a vicino':'pila di 4'}</small></button>`;
+ const side=c.k==='s'?`<div class="ac-txt">${esc(c.txt)}</div>`:acTrack(c,n||0);
+ return`<button class="ac-card k${c.k} s-${c.set} ${o.sel?'sel':''} ${o.ok?'ok':''}" ${at} aria-label="${esc(c.nm)}${c.k==='a'?', valori '+c.pts.join(' '):''}">${acScene(id)}${AC_SET[c.set]?`<em>${AC_SET[c.set]}</em>`:''}${c.k==='s'?'':side}<b>${esc(c.nm)}</b><span class="ac-foot">${acPatSVG(id,40)}</span>${c.k==='s'?side:''}</button>`}
 function acLive(s){try{return ACC.score(s)}catch(e){return s.names.map(()=>({tot:0}))}}
 function acReset(){ui.acj=null;ui.acx=null;ui.acd=null;ui.acr=null}
 function accordiH(){if(ui.tv)return accordiTVH();const s=G,mine=myTurn(),me=s.cur,L=local(),b=s.pl[me];

@@ -237,7 +237,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22o-rl-arte.js` | 19 | RLA, ICO, icon, iconIn, P, C, EYE |
 | `js/app/22p-regicide-legacy.js` | 20 | RLV, rlegacyH, rlPrepH, rlEndH, rlClick, RLFX |
 | `js/app/22q-regicide-x.js` | 12 | RX, titolo, motto |
-| `js/app/22r-accordi.js` | 19 | ACOL, APC, ANEED, acMotif, acDisc, acStack, acCube |
+| `js/app/22r-accordi.js` | 21 | ACOL, APC, ANEED, acMotif, acDisc, acStack, acCube |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 10 | FB |

@@ -29,6 +29,13 @@ La fine scatta quando il sacchetto non basta a riempire il centro, o quando a fi
 - **Animali**: il valore dell'ultimo cubetto messo sulla traccia della carta, anche se non finita.
 Pareggio: vince chi ha messo più cubetti.
 
+## Riferimento visivo
+- **Tavolo**: plancia personale di cartone color pergamena con caselle esagonali chiare e piccoli disegni di laghetti sul bordo; plancia centrale scura a spazi rotondi da 3 dischi; sacchetto di stoffa; carte animali in fila sopra le plance.
+- **Dischi**: cilindri di legno spessi, colori pieni e saturi (blu acqua con onde, grigio con creste di roccia, marrone con anelli del tronco, verde con foglia, giallo con fiorellini, rosso con tetto), il motivo stampato in chiaro sulla faccia superiore. Pile alte fino a 3 (4 con i Rifugi).
+- **Cubetti**: piccoli cubi traslucidi color ambra per gli animali; Folletti e Custodi con colori propri.
+- **Carte**: verticali, bordo chiaro; illustrazione piatta a campiture morbide (stile acquerello digitale) nella parte alta; in basso lo schema di esagoni colorati con l'altezza delle pile; lungo il bordo destro la colonna dei valori, con i cubetti appoggiati sopra che si tolgono uno alla volta.
+- **Da noi**: stessa disposizione e palette, motivi dei dischi e paesaggi delle carte disegnati da noi in SVG (nessuna illustrazione copiata), plance 3D low-poly sulla TV.
+- Foto di riferimento: pagine del gioco sul sito dell'editore (www.libellud.com) e foto dell'utente nella conversazione del 28 ottobre 2026 (non salvate nel repo).
 ## Varianti (opzione «Preparazione»)
 - **Custodi** (incluso nel base): al primo turno scegli 1 tra 2 Custodi. Il suo schema ospita un cubetto; se lo metti, a fine partita vale il suo obiettivo (10 Custodi nostri).
 - **Battito** (espansione piccola): 10 animali con schemi a tre paesaggi, asimmetrici: lo specchio diventa decisivo.
