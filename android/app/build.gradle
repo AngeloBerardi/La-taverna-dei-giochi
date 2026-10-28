@@ -1,0 +1,45 @@
+// App Android della Taverna: una Trusted Web Activity (Chrome a tutto schermo, senza barra) che apre il sito.
+// Niente codice nostro: tutto è configurato nel manifest. Guida: docs/ANDROID.md.
+plugins { id 'com.android.application' }
+
+def sito = 'la-taverna-dei-giochi.web.app'
+def numero = (System.getenv('GITHUB_RUN_NUMBER') ?: '1') as int
+def ks = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'app.web.latavernadeigiochi'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'app.web.latavernadeigiochi'
+        minSdk 21
+        targetSdk 34
+        versionCode numero
+        versionName "1.0.$numero"
+        manifestPlaceholders = [host: sito, url: "https://$sito/?app=android"]
+        resValue 'string', 'asset_statements', "[{\\\"relation\\\":[\\\"delegate_permission/common.handle_all_urls\\\"],\\\"target\\\":{\\\"namespace\\\":\\\"web\\\",\\\"site\\\":\\\"https://$sito\\\"}}]"
+    }
+    signingConfigs {
+        if (ks) {
+            taverna {
+                storeFile file(ks)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias 'taverna'
+                keyPassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (ks) signingConfig signingConfigs.taverna
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}
