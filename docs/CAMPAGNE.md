@@ -11,9 +11,5 @@ Obiettivo: campagne a più sessioni stile *For the King* (mappa a esagoni, grupp
   - Incontri casuali dopo il movimento: prova d20 + modificatore (+ competenza) contro una CD con l'abilità scelta (`EROI.prova`); fallire ferisce e fa crescere la perdizione.
   - Missione in tre passi: parla in città → ripulisci l'antro (3 prove, 2 riuscite) → abbatti la torre (4 prove, 3 riuscite). Anteprima giocabile da «Eroi → Campagna», salvata in locale.
 
-## Da fare (prossimi passi)
-1. Combattimento a turni sulla mappa (iniziativa, attacco/danno già in `EROI.derivati`).
-2. Campagna condivisa: gruppo da più telefoni sopra `R.db` (come le partite a distanza), un eroe per giocatore.
-3. Salvataggio dell'avanzamento negli eroi dell'account (XP, oro, oggetti) con regole che ne limitino la crescita per sessione.
-4. Locandiere come Game Master: descrive gli incontri (`motori/24-locandiere.js` ).
-5. Oggetti, negozi di città, più missioni e mappe fatte a mano; musica e suoni propri.
+## Da fare
+Il piano completo, diviso in task da una sessione, è in `docs/AVVENTURA.md`.
