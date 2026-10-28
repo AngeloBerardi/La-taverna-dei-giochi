@@ -1,0 +1,31 @@
+# Pulizia settimanale del Realtime Database (scripts/pulizia-stanze.js): stanze ferme da 7 giorni, regia orfana, errori vecchi.
+# Usa lo stesso segreto della pubblicazione (FIREBASE_SERVICE_ACCOUNT); l'account di servizio deve avere il ruolo
+# «Firebase Realtime Database Admin» (docs/HOSTING.md, «Pulizia delle stanze»).
+# Si può lanciare anche a mano: Actions → Pulizia stanze → Run workflow (con «prova» non cancella niente).
+name: Pulizia stanze
+on:
+  schedule:
+    - cron: '17 3 * * 1' # lunedì alle 3:17 UTC
+  workflow_dispatch:
+    inputs:
+      prova:
+        description: 'Solo prova (elenca senza cancellare)'
+        type: boolean
+        default: true
+      giorni:
+        description: 'Cancella le stanze ferme da almeno N giorni'
+        default: '7'
+jobs:
+  pulizia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i --no-save --silent firebase-admin@12
+      - name: Pulisci
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          PROVA: ${{ github.event_name == 'workflow_dispatch' && inputs.prova }}
+          GIORNI: ${{ inputs.giorni || '7' }}
+        run: node scripts/pulizia-stanze.js --giorni="$GIORNI" $([ "$PROVA" = "true" ] || echo --cancella)
