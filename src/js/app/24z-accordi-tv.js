@@ -10,7 +10,8 @@ const cells=n=>n===1?[{x:1.9,z:0,w:11.6,d:8.6}]:[{x:-1.1,z:-2.3,w:6.6,d:4.4},{x:
 const cellsN=n=>n===2?[{x:-1.1,z:0,w:6.6,d:8.6},{x:5.5,z:0,w:6.6,d:8.6}]:n===3?cells(4).slice(0,3):cells(n);
 const SLX=-6.55,SLZ=k=>-3.4+k*1.7;
 const dark=(c,t)=>LP.mix(c,'#000000',t);
-function disc(b,c,x,z,y,r,top){const C=ACOL[c];b.prism(LP.ngon(x,z,r,14,.11),y,y+DH,C[0],{side:C[1]});if(top)b.prism(LP.ngon(x,z,r*.55,14,.11),y+DH,y+DH+.012,C[2],{side:C[2]})}
+/* disco: fianco nel suo colore (più scuro) e una sottile fuga scura sotto, così la pila si legge disco per disco */
+function disc(b,c,x,z,y,r,top){const C=ACOL[c];b.prism(LP.ngon(x,z,r*.97,14,.11),y,y+.014,'#1a0f06');b.prism(LP.ngon(x,z,r,14,.11),y+.014,y+DH,C[0],{side:LP.mix(C[0],C[1],.4)});if(top)b.prism(LP.ngon(x,z,r*.55,14,.11),y+DH,y+DH+.012,C[2],{side:C[2]})}
 function cube(b,x,z,y,s,kind){const C=kind==='w'?'#b48ae6':kind==='s'?'#f4eedc':'#f4a52e';b.prism(LP.ngon(x,z,s,4,Math.PI/4),y,y+s*1.35,C,{side:dark(C,.25)})}
 function pile(b,cell,x,z,f,y0){const st=cell.s;for(let i=0;i<st.length;i++)disc(b,st[i],x,z,y0+DH*i*f,DR*f,i===st.length-1);
  const y=y0+DH*st.length*f+(st.length?.014:0);if(cell.a)cube(b,x-(cell.w?.12*f:0),z,y,.11*f,cell.a==='s'?'s':'a');if(cell.w)cube(b,x+(cell.a?.12*f:0),z,y,.1*f,'w')}

@@ -2,7 +2,8 @@
    Plancia in prospettiva: ogni casella è un esagono di cartone, i dischi sono cilindri di legno impilati con il motivo in cima.
    Schermata a fasi: in alto punti per voce e mini-plance, poi la plancia grande e le tue carte; in basso un vassoio fisso che segue
    il turno (centro → dischi presi con anteprima e conferma → Fine turno). I cubetti si mettono toccando il segnalino ambra sulla casella;
-   ogni carta si apre ingrandita con lo schema spiegato a parole.
+   ogni carta si apre ingrandita con lo schema spiegato a parole. Usa il layout fisso dell'hub (22g-fisso.js): niente scorrimento né zoom,
+   la plancia prende lo spazio che resta.
    Grafica tutta in SVG, niente immagini. La TV usa accordiTVH (24z-accordi-tv.js). */
 const ACOL={b:['#3b8fd4','#1f5d93','#9fd0f5'],g:['#9aa1aa','#5f666f','#d6dbe0'],m:['#8b5a33','#5a3519','#c08a5c'],v:['#5fae3d','#3a7424','#b7e08e'],y:['#eab73b','#a77812','#fbe39a'],r:['#cf4a3d','#8a2219','#f2a197']};
 const APC=['#e8574a','#3a8fe6','#f2c230','#b06be0'];
@@ -16,13 +17,14 @@ function acMotif(c,x,y,rx,ry){const L=ACOL[c][2],f=n=>n.toFixed(1),w=Math.max(1,
  if(c==='m')return`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx*.55)}" ry="${f(ry*.55)}" fill="none" stroke="${L}" stroke-width="${f(w*.8)}"/><ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx*.25)}" ry="${f(ry*.25)}" fill="none" stroke="${L}" stroke-width="${f(w*.8)}"/>`;
  return`<path d="M${f(x-rx*.55)} ${f(y+ry*.25)}L${f(x)} ${f(y-ry*.45)}L${f(x+rx*.55)} ${f(y+ry*.25)}" fill="none" stroke="${L}" stroke-width="${f(w*1.2)}" stroke-linejoin="round"/><rect x="${f(x-rx*.12)}" y="${f(y)}" width="${f(rx*.24)}" height="${f(ry*.4)}" fill="${L}"/>`}
 /* un disco: fianco scuro + faccia in alto; motivo solo sul disco più alto */
-function acDisc(c,x,y,rx,ry,h,top){const[f0,d]=ACOL[c],f=n=>n.toFixed(1);
- return`<path d="M${f(x-rx)} ${f(y)}V${f(y+h)}A${f(rx)} ${f(ry)} 0 0 0 ${f(x+rx)} ${f(y+h)}V${f(y)}Z" fill="${d}"/><ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="${f0}" stroke="${d}" stroke-width=".8"/>${top?acMotif(c,x,y,rx,ry):''}`}
+const acMix=(a,b,t)=>'#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');
+function acDisc(c,x,y,rx,ry,h,top){const[f0,d]=ACOL[c],f=n=>n.toFixed(1),sd=acMix(f0,d,.45);
+ return`<path d="M${f(x-rx)} ${f(y)}V${f(y+h)}A${f(rx)} ${f(ry)} 0 0 0 ${f(x+rx)} ${f(y+h)}V${f(y)}Z" fill="${sd}"/><path d="M${f(x-rx)} ${f(y+h)}A${f(rx)} ${f(ry)} 0 0 0 ${f(x+rx)} ${f(y+h)}" fill="none" stroke="#1a0f06" stroke-opacity=".55" stroke-width="1.3"/><ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" fill="${f0}" stroke="${d}" stroke-width=".9"/>${top?acMotif(c,x,y,rx,ry):''}`}
 function acStack(st,x,y,rx,ry,h){let g='';for(let i=0;i<st.length;i++)g+=acDisc(st[i],x,y-i*h,rx,ry,h,i===st.length-1);return g}
 /* cubetto isometrico (animale ambra, folletto lilla, custode bianco) */
 function acCube(x,y,s,kind){const C=kind==='w'?['#c7a6f0','#8d63c9','#a982de']:kind==='s'?['#fbf6e8','#c9bfa6','#e4dcc6']:['#ffc35a','#c27a12','#e89a2a'],f=n=>n.toFixed(1);
  return`<g class="ac-cube"><path d="M${f(x)} ${f(y-s)}L${f(x+s)} ${f(y-s/2)}L${f(x)} ${f(y)}L${f(x-s)} ${f(y-s/2)}Z" fill="${C[0]}"/><path d="M${f(x-s)} ${f(y-s/2)}L${f(x)} ${f(y)}V${f(y+s)}L${f(x-s)} ${f(y+s/2)}Z" fill="${C[2]}"/><path d="M${f(x+s)} ${f(y-s/2)}L${f(x)} ${f(y)}V${f(y+s)}L${f(x+s)} ${f(y+s/2)}Z" fill="${C[1]}"/></g>`}
-const AC_SQ=.7;
+const AC_SQ=.82,AC_DS=.58; /* AC_SQ schiaccia la griglia, AC_DS i dischi */
 function acPix(k,z){const[q,r]=ACC.QR(k);return[z*Math.sqrt(3)*(q+r/2),z*1.5*r*AC_SQ]}
 function acHex(x,y,z){let s='';for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30);s+=(x+z*Math.cos(a)).toFixed(1)+','+(y+z*Math.sin(a)*AC_SQ).toFixed(1)+' '}return s}
 /* plancia intera: o.tgt = Set di caselle toccabili, o.act = azione dei bersagli, o.W larghezza */
@@ -30,7 +32,7 @@ function acHex(x,y,z){let s='';for(let i=0;i<6;i++){const a=Math.PI/180*(60*i-30
 function acBoardSVG(s,p,o){o=o||{};const b=s.pl[p],ks=Object.keys(b.cells),W=o.W||Math.max(300,Math.min(520,(typeof innerWidth!=='undefined'?innerWidth:390)-12));
  const all=ACC.shape(s.side==='C'?'A':s.side),pts=all.map(k=>acPix(k,1)),x0=Math.min(...pts.map(q=>q[0])),x1=Math.max(...pts.map(q=>q[0])),y0=Math.min(...pts.map(q=>q[1])),y1=Math.max(...pts.map(q=>q[1]));
  const z=Math.min(o.zmax||60,(W-10)/(x1-x0+Math.sqrt(3))),top=z*1.15,H=Math.round((y1-y0)*z+z*AC_SQ*2+top+8),ox=W/2-(x0+x1)/2*z,oy=top+z*AC_SQ-y0*z;
- const rx=z*.76,ry=rx*AC_SQ,h=z*.27,tgt=o.tgt||new Set(),cub=o.cub||new Map(),rifK=new Map();b.rif.forEach(f=>{if(f.site)rifK.set(f.site,0)});b.rifOk.forEach(f=>rifK.set(f.k,1));
+ const rx=z*.6,ry=rx*AC_DS,h=z*.3,tgt=o.tgt||new Set(),cub=o.cub||new Map(),rifK=new Map();b.rif.forEach(f=>{if(f.site)rifK.set(f.site,0)});b.rifOk.forEach(f=>rifK.set(f.k,1));
  const arid=s.side==='D'?new Set(ACC.ARID):null,wet=k=>ACC.nbs(k).some(y=>b.cells[y]&&b.cells[y].s==='b'),f1=n=>n.toFixed(1);
  let base=`<path d="${(()=>{let d='';all.forEach(k=>{const[x,y]=acPix(k,z);d+='M'+acHex(ox+x,oy+y,z*1.06).trim().split(' ').join('L')+'Z'});return d})()}" fill="#c9ad7c" stroke="#8c6a3c" stroke-width="5" stroke-linejoin="round"/>`;
  if(s.side==='C'){const[x,y]=acPix(ACC.K(1,2),z);base+=`<polygon points="${acHex(ox+x,oy+y,z*.98)}" fill="#3a2a1c" stroke="#6b4a26" stroke-width="2"/><ellipse cx="${ox+x}" cy="${oy+y}" rx="${z*.5}" ry="${z*.3}" fill="#22180f"/>`}
@@ -42,14 +44,14 @@ function acBoardSVG(s,p,o){o=o||{};const b=s.pl[p],ks=Object.keys(b.cells),W=o.W
   if(rifK.has(k))cellsG+=`<polygon points="${acHex(X,Y,z*.8)}" fill="none" stroke="${rifK.get(k)?'#f7c948':'#f7c94888'}" stroke-width="2.4" stroke-dasharray="${rifK.get(k)?'0':'5 3'}"/>`;
   if(tgt.has(k))cellsG+=`<polygon points="${acHex(X,Y,z*.86)}" fill="${pv?'#ffd36b88':'#ffd36b44'}" stroke="#e8860f" stroke-width="${pv?4:2.6}" class="${pv?'':'ac-glow'}"/>`;
   const st=cell.s+(pv?o.prev.c:''),sh=st.length*h;
-  if(st)piles+=`<ellipse cx="${f1(X)}" cy="${f1(Y+h*.9)}" rx="${f1(rx*1.03)}" ry="${f1(ry*1.03)}" fill="#00000033"/>`+acStack(cell.s,X,Y,rx,ry,h)+(pv?`<g class="ac-ghost">${acDisc(o.prev.c,X,Y-cell.s.length*h,rx,ry,h,1)}</g>`:'');
-  if(st.length>=2)piles+=`<g class="ac-hgt"><circle cx="${f1(X+rx*.78)}" cy="${f1(Y-sh+ry*.2)}" r="${f1(z*.2)}" fill="#2a1b0f" stroke="#f6ecd2" stroke-width="1.4"/><text x="${f1(X+rx*.78)}" y="${f1(Y-sh+ry*.2+z*.09)}" font-size="${f1(z*.26)}" font-weight="800" text-anchor="middle" fill="#f6ecd2">${st.length}</text></g>`;
-  if(cell.a)piles+=acCube(X-(cell.w?z*.22:0),Y-sh-z*.05,z*.18,cell.a==='s'?'s':'a');
-  if(cell.w)piles+=acCube(X+(cell.a?z*.22:0),Y-sh-z*.05,z*.16,'w');
+  if(st)piles+=`<ellipse cx="${f1(X+z*.05)}" cy="${f1(Y+h+ry*.15)}" rx="${f1(rx*1.08)}" ry="${f1(ry*1.05)}" fill="#00000040"/>`+acStack(cell.s,X,Y,rx,ry,h)+(pv?`<g class="ac-ghost">${acDisc(o.prev.c,X,Y-cell.s.length*h,rx,ry,h,1)}</g>`:'');
+  if(st.length>=2)piles+=`<g class="ac-hgt"><circle cx="${f1(X+rx*.98)}" cy="${f1(Y-sh+h*.5)}" r="${f1(z*.19)}" fill="#2a1b0f" stroke="#f6ecd2" stroke-width="1.4"/><text x="${f1(X+rx*.98)}" y="${f1(Y-sh+h*.5+z*.085)}" font-size="${f1(z*.25)}" font-weight="800" text-anchor="middle" fill="#f6ecd2">${st.length}</text></g>`;
+  if(cell.a)piles+=acCube(X-(cell.w?z*.2:0),Y-sh+z*.02,z*.2,cell.a==='s'?'s':'a');
+  if(cell.w)piles+=acCube(X+(cell.a?z*.2:0),Y-sh+z*.02,z*.18,'w');
   if(tgt.has(k))taps+=`<polygon data-a="${o.act}" data-v="${k}" role="button" aria-label="Casella" class="ac-tap" points="${acHex(X,Y-sh*.5,z*.95)}" fill="transparent"/>`;
-  if(cub.has(k)){const mx=X-rx*.62,my=Y-sh-ry*.1;marks+=`<g data-a="accubek" data-v="${k}" role="button" aria-label="Metti un cubetto" class="ac-mark"><circle cx="${f1(mx)}" cy="${f1(my)}" r="${f1(z*.3)}" fill="#2a1b0fcc" stroke="#ffc35a" stroke-width="2"/>${acCube(mx,my+z*.02,z*.15,cub.get(k).some(x=>x.k==='w')&&!cub.get(k).some(x=>x.k!=='w')?'w':'a')}</g>`}
+  if(cub.has(k)){const mx=X-rx*.85,my=Y-sh-ry*.2;marks+=`<g data-a="accubek" data-v="${k}" role="button" aria-label="Metti un cubetto" class="ac-mark"><circle cx="${f1(mx)}" cy="${f1(my)}" r="${f1(z*.3)}" fill="#2a1b0fcc" stroke="#ffc35a" stroke-width="2"/>${acCube(mx,my+z*.02,z*.15,cub.get(k).some(x=>x.k==='w')&&!cub.get(k).some(x=>x.k!=='w')?'w':'a')}</g>`}
   if(pv&&o.prev.d)marks+=`<g class="ac-delta"><rect x="${f1(X-z*.62)}" y="${f1(Y-sh-h-z*.62)}" width="${f1(z*1.24)}" height="${f1(z*.42)}" rx="${f1(z*.2)}" fill="${o.prev.d>0?'#2f7d3a':'#5a3a20'}" stroke="#f6ecd2" stroke-width="1.2"/><text x="${f1(X)}" y="${f1(Y-sh-h-z*.31)}" font-size="${f1(z*.3)}" font-weight="800" text-anchor="middle" fill="#fff">${o.prev.d>0?'+':''}${o.prev.d}</text></g>`}
- return`<svg class="ac-board" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Paesaggio di ${esc(s.names[p])}">${base}${cellsG}${piles}${taps}${marks}</svg>`}
+ return`<svg class="ac-board" viewBox="0 0 ${W} ${H}" ${o.fill?'':`width="${W}" height="${H}"`} role="img" aria-label="Paesaggio di ${esc(s.names[p])}">${base}${cellsG}${piles}${taps}${marks}</svg>`}
 /* mini-plancia vista dall'alto (striscia dei giocatori) */
 function acMiniSVG(s,p){const b=s.pl[p],z=4.2,ks=ACC.shape(s.side==='C'?'A':s.side);let g='';
  ks.forEach(k=>{const[q,r]=ACC.QR(k),x=z*Math.sqrt(3)*(q+r/2)+z+1,y=z*1.5*r+z+1,c=b.cells[k],st=c?c.s:'',col=!c?'#22180f':st?ACOL[st[st.length-1]][0]:'#e8d6ac';
@@ -130,36 +132,40 @@ function accordiH(){if(ui.tv)return accordiTVH();const s=G,mine=myTurn(),me=s.cu
  if(own&&s.hold[ui.acj]){const c=s.hold[ui.acj];for(const k in b.cells)if(ACC.canPut(s,me,k,c))tgt.add(k);act='acput'}
  if(own)cub=acCubeMap(s,me);
  const prev=own&&ui.acp&&s.hold[ui.acj]?ui.acp:null;
- const board=`<div class="ac-wrap">${acBoardSVG(s,view,{tgt,act,cub,prev})}</div>`;
+ const board=`<div class="ac-wrap">${acBoardSVG(s,view,{tgt,act,cub,prev,W:420,fill:1})}</div>`;
  /* carte del paesaggio guardato */
  const myC=[...vb.hand.map((h,i)=>({id:h.id,n:h.n,v:i})),...(vb.spirit&&!vb.spirit.n?[{id:vb.spirit.id,n:0,v:'spirit'}]:[])];
  const cards=myC.map(x=>acCardH(x.id,x.n,{a:'acopen',v:view+':'+x.v,ok:own&&ACC.cubeSpots(s,me,x.id).length>0})).join('')+vb.rif.map(f=>acCardH(f.id,0,{a:'acopen',v:view+':rif:'+f.id})).join('');
  const done=vb.done.length+vb.rifOk.length+(vb.spirit&&vb.spirit.n?1:0)?`<div class="ac-done">${vb.done.map(h=>`<span>${esc(ACC.CARDS[h.id].nm)}</span>`).join('')}${vb.rifOk.map(f=>`<span class="r">${esc(ACC.CARDS[f.id].nm)}${f.cubes?' · '+f.cubes:''}</span>`).join('')}${vb.spirit&&vb.spirit.n?`<span class="s">${esc(ACC.CARDS[vb.spirit.id].nm)}</span>`:''}</div>`:'';
- const mineH=`<div class="hlabel">${own?'Le tue carte':'Carte di '+esc(s.names[view])} · ${ACC.held(vb)}/4</div>${cards?`<div class="ac-row ac-mine">${cards}</div>`:'<p class="ac-none">Nessuna carta da completare.</p>'}${done}`;
- const disp=`<div class="hlabel">Animali da prendere${own&&s.tookCard?' · già presa':''}</div><div class="ac-row">${s.disp.map((id,i)=>acCardH(id,0,{a:'acdsel',v:i})).join('')}</div>`;
- const rdisp=s.cfg.rif?`<div class="hlabel">Rifugi</div><div class="ac-row">${s.rdisp.map((id,i)=>acCardH(id,0,{a:'acrsel',v:i})).join('')}</div>`:'';
+ /* fila di carte in basso, a schede: le tue carte, gli animali da prendere, i rifugi */
+ const tab=ui.acrow==='disp'||ui.acrow==='rif'&&s.cfg.rif?ui.acrow:'mine';
+ const rowCards=tab==='disp'?s.disp.map((id,i)=>acCardH(id,0,{a:'acdsel',v:i})).join(''):tab==='rif'?s.rdisp.map((id,i)=>acCardH(id,0,{a:'acrsel',v:i})).join('')
+  :(cards||'<p class="ac-none">Nessuna carta da completare: prendine una dagli Animali.</p>')+(done?`<div class="ac-donec">${done}</div>`:'');
+ const tb=(k,l)=>`<button class="ac-tb ${tab===k?'on':''}" data-a="acrow" data-v="${k}">${l}</button>`;
+ const rowH=`<div class="ac-tabs">${tb('mine',(view===me?'Le tue carte':'Carte di '+esc(s.names[view]))+' '+ACC.held(vb)+'/4')}${tb('disp','Animali'+(own&&s.tookCard?' (presa)':''))}${s.cfg.rif?tb('rif','Rifugi'):''}</div><div class="ac-row">${rowCards}</div>`;
  /* vassoio fisso: segue il turno */
- let tray='';
+ let tray='',actsH='';
  if(s.over)tray='';
  else if(!own){tray=`<div class="ac-tray"><div class="ac-step">${mine&&view!==me?'Stai guardando '+esc(s.names[view])+'. <button class="b sm" data-a="acview" data-v="'+me+'">Torna al tuo</button>':'Tocca a <b>'+esc(s.names[s.cur])+'</b>'+(s.took==null?': sceglie i dischi':': fa crescere il paesaggio')}</div></div>`}
  else{const steps=`<div class="ac-steps"><span class="${s.took!=null?'ok':'now'}">1 Dischi</span><span class="${s.took!=null&&!s.hold.length?'ok':s.took!=null?'now':''}">2 Posa ${s.took!=null?3-s.hold.length:0}/3</span><span class="${s.tookCard?'ok':''}">Carta</span><span class="${cub.size?'now':''}">Cubetti${cub.size?' '+cub.size:''}</span></div>`;
   let body='',acts='',msg='';
   if(b.offer){msg='Prima scegli il tuo Custode.'}
   else if(s.took==null){msg='Scegli uno spazio: prendi tutti e tre i dischi.';
-   body=`<div class="ac-centre">${s.slots.map((sl,i)=>`<button class="ac-slot ${sl?'':'empty'}" ${sl?`data-a="actake" data-v="${i}"`:'disabled'} aria-label="${sl?'Prendi '+sl.map(c=>ACC.CN[c]).join(', '):'vuoto'}"><svg viewBox="0 0 64 48" width="64" height="48" aria-hidden="true"><ellipse cx="32" cy="30" rx="30" ry="16" fill="#3b2616" stroke="#c9973b" stroke-width="1.5"/>${sl?sl.map((c,j)=>acDisc(c,[18,46,32][j],[25,25,34][j]-6,11.5,11.5*AC_SQ,6,1)).join(''):''}</svg></button>`).join('')}</div>`}
+   body=`<div class="ac-centre">${s.slots.map((sl,i)=>`<button class="ac-slot ${sl?'':'empty'}" ${sl?`data-a="actake" data-v="${i}"`:'disabled'} aria-label="${sl?'Prendi '+sl.map(c=>ACC.CN[c]).join(', '):'vuoto'}"><svg viewBox="0 0 64 48" width="64" height="48" aria-hidden="true"><ellipse cx="32" cy="30" rx="30" ry="16" fill="#3b2616" stroke="#c9973b" stroke-width="1.5"/>${sl?sl.map((c,j)=>acDisc(c,[18,46,32][j],[25,25,34][j]-6,11.5,11.5*AC_DS,6,1)).join(''):''}</svg></button>`).join('')}</div>`}
   else if(s.hold.length){const pv=prev;
    msg=pv?`<b>${pv.d>0?'+'+pv.d:pv.d} punti</b>${pv.why.length?' · '+pv.why.join(', '):''}${pv.ready.length?' · pronto per '+pv.ready.map(esc).join(', '):''}`:tgt.size?'Tocca una casella illuminata: vedi l’anteprima, poi conferma.':'Questo disco non entra da nessuna parte.';
-   body=`<div class="ac-hold">${s.hold.map((c,j)=>`<button class="ac-tok ${ui.acj===j?'on':''}" data-a="achold" data-v="${j}" aria-label="Disco ${ACC.CN[c]}"><svg viewBox="0 0 40 36" width="46" height="42" aria-hidden="true">${acDisc(c,20,14,15,15*AC_SQ,8,1)}</svg><small>${ACC.CN[c]}</small></button>`).join('')}</div>`;
+   body=`<div class="ac-hold">${s.hold.map((c,j)=>`<button class="ac-tok ${ui.acj===j?'on':''}" data-a="achold" data-v="${j}" aria-label="Disco ${ACC.CN[c]}"><svg viewBox="0 0 40 36" width="46" height="42" aria-hidden="true">${acDisc(c,20,14,15,15*AC_DS,8,1)}</svg><small>${ACC.CN[c]}</small></button>`).join('')}</div>`;
    if(pv)acts=`<button class="b gold" data-a="acok">Posa qui</button><button class="b disc" data-a="acno">Annulla</button>`}
   else{msg=cub.size?'Tocca un segnalino ambra per mettere un cubetto, poi Fine turno.':s.tookCard||ACC.held(b)>=4?'Tutto fatto: Fine turno.':'Puoi prendere un animale qui sopra, poi Fine turno.'}
   const stuck=s.hold.length&&s.hold.every(c=>!Object.keys(b.cells).some(k=>ACC.canPut(s,me,k,c)));
   if(s.took!=null&&(!s.hold.length||stuck))acts+=`<button class="b gold" data-a="acend">${stuck?'Fine turno (i dischi non entrano)':'Fine turno'}</button>`;
-  tray=`<div class="ac-tray">${steps}<div class="ac-step" aria-live="polite">${msg}</div>${body}${acts?`<div class="ac-acts">${acts}</div>`:''}<div class="err" role="alert">${esc(ui.err)}</div></div>`}
+  tray=`<div class="ac-tray">${steps}<div class="ac-step" aria-live="polite">${msg}</div>${body}</div>`;actsH=acts?`<div class="ac-acts">${acts}</div>`:''}
  const offer=own&&b.offer?`<div class="modal"><div class="box"><h2>Il tuo Custode</h2><p>Tienine uno: il suo schema accoglie un cubetto e a fine partita vale il suo obiettivo.</p><div class="ac-row ac-offer">${b.offer.map((id,i)=>acCardH(id,0,{a:'acspirit',v:i})).join('')}</div></div></div>`:'';
  const goals=ui.acgoal?acGoalsH(s):'';
  const end=s.over&&!ui.anim?acEndH(s):'';
  const chips=`<div class="tinfo"><span class="chip">Lato ${s.side} · ${ACC.SIDES[s.side]}</span><span class="chip">Sacchetto ${s.bag.length}</span>${s.endTrig&&!s.over?'<span class="chip ac-last">Ultimo giro</span>':''}<button class="chip ac-gbtn" data-a="acgoal">${ui.acgoal?'Chiudi':'Come si conta'}</button></div>`;
- return`${hudH(GN('accordi'))}${chips}${pl}${goals}${strip}${board}${own?'':bubbleH(s,'',null)}${mineH}${disp}${rdisp}${tray}${offer}${acSheetH(s,me,own)}${own?acPickH(s,me):''}${end}${rulesH()}${cfgH()}`}
+ const plist=s.names.map((n,i)=>{const d2=sc[i];return`<div class="ac-plrow"><b style="color:${APC[i]}">${esc(n)}</b> ${s.over?s.over.scores[i]:d2.tot} punti<small>${voci.map(v=>v[1]+' '+(d2[v[0]]||0)).join(' · ')}</small></div>`}).join('');
+ return fixH({title:GN('accordi'),chips,strip:pl+goals+strip,mid:board,bot:tray,act:actsH,hand:rowH,players:plist,end:offer+acSheetH(s,me,own)+(own?acPickH(s,me):'')+end})}
 function acGoalsH(s){const sd=s.side;return`<div class="ac-goals"><div><b>Alberi</b> alto 1/2/3: 1/3/7${sd==='D'?' (non su caselle aride)':''}</div><div><b>Monti</b> alto 1/2/3: 1/3/7, solo se toccano un monte</div><div><b>Campi</b> gruppo di 2 o più: ${sd==='D'?6:5}</div><div><b>Case</b> ${sd==='C'?'8 con 4 colori diversi attorno':'5 con 3 colori diversi attorno'}</div><div><b>Acqua</b> ${sd==='B'?'5 per isola':'fiume più lungo: 2/5/8/11/15, poi +4'}</div><div><b>Animali</b> l’ultimo valore coperto dai cubetti</div>${s.cfg.fol?'<div><b>Folletti</b> 5 con un cubetto animale, 2 da soli</div>':''}${s.cfg.rif?'<div><b>Rifugi</b> 3 per vicino con uno dei due colori</div>':''}</div>`}
 function acEndH(s){const o=s.over,w=o.win,R=[['tree','Alberi'],['mount','Monti'],['field','Campi'],['house','Case'],['water',s.side==='B'?'Isole':'Fiume'],['anim','Animali']];
  if(s.cfg.fol)R.push(['fol','Folletti']);if(s.cfg.rif)R.push(['rif','Rifugi']);if(s.cfg.spi)R.push(['spi','Custode']);
@@ -171,6 +177,7 @@ function acEndH(s){const o=s.over,w=o.win,R=[['tree','Alberi'],['mount','Monti']
 function accordiClick(a,v){const s=G;
  if(a==='acview'){ui.acv=+v;ui.acp=null;return render()}
  if(a==='acgoal'){ui.acgoal=!ui.acgoal;return render()}
+ if(a==='acrow'){ui.acrow=v;return render()}
  if(a==='acsx'){ui.acs=null;ui.ack=null;return render()}
  if(a==='acopen'){const[p,i,id]=v.split(':');ui.acs={w:'m',p:+p,i:i==='spirit'||i==='rif'?i:+i,id:id||null};return render()}
  if(a==='acdsel'){ui.acs={w:'d',i:+v};return render()}
@@ -185,8 +192,8 @@ function accordiClick(a,v){const s=G;
  if(a==='accubek'){const L=acCubeMap(s,s.cur).get(v)||[];if(L.length===1)return dispatch({t:'cube',c:L[0].c,k:v});ui.ack=v;return render()}
  if(a==='accube'){const[k,c]=v.split('|');ui.ack=null;return dispatch({t:'cube',c:c==='spirit'?'spirit':+c,k})}
  if(a==='acrifc'){const[c,f]=v.split(':').map(Number);acReset();return dispatch({t:'cuberif',c,f})}
- if(a==='actakec'){const i=ui.acs&&ui.acs.i;acReset();return dispatch({t:'card',i})}
- if(a==='actaker'){const i=ui.acs&&ui.acs.i;acReset();return dispatch({t:'rif',i})}
+ if(a==='actakec'){const i=ui.acs&&ui.acs.i;acReset();ui.acrow='mine';return dispatch({t:'card',i})}
+ if(a==='actaker'){const i=ui.acs&&ui.acs.i;acReset();ui.acrow='mine';return dispatch({t:'rif',i})}
  if(a==='acswap'){const i=ui.acs&&ui.acs.i;acReset();return dispatch({t:'swap',i})}
  if(a==='acend'){acReset();return dispatch({t:'end'})}}
 const ACFX={async pre(){return{}},async run(prev,ns){ui.acv=null;for(const e of ns.ev){
