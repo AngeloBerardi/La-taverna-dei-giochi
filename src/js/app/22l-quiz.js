@@ -29,7 +29,7 @@ function quizH(){if(ui.tv)return quizTVH();const s=G,mine=myTurn()&&!s.over,ph=s
  const hint=mine?(ph==='roll'?'Tira il dado.':ph==='move'?`Hai fatto ${s.roll}: tocca una delle due caselle che brillano sul percorso (avanti o indietro).`:ph==='ask'?'Scegli la risposta giusta.':ph==='pick'?`Scegli la categoria della domanda finale per ${esc(s.names[s.who])}.`:''):'';
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox win"><div class="crown">${ic('corona',48)}</div><h2>Vince ${esc(s.names[s.over.win])}!</h2><div class="scores">${s.names.map((n,i)=>`<div class="${i===s.over.win?'w':''}"><span>${esc(n)}</span><b>${s.over.scores[i]}</b><small>spicchi</small></div>`).join('')}</div><div class="col"><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const bub=s.over||ui.anim?`<div class="bubble"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>&nbsp;</div>`:`<div class="bubble ${mine?'me':''}"><span class="nar">${esc(s.log[s.log.length-1]||'')}</span>${mine?`<b>${esc(s.names[s.cur])}</b>, tocca a te!`:`Tocca a <b>${esc(s.names[s.cur])}</b><span class="dots"></span>`}${mine&&hint?`<small>${hint}</small>`:''}${ui.busy?'<small>invio mossa…</small>':''}</div>`;
- return fixH({title:'Quiz della Taverna',chips,strip,mid:quizBoardH(s),bot:body+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
+ return fixH({title:GN('quiz'),chips,strip,mid:quizBoardH(s),bot:body+bub+`<div class="ctl kctl">${ctl}</div>`,players:pl,end})}
 function quizClick(a,v){if(!myTurn())return;
  if(a==='qroll')return dispatch({t:'roll'});
  if(a==='qmove')return dispatch({t:'move',dir:+v});

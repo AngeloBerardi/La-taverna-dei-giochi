@@ -56,7 +56,7 @@ function endTurn(s){const p=s.cur;s.left[p]--;s.phase='pick';s.held=null;s.used3
   if(ws.length>1){const mn=Math.max(...ws.map(i=>det[i].nat));ws=ws.filter(i=>det[i].nat===mn)}
   s.over={scores:sc,det,win:ws.length===1?ws[0]:null,winners:ws};s.phase='summary';E(s,{t:'end'});L(s,'La valle è completa!');return}
  s.cur=(p+1)%s.n;s.turn++;overpop(s);E(s,{t:'turn',p:s.cur})}
-const VALLE={id:'valle',name:'Valle Selvaggia',ok:n=>n>=1&&n<=4,HAB,ANI,HN,AN,ANP,DIRS,K,QR,edgeH,nb,score,spots,tokSpots,three,corridor,T_BEAR,T_ELK,T_SALM,T_HAWK,
+const VALLE={id:'valle',name:'Terre di Cascata',ok:n=>n>=1&&n<=4,HAB,ANI,HN,AN,ANP,DIRS,K,QR,edgeH,nb,score,spots,tokSpots,three,corridor,T_BEAR,T_ELK,T_SALM,T_HAWK,
  newGame(n,names){const tiles=shuffle(allTiles());const s={g:'valle',n,names:names.slice(0,n),hands:Array.from({length:n},()=>[]),cur:0,turn:1,phase:'pick',log:[],ev:[],evn:0,over:null,teams:n,
    boards:[],pile:[],bag:[],disp:[],left:Array(n).fill(20),held:null,used3:false};
   for(let p=0;p<n;p++){const B={};[[0,0],[1,0],[0,1]].forEach(([q,r],i)=>{B[K(q,r)]={t:tiles.pop(),rot:(i*2)%6,tok:null}});s.boards.push({cells:B,nature:0})}

@@ -1,4 +1,4 @@
-# Zucca Matta
+# Teste Matte
 **Giocatori** 2–6 squadre · **Durata** ~40 min · **Tipo** party game a squadre · **Licenza/marchio**: meccanica libera (prove miste su percorso); il gioco a cui si ispira ha un nome protetto, qui rinominato
 ## Preparazione
 Percorso di 40 caselle: 5 prove (Mimo, Disegno, Parole, Canto, Cultura), un Jolly ogni 8 caselle, traguardo in fondo. Carte nostre: 30 mimi, 30 disegni, 29 brani, 40 parole per enigmi generati (anagramma, senza vocali, al contrario, lettere) e 12 indovinelli, più il banco di 120 domande del Quiz per Cultura.

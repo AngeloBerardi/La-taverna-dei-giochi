@@ -2,7 +2,7 @@
 
 Hub di giochi multiplayer per telefono, in italiano: una locanda 3D (con il falò pixel-art come modalità semplice) dove ci si siede al tavolo con gli amici e si sceglie un gioco dallo scaffale.
 
-**Giochi (28 voci nello scaffale):** Regicidio, Regicidio X (mostri per seme, classi, tratti e campagna della torre), Regicidio: la Campagna (12 missioni + spedizioni libere), Briscola, Scopa, Burraco, Machiavelli, La Banda, Miniera dei Nani, Mosaico, L'isola dei predatori, Telepatia (+ Estrema), Valle del Raccolto, Il Furfante, Valle Selvaggia, Discesa Tascabile, Dadi del Bugiardo, Micio Bomba (2-10, con edizione Implosione), Isola dei Coloni (2-8, con ampliamenti 5-6 e 7-8), Bestiole Affamate, Ultima Carta, Trame di Corte, Agenti Segreti, Quiz della Taverna, Zucca Matta, Caccia al Fantasma, Cena con delitto.
+**Giochi (28 voci nello scaffale):** Regicidio, Regicidio X (mostri per seme, classi, tratti e campagna della torre), Regicidio: la Campagna (12 missioni + spedizioni libere), Briscola, Scopa, Burraco, Machiavelli, La Banda, Sabotatori, Azulejos, L'isola dei predatori, La Mente (+ Estrema), Valle del Raccolto, Il Furfante, Terre di Cascata, Dungeon in una Carta, Dudo, Gattini al Botto (2-10, con edizione Implosione), I Coloni (2-8, con ampliamenti 5-6 e 7-8), Bestie Assetate di Potere, Ultima Carta, Dietro il Trono, Parole in Codice, Trivia a Spicchi, Teste Matte, Il Ricercato di Londra, Cena con delitto.
 
 ## Come si usa
 - Tutti entrano nella **stanza generale** ("PIAZZA"); le stanze private si creano dal pannello della stanza e si invitano con un link o un codice.

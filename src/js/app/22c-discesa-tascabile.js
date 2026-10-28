@@ -29,7 +29,7 @@ function discSetupH(s){const c=ui.dcls||'nessuna',mo=ui.dmods||{};const tog=(k,l
  <div class="dlab">Espansioni e moduli</div>${tog('chest','Forzieri','Lo Scettro Risorge: un forziere per livello.')}${tog('boss','Boss finale','Lo Scettro Risorge: lo Scettrarca e i suoi comandanti al livello 12.')}${tog('items','Oggetti','3 oggetti a uso singolo da Porto, Vetta e Soglia.')}${tog('stone','Pietra della Perdizione','Soglia Infernale: +1 a ogni dado energia, ma −1 salute a ogni nuovo livello.')}
  <button class="b play" data-a="dstart">Scendi nel dungeon</button></div>`}
 function discesaH(){const s=G,mine=myTurn();
- if(s.phase==='setup')return`${hudH('Discesa Tascabile')}${mine?discSetupH(s):'<p class="muted">Il giocatore sta preparando la discesa…</p>'}${rulesH()}${cfgH()}`;
+ if(s.phase==='setup')return`${hudH(GN('discesa'))}${mine?discSetupH(s):'<p class="muted">Il giocatore sta preparando la discesa…</p>'}${rulesH()}${cfgH()}`;
  const md=ui.dmode;let reach={},atk=new Set(),mtap=false;
  if(mine&&s.phase==='hero'){const h=s.hero;
   if(md==='warp'){for(let y=0;y<DISC.H;y++)for(let x=0;x<DISC.W;x++)if(!DISC.wall(s,x,y)&&!DISC.monAt(s,x,y)&&!(x===h.x&&y===h.y))reach[x+','+y]=0}
@@ -54,7 +54,7 @@ function discesaH(){const s=G,mine=myTurn();
  const up=s.phase==='levelup'&&mine&&!ui.anim?`<div class="modal"><div class="box"><h2>Livello ${s.level} completato!</h2><p>Scegli una ricompensa:</p><div class="col">${['S','A','D','R'].map(k=>`<button class="b" data-a="dup" data-v="${k}" ${s.hero[k]>=6?'disabled':''}>${DSI[k]} +1 ${DSN[k]} (${s.hero[k]}→${Math.min(6,s.hero[k]+1)})</button>`).join('')}<button class="b play" data-a="dup" data-v="heal">❤ Cura completa (${s.hero.hp}→6)</button></div></div></div>`:'';
  const end=s.over&&!ui.anim?`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${s.over.win?'win':''}"><div class="crown">${s.over.win?'👑':'💀'}</div><h2>${s.over.win?'Vittoria!':'Sconfitta'}</h2><p>${esc(s.over.reason)}</p><p class="muted">${s.over.win?'Hai finito con '+s.hero.hp+' di salute':'Arrivato al livello '+s.over.lv+' di 12'} · ${esc(DISC.CLS[s.cls].n)}</p><div class="col"><button class="b play" data-a="rematch">Rigioca</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`:'';
  const items=s.items.length?`<div class="ditems">🎒 ${s.items.map(i=>esc(DISC.ITEMS[i].n)).join(' · ')}</div>`:'';
- return`${hudH('Discesa Tascabile')}<div class="tinfo"><span class="chip">Livello ${s.level}/12</span><span class="chip">${esc(DISC.ADV[s.adv].n)}</span><span class="chip">${DCE[s.cls]} ${esc(DISC.CLS[s.cls].n)}</span></div>${dStatsH(s)}${grid}${dMonInfo(s)}${items}${bubbleH(s,hint,null)}${ctl}<div class="err" role="alert">${esc(ui.err)}</div>${up}${end}${rulesH()}${cfgH()}`}
+ return`${hudH(GN('discesa'))}<div class="tinfo"><span class="chip">Livello ${s.level}/12</span><span class="chip">${esc(DISC.ADV[s.adv].n)}</span><span class="chip">${DCE[s.cls]} ${esc(DISC.CLS[s.cls].n)}</span></div>${dStatsH(s)}${grid}${dMonInfo(s)}${items}${bubbleH(s,hint,null)}${ctl}<div class="err" role="alert">${esc(ui.err)}</div>${up}${end}${rulesH()}${cfgH()}`}
 function discClick(a,v){const s=G;
  if(a==='dcancel'){ui.dmode=null;ui.dbus=false;ui.err='';return render()}
  if(!myTurn())return;ui.err='';

@@ -1,4 +1,4 @@
-/* ---- Kit low-poly per i tavoli 3D dello schermo comune (Azul, Valle Selvaggia) ----
+/* ---- Kit low-poly per i tavoli 3D dello schermo comune (Azul, Terre di Cascata) ----
    Stesso palcoscenico di Catan e Regicide (CTV.stage): qui c'è solo ciò che serve a costruire solidi a facce piatte:
    - builder(): accumula triangoli con il colore per vertice e li unisce in UNA mesh (centinaia di tessere = una sola chiamata di disegno);
    - un atlante di glifi originali (animali, pigna, motivi delle piastrelle di Azul) usato come decalcomania sopra i solidi;

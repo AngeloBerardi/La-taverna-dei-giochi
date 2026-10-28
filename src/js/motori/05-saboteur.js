@@ -82,7 +82,7 @@ function endRound(s,finder){s.phase='summary';const n=s.n,gold=Array(n).fill(0),
 function finishRound(s){const g=s.res.gold;g.forEach((v,p)=>s.score[p]+=v);
  if(s.exp){const thieves=[...Array(s.n).keys()].filter(p=>s.theft[p]&&!s.trap[p]);for(const t of thieves)for(let k=0;k<s.theft[t];k++){const vs=[...Array(s.n).keys()].filter(p=>p!==t&&s.score[p]>0).sort((a,b)=>s.score[b]-s.score[a]);if(vs.length){s.score[vs[0]]--;s.score[t]++;s.res.steal=(s.res.steal||[]).concat([[t,vs[0]]])}}}
  s.phase='summary';if(s.round>=3){const mx=Math.max(...s.score),ws=s.score.map((v,i)=>v===mx?i:-1).filter(i=>i>=0);s.over={scores:s.score.slice(),win:ws.length===1?ws[0]:null,winners:ws};E2(s,{t:'win'})}else s.cur=s.startNext}
-const SAB={id:'saboteur',name:'Miniera dei Nani',ok:n=>n>=3&&n<=10,C,TOOLS,TN,RN,placements,reach,reachedEdges,segsOf,edgesOf,isPath,canPlace,key,
+const SAB={id:'saboteur',name:'Sabotatori',ok:n=>n>=3&&n<=10,C,TOOLS,TN,RN,placements,reach,reachedEdges,segsOf,edgesOf,isPath,canPlace,key,
  newGame(n,names,opts={}){const s={g:'saboteur',n,names:names.slice(0,n),exp:opts.exp==='sab2',round:0,score:Array(n).fill(0),pool:shuffle([...Array(16).fill(1),...Array(8).fill(2),...Array(4).fill(3)]),startNext:0,log:[],ev:[],evn:0,over:null,teams:n};dealRound(s);return s},
  act(st,a){if(st.over)return{err:'Partita finita'};const s=clone(st);s.ev=[];const p=s.cur,h=s.hands[p],nm=s.names[p];const ok=()=>{s.evn=(s.evn||0)+1;return{s}};
   if(a.t==='next'){if(s.phase!=='summary')return{err:'Non ora'};dealRound(s);return ok()}

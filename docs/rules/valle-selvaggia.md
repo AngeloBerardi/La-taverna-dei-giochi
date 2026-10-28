@@ -1,4 +1,4 @@
-# Valle Selvaggia
+# Terre di Cascata
 **Giocatori** 1-4 · **Durata** ~30 min · **Tipo** tavolo, costruzione di tessere · **Licenza/marchio**: meccaniche ispirate a Cascadia (Randy Flynn, 2021); nome, testi, punteggi delle carte e grafica originali. Il nome "Cascadia" non si usa.
 ## Preparazione
 105 tessere esagonali: 25 "chiave di volta" (1 habitat, 1 animale) e 80 doppie (2 habitat, 2-3 animali). 100 animali (20 per specie: orso, alce, salmone, falco, volpe). Ognuno parte con 3 tessere a triangolo. Pila: 20 tessere per giocatore + 3 (43 in solitario). Sentiero: 4 coppie tessera + animale.

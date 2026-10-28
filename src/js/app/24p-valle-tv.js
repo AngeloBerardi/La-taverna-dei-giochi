@@ -1,4 +1,4 @@
-/* ---- Valle Selvaggia sullo schermo comune (?tv=CODICE): «le valli» low-poly (three.js) ----
+/* ---- Terre di Cascata sullo schermo comune (?tv=CODICE): «le valli» low-poly (three.js) ----
    Si usa quando ui.tv è vero (vedi valleH in 22b-valle-selvaggia.js). Le valli di TUTTI i giocatori sono visibili insieme (quella di turno è evidenziata),
    le tessere esagonali sono in rilievo (montagne con la neve, foreste di abeti, prati, palude e fiume incassati), gli animali sono gettoni con il glifo.
    A sinistra il sentiero con le 4 coppie tessera + animale. Ogni valle è UNA mesh (colori per vertice): il rilievo costa pochissimo da disegnare.
@@ -68,4 +68,4 @@ function valleTVH(){const s=G,ok=VL3.sync(s),fail=VL3.failed,nm=i=>esc(s.names[i
  const tab=`<table class="vtv-tab"><tr><th></th>${s.names.map((n,i)=>`<th><i class="tv3-dot" style="--pc:${VPC[i]}"></i></th>`).join('')}</tr>${'oasfv'.split('').map(a=>row(a,'#f3e6c4',d=>d.an[a]||0)).join('')}${'MFPWR'.split('').map(h=>row(h,VHC[h],d=>(d.cor[h]||0)+(d.bon[h]||0))).join('')}${row('p','#d6aa3c',d=>d.nat||0)}<tr class="tot"><th>Tot.</th>${s.names.map((_,i)=>`<td>${tot(i)}</td>`).join('')}</tr></table>`;
  let mid='';if(fail){mid=`<div class="vtv-flat n${s.n}">${s.names.map((n,i)=>`<div class="vtv-fb ${i===s.cur&&!o?'act':''}"><b>${esc(n)}</b>${vBoardH(s,i,{spots:[],ghost:null,tokT:null})}</div>`).join('')}<div class="vtv-fd">${s.disp.map(d=>`<span class="vtv-fp">${d.t?vMiniTile(d.t):''}<em>${d.k?LP.gsvg(d.k,40):''}</em></span>`).join('')}</div></div>`}
  let end='';if(o){end=LP.endH(o.win!=null,o.win==null?'Pareggio!':'Vince '+nm(o.win)+'!','La valle è completa',`<ul>${s.names.map((n,i)=>`<li class="${o.winners.includes(i)?'w':''}"><span>${esc(n)}</span><b>${o.scores[i]}★</b></li>`).join('')}</ul>`)}
- return LP.shell({cls:'vtv n'+s.n,logo:'Valle Selvaggia',sub:'Turni '+(s.left[s.cur]||0)+' · tessere nel mazzo '+s.pile.length,state,mid,right:`<ul class="tv3-pl">${pls}</ul>${tab}${LP.feedH(s)}`,foot:'',end})}
+ return LP.shell({cls:'vtv n'+s.n,logo:GN('valle'),sub:'Turni '+(s.left[s.cur]||0)+' · tessere nel mazzo '+s.pile.length,state,mid,right:`<ul class="tv3-pl">${pls}</ul>${tab}${LP.feedH(s)}`,foot:'',end})}

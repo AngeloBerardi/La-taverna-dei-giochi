@@ -125,13 +125,13 @@ const RULES={
 <li><b>Stop ✋</b>: ferma il gioco per ricalibrarvi (ma non parlate!).</li>
 <li>Premi: dopo i livelli 2, 5 e 8 ottenete uno shuriken; dopo i livelli 3, 6 e 9 una vita (massimo 5 vite e 3 shuriken).</li>
 <li>Vite iniziali: 2 giocatori 2, 3 giocatori 3, 4 giocatori 4. Livelli totali: 12, 10 o 8. Vincete completando l’ultimo livello.</li></ul>`,
- mindx:`<p>Come <b>Telepatia</b> (cooperativo, 2–4, <b>senza comunicare</b>) ma con 100 carte di due colori.</p>
+ mindx:`<p>Come <b>La Mente</b> (cooperativo, 2–4, <b>senza comunicare</b>) ma con 100 carte di due colori.</p>
 <ul><li><b>Bianche 1–50</b>: si giocano in ordine <b>crescente</b>. <b>Rosse 1–50</b>: si giocano in ordine <b>decrescente</b> (dal 50 giù). Due pile separate.</li>
 <li>Ognuno riceve N carte al livello N. Quando tutti sono pronti si parte; chiunque gioca quando sente che è il momento: tocca la tua carta <b>bianca più bassa</b> o la <b>rossa più alta</b>.</li>
 <li><b>Errore</b>: carta giocata mentre qualcuno ne ha una che andava prima (nello stesso colore): <b>−1 vita</b> e carte saltate scartate.</li>
 <li><b>Carte coperte</b> (livelli avanzati): le carte di quel colore si giocano a faccia in giù; gli errori si scoprono solo <b>a fine livello</b> e costano una vita per ogni carta giocata troppo presto.</li>
 <li><b>Shuriken ★</b> (tutti d’accordo): ognuno scarta la propria carta più bassa bianca o la più alta rossa. <b>Stop ✋</b> per ricalibrarsi.</li>
-<li>Premi e vite come in Telepatia: shuriken dopo i livelli 2, 5 e 8; vita dopo 3, 6 e 9.</li></ul><p class="muted">Nota: la distribuzione esatta dei livelli a carte coperte è ricostruita dal regolamento: confrontala con la tua scatola.</p>`,
+<li>Premi e vite come in La Mente: shuriken dopo i livelli 2, 5 e 8; vita dopo 3, 6 e 9.</li></ul><p class="muted">Nota: la distribuzione esatta dei livelli a carte coperte è ricostruita dal regolamento: confrontala con la tua scatola.</p>`,
  machiavelli:`<p>Si gioca con 2 mazzi francesi + 4 jolly (108 carte). Ognuno riceve 13 carte; vince chi <b>finisce per primo le carte in mano</b>.</p>
 <ul><li><b>Combinazioni</b>: <b>tris o quartetti</b> (stesso valore, semi tutti diversi) e <b>scale</b> (almeno 3 carte consecutive dello stesso seme; l’asso vale 1 o sta dopo il re, ma non si «gira»: K-A-2 non vale).</li>
 <li>Il <b>jolly</b> sostituisce qualsiasi carta.</li>

@@ -1,7 +1,7 @@
-/* ---- Schermo comune (?tv=CODICE) low-poly per Agenti Segreti, Quiz, Zucca Matta e Caccia al Fantasma ----
+/* ---- Schermo comune (?tv=CODICE) low-poly per Parole in Codice, Quiz, Teste Matte e Il Ricercato di Londra ----
    Stesso schema di Valle/Azul: una scena three.js (LP) che legge solo lo stato `G`, più il guscio HUD 2D (LP.shell).
    Sulla TV NON compare mai un'informazione nascosta: niente chiave delle spie, niente posizione del Fantasma (solo le apparizioni),
-   niente soluzione delle prove di Zucca Matta. Senza WebGL resta l'HUD con elenco giocatori e cronaca. */
+   niente soluzione delle prove di Teste Matte. Senza WebGL resta l'HUD con elenco giocatori e cronaca. */
 const TVM=(id,gid,dims,bs,bd)=>{let R_=null,failed=false,loading=null,gk='',key='';
  const clear=g=>{while(g.children.length)g.remove(g.children[0])};
  async function init(){if(R_||failed)return;if(!loading)loading=(async()=>{try{if(!VENDOR.gl())throw new Error('niente WebGL');await LP.init();R_=LP.runtime(id,dims);
@@ -31,7 +31,7 @@ function spieTVH(){const s=G,ok=SPTV.sync(s),o=s.over,nm=i=>esc(s.names[i]),t=s.
  const pls=[0,1].map(q=>`<li class="tv3-team" style="--pc:${SPCOL[q?'B':'R']}"><span class="tv3-n">${SPT[q]}</span><span class="tv3-st">${s.names.map((n,i)=>s.teams[i]===q?`<span>${s.spies.includes(i)?'★ ':''}<b>${esc(n)}</b></span>`:'').join('')}</span></li>`).join('');
  const mid=ok?'':`<div class="sptv-flat">${s.words.map((w,i)=>`<i class="${s.rev[i]?'r'+s.key[i]:''}">${esc(w)}</i>`).join('')}</div>`;
  const end=o?LP.endH(true,'Vincono i '+SPT[o.win]+'!',o.why==='trappola'?'L’altra squadra ha toccato la trappola.':'Tutte le parole trovate.',''):'';
- return LP.shell({cls:'sptv n'+s.n,logo:'Agenti Segreti',sub:'Rossi '+SPIE.left(s,0)+' · Blu '+SPIE.left(s,1)+' parole da trovare',state,mid,right:`<div class="sptv-scs">${sc}</div><ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
+ return LP.shell({cls:'sptv n'+s.n,logo:GN('spie'),sub:'Rossi '+SPIE.left(s,0)+' · Blu '+SPIE.left(s,1)+' parole da trovare',state,mid,right:`<div class="sptv-scs">${sc}</div><ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
 /* ================= QUIZ DELLA TAVERNA ================= */
 const QZTV=TVM('qztv3d','quiz',{fw:10.6,fd:9.8,cx:0},(R_,s)=>{LP.table(R_,{w:10,d:9.2,felt:'#2a1a3a',frame:'#6a4524'});
  const T=LP.T,b=LP.builder(),RAD=3.85,pos=p=>{const a=p/QUIZ.SQ*2*Math.PI-Math.PI/2;return[RAD*Math.cos(a),RAD*Math.sin(a)]};
@@ -55,7 +55,7 @@ function quizTVH(){const s=G,ok=QZTV.sync(s),o=s.over,q=s.q,nm=i=>esc(s.names[i]
  const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!o?'act':''}" style="--pc:${QPC[i%6]}"><i class="tv3-dot"></i><span class="tv3-n">${esc(n)}</span><b class="tv3-vp">${QUIZ.wedges(s,i)}<small>/6</small></b><span class="tv3-st">${dots(i)}</span></li>`).join('');
  const card=q&&s.phase==='ask'?`<div class="qztv-q" style="--qc:${qcol(q.cat)}"><small>${DOMANDE.CATS[q.cat].n}${q.final?' · FINALE':''}</small><b>${esc(q.t)}</b><ol>${q.o.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`:'';
  const end=o?LP.endH(true,'Vince '+nm(o.win)+'!','Sei spicchi e la domanda finale',`<ul>${s.names.map((n,i)=>`<li class="${o.winners.includes(i)?'w':''}"><span>${esc(n)}</span><b>${o.scores[i]}/6</b></li>`).join('')}</ul>`):'';
- return LP.shell({cls:'qztv n'+s.n,logo:'Quiz della Taverna',sub:'Giro '+(s.pos[s.cur]+1)+' / '+QUIZ.SQ,state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`${card}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
+ return LP.shell({cls:'qztv n'+s.n,logo:GN('quiz'),sub:'Giro '+(s.pos[s.cur]+1)+' / '+QUIZ.SQ,state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`${card}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
 /* ================= ZUCCA MATTA ================= */
 const ZUTV=TVM('zutv3d','zucca',{fw:14.4,fd:9.6,cx:-.4},(R_,s)=>{LP.table(R_,{w:13.8,d:9,felt:'#3a2410',frame:'#5a3b20'});
  const T=LP.T,b=LP.builder(),cols=8,sp=1.62,x0=-(cols-1)*sp/2,z0=-(Math.ceil(ZUCCA.PATH/cols)-1)*sp/2;
@@ -76,7 +76,7 @@ function zuccaTVH(){const s=G,ok=ZUTV.sync(s),o=s.over,tn=i=>esc(ZUCCA.tn(s,i)),
  const q=c&&c.o?`<div class="qztv-q" style="--qc:${cat.c}"><small>${cat.n}</small><b>${esc(c.t)}</b><ol>${c.o.map(t=>`<li>${esc(t)}</li>`).join('')}</ol></div>`:'';
  const sqs=[...new Set(s.sq)],pls=sqs.map(q=>{const i=s.sq.indexOf(q);return`<li class="${q===s.sq[s.cur]&&!o?'act':''}" style="--pc:${ZPC[q%6]}"><i class="tv3-dot"></i><span class="tv3-n">${esc(ZUCCA.tn(s,i))}</span><b class="tv3-vp">${s.pos[i]+1}<small>/${ZUCCA.PATH}</small></b></li>`}).join('');
  const end=o?LP.endH(true,'Vince '+tn(o.win)+'!','Prova finale superata',''):'';
- return LP.shell({cls:'zutv n'+s.n,logo:'Zucca Matta',sub:'Casella '+(s.pos[s.cur]+1)+' di '+ZUCCA.PATH,state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`${q}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
+ return LP.shell({cls:'zutv n'+s.n,logo:GN('zucca'),sub:'Casella '+(s.pos[s.cur]+1)+' di '+ZUCCA.PATH,state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`${q}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
 /* ================= CACCIA AL FANTASMA ================= */
 const FATV=TVM('fatv3d','fantasma',{fw:11.4,fd:9.8,cx:0},(R_,s)=>{LP.table(R_,{w:10.6,d:9.2,felt:'#1c1a26',frame:'#4a2f18'});
  const T=LP.T,b=LP.builder(),P=i=>{const q=FANTASMA.pos(i);return[(q.x-(FANTASMA.W-1)/2)*1.2,(q.y-(FANTASMA.H-1)/2)*1.0]};
@@ -102,4 +102,4 @@ function fantasmaTVH(){const s=G,ok=FATV.sync(s),o=s.over,nm=i=>esc(s.names[i]);
  const trail=`<div class="ftr">${s.trail.map((t,i)=>`<i class="${FANTASMA.REVEAL.includes(i+1)?'rv':''}" style="background:${FTC[t]}">${i+1}</i>`).join('')||'<small>Il Fantasma non si è ancora mosso.</small>'}</div>`;
  const pls=s.names.map((n,i)=>`<li class="${i===s.cur&&!o?'act':''}" style="--pc:${i?FAC[(i-1)%5]:'#8a6fd0'}"><i class="tv3-dot"></i><span class="tv3-n">${esc(n)}${i?'':' · Fantasma'}</span><span class="tv3-st">${i?`<span>taxi <b>${s.tk[i].taxi}</b></span><span>bus <b>${s.tk[i].bus}</b></span><span>metro <b>${s.tk[i].metro}</b></span>`:`<span>doppie <b>${s.tk[0].dbl}</b></span><span>neri <b>${s.tk[0].black}</b></span>`}</span></li>`).join('');
  const end=o?LP.endH(o.winners.includes(0),o.winners.includes(0)?'Il Fantasma vince!':'Vincono i detective!','Il Fantasma era in '+(s.pos[0]+1),''):'';
- return LP.shell({cls:'fatv n'+s.n,logo:'Caccia al Fantasma',sub:'Round '+s.round+' / '+FANTASMA.ROUNDS+' · prossima apparizione al round '+(FANTASMA.REVEAL.find(r=>r>s.round)||'—'),state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`<div class="tv3-lt">Biglietti del Fantasma</div>${trail}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}
+ return LP.shell({cls:'fatv n'+s.n,logo:GN('fantasma'),sub:'Round '+s.round+' / '+FANTASMA.ROUNDS+' · prossima apparizione al round '+(FANTASMA.REVEAL.find(r=>r>s.round)||'—'),state,mid:ok?'':'<p class="tv3-fb">Grafica 3D non disponibile su questo schermo.</p>',right:`<div class="tv3-lt">Biglietti del Fantasma</div>${trail}<ul class="tv3-pl">${pls}</ul>${LP.feedH(s)}`,foot:'',end})}

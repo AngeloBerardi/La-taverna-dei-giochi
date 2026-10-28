@@ -44,11 +44,11 @@ ${resume?`<div class="sh2">Da riprendere</div>${resume}`:''}
  // Giochi: catalogo con ricerca, categorie, gioco in evidenza e scheda di dettaglio
  giochiH(){const N=lobbySeats().length,T=tally(N),MD=multiDev(),busy=R.on&&R.doc&&R.doc.phase==='play',myKeys=[{k:'m',name:R.mine.name||ME.name},...(R.mine.guests||[]).map(g=>({k:g.k,name:g.name}))];
   const list=GAMES.filter(g=>!ui.solo||g.ok(1)).map(g=>({g,ok:g.ok(N),v:MD?T[g.id]||0:0})).sort((x,y)=>(y.ok-x.ok)||(y.v-x.v)),cat=ui.cat||'tutti',q=(ui.q||'').trim().toLowerCase(),
-   order=['classici','strategia','squadra'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k)),
-   vis=list.filter(x=>(cat==='tutti'||tvInfo(x.g)[0]===cat)&&(!q||x.g.name.toLowerCase().includes(q))),
+   order=['classici','strategia','squadra','festa'].filter(k=>list.some(x=>tvInfo(x.g)[0]===k)),
+   vis=list.filter(x=>(cat==='tutti'||(cat==='solo'?x.g.ok(1):tvInfo(x.g)[0]===cat))&&(!q||x.g.name.toLowerCase().includes(q))),
    pick=list.find(x=>x.g.id===ui.pick),feat=list.find(x=>x.ok&&x.v>0)||list.find(x=>x.ok);
   const col=x=>{const k=tvInfo(x.g)[0],b=TVB[x.g.id],c=b?b.c:[TVC[k].f,TVC[k].s,TVC[k].e];return`--c1:${c[0]};--c2:${c[1]}`};
-  const tabs=[['tutti','Tutti'],...order.map(k=>[k,TVC[k].n[0]+TVC[k].n.slice(1).toLowerCase()])].map(([k,l])=>`<button class="${cat===k?'on':''}" data-a="tvcat" data-v="${k}" aria-pressed="${cat===k}">${l}</button>`).join('');
+  const tabs=[['tutti','Tutti'],...order.map(k=>[k,TVC[k].n[0]+TVC[k].n.slice(1).toLowerCase()]),...(ui.solo?[]:[['solo','Da soli']])].map(([k,l])=>`<button class="${cat===k?'on':''}" data-a="tvcat" data-v="${k}" aria-pressed="${cat===k}">${l}</button>`).join('');
   const band=feat&&!q&&cat==='tutti'?`<div class="gl-feat" style="${col(feat)}"><span class="eye">${feat.v?'IL PIÙ VOTATO':'CONSIGLIATO PER '+N+(N===1?' GIOCATORE':' GIOCATORI')}</span><h2>${esc(feat.g.name)}</h2><p>${esc(feat.g.desc)}</p><button class="pri" data-a="${busy?'tvpick':'start'}" data-v="${feat.g.id}"${busy?' disabled':''}><span>${MD?'Proponi':'Gioca'}</span>${ic('play',22)}</button></div>`:'';
   const tiles=vis.map(x=>{const g=x.g,k=tvInfo(g)[0];return`<button class="gl-t${x.ok?'':' off'}${pick&&pick.g===g?' on':''}" data-a="tvpick" data-v="${g.id}" style="${col(x)}" aria-label="${esc(g.name)}, ${g.range} giocatori${x.ok?'':', non disponibile con '+N}"><span class="cv"><i>${TVC[k].n}</i>${COP.svg(g.id,k)}</span><span class="tx"><b>${esc(g.name)}</b><small>${g.range} giocatori${MD&&x.v?' · '+ic('star',11)+' '+x.v:''}</small></span></button>`}).join('');
   const sheet=pick?`<div class="gl-sheet"><button class="gl-x" data-a="pickx" aria-label="Chiudi la scheda">${ic('x',18)}</button>${tvDet(pick,N,MD,myKeys,busy)}</div>`:'';
