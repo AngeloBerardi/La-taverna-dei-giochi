@@ -135,6 +135,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39-campagna.css` | 3 |  |
 | `css/39a-avventura.css` | 1 |  |
 | `css/39b-inventario.css` | 3 |  |
+| `css/39c-battaglia.css` | 11 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -182,8 +183,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27f-avv-bestiario.js` | 15 | BEST |
 | `js/motori/27g-avv-griglia.js` | 9 | AGRI |
 | `js/motori/27h-avv-arene.js` | 9 | AARE |
-| `js/motori/27i-avv-scontro.js` | 37 | ASCO |
+| `js/motori/27i-avv-scontro.js` | 38 | ASCO |
 | `js/motori/27j-avv-ia.js` | 15 | AIA |
+| `js/motori/27k-avv-cronaca.js` | 13 | ACRO |
+| `js/motori/27l-avv-comandi.js` | 16 | ACOM |
 | `js/motori/28-campagna.js` | 18 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
@@ -211,7 +214,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07d-regole.js` | 42 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
-| `js/app/07f-viste-gioco.js` | 8 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
+| `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
@@ -262,6 +265,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24h-campagna.js` | 8 | Camp |
 | `js/app/24ha-avventura.js` | 5 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
+| `js/app/24hc-bat-mappa.js` | 16 | BatMappa |
+| `js/app/24hd-bat-sagome.js` | 5 | Sagome |
+| `js/app/24he-battaglia.js` | 24 | Bat |
+| `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

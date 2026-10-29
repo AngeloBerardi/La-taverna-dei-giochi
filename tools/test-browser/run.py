@@ -1353,6 +1353,158 @@ async def sc_giallo(b, srv):
     for p in P + [T]: check(not p.errs, f'nessun errore JS {p.errs[:1]}')
     for c in ctxs: await c.close()
 
+async def sc_avv_battaglia(b, srv):
+    """Battaglia di prova (A5): scelte nella pagina Avventura, mappa a esagoni, tocchi in due tempi, anteprima, fogli, zoom, reazioni, fine e ripresa."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    async def tap(q, r, attesa=450):
+        xy = await pg.evaluate("([q,r])=>{const s=document.querySelector('.bt-svg'),m=s.getScreenCTM(),[x,y]=BatMappa.xy(q,r);return [m.a*x+m.e,m.d*y+m.f]}", [q, r])
+        await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(attesa)
+    async def aspetta_eroe(sec=90):
+        for _ in range(sec * 4):
+            if await pg.evaluate("(()=>{const a=ASCO.attore(Bat.s);return !Bat.s.over&&!Bat.pausa&&!Bat.lavoro&&!Bat.anim&&a&&a.lato==='eroi'&&a.hp>0})()"): return True
+            if await pg.evaluate("!!Bat.s.over"): return False
+            if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')   # una reazione da scegliere: «Nessuna reazione»
+            await pg.wait_for_timeout(250)
+        return False
+    async def bottoni_piccoli():
+        return await pg.evaluate("[...document.querySelectorAll('.bt button')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<40||r.height<40)}).map(e=>e.className+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))")
+    # --- le scelte nella pagina Avventura ---
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
+    check(await pg.query_selector('[data-a=batavvia]') is not None and await pg.query_selector('[data-a=batcont]') is None, 'Avventura: sezione «Battaglia di prova», nessuna battaglia da riprendere')
+    await pg.click('[data-a=batcfg][data-v="fam:banditi"]'); await pg.click('[data-a=batcfg][data-v="diff:facile"]'); await pg.click('[data-a=batcfg][data-v="liv:+"]'); await pg.click('[data-a=batcfg][data-v="liv:+"]'); await pg.click('[data-a=batcfg][data-v="liv:-"]')
+    cfg = await pg.evaluate("Bat.cfg")
+    check(cfg['fam'] == 'banditi' and cfg['diff'] == 'facile' and cfg['liv'] == 2, f'scelte registrate {cfg}')
+    check('on' in (await pg.get_attribute('[data-a=batcfg][data-v="fam:banditi"]', 'class')) and await pg.get_attribute('[data-a=batcfg][data-v="fam:banditi"]', 'aria-pressed') == 'true', 'la scelta attiva è evidenziata')
+    await pg.click('[data-a=batavvia]'); await pg.wait_for_timeout(1200)
+    check(await pg.query_selector('.bt') is not None and await pg.query_selector('.bt-svg') is not None, 'la battaglia si apre a tutto schermo con la mappa SVG')
+    check(not await pg.evaluate("document.documentElement.classList.contains('has-pl')") and await pg.evaluate("getComputedStyle(document.getElementById('plancia')).display") == 'none', 'la barra in basso sparisce durante la battaglia')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth") and abs((await pg.evaluate("document.querySelector('.bt').getBoundingClientRect().width")) - 390) < 1, 'nessuno scorrimento orizzontale a 390 px')
+    nt, nc = await pg.evaluate("document.querySelectorAll('.bt-tok').length"), await pg.evaluate("document.querySelectorAll('.bt-ch').length")
+    check(nt >= 5 and nt == nc, f'un segnalino e un tondo dell\'iniziativa per ogni combattente ({nt}/{nc})')
+    check(await pg.evaluate("document.querySelectorAll('.bt-tok.bt-eroe').length") == 4 and await pg.query_selector('.bt-tok.bt-nem svg, .bt-tok.bt-nem g') is not None, 'quattro eroi (ritratti) e i nemici (sagome)')
+    check('Comincia lo scontro' in await pg.inner_text('.bt-log'), 'il registro apre con lo scontro')
+    # --- primo turno di un eroe ---
+    check(await aspetta_eroe(), 'arriva il turno di un eroe (i nemici giocano da soli)')
+    check(len(await bottoni_piccoli()) == 0, f'tutti i bottoni sono almeno 40×40 px {await bottoni_piccoli()}')
+    check(len(await pg.query_selector_all('.bt-barra.b5 .bt-az')) == 5 and 'Fine' in await pg.inner_text('.bt-barra'), 'barra delle azioni: Attacca, Poteri, Oggetti, Altro, Fine')
+    check(await pg.evaluate("document.querySelectorAll('.bt-ev.bt-passo').length") > 5, 'gli esagoni raggiungibili sono evidenziati con il costo')
+    # movimento in due tempi: un tocco sceglie il percorso, il secondo (dopo un attimo) muove; il doppio tocco rapido non conferma
+    chi = await pg.evaluate("ASCO.attore(Bat.s).id"); pm0 = await pg.evaluate("Bat.s.turno.pm")
+    dest = await pg.evaluate("ASCO.mosseValide(Bat.s).muovi.slice(-1)[0]")
+    xy = await pg.evaluate("([q,r])=>{const s=document.querySelector('.bt-svg'),m=s.getScreenCTM(),[x,y]=BatMappa.xy(q,r);return [m.a*x+m.e,m.d*y+m.f]}", [dest['q'], dest['r']])
+    await pg.mouse.click(xy[0], xy[1]); await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(300)
+    p0 = await pg.evaluate("(id=>{const c=ASCO.trova(Bat.s,id);return [c.q,c.r]})", chi)
+    check(await pg.evaluate("Bat.c.modo") == 'percorso' and p0 != [dest['q'], dest['r']], 'due tocchi ravvicinati non muovono')
+    check(await pg.evaluate("Bat.c.modo") == 'percorso' and await pg.query_selector('.bt-ev.bt-meta') is not None and 'Tocca ancora' in await pg.inner_text('.bt-testo'), 'percorso scelto: meta, costo e invito a confermare')
+    check('Muovi' in await pg.inner_text('.bt-ok'), 'il bottone Conferma dice cosa succede')
+    await pg.click('[data-a=batannulla]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate("Bat.c.modo") == 'riposo' and await pg.query_selector('.bt-ev.bt-meta') is None, 'Annulla toglie la selezione')
+    await tap(dest['q'], dest['r']); await tap(dest['q'], dest['r'], 1500)
+    pos = await pg.evaluate("(id=>{const c=ASCO.trova(Bat.s,id);return [c.q,c.r]})", chi)
+    check(pos == [dest['q'], dest['r']] and await pg.evaluate("Bat.s.turno.pm") == pm0 - dest['costo'], f'il secondo tocco muove l\'eroe e spende {dest["costo"]} movimento')
+    # fogli: Altro → Scatto in preparazione → Annulla
+    await pg.click('[data-a=batfoglio][data-v=altro]'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('.bt-foglio') is not None and len(await pg.query_selector_all('.bt-foglio .bt-riga')) >= 4, 'foglio «Altre azioni» con le azioni speciali')
+    check(len(await bottoni_piccoli()) == 0, f'anche il foglio ha bottoni abbastanza grandi {await bottoni_piccoli()}')
+    await pg.click('.bt-foglio [data-v="speciale:disimpegno"]'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('.bt-foglio') is None and await pg.evaluate("Bat.c.pronto&&Bat.c.pronto.t") == 'disimpegno' and 'Disimpegno' in await pg.inner_text('.bt-ok'), 'scegliere un\'azione chiude il foglio e chiede conferma')
+    await pg.click('[data-a=batannulla]')
+    await pg.click('[data-a=batfoglio][data-v=poteri]'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('.bt-foglio') is not None and 'Poteri' in await pg.inner_text('.bt-fh'), 'foglio dei Poteri')
+    await pg.click('.bt-vela'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('.bt-foglio') is None, 'un tocco fuori dal foglio lo chiude')
+    # attacco: un nemico viene portato accanto all'eroe di turno
+    pronto = await pg.evaluate("""(()=>{const s=Bat.s,e=ASCO.attore(s),n=s.cb.find(c=>c.lato==='nemici'&&ASCO.inCampo(c));
+      const lib=AGRI.vicini(e).find(v=>AGRI.dentro(s.arena,v)&&AGRI.passabile(s.arena,v)&&!s.cb.some(c=>ASCO.inCampo(c)&&c.q===v.q&&c.r===v.r));
+      n.q=lib.q;n.r=lib.r;Bat.c=ACOM.nuovo(s);render();return{n:n.id,q:n.q,r:n.r,att:ASCO.mosseValide(s).attacchi.length}})()""")
+    check(pronto['att'] > 0, 'con un nemico a contatto compare l\'attacco')
+    await tap(pronto['q'], pronto['r'], 200)
+    check(await pg.evaluate("Bat.c.modo") == 'pronto' and 'Colpisci' in await pg.inner_text('.bt-testo') and 'atteso' in await pg.inner_text('.bt-testo'), 'anteprima dell\'attacco: probabilità e danno atteso')
+    check(await pg.query_selector('.bt-tok.t-attaccabile, .bt-tok.t-scelto') is not None, 'il bersaglio è cerchiato')
+    await pg.click('[data-a=batconferma]')
+    try:
+        await pg.wait_for_selector('.bt-dado.on', timeout=4000); dado_visto = True
+    except Exception: dado_visto = False
+    check(dado_visto and await pg.query_selector('.bt-d20') is not None, 'il dado compare durante l\'attacco')
+    await pg.wait_for_function("!Bat.lavoro&&!Bat.anim", timeout=15000)
+    check(await pg.evaluate("Bat.log.length") > 1 and not await pg.evaluate("Bat.s.turno.azione"), 'l\'attacco è nel registro e ha speso l\'azione')
+    # zoom e scorrimento: i gesti non scelgono nulla
+    await pg.click('[data-a=batzoom][data-v="+"]'); await pg.wait_for_timeout(100)
+    k1 = await pg.evaluate("Bat.v.k"); vb1 = await pg.evaluate("document.querySelector('.bt-svg').getAttribute('viewBox')")
+    check(k1 > 1.2, f'il bottone + ingrandisce ({k1})')
+    modo0 = await pg.evaluate("Bat.c.modo"); c0 = await pg.evaluate("Bat.v.cx")
+    await pg.mouse.move(200, 380); await pg.mouse.down(); await pg.mouse.move(260, 380, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(150)
+    check(await pg.evaluate("Bat.v.cx") != c0 and await pg.evaluate("document.querySelector('.bt-svg').getAttribute('viewBox')") != vb1 and await pg.evaluate("Bat.c.modo") == modo0, 'trascinare sposta la vista senza selezionare esagoni')
+    await pg.evaluate("""(()=>{const s=document.querySelector('.bt-svg'),f=(t,id,x,y)=>s.dispatchEvent(new PointerEvent(t,{pointerId:id,clientX:x,clientY:y,bubbles:true,pointerType:'touch'}));
+      f('pointerdown',11,150,400);f('pointerdown',12,250,400);f('pointermove',12,330,400);f('pointermove',11,70,400);f('pointerup',11,70,400);f('pointerup',12,330,400)})()""")
+    check(await pg.evaluate("Bat.v.k") > k1, 'il pizzico con due dita ingrandisce ancora')
+    await pg.click('[data-a=batzoom][data-v=c]'); await pg.click('[data-a=batzoom][data-v="-"]'); await pg.click('[data-a=batzoom][data-v="-"]'); await pg.click('[data-a=batzoom][data-v="-"]'); await pg.click('[data-a=batzoom][data-v="-"]'); await pg.click('[data-a=batzoom][data-v="-"]'); await pg.wait_for_timeout(100)
+    check(await pg.evaluate("Bat.v.k") == 1 and await pg.evaluate("Bat.v.cx") is None, 'rimpicciolendo si torna alla vista intera')
+    # info: tocco su un tondo dell'iniziativa
+    await pg.click('.bt-ch:not(.cur)'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('.bt-info') is not None and 'PF' in await pg.inner_text('.bt-info') and 'CA' in await pg.inner_text('.bt-info'), 'scheda della creatura: PF, CA, movimento')
+    await pg.click('[data-a=batinfox]'); await pg.wait_for_timeout(100)
+    check(await pg.query_selector('.bt-info') is None, 'la scheda si chiude')
+    # fine turno: tocca ancora per confermare; finiti i turni degli eroi giocano i nemici, con i bottoni di velocità
+    nem = False
+    for _ in range(6):
+        await pg.click('[data-a=batfine]'); await pg.wait_for_timeout(100)
+        if await pg.query_selector('[data-a=batconferma]'): await pg.click('[data-a=batconferma]')
+        try:
+            await pg.wait_for_selector('.bt-barra.nem', timeout=4000); nem = True; break
+        except Exception:
+            if not await aspetta_eroe(): break
+    check(nem and 'Turno di' in await pg.inner_text('.bt-ris'), 'turno nemico: «Turno di …» e bottoni di velocità')
+    await pg.click('.bt-barra.nem [data-a=batvel][data-v="2"]')
+    check(await pg.evaluate("Bat.cfg.vel") == 2, 'velocità 2×')
+    await pg.wait_for_function("(()=>{const a=ASCO.attore(Bat.s);return Bat.s.over||(a&&a.lato==='eroi'&&!Bat.lavoro&&!Bat.anim)||!!Bat.pausa})()", timeout=90000)
+    # reazione: una scena trovata con il motore, in cui un nemico sta per colpire un eroe che può reagire
+    trov = await pg.evaluate("""(()=>{for(let seme=1;seme<500;seme++){const sq=Bat.prova(3),inc=ASCO.incontro('banditi',3,4,'medio',seme);
+      let s=ASCO.nuovo(sq,inc.nemici,AARE.perIncontro(seme,'strada',inc.nemici),{seme,reazioni:{eroi:'chiedi',nemici:'auto'}});
+      for(let n=0;n<120&&!s.over;n++){const a=ASCO.attore(s),act=a.lato==='eroi'||a.hp<=0?{t:'fine'}:AIA.prossima(s,{livello:'normale'}),r=ASCO.act(s,act);
+       if(r.pausa){Bat.gen++;Bat.s=s;Bat.c=ACOM.nuovo(s);Bat.aspetti={};sq.forEach((m,k)=>{Bat.aspetti['e'+(k+1)]=m.eroe.aspetto});Bat.log=[];Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;render();return seme}
+       if(r.err)break;s=r.s}}return null})()""")
+    check(trov is not None, f'scena con una reazione trovata (seme {trov})')
+    try:
+        await pg.wait_for_selector('.bt-pausa', timeout=20000); pausa_vista = True
+    except Exception: pausa_vista = False
+    check(pausa_vista and len(await pg.query_selector_all('.bt-pausa [data-a=batrea]')) >= 2, 'foglio della reazione: le scelte e «Nessuna reazione»')
+    if pausa_vista:
+        check(len(await bottoni_piccoli()) == 0, f'bottoni della reazione abbastanza grandi {await bottoni_piccoli()}')
+        await pg.click('.bt-pausa [data-a=batrea]:last-child'); await pg.wait_for_timeout(200)
+        await pg.wait_for_function("!Bat.pausa&&!Bat.lavoro||Bat.s.over", timeout=30000)
+        check(await pg.query_selector('.bt-pausa') is None or await pg.evaluate("!!Bat.pausa"), 'dopo la risposta la battaglia prosegue (o chiede un\'altra reazione)')
+    # riduci animazioni: il dado mostra subito il risultato
+    await aspetta_eroe()
+    await pg.emulate_media(reduced_motion='reduce')
+    await pg.evaluate("BatAnima.dado({chi:'e1',bers:'e2',tiri:[10],tiro:10,tot:15,cont:12,ok:true,crit:false,vant:false,svant:false,ms:700},Bat.s,.3,true)")
+    check(await pg.evaluate("BatAnima.mq()") and 'ok' in (await pg.get_attribute('.bt-dado', 'class')) and 'roll' not in (await pg.get_attribute('.bt-dado', 'class')), 'con «riduci animazioni» il dado mostra subito il risultato')
+    await pg.emulate_media(reduced_motion='no-preference')
+    # fine battaglia: schermata con esito, giri, PE e gli eroi; Combatti ancora riparte
+    await pg.evaluate("(()=>{Bat.s.over={esito:'vittoria'};Bat.c=ACOM.nuovo(Bat.s);render()})()")
+    check('Vittoria' in await pg.inner_text('.bt-fine') and len(await pg.query_selector_all('.bt-fine li')) == 4 and 'non cambiano' in await pg.inner_text('.bt-fine'), 'schermata di vittoria con i quattro eroi')
+    await pg.click('[data-a=batvedi]'); await pg.wait_for_timeout(100)
+    check(await pg.query_selector('.bt-fine') is None and await pg.query_selector('.bt-barra.fine') is not None, '«Guarda il campo» nasconde il riepilogo')
+    await pg.click('.bt-barra.fine [data-a=batvedi]'); await pg.click('[data-a=batrigioca]'); await pg.wait_for_timeout(1500)
+    check(await pg.query_selector('.bt') is not None and not await pg.evaluate("!!Bat.s.over") and await pg.evaluate("Bat.s.giro") == 1, 'Combatti ancora: nuova battaglia')
+    # salvataggio: esci dal menu, riprendi dalla pagina Avventura, anche dopo il ricaricamento
+    await aspetta_eroe()
+    evn = await pg.evaluate("Bat.s.evn")
+    await pg.click('[data-a=batfoglio][data-v=menu]'); await pg.wait_for_timeout(150)
+    check(len(await pg.query_selector_all('.bt-foglio .b')) >= 4, 'menu della battaglia: velocità, registro, esci, abbandona')
+    await pg.click('[data-a=batesci]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('.bt') is None and await pg.query_selector('[data-a=batcont]') is not None and await pg.evaluate("!!localStorage.getItem('bat')"), 'uscendo la battaglia resta salvata e Avventura offre di continuare')
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate("Bat.inCorso()") and await pg.evaluate("Bat.s.evn") == evn, 'dopo il ricaricamento la battaglia è ancora lì')
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(600)
+    await pg.click('[data-a=batcont]'); await pg.wait_for_timeout(800)
+    check(await pg.query_selector('.bt-svg') is not None and await pg.evaluate("Bat.s.evn") >= evn, 'Continua riapre la mappa')
+    await aspetta_eroe()
+    await pg.click('[data-a=batfoglio][data-v=menu]'); await pg.click('[data-a=batabbandona]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('[data-a=batcont]') is None and not await pg.evaluate("!!localStorage.getItem('bat')"), 'Abbandona cancella il salvataggio')
+    check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

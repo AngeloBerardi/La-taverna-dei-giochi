@@ -158,6 +158,14 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 5. Turno nemico animato con velocità regolabile e «salta animazioni».
 6. Indicatori: copertura (scudo mezzo/pieno), altezza, linea di vista bloccata, aree d'effetto, stati alterati con icona e durata.
 7. Scenario `avv_battaglia` in `tools/test-browser/` e una schermata finale a 390 px.
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte (piano e correzioni in `docs/AVVENTURA-A5.md`):
+  - File: motori puri `27k` cronaca (`ACRO`: frase e passi da animare per ogni evento) e `27l` comandi (`ACOM`: dai tocchi alle azioni, sempre in due tempi); app `24hc` mappa SVG (`BatMappa`), `24hd` sagome dei mostri (`Sagome`), `24he` vista e flusso (`Bat`), `24hf` animazioni (`BatAnima`), `css/39c-battaglia.css` (prefisso `bt-`).
+  - Vista a tutto schermo con `ui.bat`: iniziativa in alto, mappa al centro (registro e scheda nelle fasce libere), risorse del turno, barra Attacca / Poteri / Oggetti / Altro / Fine in basso; la barra delle cinque destinazioni sparisce. Mai una mossa per un solo tocco: tocco = scelta con anteprima (percorso e costo, probabilità e danno atteso), secondo tocco o «Conferma» = esecuzione; due tocchi a meno di 320 ms sullo stesso esagono non confermano.
+  - Zoom 1×–3× con i pulsanti o con due dita, un dito trascina (sotto 8 px è un tocco), «Centra» porta la vista su chi agisce; i gesti non ridisegnano la mappa.
+  - Turni dei nemici (e degli eroi a terra) giocati da `AIA` a velocità 1× / 2× / «Salta»; reazioni come foglio con le scelte e «Nessuna reazione» (o automatiche, a scelta); dado d20, numeri e scritte, movimento passo per passo; con «riduci animazioni» restano solo numeri e registro.
+  - Ingresso: **Battaglia di prova** nella pagina Avventura (famiglia, difficoltà, livello 1–8, compagnia di prova di quattro eroi o eroi dell'account, reazioni); nessun premio e nessun rischio per gli eroi. Si salva a ogni azione in `localStorage` (`bat`) e si riprende con «Continua» anche dopo un ricaricamento.
+  - Test: `test_avv_cronaca`, `test_avv_comandi` (lento: il bot gioca solo con i tocchi e fa le stesse mosse dell'azione diretta, esplorazione esaustiva e casuale) e lo scenario browser `avv_battaglia` (tocchi, anteprima, fogli, zoom e pizzico, reazione, fine, salvataggio, bottoni da almeno 40 px, niente scorrimento orizzontale).
+  - Fuori da A5: suoni (A10), schermo comune e più telefoni (A11), battaglie lanciate dalla campagna e premi (A8–A9).
 
 ## A6 — Mappa del mondo (evoluta)
 1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento tirato a ogni turno: base dalla razza + dado (es. 1d4), con Concentrazione per ritirarlo.

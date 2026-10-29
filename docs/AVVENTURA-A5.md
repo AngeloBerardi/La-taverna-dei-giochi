@@ -2,6 +2,8 @@
 
 Piano breve in `docs/AVVENTURA.md` (A5, 7 punti). Qui lo porto a sotto-step eseguibili, con le scelte che prendo io (e che puoi cambiare), i file, i test e i criteri di fine. Il motore (`ASCO`, `AIA`) è fermo: **A5 non cambia nessuna regola**, disegna lo stato, raccoglie i tocchi e li traduce in `ASCO.act`.
 
+> **Stato (29 ottobre 2026): fatta.** Differenze rispetto al piano: l'arena sta tutta a 1× e si ingrandisce fino a 3× (non 0,8–2,4×); il registro e la scheda della creatura sono sovrapposti alle fasce libere sopra e sotto la mappa (la mappa a 390 px è quasi quadrata), non fogli che la coprono; la barra in basso della Plancia sparisce durante la battaglia; i mostri sono 23 compresi i 3 capi; le animazioni stanno in `24hf-bat-anima.js` (`BatAnima`). Il resto è come scritto qui sotto.
+
 ## 0. Cosa c'è già e cosa manca
 - Dal motore (A4): stato JSON, `ASCO.mosseValide(s)` (esagoni raggiungibili con costo, attacchi con percentuali, azioni speciali, poteri con bersagli/centri/direzioni, oggetti), `ASCO.anteprima(s, azione)` (probabilità di colpire, di critico, danno per colpo, atteso, copertura, vantaggio/svantaggio), `act` che torna `{s, ev}`, `{err}` o `{pausa}` (reazione da scegliere, ripresa con `dec`), `riepilogo`, `AIA.prossima` per i turni dei nemici.
 - Dall'app: l'ossatura delle finestre dell'Avventura (`ui.avv`, `ui.camp`, `Plancia.chiudi`, `cfgH` in `07d-viste-comuni.js`, un solo `switch` in `07c-comandi.js`), i ritratti degli eroi (`Eroi.ritratto`), le icone (`ic`, `glifo`), la mappa a esagoni della campagna (`Camp.hex`, stesse punte in alto) e il test nel browser con Firebase simulato.
@@ -14,13 +16,13 @@ Piano breve in `docs/AVVENTURA.md` (A5, 7 punti). Qui lo porto a sotto-step eseg
 | V2 | **Tocca per selezionare, tocca ancora (o «Conferma») per eseguire.** Mai una mossa per un solo tocco. | Regola del piano A0 e unico modo sicuro con le dita. |
 | V3 | **Il controllo dei tocchi è un modulo puro** (`ACOM` in `motori/27l`), senza DOM: tiene la selezione e traduce i tocchi in azioni di `ASCO.act`. | Si prova in node: un bot guida intere battaglie «a tocchi». La vista disegna e basta. |
 | V4 | **Le frasi del registro e i passi di animazione sono un modulo puro** (`ACRO` in `motori/27k`): ogni evento del motore → una frase italiana e una lista di effetti. | Un test controlla che *ogni* tipo di evento abbia frase (niente «undefined» nel registro). |
-| V5 | **Zoom e scorrimento con eventi puntatore** (un dito trascina, due dita pizzicano, doppio tocco centra su chi agisce). All'inizio l'arena sta tutta in 390 px (esagono ≈ 40 px); la vista segue da sola chi agisce. | Nessun tocco per sbaglio: sotto 8 px di movimento è un tocco, sopra è un trascinamento. |
+| V5 | **Zoom e scorrimento con eventi puntatore** (un dito trascina, due dita pizzicano; niente doppio tocco, che confliggerebbe con la conferma: c'è il pulsante «Centra» e i pulsanti + e −). All'inizio l'arena sta tutta in 390 px (esagono ≈ 40 px); da ingrandita la vista segue chi agisce. | Nessun tocco per sbaglio: sotto 8 px di movimento è un tocco, sopra è un trascinamento. |
 | V6 | **Un solo telefono, tutti gli eroi**: agisce l'eroe di turno, qualunque sia. Le pause delle reazioni sono un foglio in basso con le opzioni e «Nessuna reazione». | Come deciso in A0 (solo con 1–4 eroi da un telefono). TV e più telefoni sono A11. |
 | V7 | **Turno dei nemici animato** a velocità 1× / 2× / «salta»; «salta» applica tutto di colpo e lascia il registro. Il turno dei nemici non si può annullare. | È la parte più lunga della partita; deve restare brevissima. |
 | V8 | **Sagome dei mostri originali**: cornice per ruolo (bruto, tiratore, incantatore, sciame, capo), colore per famiglia, simbolo per mostro (23 + 3 capi). I nomi nelle etichette vengono dal bestiario. | Come per le carte: disegnate da noi, nessuna figura copiata. |
 | V9 | **Animazioni sobrie e disattivabili**: `prefers-reduced-motion` le toglie tutte (restano i numeri, senza movimento). | Vincolo di STYLE.md. |
 | V10 | **Salvataggio a ogni azione** in `localStorage` (`bat`): lo stato è JSON, anche a metà di una pausa si riprende. | Il telefono si chiude spesso. |
-| V11 | **Compagnia di prova sempre disponibile** (4 eroi pronti dei livelli 1–5) accanto agli eroi dell'account. | Chi non ha un profilo può provare; anche il test nel browser non dipende da Firebase. |
+| V11 | **Compagnia di prova sempre disponibile** (4 eroi pronti, livello 1–8 a scelta) accanto agli eroi dell'account. | Chi non ha un profilo può provare; anche il test nel browser non dipende da Firebase. |
 | V12 | **Nessun suono nuovo in A5**: gli agganci (`BatFx.suono(nome)`) restano vuoti e li riempie A10. | Audio e schede regole sono un task a parte. |
 
 ## 2. Architettura e file
