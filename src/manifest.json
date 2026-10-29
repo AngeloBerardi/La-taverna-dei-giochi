@@ -94,6 +94,7 @@
  "src/js/motori/27e-avv-poteri.js",
  "src/js/motori/27f-avv-bestiario.js",
  "src/js/motori/27g-avv-griglia.js",
+ "src/js/motori/27h-avv-arene.js",
  "src/js/motori/28-campagna.js",
  "src/js/motori/29-spie.js",
  "src/js/motori/30-domande.js",
