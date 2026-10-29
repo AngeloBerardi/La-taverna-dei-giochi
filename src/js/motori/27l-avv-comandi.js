@@ -95,7 +95,7 @@ const ACOM=(()=>{
   const celleArea=(lista,tipo)=>{for(const x of lista)if(G.dentro(ar,x))o.celle.push({q:x.q,r:x.r,tipo})};
   if(!c.uso){
    for(const x of m.muovi)o.celle.push({q:x.q,r:x.r,tipo:'passo',costo:x.costo});
-   for(const a of m.attacchi)o.creature.push({id:a.bers,tipo:'attaccabile'});
+   for(const a of m.attacchi)o.creature.push({id:a.bers,tipo:'attaccabile',pc:a.pc});
    if(c.modo==='percorso'&&c.sel.cella){const p=S.anteprimaMuovi(s,c.sel.cella);
     if(!p.err){o.percorso=p;for(const x of p.passi.slice(0,-1))o.celle.push({q:x.q,r:x.r,tipo:'percorso'});const u=p.passi[p.passi.length-1];o.celle.push({q:u.q,r:u.r,tipo:'meta',costo:p.costo});
      for(const id of p.opportunita)o.creature.push({id,tipo:'minaccia'});
@@ -106,7 +106,7 @@ const ACOM=(()=>{
   const b=bersagli(m,c.uso);if(b.err){o.testo=b.err;return o}
   const p=proprieta(c.uso);
   switch(b.area){
-   case'singolo':for(const id of b.ids)o.creature.push({id,tipo:c.uso.k==='attacca'||(creaturaPerId(s,id).lato!==eroe.lato)?'attaccabile':'valido'});
+   case'singolo':for(const id of b.ids){const at=c.uso.k==='attacca'?m.attacchi.find(x=>x.bers===id):null;o.creature.push({id,tipo:c.uso.k==='attacca'||(creaturaPerId(s,id).lato!==eroe.lato)?'attaccabile':'valido',pc:at?at.pc:undefined})}
     if(c.sel.bers){o.creature.push({id:c.sel.bers,tipo:'scelto'});const bb=creaturaPerId(s,c.sel.bers);if(bb){const v=G.vista(ar,pos(eroe),pos(bb));o.linea={da:pos(eroe),a:pos(bb),visibile:v.visibile,cop:v.cop||'nessuna'}}}break;
    case'cerchio':for(const x of b.centri)o.celle.push({q:x.q,r:x.r,tipo:'centro'});
     if(c.sel.centro){celleArea(G.cerchio(ar,c.sel.centro,p.raggio),'area');o.celle.push({q:c.sel.centro.q,r:c.sel.centro.r,tipo:'centro-scelto'});

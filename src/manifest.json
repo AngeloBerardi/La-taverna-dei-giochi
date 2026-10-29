@@ -175,6 +175,8 @@
  "src/js/app/24h-campagna.js",
  "src/js/app/24ha-avventura.js",
  "src/js/app/24hb-inventario.js",
+ "src/js/app/24hc-bat-mappa.js",
+ "src/js/app/24hd-bat-sagome.js",
  "src/js/app/24i-plancia.js",
  "src/js/app/24j-regicide-tv.js",
  "src/js/app/24k-regicide-tavolo.js",
