@@ -72,6 +72,8 @@ const FB={
  async salvaEroe(slot,h){const F=FB.m.F;await F.setDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot),h)},
  // aggiorna i progressi di un eroe (A9: fine sessione). Chi guadagna esperienza o oro scrive anche `agg`: le regole lo pretendono e impongono l'attesa (EROI.LIMITI)
  async avanzaEroe(slot,h,prima){const F=FB.m.F,guad=h.xp>prima.xp||h.oro>prima.oro,d={liv:h.liv,xp:h.xp,oro:h.oro,hp:h.hp,hpMax:h.hpMax,equip:h.equip};if(guad)d.agg=F.serverTimestamp();await F.updateDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot),d)},
+ // poteri e talenti scelti ai livelli (campo `scelte`, vedi motori/27e-avv-poteri.js)
+ async scegliEroe(slot,scelte){const F=FB.m.F;await F.updateDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot),{scelte})},
  async eliminaEroe(slot){const F=FB.m.F;await F.deleteDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot))},
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
  mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},

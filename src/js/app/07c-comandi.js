@@ -50,7 +50,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'shop':case'shopx':case'shopbuy':case'shopuse':return Shop.act(a,v);
  case'acc':case'top':case'accx':case'topk':case'acclink':case'accin':case'accgoogle':case'accreset':case'accout':return Acc.act(a,v);
  case'oste':case'ostex':case'osteq':case'osteok':return Oste.act(a,v);
- case'eroi':case'eroix':case'eroinuovo':case'eroischeda':case'eroiindietro':case'eroiavanti':case'eroicol':case'eroirazza':case'eroiclasse':case'eroipt':case'eroicrea':case'eroielimina':return Eroi.act(a,v);
+ case'eroi':case'eroix':case'eroinuovo':case'eroischeda':case'eroiindietro':case'eroiavanti':case'eroicol':case'eroirazza':case'eroiclasse':case'eroipt':case'eroicrea':case'eroiscegli':case'eroielimina':return Eroi.act(a,v);
  case'avv':case'avvx':case'avvcontinua':case'avvnuova':return Avv.act(a);
  case'ivapri':case'ivx':case'ivero':case'ivtab':case'ivfiltro':case'ivsel':case'ivequipa':case'ivtogli':case'ivcintura':case'ivzaino':case'ivusa':case'ivpassa':case'ivvendi':case'ivcompra':return Inv.act(a,v);
  case'campstart':case'campx':case'campnuova':case'campmuovi':case'campriposa':case'campentra':case'campfuggi':case'campris':return Camp.act(a,v);

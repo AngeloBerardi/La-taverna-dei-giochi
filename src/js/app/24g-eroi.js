@@ -48,9 +48,21 @@ ${sw('pelle','Pelle',pe)}${sw('capelli','Capelli',Eroi.CAPELLI)}${sw('mantello',
 <div class="ehp"><i style="width:${Math.round(h.hp/h.hpMax*100)}%"></i><span>${ic('cuore',14)} ${h.hp}/${h.hpMax}</span></div><div class="eder"><span>${ic('scudo',14)} CA ${d.ca}</span><span>${ic('spada',14)} +${d.attacco} · ${d.danno?(d.danno.n>1?d.danno.n:'')+'d'+d.danno.dado+(d.danno.bonus?(d.danno.bonus>=0?'+':'')+d.danno.bonus:''):'—'}</span><span>${ic('passi',14)} ${d.mov}</span><span>${ic('moneta',14)} ${h.oro}</span></div>
 <p class="muted" style="margin:0"><b>Equipaggiamento:</b> ${AOGG.SLOT_EQ.map(s=>eq[s]&&AOGG.OGG[eq[s]]?esc(AOGG.OGG[eq[s]].nome):null).filter(Boolean).join(', ')||'—'}${(h.zaino||[]).length?' · zaino '+h.zaino.length+'/'+AOGG.MAX_ZAINO:''}</p>
 <p class="muted" style="margin:0"><b>Competenze:</b> ${d.abilita.map(x=>EROI.NOME_AB[x]).join(', ')} · tratto «${esc(r.tratto)}»</p>
+${Eroi.poteriH(h)}
 ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><i style="width:${Math.min(100,Math.round(h.xp/nx*100))}%"></i></span></div>`:'<p class="muted" style="margin:0">Livello massimo</p>'}</div>`},
+ // poteri conosciuti: passivo di classe, tratto di razza, poteri e talenti scelti (i numeri vengono sempre dai dati, mai scritti a mano)
+ poteriH(h){const riga=(nome,txt,desc,tag)=>`<div class="epo"><b>${esc(nome)}</b><em>${esc(tag)}</em><small>${esc(txt)}</small>${infoH(esc(desc))}</div>`,pa=APOT.PASS[h.classe];
+  const poteri=APOT.poteriEroe(h).filter(i=>i!=='attacco').map(i=>{const p=APOT.P[i];return riga(p.nome,APOT.riga(p),p.desc,p.cl==='razza'?'Razza':'Livello '+p.liv)});
+  const talenti=APOT.talentiEroe(h).map(i=>riga(APOT.TAL[i].nome,APOT.TAL[i].desc,APOT.TAL[i].desc,'Talento'));
+  return`<div class="sh2">Poteri ${infoH('Ogni potere ha le sue cariche: a volontà, a ogni scontro o dopo un riposo. La Concentrazione ('+(EROI.comp(h.liv)+APOT.ganci(h).conc)+') permette di ritirare un dado.')}</div><div class="epl">${pa?riga(pa.nome,pa.desc,pa.desc,'Classe'):''}${poteri.join('')}${talenti.join('')}</div>`},
+ // la prossima scelta da fare (potere ai livelli 3, 5, 7, 9; talento ai livelli pari): due carte, la scelta è definitiva
+ sceltaH(h){const d=APOT.daScegliere(h)[0];if(!d)return'';
+  const carte=d.opzioni.map(i=>{const t=d.tipo==='potere'?APOT.P[i]:APOT.TAL[i];
+   return`<button class="b ecso" data-a="eroiscegli" data-v="${d.liv}:${i}" ${Eroi.busy?'disabled':''}><b>${esc(t.nome)}</b><small>${esc(d.tipo==='potere'?APOT.riga(t):t.desc)}</small>${d.tipo==='potere'?`<span>${esc(t.desc)}</span>`:''}</button>`}).join('');
+  const resto=APOT.daScegliere(h).length-1;
+  return`<div class="ecs"><b>${d.tipo==='potere'?'Nuovo potere':'Nuovo talento'} · livello ${d.liv}</b><small>Scegli uno dei due. La scelta è definitiva.${resto?' Dopo questa ne restano '+resto+'.':''}</small>${carte}</div>`},
  schedaH(){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h){Eroi.sel=null;return Eroi.listaH()}
-  return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
+  return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.sceltaH(h)}${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
 <div class="row"><button class="b sm" data-a="eroiindietro">Indietro</button><button class="b sm" data-a="eroielimina" data-v="${esc(Eroi.sel)}">Elimina</button></div></div></div>`},
  async carica(){try{const m=await FB.eroi();for(const k of Object.keys(m))if(!EROI.coerente(m[k])){console.warn('Eroe non coerente',k);delete m[k]}Eroi.lista=m}catch(e){console.warn('Eroi',e);Eroi.lista=Eroi.lista||{};Eroi.msg='Non riesco a leggere gli eroi'}render()},
  async act(a,v){
@@ -68,6 +80,12 @@ ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><
   if(a==='eroicrea'){if(Eroi.busy)return;Eroi.busy=true;Eroi.msg='';render();
    try{const h=EROI.nuovo(Eroi.bozza);await FB.salvaEroe(Eroi.slot,h);Eroi.lista={...(Eroi.lista||{}),[Eroi.slot]:h};Eroi.pas=0;Eroi.sel=Eroi.slot;say('Eroe creato: '+h.nome,2200)}
    catch(e){Eroi.msg=e&&e.code==='eroe'?e.message:e&&e.code==='permission-denied'?'Non permesso: il posto potrebbe essere occupato.':'Non riuscito, riprova tra poco.';console.warn('Eroi',e)}
+   finally{Eroi.busy=false;render()}return}
+  if(a==='eroiscegli'){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h||Eroi.busy)return;const[L,id]=String(v).split(':'),r=APOT.scegli(h,Number(L),id);
+   if(r.err){Eroi.msg=r.err;return render()}
+   Eroi.busy=true;Eroi.msg='';render();
+   try{await FB.scegliEroe(Eroi.sel,r.scelte);Eroi.lista={...Eroi.lista,[Eroi.sel]:r};say('Scelto: '+(APOT.P[id]||APOT.TAL[id]).nome,2200)}
+   catch(e){Eroi.msg='Non riuscito, riprova tra poco.';console.warn('Eroi',e)}
    finally{Eroi.busy=false;render()}return}
   if(a==='eroielimina'){if(!confirm('Eliminare questo eroe? Non si può annullare.'))return;
    try{await FB.eliminaEroe(v);const n={...Eroi.lista};delete n[v];Eroi.lista=n;Eroi.sel=null}catch(e){Eroi.msg='Non riuscito, riprova tra poco.'}return render()}}};

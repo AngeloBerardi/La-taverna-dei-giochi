@@ -14,9 +14,9 @@ const Avv={
   ['La missione','Parla con il sindaco in città, ripulisci l\'antro (tre prove) e abbatti la Torre dei Corvi (quattro prove). Ogni prova ha le sue abilità.']],
  cartaCont(s){const e=s.eroi.map(h=>`<span class="av-rit${h.hp<=0?' ko':''}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,40)}</span>`).join('');
   return`<button class="av-card av-cont" data-a="avvcontinua"><span class="av-ritt">${e}</span><span class="av-tx"><b>${esc(s.missione.titolo)}</b><small>Giorno ${s.giorno} · perdizione ${s.perdizione}/100 · ${CAMP.vivi(s).length} eroi in piedi</small></span><span class="av-go">Continua</span></button>`},
- html(){const lista=Avv.eroiElenco(),s=Avv.inCorso(),on=Avv.online(),pochi=!lista.length;
+ html(){const lista=Avv.eroiElenco(),s=Avv.inCorso(),on=Avv.online(),pochi=!lista.length,pend=lista.filter(h=>APOT.daScegliere(h).length);
   const eroi=on?(lista.length?`<div class="av-ritt big">${lista.map(h=>`<span class="av-rit" title="${esc(h.nome)}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,52)}</span>`).join('')}</div>
-<small class="muted">${lista.map(h=>esc(h.nome)+' · '+esc(EROI.CLASSI[h.classe].nome)+' '+h.liv).join(' — ')}</small>`:'<p class="muted" style="margin:0">Nessun eroe: creane uno per partire.</p>'):
+<small class="muted">${lista.map(h=>esc(h.nome)+' · '+esc(EROI.CLASSI[h.classe].nome)+' '+h.liv).join(' — ')}</small>${pend.length?`<small class="muted"><b>Scelte di livello in attesa:</b> ${pend.map(h=>esc(h.nome)).join(', ')}. Falle da «Gestisci gli eroi».</small>`:''}`:'<p class="muted" style="margin:0">Nessun eroe: creane uno per partire.</p>'):
    '<p class="muted" style="margin:0">Per creare e salvare gli eroi serve il profilo online.</p>';
   return`<div class="modal"><div class="box col av"><h2>Cantari di Ventura ${infoH('Una campagna a capitoli: ogni sessione è un «cantare». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
 <p class="muted" style="margin:0">Una compagnia, una mappa a esagoni e la perdizione che avanza.</p>
