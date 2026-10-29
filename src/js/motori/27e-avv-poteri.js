@@ -163,7 +163,7 @@ const APOT=(()=>{
    ca:d.ca+g.ca,att:d.attacco+g.att,magia:cp+mp+AO().bonus(h).att+g.att,dan:d.danno?{n:d.danno.n,dado:d.danno.dado,bonus:d.danno.bonus+g.dan,tipo:d.danno.tipo}:{n:1,dado:2,bonus:0,tipo:'contundente'},
    salv,cd:8+cp+mp,iniz:d.iniziativa+g.iniz,mov:d.mov+g.mov,gitt:(arma&&(arma.gt?arma.gt[0]:(arma.por||1))||1)+(arma&&arma.gt?g.gitt:0),gittaLunga:arma&&arma.gt?arma.gt[1]+g.gitt:null,
    crit:g.crit,res:[...new Set(d.res.concat(g.res))],vuln:[],imm:[],immStati:[],stati:[],modPrim:mp,conc:h.conc==null?concMax:Math.max(0,Math.min(h.conc,concMax)),concMax,
-   usi:{...(h.usi||{})},poteri:poteriEroe(h),hook:g,abil:{perc:10+E.bonus(h,'percezione'),fur:E.bonus(h,'furtivita'),med:E.bonus(h,'medicina')}};
+   usi:{...(h.usi||{})},poteri:poteriEroe(h),hook:g,cintura:(h.cintura||[]).slice(),abil:{perc:10+E.bonus(h,'percezione'),fur:E.bonus(h,'furtivita'),med:E.bonus(h,'medicina')}};
   if(c.hp<=0){c.hp=0;ST.aggiungi(c,'terra')}return c}
  // ---- uso dei poteri ----
  const usiMax=(c,p)=>p.ric==='turno'?Infinity:(p.usi||1)+(p.ric==='scontro'?((c.hook||{}).usiScontro||0):0);
@@ -188,18 +188,28 @@ const APOT=(()=>{
   if(e.arma&&(c.hook||{}).furtivo&&!c.furtivoUsato&&(vant||ctx.alleatoVicino)){c.furtivoUsato=true;const f=DAD.danno(rnd,c.hook.furtivo+'d6',crit).tot;tot+=f;R.ev.push({t:'furtivo',chi:c.id,n:f})}
   return tot}
  function uno(c,p,b,rnd,ctx,R){let crit=false,vant=false,salvOk=null;
-  if(p.att){const pb=(ctx.per&&ctx.per[b.id])||{},dif=ST.attacco(c,b,{vant:ctx.vant||pb.vant,svant:ctx.svant||pb.svant}),r=DAD.d20(rnd,dif),bonus=(p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ca=ST.caEff(b)+(pb.ca||0);
-   const ok=r.tiro===20||(r.tiro!==1&&r.tiro+bonus>=ca);crit=ok&&r.tiro>=(c.crit||20);vant=dif.vant;
-   R.ev.push({t:'tiro',chi:c.id,bers:b.id,tiro:r.tiro,tiri:r.tiri,tot:r.tiro+bonus,cont:ca,ok,crit,vant:dif.vant,svant:dif.svant});ST.dopoAttacco(c);if(!ok)return}
-  else if(p.salv){const s=ST.salvezza(b,p.salv,c.cd,rnd);salvOk=s.ok;R.ev.push({t:'salvezza',bers:b.id,ab:p.salv,tiro:s.tiro,tot:s.tot,cont:c.cd,ok:s.ok})}
+  if(p.att){const pb=(ctx.per&&ctx.per[b.id])||{},dif=ST.attacco(c,b,{vant:ctx.vant||pb.vant,svant:ctx.svant||pb.svant}),bonus=(p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,cA=()=>ST.caEff(b)+(pb.ca||0);
+   const colpisce=r=>r.tiro===20||(r.tiro!==1&&r.tiro+bonus>=cA());let r=DAD.d20(rnd,dif),tiro0=null,pre=[];
+   if(ctx.ritira&&!R.ritirato){R.ritirato=true;tiro0=r.tiro;r=DAD.d20(rnd,dif)}                       // Concentrazione: il dado nuovo vale sempre
+   let ok=colpisce(r);
+   if(ok&&ctx.rea&&ctx.rea.colpo)for(let g=0;g<3&&ok;g++){                                             // reazioni di chi viene colpito: scudo, ritiro
+    const x=ctx.rea.colpo(c,p,b,{tiro:r.tiro,tot:r.tiro+bonus,ca:cA(),bonus,crit:r.tiro>=(c.crit||20),giro:g});if(!x)break;
+    pre.push(...(x.ev||[]));if(x.ritira){tiro0=r.tiro;r=DAD.d20(rnd,dif)}ok=colpisce(r)}
+   crit=ok&&r.tiro>=(c.crit||20);vant=dif.vant;
+   const te={t:'tiro',chi:c.id,bers:b.id,tiro:r.tiro,tiri:r.tiri,tot:r.tiro+bonus,cont:cA(),ok,crit,vant:dif.vant,svant:dif.svant};if(tiro0!=null)te.tiro0=tiro0;
+   R.ev.push(...pre,te);ST.dopoAttacco(c);if(!ok)return}
+  else if(p.salv){const cd=p.cd||c.cd,s=ST.salvezza(b,p.salv,cd,rnd);salvOk=s.ok;R.ev.push({t:'salvezza',bers:b.id,ab:p.salv,tiro:s.tiro,tot:s.tot,cont:cd,ok:s.ok})}
   for(const e of p.eff){const dest=e.su==='attore'?c:b;
    if(e.k==='danno'){if(salvOk&&!p.meta)continue;let n=dannoDi(c,e,rnd,crit,vant,ctx,R);if(salvOk)n=Math.floor(n/2);
-    const tipo=e.tipo||c.dan.tipo,r=ST.danno(dest,n,tipo);R.ev.push({t:'danno',chi:c.id,bers:dest.id,n:r.n,perso:r.perso,tipo,esito:r.esito,a0:r.a0})}
+    const tipo=e.tipo||c.dan.tipo;let pre=[];
+    if(ctx.rea&&ctx.rea.danno&&dest!==c){const x=ctx.rea.danno(c,e,dest,n,tipo,{crit});if(x){n=Math.max(0,n-(x.riduci||0));pre=x.ev||[]}}   // riduzione del danno (parata, schivata, pelle di pietra)
+    const r=subisci(dest,n,tipo),de={t:'danno',chi:c.id,bers:dest.id,n:r.n,perso:r.perso,tipo,esito:r.esito,a0:r.a0};if(r.tenace){de.tenace=true;de.potere=r.potere}
+    R.ev.push(...pre,de)}
    else if(e.k==='cura'){const n=DAD.danno(rnd,espressione(c,e)).tot+((c.hook||{}).cura||0),r=ST.cura(dest,n);R.ev.push({t:'cura',chi:c.id,bers:dest.id,n:r.n,rialzato:r.rialzato})}
    else if(e.k==='stato'){if(salvOk&&!e.sempre)continue;
     if(e.salv){const s=ST.salvezza(dest,e.salv,c.cd,rnd);if(s.ok){R.ev.push({t:'resiste',bers:dest.id,stato:e.id});continue}}
     const x={};if(e.id==='provocato')x.da=c.id;for(const k of['ca','res','fino'])if(e[k]!=null)x[k]=e[k];
-    R.ev.push({t:'stato',bers:dest.id,stato:e.id,dur:e.t,ok:ST.aggiungi(dest,e.id,e.t,x)})}
+    const se={t:'stato',bers:dest.id,stato:e.id,ok:ST.aggiungi(dest,e.id,e.t,x)};if(e.t!=null)se.dur=e.t;R.ev.push(se)}
    else if(e.k==='temp')R.ev.push({t:'temp',bers:dest.id,n:ST.temp(dest,e.n+(e.piu&&e.piu.includes('liv')?c.liv:0))});
    else if(e.k==='conc'){const n=Math.min(e.n,dest.concMax-dest.conc);dest.conc+=n;R.ev.push({t:'conc',bers:dest.id,n})}
    else if(e.k==='rimuovi')R.ev.push({t:'rimuovi',bers:dest.id,stati:ST.rimuovi(dest,e.stati)});
@@ -209,14 +219,33 @@ const APOT=(()=>{
    else if(e.k==='spingi')R.ev.push({t:'spingi',bers:b.id,n:e.n});
    else if(e.k==='disimpegna')R.ev.push({t:'disimpegna',chi:c.id})}}
  // usa un potere: `bs` = bersagli scelti dalla battaglia (lista di combattenti). `ctx`: { vant, svant, alleatoVicino, danno (per le riduzioni),
- // per: { idBersaglio: { vant, svant, ca } } = altezza, distanza lunga e copertura di ogni bersaglio, calcolate dalla battaglia }.
+ // per: { idBersaglio: { vant, svant, ca } } = altezza, distanza lunga e copertura di ogni bersaglio, calcolate dalla battaglia,
+ // ritira: il primo d20 d'attacco si tira due volte e vale il secondo (Concentrazione),
+ // rea: { colpo(att, potere, bers, info) -> { ev, ritira } | null (dopo un tiro a segno: scudo, ritiro dell'attacco),
+ //        danno(att, effetto, bers, n, tipo, info) -> { riduci, ev } | null (prima di togliere i PF) } = le reazioni di chi viene colpito, decise dalla battaglia }.
  // Restituisce { ok, ev, ridotto, ritira, tenace } oppure { err }. Spende la carica, cambia i combattenti sul posto.
  function applica(c,id,bs,rnd,ctx){ctx=ctx||{};const p=P[id];if(!p)return ERR('Potere sconosciuto');const e=puoUsare(c,p);if(e)return ERR(e);
+  return esegui(c,p,bs,rnd,ctx)}
+ function esegui(c,p,bs,rnd,ctx){
   if(p.area==='se')bs=[c];const v=validaBers(c,p,bs||[]);if(v)return ERR(v);
-  if(p.ric!=='turno')c.usi[p.id]=(c.usi[p.id]||0)+1;
+  if(p.ric&&p.ric!=='turno')c.usi[p.id]=(c.usi[p.id]||0)+1;
   const R={ok:true,ev:[],ridotto:0,ritira:false,tenace:false};
   for(let k=0;k<p.multi;k++)for(const b of bs){if(p.att&&(b.hp<=0||b.morto))continue;uno(c,p,b,rnd,ctx,R)}
   return R}
+ // ---- consumabili della cintura: ognuno è un potere sintetico (stesse regole, nessuna carica: si consuma l'oggetto) ----
+ // cure, antidoto, elisir: azione bonus su sé o su chi è vicino (anche a terra); tonico: su di sé; benedizione: azione, intorno a sé; bombe e pergamene: azione,
+ // area di raggio 1 dove cade (entro `gt` esagoni), salvezza di Destrezza CD 12 per metà danno, il fuoco accende e il gelo rallenta.
+ const OGGP={};
+ function oggetto(id){if(OGGP[id])return OGGP[id];const it=AO().OGG[id];if(!it||it.slot!=='cons')return null;const e=it.eff,tocco={costo:'bonus',area:'singolo',gitt:1,bers:'amico'};let x=null;
+  if(e.danno)x={costo:'azione',area:'cerchio',raggio:1,gitt:e.gt||5,bers:'nemici',salv:'des',cd:12,meta:true,eff:[D(e.danno,e.tipo)].concat(e.tipo==='fuoco'?[S('in-fiamme',2)]:e.tipo==='gelo'?[S('rallentato',2)]:[])};
+  else if(e.stato)x={costo:'azione',area:'aura',raggio:3,gitt:0,bers:'alleati',eff:[S(e.stato,3)]};
+  else if(e.conc)x={costo:'bonus',area:'se',gitt:0,bers:'se',eff:[{k:'conc',n:e.conc}]};
+  else if(e.cura)x=Object.assign({eff:[C(e.cura)]},tocco);else if(e.rimuovi)x=Object.assign({eff:[{k:'rimuovi',stati:e.rimuovi}]},tocco);else if(e.temp!=null)x=Object.assign({eff:[{k:'temp',n:e.temp}]},tocco);
+  if(!x)return null;return OGGP[id]=Object.assign({id:'o:'+id,nome:it.nome,att:null,attMod:0,salv:null,meta:false,multi:1,raggio:0,ric:null,oggetto:id},x)}
+ // usa un consumabile: stessi bersagli e stessi effetti di un potere; chi lo chiama toglie l'oggetto dalla cintura
+ function applicaOggetto(c,id,bs,rnd,ctx){const p=oggetto(id);if(!p)return ERR('Non si può usare in battaglia');if(c.morto||c.hp<=0||!ST.puoAgire(c))return ERR(c.nome+' non può agire');return esegui(c,p,bs,rnd,ctx||{})}
+ // quanto toglie in media una riduzione (per chi sceglie se usarla)
+ function stimaRiduzione(c,id,n){const p=P[id],e=p&&p.eff.find(x=>x.k==='riduci');if(!e)return 0;return e.meta?Math.floor(n/2):Math.min(n,DAD.medio(espressione(c,e)))}
  // danno subito con la reazione «tenace» (Furia tenace, Ultimo baluardo) che scatta da sola se serve a restare in piedi
  function subisci(c,n,tipo){let usa=null;const e=ST.effettivo(c,n,tipo);
   if(c.hp>0&&ST.puoAgire(c)&&e.n-(c.temp||0)>=c.hp)usa=c.poteri.map(i=>P[i]).find(p=>p&&p.eff.some(x=>x.k==='tenace')&&usiRimasti(c,p)>0)||null;
@@ -224,12 +253,13 @@ const APOT=(()=>{
   if(r.tenace){c.usi[usa.id]=(c.usi[usa.id]||0)+1;for(const x of usa.eff)if(x.k==='temp')ST.temp(c,x.n+(x.piu&&x.piu.includes('liv')?c.liv:0))}
   return Object.assign(r,{potere:r.tenace?usa.id:null})}
  // ---- stima per anteprima e IA: probabilità e danno atteso di un potere contro un bersaglio ----
- function stima(c,id,b,o){const p=P[id];if(!p)return null;o=o||{};let pc=1,ps=null,pk=0;
+ function stima(c,id,b,o){const p=typeof id==='string'?P[id]:id;if(!p)return null;o=o||{};let pc=1,ps=null,pk=0;
   if(p.att){const dif=ST.attacco(c,b,o);pc=DAD.prob((p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ST.caEff(b)+(o.ca||0),dif);
    const q=(21-(c.crit||20))/20;pk=dif.vant?1-(1-q)*(1-q):dif.svant?q*q:q}
-  if(p.salv)ps=DAD.prob((b.salv||{})[p.salv]||0,c.cd);
+  if(p.salv)ps=DAD.prob((b.salv||{})[p.salv]||0,p.cd||c.cd);
   let dc=0,dk=0;for(const e of p.eff)if(e.k==='danno'){const x=quanto(c,e),l=DAD.leggi(x),t=e.tipo||c.dan.tipo;dc+=ST.effettivo(b,DAD.medio(x),t).n;dk+=ST.effettivo(b,l.n*(l.f+1)/2,t).n}
-  const peso=p.salv?(1-ps)+(p.meta?ps*.5:0):pc;return{pc,ps,pcrit:pk,dannoColpo:dc,atteso:(dc*peso+pk*dk)*p.multi}}
+  const peso=p.salv?(1-ps)+(p.meta?ps*.5:0):pc;let cura=0;for(const e of p.eff)if(e.k==='cura')cura+=DAD.medio(espressione(c,e))+((c.hook||{}).cura||0);
+  return{pc,ps,pcrit:pk,dannoColpo:dc,atteso:(dc*peso+pk*dk)*p.multi,cura}}
  // ---- scontri e riposi ----
  function iniziaScontro(c){for(const id of Object.keys(c.usi||{}))if(P[id]&&P[id].ric==='scontro')delete c.usi[id];
   c.furtivoUsato=false;const t=(c.hook||{}).temp;if(t)ST.temp(c,t+c.liv);return c}
@@ -251,5 +281,5 @@ const APOT=(()=>{
   return t.join(' · ')}
  const registra=pot;
  return{P,TAL,TAL_ID,PASS,RAZZA_POT,LIV_POTERE,LIV_TALENTO,CURABILI,eff:{W,D,C,S,SE,AU,CE,LI},registra,opzioni,offerta,offertaTalenti,tipoLivello,daScegliere,scelteErr,scegli,completa,poteriEroe,talentiEroe,ganci,combattente,
-  usiMax,usiRimasti,puoUsare,validaBers,applica,subisci,stima,quanto,espressione,iniziaScontro,inizioTurno,riposo,riga}})();
+  usiMax,usiRimasti,puoUsare,validaBers,applica,oggetto,applicaOggetto,stimaRiduzione,subisci,stima,quanto,espressione,iniziaScontro,inizioTurno,riposo,riga}})();
 if(typeof module!=='undefined')module.exports=APOT;
