@@ -142,11 +142,13 @@ const ASCO=(()=>{
  function raggiunte(s,c,pm){const bloc=s.cb.filter(x=>inPiedi(x)&&nemici(c,x)).map(pos),   // i nemici in piedi sbarrano; alleati e chi è a terra si attraversano ma non ci si ferma
    ris=G.raggiungibili(s.arena,pos(c),pm,{blocca:bloc,ignoraDifficile:!!(c.hook&&c.hook.ignoraDifficile)});
   return{ris,fermabili:G.fermabili(ris,s.cb.filter(x=>inCampo(x)&&x!==c).map(pos))}}
+ // chi ha un attacco di opportunità se `c` passa da `da` a `n`: nemici in piedi con reazione, armati da mischia, che lo avevano a portata e poi non più
+ const minacciano=(s,c,da,n)=>s.cb.filter(x=>inPiedi(x)&&nemici(c,x)&&x.rea&&melee(x)&&ST.puoAgire(x)&&G.dist(x,da)<=portata(x)&&G.dist(x,n)>portata(x));
  function muovi(s,c,dest,rnd,ev){const t=s.turno;if(t.pm<1)return ERR('Non hai movimento');
   const{ris,fermabili}=raggiunte(s,c,t.pm);if(!fermabili.some(x=>x.q===dest.q&&x.r===dest.r))return ERR('Non puoi arrivarci');
   const pc=G.percorso(ris,dest),opz={ignoraDifficile:!!(c.hook&&c.hook.ignoraDifficile)},inizio=pos(c);let da=pos(c),costo=0;const passi=[];
   for(const n of pc){
-   if(!t.disimpegno)for(const e of s.cb.filter(x=>inPiedi(x)&&nemici(c,x)&&x.rea&&melee(x)&&ST.puoAgire(x)&&G.dist(x,da)<=portata(x)&&G.dist(x,n)>portata(x))){
+   if(!t.disimpegno)for(const e of minacciano(s,c,da,n)){
     if(!inPiedi(c))break;e.rea=false;ev.push({t:'opportunita',chi:e.id,bers:c.id});colpo(s,e,'attacco',c,rnd,ev)}
    if(!inPiedi(c))break;
    costo+=G.costoEntrata(s.arena,da,n,opz);c.q=n.q;c.r=n.r;da=n;passi.push(n);
@@ -304,13 +306,19 @@ const ASCO=(()=>{
   for(const r of riep.eroi){const e=camp.eroi[r.indice];if(!e||e.nome!==r.nome)return ERR('La compagnia non corrisponde alla battaglia: '+r.nome)}
   const s=cl(camp);for(const r of riep.eroi){const e=s.eroi[r.indice];e.hp=Math.max(0,Math.min(r.hp,e.hpMax));e.conc=r.conc;e.usi=cl(r.usi);e.cintura=r.cintura.slice();e.xp=(e.xp||0)+(r.xp||0)}
   return{s,esito:riep.esito,xp:riep.xpPerEroe}}
+ // anteprima del movimento (A5): il percorso che farebbe `muovi`, il costo, chi avrebbe un attacco di opportunità e le superfici attraversate. Non cambia lo stato.
+ function anteprimaMuovi(s,dest){const c=attore(s);if(!c)return ERR('Nessuno agisce');if(s.turno.pm<1)return ERR('Non hai movimento');
+  const{ris,fermabili}=raggiunte(s,c,s.turno.pm);if(!dest||!fermabili.some(x=>x.q===dest.q&&x.r===dest.r))return ERR('Non puoi arrivarci');
+  const passi=G.percorso(ris,dest),opp=[],superfici=[];let da=pos(c);
+  for(const n of passi){if(!s.turno.disimpegno)for(const e of minacciano(s,c,da,n))if(!opp.includes(e.id))opp.push(e.id);const sp=G.sup(s.arena,n);if(sp)superfici.push({q:n.q,r:n.r,sup:sp});da=n}
+  return{passi,costo:ris[G.K(dest.q,dest.r)].costo,opportunita:opp,disimpegno:!!s.turno.disimpegno,superfici}}
  // ---- viste per chi gioca (e per l'IA) ----
  const ordine=s=>s.ordine.map((id,k)=>{const c=trova(s,id);return{id,nome:c.nome,lato:c.lato,hp:c.hp,hpMax:c.hpMax,inizTot:c.inizTot,attuale:k===s.i&&!s.over,aTerra:c.hp<=0}});
  function anteprima(s,a){const c=attore(s);if(!c)return ERR('Nessuno agisce');
   if(a.t==='attacca'){const b=trova(s,a.bers);if(!b||!inPiedi(b)||!nemici(c,b))return ERR('Serve un nemico in piedi');const k=condizioni(s,c,b,AP.P['attacco']);if(k.err)return k;
-   const x=AP.stima(c,'attacco',b,{vant:k.per.vant,svant:k.per.svant,ca:k.per.ca});return Object.assign({},x,{cop:k.v.cop,ca:k.v.ca,vant:k.per.vant,svant:k.per.svant,dist:k.d,lunga:k.lunga})}
+   const vc=k.per.vant||a.conc==='vant';const x=AP.stima(c,'attacco',b,{vant:vc,svant:k.per.svant,ca:k.per.ca});return Object.assign({},x,{cop:k.v.cop,ca:k.v.ca,vant:vc,svant:k.per.svant,dist:k.d,lunga:k.lunga})}
   if(a.t==='potere'||a.t==='oggetto'){const p=a.t==='oggetto'?AP.oggetto(a.id):AP.P[a.id];if(!p)return ERR('Potere sconosciuto');const f=forma(s,c,p,a);if(f.err)return f;
-   const bersagli=f.bs.map(b=>Object.assign({bers:b.id,lato:b.lato},AP.stima(c,p,b,f.per[b.id]||{}))),nem=bersagli.filter(x=>x.lato!==c.lato),amici=bersagli.filter(x=>x.lato===c.lato);
+   const bersagli=f.bs.map(b=>Object.assign({bers:b.id,lato:b.lato},AP.stima(c,p,b,a.conc==='vant'&&p.att?Object.assign({},f.per[b.id]||{},{vant:true}):f.per[b.id]||{}))),nem=bersagli.filter(x=>x.lato!==c.lato),amici=bersagli.filter(x=>x.lato===c.lato);
    return{bersagli,n:bersagli.length,atteso:nem.reduce((x,y)=>x+y.atteso,0),cura:amici.reduce((x,y)=>x+y.cura,0),centro:f.centro,dir:f.dir,costo:p.costo}}
   return ERR('Anteprima non disponibile')}
  function mosseValide(s){const c=attore(s);if(!c)return null;const t=s.turno,agisce=inPiedi(c)&&ST.puoAgire(c),o={chi:c.id,pm:t.pm,azione:t.azione,bonus:t.bonus,rea:c.rea,muovi:[],attacchi:[],azioni:['fine'],bersagli:{}};
@@ -339,5 +347,5 @@ const ASCO=(()=>{
   return{esito:s.over?s.over.esito:null,giri:s.giro,xp,xpPerEroe:quota,
    eroi:eroi.map(c=>({id:c.id,indice:c.indice,nome:c.nome,hp:c.hp,hpMax:c.hpMax,conc:c.conc,usi:cl(c.usi),cintura:(c.cintura||[]).slice(),stato:c.fuggito?'fuggito':c.hp<=0?'a-terra':'in-piedi',xp:c.fuori?0:quota})),
    nemici:s.cb.filter(c=>c.lato==='nemici').map(c=>({id:c.id,def:c.def,esito:c.morto?'sconfitto':c.arreso?'arreso':c.fuggito?'fuggito':'in-campo'}))}}
- return{MAX_EROI,GIRI_MAX,AZIONI,DIFFICOLTA,incontro,daCampagna,aggiorna,nuovo,act,attore,ordine,mosseValide,anteprima,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
+ return{MAX_EROI,GIRI_MAX,AZIONI,DIFFICOLTA,incontro,daCampagna,aggiorna,nuovo,act,attore,ordine,mosseValide,anteprima,anteprimaMuovi,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
 if(typeof module!=='undefined')module.exports=ASCO;
