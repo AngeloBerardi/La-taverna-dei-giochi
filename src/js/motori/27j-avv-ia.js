@@ -70,7 +70,7 @@ const AIA=(()=>{
    else if(p.area==='singolo')for(const id of o.bersagli.slice(0,6)){const a={t:'oggetto',id:o.id,bers:id};add(a,p,AS.anteprima(s,a),.8)}
    else{const a={t:'oggetto',id:o.id};add(a,p,AS.anteprima(s,a),.8)}}
   if(m.bersagli.rialza)for(const id of m.bersagli.rialza){const b=trova(s,id);out.push({a:{t:'rialza',bers:id},v:.6*(8+2.5*dpt(K,b))})}
-  if(m.bersagli.aiuta&&K.enem.length)for(const id of m.bersagli.aiuta){const b=trova(s,id);out.push({a:{t:'aiuta',bers:id},v:.3*dpt(K,b)})}
+  if(m.bersagli.aiuta&&K.enem.length)for(const id of m.bersagli.aiuta){const b=trova(s,id);if(K.enem.some(e=>G.dist(e,b)<=Math.max(b.gitt,1)+1))out.push({a:{t:'aiuta',bers:id},v:.3*dpt(K,b)})}      // serve solo a chi sta per attaccare
   return out}
  // ---- valore di una cella ----
  const PREF=c=>c.ia&&c.ia.dist||({mago:'lontana',esploratore:'lontana',chierico:'media',bardo:'media'})[c.classe]||'contatto';
@@ -121,15 +121,21 @@ const AIA=(()=>{
    let bt=null,qui=null;
    for(const t of top){let bs;if(t.x===qui0)bs=migliore(subito);else{const sx=se(s,c,t.x);bs=migliore(opzioni(K,c,sx,AS.mosseValide(sx)).map(o=>({a:o.a,v:rumore(o)})))}
     t.tot=(bs?bs.v:0)+t.q;if(t.x===qui0)qui=t;if(!bt||t.tot>bt.tot)bt=t}
-   if(bt!==qui&&bt.tot>qui.tot+.5)cella=bt.x}
+   if(bt!==qui&&bt.tot>qui.tot+(s.turno.mosso?1.5:.5))cella=bt.x}      // un secondo spostamento nello stesso turno deve valere molto: niente avanti e indietro
   K.s=s;
   if(cella)return{t:'muovi',a:{q:cella.q,r:cella.r}};
   const b=migliore(subito);
   if(b&&b.v>.3)return b.a;
-  // niente di utile da fare: si avvicina di corsa, altrimenti si chiude il turno
-  const vicino=Math.min(...K.enem.map(e=>G.dist(e,c)));
-  if(m.azioni.includes('scatto')&&vicino>(PREF(c)==='contatto'?1:Math.max(c.gitt,6))+1)return{t:'scatto'};
+  // niente di utile da fare: ci si avvicina lungo il percorso più corto (un muro in mezzo conta: non basta la distanza in linea d'aria), con lo scatto se serve
+  // (solo se l'azione è ancora lì: chi ha già agito non si getta nella mischia)
+  if(s.turno.azione){const dp=percorsi(s,K.enem),qui1=dp(c);
+   if(qui1>1&&qui1<Infinity){let best=null;for(const x of m.muovi){const d=dp(x);if(d<qui1&&(!best||d<best.d||(d===best.d&&x.costo<best.costo)))best={d,costo:x.costo,q:x.q,r:x.r}}
+    if(best)return{t:'muovi',a:{q:best.q,r:best.r}};
+    if(m.azioni.includes('scatto')&&qui1>2)return{t:'scatto'}}}
   return{t:'fine'}}
+ // costo di percorso fino al nemico più vicino da una cella (una ricerca per nemico, mura comprese); Infinity se non c'è strada
+ function percorsi(s,enem){const mappe=enem.map(e=>G.raggiungibili(s.arena,e,60,{}));
+  return x=>{let b=Infinity;for(const mp of mappe){const r=mp[G.K(x.q,x.r)];if(r&&r.costo<b)b=r.costo}return b}}
  // generatore dallo stato senza consumarlo: stessa situazione, stesso rumore
  const rngDi=s=>{const h={rng:DAD.semina((s.rng^Math.imul((s.evn||1)+1,0x9E3779B1))>>>0)};return DAD.gen(h)};
  // bot casuale: una mossa valida a caso (smette di agire con una certa probabilità, così il turno finisce)

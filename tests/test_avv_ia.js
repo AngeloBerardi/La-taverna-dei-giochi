@@ -1,7 +1,7 @@
 // IA della battaglia (Cantari di Ventura): ogni mossa è valida, i turni si chiudono, tutto è deterministico e riprendibile, i comportamenti
 // attesi (contatto, distanza, cure, aree, resa, fuga, bersaglio) e la forza dei bot (bravo ≫ casuale).
 const assert = require('assert');
-const { AR, C, eroe, squadra, battaglia, copia, mostro, pos, scena } = require('./avv_aiuti.js');
+const { AR, C, eroe, squadra, battaglia, copia, mostro, pos, scena, aperta, riga } = require('./avv_aiuti.js');
 const G = require('../src/js/motori/27g-avv-griglia.js');
 const IA = require('../src/js/motori/27j-avv-ia.js');
 const puro = (s) => JSON.parse(JSON.stringify(s));
@@ -102,6 +102,13 @@ const nuovaBattaglia = (i, seme) => { const [liv, n, nem] = INCONTRI[i]; return 
 // 4h. i lupi del branco fanno gruppo: vantaggio se un compagno è vicino al bersaglio
 { const s = scena(due('guerriero', 'chierico'), ['lupo-grigio', 'lupo-grigio'], { e1: [4, 5], e2: [6, 9], 'lupo-grigio#1': [4, 4], 'lupo-grigio#2': [5, 5] }, { chi: 'lupo-grigio#1' });
   const m = C.mosseValide(s), a = m.attacchi.find((x) => x.bers === 'e1'); assert(a && a.vant, 'vantaggio col compagno accanto'); }
+
+// 4i. un muro in mezzo: chi non ha niente da fare si avvicina lungo il percorso (non in linea d'aria), non si pianta davanti al muro; le battaglie non si fermano
+{ const arena = aperta(riga(5, '#######.#')), scenaMuro = (chi) => scena(due('guerriero', 'chierico'), ['brigante'], { e1: [4, 6], e2: [3, 7], brigante: [4, 4] }, { chi, arena });
+  for (const chi of ['e1', 'brigante']) { const s = scenaMuro(chi), fin = IA.partita(s, { eroi: 'eroica', nemici: 'normale' }); assert(fin.over && fin.over.esito !== 'stallo', 'oltre il muro: ' + JSON.stringify(fin.over)); assert(fin.giro <= 25, 'si raggiungono in tempo: ' + fin.giro); }
+  // lontano dal nemico, senza muri: il turno comincia e finisce avvicinandosi (con lo scatto se serve)
+  const lontano = scena(due('guerriero', 'chierico'), ['brigante'], { e1: [4, 10], e2: [3, 10], brigante: [4, 0] }, { chi: 'e1' }), r = IA.turno(lontano, { eroi: 'eroica', nemici: 'normale' });
+  assert(dist(r.s, 'e1', 'brigante') < dist(lontano, 'e1', 'brigante') - 2, 'avanza'); }
 
 // ---- 5. forza: il bot bravo vince, il casuale perde; la tattica non cambia le regole (stesse squadre, stessi mostri) ----
 { const prova = (cfg, quali, n) => { let v = 0, t = 0; for (const i of quali) for (let seme = 1; seme <= n; seme++) { const x = IA.partita(nuovaBattaglia(i, 100 + seme), cfg); t++; if (x.over.esito === 'vittoria') v++; } return Math.round(100 * v / t); };
