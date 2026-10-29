@@ -270,6 +270,26 @@ const ASCO=(()=>{
   if(a.t!=='fine'&&!s.over){controllaFine(s,ev);if(!s.over&&s.turno&&s.turno.id===c.id&&(!s.ordine.includes(c.id)||!inPiedi(c)))prossimo(s,rnd,ev)}
   s.prima=prima&&!s.over&&s.turno&&s.turno.id===c.id?{chi:c.id,a:Object.fromEntries(Object.entries(a).filter(([k])=>k!=='dec')),stato:prima}:null;
   s.ev=ev;s.evn++;return{s,ev}}
+ // ---- incontri: quali mostri mettere contro una compagnia (A4.6). Budget di PE per livello e numero di eroi, bruti davanti, tiratori e supporti dietro ----
+ // PE di un mostro = 15+10×livello (BEST): il budget di un eroe è quello di un mostro del suo livello, moltiplicato per la difficoltà. `capo` = il capo della famiglia più una scorta.
+ const XP_LIV=l=>15+10*l,DIFFICOLTA={facile:{m:.7},medio:{m:1.2},difficile:{m:1.6},capo:{m:.5}},MAX_MOSTRI=8;
+ // incontro(famiglia, livello, nEroi, difficolta, rnd) → { fam, liv, nEroi, difficolta, budget, xp, nemici:[id del bestiario] }; `rnd` è un numero (seme) o una funzione 0..1
+ function incontro(fam,liv,nEroi,diff,rnd){const D=DIFFICOLTA[diff];if(!D)throw new Error('difficoltà sconosciuta: '+diff);if(!BE.FAMIGLIE[fam])throw new Error('famiglia sconosciuta: '+fam);
+  nEroi=Math.max(1,Math.min(MAX_EROI,nEroi|0||1));liv=Math.max(1,liv|0||1);const r=typeof rnd==='function'?rnd:DAD.gen({rng:DAD.semina(rnd==null?1:rnd)});
+  const tutti=BE.ID.map(i=>BE.M[i]).filter(m=>m.fam===fam),capo=tutti.find(m=>m.capo)||null,pool=tutti.filter(m=>!m.capo);
+  const vic=(a,b)=>Math.abs(a.liv-liv)-Math.abs(b.liv-liv)||b.liv-a.liv,dietro=m=>m.ruolo!=='bruto'&&m.ruolo!=='sciame';
+  let ok=pool.filter(m=>m.liv<=liv+1&&m.liv>=liv-3);if(!ok.length)ok=pool.slice().sort(vic).slice(0,2);
+  if(!ok.some(m=>!dietro(m)))ok.push(pool.filter(m=>!dietro(m)).sort(vic)[0]);        // la famiglia non ha bruti di questo livello: i più vicini
+  const budget=Math.round(nEroi*XP_LIV(liv)*D.m),scelti=[],conta={},xp=()=>scelti.reduce((a,m)=>a+m.xp,0),tetto=Math.min(MAX_MOSTRI,nEroi+3);
+  const mette=m=>{scelti.push(m);conta[m.id]=(conta[m.id]||0)+1};
+  if(diff==='capo')mette(capo||pool.slice().sort((a,b)=>b.liv-a.liv)[0]);
+  else{const davanti=ok.filter(m=>!dietro(m)&&m.xp<=budget);if(davanti.length)mette(davanti[Math.floor(r()*davanti.length)]);else mette(ok.slice().sort((a,b)=>a.xp-b.xp)[0])}
+  const base=diff==='capo'?scelti[0].xp:0;
+  for(let n=0;n<20&&scelti.length<tetto;n++){const resta=budget-(xp()-base),back=scelti.filter(dietro).length;
+   const cand=ok.filter(m=>m.xp<=resta&&(conta[m.id]||0)<4&&!(dietro(m)&&back>=Math.ceil((scelti.length+1)/2)));if(!cand.length)break;
+   const peso=cand.map(m=>m.xp*m.xp),tot=peso.reduce((a,b)=>a+b,0);let k=r()*tot,i=0;while(i<cand.length-1&&k>=peso[i]){k-=peso[i];i++}mette(cand[i])}
+  scelti.sort((a,b)=>dietro(a)-dietro(b)||b.liv-a.liv);
+  return{fam,liv,nEroi,difficolta:diff,budget,xp:xp(),nemici:scelti.map(m=>m.id)}}
  // ---- viste per chi gioca (e per l'IA) ----
  const ordine=s=>s.ordine.map((id,k)=>{const c=trova(s,id);return{id,nome:c.nome,lato:c.lato,hp:c.hp,hpMax:c.hpMax,inizTot:c.inizTot,attuale:k===s.i&&!s.over,aTerra:c.hp<=0}});
  function anteprima(s,a){const c=attore(s);if(!c)return ERR('Nessuno agisce');
@@ -305,5 +325,5 @@ const ASCO=(()=>{
   return{esito:s.over?s.over.esito:null,giri:s.giro,xp,xpPerEroe:quota,
    eroi:eroi.map(c=>({id:c.id,indice:c.indice,nome:c.nome,hp:c.hp,hpMax:c.hpMax,conc:c.conc,usi:cl(c.usi),cintura:(c.cintura||[]).slice(),stato:c.fuggito?'fuggito':c.hp<=0?'a-terra':'in-piedi',xp:c.fuori?0:quota})),
    nemici:s.cb.filter(c=>c.lato==='nemici').map(c=>({id:c.id,def:c.def,esito:c.morto?'sconfitto':c.arreso?'arreso':c.fuggito?'fuggito':'in-campo'}))}}
- return{MAX_EROI,GIRI_MAX,AZIONI,nuovo,act,attore,ordine,mosseValide,anteprima,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
+ return{MAX_EROI,GIRI_MAX,AZIONI,DIFFICOLTA,incontro,nuovo,act,attore,ordine,mosseValide,anteprima,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
 if(typeof module!=='undefined')module.exports=ASCO;

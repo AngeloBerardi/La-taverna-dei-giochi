@@ -39,7 +39,7 @@ Tutto il resto segue la scheda regole di A0 (`docs/rules/avventura.md`). Dove la
 | D12 | **Fuga**: un eroe può uscire da una cella-uscita (bordo) spendendo il movimento; oppure l'azione di **fuga di gruppo** (prova di gruppo: basta che riesca metà). Battaglia «fuga» quando non resta nessun eroe in piedi in campo e almeno uno è fuggito. | Dalla scheda. |
 | D13 | **Arrendersi**: un mostro con `ia.arrende` a ≤ 25% dei PF lascia le armi (esce dal campo, conta come sconfitto per i PE, nessun bottino da lui). | Dalla scheda (banditi). |
 | D14 | **Limite di 40 giri**: oltre, la battaglia finisce «stallo» e conta come fuga forzata. | Dalla scheda (test 3). |
-| D15 | **Superfici**: fuoco (1d6 di fuoco e «in fiamme» a chi vi entra o vi inizia il turno), veleno (salvezza COS o «avvelenato»), ghiaccio (salvezza DES o «a terra» al primo ingresso nel turno), acqua (terreno difficile; spegne «in fiamme»). Nascono dall'arena, nessun potere le crea in A4. | Poche e leggibili; i poteri che le creano si valutano in A13. |
+| D15 | **Superfici**: fuoco (1d6 di fuoco e «in fiamme» a chi vi entra o vi inizia il turno), veleno (salvezza COS o «avvelenato»), ghiaccio (salvezza DES a ogni ingresso: se fallisce, il movimento finisce lì, senza cadere), acqua (terreno difficile; spegne «in fiamme»). Nascono dall'arena, nessun potere le crea in A4. | Poche e leggibili; i poteri che le creano si valutano in A13. |
 
 ## 2. Architettura e file
 
