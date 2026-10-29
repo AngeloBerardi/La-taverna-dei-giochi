@@ -178,8 +178,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27b-avv-oggetti.js` | 16 | AOGG |
 | `js/motori/27c-avv-bottino.js` | 6 | ABOT |
 | `js/motori/27d-avv-stati.js` | 9 | ASTA |
-| `js/motori/27e-avv-poteri.js` | 31 | APOT |
+| `js/motori/27e-avv-poteri.js` | 34 | APOT |
 | `js/motori/27f-avv-bestiario.js` | 15 | BEST |
+| `js/motori/27g-avv-griglia.js` | 9 | AGRI |
+| `js/motori/27h-avv-arene.js` | 9 | AARE |
+| `js/motori/27i-avv-scontro.js` | 37 | ASCO |
+| `js/motori/27j-avv-ia.js` | 15 | AIA |
 | `js/motori/28-campagna.js` | 18 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |

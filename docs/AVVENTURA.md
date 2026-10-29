@@ -142,6 +142,13 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 10. API: `ASCO.nuovo(compagnia, nemici, arena, rng)`, `act(s, {t:'muovi'|'attacca'|'potere'|'oggetto'|'aspetta'|'fine', …})`, `mosseValide(s, chi)`, `anteprima(s, azione)` (percentuale e danno atteso, per la vista e per l'IA).
 11. **IA nemici** (`AIA`): punteggio delle azioni possibili (danno atteso, rischio, copertura, focus sul più debole, distanza preferita per ruolo), tre livelli di difficoltà. Lo stesso modulo fornisce il **bot bravo** e il **bot casuale** per i test.
 - Test (`test_avv_scontro`): conservazione (PF entro i limiti, un'azione per turno), linea di vista su casi fissi, coperture, opportunità, determinismo col seme, 1000 battaglie simulate: bot bravo vince ≥85% gli scontri «medi» del suo livello, bot casuale ≤30%; nessuna battaglia infinita (limite di giri).
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte (dettagli e numeri in `docs/AVVENTURA-A4.md`):
+  - File: `27g` griglia (`AGRI`), `27h` arene (`AARE`), `27i` scontro (`ASCO`), `27j` IA e bot (`AIA`); strumento `tools/avventura/bilancia.js`; scene di prova condivise in `tests/avv_aiuti.js`.
+  - Tutto è tiro di dadi nello stato (`ADADI`), nessun `Math.random`; le reazioni con scelta sono una pausa restituita da `act` (`{pausa}`) e l'azione si rifà con `dec`; limite di 40 giri (stallo al 41°).
+  - `ASCO.incontro(famiglia, livello, eroi, difficoltà, seme)` genera gli incontri a budget di PE (facile ×0,7, medio ×1,2, difficile ×1,6, capo con scorta ×0,5).
+  - `ASCO.daCampagna` / `ASCO.aggiorna` collegano la battaglia agli eroi della campagna (PF, cariche, Concentrazione, cintura, PE); vite, bottino e rientro sull'account restano ad A9.
+  - **Bilanciamento misurato** (bot bravo): facili 99%, medi 91% (casuale 9%) con 34% di PF persi, difficili 64%, capi 60% con 4 eroi del loro livello ma 8–17% con 3 e quasi mai con 1–2: i capi aspettano i compagni (A8) e la scala della difficoltà (A13). I livelli dell'IA cambiano le scelte, non molto le statistiche.
+  - Test: `test_avv_griglia`, `test_avv_arene`, `test_avv_scontro*` (lento), `test_avv_ia` (lento), `test_avv_bilanciamento` (lento), `test_avv_aggancio`.
 
 ## A5 — Battaglia tattica (vista telefono)
 1. Griglia in SVG a 390 px con vista leggermente inclinata, scorrimento e zoom a due dita; segnalini degli eroi con il loro ritratto, nemici con sagome originali.

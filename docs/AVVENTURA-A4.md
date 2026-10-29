@@ -145,3 +145,22 @@ Vista e animazioni (A5), mappa v2 (A6), racconto e Capitolo 1 (A7–A8), vite di
 
 ## 6. Le sei scelte che potresti voler cambiare
 D5 (svantaggio a bruciapelo), D9 (attacchi di opportunità automatici), D10 (la Concentrazione ritira sempre il dado nuovo), D11 (niente colpo di grazia), D12 (fuga di gruppo con metà successi), D14 (limite di 40 giri). Sono tutte isolate in poche righe: cambiarle dopo costa poco.
+
+## 7. Risultati misurati (fine di A4, 29 ottobre 2026)
+Battaglie vere con il bot bravo (eroi: *eroica*, mostri: *normale*), 8 incontri per cella (24 per i capi), squadra di guerriero, mago, chierico e ladro del livello dell'incontro. Si rifà con `node tools/avventura/bilancia.js` (opzioni nell'intestazione del file; `--casuale` aggiunge il bot casuale ai medi) e si controlla in piccolo con `npm test -- bilanciamento`.
+
+| Difficoltà | Vittorie | PF persi | Giri (media / più lunga) | Criterio di A0 |
+|---|---|---|---|---|
+| facile (budget ×0,7) | 99% | 12% | 4,3 / 22 | — |
+| medio (×1,2) | 91% (casuale 9%) | 34% | 7,9 / 24 | bravo ≥ 85%, casuale ≤ 30%, PF persi 25–60% |
+| difficile (×1,6) | 64% | 61% | 9,8 / 31 | 50–80% |
+| capo, 4 eroi del suo livello | 60% | 67% | 13–17 / 33 | 35–70% |
+
+Per famiglia, scontri **medi**: bestie 87%, banditi 93%, nonmorti 86%, torre 97%; **difficili**: bestie 57%, banditi 75%, nonmorti 61%, torre 63%. Il numero di eroi (1–4) cambia poco le vittorie dei medi (88–94%); i PF persi vanno dal 27% (1 eroe) al 41% (2 eroi).
+
+Cose da sapere (per A8 e A13):
+- **I capi sono tarati per 4 eroi.** Con 3 eroi si vince l'8–17% delle volte (banditi 17%, nonmorti 8%, torre 8%), con 1–2 praticamente mai (prove fuori dallo strumento): un capo e la sua scorta fanno troppo danno. Per gruppi piccoli servono i compagni (A8) o una scala della difficoltà (`opz.difficolta`, A13); la media della tabella dello strumento (35%) mescola 3 e 4 eroi, il criterio vale per i 4.
+- **I tre livelli dell'IA (*racconto*, *normale*, *eroica*) cambiano le scelte** (bersagli, fuga, resa, ritirata) **ma poco le statistiche**: i dadi pesano più della tattica. La difficoltà vera è il budget dell'incontro; i livelli dell'IA sono carattere dei nemici.
+- **Stalli.** Le scansioni su 800 battaglie medie hanno trovato tre tipi di stallo (aiuto reciproco, strada bloccata da un muro scelta con la sola distanza in linea d'aria, avanti-e-indietro); sono corretti nell'IA (`aiuta` solo con un nemico a portata, avanzata sul percorso reale quando l'azione è ancora libera, margine più alto per la seconda mossa) e il test li tiene fuori. Resta lo stallo al giro 41 solo per il bot casuale.
+- Il test `test_avv_bilanciamento` (lento, ~40 s) usa campioni piccoli: i valori sono medie su più celle e il tetto per ogni capo è largo (10–95%) perché 10 battaglie sono un campione rumoroso.
+
