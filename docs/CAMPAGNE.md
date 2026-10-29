@@ -3,7 +3,7 @@
 Obiettivo: campagne a più sessioni stile *For the King* (mappa a esagoni, gruppo di 1–3 eroi, giorno/notte, perdizione che avanza, prove con i dadi), con eroi legati all'account. Tutto originale: nomi, regole di dettaglio e grafica sono nostri.
 
 ## Cosa c'è
-- **Eroi** (`motori/27-eroi.js`, `app/24g-eroi.js`, dati `players/{uid}/eroi/e1..e5`): 5 razze, 6 classi, 27 punti da distribuire (8–15), creazione guidata in 5 passi, ritratto SVG, livelli da XP. Regole di `firestore.rules` impediscono punteggi truccati, cambio razza/classe e salti di livello.
+- **Eroi** (`motori/27-eroi.js`, `app/24g-eroi.js`, dati `players/{uid}/eroi/e1..e5`): 5 razze, 6 classi, 27 punti da distribuire (8–15), creazione guidata in 5 passi, ritratto SVG, livelli da XP. Regole di `firestore.rules` impediscono punteggi truccati, cambio razza/classe e salti di livello. Dal livello 2 la scheda offre scelte guidate (talenti ai livelli pari, poteri ai livelli 3, 5, 7, 9; `motori/27e-avv-poteri.js`); in campagna le scelte mancanti sono completate con la prima proposta.
 - **Campagna** (`motori/28-campagna.js`, vista `app/24h-campagna.js`, `css/39-campagna.css`): motore puro, stato JSON.
   - Mappa generata dal seme (raggio 6): pianura, strada, bosco, colle, palude, montagna, acqua. Città, antro e torre sono sempre collegati da terreno calpestabile; tesori e accampamenti sparsi. Nebbia: si vedono solo i luoghi scoperti (raggio 2).
   - Movimento a costo di terreno (strada 0,5 · pianura 1 · bosco/colle 2 · palude 3); il gruppo usa il movimento dell'eroe più lento.

@@ -37,9 +37,12 @@ Motori puri (stato JSON, `act(stato, azione)` → `{s}` | `{err}`, **dado nello 
 | File | Costante | Ruolo |
 |---|---|---|
 | `motori/27-eroi.js` | `EROI` | scheda, derivati, livelli, talenti (esteso) |
-| `motori/39-avv-dadi.js` | `ADADI` | generatore nello stato, d20 con vantaggio/svantaggio, dadi di danno, probabilità esatte |
-| `motori/40-avv-oggetti.js` | `AOGG` | catalogo oggetti, rarità, bottino, negozi |
-| `motori/41-avv-poteri.js` | `APOT` | poteri di classe, talenti, stati alterati, bestiario |
+| `motori/27a-avv-dadi.js` | `ADADI` | generatore nello stato, d20 con vantaggio/svantaggio, dadi di danno, probabilità esatte |
+| `motori/27b-avv-oggetti.js` | `AOGG` | catalogo oggetti, rarità, equipaggiamento |
+| `motori/27c-avv-bottino.js` | `ABOT` | bottino e botteghe |
+| `motori/27d-avv-stati.js` | `ASTA` | stati alterati, tipi di danno, resistenze, tiri salvezza, danno e cura |
+| `motori/27e-avv-poteri.js` | `APOT` | poteri di classe e di razza, talenti, cariche e Concentrazione, scelte di livello |
+| `motori/27f-avv-bestiario.js` | `BEST` | bestiario: 23 mostri e 3 capi, formula delle statistiche, comportamento per A5 |
 | `motori/42-avv-scontro.js` | `ASCO` | battaglia su griglia |
 | `motori/43-avv-ia.js` | `AIA` | intelligenza dei nemici e bot di prova |
 | `motori/28-campagna.js` | `CAMP` | mappa del mondo (evoluta) |
@@ -113,6 +116,16 @@ Scopo: rendere ogni classe diversa da giocare.
 5. Bestiario originale: 4 famiglie (bestie, banditi, non morti, creature della torre) × 5 mostri + 3 capi, con livello, ruolo (bruto, tiratore, incantatore, supporto, sciame), poteri e comportamento per A5.
 6. Salita di livello guidata (scegli potere/talento) nella vista eroi.
 - Test: ogni potere ha bersagli validi e un effetto misurabile; nessuna combinazione rompe lo stato; danni medi per livello entro la tabella di A0.
+
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte:
+  - **Domanda aperta chiusa**: niente riserva di energia. Ogni potere ha le sue **cariche** (`turno` = a volontà, `scontro`, `breve`, `lungo`) più la **Concentrazione** dell'eroe (bonus di competenza, +1 per il mago). Il riposo breve (la sera, in campagna) ridà le cariche `scontro`/`breve`, il lungo (all'alba) tutto.
+  - File: `27d` (stati), `27e` (poteri), `27f` (bestiario), al posto del `41-avv-poteri.js` previsto. Il motore dei poteri sa **che cosa fa un potere a una creatura** (`APOT.applica`); geometria e bersagli li decide la battaglia di A4. Nessun fuoco amico.
+  - Sei classi × 10 poteri (2 al livello 1, uno a scelta fra due ai livelli 3, 5, 7, 9) più il passivo; 5 poteri razziali (i tratti della scheda); 20 talenti ai livelli pari (due proposte per volta, calcolate dal seme di creazione, dal livello e da ciò che si è già preso).
+  - Le scelte stanno in `scelte: {"livello": id}` sulla scheda. Chi entra in campagna con scelte mancanti le ha completate con la **prima proposta** (`APOT.completa`), così si può giocare; la scheda sull'account non cambia finché non scegli tu («Gestisci gli eroi»).
+  - **Limite delle regole Firestore**: controllano che gli id esistano e il livello sia raggiunto, **non quale delle due proposte** sia stata scelta (le proposte dipendono dal seme di creazione). La coerenza fine la controlla il client (`EROI.coerente`).
+  - I talenti non cambiano `EROI.derivati` (la scheda mostra i valori di base): agiscono in battaglia tramite i ganci di `APOT.ganci`. Ganci che A4 deve leggere: `crit`, `ignoraDifficile`, `nascondiBonus`, `oggBonus`, `inizVant`, `gitt`, `branco`, `usiScontro`, `conc`, `mov`, `iniz`. Le prove di abilità fuori battaglia non sono toccate.
+  - Bestiario: 23 mostri in 4 famiglie e 3 capi (livelli 5, 7, 8); i capi non si battono da soli (≤20% di vittorie 1 contro 1): il bilanciamento di gruppo si rifà con la battaglia vera in A4/A13.
+  - Test: `test_avv_stati`, `test_avv_poteri` (ogni potere ha un effetto misurabile, danni entro la tabella di A0, 60 battaglie casuali con invarianti), `test_avv_bestiario`, `test_eroi`/`test_campagna` per scelte, cariche e riposi; scenario browser `eroi` per la scelta guidata.
 
 ## A4 — Battaglia tattica (motore)
 Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
@@ -202,5 +215,4 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 
 ## Domande aperte (da chiudere all'inizio della task indicata)
 - A1: la tab Avventura sostituisce il pulsante «Eroi» nel profilo o restano entrambi?
-- A3: gli incantatori usano cariche per riposo o un'unica riserva di energia?
 - A11: chi decide le scelte di dialogo in co-op: chi parla o voto?

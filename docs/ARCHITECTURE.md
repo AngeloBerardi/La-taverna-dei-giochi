@@ -131,7 +131,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/35-locandiere.css` | 1 |  |
 | `css/36-distanza.css` | 1 |  |
 | `css/37-schermo.css` | 2 |  |
-| `css/38-eroi.css` | 5 |  |
+| `css/38-eroi.css` | 6 |  |
 | `css/39-campagna.css` | 3 |  |
 | `css/39a-avventura.css` | 1 |  |
 | `css/39b-inventario.css` | 3 |  |
@@ -177,7 +177,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27a-avv-dadi.js` | 3 | ADADI |
 | `js/motori/27b-avv-oggetti.js` | 16 | AOGG |
 | `js/motori/27c-avv-bottino.js` | 6 | ABOT |
-| `js/motori/28-campagna.js` | 17 | CAMP |
+| `js/motori/27d-avv-stati.js` | 9 | ASTA |
+| `js/motori/27e-avv-poteri.js` | 31 | APOT |
+| `js/motori/27f-avv-bestiario.js` | 15 | BEST |
+| `js/motori/28-campagna.js` | 18 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -251,9 +254,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 10 | FsDb, Dist |
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
-| `js/app/24g-eroi.js` | 13 | Eroi |
+| `js/app/24g-eroi.js` | 15 | Eroi |
 | `js/app/24h-campagna.js` | 8 | Camp |
-| `js/app/24ha-avventura.js` | 4 | Avv |
+| `js/app/24ha-avventura.js` | 5 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
