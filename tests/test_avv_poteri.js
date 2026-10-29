@@ -331,4 +331,12 @@ const CLASSI = Object.keys(E.CLASSI);
   for (const L of A.LIV_POTERE) assert.deepStrictEqual(ids(blocco('scelte:poteri' + L)), CLASSI.flatMap(c => A.opzioni(c, L)), 'poteri del livello ' + L);
   assert.ok(/'scelte', 'creato'/.test(regole) && /scelteEroeOk\(d\) && d\.creato is int/.test(regole), 'eroeOk usa scelteEroeOk');
 }
+// per la battaglia: copertura, altezza e distanza per bersaglio (ctx.per) e abilità del combattente (percezione passiva, furtività, medicina)
+{ const a = A.combattente(eroe('guerriero', 3)), b = B.combattente('brigante'); a.att = 5; b.ca = 12; b.hp = b.hpMax = 99;
+  const pc = (o) => A.stima(a, 'attacco', b, o).pc; assert(pc({ ca: 2 }) < pc({}) && pc({ ca: 5 }) < pc({ ca: 2 }), 'più CA, meno probabilità'); assert(pc({ vant: true }) > pc({}) && pc({ svant: true }) < pc({}), 'vantaggio e svantaggio');
+  const fa = (per) => { let col = 0, n = 0; for (let seme = 1; seme <= 400; seme++) { const x = copia(a), y = copia(b), R = A.applica(x, 'attacco', [y], gen(seme), { per: { [y.id]: per } }); const t = R.ev.find(e => e.t === 'tiro'); n++; if (t.ok) col++; if (per.ca) assert.strictEqual(t.cont, 12 + per.ca, 'la copertura sale nel bersaglio del tiro'); } return col / n; };
+  assert(fa({ ca: 5 }) < fa({ ca: 0 }) - .15, 'la copertura toglie colpi'); assert(fa({ vant: true }) > fa({}) + .1 && fa({ svant: true }) < fa({}) - .1, 'altezza e distanza cambiano i colpi');
+  assert(fa({ ca: 2 }) <= fa({ ca: 0 }) && fa({ vant: true, svant: true }) === fa({}), 'vantaggio e svantaggio insieme si annullano');
+  const p = A.combattente(eroe('ladro', 1, 'elfo')); assert(Number.isInteger(p.abil.perc) && p.abil.perc >= 10 && Number.isInteger(p.abil.fur) && Number.isInteger(p.abil.med), 'abilità dell\'eroe');
+  assert(p.abil.fur >= A.combattente(eroe('guerriero', 1)).abil.fur, 'il ladro è furtivo'); assert.deepStrictEqual(B.combattente('brigante').abil, { perc: 10, fur: 2, med: 0 }); assert(B.combattente('maestro-della-torre').abil.perc >= 14, 'i capi vedono meglio'); }
 console.log('test_avv_poteri: ok');

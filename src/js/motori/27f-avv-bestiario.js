@@ -93,7 +93,7 @@ const BEST=(()=>{
  function combattente(def,o){o=o||{};const m=M[def];if(!m)throw new Error('mostro sconosciuto: '+def);
   return{id:o.id||def,def,nome:m.nome,lato:'nemici',tipo:'mostro',fam:m.fam,ruolo:m.ruolo,capo:m.capo,liv:m.liv,hp:m.pf,hpMax:m.pf,temp:0,ca:m.ca,att:m.att,magia:m.att,dan:Object.assign({},m.dan),
    salv:Object.assign({},m.salv),cd:m.cd,iniz:m.iniz,mov:m.mov,gitt:m.gitt,gittaLunga:null,crit:20,res:m.res.slice(),vuln:m.vuln.slice(),imm:m.imm.slice(),immStati:m.immStati.slice(),stati:[],modPrim:0,
-   conc:0,concMax:0,usi:{},poteri:['attacco'].concat(m.poteri),hook:Object.assign({},m.hook),ia:Object.assign({},m.ia),xp:m.xp}}
+   conc:0,concMax:0,usi:{},poteri:['attacco'].concat(m.poteri),hook:Object.assign({},m.hook),ia:Object.assign({},m.ia),xp:m.xp,abil:{perc:10+Math.floor(m.liv/2),fur:2+Math.floor(m.liv/2),med:0}}}
  // esperienza di una battaglia vinta, da dividere fra gli eroi
  const xpTotale=defs=>defs.reduce((a,d)=>a+M[d].xp,0);
  return{FAMIGLIE,RUOLI,M,ID,stat,per,mostro,combattente,xpTotale}})();

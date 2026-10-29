@@ -163,7 +163,7 @@ const APOT=(()=>{
    ca:d.ca+g.ca,att:d.attacco+g.att,magia:cp+mp+AO().bonus(h).att+g.att,dan:d.danno?{n:d.danno.n,dado:d.danno.dado,bonus:d.danno.bonus+g.dan,tipo:d.danno.tipo}:{n:1,dado:2,bonus:0,tipo:'contundente'},
    salv,cd:8+cp+mp,iniz:d.iniziativa+g.iniz,mov:d.mov+g.mov,gitt:(arma&&(arma.gt?arma.gt[0]:(arma.por||1))||1)+(arma&&arma.gt?g.gitt:0),gittaLunga:arma&&arma.gt?arma.gt[1]+g.gitt:null,
    crit:g.crit,res:[...new Set(d.res.concat(g.res))],vuln:[],imm:[],immStati:[],stati:[],modPrim:mp,conc:h.conc==null?concMax:Math.max(0,Math.min(h.conc,concMax)),concMax,
-   usi:{...(h.usi||{})},poteri:poteriEroe(h),hook:g};
+   usi:{...(h.usi||{})},poteri:poteriEroe(h),hook:g,abil:{perc:10+E.bonus(h,'percezione'),fur:E.bonus(h,'furtivita'),med:E.bonus(h,'medicina')}};
   if(c.hp<=0){c.hp=0;ST.aggiungi(c,'terra')}return c}
  // ---- uso dei poteri ----
  const usiMax=(c,p)=>p.ric==='turno'?Infinity:(p.usi||1)+(p.ric==='scontro'?((c.hook||{}).usiScontro||0):0);
@@ -188,7 +188,7 @@ const APOT=(()=>{
   if(e.arma&&(c.hook||{}).furtivo&&!c.furtivoUsato&&(vant||ctx.alleatoVicino)){c.furtivoUsato=true;const f=DAD.danno(rnd,c.hook.furtivo+'d6',crit).tot;tot+=f;R.ev.push({t:'furtivo',chi:c.id,n:f})}
   return tot}
  function uno(c,p,b,rnd,ctx,R){let crit=false,vant=false,salvOk=null;
-  if(p.att){const dif=ST.attacco(c,b,{vant:ctx.vant,svant:ctx.svant}),r=DAD.d20(rnd,dif),bonus=(p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ca=ST.caEff(b);
+  if(p.att){const pb=(ctx.per&&ctx.per[b.id])||{},dif=ST.attacco(c,b,{vant:ctx.vant||pb.vant,svant:ctx.svant||pb.svant}),r=DAD.d20(rnd,dif),bonus=(p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ca=ST.caEff(b)+(pb.ca||0);
    const ok=r.tiro===20||(r.tiro!==1&&r.tiro+bonus>=ca);crit=ok&&r.tiro>=(c.crit||20);vant=dif.vant;
    R.ev.push({t:'tiro',chi:c.id,bers:b.id,tiro:r.tiro,tiri:r.tiri,tot:r.tiro+bonus,cont:ca,ok,crit,vant:dif.vant,svant:dif.svant});ST.dopoAttacco(c);if(!ok)return}
   else if(p.salv){const s=ST.salvezza(b,p.salv,c.cd,rnd);salvOk=s.ok;R.ev.push({t:'salvezza',bers:b.id,ab:p.salv,tiro:s.tiro,tot:s.tot,cont:c.cd,ok:s.ok})}
@@ -208,7 +208,8 @@ const APOT=(()=>{
    else if(e.k==='tenace'){if(dest.hp<=0&&!dest.morto){dest.hp=1;ST.togli(dest,'terra')}R.tenace=true;R.ev.push({t:'tenace',bers:dest.id})}
    else if(e.k==='spingi')R.ev.push({t:'spingi',bers:b.id,n:e.n});
    else if(e.k==='disimpegna')R.ev.push({t:'disimpegna',chi:c.id})}}
- // usa un potere: `bs` = bersagli scelti dalla battaglia (lista di combattenti). `ctx`: { vant, svant, alleatoVicino, danno (per le riduzioni) }.
+ // usa un potere: `bs` = bersagli scelti dalla battaglia (lista di combattenti). `ctx`: { vant, svant, alleatoVicino, danno (per le riduzioni),
+ // per: { idBersaglio: { vant, svant, ca } } = altezza, distanza lunga e copertura di ogni bersaglio, calcolate dalla battaglia }.
  // Restituisce { ok, ev, ridotto, ritira, tenace } oppure { err }. Spende la carica, cambia i combattenti sul posto.
  function applica(c,id,bs,rnd,ctx){ctx=ctx||{};const p=P[id];if(!p)return ERR('Potere sconosciuto');const e=puoUsare(c,p);if(e)return ERR(e);
   if(p.area==='se')bs=[c];const v=validaBers(c,p,bs||[]);if(v)return ERR(v);
@@ -224,7 +225,7 @@ const APOT=(()=>{
   return Object.assign(r,{potere:r.tenace?usa.id:null})}
  // ---- stima per anteprima e IA: probabilità e danno atteso di un potere contro un bersaglio ----
  function stima(c,id,b,o){const p=P[id];if(!p)return null;o=o||{};let pc=1,ps=null,pk=0;
-  if(p.att){const dif=ST.attacco(c,b,o);pc=DAD.prob((p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ST.caEff(b),dif);
+  if(p.att){const dif=ST.attacco(c,b,o);pc=DAD.prob((p.att==='magia'?c.magia:c.att)+p.attMod+dif.bonus,ST.caEff(b)+(o.ca||0),dif);
    const q=(21-(c.crit||20))/20;pk=dif.vant?1-(1-q)*(1-q):dif.svant?q*q:q}
   if(p.salv)ps=DAD.prob((b.salv||{})[p.salv]||0,c.cd);
   let dc=0,dk=0;for(const e of p.eff)if(e.k==='danno'){const x=quanto(c,e),l=DAD.leggi(x),t=e.tipo||c.dan.tipo;dc+=ST.effettivo(b,DAD.medio(x),t).n;dk+=ST.effettivo(b,l.n*(l.f+1)/2,t).n}
