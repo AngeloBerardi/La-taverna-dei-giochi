@@ -1,4 +1,5 @@
 // Aiuti dei test della battaglia: eroi di ogni classe e livello, squadre, mostri pronti, partenze veloci. Non è un test.
+const assert = require('assert');
 const E = require('../src/js/motori/27-eroi.js');
 global.EROI = E;
 const A = require('../src/js/motori/27e-avv-poteri.js');
@@ -21,4 +22,14 @@ const battaglia = (squad, nemici, o) => { o = o || {}; return C.nuovo(squad, nem
 // mette un combattente in una cella (colonna, riga dell'arena)
 const metti = (s, id, col, riga) => { const G = require('../src/js/motori/27g-avv-griglia.js'), q = G.daOffset(col, riga), c = s.cb.find(x => x.id === id); c.q = q.q; c.r = q.r; return c; };
 const copia = x => JSON.parse(JSON.stringify(x));
-module.exports = { E, A, AR, C, BASI, ASP, CLASSI, eroe, squadra, battaglia, metti, copia };
+// ---- scene di prova: arena vuota 9x11, azione che si ripete fino al turno di `chi`, creature messe dove si vuole ----
+const aperta = (righe, sup) => Object.assign(copia(AR.ripiego('strada')), { righe: righe || Array.from({ length: 11 }, () => '.........'), sup: sup || null });
+const riga = (r, testo) => { const x = Array.from({ length: 11 }, () => '.........'); x[r] = testo; return x; };
+const mostro = (s, id) => s.cb.find((c) => c.id === id), pos = (s, id) => { const c = mostro(s, id); return { q: c.q, r: c.r }; };
+const ok = (r, msg) => { assert(!r.err && !r.pausa, (msg || '') + ' → ' + (r.err || JSON.stringify(r.pausa))); return r; };
+function finoA(s, id) { let x = s; for (let n = 0; n < 300; n++) { const a = C.attore(x); if (a && a.id === id) return x; if (x.over) throw new Error('finita prima'); x = ok(C.act(x, { t: 'fine' })).s; } throw new Error('turno non raggiunto: ' + id); }
+// scena: squadra, nemici, posizioni { id: [colonna, riga] }, arena; il turno è di `chi` con azione, bonus e reazioni intatti
+function scena(squad, nem, posiz, o) { o = o || {}; let s = battaglia(squad, nem, { seme: o.seme || 3, arena: o.arena || aperta(), opz: o.opz }); s = finoA(s, o.chi || 'e1');
+  for (const [id, [col, r]] of Object.entries(posiz)) metti(s, id, col, r); s.turno.pm = s.turno.pmTirato = 6; for (const c of s.cb) c.rea = true; return s; }
+const dai = (s, id, ...poteri) => { const c = mostro(s, id); for (const p of poteri) if (!c.poteri.includes(p)) c.poteri.push(p); return c; };
+module.exports = { E, A, AR, C, BASI, ASP, CLASSI, eroe, squadra, battaglia, metti, copia, aperta, riga, mostro, pos, ok, finoA, scena, dai };

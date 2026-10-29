@@ -7,7 +7,7 @@
 const fs = require('fs'), os = require('os'), path = require('path');
 const { execFile } = require('child_process');
 
-const LENTI = ['valle', 'accordi', 'saboteur', 'scoundrel_greedy', 'discesa', 'machiavelli', 'isola', 'the_gang', 'regicide', 'avv_scontro'];
+const LENTI = ['valle', 'accordi', 'saboteur', 'scoundrel_greedy', 'discesa', 'machiavelli', 'isola', 'the_gang', 'regicide', 'avv_scontro', 'avv_ia'];
 const args = process.argv.slice(2);
 const salta = args.includes('--lenti');
 const filtri = args.filter(a => !a.startsWith('--'));

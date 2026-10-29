@@ -100,6 +100,7 @@ const ASCO=(()=>{
   if(!o.senzaGittata&&d>(lunga||Math.max(1,norm)))return ERR('Troppo lontano');
   const per={vant:v.dislivello>0,svant:!!(lunga&&d>norm),ca:p.att?v.ca:0};
   if(p.att&&norm>2&&s.cb.some(x=>inPiedi(x)&&nemici(a,x)&&G.dist(a,x)<=1))per.svant=true;       // tirare con un nemico addosso
+  if(p.att&&a.hook&&a.hook.branco&&alleatoVicino(s,a,b))per.vant=true;                           // il branco: un compagno accanto al bersaglio
   return{per,v,d,lunga:!!(lunga&&d>norm)}}
  const alleatoVicino=(s,a,b)=>s.cb.some(x=>inPiedi(x)&&x!==a&&x.lato===a.lato&&G.dist(x,b)<=1);
  function colpo(s,a,id,b,rnd,ev){const p=AP.P[id],k=condizioni(s,a,b,p);if(k.err)return k;
