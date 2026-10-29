@@ -24,6 +24,7 @@ ${s?Avv.cartaCont(s):''}
 ${on?`<button class="b ${s?'':'gold '}ecta" data-a="avvnuova" ${pochi&&Eroi.lista?'disabled':''}>${ic('spada',18)} ${s?'Nuova campagna':'Parti in campagna'}</button>${pochi&&Eroi.lista?'<small class="muted" style="text-align:center">Prima crea un eroe.</small>':''}`:`<button class="b gold ecta" data-a="acc">Accedi per giocare</button>`}
 <div class="sh2">I tuoi eroi</div>${eroi}
 ${on?`<button class="b ${pochi?'gold ':''}sm" data-a="eroi">${pochi?'Crea il tuo primo eroe':'Gestisci gli eroi'}</button>`:''}
+${Bat.setupH()}
 <div class="sh2">Compagni ${infoH('I compagni sono personaggi della storia che si uniscono alla compagnia lungo il cammino. Arriveranno con il primo capitolo.')}</div>
 <p class="muted" style="margin:0">Nessun compagno ancora.</p>
 <div class="sh2">Come si gioca</div>
