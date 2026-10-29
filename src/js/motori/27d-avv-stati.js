@@ -80,7 +80,7 @@ const ASTA=(()=>{
  const temp=(c,n)=>{n=Math.max(0,Math.floor(n));const v=Math.max(c.temp||0,n);const d=v-(c.temp||0);c.temp=v;return d};
  // inizio del turno: danni nel tempo (in fiamme) e fine degli effetti «fino all'inizio»
  function inizioTurno(c,rnd){const ev=[];
-  for(const x of c.stati.slice()){const S=D(x);if(S.dot&&!c.morto&&c.hp>0){const r=DAD.danno(rnd,S.dot[0]);const d=danno(c,r.tot,S.dot[1]);ev.push({t:'dot',chi:c.id,stato:x.id,n:d.n,tipo:S.dot[1],a0:d.a0})}}
+  for(const x of c.stati.slice()){const S=D(x);if(S.dot&&!c.morto&&c.hp>0){const r=DAD.danno(rnd,S.dot[0]);const d=danno(c,r.tot,S.dot[1]);ev.push({t:'dot',chi:c.id,stato:x.id,n:d.n,perso:d.perso,tipo:S.dot[1],a0:d.a0})}}
   for(const x of c.stati.slice()){if(x.fino==='inizio'&&x.t!=null){x.t--;if(x.t<=0){togli(c,x.id);ev.push({t:'fine',chi:c.id,stato:x.id})}}}
   return ev}
  // fine del turno: scalano le durate; «Spirito indomito» toglie un turno in più agli stati negativi
