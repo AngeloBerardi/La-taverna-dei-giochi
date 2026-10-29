@@ -83,6 +83,8 @@ Scopo: rendere il codice esistente pronto a crescere senza rompere le campagne s
 - Test: `test_avv_dadi`, `test_campagna` (migrazione, fuga, determinismo), `test_eroi`.
 - Fatto quando: `npm run verifica` verde, una campagna v1 salvata si riapre.
 
+- **Stato (29 ottobre 2026)**: fatta, tranne la scelta se tenere il pulsante «Eroi» nel profilo (rimosso: l'entrata è la barra «Avventura»). Le regole Firestore sono verificate solo dal simulatore dei test: la compilazione vera avviene al deploy.
+
 ## A2 — Oggetti, inventario, economia
 Scopo: dare senso a oro, tesori e città.
 1. Catalogo `AOGG` (unica fonte): armi per famiglia con proprietà (accurata, pesante, a due mani, da lancio, gittata corta/lunga, portata), armature leggere/medie/pesanti, scudi, accessori (2 posti), consumabili (pozioni, pergamene, bombe, razioni, kit da guaritore), materiali di missione. Rarità comune/rara/epica/leggendaria, prezzo, livello minimo.

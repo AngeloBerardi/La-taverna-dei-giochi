@@ -64,8 +64,17 @@ service cloud.firestore {
         // eroi:classi:fine
         ;
     }
+    // Crescita limitata (nessuna Cloud Function: è una protezione leggera contro chi modifica il client). A ogni scrittura
+    // l'esperienza sale di al massimo 800 e l'oro di 1000; chi guadagna scrive anche `agg` (ora del server) e deve
+    // aspettare 60 secondi dall'ultimo guadagno. Spendere oro o curarsi non ha attesa. Stessi numeri di EROI.LIMITI.
+    function guadagnoOk(n, v) {
+      return n.xp - v.xp <= 800 && n.oro - v.oro <= 1000
+        && ((n.xp == v.xp && n.oro <= v.oro && n.get('agg', null) == v.get('agg', null))
+          || (n.agg == request.time && request.time > v.get('agg', timestamp.value(0)) + duration.value(60, 's')));
+    }
     function eroeOk(d) {
-      return d.keys().hasOnly(['v', 'nome', 'razza', 'classe', 'aspetto', 'base', 'liv', 'xp', 'oro', 'equip', 'creato', 'hpMax', 'hp'])
+      return d.keys().hasOnly(['v', 'nome', 'razza', 'classe', 'aspetto', 'base', 'liv', 'xp', 'oro', 'equip', 'creato', 'hpMax', 'hp', 'agg'])
+        && (!('agg' in d) || d.agg is timestamp)
         && d.v == 1 && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 16
         && razzaEroeOk(d.razza) && classeEroeOk(d.classe) && baseEroeOk(d.base) && aspettoEroeOk(d.aspetto)
         && d.liv is int && d.liv >= 1 && d.liv <= 10 && d.xp is int && d.xp >= 0 && d.xp < 100000
@@ -77,12 +86,13 @@ service cloud.firestore {
     match /players/{uid}/eroi/{eroe} {
       allow read: if accesso() && request.auth.uid == uid;
       allow create: if accesso() && request.auth.uid == uid && eroe in ['e1', 'e2', 'e3', 'e4', 'e5']
-        && eroeOk(request.resource.data) && request.resource.data.liv == 1 && request.resource.data.xp == 0 && request.resource.data.oro == 20;
+        && eroeOk(request.resource.data) && !('agg' in request.resource.data) && request.resource.data.liv == 1 && request.resource.data.xp == 0 && request.resource.data.oro == 20;
       allow update: if accesso() && request.auth.uid == uid && eroeOk(request.resource.data)
         && request.resource.data.razza == resource.data.razza && request.resource.data.classe == resource.data.classe
         && request.resource.data.base == resource.data.base && request.resource.data.aspetto == resource.data.aspetto
         && request.resource.data.creato == resource.data.creato
-        && request.resource.data.liv >= resource.data.liv && request.resource.data.xp >= resource.data.xp;
+        && request.resource.data.liv >= resource.data.liv && request.resource.data.xp >= resource.data.xp
+        && guadagnoOk(request.resource.data, resource.data);
       allow delete: if accesso() && request.auth.uid == uid;
     }
 

@@ -778,11 +778,16 @@ async def sc_schermo_cast(b, srv):
 
 async def sc_campagna(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
-    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));ui.cfg=true;render()})()")
-    await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
-    await pg.click('[data-a=campstart]'); await pg.wait_for_timeout(200)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'))})()")
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(800)
+    check('Cantari di Ventura' in await pg.inner_text('.av h2') and await pg.query_selector('.av-cont') is None, 'pagina Avventura, nessuna campagna da riprendere')
+    check('Aldo' in await pg.inner_text('.av') and 'Mira' in await pg.inner_text('.av'), 'i due eroi dell\'account sono elencati')
+    await pg.click('[data-a=avvnuova]'); await pg.wait_for_timeout(400)
     check(await pg.query_selector('svg.cmap') is not None, 'mappa disegnata')
+    check(await pg.evaluate('Camp.s.v') == 2 and await pg.evaluate('Number.isInteger(Camp.s.rng)'), 'stato v2 con il generatore dei dadi')
     check(len(await pg.query_selector_all('.ce')) == 2, 'due eroi nel gruppo')
+    # la mappa nasce da un seme casuale: se attorno alla partenza c'è troppa montagna o acqua, spiana i vicini (il test riguarda l'evidenziazione)
+    await pg.evaluate("(()=>{for(const n of CAMP.vicini(0,0)){const c=Camp.s.celle[n.q+','+n.r];if(c&&CAMP.TERRENI[c.t].c==null)c.t='pianura'}render()})()")
     check(len(await pg.query_selector_all('.hx.adj')) >= 2, 'esagoni adiacenti toccabili')
     check('Giorno 1' in await pg.inner_text('.chud'), 'giorno 1')
     # tocco su un esagono: il gruppo si muove (o scatta un incontro) e il movimento scende
@@ -798,14 +803,23 @@ async def sc_campagna(b, srv):
     # giorno e notte
     await pg.click('[data-a=campriposa]'); await pg.click('[data-a=campriposa]')
     check('Giorno 2' in await pg.inner_text('.chud') and await pg.evaluate('Camp.s.perdizione') == 3, 'giorno 2, perdizione 3')
+    # chiudere la campagna riporta alla pagina Avventura, che offre di continuare
+    await pg.click('[data-a=campx]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('.av-cont') is not None and 'Giorno 2' in await pg.inner_text('.av-cont'), 'Avventura: continua la campagna (giorno 2)')
+    await pg.click('[data-a=avvcontinua]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('svg.cmap') is not None, 'si riapre la mappa')
     # errore leggibile: entrare dove non c'è nulla
     await pg.click('[data-a=campentra]', force=True); await pg.wait_for_timeout(100)
     # salvataggio: dopo il ricaricamento la partita riprende
     await pg.evaluate("localStorage.setItem('__stub',JSON.stringify(window.__db))")
     await pg.reload(); await pg.wait_for_timeout(3500)
     check(await pg.evaluate('Camp.s&&Camp.s.giorno') == 2, 'la campagna riprende dopo il ricaricamento')
+    # una campagna salvata con la versione 1 (senza dadi nello stato) si riapre e si aggiorna
+    await pg.evaluate("(()=>{const s=JSON.parse(JSON.stringify(Camp.s));delete s.rng;s.v=1;s.missione.titolo='La Torre oscura';localStorage.setItem('camp',JSON.stringify({s}))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate('Camp.s.v') == 2 and await pg.evaluate('Camp.s.missione.titolo') == 'La Torre dei Corvi' and await pg.evaluate('Number.isInteger(Camp.s.rng)'), 'campagna v1: migrata alla v2 al ricaricamento')
     # fine campagna
-    await pg.evaluate("(()=>{ui.camp=true;Camp.s.over={win:true,reason:'La torre oscura è caduta',giorni:2};render()})()")
+    await pg.evaluate("(()=>{ui.camp=true;Camp.s.over={win:true,reason:'La Torre dei Corvi è caduta',giorni:2};render()})()")
     check('Vittoria' in await pg.inner_text('.cfine'), 'schermata di vittoria')
     await pg.click('[data-a=campnuova]'); await pg.wait_for_timeout(1200)
     check(await pg.evaluate('Camp.s.giorno') == 1 and await pg.query_selector('.cfine') is None, 'nuova campagna')
@@ -813,7 +827,9 @@ async def sc_campagna(b, srv):
 
 async def sc_eroi(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
-    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(500)
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(500)
+    check(await pg.query_selector('.av') is not None and 'Crea il tuo primo eroe' in await pg.inner_text('.av'), 'Avventura: nessun eroe, invito a crearne uno')
+    await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(500)
     check('5 posti liberi' in await pg.inner_text('.ecard.nuovo'), 'cinque posti liberi')
     await pg.click('[data-a=eroinuovo][data-v=e1]')
     await pg.click('[data-a=eroiavanti]'); check('Scegli un nome' in await pg.inner_text('.acc-msg'), 'senza nome non si prosegue')
@@ -850,13 +866,18 @@ async def sc_eroi(b, srv):
     check(await prova(base_ok + "await FB.salvaEroe('e2',h)") == 'ok', 'un eroe valido sul secondo posto passa')
     check(await prova("const h={...Eroi.lista.e1,razza:'orco'};await FB.salvaEroe('e1',h)") == 'permission-denied', 'cambiare razza: rifiutato')
     check(await prova("const h={...Eroi.lista.e1,classe:'mago'};await FB.salvaEroe('e1',h)") == 'permission-denied', 'cambiare classe: rifiutato')
-    check(await prova("const h=EROI.guadagna(Eroi.lista.e1,150);await FB.salvaEroe('e1',h)") == 'ok', 'salire di livello: permesso')
+    check(await prova("const h=EROI.guadagna(Eroi.lista.e1,150);await FB.salvaEroe('e1',h)") == 'permission-denied', 'guadagnare esperienza senza agg (ora del server): rifiutato')
+    check(await prova("const p=Eroi.lista.e1,h=EROI.guadagna(p,150);await FB.avanzaEroe('e1',h,p)") == 'ok', 'salire di livello con avanzaEroe: permesso')
+    check(await prova("const p=await FB.eroi().then(m=>m.e1),h=EROI.guadagna(p,10);await FB.avanzaEroe('e1',h,p)") == 'permission-denied', 'un secondo guadagno entro 60 secondi: rifiutato')
+    check(await prova("const p=await FB.eroi().then(m=>m.e2),h=EROI.guadagna(p,900);await FB.avanzaEroe('e2',h,p)") == 'permission-denied', 'oltre 800 punti esperienza in una volta: rifiutato')
+    check(await prova("const p=await FB.eroi().then(m=>m.e2),h={...p,oro:p.oro+1100};await FB.avanzaEroe('e2',h,p)") == 'permission-denied', 'oltre 1000 monete in una volta: rifiutato')
+    check(await prova("const p=await FB.eroi().then(m=>m.e2),h={...p,oro:p.oro-5};await FB.avanzaEroe('e2',h,p)") == 'ok', 'spendere oro: nessuna attesa')
     check(await prova("const h={...Eroi.lista.e1,xp:0,liv:1};await FB.salvaEroe('e1',h)") == 'permission-denied', 'tornare indietro di livello: rifiutato')
     check(await prova("const F=FB.m.F;await F.getDocs(F.collection(FB.db,'players','u-2','eroi'))") == 'permission-denied', 'leggere gli eroi di un altro: rifiutato')
     # persistenza e scheda manomessa
     await pg.evaluate("(()=>{const k='players/u-1/eroi/e2';window.__db[k].hpMax=150;window.__db[k].hp=150;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
     await pg.reload(); await pg.wait_for_timeout(3500)
-    await pg.evaluate("(()=>{ui.cfg=true;render()})()"); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(500); await pg.click('[data-a=eroi]'); await pg.wait_for_timeout(600)
     check(len(await pg.query_selector_all('.ecard:not(.nuovo)')) == 1 and 'brunilde' in (await pg.inner_text('.ecard')).lower(), 'dopo il ricarico: c\'è Brunilde, la scheda manomessa è nascosta')
     await pg.click('[data-a=eroischeda][data-v=e1]'); await pg.wait_for_timeout(200)
     check('liv' in (await pg.inner_text('.modal')).lower() or 'livello 2' in await pg.inner_text('.modal'), 'scheda dopo il ricarico')

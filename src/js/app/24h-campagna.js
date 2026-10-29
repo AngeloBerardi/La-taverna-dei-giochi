@@ -19,12 +19,12 @@ const Camp={
   return`<svg class="cmap" viewBox="${(px-W/2).toFixed(1)} ${(py-H/2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" role="img" aria-label="Mappa della campagna">${g}${top}</svg>`},
  eroiH(s){return`<div class="cero">${s.eroi.map(e=>`<div class="ce${e.hp<=0?' ko':''}">${Eroi.ritratto(e.aspetto,e.razza,e.classe,34)}<span><b>${esc(e.nome)}</b><span class="ehp sm"><i style="width:${Math.round(e.hp/e.hpMax*100)}%"></i><span>${e.hp}/${e.hpMax}</span></span></span></div>`).join('')}</div>`},
  ultimaH(s){const u=s.ultima;if(!u||s.incontro&&!s.incontro.multi)return'';const e=s.eroi[u.eroe];return`<div class="cdado ${u.ok?'ok':'ko'}"><span class="d20">${u.tiro}</span><span>${esc(e?e.nome:'')}: ${u.tiro}${u.tot-u.tiro>=0?' + ':' − '}${Math.abs(u.tot-u.tiro)} = <b>${u.tot}</b> contro ${u.cd} — <b>${u.ok?'riesce':'fallisce'}</b></span></div>`},
- incontroH(s){const i=s.incontro,m=i.multi,NOMI={atletica:'Atletica',intimidire:'Intimidire',furtivita:'Furtività',acrobazia:'Acrobazia',arcano:'Arcano',storia:'Storia',medicina:'Medicina',percezione:'Percezione',sopravvivenza:'Sopravvivenza',persuasione:'Persuasione'};
-  const righe=s.eroi.map((e,n)=>e.hp<=0?'':`<div class="cprove"><span class="cn">${Eroi.ritratto(e.aspetto,e.razza,e.classe,28)}<b>${esc(e.nome)}</b></span><div>${i.ab.map(a=>{const p=Math.round(EROI.probabilita(e,a,i.cd)*100);return`<button class="b sm pr p${p>=65?'a':p>=35?'m':'b'}" data-a="campris" data-v="${n}:${a}"><span>${NOMI[a]||esc(a)}</span><small>${p}%</small></button>`}).join('')}</div></div>`).join('');
+ incontroH(s){const i=s.incontro,m=i.multi;
+  const righe=s.eroi.map((e,n)=>e.hp<=0?'':`<div class="cprove"><span class="cn">${Eroi.ritratto(e.aspetto,e.razza,e.classe,28)}<b>${esc(e.nome)}</b></span><div>${i.ab.map(a=>{const p=Math.round(EROI.probabilita(e,a,i.cd)*100);return`<button class="b sm pr p${p>=65?'a':p>=35?'m':'b'}" data-a="campris" data-v="${n}:${a}"><span>${EROI.NOME_AB[a]||esc(a)}</span><small>${p}%</small></button>`}).join('')}</div></div>`).join('');
   return`<div class="cinc"><b>${esc(i.testo)}</b><small>Difficoltà ${i.cd} · scegli chi prova e con quale abilità${m?` · ${m.fatte}/${m.prove} prove, ne servono ${m.serve} riuscite (${m.riuscite} fin qui)`:''}</small>${righe}${m?'':'<button class="b sm" data-a="campfuggi">Fuggi (−PF)</button>'}</div>`},
  qui(s){const c=s.celle[s.party.q+','+s.party.r],t=CAMP.TERRENI[c.t];return(c.poi?CAMP.NOME_POI[c.poi]+' · ':'')+t.n},
  html(){const s=Camp.s;
-  if(!s)return`<div class="modal"><div class="box col camp"><h2>Campagna</h2><p class="muted">Scegli i tuoi eroi dalla scheda «Eroi» e parti.</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`;
+  if(!s)return`<div class="modal"><div class="box col camp"><h2>Campagna</h2><p class="muted">Dalla pagina Avventura scegli i tuoi eroi e parti.</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`;
   const cella=s.celle[s.party.q+','+s.party.r],puo=cella.poi==='citta'||cella.poi==='antro'||cella.poi==='torre',pa=s.missione.passi[Math.min(s.missione.passo,2)];
   const fine=s.over?`<div class="cfine ${s.over.win?'win':'lose'}"><b>${s.over.win?'Vittoria!':'Sconfitta'}</b><span>${esc(s.over.reason)}</span><button class="b sm gold" data-a="campnuova">Nuova campagna</button></div>`:'';
   const dir=pa==='citta'?'Parla con il sindaco in città':pa==='antro'?'Ripulisci l\'antro':'Abbatti la torre oscura';
@@ -36,15 +36,15 @@ ${Camp.mappaH(s)}<div class="cqui">${ic('pin',16)} ${esc(Camp.qui(s))}</div>${Ca
 <div class="clog" role="log">${s.log.slice(-3).map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="acc-msg" role="status">${esc(Camp.msg)}</p>
 ${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa '+ic('luna',16):'Alba '+ic('sole',16)}</button></div>`:''}</div></div>`},
  salva(){try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){ERR.n(e)}},
- riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=j.s}catch(e){ERR.n(e)}},
+ riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=CAMP.migra(j.s)}catch(e){ERR.n(e)}},
  cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna '+ic('spada',16)+'</button>':''},
  // gli eroi vengono sempre riletti dal profilo: la scheda in memoria potrebbe non essere ancora stata caricata
  async parti(){let L=Eroi.lista;try{L=await FB.eroi();Eroi.lista=L}catch(e){console.warn('Camp',e)}
-  const eroi=EROI.SLOT_ID.map(id=>L&&L[id]&&EROI.coerente(L[id])?{...L[id],slot:id}:null).filter(Boolean).slice(0,3);
+  const eroi=EROI.SLOT_ID.map(id=>L&&L[id]&&EROI.coerente(L[id])?{...L[id],slot:id}:null).filter(Boolean).slice(0,CAMP.MAX_EROI);
   if(!eroi.length){Camp.msg='Crea prima un eroe.';return}Camp.seed=(Date.now()^(Math.random()*4294967296))>>>0;Camp.s=CAMP.nuova(eroi,Camp.seed);Camp.msg='';Camp.salva()},
  act(a,v){
   if(a==='campstart'){return(async()=>{if(!Camp.s||Camp.s.over)await Camp.parti();if(!Camp.s||Camp.s.over){render();return}ui.eroi=false;ui.camp=true;render()})()}
-  if(a==='campx'){ui.camp=false;ui.eroi=true;return render()}
+  if(a==='campx'){ui.camp=false;ui.avv=true;return render()}
   if(a==='campnuova'){return(async()=>{await Camp.parti();render()})()}
   const s=Camp.s;if(!s)return;let r;
   if(a==='campmuovi'){const[q,rr]=v.split(',').map(Number);r=CAMP.act(s,{t:'muovi',q,r:rr})}

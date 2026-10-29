@@ -22,12 +22,15 @@ const EROI=(()=>{
   esploratore:{nome:'Esploratore',dado:8,primaria:'des',salvezze:['for','des'],abilita:['percezione','sopravvivenza'],equip:{arma:'arco',armatura:'cuoio',scudo:null},desc:'Conosce ogni sentiero e colpisce da lontano.'},
   bardo:{nome:'Bardo',dado:8,primaria:'car',salvezze:['des','car'],abilita:['persuasione','storia'],equip:{arma:'stocco',armatura:'cuoio',scudo:null},desc:'Una canzone per ogni battaglia, una battuta per ogni guaio.'}};
  const ABILITA={atletica:'for',intimidire:'car',furtivita:'des',acrobazia:'des',arcano:'int',storia:'int',medicina:'sag',percezione:'sag',sopravvivenza:'sag',persuasione:'car'};
+ const NOME_AB={atletica:'Atletica',intimidire:'Intimidire',furtivita:'Furtività',acrobazia:'Acrobazia',arcano:'Arcano',storia:'Storia',medicina:'Medicina',percezione:'Percezione',sopravvivenza:'Sopravvivenza',persuasione:'Persuasione'};
  // oggetti: danno, bonus alla CA (armatura = CA di base, scudo = +CA)
  const OGGETTI={
   'spada-lunga':{slot:'arma',nome:'Spada lunga',dado:8,stat:'for'},'pugnali':{slot:'arma',nome:'Pugnali',dado:4,stat:'des'},'bastone':{slot:'arma',nome:'Bastone ferrato',dado:6,stat:'for'},
   'mazza':{slot:'arma',nome:'Mazza benedetta',dado:6,stat:'for'},'arco':{slot:'arma',nome:'Arco corto',dado:6,stat:'des'},'stocco':{slot:'arma',nome:'Stocco',dado:8,stat:'des'},
   'stracci':{slot:'armatura',nome:'Vesti da viaggio',ca:10,des:true},'cuoio':{slot:'armatura',nome:'Cuoio bollito',ca:11,des:true},'cotta-maglia':{slot:'armatura',nome:'Cotta di maglia',ca:16,des:false},
   'scudo-legno':{slot:'scudo',nome:'Scudo di legno',ca:2}};
+ // limiti di crescita per ogni scrittura sull'account (stessi numeri di firestore.rules, controllati da tests/test_eroi.js)
+ const LIMITI={xp:800,oro:1000,attesaS:60};
  const SOGLIE_XP=[0,100,300,700,1300,2100,3200,4600,6400,8600],LIV_MAX=SOGLIE_XP.length;
  const ASPETTO={pelle:6,capelli:7,mantello:6,viso:4}; // quante scelte per ogni parte del ritratto
  const mod=v=>Math.floor((v-10)/2);
@@ -81,5 +84,5 @@ const EROI=(()=>{
  function bonus(h,abilita){const st=punteggi(h.base,h.razza);return mod(st[ABILITA[abilita]])+(CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0)+(h.razza==='elfo'&&abilita==='percezione'?1:0)}
  function probabilita(h,abilita,cd){const b=bonus(h,abilita);let n=0;for(let t=1;t<=20;t++)if(t===20||(t!==1&&t+b>=cd))n++;return n/20}
  const BASE_ID=k=>NOME_STAT[k];
- return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,OGGETTI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,bonus,probabilita,BASE_ID}})();
+ return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,NOME_AB,OGGETTI,LIMITI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,bonus,probabilita,BASE_ID}})();
 if(typeof module!=='undefined')module.exports=EROI;

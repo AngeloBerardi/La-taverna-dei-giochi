@@ -17,7 +17,6 @@ const Eroi={
   const occhi=`<circle cx="42" cy="50" r="${a.viso===3?3.4:2.6}" fill="#241a12"/><circle cx="58" cy="50" r="${a.viso===3?3.4:2.6}" fill="#241a12"/>`;
   const bocca=[`<path d="M44 62 H56" stroke="#5a2f22" stroke-width="2.4" stroke-linecap="round"/>`,`<path d="M43 60 Q50 68 57 60" stroke="#5a2f22" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,`<path d="M44 63 Q50 59 56 63" stroke="#5a2f22" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M37 44 L47 46 M63 44 L53 46" stroke="#241a12" stroke-width="2.2" stroke-linecap="round"/>`,`<ellipse cx="50" cy="63" rx="3.5" ry="4" fill="#5a2f22"/>`][a.viso]||'';
   return`<svg class="rit" viewBox="0 0 100 100" width="${px||72}" height="${px||72}" role="img" aria-label="Ritratto"><circle cx="50" cy="50" r="48" fill="#3a2d22"/><clipPath id="rc${px||72}"><circle cx="50" cy="50" r="47"/></clipPath><g clip-path="url(#rc${px||72})"><path d="M8 100 Q12 72 50 70 Q88 72 92 100Z" fill="${ma}"/><path d="M40 70 L50 82 L60 70Z" fill="rgba(0,0,0,.25)"/>${orecchie}<rect x="43" y="60" width="14" height="14" rx="4" fill="${pe}"/><ellipse cx="50" cy="48" rx="23" ry="26" fill="${pe}"/>${barba}${capelli}${occhi}${bocca}${zanne}</g><circle cx="50" cy="50" r="47" fill="none" stroke="#d6aa3c" stroke-width="3"/><text x="82" y="92" font-size="20" text-anchor="middle" fill="#f3e6c4" stroke="#1a1208" stroke-width=".6">${Eroi.EMBLEMA[classe]||''}</text></svg>`},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="eroi"><span class="ti">'+ic('spada')+'</span>Eroi</button>':''},
  nuovaBozza(){return{nome:'',razza:'umano',classe:'guerriero',base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:1}}},
  puntiLiberi(){return EROI.BUDGET-EROI.costoBase(Eroi.bozza.base)},
  bonusTesto(r){return Object.entries(r.bonus).map(([k,v])=>'+'+v+' '+EROI.NOME_STAT[k].slice(0,3)).join(' ')},
@@ -25,7 +24,7 @@ const Eroi={
  listaH(){const L=Eroi.lista,ids=EROI.SLOT_ID,pieni=ids.filter(id=>L&&L[id]),liberi=ids.filter(id=>!(L&&L[id]));
   const carta=id=>{const h=L[id],nx=EROI.SOGLIE_XP[h.liv];return`<button class="ecard" data-a="eroischeda" data-v="${id}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,64)}<span class="etx"><b>${esc(h.nome)}</b><small>${esc(EROI.RAZZE[h.razza].nome)} · ${esc(EROI.CLASSI[h.classe].nome)}</small><span class="ebar" title="Esperienza"><i style="width:${nx?Math.min(100,Math.round(h.xp/nx*100)):100}%"></i></span></span><span class="elv">Liv.<b>${h.liv}</b></span></button>`};
   return`<div class="modal"><div class="box col eroi"><h2>I tuoi eroi</h2>
-${L==null?'<p class="muted">Carico…</p>':`${pieni.length?`<button class="b gold ecta" data-a="campstart">${ic('spada',18)} Parti in campagna</button><small class="muted" style="text-align:center">${pieni.length>3?'Il gruppo è formato dai tuoi primi 3 eroi.':pieni.length===1?'Parti con il tuo eroe.':'Il gruppo è formato dai tuoi '+pieni.length+' eroi.'}</small>`:'<p class="muted" style="margin:0">Non hai ancora nessun eroe. Creane uno: lo ritrovi da qualsiasi telefono e parteciperà alle campagne.</p>'}
+${L==null?'<p class="muted">Carico…</p>':`${pieni.length?`<button class="b gold ecta" data-a="campstart">${ic('spada',18)} Parti in campagna</button><small class="muted" style="text-align:center">${pieni.length>CAMP.MAX_EROI?'Il gruppo è formato dai tuoi primi 4 eroi.':pieni.length===1?'Parti con il tuo eroe.':'Il gruppo è formato dai tuoi '+pieni.length+' eroi.'}</small>`:'<p class="muted" style="margin:0">Non hai ancora nessun eroe. Creane uno: lo ritrovi da qualsiasi telefono e parteciperà alle campagne.</p>'}
 ${pieni.map(carta).join('')}${liberi.length?`<button class="ecard nuovo" data-a="eroinuovo" data-v="${liberi[0]}"><span class="eplus">＋</span><span class="etx"><b>Nuovo eroe</b><small>${liberi.length} ${liberi.length===1?'posto libero':'posti liberi'} su ${EROI.MAX_EROI}</small></span></button>`:'<small class="muted">Hai raggiunto il massimo di eroi.</small>'}`}
 <p class="acc-msg" role="status">${esc(Eroi.msg)}</p><button class="b sm" data-a="eroix">Chiudi</button></div></div>`},
  creaH(){const b=Eroi.bozza,p=Eroi.pas,ultimo=p===Eroi.PASSI.length;let corpo='',fisso='';
@@ -48,7 +47,7 @@ ${sw('pelle','Pelle',pe)}${sw('capelli','Capelli',Eroi.CAPELLI)}${sw('mantello',
 <div class="estat">${EROI.STAT.map(k=>`<div><small>${EROI.NOME_STAT[k].slice(0,3)}</small><b>${d.stat[k]}</b><small>${EROI.mod(d.stat[k])>=0?'+':''}${EROI.mod(d.stat[k])}</small></div>`).join('')}</div>
 <div class="ehp"><i style="width:${Math.round(h.hp/h.hpMax*100)}%"></i><span>${ic('cuore',14)} ${h.hp}/${h.hpMax}</span></div><div class="eder"><span>${ic('scudo',14)} CA ${d.ca}</span><span>${ic('spada',14)} +${d.attacco} · d${d.danno?d.danno.dado:0}${d.danno&&d.danno.bonus?(d.danno.bonus>=0?'+':'')+d.danno.bonus:''}</span><span>${ic('passi',14)} ${d.mov}</span><span>${ic('moneta',14)} ${h.oro}</span></div>
 <p class="muted" style="margin:0"><b>Equipaggiamento:</b> ${['arma','armatura','scudo'].map(s=>eq[s]?esc(EROI.OGGETTI[eq[s]].nome):null).filter(Boolean).join(', ')||'—'}</p>
-<p class="muted" style="margin:0"><b>Competenze:</b> ${d.abilita.join(', ')} · tratto «${esc(r.tratto)}»</p>
+<p class="muted" style="margin:0"><b>Competenze:</b> ${d.abilita.map(x=>EROI.NOME_AB[x]).join(', ')} · tratto «${esc(r.tratto)}»</p>
 ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><i style="width:${Math.min(100,Math.round(h.xp/nx*100))}%"></i></span></div>`:'<p class="muted" style="margin:0">Livello massimo</p>'}</div>`},
  schedaH(){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h){Eroi.sel=null;return Eroi.listaH()}
   return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
@@ -56,7 +55,7 @@ ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><
  async carica(){try{const m=await FB.eroi();for(const k of Object.keys(m))if(!EROI.coerente(m[k])){console.warn('Eroe non coerente',k);delete m[k]}Eroi.lista=m}catch(e){console.warn('Eroi',e);Eroi.lista=Eroi.lista||{};Eroi.msg='Non riesco a leggere gli eroi'}render()},
  async act(a,v){
   if(a==='eroi'){ui.eroi=true;ui.cfg=false;Eroi.msg='';Eroi.pas=0;Eroi.sel=null;render();return Eroi.carica()}
-  if(a==='eroix'){ui.eroi=false;ui.cfg=true;return render()}
+  if(a==='eroix'){ui.eroi=false;ui.avv=true;return render()}
   if(a==='eroinuovo'){Eroi.slot=v;Eroi.bozza=Eroi.nuovaBozza();Eroi.pas=1;Eroi.msg='';return render()}
   if(a==='eroischeda'){Eroi.sel=v;Eroi.msg='';return render()}
   if(a==='eroiindietro'){Eroi.msg='';if(Eroi.pas>1)Eroi.pas--;else{Eroi.pas=0;Eroi.sel=null}return render()}

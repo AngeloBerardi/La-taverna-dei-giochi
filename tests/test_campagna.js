@@ -22,7 +22,8 @@ for (let seed = 1; seed <= 60; seed++) {
 assert.notDeepStrictEqual(C.genera(1, 6), C.genera(2, 6), 'semi diversi, mappe diverse');
 
 // nuova: stato iniziale
-assert.throws(() => C.nuova([], 1)); assert.throws(() => C.nuova([1, 2, 3, 4].map(() => squadra()[0]), 1));
+assert.throws(() => C.nuova([], 1)); assert.throws(() => C.nuova([1, 2, 3, 4, 5].map(() => squadra()[0]), 1), /da 1 a 4/);
+assert.strictEqual(C.nuova([1, 2, 3, 4].map(() => squadra()[0]), 1).eroi.length, 4, 'la compagnia arriva a 4 eroi');
 const s0 = C.nuova(squadra(), 5);
 assert.strictEqual(s0.eroi.length, 3); assert.strictEqual(s0.giorno, 1); assert.strictEqual(s0.fase, 'giorno'); assert(s0.pm > 0);
 assert(C.celleVisibili(s0).length > 5 && C.celleVisibili(s0).length < 30, 'solo il vicinato è rivelato');
@@ -70,6 +71,45 @@ const copia = JSON.stringify(s0); C.act(s0, { t: 'riposa' }); assert.strictEqual
 {
   const s = C.nuova(squadra(), 4); const antro = Object.values(s.celle).find(c => c.poi === 'antro'); s.party = { q: antro.q, r: antro.r };
   assert(/sindaco/.test(C.act(s, { t: 'entra' }).err));
+}
+
+// stato v2: il generatore dei dadi è nello stato, la partita è ripetibile senza un rnd esterno
+{
+  const s0 = C.nuova(squadra(), 11); assert.strictEqual(s0.v, 2); assert(Number.isInteger(s0.rng));
+  const giro = () => { let s = C.nuova(squadra(), 11), log = []; for (let i = 0; i < 60 && !s.over; i++) { const v = C.vicini(s.party.q, s.party.r); let r = s.incontro ? C.act(s, { t: 'risolvi', eroe: 0, abilita: s.incontro.ab[0] }) : C.act(s, { t: 'muovi', ...v[i % 6] }); if (r.err) r = C.act(s, { t: s.incontro ? 'fuggi' : 'riposa' }); if (r.err) r = { s }; s = r.s; log.push(s.rng); } return { s, log }; };
+  const a = giro(), b = giro(); assert.deepStrictEqual(a, b, 'stesso seme e stesse azioni: stessa partita'); assert(new Set(a.log).size > 5, 'il generatore avanza');
+  JSON.parse(JSON.stringify(a.s));
+}
+// migrazione da uno stato v1 salvato (senza rng, con la vecchia torre e la prova a 10 abilità)
+{
+  const v2 = C.nuova(squadra(), 21), v1 = JSON.parse(JSON.stringify(v2)); delete v1.rng; v1.v = 1; v1.missione.titolo = 'La Torre oscura'; v1.turno = 4; v1.evn = 9;
+  v1.incontro = { kind: 'antro', cd: 12, testo: 'Nell\'antro l\'aria è gelida.', ab: Object.keys(EROI.ABILITA), multi: { prove: 3, serve: 2, fatte: 1, riuscite: 1 } };
+  const m = C.migra(v1); assert.strictEqual(m.v, 2); assert(Number.isInteger(m.rng)); assert.strictEqual(m.missione.titolo, 'La Torre dei Corvi');
+  assert.deepStrictEqual(m.incontro.ab, C.FASI.antro[1].ab, 'la prova ricomincia dalla fase giusta'); assert.strictEqual(m.incontro.multi.fatte, 1);
+  assert.deepStrictEqual(C.migra(m), m, 'uno stato v2 non cambia'); assert.strictEqual(v1.v, 1, 'l\'originale non viene toccato');
+  const r = C.act(v1, { t: 'risolvi', eroe: 0, abilita: C.FASI.antro[1].ab[0] }); assert(r.s && r.s.v === 2, 'act accetta uno stato v1');
+  assert(C.act(v1, { t: 'risolvi', eroe: 0, abilita: 'storia' }).err, 'l\'abilità della fase precedente non vale più');
+}
+// fuggire: sceglie l'eroe che copre la ritirata (di default il più in salute) e rifiuta un eroe a terra
+{
+  const base = C.nuova(squadra(), 8); base.incontro = { kind: 'bestie', cd: 11, testo: 'x', ab: ['atletica'] }; base.eroi[0].hp = 5; base.eroi[1].hp = base.eroi[1].hpMax; base.eroi[2].hp = 3;
+  const sceglie = C.act(base, { t: 'fuggi', eroe: 2 }).s; assert.strictEqual(sceglie.eroi[2].hp, 2, 'ha ferito l\'eroe scelto'); assert.strictEqual(sceglie.eroi[0].hp, 5); assert(/Tobia copre la ritirata/.test(sceglie.log.slice(-2).join(' ')));
+  const dflt = C.act(base, { t: 'fuggi' }).s; assert.strictEqual(dflt.eroi[1].hp, base.eroi[1].hpMax - 1, 'di default il più in salute');
+  const giu = JSON.parse(JSON.stringify(base)); giu.eroi[2].hp = 0; assert.strictEqual(C.act(giu, { t: 'fuggi', eroe: 2 }).err, 'Scegli un eroe in piedi');
+}
+// prove di antro e torre: una fase alla volta, 3 abilità per fase, testi diversi
+{
+  assert.strictEqual(C.FASI.antro.length, 3); assert.strictEqual(C.FASI.torre.length, 4);
+  for (const k of ['antro', 'torre']) for (const f of C.FASI[k]) { assert.strictEqual(f.ab.length, 3); assert.strictEqual(new Set(f.ab).size, 3); assert(f.ab.every(x => EROI.ABILITA[x]) && f.testo.length > 10); }
+  for (const k of ['antro', 'torre']) assert.strictEqual(new Set(C.FASI[k].map(f => f.testo)).size, C.FASI[k].length, 'testi diversi');
+  let s = C.nuova(squadra(), 4); s.missione.passo = 1; const antro = Object.values(s.celle).find(c => c.poi === 'antro'); s.party = { q: antro.q, r: antro.r };
+  s = C.act(s, { t: 'entra' }).s; assert.deepStrictEqual(s.incontro.ab, C.FASI.antro[0].ab); assert.strictEqual(s.incontro.testo, C.FASI.antro[0].testo);
+  const non = Object.keys(EROI.ABILITA).find(x => !s.incontro.ab.includes(x)); assert(C.act(s, { t: 'risolvi', eroe: 0, abilita: non }).err, 'solo le 3 abilità della fase');
+  s = C.act(s, { t: 'risolvi', eroe: 0, abilita: s.incontro.ab[0] }, () => .99).s; assert.deepStrictEqual(s.incontro.ab, C.FASI.antro[1].ab, 'passa alla fase 2'); assert.strictEqual(s.incontro.multi.fatte, 1);
+  assert(/Furtività|furtività|percezione|sopravvivenza|atletica|arcano|acrobazia/i.test(s.log.slice(-3).join(' ')));
+  s = C.act(s, { t: 'risolvi', eroe: 0, abilita: s.incontro.ab[0] }, () => .99).s; s = C.act(s, { t: 'risolvi', eroe: 0, abilita: s.incontro.ab[0] }, () => .99).s;
+  assert(!s.incontro && s.missione.passo === 2, 'antro ripulito');
+  assert(/furtività|percezione|atletica|arcano/.test(s.log.join(' ')) && !/furtivita/.test(s.log.join(' ')), 'abilità con gli accenti nel registro');
 }
 
 // bot: furbo (segue il percorso, sceglie l'abilità migliore, cura in città) contro casuale

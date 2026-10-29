@@ -54,8 +54,12 @@ function regoleEroi(k,nuovo,vecchio){const m=k.match(/^players\/([^/]+)\/eroi\/(
   const b=nuovo.base||{};const ks=['for','des','cos','int','sag','car'];
   if(ks.some(x=>COSTO[b[x]]===undefined)||ks.reduce((s,x)=>s+COSTO[b[x]],0)>27)throw denied();
   if(!nuovo.nome||nuovo.nome.length>16||nuovo.liv<1||nuovo.liv>10)throw denied();
-  if(!vecchio){if(nuovo.liv!==1||nuovo.xp!==0||nuovo.oro!==20)throw denied();return}
-  if(nuovo.razza!==vecchio.razza||nuovo.classe!==vecchio.classe||JSON.stringify(nuovo.base)!==JSON.stringify(vecchio.base)||nuovo.creato!==vecchio.creato||nuovo.liv<vecchio.liv||nuovo.xp<vecchio.xp)throw denied()}
+  if(!vecchio){if(nuovo.liv!==1||nuovo.xp!==0||nuovo.oro!==20||'agg' in nuovo)throw denied();return}
+  if(nuovo.razza!==vecchio.razza||nuovo.classe!==vecchio.classe||JSON.stringify(nuovo.base)!==JSON.stringify(vecchio.base)||nuovo.creato!==vecchio.creato||nuovo.liv<vecchio.liv||nuovo.xp<vecchio.xp)throw denied();
+  // crescita limitata (guadagnoOk): +800 xp e +1000 oro per scrittura; chi guadagna porta agg = ora del server e aspetta 60 s dall'ultimo guadagno
+  if(nuovo.xp-vecchio.xp>800||nuovo.oro-vecchio.oro>1000)throw denied();
+  const senza=nuovo.xp===vecchio.xp&&nuovo.oro<=vecchio.oro&&nuovo.agg===vecchio.agg,con=nuovo.agg!==vecchio.agg&&typeof nuovo.agg==='number'&&Math.abs(nuovo.agg-Date.now())<3000&&Date.now()>(vecchio.agg||0)+60000;
+  if(!senza&&!con)throw denied();if(nuovo.agg!==undefined&&typeof nuovo.agg!=='number')throw denied()}
 export const getFirestore=a=>({});
 export const doc=(d,...s)=>({k:s.join('/'),c:s.slice(0,-1).join('/'),i:s[s.length-1]});
 export const collection=(d,...s)=>({c:s.join('/')});

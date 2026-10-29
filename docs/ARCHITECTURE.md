@@ -56,7 +56,7 @@ Catalogo puro in `motori/22-bottega.js` (id `slot-nome`, prezzo, descrizione). I
 `?tv=CODICE` (`app/24f-schermo.js`, `TV`): la pagina entra nella stanza **in sola visione** (`joinRoom(code,true)`: nessun membro, nessuna chat, nessuna scrittura), con `ui.tv`, senza schermata del nome e senza profilo online (tranne per le partite a distanza, codice di 8 caratteri). `subscribe` mostra la partita anche a chi non ha un posto (`local()` è vuoto, quindi le viste mostrano il tavolo senza mani); fuori partita c'è `TV.lobbyH`. `#tvpanel` (a sinistra): QR per sedersi (`?room=` o `?dist=`), codice, gioco, giocatori con ▶ sul turno. `adaptScreen` ingrandisce fino a 2,6×. Dal telefono: impostazioni → «Schermo comune 📺» (QR e link). `motori/26-qr.js` genera il QR (byte, correzione M, versioni 1–15) senza librerie; `tests/test_qr.js` lo fa leggere a OpenCV. Se la connessione cade o il tavolo sparisce la TV riprova da sola ogni 6 s.
 
 ## Eroi e campagne
-Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati ricalcolati, `prova` d20) salvati in `players/{uid}/eroi/e1..e5` via `FB.eroi/salvaEroe/eliminaEroe`; vista `app/24g-eroi.js` (`Eroi`). Le regole `eroi` di `firestore.rules` sono generate da `scripts/regole.js`. Campagna: `motori/28-campagna.js` (`CAMP`, stato JSON puro, `act(stato, azione, rnd)` → `{s}`|`{err}`), anteprima `app/24h-campagna.js` (`Camp`). Piano: `docs/CAMPAGNE.md`.
+Dadi dell'avventura: `motori/27a-avv-dadi.js` (`ADADI`: generatore in `s.rng`, d20 con vantaggio, danni, probabilità). Pagina Avventura: `app/24ha-avventura.js` (`Avv`). Eroi: `motori/27-eroi.js` (`EROI`: punteggi a 27 punti, razze, classi, derivati ricalcolati, `prova` d20, `LIMITI` di crescita) salvati in `players/{uid}/eroi/e1..e5` via `FB.eroi/salvaEroe/eliminaEroe`; vista `app/24g-eroi.js` (`Eroi`). Le regole `eroi` di `firestore.rules` sono generate da `scripts/regole.js`. Campagna: `motori/28-campagna.js` (`CAMP`, stato JSON puro, `act(stato, azione, rnd)` → `{s}`|`{err}`), anteprima `app/24h-campagna.js` (`Camp`). Piano: `docs/CAMPAGNE.md`.
 
 ## Regia (cene con delitto)
 `app/24u-regia.js` (`REGIA`): per i giochi con segreti veri lo stato non sta tutto in `stanze/CODICE/d` (che ogni telefono legge), ma lo tiene la TV **regista**. Nodi (regole in `database.rules.json`, fuori da `stanze/` perché lì la lettura si eredita su tutto il ramo):
@@ -133,6 +133,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 5 |  |
 | `css/39-campagna.css` | 3 |  |
+| `css/39a-avventura.css` | 1 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -172,7 +173,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/25-distanza.js` | 3 | DIST |
 | `js/motori/26-qr.js` | 6 | QR |
 | `js/motori/27-eroi.js` | 9 | EROI |
-| `js/motori/28-campagna.js` | 12 | CAMP |
+| `js/motori/27a-avv-dadi.js` | 3 | ADADI |
+| `js/motori/28-campagna.js` | 14 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -240,7 +242,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22r-accordi.js` | 29 | ACOL, APC, ANEED, acMotif, acMix, acDisc, acStack |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
-| `js/app/24a-firebase.js` | 10 | FB |
+| `js/app/24a-firebase.js` | 11 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
@@ -248,6 +250,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 13 | Eroi |
 | `js/app/24h-campagna.js` | 8 | Camp |
+| `js/app/24ha-avventura.js` | 4 | Avv |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

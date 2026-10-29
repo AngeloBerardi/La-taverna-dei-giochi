@@ -96,4 +96,12 @@ assert(rules.includes('d.liv <= ' + E.LIV_MAX), 'livello massimo');
   assert.strictEqual(E.probabilita(h, 'furtivita', 99), 0.05, 'solo il 20 naturale riesce');
   let ok = 0; const r = require('./carica.js').rng(3), N = 20000; for (let i = 0; i < N; i++) if (E.prova(h, 'furtivita', 14, r).ok) ok++;
   assert(Math.abs(ok / N - E.probabilita(h, 'furtivita', 14)) < 0.02, 'la probabilità coincide con la simulazione'); }
+// nomi delle abilità: una voce per abilità, con gli accenti
+assert.deepStrictEqual(Object.keys(E.NOME_AB).sort(), Object.keys(E.ABILITA).sort()); assert.strictEqual(E.NOME_AB.furtivita, 'Furtività');
+// crescita limitata: i numeri nelle regole sono quelli del motore, e l'attesa e il campo agg sono richiesti
+assert.deepStrictEqual(E.LIMITI, { xp: 800, oro: 1000, attesaS: 60 });
+assert(rules.includes('n.xp - v.xp <= ' + E.LIMITI.xp + ' && n.oro - v.oro <= ' + E.LIMITI.oro), 'limiti di xp e oro nelle regole');
+assert(rules.includes("duration.value(" + E.LIMITI.attesaS + ", 's')"), 'attesa tra i guadagni nelle regole');
+assert(rules.includes("guadagnoOk(request.resource.data, resource.data)"), 'l\'aggiornamento usa guadagnoOk');
+assert(rules.includes("'hp', 'agg']"), 'agg tra i campi ammessi'); assert(rules.includes("!('agg' in request.resource.data)"), 'alla creazione agg non c\'è');
 console.log('eroi regole ok');

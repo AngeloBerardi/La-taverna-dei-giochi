@@ -11,5 +11,11 @@ Obiettivo: campagne a più sessioni stile *For the King* (mappa a esagoni, grupp
   - Incontri casuali dopo il movimento: prova d20 + modificatore (+ competenza) contro una CD con l'abilità scelta (`EROI.prova`); fallire ferisce e fa crescere la perdizione.
   - Missione in tre passi: parla in città → ripulisci l'antro (3 prove, 2 riuscite) → abbatti la torre (4 prove, 3 riuscite). Anteprima giocabile da «Eroi → Campagna», salvata in locale.
 
+## Aggiornamenti (A1, ottobre 2026)
+- **Dadi nello stato**: `motori/27a-avv-dadi.js` (`ADADI`). `s.rng` avanza a ogni tiro: senza `rnd` esterno la partita è ripetibile; i test passano un `rnd` finto.
+- **Stato v2** con `CAMP.migra` (le campagne salvate con la v1 si aggiornano da sole): compagnia fino a **4 eroi**, missione «La Torre dei Corvi», **prove a fasi** in antro (3) e torre (4), ognuna con il suo testo e 3 abilità (`CAMP.FASI`), «Fuggi» con l'eroe che copre la ritirata, nomi delle abilità con gli accenti in `EROI.NOME_AB`.
+- **Pagina Avventura** (`app/24ha-avventura.js`): Continua, Nuova campagna, I tuoi eroi, Compagni, Come si gioca. Sostituisce il pulsante «Eroi» delle Impostazioni.
+- **Regole degli eroi**: `EROI.LIMITI` (+800 xp e +1000 oro per scrittura, 60 s tra due guadagni, campo `agg` con l'ora del server); client `FB.avanzaEroe` (usato dalla task A9).
+
 ## Da fare
 Il piano completo, diviso in task da una sessione, è in `docs/AVVENTURA.md`.
