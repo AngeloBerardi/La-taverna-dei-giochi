@@ -25,6 +25,8 @@ const EROI=(()=>{
  const NOME_AB={atletica:'Atletica',intimidire:'Intimidire',furtivita:'Furtività',acrobazia:'Acrobazia',arcano:'Arcano',storia:'Storia',medicina:'Medicina',percezione:'Percezione',sopravvivenza:'Sopravvivenza',persuasione:'Persuasione'};
  // oggetti: catalogo in motori/27b-avv-oggetti.js (AOGG, unica fonte); lo si legge a runtime perché viene caricato dopo questo file
  const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js');
+ // poteri, talenti e scelte a ogni livello: motori/27e-avv-poteri.js (APOT), anch'esso caricato dopo questo file
+ const AP=()=>typeof APOT!=='undefined'?APOT:require('./27e-avv-poteri.js');
  // limiti di crescita per ogni scrittura sull'account (stessi numeri di firestore.rules, controllati da tests/test_eroi.js)
  const LIMITI={xp:800,oro:1000,attesaS:60};
  const SOGLIE_XP=[0,100,300,700,1300,2100,3200,4600,6400,8600],LIV_MAX=SOGLIE_XP.length;
@@ -66,7 +68,7 @@ const EROI=(()=>{
  // un eroe salvato: i valori derivati sono quelli giusti? (difesa contro schede manomesse)
  function coerente(h){const e=valida({nome:h.nome,razza:h.razza,classe:h.classe,base:h.base,aspetto:h.aspetto});if(e)return false;
   if(!Number.isInteger(h.liv)||h.liv<1||h.liv>LIV_MAX||h.liv!==livelloPerXp(h.xp))return false;
-  if(AO().invValido(h))return false;
+  if(AO().invValido(h)||AP().scelteErr(h))return false;
   const d=derivati(h);return h.hpMax===d.hpMax&&h.hp>=0&&h.hp<=h.hpMax}
  // aggiunge esperienza e sale di livello quando serve (restituisce una copia)
  function guadagna(h,xp){const n={...h,xp:Math.max(0,h.xp+xp)};n.liv=livelloPerXp(n.xp);const d=derivati(n);const cura=d.hpMax-h.hpMax;n.hpMax=d.hpMax;n.hp=Math.min(d.hpMax,h.hp+Math.max(0,cura));return n}

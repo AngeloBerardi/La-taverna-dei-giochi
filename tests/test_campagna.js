@@ -200,6 +200,21 @@ function bot(seed, furbo, oggetti) {
   }
   return s;
 }
+// poteri nella campagna: scelte completate, cariche e Concentrazione per eroe, ricarica con i riposi (breve di notte, lungo all'alba)
+{ const AP = require('../src/js/motori/27e-avv-poteri.js');
+  const alto = EROI.guadagna(EROI.guadagna(mk('Veterano', 'guerriero', 'orco', { for: 15, cos: 14, des: 12 }), 700), 0); assert.strictEqual(alto.liv, 4);
+  assert.strictEqual(AP.daScegliere(alto).length, 3, 'tre scelte in sospeso');
+  const s0 = C.nuova([alto, mk('Mira', 'ladro', 'elfo', { des: 15 })], 3), v = s0.eroi[0];
+  assert.strictEqual(AP.daScegliere(v).length, 0, 'la campagna completa le scelte mancanti'); assert(EROI.coerente({ ...alto, scelte: v.scelte }), 'e sono scelte valide');
+  assert.strictEqual(s0.eroi[1].scelte && Object.keys(s0.eroi[1].scelte).length, 0, 'al livello 1 nessuna scelta');
+  assert.strictEqual(v.conc, AP.combattente(v).concMax, 'la Concentrazione parte piena'); assert.deepStrictEqual(v.usi, {}, 'nessun potere usato');
+  const mia = { ...alto, scelte: { 2: AP.offerta(alto, 2)[1] } }, s1 = C.nuova([mia], 3); assert.strictEqual(s1.eroi[0].scelte[2], mia.scelte[2], 'la scelta fatta dal giocatore resta');
+  // consumo, poi riposo: breve ridà le cariche di scontro/breve, lungo tutto
+  const e = s0.eroi[0], cb = AP.combattente(e), id = cb.poteri.find(k => AP.P[k] && AP.P[k].ric !== 'turno'); assert(id, 'almeno un potere a cariche');
+  e.usi = { [id]: AP.usiMax(cb, AP.P[id]) }; e.conc = 0; JSON.parse(JSON.stringify(s0));
+  let s = C.act(s0, { t: 'riposa' }).s; assert.strictEqual(s.fase, 'notte');
+  const dopoNotte = s.eroi[0]; assert(dopoNotte.conc <= AP.combattente(dopoNotte).concMax);
+  s = C.act(s, { t: 'riposa' }).s; assert.strictEqual(s.fase, 'giorno'); assert.deepStrictEqual(s.eroi[0].usi, {}, "all'alba le cariche sono tutte tornate"); assert.strictEqual(s.eroi[0].conc, AP.combattente(s.eroi[0]).concMax, "all'alba la Concentrazione è piena"); }
 let vinte = 0, giorni = 0, senza = 0; const N = 40;
 for (let i = 1; i <= N; i++) if ((bot(i, true, false).over || {}).win) senza++;
 for (let i = 1; i <= N; i++) { const s = bot(i, true, true); assert(s.over, 'il bot furbo finisce, seme ' + i); if (s.over.win) { vinte++; giorni += s.over.giorni; } }

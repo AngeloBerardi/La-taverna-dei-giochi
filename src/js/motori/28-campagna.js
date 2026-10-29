@@ -10,6 +10,7 @@ const CAMP=(()=>{
  const DAD=typeof ADADI!=='undefined'?ADADI:require('./27a-avv-dadi.js');
  const AO=typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js');
  const BO=typeof ABOT!=='undefined'?ABOT:require('./27c-avv-bottino.js');
+ const AP=typeof APOT!=='undefined'?APOT:require('./27e-avv-poteri.js');
  const TERRENI={pianura:{c:1,n:'Pianura'},strada:{c:.5,n:'Strada'},bosco:{c:2,n:'Bosco'},collina:{c:2,n:'Colle'},palude:{c:3,n:'Palude'},montagna:{c:null,n:'Montagna'},acqua:{c:null,n:'Acqua'}};
  const MAX_EROI=4,PASSI=['citta','antro','torre'],NOME_POI={citta:'Città',antro:'Antro',torre:'Torre dei Corvi',tesoro:'Tesoro',campo:'Accampamento'};
  // le prove di antro e torre sono una sequenza di fasi, ognuna con il suo testo e 3 abilità che servono davvero
@@ -61,7 +62,7 @@ const CAMP=(()=>{
  function nuova(eroi,seed,opts){
   opts=opts||{};if(!eroi||eroi.length<1||eroi.length>MAX_EROI)throw new Error('servono da 1 a '+MAX_EROI+' eroi');
   const R=opts.raggio||6,s={v:2,g:'campagna',seed:seed>>>0,rng:DAD.semina(seed),n:eroi.length,raggio:R,celle:genera(seed>>>0,R),giorno:1,fase:'giorno',turno:0,
-   eroi:eroi.map((h,i)=>{const d=EROI.derivati(h);return{slot:h.slot||'e'+(i+1),nome:h.nome,razza:h.razza,classe:h.classe,aspetto:h.aspetto,liv:h.liv,xp:h.xp,hp:h.hp,hpMax:h.hpMax,ca:d.ca,mov:d.mov,base:h.base,oro:h.oro||0,equip:{...(h.equip||{})},zaino:[...(h.zaino||[])],cintura:[...(h.cintura||[])]}}),
+   eroi:eroi.map((h,i)=>{const d=EROI.derivati(h);return{slot:h.slot||'e'+(i+1),nome:h.nome,razza:h.razza,classe:h.classe,aspetto:h.aspetto,liv:h.liv,xp:h.xp,hp:h.hp,hpMax:h.hpMax,ca:d.ca,mov:d.mov,base:h.base,oro:h.oro||0,equip:{...(h.equip||{})},zaino:[...(h.zaino||[])],cintura:[...(h.cintura||[])],...poteri(h)}}),
    party:{q:0,r:0},pm:0,perdizione:0,oro:eroi.reduce((a,h)=>a+(h.oro||0),0),missione:{titolo:'La Torre dei Corvi',passo:0,passi:PASSI.slice()},incontro:null,log:[],over:null,evn:0,negozi:{}};
   s.pm=movimento(s);rivela(s,0,0,2);L(s,'La compagnia lascia il villaggio. Giorno 1.');return s}
  function L(s,t){s.log.push(t);if(s.log.length>40)s.log.shift()}
@@ -69,9 +70,11 @@ const CAMP=(()=>{
  const impostaFase=inc=>{const f=FASI[inc.kind][Math.min(inc.multi.fatte,FASI[inc.kind].length-1)];inc.ab=f.ab.slice();inc.testo=f.testo};
  // porta uno stato salvato alla versione corrente (restituisce una copia; uno stato già v2 resta com'è)
  function migra(st){const s=copia(st);if(!(s.v===2&&Number.isInteger(s.rng)))vecchio(s);return inventario(s)}
+ // poteri dell'eroe in campagna: le scelte fatte (quelle mancanti si completano da sole con la prima opzione), cariche spese e Concentrazione
+ const poteri=h=>{const c=AP.completa({...h,scelte:h.scelte||{}});return{scelte:{...c.scelte},usi:{...(h.usi||{})},conc:h.conc==null?AP.combattente(c).concMax:h.conc}};
  // equipaggiamento, zaino e cintura per ogni eroe; senza equipaggiamento salvato valgono quelli della classe (era così prima dello zaino)
  function inventario(s){if(!s.negozi)s.negozi={};
-  for(const e of s.eroi){if(!e.equip||typeof e.equip!=='object')e.equip={...((EROI.CLASSI[e.classe]||{}).equip||{})};if(!Array.isArray(e.zaino))e.zaino=[];if(!Array.isArray(e.cintura))e.cintura=[]}return s}
+  for(const e of s.eroi){if(!e.equip||typeof e.equip!=='object')e.equip={...((EROI.CLASSI[e.classe]||{}).equip||{})};if(!Array.isArray(e.zaino))e.zaino=[];if(!Array.isArray(e.cintura))e.cintura=[];if(!e.scelte||e.conc==null||!e.usi)Object.assign(e,poteri(e))}return s}
  function vecchio(s){
   s.v=2;s.rng=DAD.semina((s.seed>>>0)+Math.imul(s.evn|0,7919)+Math.imul(s.turno|0,104729));
   if(s.missione&&s.missione.titolo==='La Torre oscura')s.missione.titolo='La Torre dei Corvi';
@@ -91,8 +94,8 @@ const CAMP=(()=>{
  function danno(s,i,n){const e=s.eroi[i];e.hp=Math.max(0,e.hp-n);if(e.hp===0)L(s,e.nome+' cade a terra!');
   if(!vivi(s).length){s.over={win:false,reason:'Tutti gli eroi sono caduti'};s.evn++}}
  function finisciFase(s){ // da giorno a notte, da notte a nuovo giorno (+perdizione, riposo)
-  if(s.fase==='giorno'){s.fase='notte';L(s,'Scende la notte.')}
-  else{s.fase='giorno';s.giorno++;s.perdizione=Math.min(100,s.perdizione+3);
+  if(s.fase==='giorno'){s.fase='notte';for(const e of s.eroi)AP.riposo(e,'breve');L(s,'Scende la notte.')}
+  else{s.fase='giorno';s.giorno++;s.perdizione=Math.min(100,s.perdizione+3);for(const e of s.eroi)AP.riposo(e,'lungo');
    const c=s.celle[K(s.party.q,s.party.r)];for(const e of s.eroi)if(e.hp>0)e.hp=Math.min(e.hpMax,e.hp+Math.max(1,Math.floor(e.hpMax*(c.poi==='campo'||c.poi==='citta'?.5:.25))));
    L(s,'Giorno '+s.giorno+'. La perdizione sale a '+s.perdizione+'.');if(s.perdizione>=100){s.over={win:false,reason:'La perdizione ha inghiottito il regno'};s.evn++}}
   s.pm=movimento(s);s.evn++}

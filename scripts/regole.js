@@ -7,6 +7,7 @@ const root = path.join(__dirname, '..');
 const B = require(path.join(root, 'src/js/motori/22-bottega.js'));
 const EROI = require(path.join(root, 'src/js/motori/27-eroi.js'));
 const AOGG = require(path.join(root, 'src/js/motori/27b-avv-oggetti.js'));
+const APOT = require(path.join(root, 'src/js/motori/27e-avv-poteri.js'));
 const file = path.join(root, 'firestore.rules');
 let t = fs.readFileSync(file, 'utf8');
 const giochi = [...fs.readFileSync(path.join(root, 'src/js/app/07-nucleo.js'), 'utf8').matchAll(/(?:^ \{|GAMES\.push\(\{)id:'([a-z0-9]+)'/gm)].map(m => m[1]);
@@ -46,7 +47,9 @@ t = bloccoLista(t, 'oggetti:armature', per(o => o.slot === 'armatura'));
 t = bloccoLista(t, 'oggetti:scudi', per(o => o.slot === 'scudo'));
 t = bloccoLista(t, 'oggetti:accessori', per(o => o.slot === 'acc'));
 t = bloccoLista(t, 'oggetti:consumabili', per(o => o.slot === 'cons'));
+t = bloccoLista(t, 'scelte:talenti', APOT.TAL_ID);
+for (const L of APOT.LIV_POTERE) t = bloccoLista(t, 'scelte:poteri' + L, Object.keys(EROI.CLASSI).flatMap(c => APOT.opzioni(c, L)));
 const nuovo = bloccoLista(t, 'oggetti:tutti', AOGG.ID);
 const letto = fs.readFileSync(file, 'utf8');
 if (process.argv.includes('--controlla')) { if (nuovo !== letto) { console.error('firestore.rules non allineato a catalogo e giochi: lancia npm run regole'); process.exit(1); } console.log('regole allineate a catalogo e giochi'); process.exit(0); }
-fs.writeFileSync(file, nuovo); console.log(`firestore.rules: ${acq.length} acquisti, ${giochi.length} giochi con ELO, ${Object.keys(EROI.RAZZE).length} razze, ${Object.keys(EROI.CLASSI).length} classi e ${AOGG.ID.length} oggetti`);
+fs.writeFileSync(file, nuovo); console.log(`firestore.rules: ${acq.length} acquisti, ${giochi.length} giochi con ELO, ${Object.keys(EROI.RAZZE).length} razze, ${Object.keys(EROI.CLASSI).length} classi, ${AOGG.ID.length} oggetti, ${APOT.TAL_ID.length} talenti`);

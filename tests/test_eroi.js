@@ -103,6 +103,23 @@ assert(rules.includes("q.keys().hasOnly(['" + O.SLOT_EQ.join("', '") + "'])"), '
   assert.strictEqual(E.probabilita(h, 'furtivita', 99), 0.05, 'solo il 20 naturale riesce');
   let ok = 0; const r = require('./carica.js').rng(3), N = 20000; for (let i = 0; i < N; i++) if (E.prova(h, 'furtivita', 14, r).ok) ok++;
   assert(Math.abs(ok / N - E.probabilita(h, 'furtivita', 14)) < 0.02, 'la probabilità coincide con la simulazione'); }
+// scelte di livello (poteri e talenti): nascono vuote, si fanno una volta sola, `coerente` rifiuta quelle impossibili
+{ const AP = require('../src/js/motori/27e-avv-poteri.js');
+  const nuovo = E.nuovo({ nome: 'Scelta', classe: 'mago', razza: 'elfo', aspetto: A, base: base({ int: 15, des: 14, cos: 13 }) });
+  assert.strictEqual(nuovo.scelte, undefined, 'al livello 1 non c\'è nulla da scegliere'); assert.deepStrictEqual(AP.daScegliere(nuovo), []); assert(E.coerente(nuovo));
+  let h = E.guadagna(E.guadagna(nuovo, 300), 0); assert.strictEqual(h.liv, 3, 'livello 3 con 300 punti');
+  const da = AP.daScegliere(h); assert.deepStrictEqual(da.map(d => [d.liv, d.tipo]), [[2, 'talento'], [3, 'potere']]); assert(da.every(d => d.opzioni.length === 2));
+  assert(E.coerente(h), 'senza scelte la scheda è comunque coerente (si scelgono quando si vuole)');
+  assert(AP.scegli(h, 4, 'parata').err, 'livello non ancora raggiunto'); assert(AP.scegli(h, 2, da[1].opzioni[0]).err, 'un potere al posto di un talento');
+  assert(AP.scegli(h, 1, 'x').err && AP.scegli(h, 11, 'x').err, 'livelli fuori scala');
+  h = AP.scegli(h, 2, da[0].opzioni[1]); assert(!h.err && h.scelte[2] === da[0].opzioni[1] && E.coerente(h));
+  assert(AP.scegli(h, 2, da[0].opzioni[0]).err, 'la scelta è definitiva');
+  assert.strictEqual(AP.daScegliere(h).length, 1, 'resta solo il potere del livello 3');
+  assert(!E.coerente({ ...h, scelte: { 2: 'non-esiste' } }) && !E.coerente({ ...h, scelte: { 4: 'fede-salda' } }) && !E.coerente({ ...h, scelte: [] }) && !E.coerente({ ...h, scelte: { '02': da[0].opzioni[0] } }), 'scelte impossibili o fuori forma rifiutate');
+  assert(!E.coerente({ ...h, scelte: { 2: da[0].opzioni[1], 3: da[0].opzioni[0] } }), 'un talento al posto di un potere');
+  const c = AP.completa(h); assert.strictEqual(AP.daScegliere(c).length, 0, 'completa riempie con la prima opzione'); assert(E.coerente(c) && c.scelte[2] === h.scelte[2], 'completa non cambia le scelte fatte');
+  assert.deepStrictEqual(AP.completa(c), c, 'completa è idempotente');
+  JSON.parse(JSON.stringify(c)); }
 // nomi delle abilità: una voce per abilità, con gli accenti
 assert.deepStrictEqual(Object.keys(E.NOME_AB).sort(), Object.keys(E.ABILITA).sort()); assert.strictEqual(E.NOME_AB.furtivita, 'Furtività');
 // crescita limitata: i numeri nelle regole sono quelli del motore, e l'attesa e il campo agg sono richiesti
