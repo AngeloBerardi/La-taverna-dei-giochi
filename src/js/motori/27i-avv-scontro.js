@@ -16,6 +16,7 @@ const ASCO=(()=>{
  const AP=typeof APOT!=='undefined'?APOT:require('./27e-avv-poteri.js');
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const G=typeof AGRI!=='undefined'?AGRI:require('./27g-avv-griglia.js');
+ const AR=typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
  const ERR=err=>({err}),cl=x=>JSON.parse(JSON.stringify(x));
  const MAX_EROI=4,GIRI_MAX=40,CD_SUP=11,CD_FUGA=10;
  // ---- stato dei combattenti ----
@@ -290,6 +291,19 @@ const ASCO=(()=>{
    const peso=cand.map(m=>m.xp*m.xp),tot=peso.reduce((a,b)=>a+b,0);let k=r()*tot,i=0;while(i<cand.length-1&&k>=peso[i]){k-=peso[i];i++}mette(cand[i])}
   scelti.sort((a,b)=>dietro(a)-dietro(b)||b.liv-a.liv);
   return{fam,liv,nEroi,difficolta:diff,budget,xp:xp(),nemici:scelti.map(m=>m.id)}}
+ // ---- aggancio alla campagna (A4.7): la battaglia parte dagli eroi della campagna e riporta PF, cariche, Concentrazione, cintura e PE. Vite, bottino e rientro sull'account sono di A9. ----
+ // daCampagna(camp, incontro) → battaglia. incontro: { nemici:[id | { def, q, r }], seme?, ambiente?, sorpresa?, difficolta?, reazioni?, dist?:{ slot: esagoni } }. La campagna non cambia.
+ function daCampagna(camp,inc){inc=inc||{};if(!camp||!Array.isArray(camp.eroi)||!camp.eroi.length)throw new Error('serve una campagna con degli eroi');
+  if(!camp.eroi.some(e=>e.hp>0))throw new Error('nessun eroe in piedi');
+  const cella=camp.party&&camp.celle&&camp.celle[camp.party.q+','+camp.party.r]||{},seme=inc.seme!=null?inc.seme>>>0:((camp.seed|0)*31+(camp.evn|0)*7+(camp.giorno|0))>>>0;
+  const defs=(inc.nemici||[]).map(n=>typeof n==='string'?n:n.def),amb=inc.ambiente||AR.ambienteDa(cella.t,cella.poi);
+  const squad=camp.eroi.map(e=>({eroe:cl(e),dist:(inc.dist&&inc.dist[e.slot])||0}));
+  return nuovo(squad,inc.nemici,AR.perIncontro(seme,amb,defs),{seme,sorpresa:inc.sorpresa,difficolta:inc.difficolta,reazioni:inc.reazioni,giriMax:inc.giriMax})}
+ // aggiorna(camp, riepilogo) → { s } con la campagna aggiornata (PF, cariche, Concentrazione, cintura, PE) o { err }. Equipaggiamento e zaino non cambiano; la campagna passata non cambia.
+ function aggiorna(camp,riep){if(!riep||riep.esito==null)return ERR('La battaglia non è finita');if(!camp||!Array.isArray(camp.eroi))return ERR('Campagna non valida');
+  for(const r of riep.eroi){const e=camp.eroi[r.indice];if(!e||e.nome!==r.nome)return ERR('La compagnia non corrisponde alla battaglia: '+r.nome)}
+  const s=cl(camp);for(const r of riep.eroi){const e=s.eroi[r.indice];e.hp=Math.max(0,Math.min(r.hp,e.hpMax));e.conc=r.conc;e.usi=cl(r.usi);e.cintura=r.cintura.slice();e.xp=(e.xp||0)+(r.xp||0)}
+  return{s,esito:riep.esito,xp:riep.xpPerEroe}}
  // ---- viste per chi gioca (e per l'IA) ----
  const ordine=s=>s.ordine.map((id,k)=>{const c=trova(s,id);return{id,nome:c.nome,lato:c.lato,hp:c.hp,hpMax:c.hpMax,inizTot:c.inizTot,attuale:k===s.i&&!s.over,aTerra:c.hp<=0}});
  function anteprima(s,a){const c=attore(s);if(!c)return ERR('Nessuno agisce');
@@ -325,5 +339,5 @@ const ASCO=(()=>{
   return{esito:s.over?s.over.esito:null,giri:s.giro,xp,xpPerEroe:quota,
    eroi:eroi.map(c=>({id:c.id,indice:c.indice,nome:c.nome,hp:c.hp,hpMax:c.hpMax,conc:c.conc,usi:cl(c.usi),cintura:(c.cintura||[]).slice(),stato:c.fuggito?'fuggito':c.hp<=0?'a-terra':'in-piedi',xp:c.fuori?0:quota})),
    nemici:s.cb.filter(c=>c.lato==='nemici').map(c=>({id:c.id,def:c.def,esito:c.morto?'sconfitto':c.arreso?'arreso':c.fuggito?'fuggito':'in-campo'}))}}
- return{MAX_EROI,GIRI_MAX,AZIONI,DIFFICOLTA,incontro,nuovo,act,attore,ordine,mosseValide,anteprima,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
+ return{MAX_EROI,GIRI_MAX,AZIONI,DIFFICOLTA,incontro,daCampagna,aggiorna,nuovo,act,attore,ordine,mosseValide,anteprima,riepilogo,condizioni,raggiunte,inCampo,inPiedi,trova,uscite}})();
 if(typeof module!=='undefined')module.exports=ASCO;
