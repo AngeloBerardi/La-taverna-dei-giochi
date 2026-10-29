@@ -1,0 +1,185 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Cantari di Ventura — mockup A0</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@500;700;800&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#160e08;--wood1:#7a4f2b;--wood2:#5c3a1e;--deep:#2a1b0f;--brass1:#f0c166;--brass2:#cf8f2c;--ink:#f0d9ae;--muted:#b89c6e;--good:#6fe39a;--bad:#ff6a57;--doom:#7d55c7;--ff-t:'Alegreya SC',Georgia,serif;--ff-b:'Alegreya Sans','Trebuchet MS',sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#0b0704;color:var(--ink);font:700 15px/1.3 var(--ff-b)}
+h1{font:800 22px var(--ff-t);margin:18px 16px 4px;color:var(--brass1)}.sub{margin:0 16px 14px;color:var(--muted);font-size:14px;max-width:760px}
+.row{display:flex;flex-wrap:wrap;gap:22px;padding:0 16px 40px;justify-content:center}
+.col{width:390px;max-width:100%}.cap{font:700 13px var(--ff-b);color:var(--muted);margin:0 0 6px;text-transform:uppercase;letter-spacing:.08em}
+.ph{position:relative;width:390px;max-width:100%;height:780px;background:var(--bg);border:3px solid #000;box-shadow:0 0 0 2px #3a2614;overflow:hidden;display:flex;flex-direction:column}
+.hud{display:flex;align-items:center;gap:10px;padding:8px 12px;background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.22) 6px 7px,transparent 7px 15px),var(--deep);border-bottom:3px solid var(--brass2);font:800 15px var(--ff-b);flex:none}
+.hud .it{display:flex;align-items:center;gap:4px}.hud svg{width:18px;height:18px;fill:var(--brass1)}.hud .gr{flex:1}
+.pips{display:flex;gap:3px}.pips i{width:10px;height:10px;background:var(--bad);clip-path:polygon(50% 100%,0 35%,25% 0,50% 22%,75% 0,100% 35%)}.pips i.off{background:#4a3524}
+.doom{height:8px;background:#1c1226;border:1px solid #000;margin:0 12px;position:relative;flex:none}.doom i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#4b2f86,var(--doom))}
+.doom b{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--brass1)}
+.dl{display:flex;justify-content:space-between;margin:2px 12px 4px;font:700 12px var(--ff-b);color:var(--muted);flex:none}
+.map{flex:1;min-height:0;display:block;width:100%}
+.b{border:0;font:800 15px var(--ff-b);color:var(--ink);min-height:48px;padding:6px 12px;background:repeating-linear-gradient(90deg,transparent 0 5px,rgba(0,0,0,.2) 5px 6px,transparent 6px 13px),linear-gradient(180deg,var(--wood1),var(--wood2));clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);text-shadow:0 -1px 0 rgba(0,0,0,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:default}
+.b small{font:700 11px var(--ff-b);color:var(--muted)}.b svg{width:20px;height:20px;fill:var(--ink)}
+.b.gold{background:linear-gradient(180deg,var(--brass1),var(--brass2));color:#4a2a08;text-shadow:0 1px 0 rgba(255,255,255,.45)}.b.gold svg{fill:#4a2a08}.b.gold small{color:#6a4310}
+.b.off{filter:grayscale(.6) brightness(.75)}
+.acts{display:flex;gap:6px;padding:8px 10px;background:var(--deep);border-top:3px solid var(--brass2);flex:none}.acts .b{flex:1;min-width:0}.acts.six{gap:4px;padding:8px 6px}.acts.six .b{font-size:13px;padding:6px 0}.acts.six .b small{font-size:10px}
+.plancia{display:grid;grid-template-columns:repeat(5,1fr);height:58px;background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.25) 6px 7px,transparent 7px 15px),#241709;border-top:3px solid var(--brass2);flex:none}
+.plancia div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 11px var(--ff-b);color:var(--muted);border-right:1px solid rgba(0,0,0,.35)}.plancia svg{width:22px;height:22px;fill:var(--muted)}.plancia .on{color:var(--brass1);background:rgba(240,193,102,.1)}.plancia .on svg{fill:var(--brass1)}
+.init{display:flex;gap:5px;padding:7px 10px;background:var(--deep);border-bottom:3px solid var(--brass2);flex:none;align-items:center}.init .p{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:800 14px var(--ff-t);border:3px solid var(--good);background:#1d2a1f;color:var(--ink);flex:none}.init .p.n{border-color:var(--bad);background:#2f1713}.init .p.now{outline:3px solid var(--brass1);outline-offset:1px;transform:scale(1.15)}.init .rnd{margin-left:auto;font:700 12px var(--ff-b);color:var(--muted);text-align:right;line-height:1.1}
+.turn{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;font:800 14px var(--ff-b);background:rgba(0,0,0,.35);flex:none}.turn .mv{color:var(--brass1)}.conc{display:flex;gap:4px;align-items:center}.conc i{width:12px;height:12px;transform:rotate(45deg);background:var(--brass1);border:1px solid #000}.conc i.off{background:#3a2a18}
+.legend{display:flex;gap:10px;padding:5px 12px;font:700 12px var(--ff-b);color:var(--muted);background:rgba(0,0,0,.35);flex:none;flex-wrap:wrap}.legend span{display:flex;align-items:center;gap:4px}.legend i{width:11px;height:11px;display:inline-block}
+.roll{margin:0 10px 6px;padding:6px 10px;background:#1b130a;border:2px solid var(--brass2);display:flex;gap:10px;align-items:center;font:700 14px var(--ff-b);flex:none}.roll .d{width:38px;height:38px;display:grid;place-items:center;background:var(--brass1);color:#3a2206;font:800 18px var(--ff-t);clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}.roll em{color:var(--good);font-style:normal}
+.dlg{flex:1;display:flex;flex-direction:column;min-height:0;background:radial-gradient(120% 70% at 50% 25%,#3b2a18,#150d07)}
+.por{display:grid;place-items:center;height:190px;position:relative;flex:none}.por svg{height:176px}.who{position:absolute;left:0;right:0;bottom:6px;text-align:center;font:800 17px var(--ff-t);color:var(--brass1);text-shadow:0 2px 0 #000}
+.plq{margin:0 10px;padding:12px 14px;background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.18) 9px 10px),linear-gradient(180deg,#6a4426,#4a2e17);border:3px solid #1c1108;box-shadow:inset 0 0 0 2px #9a6a3a;font:600 16px/1.35 var(--ff-b);color:#f6e6c4;flex:none}
+.ch{display:flex;flex-direction:column;gap:5px;padding:6px 10px 8px;overflow:hidden}.ch .b{flex-direction:row;justify-content:flex-start;gap:8px;text-align:left;min-height:44px;font-size:14px;padding:4px 10px}.ch .tg{color:var(--brass1);font-weight:800;white-space:nowrap}.b.gold .tg{color:#5a3208}.ch .no{filter:grayscale(.7) brightness(.7)}
+.appr{display:flex;gap:8px;align-items:center;padding:0 12px 6px;font:700 13px var(--ff-b);color:var(--muted)}.appr b{color:var(--good)}
+.sc{flex:1;overflow:hidden;padding:10px;display:flex;flex-direction:column;gap:8px}
+.hd{display:flex;gap:10px;align-items:center}.hd svg{width:68px;height:68px;flex:none}.hd h2{margin:0;font:800 20px var(--ff-t);color:var(--brass1)}.hd p{margin:0;color:var(--muted);font-size:14px}
+.st{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.st div{background:#241709;border:1px solid #000;text-align:center;padding:4px 0;font:700 11px var(--ff-b);color:var(--muted)}.st b{display:block;font:800 18px var(--ff-t);color:var(--ink)}.st em{font-style:normal;color:var(--brass1);font-size:12px}
+.vit{display:grid;grid-template-columns:2fr 1fr 1fr;gap:4px}.vit div{background:#241709;border:1px solid #000;padding:5px 8px;font:800 14px var(--ff-b);display:flex;align-items:center;gap:6px}.vit svg{width:16px;height:16px;fill:var(--brass1)}.bar{flex:1;height:10px;background:#3a1a14;border:1px solid #000}.bar i{display:block;height:100%;width:87%;background:var(--bad)}
+.eq{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.sl{border:2px solid #000;background:#241709;min-height:50px;padding:3px 5px;font:700 11px var(--ff-b);color:var(--muted);display:flex;flex-direction:column;justify-content:center}.sl b{font:800 13px var(--ff-b);color:var(--ink)}.sl.e{border-style:dashed;border-color:#4a3524}.sl.rare{border-color:#5a8fd8}.sl.sel{border-color:var(--brass1);box-shadow:0 0 0 2px rgba(240,193,102,.3)}
+.zaino{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}.zaino div{aspect-ratio:1;background:#241709;border:2px solid #000;display:grid;place-items:center;font:800 15px var(--ff-t);color:var(--ink);position:relative}.zaino .r{border-color:#5a8fd8}.zaino .ep{border-color:#a96bd8}.zaino .s{border-color:var(--brass1)}.zaino sub{position:absolute;right:2px;bottom:0;font:700 10px var(--ff-b);color:var(--muted)}
+.cmp{background:#1b130a;border:2px solid var(--brass2);padding:7px 10px;font:700 13px/1.35 var(--ff-b)}.cmp b{color:var(--brass1)}.up{color:var(--good)}.dn{color:var(--bad)}
+.note{max-width:820px;margin:0 16px 30px;color:var(--muted);font-size:14px}.note h2{font:800 17px var(--ff-t);color:var(--brass1);margin:16px 0 6px}.note li{margin:3px 0}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="sole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M11 1h2v4h-2zM11 19h2v4h-2zM1 11h4v2H1zM19 11h4v2h-4zM4 4l1.4-1.4 2.8 2.8L6.8 6.8zM15.8 17.2l1.4-1.4 2.8 2.8-1.4 1.4zM4 20l2.8-2.8 1.4 1.4L5.4 21.4zM15.8 6.8l2.8-2.8 1.4 1.4-2.8 2.8z"/></symbol>
+<symbol id="moneta" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 110 12 6 6 0 010-12z" fill-rule="evenodd"/></symbol>
+<symbol id="teschio" viewBox="0 0 24 24"><path d="M12 2C7 2 4 5.5 4 10c0 3 1.5 4.6 3 5.6V20h2v-2h2v2h2v-2h2v2h2v-4.4c1.5-1 3-2.600 3-5.600 0-4.500-3-8-8-8zM8.500 9a2 2 0 110 4 2 2 0 010-4zm7 0a2 2 0 110 4 2 2 0 010-4z" fill-rule="evenodd"/></symbol>
+<symbol id="cuore" viewBox="0 0 24 24"><path d="M12 21C5 15 2 12 2 8.500A5.500 5.500 0 0112 6a5.500 5.500 0 0110 2.500C22 12 19 15 12 21z"/></symbol>
+<symbol id="scudo" viewBox="0 0 24 24"><path d="M12 2l9 3v6c0 5.500-3.800 9.500-9 11-5.200-1.500-9-5.500-9-11V5z"/></symbol>
+<symbol id="spada" viewBox="0 0 24 24"><path d="M19 2l3 3-9.500 9.500-3-3zM7 13l4 4-2 2-1-1-3 3-2-2 3-3-1-1z"/></symbol>
+<symbol id="dado" viewBox="0 0 24 24"><path d="M12 1l10 6v10l-10 6L2 17V7zm0 5L6 17h12z" fill-rule="evenodd"/></symbol>
+<symbol id="passi" viewBox="0 0 24 24"><path d="M6 3h6v10h6l3 4v4H6z"/></symbol>
+<symbol id="stella" viewBox="0 0 24 24"><path d="M12 2l2.900 6.500 7.100.7-5.300 4.800 1.500 7L12 17.300 5.800 21l1.500-7L2 9.200l7.100-.7z"/></symbol>
+<symbol id="fuoco" viewBox="0 0 24 24"><path d="M13 2c1 4 6 6 6 12a7 7 0 01-14 0c0-3 2-5 3-7 1 2 2 2.500 3 2.500C11 7 11 4 13 2z"/></symbol>
+<symbol id="luna" viewBox="0 0 24 24"><path d="M20 15.500A9 9 0 018.500 4 9 9 0 1020 15.500z"/></symbol>
+<symbol id="casa" viewBox="0 0 24 24"><path d="M12 3l10 9h-3v9h-5v-6h-4v6H5v-9H2z"/></symbol>
+<symbol id="gioca" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zm3.500 4a1.500 1.500 0 100 3 1.500 1.500 0 000-3zm7 7a1.500 1.500 0 100 3 1.500 1.500 0 000-3z" fill-rule="evenodd"/></symbol>
+<symbol id="mappa" viewBox="0 0 24 24"><path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zm6-.500V17M15 6.500V19" stroke="#000" stroke-width="1.500" fill-rule="evenodd"/></symbol>
+<symbol id="amici" viewBox="0 0 24 24"><path d="M8 4a3.500 3.500 0 100 7 3.500 3.500 0 000-7zm8 2a3 3 0 100 6 3 3 0 000-6zM1 20c0-4 3-6 7-6s7 2 7 6zm14 0c0-2-.5-3.500-1.600-4.700C14.500 15 15.200 15 16 15c4 0 7 1.800 7 5z"/></symbol>
+<symbol id="utente" viewBox="0 0 24 24"><path d="M12 3a4.500 4.500 0 100 9 4.500 4.500 0 000-9zM3 22c0-5 4-8 9-8s9 3 9 8z"/></symbol>
+</defs></svg>
+
+<h1>Cantari di Ventura — mockup A0</h1>
+<p class="sub">Quattro schermate a 390 px, stile legno e ottone, niente emoji. Sono solo disposizione e proporzioni: i personaggi, i luoghi e i testi sono segnaposto originali. Un solo giro di revisione: dimmi cosa cambiare e passo ad A1.</p>
+<div class="row">
+
+<div class="col"><p class="cap">1 · Mappa del mondo (eroi separati)</p>
+<div class="ph" id="s1">
+ <div class="hud"><span class="it"><svg><use href="#sole"/></svg>Giorno 3</span><span class="it"><svg><use href="#moneta"/></svg>142</span><span class="gr"></span><span class="it" title="Vite di gruppo"><span class="pips"><i></i><i></i><i class="off"></i></span></span></div>
+ <div class="dl"><span>Perdizione 34 / 100</span><span>prossima soglia 50</span></div>
+ <div class="doom"><i style="width:34%"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></div>
+ <svg class="map" id="mapw" viewBox="0 0 390 470" preserveAspectRatio="xMidYMid meet"></svg>
+ <div class="roll"><span class="d">7</span><span>Movimento di <b>Mira</b>: 4 + <b>3</b> (d4). Ritira con Concentrazione.</span></div>
+ <div class="acts"><div class="b gold"><svg><use href="#passi"/></svg>Muovi<small>7 punti</small></div><div class="b"><svg><use href="#casa"/></svg>Entra<small>Città</small></div><div class="b off"><svg><use href="#luna"/></svg>Riposa<small>2 razioni</small></div><div class="b"><svg><use href="#amici"/></svg>Tutti<small>insieme</small></div></div>
+ <div class="plancia"><div><svg><use href="#casa"/></svg>Taverna</div><div><svg><use href="#gioca"/></svg>Giochi</div><div class="on"><svg><use href="#mappa"/></svg>Avventura</div><div><svg><use href="#amici"/></svg>Amici</div><div><svg><use href="#utente"/></svg>Profilo</div></div>
+</div></div>
+
+<div class="col"><p class="cap">2 · Battaglia (esagoni)</p>
+<div class="ph" id="s2">
+ <div class="init"><div class="p now">M</div><div class="p n">G</div><div class="p">B</div><div class="p n">G</div><div class="p">T</div><div class="p n">C</div><div class="p">L</div><span class="rnd">Giro 2<br>su 6</span></div>
+ <div class="turn"><span>Turno di <b style="color:var(--brass1)">Mira</b></span><span class="mv">Movimento 3 / 7</span><span class="conc"><i></i><i></i><i class="off"></i></span></div>
+ <svg class="map" id="mapb" viewBox="0 0 390 372" preserveAspectRatio="xMidYMid meet"></svg>
+ <div class="legend"><span><i style="background:#3a6ea5"></i>Percorso</span><span><i style="background:var(--bad)"></i>Bersaglio</span><span><svg width="12" height="12"><use href="#scudo" style="fill:#9fb0c0"/></svg>Copertura</span><span>▲ Rialzo</span></div>
+ <div class="roll"><span class="d">19</span><span>d20 14 + 5 = <b>19</b> contro CA 15 — <em>colpito</em>, 8 danni</span></div>
+ <div class="acts six"><div class="b"><svg><use href="#passi"/></svg>Muovi</div><div class="b gold"><svg><use href="#spada"/></svg>Attacca<small>azione</small></div><div class="b"><svg><use href="#fuoco"/></svg>Colpo<small>bonus</small></div><div class="b"><svg><use href="#stella"/></svg>Poteri<small>3</small></div><div class="b"><svg><use href="#cuore"/></svg>Pozione<small>×2</small></div><div class="b off"><svg><use href="#dado"/></svg>Fine</div></div>
+</div></div>
+
+<div class="col"><p class="cap">3 · Dialogo</p>
+<div class="ph" id="s3">
+ <div class="hud"><span class="it"><svg><use href="#sole"/></svg>Giorno 3</span><span class="gr"></span><span class="it"><svg><use href="#teschio"/></svg>34</span></div>
+ <div class="dlg">
+  <div class="por"><svg viewBox="0 0 200 230"><defs><radialGradient id="gl" cx="50%" cy="45%"><stop offset="0" stop-color="#f0c166" stop-opacity=".35"/><stop offset="1" stop-color="#f0c166" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="110" r="100" fill="url(#gl)"/><path d="M20 230Q22 150 100 142Q178 150 180 230Z" fill="#3a5c7a"/><path d="M70 150L100 190 130 150" fill="#e9d9b0"/><circle cx="100" cy="98" r="40" fill="#e0ac82"/><path d="M58 92Q56 48 100 46Q144 48 142 92Q130 66 100 68Q70 66 58 92Z" fill="#c9c9c9"/><path d="M62 110Q100 190 138 110Q100 128 62 110Z" fill="#d8d8d8"/><circle cx="84" cy="96" r="3.500" fill="#241a12"/><circle cx="116" cy="96" r="3.500" fill="#241a12"/><path d="M86 118Q100 126 114 118" stroke="#8a4a3a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M78 56l22-26 22 26z" fill="#cf8f2c"/></svg><div class="who">Maestro Aldo, sindaco di Ponente</div></div>
+  <div class="plq">«La Corona si è spezzata in tre pezzi e il re non si trova più. Le strade si chiudono, la notte si fa lunga. Voi che avete l'aria di chi non teme il buio… che cosa chiedete per aiutarci?»</div>
+  <div class="appr"><span>Approvazione di Mira:</span><b>+5</b><span>· Il Locandiere ricorda questa scelta</span></div>
+  <div class="ch">
+   <div class="b gold"><span class="tg">[Persuasione 65%]</span> Chiedo una ricompensa in anticipo</div>
+   <div class="b"><span class="tg">[Solo Chierico]</span> Benedico il sigillo sulla porta</div>
+   <div class="b">Accetto l'incarico, senza condizioni</div>
+   <div class="b">Chiedo del re: chi l'ha visto per ultimo?</div>
+   <div class="b no"><span class="tg">[Serve Cuoio Bianco]</span> Mostro la divisa della guardia</div>
+  </div>
+ </div>
+ <div class="plancia"><div><svg><use href="#casa"/></svg>Taverna</div><div><svg><use href="#gioca"/></svg>Giochi</div><div class="on"><svg><use href="#mappa"/></svg>Avventura</div><div><svg><use href="#amici"/></svg>Amici</div><div><svg><use href="#utente"/></svg>Profilo</div></div>
+</div></div>
+
+<div class="col"><p class="cap">4 · Scheda e inventario</p>
+<div class="ph" id="s4">
+ <div class="hud"><span class="it">Scheda eroe</span><span class="gr"></span><span class="it"><svg><use href="#moneta"/></svg>142</span></div>
+ <div class="sc">
+  <div class="hd"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#3a2d22"/><path d="M8 100Q12 72 50 70Q88 72 92 100Z" fill="#3c8f4e"/><path d="M26 47L12 40 28 56ZM74 47L88 40 72 56Z" fill="#e0ac82"/><circle cx="50" cy="48" r="24" fill="#e0ac82"/><path d="M26 46Q26 18 50 18Q74 18 74 46Q62 30 50 32Q38 30 26 46Z" fill="#c9892f"/><circle cx="42" cy="50" r="2.600" fill="#241a12"/><circle cx="58" cy="50" r="2.600" fill="#241a12"/><path d="M43 60Q50 66 57 60" stroke="#5a2f22" stroke-width="2.400" fill="none"/></svg><div><h2>Mira</h2><p>Elfa dei boschi · Esploratrice · livello 3</p><p>Esperienza 412 / 700</p></div></div>
+  <div class="st"><div>FOR<b>10</b><em>+0</em></div><div>DES<b>17</b><em>+3</em></div><div>COS<b>12</b><em>+1</em></div><div>INT<b>10</b><em>+0</em></div><div>SAG<b>14</b><em>+2</em></div><div>CAR<b>9</b><em>−1</em></div></div>
+  <div class="vit"><div><svg><use href="#cuore"/></svg><span class="bar"><i></i></span>21/24</div><div><svg><use href="#scudo"/></svg>CA 15</div><div><svg><use href="#passi"/></svg>Mov. 6</div></div>
+  <div class="eq">
+   <div class="sl sel"><span>Mano principale</span><b>Arco corto</b></div><div class="sl e"><span>Seconda mano</span><b>—</b></div><div class="sl"><span>Armatura</span><b>Cuoio bollito</b></div>
+   <div class="sl rare"><span>Accessorio</span><b>Anello del vento</b></div><div class="sl e"><span>Accessorio</span><b>—</b></div><div class="sl"><span>Cintura 3</span><b>Pozione ×2 · Bomba</b></div>
+  </div>
+  <div class="cmp"><b>Arco lungo</b> (zaino, raro) al posto di <b>Arco corto</b><br>Danno <b>d8+3</b> invece di d6+3 <span class="up">▲ +1 in media</span> · Gittata <span class="up">▲ 8</span> invece di 6 · Richiede FOR 11 <span class="dn">▼ hai 10: svantaggio</span></div>
+  <div class="zaino"><div class="r s">Ar<sub>2</sub></div><div>Co</div><div>Ra<sub>3</sub></div><div class="ep">Ma</div><div>Pn</div><div>Ke</div><div>Rz<sub>4</sub></div><div class="r">Pg</div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+ </div>
+ <div class="acts"><div class="b gold">Equipaggia</div><div class="b">Vendi<small>20</small></div><div class="b">Scarta</div></div>
+ <div class="plancia"><div><svg><use href="#casa"/></svg>Taverna</div><div><svg><use href="#gioca"/></svg>Giochi</div><div class="on"><svg><use href="#mappa"/></svg>Avventura</div><div><svg><use href="#amici"/></svg>Amici</div><div><svg><use href="#utente"/></svg>Profilo</div></div>
+</div></div>
+
+</div>
+<div class="note">
+<h2>Cosa guardare</h2>
+<ul>
+<li><b>Mappa</b>: una sola riga di stato in alto (giorno, oro, vite di gruppo), la perdizione come barra con le soglie 25/50/75; ogni eroe ha il suo segnalino, quello attivo è cerchiato d'oro; il dado di movimento è mostrato per intero.</li>
+<li><b>Battaglia</b>: ordine di iniziativa in alto, esagoni raggiungibili con costo, percentuale e danno previsto sul bersaglio prima di confermare, scudo di copertura e rialzo sull'esagono, <b>una sola fila di azioni</b> in basso (niente menu annidati).</li>
+<li><b>Dialogo</b>: ritratto grande, targa di legno per il testo, scelte con etichetta tra parentesi quadre e probabilità; le scelte non disponibili restano visibili ma spente, con il motivo.</li>
+<li><b>Scheda</b>: sei caratteristiche, PF/CA/movimento, sei posti più cintura, confronto con l'oggetto selezionato (verde meglio, rosso peggio) e zaino a griglia.</li>
+</ul>
+<h2>Da decidere con te</h2>
+<ul><li>La barra azioni della battaglia ha 6 pulsanti: ti sembrano abbastanza grandi per il pollice o ne tolgo uno (Pozione dentro «Oggetti»)?</li><li>Il ritratto nella scheda è quello dell'account: va bene così o lo vuoi più grande?</li></ul>
+</div>
+<script>
+const S3=Math.sqrt(3),NS='http://www.w3.org/2000/svg';
+const COL={pianura:'#86a554',strada:'#c2a672',bosco:'#3f7a43',collina:'#a8955a',palude:'#5d7a62',montagna:'#7d7d8c',acqua:'#3a6ea5',nebbia:'#1c1814',pav:'#5b4d3c',alto:'#8a7550',muro:'#3a3228'};
+const pts=(cx,cy,R)=>[0,1,2,3,4,5].map(i=>{const a=Math.PI/180*(60*i-30);return(cx+R*Math.cos(a)).toFixed(1)+','+(cy+R*Math.sin(a)).toFixed(1)}).join(' ');
+function el(svg,tag,at,txt){const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e}
+function sym(svg,id,x,y,s,fill){const u=el(svg,'use',{href:'#'+id,x:x-s/2,y:y-s/2,width:s,height:s});u.style.fill=fill||'#fff';return u}
+/* ---- mappa del mondo: coordinate assiali, raggio 4, pointy-top ---- */
+(function(){const svg=document.getElementById('mapw'),R=34,ox=195,oy=232;
+ const terr=(q,r)=>{const d=(Math.abs(q)+Math.abs(q+r)+Math.abs(r))/2,h=Math.sin(q*1.7+r*.9)+Math.cos(q*.6-r*1.3);
+  if(d>=4)return h>0?'montagna':'acqua';if(h>1.2)return'collina';if(h<-1.2)return'palude';if(h>.35)return'bosco';return'pianura'};
+ const poi={'0,0':null,'-2,1':'citta','2,-2':'santuario','1,2':'antro','-1,-2':'tesoro','3,-1':'campo'};
+ const eroi={'0,0':['M',true],'-1,1':['T',false],'1,-1':['B',false]};
+ const cost={'1,0':1,'0,1':2,'-1,0':1,'0,-1':2,'1,-1':null,'-1,1':null};
+ const fog=new Set(['3,-3','-3,3','2,1','-2,-1','3,0','-3,0','0,3','0,-3','-1,3','1,-3','3,-2','-3,1']);
+ const cells=[];for(let q=-4;q<=4;q++)for(let r=Math.max(-4,-q-4);r<=Math.min(4,-q+4);r++)cells.push([q,r]);
+ for(const[q,r]of cells){const x=ox+R*S3*(q+r/2),y=oy+R*1.5*r*.98,k=q+','+r,t=terr(q,r),f=fog.has(k)||Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))>=4;
+  const reach=(k in cost)&&cost[k]!=null;
+  el(svg,'polygon',{points:pts(x,y,R-1.5),fill:f?COL.nebbia:COL[t],stroke:reach?'#f3d37a':f?'#2c261f':'rgba(0,0,0,.4)','stroke-width':reach?3:1.5});
+  if(f)continue;
+  if(t==='bosco'||t==='collina')sym(svg,t==='bosco'?'stella':'passi',x,y,16,'rgba(0,0,0,.28)');
+  if(poi[k]==='citta')el(svg,'text',{x:x,y:y+R*.78,'text-anchor':'middle','font-size':11,'font-weight':800,fill:'#fff',stroke:'#000','stroke-width':2.4,'paint-order':'stroke'},'Ponente');
+  if(poi[k])sym(svg,poi[k]==='citta'?'casa':poi[k]==='antro'?'teschio':poi[k]==='santuario'?'stella':poi[k]==='tesoro'?'moneta':'fuoco',x,y,26,'#fff');
+  if(reach)el(svg,'text',{x:x+R*.45,y:y-R*.42,'text-anchor':'middle','font-size':12,'font-weight':800,fill:'#fff',stroke:'#000','stroke-width':2.4,'paint-order':'stroke'},cost[k]);
+  if(eroi[k]){const[l,att]=eroi[k];el(svg,'circle',{cx:x,cy:y,r:13,fill:att?'#f3d37a':'#cfe9d4',stroke:att?'#2a1a08':'#12301c','stroke-width':3});el(svg,'text',{x:x,y:y+5,'text-anchor':'middle','font-size':14,'font-weight':900,fill:'#2a1a08'},l)}}
+ el(svg,'text',{x:195,y:24,'text-anchor':'middle','font-size':13,'font-weight':800,fill:'#b89c6e'},'Regno di Ponente · notte tra 2 turni');
+ })();
+/* ---- battaglia: coordinate a righe sfalsate (odd-r), 7 colonne x 7 righe ---- */
+(function(){const svg=document.getElementById('mapb'),R=28,ox=37,oy=76;
+ const xy=(c,r)=>[ox+R*S3*(c+(r&1?.5:0)),oy+R*1.5*r];
+ const cube=(c,r)=>{const x=c-(r-(r&1))/2;return[x,-x-r,r]};
+ const dist=(a,b)=>{const p=cube(...a),q=cube(...b);return Math.max(Math.abs(p[0]-q[0]),Math.abs(p[1]-q[1]),Math.abs(p[2]-q[2]))};
+ const eroi={'2,5':['M','now'],'4,6':['T'],'1,6':['L'],'5,5':['B']},nem={'3,1':['G'],'5,2':['G'],'1,2':['C'],'4,3':['G']};
+ const muro=new Set(['0,3','1,3','6,3']),alto=new Set(['2,3','3,4']),cop=new Set(['2,4','3,3','5,3']),sup=new Set(['4,2']);
+ const mover=[2,5],tgt='4,3';
+ const pathSet=new Set(['2,5','3,4']); // percorso in anteprima (visto come celle)
+ for(let r=0;r<7;r++)for(let c=0;c<7;c++){const[x,y]=xy(c,r),k=c+','+r;let f=COL.pav;if(muro.has(k))f=COL.muro;else if(alto.has(k))f=COL.alto;if(sup.has(k))f='#7b4a3a';
+  const d=dist(mover,[c,r]),ok=d<=3&&!muro.has(k)&&!eroi[k]&&!nem[k];
+  el(svg,'polygon',{points:pts(x,y,R-1.2),fill:f,stroke:pathSet.has(k)&&k!=='2,5'?'#7ab6ff':ok?'rgba(243,211,122,.85)':'rgba(0,0,0,.45)','stroke-width':pathSet.has(k)&&k!=='2,5'?4:ok?2.4:1.4});
+  if(alto.has(k)){el(svg,'polygon',{points:pts(x,y-4,R-6),fill:'#a28c5f',stroke:'#000','stroke-width':1});}
+  if(cop.has(k))sym(svg,'scudo',x+R*.52,y+R*.45,13,'#9fb0c0');
+  if(sup.has(k))sym(svg,'fuoco',x,y,15,'#ff9a52');
+  if(k===tgt)el(svg,'polygon',{points:pts(x,y,R+1),fill:'rgba(255,106,87,.2)',stroke:'#ff6a57','stroke-width':3.4});
+  if(eroi[k]||nem[k]){const e=eroi[k]||nem[k],h=!!eroi[k];el(svg,'circle',{cx:x,cy:y,r:16,fill:h?'#1d2a1f':'#2f1713',stroke:e[1]==='now'?'#f0c166':h?'#6fe39a':'#ff6a57','stroke-width':e[1]==='now'?5:3.2});el(svg,'text',{x:x,y:y+5,'text-anchor':'middle','font-size':14,'font-weight':900,fill:'#f0d9ae'},e[0]);
+   const hp=h?.8:k===tgt?.55:1;el(svg,'rect',{x:x-13,y:y+18,width:26,height:4,fill:'#000'});el(svg,'rect',{x:x-13,y:y+18,width:26*hp,height:4,fill:h?'#6fe39a':'#ff6a57'})}}
+ const[tx,ty]=xy(4,3);const bx=80,by=4;
+ el(svg,'rect',{x:bx,y:by,width:228,height:42,fill:'#1b130a',stroke:'#f0c166','stroke-width':2});
+ el(svg,'text',{x:bx+8,y:by+17,'font-size':14,'font-weight':800,fill:'#f0d9ae'},'Colpisci 65% · +2 CA copertura');
+ el(svg,'text',{x:bx+8,y:by+35,'font-size':13,'font-weight':800,fill:'#6fe39a'},'Danno 3–9 · vantaggio (rialzo)');
+ el(svg,'path',{d:`M${bx+160},${by+42} L${tx},${ty-18}`,stroke:'#f0c166','stroke-width':2,fill:'none'});
+ el(svg,'text',{x:195,y:366,'text-anchor':'middle','font-size':12,'font-weight':800,fill:'#b89c6e'},'Tocca per muoverti o mirare · il secondo tocco conferma')})();
+</script>
+</body></html>

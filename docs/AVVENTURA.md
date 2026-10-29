@@ -70,6 +70,7 @@ Scopo: fissare numeri, nomi e schermate prima del codice, così le task successi
 4. Quattro mockup statici a 390 px in un solo file HTML (`docs/design/avventura.html`): mappa del mondo, battaglia, dialogo, scheda/inventario. Un solo passaggio di revisione con l'utente (i mockup gli costano quota: niente varianti multiple).
 5. Tabella dei numeri base: PF per livello, CA tipiche, danni medi per livello, CD per pericolo, curva XP (riuso `SOGLIE_XP`), oro per sessione.
 - Fatto quando: l'utente approva mockup e nome; scheda regole e numeri in repo.
+- **Stato (29 ottobre 2026)**: scheda `docs/rules/avventura.md` (regole, glossario, numeri, riferimento visivo con fonti) e mockup `docs/design/avventura.html` scritti; nome approvato. In attesa dell'approvazione dei mockup.
 
 ## A1 — Fondamenta e pulizia
 Scopo: rendere il codice esistente pronto a crescere senza rompere le campagne salvate.
@@ -109,7 +110,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 1. **Griglia a esagoni** (coordinate assiali, riuso di `CAMP.dist/vicini`), circa 9×11 esagoni. Celle: pavimento, muro, ostacolo basso (mezza copertura +2 CA), ostacolo alto (copertura totale), terreno difficile (costo doppio), rialzo (altezza +1), superfici (fuoco, ghiaccio, veleno, acqua). Arene generate dall'ambiente della casella (bosco: alberi e radici; palude: fango; città: casse e muretti; antro: colonne) più arene scritte a mano per i capi.
 2. **Schieramento**: eroi presenti nell'esagono e in quelli vicini entrano (chi è più lontano arriva dopo N turni); sorpresa e imboscata da prova di Percezione/Furtività.
 3. **Iniziativa**: d20 + DES, ordine visibile; turno di un singolo combattente.
-4. **Economia del turno**: movimento in esagoni tirato a inizio turno (metà fissa dalla razza + 1d4, ritirabile con Concentrazione), un'azione, un'azione bonus, una reazione per giro. Azioni base: attacca, scatto, disimpegno, nasconditi, aiuta, usa oggetto, spingi, alza un compagno, prepara (azione pronta).
+4. **Economia del turno**: movimento in esagoni tirato a inizio turno (movimento della razza − 2 + 1d4, ritirabile con Concentrazione), un'azione, un'azione bonus, una reazione per giro. Azioni base: attacca, scatto, disimpegno, nasconditi, aiuta, usa oggetto, spingi, alza un compagno, prepara (azione pronta).
 5. **Tiro per colpire**: d20 + bonus contro CA; vantaggio da altezza, da bersaglio a terra o nascosto, da aiuto; svantaggio da distanza lunga, da bersaglio in copertura per i tiri (o +CA), da accecato. Critico al 20 (dadi doppi), fallimento all'1. Probabilità esatta esposta alla vista prima di confermare.
 6. **Linea di vista e raggi**: algoritmo a linea tra centri delle celle, muri e ostacoli alti bloccano; gittate delle armi; aree dei poteri.
 7. **Reazioni**: attacco di opportunità all'uscita dalla portata, poteri di reazione (parata, contrattacco, scudo magico).
@@ -129,7 +130,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 7. Scenario `avv_battaglia` in `tools/test-browser/` e una schermata finale a 390 px.
 
 ## A6 — Mappa del mondo (evoluta)
-1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento tirato a ogni turno: base dalla razza + dado (es. 1d4), con Concentrazione per ritirarlo.
+1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento tirato a ogni turno: movimento della razza − 2 + 1d4, con Concentrazione per ritirarlo.
 2. Chi è entro 1 esagono da una battaglia entra subito, entro 2 arriva dopo alcuni turni.
 3. Mappa per capitolo: dimensione maggiore, regioni con nome, luoghi scritti a mano (A8) più luoghi generati: città, villaggi, santuari (abbassano la perdizione), antri e rovine (sotterranei), accampamenti, mercanti erranti.
 4. **Nemici visibili** che si spostano a ogni fase e incontri casuali residui; di notte più forti.
