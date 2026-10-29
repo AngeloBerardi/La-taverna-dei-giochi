@@ -1,6 +1,7 @@
 // Eroi: costi dei punteggi, razze e classi, derivati, validazione, livelli, prove.
 const assert = require('assert');
 const E = require('../src/js/motori/27-eroi.js');
+const O = require('../src/js/motori/27b-avv-oggetti.js');
 const rng = require('./carica.js').rng(11);
 const A = { pelle: 0, capelli: 1, mantello: 2, viso: 0 };
 const base = (o) => ({ ...E.baseIniziale(), ...o });
@@ -17,11 +18,10 @@ assert.deepStrictEqual([1, 4, 5, 8, 9, 10].map(E.comp), [2, 2, 3, 3, 4, 4]);
 for (const [id, c] of Object.entries(E.CLASSI)) {
   assert(c.dado >= 6 && c.dado <= 12 && E.STAT.includes(c.primaria) && c.salvezze.every(s => E.STAT.includes(s)), id);
   assert(c.abilita.every(a => E.ABILITA[a]), 'abilità sconosciuta in ' + id);
-  for (const [slot, o] of Object.entries(c.equip)) assert(o === null || (E.OGGETTI[o] && E.OGGETTI[o].slot === slot), `${id}: oggetto ${o}`);
+  for (const [slot, o] of Object.entries(c.equip)) assert(o === null || (O.OGG[o] && O.OGG[o].slot === slot), `${id}: oggetto ${o}`);
   assert(/^[a-z]+$/.test(id) && c.nome && c.desc);
 }
 for (const [id, r] of Object.entries(E.RAZZE)) { assert(Object.keys(r.bonus).every(k => E.STAT.includes(k)) && r.mov >= 4 && r.mov <= 7 && r.nome && r.tratto && r.desc && /^[a-z]+$/.test(id)); assert(Object.values(r.bonus).reduce((a, b) => a + b, 0) <= 6); }
-for (const [id, o] of Object.entries(E.OGGETTI)) assert(/^[a-z-]+$/.test(id) && o.nome && ['arma', 'armatura', 'scudo'].includes(o.slot), id);
 
 // creazione: guerriero nano
 const g = E.nuovo({ nome: ' Brunilde ', razza: 'nano', classe: 'guerriero', base: base({ for: 15, cos: 14, des: 10, sag: 10 }), aspetto: A }, 1000);
@@ -31,7 +31,7 @@ assert.deepStrictEqual(d.stat, { for: 16, des: 10, cos: 16, int: 8, sag: 10, car
 assert.strictEqual(d.hpMax, 10 + 3, 'd10 + mod COS 16 (+3)');
 assert.strictEqual(g.hp, d.hpMax);
 assert.strictEqual(d.ca, 16 + 2 + 1, 'cotta di maglia 16 + scudo 2 + pelle di pietra 1');
-assert.strictEqual(d.comp, 2); assert.strictEqual(d.attacco, 3 + 2); assert.deepStrictEqual(d.danno, { dado: 8, bonus: 3 });
+assert.strictEqual(d.comp, 2); assert.strictEqual(d.attacco, 3 + 2); assert.deepStrictEqual(d.danno, { n: 1, dado: 8, bonus: 3, tipo: 'taglio' });
 assert.strictEqual(d.mov, 5); assert(E.coerente(g));
 // mago elfo: pochi PF, CA da vesti + DES
 const m = E.nuovo({ nome: 'Isil', razza: 'elfo', classe: 'mago', base: base({ int: 15, des: 14, cos: 13 }), aspetto: A });
@@ -88,6 +88,13 @@ for (const [v, c] of Object.entries(E.COSTO)) { const regola = Number(v) <= 13 ?
 assert(rules.includes("['e1', 'e2', 'e3', 'e4', 'e5']") && E.SLOT_ID.join() === 'e1,e2,e3,e4,e5', 'posti degli eroi');
 for (const [k, n] of Object.entries(E.ASPETTO)) assert(rules.includes(`a.${k} < ${n}`), 'limite aspetto ' + k);
 assert(rules.includes('d.liv <= ' + E.LIV_MAX), 'livello massimo');
+// oggetti: gli id nelle regole sono esattamente quelli del catalogo, per categoria; zaino e cintura hanno le stesse misure
+const idRegole = (nome) => { const m = rules.match(new RegExp('// oggetti:' + nome + '\\n([\\s\\S]*?)// oggetti:' + nome + ':fine')); assert(m, 'segnaposto oggetti:' + nome); return [...m[1].matchAll(/'([a-z-]+)'/g)].map(x => x[1]).sort(); };
+const dei = (slot) => O.ID.filter(i => O.OGG[i].slot === slot).sort();
+assert.deepStrictEqual(idRegole('armi'), dei('arma')); assert.deepStrictEqual(idRegole('armature'), dei('armatura')); assert.deepStrictEqual(idRegole('scudi'), dei('scudo'));
+assert.deepStrictEqual(idRegole('accessori'), dei('acc')); assert.deepStrictEqual(idRegole('consumabili'), dei('cons')); assert.deepStrictEqual(idRegole('tutti'), [...O.ID].sort());
+assert(rules.includes('d.zaino.size() <= ' + O.MAX_ZAINO) && rules.includes('d.cintura.size() <= ' + O.MAX_CINTURA), 'misure di zaino e cintura');
+assert(rules.includes("q.keys().hasOnly(['" + O.SLOT_EQ.join("', '") + "'])"), 'posti dell\'equipaggiamento');
 // bonus e probabilità coerenti con la prova vera
 { const h = E.nuovo({ nome: 'P', razza: 'elfo', classe: 'ladro', aspetto: A, base: base({ des: 15, sag: 13 }) });
   assert.strictEqual(E.bonus(h, 'furtivita'), E.mod(E.punteggi(h.base, h.razza).des) + E.comp(1));

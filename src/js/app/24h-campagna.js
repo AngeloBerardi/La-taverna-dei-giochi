@@ -34,7 +34,7 @@ const Camp={
 <div class="cmis">${ic('bersaglio',16)} ${dir}</div>
 ${Camp.mappaH(s)}<div class="cqui">${ic('pin',16)} ${esc(Camp.qui(s))}</div>${Camp.eroiH(s)}${fine}${!s.over&&s.incontro?Camp.incontroH(s):''}${Camp.ultimaH(s)}
 <div class="clog" role="log">${s.log.slice(-3).map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="acc-msg" role="status">${esc(Camp.msg)}</p>
-${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa '+ic('luna',16):'Alba '+ic('sole',16)}</button></div>`:''}</div></div>`},
+${!s.over&&!s.incontro?`<div class="cbarra"><button class="b" data-a="campentra" ${puo?'':'disabled'}>Entra</button><button class="b" data-a="ivapri" aria-label="Zaino e bottega">${ic('borsa',18)} Zaino</button><button class="b" data-a="campriposa">${s.fase==='giorno'?'Riposa '+ic('luna',16):'Alba '+ic('sole',16)}</button></div>`:''}</div></div>`},
  salva(){try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){ERR.n(e)}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=CAMP.migra(j.s)}catch(e){ERR.n(e)}},
  cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna '+ic('spada',16)+'</button>':''},

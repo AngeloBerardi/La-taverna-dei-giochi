@@ -6,6 +6,7 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const B = require(path.join(root, 'src/js/motori/22-bottega.js'));
 const EROI = require(path.join(root, 'src/js/motori/27-eroi.js'));
+const AOGG = require(path.join(root, 'src/js/motori/27b-avv-oggetti.js'));
 const file = path.join(root, 'firestore.rules');
 let t = fs.readFileSync(file, 'utf8');
 const giochi = [...fs.readFileSync(path.join(root, 'src/js/app/07-nucleo.js'), 'utf8').matchAll(/(?:^ \{|GAMES\.push\(\{)id:'([a-z0-9]+)'/gm)].map(m => m[1]);
@@ -30,7 +31,22 @@ function bloccoOr(testo, nome, campo, ids) {
   return testo.slice(0, i + IN.length) + '\n' + ids.map((x, k) => `${rientro}${k ? '|| ' : ''}${campo} == '${x}'`).join('\n') + '\n' + rientro + testo.slice(j);
 }
 t = bloccoOr(t, 'eroi:razze', 'r', Object.keys(EROI.RAZZE));
-const nuovo = bloccoOr(t, 'eroi:classi', 'c', Object.keys(EROI.CLASSI));
+t = bloccoOr(t, 'eroi:classi', 'c', Object.keys(EROI.CLASSI));
+// liste di id di oggetti (un id per riga, virgola tranne l'ultima)
+function bloccoLista(testo, nome, ids) {
+  const IN = `// ${nome}`, FI = `// ${nome}:fine`;
+  const i = testo.indexOf(IN + '\n'), j = testo.indexOf(FI);
+  if (i < 0 || j < i) { console.error(`segnaposto ${nome} mancanti in firestore.rules`); process.exit(1); }
+  const rientro = testo.slice(testo.lastIndexOf('\n', i) + 1, i);
+  return testo.slice(0, i + IN.length) + '\n' + ids.map((x, k) => `${rientro}'${x}'${k < ids.length - 1 ? ',' : ''}`).join('\n') + '\n' + rientro + testo.slice(j);
+}
+const per = fn => AOGG.ID.filter(id => fn(AOGG.OGG[id]));
+t = bloccoLista(t, 'oggetti:armi', per(o => o.slot === 'arma'));
+t = bloccoLista(t, 'oggetti:armature', per(o => o.slot === 'armatura'));
+t = bloccoLista(t, 'oggetti:scudi', per(o => o.slot === 'scudo'));
+t = bloccoLista(t, 'oggetti:accessori', per(o => o.slot === 'acc'));
+t = bloccoLista(t, 'oggetti:consumabili', per(o => o.slot === 'cons'));
+const nuovo = bloccoLista(t, 'oggetti:tutti', AOGG.ID);
 const letto = fs.readFileSync(file, 'utf8');
 if (process.argv.includes('--controlla')) { if (nuovo !== letto) { console.error('firestore.rules non allineato a catalogo e giochi: lancia npm run regole'); process.exit(1); } console.log('regole allineate a catalogo e giochi'); process.exit(0); }
-fs.writeFileSync(file, nuovo); console.log(`firestore.rules: ${acq.length} acquisti, ${giochi.length} giochi con ELO, ${Object.keys(EROI.RAZZE).length} razze e ${Object.keys(EROI.CLASSI).length} classi`);
+fs.writeFileSync(file, nuovo); console.log(`firestore.rules: ${acq.length} acquisti, ${giochi.length} giochi con ELO, ${Object.keys(EROI.RAZZE).length} razze, ${Object.keys(EROI.CLASSI).length} classi e ${AOGG.ID.length} oggetti`);

@@ -64,6 +64,211 @@ service cloud.firestore {
         // eroi:classi:fine
         ;
     }
+    // Oggetti dell'avventura: gli id validi sono generati dal catalogo (npm run regole). Le regole controllano id, posti e misure;
+    // il livello minimo e le armi a due mani li controlla il client (EROI.coerente). Non c'è modo di provare da dove arrivi un oggetto.
+    function armiEroe() {
+      return [
+        // oggetti:armi
+        'pugnali',
+        'bastone',
+        'mazza',
+        'spada-lunga',
+        'stocco',
+        'arco',
+        'ascia',
+        'lancia',
+        'fionda',
+        'spada-corta',
+        'martello-guerra',
+        'balestra',
+        'spadone',
+        'grande-ascia',
+        'maglio',
+        'picca',
+        'arco-lungo',
+        'spada-argentata',
+        'stocco-lampo',
+        'pugnali-notturni',
+        'mazza-sacra',
+        'arco-del-cacciatore',
+        'bastone-arcano',
+        'lama-della-brace',
+        'arco-del-vento',
+        'bastone-del-gelo',
+        'maglio-del-crollo',
+        'spada-dei-re',
+        'arco-stellato'
+        // oggetti:armi:fine
+      ];
+    }
+    function armatureEroe() {
+      return [
+        // oggetti:armature
+        'stracci',
+        'cuoio',
+        'cuoio-borchiato',
+        'camicia-maglia',
+        'scaglie',
+        'cotta-maglia',
+        'corazza-piastre',
+        'cuoio-della-notte',
+        'mezza-corazza',
+        'maglia-argentea',
+        'armatura-completa',
+        'corazza-del-guardiano',
+        'armatura-del-sovrano'
+        // oggetti:armature:fine
+      ];
+    }
+    function scudiEroe() {
+      return [
+        // oggetti:scudi
+        'scudo-piccolo',
+        'scudo-legno',
+        'scudo-torre',
+        'scudo-del-custode',
+        'scudo-specchio',
+        'scudo-del-re'
+        // oggetti:scudi:fine
+      ];
+    }
+    function accessoriEroe() {
+      return [
+        // oggetti:accessori
+        'amuleto-di-quercia',
+        'guanti-da-lavoro',
+        'fascia-da-cacciatore',
+        'anello-di-rame',
+        'anello-protettivo',
+        'stivali-leggeri',
+        'guanti-del-ladro',
+        'mantello-ombroso',
+        'amuleto-vitale',
+        'anello-del-tiro',
+        'anello-della-forza',
+        'anello-del-custode',
+        'amuleto-della-fenice',
+        'mantello-fiammeo',
+        'cintura-del-gigante',
+        'cuore-di-drago',
+        'occhio-del-falco'
+        // oggetti:accessori:fine
+      ];
+    }
+    function consumabiliEroe() {
+      return [
+        // oggetti:consumabili
+        'razione',
+        'kit-guaritore',
+        'pozione-cura',
+        'antidoto',
+        'bomba-fuoco',
+        'pozione-cura-maggiore',
+        'bomba-gelo',
+        'pergamena-fulmine',
+        'pergamena-benedizione',
+        'tonico-concentrazione',
+        'pozione-cura-suprema',
+        'elisir-vigore'
+        // oggetti:consumabili:fine
+      ];
+    }
+    function oggettiEroe() {
+      return [
+        // oggetti:tutti
+        'pugnali',
+        'bastone',
+        'mazza',
+        'spada-lunga',
+        'stocco',
+        'arco',
+        'ascia',
+        'lancia',
+        'fionda',
+        'spada-corta',
+        'martello-guerra',
+        'balestra',
+        'spadone',
+        'grande-ascia',
+        'maglio',
+        'picca',
+        'arco-lungo',
+        'spada-argentata',
+        'stocco-lampo',
+        'pugnali-notturni',
+        'mazza-sacra',
+        'arco-del-cacciatore',
+        'bastone-arcano',
+        'lama-della-brace',
+        'arco-del-vento',
+        'bastone-del-gelo',
+        'maglio-del-crollo',
+        'spada-dei-re',
+        'arco-stellato',
+        'stracci',
+        'cuoio',
+        'cuoio-borchiato',
+        'camicia-maglia',
+        'scaglie',
+        'cotta-maglia',
+        'corazza-piastre',
+        'cuoio-della-notte',
+        'mezza-corazza',
+        'maglia-argentea',
+        'armatura-completa',
+        'corazza-del-guardiano',
+        'armatura-del-sovrano',
+        'scudo-piccolo',
+        'scudo-legno',
+        'scudo-torre',
+        'scudo-del-custode',
+        'scudo-specchio',
+        'scudo-del-re',
+        'amuleto-di-quercia',
+        'guanti-da-lavoro',
+        'fascia-da-cacciatore',
+        'anello-di-rame',
+        'anello-protettivo',
+        'stivali-leggeri',
+        'guanti-del-ladro',
+        'mantello-ombroso',
+        'amuleto-vitale',
+        'anello-del-tiro',
+        'anello-della-forza',
+        'anello-del-custode',
+        'amuleto-della-fenice',
+        'mantello-fiammeo',
+        'cintura-del-gigante',
+        'cuore-di-drago',
+        'occhio-del-falco',
+        'razione',
+        'kit-guaritore',
+        'pozione-cura',
+        'antidoto',
+        'bomba-fuoco',
+        'pozione-cura-maggiore',
+        'bomba-gelo',
+        'pergamena-fulmine',
+        'pergamena-benedizione',
+        'tonico-concentrazione',
+        'pozione-cura-suprema',
+        'elisir-vigore',
+        'sigillo-dei-corvi',
+        'chiave-dell-antro',
+        'frammento-di-corona'
+        // oggetti:tutti:fine
+      ];
+    }
+    function postoEroeOk(q, k, ids) { return q.get(k, null) == null || q.get(k, null) in ids; }
+    function equipEroeOk(q) {
+      return q is map && q.keys().hasOnly(['arma', 'scudo', 'armatura', 'acc1', 'acc2'])
+        && postoEroeOk(q, 'arma', armiEroe()) && postoEroeOk(q, 'scudo', scudiEroe()) && postoEroeOk(q, 'armatura', armatureEroe())
+        && postoEroeOk(q, 'acc1', accessoriEroe()) && postoEroeOk(q, 'acc2', accessoriEroe());
+    }
+    function zainoEroeOk(d) {
+      return (!('zaino' in d) || (d.zaino is list && d.zaino.size() <= 16 && d.zaino.hasOnly(oggettiEroe())))
+        && (!('cintura' in d) || (d.cintura is list && d.cintura.size() <= 3 && d.cintura.hasOnly(consumabiliEroe())));
+    }
     // Crescita limitata (nessuna Cloud Function: è una protezione leggera contro chi modifica il client). A ogni scrittura
     // l'esperienza sale di al massimo 800 e l'oro di 1000; chi guadagna scrive anche `agg` (ora del server) e deve
     // aspettare 60 secondi dall'ultimo guadagno. Spendere oro o curarsi non ha attesa. Stessi numeri di EROI.LIMITI.
@@ -73,14 +278,14 @@ service cloud.firestore {
           || (n.agg == request.time && request.time > v.get('agg', timestamp.value(0)) + duration.value(60, 's')));
     }
     function eroeOk(d) {
-      return d.keys().hasOnly(['v', 'nome', 'razza', 'classe', 'aspetto', 'base', 'liv', 'xp', 'oro', 'equip', 'creato', 'hpMax', 'hp', 'agg'])
+      return d.keys().hasOnly(['v', 'nome', 'razza', 'classe', 'aspetto', 'base', 'liv', 'xp', 'oro', 'equip', 'zaino', 'cintura', 'creato', 'hpMax', 'hp', 'agg'])
         && (!('agg' in d) || d.agg is timestamp)
         && d.v == 1 && d.nome is string && d.nome.size() >= 1 && d.nome.size() <= 16
         && razzaEroeOk(d.razza) && classeEroeOk(d.classe) && baseEroeOk(d.base) && aspettoEroeOk(d.aspetto)
         && d.liv is int && d.liv >= 1 && d.liv <= 10 && d.xp is int && d.xp >= 0 && d.xp < 100000
         && d.oro is int && d.oro >= 0 && d.oro < 1000000
         && d.hpMax is int && d.hpMax >= 1 && d.hpMax <= 200 && d.hp is int && d.hp >= 0 && d.hp <= d.hpMax
-        && d.equip is map && d.creato is int;
+        && equipEroeOk(d.equip) && zainoEroeOk(d) && d.creato is int;
     }
 
     match /players/{uid}/eroi/{eroe} {

@@ -17,5 +17,11 @@ Obiettivo: campagne a più sessioni stile *For the King* (mappa a esagoni, grupp
 - **Pagina Avventura** (`app/24ha-avventura.js`): Continua, Nuova campagna, I tuoi eroi, Compagni, Come si gioca. Sostituisce il pulsante «Eroi» delle Impostazioni.
 - **Regole degli eroi**: `EROI.LIMITI` (+800 xp e +1000 oro per scrittura, 60 s tra due guadagni, campo `agg` con l'ora del server); client `FB.avanzaEroe` (usato dalla task A9).
 
+## Aggiornamenti (A2, ottobre 2026)
+- **Oggetti**: `motori/27b-avv-oggetti.js` (`AOGG`). Armi per famiglia (accurata, a due mani, da lancio, gittata, portata), armature leggere/medie/pesanti, scudi, accessori, consumabili e oggetti di missione, in 4 rarità. L'eroe ha 5 posti (mano, seconda mano, armatura, 2 accessori), una cintura da 3 consumabili e uno zaino da 16. `EROI.derivati` somma i bonus (CA, attacco, danno, iniziativa, movimento, PF, abilità, resistenze); un eroe nuovo parte con una pozione.
+- **Bottino e botteghe**: `motori/27c-avv-bottino.js` (`ABOT`). Forzieri, incontri (bestie, viandanti, rovine) e ricompense di antro e torre danno oro e oggetti secondo il pericolo (cresce con la distanza dalla città) e l'ambiente. In città il fabbro e l'emporio vendono la merce comune sempre e 4 pezzi rari o epici che cambiano ogni 3 giorni (dal seme della campagna). Si compra a listino e si rivende a metà prezzo: non nascono monete.
+- **Campagna**: oro comune `s.oro`, oggetti nello zaino di ogni eroe; azioni `equipa`, `togli`, `cintura`, `zaino`, `usa`, `passa`, `compra`, `vendi` (bloccate negli incontri; compra e vendi solo in città). `CAMP.migra` completa anche i salvataggi senza zaino.
+- **Vista**: pulsante Zaino sulla mappa → `app/24hb-inventario.js` (`Inv`): indossato, cintura, griglia dello zaino, confronto con ciò che si indossa, bottega.
+
 ## Da fare
 Il piano completo, diviso in task da una sessione, è in `docs/AVVENTURA.md`.

@@ -10,6 +10,7 @@ const Avv={
   ['Mappa a esagoni','Tocca un esagono vicino per muovere la compagnia. Strada e pianura costano poco, boschi, colli e paludi di più; il movimento di tutti è quello dell\'eroe più lento.'],
   ['Incontri e prove','Dopo ogni mossa può nascere un incontro. Scegli chi prova e con quale abilità: tiri un d20, aggiungi il bonus e vinci se arrivi alla difficoltà. La percentuale è sempre scritta sul bottone.'],
   ['Giorno, notte, perdizione','Riposa due volte per far passare un giorno. All\'alba la perdizione sale di 3: a 100 la campagna è persa. Di notte gli incontri sono più duri.'],
+  ['Zaino e botteghe','Dal pulsante Zaino della mappa vedi cosa indossi e cosa porti, con il confronto prima di equipaggiare. In città il fabbro e l\'emporio vendono; rivendi a metà prezzo. L\'oro è comune a tutta la compagnia.'],
   ['La missione','Parla con il sindaco in città, ripulisci l\'antro (tre prove) e abbatti la Torre dei Corvi (quattro prove). Ogni prova ha le sue abilità.']],
  cartaCont(s){const e=s.eroi.map(h=>`<span class="av-rit${h.hp<=0?' ko':''}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,40)}</span>`).join('');
   return`<button class="av-card av-cont" data-a="avvcontinua"><span class="av-ritt">${e}</span><span class="av-tx"><b>${esc(s.missione.titolo)}</b><small>Giorno ${s.giorno} · perdizione ${s.perdizione}/100 · ${CAMP.vivi(s).length} eroi in piedi</small></span><span class="av-go">Continua</span></button>`},

@@ -96,6 +96,14 @@ Scopo: dare senso a oro, tesori e città.
 7. Regole Firestore dell'eroe: aggiungere `zaino` ed `equip` estesi con ID validi generati dal catalogo.
 - Test: conservazione dell'oro (comprare/vendere non crea monete), prezzi coerenti con la rarità, derivati con ogni combinazione, bottino sempre valido.
 
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte:
+  - L'**identificazione** degli oggetti magici è stata tolta: con oggetti che sono solo un id non darebbe alcuna decisione al giocatore. Si riprende in A3 se gli oggetti magici avranno effetti nascosti.
+  - Il **peso** non c'è: lo zaino ha 16 posti. Il livello minimo è controllato dal client (`EROI.coerente`), non dalle regole Firestore.
+  - Le regole Firestore controllano id, posti e misure di `equip`, `zaino` e `cintura`. **Non possono sapere da dove arrivi un oggetto**: un client modificato può scriversi un oggetto raro (come l'XP, qui si può solo limitare). Accettato per un gioco tra amici, senza Cloud Functions.
+  - L'equipaggiamento si cambia solo in campagna (pulsante Zaino); il ritorno sulla scheda dell'account arriva con A9 (`FB.avanzaEroe` scriverà anche `zaino`, `cintura`, `equip`).
+  - Effetti dei consumabili: fuori battaglia funziona la cura; bombe, pergamene, tonico e stati sono dati pronti per A3/A4.
+  - Sezione «oggetti» della scheda regole `docs/rules/avventura.md`: da aggiungere dopo l'unione della PR di A0.
+
 ## A3 — Poteri di classe, talenti, stati, bestiario
 Scopo: rendere ogni classe diversa da giocare.
 1. Per ogni classe 6 poteri sbloccati ai livelli 1, 1, 3, 5, 7, 9 (uno a scelta tra due ai livelli 3, 5, 7, 9) più un passivo di classe. Ogni potere: costo (azione, azione bonus, reazione), ricarica (a turno, a scontro, a riposo), area (singolo, linea, cono, cerchio), tiro (attacco o salvezza), effetti.

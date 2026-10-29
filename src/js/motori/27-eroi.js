@@ -23,12 +23,8 @@ const EROI=(()=>{
   bardo:{nome:'Bardo',dado:8,primaria:'car',salvezze:['des','car'],abilita:['persuasione','storia'],equip:{arma:'stocco',armatura:'cuoio',scudo:null},desc:'Una canzone per ogni battaglia, una battuta per ogni guaio.'}};
  const ABILITA={atletica:'for',intimidire:'car',furtivita:'des',acrobazia:'des',arcano:'int',storia:'int',medicina:'sag',percezione:'sag',sopravvivenza:'sag',persuasione:'car'};
  const NOME_AB={atletica:'Atletica',intimidire:'Intimidire',furtivita:'Furtività',acrobazia:'Acrobazia',arcano:'Arcano',storia:'Storia',medicina:'Medicina',percezione:'Percezione',sopravvivenza:'Sopravvivenza',persuasione:'Persuasione'};
- // oggetti: danno, bonus alla CA (armatura = CA di base, scudo = +CA)
- const OGGETTI={
-  'spada-lunga':{slot:'arma',nome:'Spada lunga',dado:8,stat:'for'},'pugnali':{slot:'arma',nome:'Pugnali',dado:4,stat:'des'},'bastone':{slot:'arma',nome:'Bastone ferrato',dado:6,stat:'for'},
-  'mazza':{slot:'arma',nome:'Mazza benedetta',dado:6,stat:'for'},'arco':{slot:'arma',nome:'Arco corto',dado:6,stat:'des'},'stocco':{slot:'arma',nome:'Stocco',dado:8,stat:'des'},
-  'stracci':{slot:'armatura',nome:'Vesti da viaggio',ca:10,des:true},'cuoio':{slot:'armatura',nome:'Cuoio bollito',ca:11,des:true},'cotta-maglia':{slot:'armatura',nome:'Cotta di maglia',ca:16,des:false},
-  'scudo-legno':{slot:'scudo',nome:'Scudo di legno',ca:2}};
+ // oggetti: catalogo in motori/27b-avv-oggetti.js (AOGG, unica fonte); lo si legge a runtime perché viene caricato dopo questo file
+ const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js');
  // limiti di crescita per ogni scrittura sull'account (stessi numeri di firestore.rules, controllati da tests/test_eroi.js)
  const LIMITI={xp:800,oro:1000,attesaS:60};
  const SOGLIE_XP=[0,100,300,700,1300,2100,3200,4600,6400,8600],LIV_MAX=SOGLIE_XP.length;
@@ -44,16 +40,16 @@ const EROI=(()=>{
  function derivati(h){
   const c=CLASSI[h.classe],st=punteggi(h.base,h.razza),mc=mod(st.cos),liv=h.liv||1,perLiv=Math.floor(c.dado/2)+1+mc;
   const hpMax=Math.max(1,c.dado+mc+(liv-1)*Math.max(1,perLiv));
-  const arm=OGGETTI[(h.equip||{}).armatura],scu=OGGETTI[(h.equip||{}).scudo];
-  let ca=arm?arm.ca+(arm.des?mod(st.des):0):10+mod(st.des);if(scu)ca+=scu.ca;if(h.razza==='nano')ca+=1;
-  const arma=OGGETTI[(h.equip||{}).arma];
-  return{stat:st,hpMax,ca,comp:comp(liv),iniziativa:mod(st.des),mov:RAZZE[h.razza].mov,
-   attacco:arma?mod(st[arma.stat])+comp(liv):0,danno:arma?{dado:arma.dado,bonus:mod(st[arma.stat])}:null,
-   abilita:[...c.abilita],salvezze:[...c.salvezze]}}
+  const AG=AO(),OG=AG.OGG,fx=AG.bonus(h),q=h.equip||{},arm=OG[q.armatura],scu=OG[q.scudo],arma=OG[q.arma],dm=mod(st.des);
+  let ca=arm?arm.ca+(arm.desMax===0?0:arm.desMax==null?dm:Math.min(dm,arm.desMax)):10+dm;if(scu)ca+=scu.ca;ca+=fx.ca;if(h.razza==='nano')ca+=1;
+  const ms=arma?(arma.acc?Math.max(mod(st.for),mod(st.des)):mod(st[arma.stat])):0;
+  return{stat:st,hpMax:hpMax+fx.hp,ca,comp:comp(liv),iniziativa:mod(st.des)+fx.iniz,mov:Math.max(1,RAZZE[h.razza].mov+fx.mov),
+   attacco:arma?ms+comp(liv)+fx.att:0,danno:arma?{n:arma.n||1,dado:arma.dado,bonus:ms+fx.dan,tipo:arma.tipo}:null,
+   abilita:[...c.abilita],salvezze:[...c.salvezze],salvBonus:fx.salv,abBonus:fx.ab,res:fx.res}}
  // eroe completo, pronto da salvare. `in`: { nome, razza, classe, base:{...}, aspetto:{...} }. Lancia un errore (code 'eroe') con il motivo.
  function nuovo(inp,ora){
   const e=valida(inp);if(e)throw Object.assign(new Error(e),{code:'eroe'});
-  const h={v:1,nome:inp.nome.trim(),razza:inp.razza,classe:inp.classe,aspetto:{...inp.aspetto},base:{...inp.base},liv:1,xp:0,oro:20,equip:{...CLASSI[inp.classe].equip},creato:ora==null?Date.now():ora};
+  const h={v:1,nome:inp.nome.trim(),razza:inp.razza,classe:inp.classe,aspetto:{...inp.aspetto},base:{...inp.base},liv:1,xp:0,oro:20,equip:{...CLASSI[inp.classe].equip},zaino:['pozione-cura'],cintura:[],creato:ora==null?Date.now():ora};
   const d=derivati(h);h.hpMax=d.hpMax;h.hp=d.hpMax;return h}
  // motivo per cui la scheda non va bene, oppure null
  function valida(i){
@@ -70,6 +66,7 @@ const EROI=(()=>{
  // un eroe salvato: i valori derivati sono quelli giusti? (difesa contro schede manomesse)
  function coerente(h){const e=valida({nome:h.nome,razza:h.razza,classe:h.classe,base:h.base,aspetto:h.aspetto});if(e)return false;
   if(!Number.isInteger(h.liv)||h.liv<1||h.liv>LIV_MAX||h.liv!==livelloPerXp(h.xp))return false;
+  if(AO().invValido(h))return false;
   const d=derivati(h);return h.hpMax===d.hpMax&&h.hp>=0&&h.hp<=h.hpMax}
  // aggiunge esperienza e sale di livello quando serve (restituisce una copia)
  function guadagna(h,xp){const n={...h,xp:Math.max(0,h.xp+xp)};n.liv=livelloPerXp(n.xp);const d=derivati(n);const cura=d.hpMax-h.hpMax;n.hpMax=d.hpMax;n.hp=Math.min(d.hpMax,h.hp+Math.max(0,cura));return n}
@@ -78,11 +75,11 @@ const EROI=(()=>{
   const st=punteggi(h.base,h.razza),k=ABILITA[abilita];if(!k)throw new Error('abilità sconosciuta: '+abilita);
   const d=()=>1+Math.floor((rnd||Math.random)()*20);let t=d();if(vantaggio)t=Math.max(t,d());
   if(h.razza==='piccolo'&&t===1)t=d();
-  const c=CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0,tot=t+mod(st[k])+c+(h.razza==='elfo'&&abilita==='percezione'?1:0);
+  const c=CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0,tot=t+mod(st[k])+c+(h.razza==='elfo'&&abilita==='percezione'?1:0)+(AO().bonus(h).ab[abilita]||0);
   return{tiro:t,mod:mod(st[k]),comp:c,tot,cd,ok:t===20||(t!==1&&tot>=cd),critico:t===20,fallimento:t===1}}
  // bonus totale di un'abilità e probabilità di superare una difficoltà (1 e 20 naturali compresi, senza il ritiro del piccolo)
- function bonus(h,abilita){const st=punteggi(h.base,h.razza);return mod(st[ABILITA[abilita]])+(CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0)+(h.razza==='elfo'&&abilita==='percezione'?1:0)}
+ function bonus(h,abilita){const st=punteggi(h.base,h.razza);return mod(st[ABILITA[abilita]])+(CLASSI[h.classe].abilita.includes(abilita)?comp(h.liv):0)+(h.razza==='elfo'&&abilita==='percezione'?1:0)+(AO().bonus(h).ab[abilita]||0)}
  function probabilita(h,abilita,cd){const b=bonus(h,abilita);let n=0;for(let t=1;t<=20;t++)if(t===20||(t!==1&&t+b>=cd))n++;return n/20}
  const BASE_ID=k=>NOME_STAT[k];
- return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,NOME_AB,OGGETTI,LIMITI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,bonus,probabilita,BASE_ID}})();
+ return{STAT,NOME_STAT,BUDGET,BASE_MIN,BASE_MAX,COSTO,SLOT_ID,MAX_EROI,RAZZE,CLASSI,ABILITA,NOME_AB,LIMITI,SOGLIE_XP,LIV_MAX,ASPETTO,mod,comp,livelloPerXp,costoBase,baseIniziale,punteggi,derivati,nuovo,valida,coerente,guadagna,prova,bonus,probabilita,BASE_ID}})();
 if(typeof module!=='undefined')module.exports=EROI;

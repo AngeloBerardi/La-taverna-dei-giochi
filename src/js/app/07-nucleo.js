@@ -2,9 +2,9 @@
 let G=null,fxDone=null;
 const ui={lobby:(()=>{try{const l=ST('rg-lb');return l==='iso'?l:'3d'}catch(e){return'3d'}})(),screen:'name',sel:[],tsel:[],shown:-1,err:'',busy:false,anim:false,rules:null,cfg:false,story:false,viewEn:null,view:null,opts:{},bsort:'suit',confirm:false};
 
-/* Una sola finestra aperta alla volta: ui.modal ('cfg'|'shop'|'acc'|'top'|'oste'|'dist'|'tvm'|'amici'|'eroi'|'camp'|'avv'|null).
+/* Una sola finestra aperta alla volta: ui.modal ('cfg'|'shop'|'acc'|'top'|'oste'|'dist'|'tvm'|'amici'|'eroi'|'camp'|'inv'|'avv'|null).
    I vecchi flag (ui.cfg, ui.shop, ui.acc…) restano come accessori sopra ui.modal: aprirne uno chiude l'altro, chiudere quello sbagliato non fa nulla. */
-['cfg','shop','oste','dist','tvm','amici','eroi','camp','avv'].forEach(k=>Object.defineProperty(ui,k,{enumerable:true,configurable:true,
+['cfg','shop','oste','dist','tvm','amici','eroi','camp','inv','avv'].forEach(k=>Object.defineProperty(ui,k,{enumerable:true,configurable:true,
  get:()=>ui.modal===k,set:v=>{if(v)ui.modal=k;else if(ui.modal===k)ui.modal=null}}));
 Object.defineProperty(ui,'acc',{enumerable:true,configurable:true,get:()=>ui.modal==='acc'||ui.modal==='top'?ui.modal:false,
  set:v=>{if(v)ui.modal=v;else if(ui.modal==='acc'||ui.modal==='top')ui.modal=null}});

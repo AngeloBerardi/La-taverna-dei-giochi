@@ -54,6 +54,11 @@ function regoleEroi(k,nuovo,vecchio){const m=k.match(/^players\/([^/]+)\/eroi\/(
   const b=nuovo.base||{};const ks=['for','des','cos','int','sag','car'];
   if(ks.some(x=>COSTO[b[x]]===undefined)||ks.reduce((s,x)=>s+COSTO[b[x]],0)>27)throw denied();
   if(!nuovo.nome||nuovo.nome.length>16||nuovo.liv<1||nuovo.liv>10)throw denied();
+  // oggetti (equipEroeOk, zainoEroeOk): id del catalogo nel posto giusto, zaino da 16, cintura da 3 consumabili
+  {const q=nuovo.equip,A=AOGG.OGG,sl={arma:'arma',scudo:'scudo',armatura:'armatura',acc1:'acc',acc2:'acc'};
+   if(!q||typeof q!=='object'||Array.isArray(q)||Object.keys(q).some(x=>!sl[x])||Object.entries(q).some(([x,i])=>i!=null&&!(A[i]&&A[i].slot===sl[x])))throw denied();
+   if(nuovo.zaino!==undefined&&(!Array.isArray(nuovo.zaino)||nuovo.zaino.length>16||nuovo.zaino.some(i=>!A[i])))throw denied();
+   if(nuovo.cintura!==undefined&&(!Array.isArray(nuovo.cintura)||nuovo.cintura.length>3||nuovo.cintura.some(i=>!A[i]||A[i].slot!=='cons')))throw denied()}
   if(!vecchio){if(nuovo.liv!==1||nuovo.xp!==0||nuovo.oro!==20||'agg' in nuovo)throw denied();return}
   if(nuovo.razza!==vecchio.razza||nuovo.classe!==vecchio.classe||JSON.stringify(nuovo.base)!==JSON.stringify(vecchio.base)||nuovo.creato!==vecchio.creato||nuovo.liv<vecchio.liv||nuovo.xp<vecchio.xp)throw denied();
   // crescita limitata (guadagnoOk): +800 xp e +1000 oro per scrittura; chi guadagna porta agg = ora del server e aspetta 60 s dall'ultimo guadagno

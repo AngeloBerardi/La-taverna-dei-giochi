@@ -796,7 +796,7 @@ async def sc_campagna(b, srv):
     await pg.click('.hx.adj'); await pg.wait_for_timeout(200)
     check(await pg.evaluate('Camp.s.turno') == 1 and await pg.evaluate('Camp.s.pm') < pm0, 'il movimento viene speso')
     # incontro forzato: bottoni delle prove, risultato registrato
-    await pg.evaluate("(()=>{Camp.s.incontro={kind:'bestie',cd:1,testo:'Prova',ab:['atletica','percezione']};render()})()")
+    await pg.evaluate("(()=>{for(let x=1;x<99;x++){const sm=ADADI.semina(x),h={rng:sm};if(ADADI.d(ADADI.gen(h),20)>=5){Camp.s.rng=sm;break}}Camp.s.incontro={kind:'bestie',cd:1,testo:'Prova',ab:['atletica','percezione']};render()})()")  # primo d20 >= 5: l'1 naturale fallirebbe anche contro CD 1
     check(await pg.query_selector('.cinc') is not None and await pg.query_selector('[data-a=campriposa]') is None, 'incontro: niente riposo')
     await pg.click('[data-a=campris][data-v="0:atletica"]'); await pg.wait_for_timeout(200)
     check(await pg.query_selector('.cinc') is None and await pg.evaluate('Camp.s.ultima.ok') is True, 'prova superata (CD 1), incontro chiuso')
@@ -824,6 +824,66 @@ async def sc_campagna(b, srv):
     await pg.click('[data-a=campnuova]'); await pg.wait_for_timeout(1200)
     check(await pg.evaluate('Camp.s.giorno') == 1 and await pg.query_selector('.cfine') is None, 'nuova campagna')
     await ctx.close()
+
+async def sc_inventario(b, srv):
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'))})()")
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(800)
+    await pg.click('[data-a=avvnuova]'); await pg.wait_for_timeout(500)
+    # fuori dalla città: zaino, cintura, indossato; niente botteghe
+    await pg.click('[data-a=ivapri]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('.iv') is not None and 'Zaino e bottega' in await pg.inner_text('.iv h2'), 'si apre «Zaino e bottega»')
+    check(len(await pg.query_selector_all('.iv-eq .iv-c')) == 5 and len(await pg.query_selector_all('.iv-cin .iv-c')) == 3 and len(await pg.query_selector_all('.iv-gr .iv-c')) == 16, 'posti: 5 indossati, 3 alla cintura, 16 nello zaino')
+    check(await pg.query_selector('[data-a=ivtab][data-v=fabbro]') is None and 'in città' in await pg.inner_text('.iv'), 'fuori città niente botteghe')
+    check('Pozione di cura' in await pg.inner_text('.iv-gr .iv-c'), 'nello zaino c\'è la pozione di partenza')
+    await pg.click('[data-a=ivsel][data-v="z:0"]'); await pg.wait_for_timeout(100)
+    check('Alla cintura' in await pg.inner_text('.iv-dt') and 'cura 2d4+2' in await pg.inner_text('.iv-dt'), 'dettaglio della pozione')
+    await pg.click('[data-a=ivcintura]'); await pg.wait_for_timeout(100)
+    check('Pozione' in await pg.inner_text('.iv-cin .iv-c') and await pg.evaluate("Camp.s.eroi[0].cintura.join()") == 'pozione-cura' and await pg.query_selector('.iv-dt') is None, 'la pozione va alla cintura')
+    # in città: botteghe aperte, compra e confronto
+    await pg.evaluate("(()=>{const[k]=Object.entries(Camp.s.celle).find(([,c])=>c.poi==='citta');const[q,r]=k.split(',').map(Number);Camp.s.party={q,r};Camp.s.oro=300;render()})()"); await pg.wait_for_timeout(100)
+    await pg.click('[data-a=ivtab][data-v=fabbro]'); await pg.wait_for_timeout(100)
+    check(await pg.query_selector('[data-a=ivsel][data-v="n:spada-corta"]') is not None and 'sempre in vendita' in (await pg.inner_text('.iv')).lower(), 'il fabbro vende')
+    await pg.click('[data-a=ivfiltro][data-v=scudo]'); await pg.wait_for_timeout(100)
+    check(await pg.query_selector('[data-a=ivsel][data-v="n:spada-corta"]') is None and await pg.query_selector('[data-a=ivsel][data-v="n:scudo-legno"]') is not None, 'il filtro mostra solo gli scudi')
+    await pg.click('[data-a=ivfiltro][data-v=tutti]'); await pg.click('[data-a=ivsel][data-v="n:spada-corta"]'); await pg.wait_for_timeout(100)
+    check('Compra per Aldo' in await pg.inner_text('.iv-dt') and 'Danno medio' in await pg.inner_text('.iv-cf'), 'dettaglio con prezzo e confronto')
+    await pg.click('[data-a=ivcompra]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('Camp.s.oro') == 285 and 'spada-corta' in await pg.evaluate('Camp.s.eroi[0].zaino'), 'acquisto: 15 monete, oggetto nello zaino')
+    await pg.click('[data-a=ivtab][data-v=emporio]'); await pg.click('[data-a=ivsel][data-v="n:razione"]'); await pg.click('[data-a=ivcompra]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('Camp.s.oro') == 283, 'una razione costa 2 monete')
+    # equipaggia dallo zaino: il vecchio torna nello zaino
+    await pg.click('[data-a=ivtab][data-v=zaino]'); await pg.wait_for_timeout(100)
+    i = await pg.evaluate("Camp.s.eroi[0].zaino.indexOf('spada-corta')")
+    await pg.click(f'[data-a=ivsel][data-v="z:{i}"]'); await pg.wait_for_timeout(100)
+    check('Equipaggia' in await pg.inner_text('.iv-az') and 'Al posto di Spada lunga' in await pg.inner_text('.iv-cf'), 'confronto con la spada lunga')
+    await pg.click('[data-a=ivequipa]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('Camp.s.eroi[0].equip.arma') == 'spada-corta' and 'spada-lunga' in await pg.evaluate('Camp.s.eroi[0].zaino') and 'Spada corta' in await pg.inner_text('.iv-eq'), 'spada corta in mano, la lunga nello zaino')
+    # vendi a metà prezzo
+    j = await pg.evaluate("Camp.s.eroi[0].zaino.indexOf('spada-lunga')")
+    await pg.click(f'[data-a=ivsel][data-v="z:{j}"]'); await pg.click('[data-a=ivvendi]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('Camp.s.oro') == 298 and 'spada-lunga' not in await pg.evaluate('Camp.s.eroi[0].zaino'), 'venduta a 15 monete (metà di 30)')
+    # passa un oggetto a Mira e usa la pozione di Mira
+    k = await pg.evaluate("Camp.s.eroi[0].zaino.indexOf('razione')")
+    await pg.click(f'[data-a=ivsel][data-v="z:{k}"]'); await pg.click('[data-a=ivpassa][data-v="1"]'); await pg.wait_for_timeout(150)
+    check('razione' in await pg.evaluate('Camp.s.eroi[1].zaino') and 'razione' not in await pg.evaluate('Camp.s.eroi[0].zaino'), 'la razione passa a Mira')
+    await pg.evaluate("(()=>{Camp.s.eroi[1].hp=1;render()})()"); await pg.click('[data-a=ivero][data-v="1"]'); await pg.wait_for_timeout(100)
+    await pg.click('[data-a=ivsel][data-v="z:0"]'); await pg.wait_for_timeout(100)
+    check('Usa' in await pg.inner_text('.iv-az'), 'la pozione si può usare con PF mancanti')
+    await pg.click('[data-a=ivusa]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('Camp.s.eroi[1].hp') > 1, 'Mira si cura')
+    # errore leggibile: oggetto troppo avanzato per il livello
+    await pg.evaluate("(()=>{Camp.s.eroi[1].zaino.push('lama-della-brace');Camp.salva();render()})()"); await pg.wait_for_timeout(50)
+    n = await pg.evaluate("Camp.s.eroi[1].zaino.length - 1")
+    await pg.click(f'[data-a=ivsel][data-v="z:{n}"]'); await pg.wait_for_timeout(100)
+    check('livello 5' in await pg.inner_text('.iv-dt') and await pg.query_selector('[data-a=ivequipa]') is None, 'oggetto di livello alto: spiega il perché e non si equipaggia')
+    # salvataggio: dopo il ricaricamento zaino ed equipaggiamento restano
+    await pg.evaluate("localStorage.setItem('__stub',JSON.stringify(window.__db))")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate('Camp.s.eroi[0].equip.arma') == 'spada-corta' and await pg.evaluate('Camp.s.oro') == 298, 'la campagna riprende con zaino e monete')
+    await pg.evaluate("(()=>{ui.camp=false;ui.inv=true;render()})()"); await pg.click('[data-a=ivx]'); await pg.wait_for_timeout(100)
+    check(await pg.query_selector('svg.cmap') is not None, 'chiudendo lo zaino si torna alla mappa')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
 async def sc_eroi(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
