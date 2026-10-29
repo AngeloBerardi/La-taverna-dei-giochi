@@ -129,6 +129,7 @@ Scopo: rendere ogni classe diversa da giocare.
 
 ## A4 — Battaglia tattica (motore)
 Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
+**Piano dettagliato in 8 sotto-step, con le regole decise e i criteri di bilanciamento: `docs/AVVENTURA-A4.md`** (l'elenco che segue è la versione breve).
 1. **Griglia a esagoni** (coordinate assiali, riuso di `CAMP.dist/vicini`), circa 9×11 esagoni. Celle: pavimento, muro, ostacolo basso (mezza copertura +2 CA), ostacolo alto (copertura totale), terreno difficile (costo doppio), rialzo (altezza +1), superfici (fuoco, ghiaccio, veleno, acqua). Arene generate dall'ambiente della casella (bosco: alberi e radici; palude: fango; città: casse e muretti; antro: colonne) più arene scritte a mano per i capi.
 2. **Schieramento**: eroi presenti nell'esagono e in quelli vicini entrano (chi è più lontano arriva dopo N turni); sorpresa e imboscata da prova di Percezione/Furtività.
 3. **Iniziativa**: d20 + DES, ordine visibile; turno di un singolo combattente.
