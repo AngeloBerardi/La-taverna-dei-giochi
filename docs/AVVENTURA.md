@@ -37,9 +37,12 @@ Motori puri (stato JSON, `act(stato, azione)` → `{s}` | `{err}`, **dado nello 
 | File | Costante | Ruolo |
 |---|---|---|
 | `motori/27-eroi.js` | `EROI` | scheda, derivati, livelli, talenti (esteso) |
-| `motori/39-avv-dadi.js` | `ADADI` | generatore nello stato, d20 con vantaggio/svantaggio, dadi di danno, probabilità esatte |
-| `motori/40-avv-oggetti.js` | `AOGG` | catalogo oggetti, rarità, bottino, negozi |
-| `motori/41-avv-poteri.js` | `APOT` | poteri di classe, talenti, stati alterati, bestiario |
+| `motori/27a-avv-dadi.js` | `ADADI` | generatore nello stato, d20 con vantaggio/svantaggio, dadi di danno, probabilità esatte |
+| `motori/27b-avv-oggetti.js` | `AOGG` | catalogo oggetti, rarità, equipaggiamento |
+| `motori/27c-avv-bottino.js` | `ABOT` | bottino e botteghe |
+| `motori/27d-avv-stati.js` | `ASTA` | stati alterati, tipi di danno, resistenze, tiri salvezza, danno e cura |
+| `motori/27e-avv-poteri.js` | `APOT` | poteri di classe e di razza, talenti, cariche e Concentrazione, scelte di livello |
+| `motori/27f-avv-bestiario.js` | `BEST` | bestiario: 23 mostri e 3 capi, formula delle statistiche, comportamento per A5 |
 | `motori/42-avv-scontro.js` | `ASCO` | battaglia su griglia |
 | `motori/43-avv-ia.js` | `AIA` | intelligenza dei nemici e bot di prova |
 | `motori/28-campagna.js` | `CAMP` | mappa del mondo (evoluta) |
@@ -83,6 +86,8 @@ Scopo: rendere il codice esistente pronto a crescere senza rompere le campagne s
 - Test: `test_avv_dadi`, `test_campagna` (migrazione, fuga, determinismo), `test_eroi`.
 - Fatto quando: `npm run verifica` verde, una campagna v1 salvata si riapre.
 
+- **Stato (29 ottobre 2026)**: fatta, tranne la scelta se tenere il pulsante «Eroi» nel profilo (rimosso: l'entrata è la barra «Avventura»). Le regole Firestore sono verificate solo dal simulatore dei test: la compilazione vera avviene al deploy.
+
 ## A2 — Oggetti, inventario, economia
 Scopo: dare senso a oro, tesori e città.
 1. Catalogo `AOGG` (unica fonte): armi per famiglia con proprietà (accurata, pesante, a due mani, da lancio, gittata corta/lunga, portata), armature leggere/medie/pesanti, scudi, accessori (2 posti), consumabili (pozioni, pergamene, bombe, razioni, kit da guaritore), materiali di missione. Rarità comune/rara/epica/leggendaria, prezzo, livello minimo.
@@ -94,6 +99,14 @@ Scopo: dare senso a oro, tesori e città.
 7. Regole Firestore dell'eroe: aggiungere `zaino` ed `equip` estesi con ID validi generati dal catalogo.
 - Test: conservazione dell'oro (comprare/vendere non crea monete), prezzi coerenti con la rarità, derivati con ogni combinazione, bottino sempre valido.
 
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte:
+  - L'**identificazione** degli oggetti magici è stata tolta: con oggetti che sono solo un id non darebbe alcuna decisione al giocatore. Si riprende in A3 se gli oggetti magici avranno effetti nascosti.
+  - Il **peso** non c'è: lo zaino ha 16 posti. Il livello minimo è controllato dal client (`EROI.coerente`), non dalle regole Firestore.
+  - Le regole Firestore controllano id, posti e misure di `equip`, `zaino` e `cintura`. **Non possono sapere da dove arrivi un oggetto**: un client modificato può scriversi un oggetto raro (come l'XP, qui si può solo limitare). Accettato per un gioco tra amici, senza Cloud Functions.
+  - L'equipaggiamento si cambia solo in campagna (pulsante Zaino); il ritorno sulla scheda dell'account arriva con A9 (`FB.avanzaEroe` scriverà anche `zaino`, `cintura`, `equip`).
+  - Effetti dei consumabili: fuori battaglia funziona la cura; bombe, pergamene, tonico e stati sono dati pronti per A3/A4.
+  - Sezione «oggetti» della scheda regole `docs/rules/avventura.md`: da aggiungere dopo l'unione della PR di A0.
+
 ## A3 — Poteri di classe, talenti, stati, bestiario
 Scopo: rendere ogni classe diversa da giocare.
 1. Per ogni classe 6 poteri sbloccati ai livelli 1, 1, 3, 5, 7, 9 (uno a scelta tra due ai livelli 3, 5, 7, 9) più un passivo di classe. Ogni potere: costo (azione, azione bonus, reazione), ricarica (a turno, a scontro, a riposo), area (singolo, linea, cono, cerchio), tiro (attacco o salvezza), effetti.
@@ -104,8 +117,19 @@ Scopo: rendere ogni classe diversa da giocare.
 6. Salita di livello guidata (scegli potere/talento) nella vista eroi.
 - Test: ogni potere ha bersagli validi e un effetto misurabile; nessuna combinazione rompe lo stato; danni medi per livello entro la tabella di A0.
 
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte:
+  - **Domanda aperta chiusa**: niente riserva di energia. Ogni potere ha le sue **cariche** (`turno` = a volontà, `scontro`, `breve`, `lungo`) più la **Concentrazione** dell'eroe (bonus di competenza, +1 per il mago). Il riposo breve (la sera, in campagna) ridà le cariche `scontro`/`breve`, il lungo (all'alba) tutto.
+  - File: `27d` (stati), `27e` (poteri), `27f` (bestiario), al posto del `41-avv-poteri.js` previsto. Il motore dei poteri sa **che cosa fa un potere a una creatura** (`APOT.applica`); geometria e bersagli li decide la battaglia di A4. Nessun fuoco amico.
+  - Sei classi × 10 poteri (2 al livello 1, uno a scelta fra due ai livelli 3, 5, 7, 9) più il passivo; 5 poteri razziali (i tratti della scheda); 20 talenti ai livelli pari (due proposte per volta, calcolate dal seme di creazione, dal livello e da ciò che si è già preso).
+  - Le scelte stanno in `scelte: {"livello": id}` sulla scheda. Chi entra in campagna con scelte mancanti le ha completate con la **prima proposta** (`APOT.completa`), così si può giocare; la scheda sull'account non cambia finché non scegli tu («Gestisci gli eroi»).
+  - **Limite delle regole Firestore**: controllano che gli id esistano e il livello sia raggiunto, **non quale delle due proposte** sia stata scelta (le proposte dipendono dal seme di creazione). La coerenza fine la controlla il client (`EROI.coerente`).
+  - I talenti non cambiano `EROI.derivati` (la scheda mostra i valori di base): agiscono in battaglia tramite i ganci di `APOT.ganci`. Ganci che A4 deve leggere: `crit`, `ignoraDifficile`, `nascondiBonus`, `oggBonus`, `inizVant`, `gitt`, `branco`, `usiScontro`, `conc`, `mov`, `iniz`. Le prove di abilità fuori battaglia non sono toccate.
+  - Bestiario: 23 mostri in 4 famiglie e 3 capi (livelli 5, 7, 8); i capi non si battono da soli (≤20% di vittorie 1 contro 1): il bilanciamento di gruppo si rifà con la battaglia vera in A4/A13.
+  - Test: `test_avv_stati`, `test_avv_poteri` (ogni potere ha un effetto misurabile, danni entro la tabella di A0, 60 battaglie casuali con invarianti), `test_avv_bestiario`, `test_eroi`/`test_campagna` per scelte, cariche e riposi; scenario browser `eroi` per la scelta guidata.
+
 ## A4 — Battaglia tattica (motore)
 Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
+**Piano dettagliato in 8 sotto-step, con le regole decise e i criteri di bilanciamento: `docs/AVVENTURA-A4.md`** (l'elenco che segue è la versione breve).
 1. **Griglia a esagoni** (coordinate assiali, riuso di `CAMP.dist/vicini`), circa 9×11 esagoni. Celle: pavimento, muro, ostacolo basso (mezza copertura +2 CA), ostacolo alto (copertura totale), terreno difficile (costo doppio), rialzo (altezza +1), superfici (fuoco, ghiaccio, veleno, acqua). Arene generate dall'ambiente della casella (bosco: alberi e radici; palude: fango; città: casse e muretti; antro: colonne) più arene scritte a mano per i capi.
 2. **Schieramento**: eroi presenti nell'esagono e in quelli vicini entrano (chi è più lontano arriva dopo N turni); sorpresa e imboscata da prova di Percezione/Furtività.
 3. **Iniziativa**: d20 + DES, ordine visibile; turno di un singolo combattente.
@@ -118,6 +142,13 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 10. API: `ASCO.nuovo(compagnia, nemici, arena, rng)`, `act(s, {t:'muovi'|'attacca'|'potere'|'oggetto'|'aspetta'|'fine', …})`, `mosseValide(s, chi)`, `anteprima(s, azione)` (percentuale e danno atteso, per la vista e per l'IA).
 11. **IA nemici** (`AIA`): punteggio delle azioni possibili (danno atteso, rischio, copertura, focus sul più debole, distanza preferita per ruolo), tre livelli di difficoltà. Lo stesso modulo fornisce il **bot bravo** e il **bot casuale** per i test.
 - Test (`test_avv_scontro`): conservazione (PF entro i limiti, un'azione per turno), linea di vista su casi fissi, coperture, opportunità, determinismo col seme, 1000 battaglie simulate: bot bravo vince ≥85% gli scontri «medi» del suo livello, bot casuale ≤30%; nessuna battaglia infinita (limite di giri).
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte (dettagli e numeri in `docs/AVVENTURA-A4.md`):
+  - File: `27g` griglia (`AGRI`), `27h` arene (`AARE`), `27i` scontro (`ASCO`), `27j` IA e bot (`AIA`); strumento `tools/avventura/bilancia.js`; scene di prova condivise in `tests/avv_aiuti.js`.
+  - Tutto è tiro di dadi nello stato (`ADADI`), nessun `Math.random`; le reazioni con scelta sono una pausa restituita da `act` (`{pausa}`) e l'azione si rifà con `dec`; limite di 40 giri (stallo al 41°).
+  - `ASCO.incontro(famiglia, livello, eroi, difficoltà, seme)` genera gli incontri a budget di PE (facile ×0,7, medio ×1,2, difficile ×1,6, capo con scorta ×0,5).
+  - `ASCO.daCampagna` / `ASCO.aggiorna` collegano la battaglia agli eroi della campagna (PF, cariche, Concentrazione, cintura, PE); vite, bottino e rientro sull'account restano ad A9.
+  - **Bilanciamento misurato** (bot bravo): facili 99%, medi 91% (casuale 9%) con 34% di PF persi, difficili 64%, capi 60% con 4 eroi del loro livello ma 8–17% con 3 e quasi mai con 1–2: i capi aspettano i compagni (A8) e la scala della difficoltà (A13). I livelli dell'IA cambiano le scelte, non molto le statistiche.
+  - Test: `test_avv_griglia`, `test_avv_arene`, `test_avv_scontro*` (lento), `test_avv_ia` (lento), `test_avv_bilanciamento` (lento), `test_avv_aggancio`.
 
 ## A5 — Battaglia tattica (vista telefono)
 1. Griglia in SVG a 390 px con vista leggermente inclinata, scorrimento e zoom a due dita; segnalini degli eroi con il loro ritratto, nemici con sagome originali.
@@ -127,6 +158,14 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 5. Turno nemico animato con velocità regolabile e «salta animazioni».
 6. Indicatori: copertura (scudo mezzo/pieno), altezza, linea di vista bloccata, aree d'effetto, stati alterati con icona e durata.
 7. Scenario `avv_battaglia` in `tools/test-browser/` e una schermata finale a 390 px.
+- **Stato (29 ottobre 2026)**: fatta, con queste scelte (piano e correzioni in `docs/AVVENTURA-A5.md`):
+  - File: motori puri `27k` cronaca (`ACRO`: frase e passi da animare per ogni evento) e `27l` comandi (`ACOM`: dai tocchi alle azioni, sempre in due tempi); app `24hc` mappa SVG (`BatMappa`), `24hd` sagome dei mostri (`Sagome`), `24he` vista e flusso (`Bat`), `24hf` animazioni (`BatAnima`), `css/39c-battaglia.css` (prefisso `bt-`).
+  - Vista a tutto schermo con `ui.bat`: iniziativa in alto, mappa al centro (registro e scheda nelle fasce libere), risorse del turno, barra Attacca / Poteri / Oggetti / Altro / Fine in basso; la barra delle cinque destinazioni sparisce. Mai una mossa per un solo tocco: tocco = scelta con anteprima (percorso e costo, probabilità e danno atteso), secondo tocco o «Conferma» = esecuzione; due tocchi a meno di 320 ms sullo stesso esagono non confermano.
+  - Zoom 1×–3× con i pulsanti o con due dita, un dito trascina (sotto 8 px è un tocco), «Centra» porta la vista su chi agisce; i gesti non ridisegnano la mappa.
+  - Turni dei nemici (e degli eroi a terra) giocati da `AIA` a velocità 1× / 2× / «Salta»; reazioni come foglio con le scelte e «Nessuna reazione» (o automatiche, a scelta); dado d20, numeri e scritte, movimento passo per passo; con «riduci animazioni» restano solo numeri e registro.
+  - Ingresso: **Battaglia di prova** nella pagina Avventura (famiglia, difficoltà, livello 1–8, compagnia di prova di quattro eroi o eroi dell'account, reazioni); nessun premio e nessun rischio per gli eroi. Si salva a ogni azione in `localStorage` (`bat`) e si riprende con «Continua» anche dopo un ricaricamento.
+  - Test: `test_avv_cronaca`, `test_avv_comandi` (lento: il bot gioca solo con i tocchi e fa le stesse mosse dell'azione diretta, esplorazione esaustiva e casuale) e lo scenario browser `avv_battaglia` (tocchi, anteprima, fogli, zoom e pizzico, reazione, fine, salvataggio, bottoni da almeno 40 px, niente scorrimento orizzontale).
+  - Fuori da A5: suoni (A10), schermo comune e più telefoni (A11), battaglie lanciate dalla campagna e premi (A8–A9).
 
 ## A6 — Mappa del mondo (evoluta)
 1. **Eroi separati**: ogni eroe ha posizione e punti movimento propri; turno per eroe (o "muovi tutti insieme" con un tocco quando sono nella stessa casella). Movimento tirato a ogni turno: base dalla razza + dado (es. 1d4), con Concentrazione per ritirarlo.
@@ -192,5 +231,4 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 
 ## Domande aperte (da chiudere all'inizio della task indicata)
 - A1: la tab Avventura sostituisce il pulsante «Eroi» nel profilo o restano entrambi?
-- A3: gli incantatori usano cariche per riposo o un'unica riserva di energia?
 - A11: chi decide le scelte di dialogo in co-op: chi parla o voto?

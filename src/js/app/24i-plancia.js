@@ -1,8 +1,8 @@
 /* ---- Plancia: barra in basso a cinque destinazioni (Taverna, Giochi, Avventura, Amici, Profilo). Visibile nelle lobby, non in partita ---- */
 const Plancia={
  last:'',
- vis(){return ui.screen==='room'&&!ui.tv},
- attivo(){return ui.eroi||ui.camp?'avventura':ui.amici||ui.dist||ui.tvm?'amici':ui.acc||ui.shop||ui.oste||ui.cfg?'profilo':ui.glist||ui.tab==='games'?'giochi':'taverna'},
+ vis(){return ui.screen==='room'&&!ui.tv&&!ui.bat},
+ attivo(){return ui.avv||ui.eroi||ui.camp||ui.inv||ui.bat?'avventura':ui.amici||ui.dist||ui.tvm?'amici':ui.acc||ui.shop||ui.oste||ui.cfg?'profilo':ui.glist||ui.tab==='games'?'giochi':'taverna'},
  VOCI:[['taverna','Taverna','casa'],['giochi','Giochi','dado'],['avventura','Avventura','mappa'],['amici','Amici','amici'],['profilo','Profilo','utente']],
  draw(){let el=document.getElementById('plancia');if(!el){el=document.createElement('nav');el.id='plancia';el.setAttribute('aria-label','Navigazione principale');document.body.appendChild(el)}
   if(R.code!==Plancia.rc){Plancia.rc=R.code;if(R.code&&!isGen())ui.inroom=true}
@@ -67,12 +67,12 @@ ${resume?`<div class="sh2">Da riprendere</div>${resume}`:''}
 ${R.on?`<div class="sh2">Un altro tavolo</div><div class="row"><input type="text" id="plc" maxlength="6" placeholder="Codice" class="acc-in" autocomplete="off" autocapitalize="characters" style="flex:1;text-transform:uppercase;letter-spacing:.2em"><button class="b gold sm" data-a="join">Entra</button></div><div class="row"><button class="b sm" data-a="newroom" style="flex:1">Nuovo tavolo privato</button>${gen?'':'<button class="b sm" data-a="genroom" style="flex:1">Stanza generale</button>'}</div>`:''}
 ${tiles?`<div class="sh2">Più modi di giocare</div><div class="cfgtiles">${tiles}</div>`:''}
 <p class="acc-msg" role="status">${esc(ui.err||'')}</p></div></div>`},
- chiudi(){ui.amici=false;ui.solo=false;ui.pick=null;ui.cfg=ui.acc=ui.shop=ui.oste=ui.dist=ui.tvm=ui.eroi=ui.camp=ui.rules=false},
+ chiudi(){ui.amici=false;ui.solo=false;ui.pick=null;ui.cfg=ui.acc=ui.shop=ui.oste=ui.dist=ui.tvm=ui.eroi=ui.camp=ui.inv=ui.avv=ui.bat=ui.rules=false},
  act(v){Plancia.chiudi();ui.err='';
   if(v==='taverna'){const era=!ui.glist&&!ui.amici&&ui.tab!=='games'&&ui.inroom;ui.glist=false;ui.solo=false;ui.tab='room';if(era)ui.inroom=false;return render()}
   if(v==='solo'){ui.solo=true;ui.glist=true;ui.tab='games';ui.cat='tutti';ui.pick=null;ui.q='';return render()}
   if(v==='entra'){ui.inroom=true;ui.glist=false;ui.tab='room';return render()}
   if(v==='giochi'){ui.glist=true;ui.tab='games';return render()}
-  if(v==='avventura')return Eroi.act('eroi');
+  if(v==='avventura')return Avv.act('avv');
   if(v==='amici'){ui.amici=true;return render()}
   ui.cfg=true;render()}};

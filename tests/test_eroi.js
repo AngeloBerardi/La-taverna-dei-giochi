@@ -1,6 +1,7 @@
 // Eroi: costi dei punteggi, razze e classi, derivati, validazione, livelli, prove.
 const assert = require('assert');
 const E = require('../src/js/motori/27-eroi.js');
+const O = require('../src/js/motori/27b-avv-oggetti.js');
 const rng = require('./carica.js').rng(11);
 const A = { pelle: 0, capelli: 1, mantello: 2, viso: 0 };
 const base = (o) => ({ ...E.baseIniziale(), ...o });
@@ -17,11 +18,10 @@ assert.deepStrictEqual([1, 4, 5, 8, 9, 10].map(E.comp), [2, 2, 3, 3, 4, 4]);
 for (const [id, c] of Object.entries(E.CLASSI)) {
   assert(c.dado >= 6 && c.dado <= 12 && E.STAT.includes(c.primaria) && c.salvezze.every(s => E.STAT.includes(s)), id);
   assert(c.abilita.every(a => E.ABILITA[a]), 'abilità sconosciuta in ' + id);
-  for (const [slot, o] of Object.entries(c.equip)) assert(o === null || (E.OGGETTI[o] && E.OGGETTI[o].slot === slot), `${id}: oggetto ${o}`);
+  for (const [slot, o] of Object.entries(c.equip)) assert(o === null || (O.OGG[o] && O.OGG[o].slot === slot), `${id}: oggetto ${o}`);
   assert(/^[a-z]+$/.test(id) && c.nome && c.desc);
 }
 for (const [id, r] of Object.entries(E.RAZZE)) { assert(Object.keys(r.bonus).every(k => E.STAT.includes(k)) && r.mov >= 4 && r.mov <= 7 && r.nome && r.tratto && r.desc && /^[a-z]+$/.test(id)); assert(Object.values(r.bonus).reduce((a, b) => a + b, 0) <= 6); }
-for (const [id, o] of Object.entries(E.OGGETTI)) assert(/^[a-z-]+$/.test(id) && o.nome && ['arma', 'armatura', 'scudo'].includes(o.slot), id);
 
 // creazione: guerriero nano
 const g = E.nuovo({ nome: ' Brunilde ', razza: 'nano', classe: 'guerriero', base: base({ for: 15, cos: 14, des: 10, sag: 10 }), aspetto: A }, 1000);
@@ -31,7 +31,7 @@ assert.deepStrictEqual(d.stat, { for: 16, des: 10, cos: 16, int: 8, sag: 10, car
 assert.strictEqual(d.hpMax, 10 + 3, 'd10 + mod COS 16 (+3)');
 assert.strictEqual(g.hp, d.hpMax);
 assert.strictEqual(d.ca, 16 + 2 + 1, 'cotta di maglia 16 + scudo 2 + pelle di pietra 1');
-assert.strictEqual(d.comp, 2); assert.strictEqual(d.attacco, 3 + 2); assert.deepStrictEqual(d.danno, { dado: 8, bonus: 3 });
+assert.strictEqual(d.comp, 2); assert.strictEqual(d.attacco, 3 + 2); assert.deepStrictEqual(d.danno, { n: 1, dado: 8, bonus: 3, tipo: 'taglio' });
 assert.strictEqual(d.mov, 5); assert(E.coerente(g));
 // mago elfo: pochi PF, CA da vesti + DES
 const m = E.nuovo({ nome: 'Isil', razza: 'elfo', classe: 'mago', base: base({ int: 15, des: 14, cos: 13 }), aspetto: A });
@@ -88,6 +88,13 @@ for (const [v, c] of Object.entries(E.COSTO)) { const regola = Number(v) <= 13 ?
 assert(rules.includes("['e1', 'e2', 'e3', 'e4', 'e5']") && E.SLOT_ID.join() === 'e1,e2,e3,e4,e5', 'posti degli eroi');
 for (const [k, n] of Object.entries(E.ASPETTO)) assert(rules.includes(`a.${k} < ${n}`), 'limite aspetto ' + k);
 assert(rules.includes('d.liv <= ' + E.LIV_MAX), 'livello massimo');
+// oggetti: gli id nelle regole sono esattamente quelli del catalogo, per categoria; zaino e cintura hanno le stesse misure
+const idRegole = (nome) => { const m = rules.match(new RegExp('// oggetti:' + nome + '\\n([\\s\\S]*?)// oggetti:' + nome + ':fine')); assert(m, 'segnaposto oggetti:' + nome); return [...m[1].matchAll(/'([a-z-]+)'/g)].map(x => x[1]).sort(); };
+const dei = (slot) => O.ID.filter(i => O.OGG[i].slot === slot).sort();
+assert.deepStrictEqual(idRegole('armi'), dei('arma')); assert.deepStrictEqual(idRegole('armature'), dei('armatura')); assert.deepStrictEqual(idRegole('scudi'), dei('scudo'));
+assert.deepStrictEqual(idRegole('accessori'), dei('acc')); assert.deepStrictEqual(idRegole('consumabili'), dei('cons')); assert.deepStrictEqual(idRegole('tutti'), [...O.ID].sort());
+assert(rules.includes('d.zaino.size() <= ' + O.MAX_ZAINO) && rules.includes('d.cintura.size() <= ' + O.MAX_CINTURA), 'misure di zaino e cintura');
+assert(rules.includes("q.keys().hasOnly(['" + O.SLOT_EQ.join("', '") + "'])"), 'posti dell\'equipaggiamento');
 // bonus e probabilità coerenti con la prova vera
 { const h = E.nuovo({ nome: 'P', razza: 'elfo', classe: 'ladro', aspetto: A, base: base({ des: 15, sag: 13 }) });
   assert.strictEqual(E.bonus(h, 'furtivita'), E.mod(E.punteggi(h.base, h.razza).des) + E.comp(1));
@@ -96,4 +103,29 @@ assert(rules.includes('d.liv <= ' + E.LIV_MAX), 'livello massimo');
   assert.strictEqual(E.probabilita(h, 'furtivita', 99), 0.05, 'solo il 20 naturale riesce');
   let ok = 0; const r = require('./carica.js').rng(3), N = 20000; for (let i = 0; i < N; i++) if (E.prova(h, 'furtivita', 14, r).ok) ok++;
   assert(Math.abs(ok / N - E.probabilita(h, 'furtivita', 14)) < 0.02, 'la probabilità coincide con la simulazione'); }
+// scelte di livello (poteri e talenti): nascono vuote, si fanno una volta sola, `coerente` rifiuta quelle impossibili
+{ const AP = require('../src/js/motori/27e-avv-poteri.js');
+  const nuovo = E.nuovo({ nome: 'Scelta', classe: 'mago', razza: 'elfo', aspetto: A, base: base({ int: 15, des: 14, cos: 13 }) });
+  assert.strictEqual(nuovo.scelte, undefined, 'al livello 1 non c\'è nulla da scegliere'); assert.deepStrictEqual(AP.daScegliere(nuovo), []); assert(E.coerente(nuovo));
+  let h = E.guadagna(E.guadagna(nuovo, 300), 0); assert.strictEqual(h.liv, 3, 'livello 3 con 300 punti');
+  const da = AP.daScegliere(h); assert.deepStrictEqual(da.map(d => [d.liv, d.tipo]), [[2, 'talento'], [3, 'potere']]); assert(da.every(d => d.opzioni.length === 2));
+  assert(E.coerente(h), 'senza scelte la scheda è comunque coerente (si scelgono quando si vuole)');
+  assert(AP.scegli(h, 4, 'parata').err, 'livello non ancora raggiunto'); assert(AP.scegli(h, 2, da[1].opzioni[0]).err, 'un potere al posto di un talento');
+  assert(AP.scegli(h, 1, 'x').err && AP.scegli(h, 11, 'x').err, 'livelli fuori scala');
+  h = AP.scegli(h, 2, da[0].opzioni[1]); assert(!h.err && h.scelte[2] === da[0].opzioni[1] && E.coerente(h));
+  assert(AP.scegli(h, 2, da[0].opzioni[0]).err, 'la scelta è definitiva');
+  assert.strictEqual(AP.daScegliere(h).length, 1, 'resta solo il potere del livello 3');
+  assert(!E.coerente({ ...h, scelte: { 2: 'non-esiste' } }) && !E.coerente({ ...h, scelte: { 4: 'fede-salda' } }) && !E.coerente({ ...h, scelte: [] }) && !E.coerente({ ...h, scelte: { '02': da[0].opzioni[0] } }), 'scelte impossibili o fuori forma rifiutate');
+  assert(!E.coerente({ ...h, scelte: { 2: da[0].opzioni[1], 3: da[0].opzioni[0] } }), 'un talento al posto di un potere');
+  const c = AP.completa(h); assert.strictEqual(AP.daScegliere(c).length, 0, 'completa riempie con la prima opzione'); assert(E.coerente(c) && c.scelte[2] === h.scelte[2], 'completa non cambia le scelte fatte');
+  assert.deepStrictEqual(AP.completa(c), c, 'completa è idempotente');
+  JSON.parse(JSON.stringify(c)); }
+// nomi delle abilità: una voce per abilità, con gli accenti
+assert.deepStrictEqual(Object.keys(E.NOME_AB).sort(), Object.keys(E.ABILITA).sort()); assert.strictEqual(E.NOME_AB.furtivita, 'Furtività');
+// crescita limitata: i numeri nelle regole sono quelli del motore, e l'attesa e il campo agg sono richiesti
+assert.deepStrictEqual(E.LIMITI, { xp: 800, oro: 1000, attesaS: 60 });
+assert(rules.includes('n.xp - v.xp <= ' + E.LIMITI.xp + ' && n.oro - v.oro <= ' + E.LIMITI.oro), 'limiti di xp e oro nelle regole');
+assert(rules.includes("duration.value(" + E.LIMITI.attesaS + ", 's')"), 'attesa tra i guadagni nelle regole');
+assert(rules.includes("guadagnoOk(request.resource.data, resource.data)"), 'l\'aggiornamento usa guadagnoOk');
+assert(rules.includes("'hp', 'agg']"), 'agg tra i campi ammessi'); assert(rules.includes("!('agg' in request.resource.data)"), 'alla creazione agg non c\'è');
 console.log('eroi regole ok');

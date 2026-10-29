@@ -1,0 +1,11 @@
+/* Avventura (app/24ha-avventura.js): pagina della barra in basso. Prefisso av-. Superfici con color-mix(currentColor): valgono su ogni tema */
+.av{display:flex;flex-direction:column;gap:10px}
+.av h2 .info{vertical-align:2px}
+.av-card{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;text-align:left;color:inherit;font:inherit;cursor:pointer;border:2px solid var(--gold2);background:linear-gradient(180deg,color-mix(in srgb,var(--gold2) 22%,transparent),color-mix(in srgb,var(--gold2) 8%,transparent))}
+.av-card:active{transform:translateY(1px)}
+.av-tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.av-tx b{font:800 18px var(--f-d)}.av-tx small{opacity:.85}
+.av-go{flex:none;padding:8px 12px;font:800 14px var(--f-d);color:#4a2a08;background:linear-gradient(180deg,#f0c166,#cf8f2c);clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+.av-ritt{display:flex;flex-wrap:wrap;gap:4px;flex:none;max-width:98px}.av-ritt.big{max-width:none;gap:8px}
+.av-rit{display:block;flex:none}.av-rit.ko{opacity:.45;filter:grayscale(1)}
+.av-come{display:flex;flex-direction:column;gap:2px}.av-come>div{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:0 4px;border-bottom:1px solid color-mix(in srgb,currentColor 14%,transparent)}
+.av-come b{font-size:15px}

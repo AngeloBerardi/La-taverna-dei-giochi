@@ -17,7 +17,6 @@ const Eroi={
   const occhi=`<circle cx="42" cy="50" r="${a.viso===3?3.4:2.6}" fill="#241a12"/><circle cx="58" cy="50" r="${a.viso===3?3.4:2.6}" fill="#241a12"/>`;
   const bocca=[`<path d="M44 62 H56" stroke="#5a2f22" stroke-width="2.4" stroke-linecap="round"/>`,`<path d="M43 60 Q50 68 57 60" stroke="#5a2f22" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,`<path d="M44 63 Q50 59 56 63" stroke="#5a2f22" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M37 44 L47 46 M63 44 L53 46" stroke="#241a12" stroke-width="2.2" stroke-linecap="round"/>`,`<ellipse cx="50" cy="63" rx="3.5" ry="4" fill="#5a2f22"/>`][a.viso]||'';
   return`<svg class="rit" viewBox="0 0 100 100" width="${px||72}" height="${px||72}" role="img" aria-label="Ritratto"><circle cx="50" cy="50" r="48" fill="#3a2d22"/><clipPath id="rc${px||72}"><circle cx="50" cy="50" r="47"/></clipPath><g clip-path="url(#rc${px||72})"><path d="M8 100 Q12 72 50 70 Q88 72 92 100Z" fill="${ma}"/><path d="M40 70 L50 82 L60 70Z" fill="rgba(0,0,0,.25)"/>${orecchie}<rect x="43" y="60" width="14" height="14" rx="4" fill="${pe}"/><ellipse cx="50" cy="48" rx="23" ry="26" fill="${pe}"/>${barba}${capelli}${occhi}${bocca}${zanne}</g><circle cx="50" cy="50" r="47" fill="none" stroke="#d6aa3c" stroke-width="3"/><text x="82" y="92" font-size="20" text-anchor="middle" fill="#f3e6c4" stroke="#1a1208" stroke-width=".6">${Eroi.EMBLEMA[classe]||''}</text></svg>`},
- cfgH(){return FB.st==='ok'&&FB.p?'<button class="b sm tile" data-a="eroi"><span class="ti">'+ic('spada')+'</span>Eroi</button>':''},
  nuovaBozza(){return{nome:'',razza:'umano',classe:'guerriero',base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:1}}},
  puntiLiberi(){return EROI.BUDGET-EROI.costoBase(Eroi.bozza.base)},
  bonusTesto(r){return Object.entries(r.bonus).map(([k,v])=>'+'+v+' '+EROI.NOME_STAT[k].slice(0,3)).join(' ')},
@@ -25,7 +24,7 @@ const Eroi={
  listaH(){const L=Eroi.lista,ids=EROI.SLOT_ID,pieni=ids.filter(id=>L&&L[id]),liberi=ids.filter(id=>!(L&&L[id]));
   const carta=id=>{const h=L[id],nx=EROI.SOGLIE_XP[h.liv];return`<button class="ecard" data-a="eroischeda" data-v="${id}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,64)}<span class="etx"><b>${esc(h.nome)}</b><small>${esc(EROI.RAZZE[h.razza].nome)} · ${esc(EROI.CLASSI[h.classe].nome)}</small><span class="ebar" title="Esperienza"><i style="width:${nx?Math.min(100,Math.round(h.xp/nx*100)):100}%"></i></span></span><span class="elv">Liv.<b>${h.liv}</b></span></button>`};
   return`<div class="modal"><div class="box col eroi"><h2>I tuoi eroi</h2>
-${L==null?'<p class="muted">Carico…</p>':`${pieni.length?`<button class="b gold ecta" data-a="campstart">${ic('spada',18)} Parti in campagna</button><small class="muted" style="text-align:center">${pieni.length>3?'Il gruppo è formato dai tuoi primi 3 eroi.':pieni.length===1?'Parti con il tuo eroe.':'Il gruppo è formato dai tuoi '+pieni.length+' eroi.'}</small>`:'<p class="muted" style="margin:0">Non hai ancora nessun eroe. Creane uno: lo ritrovi da qualsiasi telefono e parteciperà alle campagne.</p>'}
+${L==null?'<p class="muted">Carico…</p>':`${pieni.length?`<button class="b gold ecta" data-a="campstart">${ic('spada',18)} Parti in campagna</button><small class="muted" style="text-align:center">${pieni.length>CAMP.MAX_EROI?'Il gruppo è formato dai tuoi primi 4 eroi.':pieni.length===1?'Parti con il tuo eroe.':'Il gruppo è formato dai tuoi '+pieni.length+' eroi.'}</small>`:'<p class="muted" style="margin:0">Non hai ancora nessun eroe. Creane uno: lo ritrovi da qualsiasi telefono e parteciperà alle campagne.</p>'}
 ${pieni.map(carta).join('')}${liberi.length?`<button class="ecard nuovo" data-a="eroinuovo" data-v="${liberi[0]}"><span class="eplus">＋</span><span class="etx"><b>Nuovo eroe</b><small>${liberi.length} ${liberi.length===1?'posto libero':'posti liberi'} su ${EROI.MAX_EROI}</small></span></button>`:'<small class="muted">Hai raggiunto il massimo di eroi.</small>'}`}
 <p class="acc-msg" role="status">${esc(Eroi.msg)}</p><button class="b sm" data-a="eroix">Chiudi</button></div></div>`},
  creaH(){const b=Eroi.bozza,p=Eroi.pas,ultimo=p===Eroi.PASSI.length;let corpo='',fisso='';
@@ -46,17 +45,29 @@ ${sw('pelle','Pelle',pe)}${sw('capelli','Capelli',Eroi.CAPELLI)}${sw('mantello',
  schedaCorpo(h){const d=EROI.derivati(h),c=EROI.CLASSI[h.classe],r=EROI.RAZZE[h.razza],eq=h.equip||{},nx=EROI.SOGLIE_XP[h.liv]||null;
   return`<div class="escheda"><div class="eritr">${Eroi.ritratto(h.aspetto,h.razza,h.classe,96)}</div><h3 style="margin:0;text-align:center">${esc(h.nome)}</h3><p class="muted" style="margin:0;text-align:center">${esc(r.nome)} · ${esc(c.nome)} · livello ${h.liv}</p>
 <div class="estat">${EROI.STAT.map(k=>`<div><small>${EROI.NOME_STAT[k].slice(0,3)}</small><b>${d.stat[k]}</b><small>${EROI.mod(d.stat[k])>=0?'+':''}${EROI.mod(d.stat[k])}</small></div>`).join('')}</div>
-<div class="ehp"><i style="width:${Math.round(h.hp/h.hpMax*100)}%"></i><span>${ic('cuore',14)} ${h.hp}/${h.hpMax}</span></div><div class="eder"><span>${ic('scudo',14)} CA ${d.ca}</span><span>${ic('spada',14)} +${d.attacco} · d${d.danno?d.danno.dado:0}${d.danno&&d.danno.bonus?(d.danno.bonus>=0?'+':'')+d.danno.bonus:''}</span><span>${ic('passi',14)} ${d.mov}</span><span>${ic('moneta',14)} ${h.oro}</span></div>
-<p class="muted" style="margin:0"><b>Equipaggiamento:</b> ${['arma','armatura','scudo'].map(s=>eq[s]?esc(EROI.OGGETTI[eq[s]].nome):null).filter(Boolean).join(', ')||'—'}</p>
-<p class="muted" style="margin:0"><b>Competenze:</b> ${d.abilita.join(', ')} · tratto «${esc(r.tratto)}»</p>
+<div class="ehp"><i style="width:${Math.round(h.hp/h.hpMax*100)}%"></i><span>${ic('cuore',14)} ${h.hp}/${h.hpMax}</span></div><div class="eder"><span>${ic('scudo',14)} CA ${d.ca}</span><span>${ic('spada',14)} +${d.attacco} · ${d.danno?(d.danno.n>1?d.danno.n:'')+'d'+d.danno.dado+(d.danno.bonus?(d.danno.bonus>=0?'+':'')+d.danno.bonus:''):'—'}</span><span>${ic('passi',14)} ${d.mov}</span><span>${ic('moneta',14)} ${h.oro}</span></div>
+<p class="muted" style="margin:0"><b>Equipaggiamento:</b> ${AOGG.SLOT_EQ.map(s=>eq[s]&&AOGG.OGG[eq[s]]?esc(AOGG.OGG[eq[s]].nome):null).filter(Boolean).join(', ')||'—'}${(h.zaino||[]).length?' · zaino '+h.zaino.length+'/'+AOGG.MAX_ZAINO:''}</p>
+<p class="muted" style="margin:0"><b>Competenze:</b> ${d.abilita.map(x=>EROI.NOME_AB[x]).join(', ')} · tratto «${esc(r.tratto)}»</p>
+${Eroi.poteriH(h)}
 ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><i style="width:${Math.min(100,Math.round(h.xp/nx*100))}%"></i></span></div>`:'<p class="muted" style="margin:0">Livello massimo</p>'}</div>`},
+ // poteri conosciuti: passivo di classe, tratto di razza, poteri e talenti scelti (i numeri vengono sempre dai dati, mai scritti a mano)
+ poteriH(h){const riga=(nome,txt,desc,tag)=>`<div class="epo"><b>${esc(nome)}</b><em>${esc(tag)}</em><small>${esc(txt)}</small>${infoH(esc(desc))}</div>`,pa=APOT.PASS[h.classe];
+  const poteri=APOT.poteriEroe(h).filter(i=>i!=='attacco').map(i=>{const p=APOT.P[i];return riga(p.nome,APOT.riga(p),p.desc,p.cl==='razza'?'Razza':'Livello '+p.liv)});
+  const talenti=APOT.talentiEroe(h).map(i=>riga(APOT.TAL[i].nome,APOT.TAL[i].desc,APOT.TAL[i].desc,'Talento'));
+  return`<div class="sh2">Poteri ${infoH('Ogni potere ha le sue cariche: a volontà, a ogni scontro o dopo un riposo. La Concentrazione ('+(EROI.comp(h.liv)+APOT.ganci(h).conc)+') permette di ritirare un dado.')}</div><div class="epl">${pa?riga(pa.nome,pa.desc,pa.desc,'Classe'):''}${poteri.join('')}${talenti.join('')}</div>`},
+ // la prossima scelta da fare (potere ai livelli 3, 5, 7, 9; talento ai livelli pari): due carte, la scelta è definitiva
+ sceltaH(h){const d=APOT.daScegliere(h)[0];if(!d)return'';
+  const carte=d.opzioni.map(i=>{const t=d.tipo==='potere'?APOT.P[i]:APOT.TAL[i];
+   return`<button class="b ecso" data-a="eroiscegli" data-v="${d.liv}:${i}" ${Eroi.busy?'disabled':''}><b>${esc(t.nome)}</b><small>${esc(d.tipo==='potere'?APOT.riga(t):t.desc)}</small>${d.tipo==='potere'?`<span>${esc(t.desc)}</span>`:''}</button>`}).join('');
+  const resto=APOT.daScegliere(h).length-1;
+  return`<div class="ecs"><b>${d.tipo==='potere'?'Nuovo potere':'Nuovo talento'} · livello ${d.liv}</b><small>Scegli uno dei due. La scelta è definitiva.${resto?' Dopo questa ne restano '+resto+'.':''}</small>${carte}</div>`},
  schedaH(){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h){Eroi.sel=null;return Eroi.listaH()}
-  return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
+  return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.sceltaH(h)}${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
 <div class="row"><button class="b sm" data-a="eroiindietro">Indietro</button><button class="b sm" data-a="eroielimina" data-v="${esc(Eroi.sel)}">Elimina</button></div></div></div>`},
  async carica(){try{const m=await FB.eroi();for(const k of Object.keys(m))if(!EROI.coerente(m[k])){console.warn('Eroe non coerente',k);delete m[k]}Eroi.lista=m}catch(e){console.warn('Eroi',e);Eroi.lista=Eroi.lista||{};Eroi.msg='Non riesco a leggere gli eroi'}render()},
  async act(a,v){
   if(a==='eroi'){ui.eroi=true;ui.cfg=false;Eroi.msg='';Eroi.pas=0;Eroi.sel=null;render();return Eroi.carica()}
-  if(a==='eroix'){ui.eroi=false;ui.cfg=true;return render()}
+  if(a==='eroix'){ui.eroi=false;ui.avv=true;return render()}
   if(a==='eroinuovo'){Eroi.slot=v;Eroi.bozza=Eroi.nuovaBozza();Eroi.pas=1;Eroi.msg='';return render()}
   if(a==='eroischeda'){Eroi.sel=v;Eroi.msg='';return render()}
   if(a==='eroiindietro'){Eroi.msg='';if(Eroi.pas>1)Eroi.pas--;else{Eroi.pas=0;Eroi.sel=null}return render()}
@@ -69,6 +80,12 @@ ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><
   if(a==='eroicrea'){if(Eroi.busy)return;Eroi.busy=true;Eroi.msg='';render();
    try{const h=EROI.nuovo(Eroi.bozza);await FB.salvaEroe(Eroi.slot,h);Eroi.lista={...(Eroi.lista||{}),[Eroi.slot]:h};Eroi.pas=0;Eroi.sel=Eroi.slot;say('Eroe creato: '+h.nome,2200)}
    catch(e){Eroi.msg=e&&e.code==='eroe'?e.message:e&&e.code==='permission-denied'?'Non permesso: il posto potrebbe essere occupato.':'Non riuscito, riprova tra poco.';console.warn('Eroi',e)}
+   finally{Eroi.busy=false;render()}return}
+  if(a==='eroiscegli'){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h||Eroi.busy)return;const[L,id]=String(v).split(':'),r=APOT.scegli(h,Number(L),id);
+   if(r.err){Eroi.msg=r.err;return render()}
+   Eroi.busy=true;Eroi.msg='';render();
+   try{await FB.scegliEroe(Eroi.sel,r.scelte);Eroi.lista={...Eroi.lista,[Eroi.sel]:r};say('Scelto: '+(APOT.P[id]||APOT.TAL[id]).nome,2200)}
+   catch(e){Eroi.msg='Non riuscito, riprova tra poco.';console.warn('Eroi',e)}
    finally{Eroi.busy=false;render()}return}
   if(a==='eroielimina'){if(!confirm('Eliminare questo eroe? Non si può annullare.'))return;
    try{await FB.eliminaEroe(v);const n={...Eroi.lista};delete n[v];Eroi.lista=n;Eroi.sel=null}catch(e){Eroi.msg='Non riuscito, riprova tra poco.'}return render()}}};

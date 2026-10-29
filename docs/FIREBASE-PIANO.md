@@ -39,7 +39,7 @@ L'SDK Firebase (modulare, dal CDN gstatic) si carica **solo quando serve** (`imp
 
 ## Dati (Firestore)
 - `players/{uid}`: `name, av (avatar), coins, owned {furniture[], cloaks[], backs[], tracks[]}, equipped {…}, fcm[], createdAt, lastAward`
-- `players/{uid}/eroi/{e1..e5}`: eroi dell'account (razza, classe, punteggi, livello, xp, oro, equip). Regole: max 5, punteggi entro 27 punti, razza/classe immutabili, livello e XP solo in crescita. **Ripubblica `firestore.rules`** dopo ogni modifica.
+- `players/{uid}/eroi/{e1..e5}`: eroi dell'account (razza, classe, punteggi, livello, xp, oro, equip, zaino, cintura). Regole: max 5, punteggi entro 27 punti, crescita limitata (+800 xp e +1000 oro a scrittura, 60 s tra due guadagni, campo `agg`), razza/classe immutabili, livello e XP solo in crescita, `equip`/`zaino`/`cintura` con id del catalogo (`AOGG`, generati da `npm run regole`), posti giusti, zaino da 16 e cintura da 3. `scelte` (poteri e talenti scelti salendo di livello, chiave = livello 2–10) accetta solo id di poteri/talenti dell'elenco generato e solo per livelli già raggiunti; **non può sapere quale delle due proposte** sia stata scelta (dipende dal seme di creazione): quel controllo è del client (`EROI.coerente`). Le regole non possono sapere da dove arriva un oggetto: la rarità non è protetta, come l'XP è solo limitato nel ritmo. **Ripubblica `firestore.rules`** dopo ogni modifica.
 - `matches/{id}`: `game, opts, players[{uid,name,seat}], cur (uid di chi gioca), state (JSON del motore), rev, status ('active'|'done'), updatedAt, lastActor`
 - `catalogo/{id}` (sola lettura, lo scrivo io): arredi e cosmetici con prezzo. Il catalogo vive anche nel codice, ma l'originale è qui.
 

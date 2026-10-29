@@ -1,5 +1,6 @@
 /* ---- Icone a tratto (SVG, currentColor): al posto delle emoji nell'interfaccia ---- */
 const ICONE={
+ armatura:'<path d="M8 3L3 7l3 4 2-1v11h8V10l2 1 3-4-5-4c-1 2-5 2-8 0z"/>',anello:'<circle cx="12" cy="15" r="6"/><path d="M9 7l3-4 3 4-3 3z"/>',pozione:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3M8 15h8"/>',
  chat:'<path d="M4 5h16v11H9l-5 4z"/>',megafono:'<path d="M3 10v4h4l8 5V5L7 10zM18 9a4 4 0 0 1 0 6"/>',bilancia:'<path d="M12 3v17M7 20h10M4 8h16M4 8l-2.5 6h5zM20 8l-2.5 6h5z"/>',scambio:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',spunta:'<path d="M4 12l5 5L20 6"/>',
  nota:'<path d="M9 18V5l10-2v13M9 18a3 3 0 1 1-3-3M19 16a3 3 0 1 1-3-3"/>',
  ingr:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',x:'<path d="M5 5l14 14M19 5L5 19"/>',
