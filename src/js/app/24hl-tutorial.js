@@ -7,8 +7,8 @@ const AvvTut={
  salva(){try{localStorage.setItem('avv-tut',ATUT.scrivi(AvvTut.mem||ATUT.vuota()))}catch(e){/* storage non disponibile */}},
  // il contesto della schermata, dallo stato che la vista già ha
  contesto(sch){
-  if(sch==='mappa')return ATUT.contesto('mappa',Ses.a,{camp:Camp.s});
-  if(sch==='battaglia')return ATUT.contesto('battaglia',Ses.a,{bat:Bat.s,pronto:!!(Bat.c&&Bat.c.pronto)});
+  if(sch==='mappa')return ATUT.contesto('mappa',Ses.a,{camp:Camp.s,foglio:!!Camp.u.foglio});
+  if(sch==='battaglia')return ATUT.contesto('battaglia',Ses.a,{bat:Bat.s,pronto:!!(Bat.c&&Bat.c.pronto),foglio:!!(Bat.foglio||Bat.pausa)});
   if(sch==='dialogo'){const f=Dia.fonte();return ATUT.contesto('dialogo',Ses.a,{dia:f&&f.s&&f.cap&&f.s.scena?ARAC.vista(f.s,f.cap,f.ctx):null})}
   return{sch}},
  id(sch){try{return ATUT.prossimo(AvvTut.contesto(sch),AvvTut.carica())}catch(e){ERR.n(e);return null}},

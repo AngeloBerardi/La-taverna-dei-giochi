@@ -1862,6 +1862,128 @@ async def sc_avv_sessione(b, srv):
     check(len(await pg.query_selector_all('[data-a=ses][data-v^="nuova:"]')) == 3 and await pg.evaluate("localStorage.getItem('avv-a1')") is None and await pg.evaluate("Object.keys(window.__db).filter(k=>k.includes('/avventure/a1')).length") == 0, 'eliminata: posto libero, né sul telefono né sul profilo')
     check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}'); await ctx.close()
 
+async def sc_avv_rifinitura(b, srv):
+    """Rifinitura (A10), a 390 px: musica per fase (mappa, città, battaglia, vittoria, sconfitta), tutti i suoni suonabili, regole e suggerimenti (si chiudono, non tornano, si spengono), bacheca degli incarichi fino al diario."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    async def avanti(max=70):
+        """Legge il dialogo fino alla mappa, scegliendo la prima risposta possibile."""
+        for _ in range(max):
+            if not await pg.query_selector('.dl'): return True
+            if await pg.query_selector('[data-a=ses][data-v=combatti]'): return False
+            await pg.click('.dl-corpo'); await pg.wait_for_timeout(120)
+            if await pg.query_selector('.dl-co'): await pg.click('.dl-co')
+            else:
+                sc = await pg.query_selector('.dl-sc:not([disabled])')
+                if not sc: return False
+                await sc.click()
+            await pg.wait_for_timeout(220)
+        return False
+    async def apri_pagina():
+        await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1200)
+    async def piccoli(sel):
+        return await pg.evaluate("s=>[...document.querySelectorAll(s+' button')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&!e.disabled&&(r.width<40||r.height<40)}).map(e=>e.className+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))", sel)
+    async def dentro(sel):
+        return await pg.evaluate("s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}", sel)
+    # --- i suoni: tutti registrati e suonabili senza errori; fuori dall'Avventura vale il tema del menu ---
+    err0 = await pg.evaluate("ERR.b.length")
+    nomi = await pg.evaluate("Object.keys(AAUD.SUONI)")
+    check(len(nomi) >= 25 and await pg.evaluate("n=>n.every(k=>Snd.fx(k))", nomi), f'{len(nomi)} suoni dell\'Avventura registrati in Snd')
+    await pg.evaluate("n=>{n.forEach(k=>Snd.play(k));AvvAudio.passo({t:'sposta',passi:[1,2,3]},0);AvvAudio.passo({t:'dado',salvezza:false,ok:false},0)}", nomi)
+    await pg.wait_for_timeout(300)
+    check(await pg.evaluate("ERR.b.length") == err0, 'suonarli tutti non dà errori')
+    check(not (await pg.evaluate("Snd.quale()")).startswith('avv-'), f'fuori dall\'Avventura vale il tema del menu ({await pg.evaluate("Snd.quale()")})')
+    # --- la pagina Avventura: regole e suggerimenti ---
+    await apri_pagina()
+    check(await pg.query_selector('.tut-regole') is None, 'le regole sono chiuse')
+    await pg.click('[data-a=tut][data-v=regole]'); await pg.wait_for_timeout(200)
+    regole = await pg.inner_text('.tut-regole'); check(len(regole) > 400 and 'perdizione' in regole.lower(), f'«Leggi le regole» apre il testo ({len(regole)} caratteri)')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth"), 'le regole stanno nei 390 px')
+    await pg.click('[data-a=tut][data-v=regole]'); await pg.wait_for_timeout(200)
+    check(await pg.query_selector('.tut-regole') is None, 'si richiudono')
+    check(len(await piccoli('.tut-pag')) == 0, f'bottoni di regole e suggerimenti almeno 40 px {await piccoli(".tut-pag")}')
+    await pg.click('[data-a=tut][data-v=onoff]'); await pg.wait_for_timeout(200)
+    check('Suggerimenti: no' in await pg.inner_text('.tut-pag') and await pg.evaluate("AvvTut.mem.spento") is True, 'i suggerimenti si spengono dalla pagina')
+    await pg.click('[data-a=tut][data-v=onoff]'); await pg.wait_for_timeout(200)
+    check('Suggerimenti: sì' in await pg.inner_text('.tut-pag') and await pg.evaluate("AvvTut.mem.spento") is False, 'e si riaccendono')
+    # --- la partita: nel prologo e in città suona la musica di città ---
+    await pg.click('[data-a=ses][data-v="nuova:a1"]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ses][data-v=parti]'); await pg.wait_for_selector('.dl', timeout=10000); await pg.wait_for_timeout(500)
+    check(await pg.evaluate("Snd.quale()") == 'avv-citta', f'prologo a Valcorvo: musica di città ({await pg.evaluate("Snd.quale()")})')
+    check(await avanti(), 'il prologo si legge fino alla mappa')
+    await pg.wait_for_selector('.mo', timeout=5000); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("Snd.quale()") == 'avv-citta', 'sulla mappa, in città: musica di città')
+    # --- il primo suggerimento: aspetta che il foglio del luogo sia chiuso; una schedina sola, dentro lo schermo, si chiude e non torna ---
+    check(await pg.query_selector('.mo-fg') is not None and await pg.query_selector('.tut') is None, 'con il foglio del luogo aperto non c\'è nessuna schedina (non copre i suoi pulsanti)')
+    await pg.click('.mo-fg button[data-v="foglio:"]'); await pg.wait_for_timeout(250)
+    check(len(await pg.query_selector_all('.mo-mappa > .tut')) == 1, 'chiuso il foglio, sulla mappa c\'è una sola schedina')
+    id1 = await pg.evaluate("document.querySelector('.tut').dataset.tut")
+    await pg.screenshot(path=os.environ['FOTO_RIFINITURA_MAPPA']) if os.environ.get('FOTO_RIFINITURA_MAPPA') else None
+    check(await dentro('.mo-mappa > .tut') is True and len(await piccoli('.tut')) == 0, f'la schedina sta nello schermo e i suoi bottoni sono di almeno 40 px {await piccoli(".tut")}')
+    await pg.click(f'[data-a=tut][data-v="ok:{id1}"]'); await pg.wait_for_timeout(200)
+    check(id1 in await pg.evaluate("AvvTut.mem.visti") and id1 in (await pg.evaluate("localStorage.getItem('avv-tut')") or ''), f'«{id1}» è visto e ricordato sul telefono')
+    visti = [id1]
+    for _ in range(8):
+        t = await pg.query_selector('.tut')
+        if not t: break
+        i = await pg.evaluate("document.querySelector('.tut').dataset.tut"); visti.append(i)
+        await pg.click(f'[data-a=tut][data-v="ok:{i}"]'); await pg.wait_for_timeout(150)
+    check(len(visti) == len(set(visti)), f'ogni suggerimento si vede una volta sola {visti}')
+    # --- dopo un ricarico i suggerimenti visti non tornano ---
+    await pg.reload(); await pg.wait_for_timeout(3500); await apri_pagina()
+    await pg.click('[data-a=ses][data-v="apri:a1"]'); await pg.wait_for_selector('.mo', timeout=8000); await pg.wait_for_timeout(300)
+    mem = await pg.evaluate("AvvTut.mem.visti")
+    check(all(v in mem for v in visti) and (await pg.evaluate("document.querySelector('.tut')?.dataset.tut") or '') not in visti, f'dopo il ricarico non tornano i suggerimenti già visti {mem}')
+    # --- la bacheca: dal foglio del luogo, un incarico che si accetta e si ritrova nel diario ---
+    if not await pg.query_selector('.mo-fg'):
+        await pg.click('[data-a=mo][data-v="foglio:luogo"]'); await pg.wait_for_timeout(300)
+    bt = await pg.query_selector('[data-a=ses][data-v=bacheca]')
+    check(bt is not None and not await bt.is_disabled(), 'il foglio di Valcorvo ha la bacheca degli incarichi')
+    check(len(await piccoli('.mo-fg')) == 0, f'bottoni del foglio almeno 40 px {await piccoli(".mo-fg")}')
+    await bt.click(); await pg.wait_for_selector('.dl', timeout=5000); await pg.wait_for_timeout(300)
+    gen = await pg.evaluate("Ses.a.gen.map(g=>g.id)"); check(len(gen) == 1, f'nasce un incarico {gen}')
+    check(await pg.evaluate("Ses.a.racc.scena.id") == gen[0] + '-offerta' and len((await pg.evaluate("document.querySelector('.dl-testo').dataset.t")).strip()) > 20, 'si apre la scena dell\'offerta, con un cliente che parla')
+    check(await avanti(), 'l\'offerta si accetta e si torna alla mappa')
+    await pg.wait_for_selector('.mo', timeout=5000); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("AVV.incarichi(Ses.a).map(x=>x.stato)") == ['attiva'], 'l\'incarico è attivo')
+    if not await pg.query_selector('.mo-fg'):
+        await pg.click('[data-a=mo][data-v="foglio:luogo"]'); await pg.wait_for_timeout(300)
+    bt = await pg.query_selector('[data-a=ses][data-v=bacheca]')
+    check(bt is not None and await bt.is_disabled(), 'il giorno stesso la bacheca non offre altro (bottone spento, con il perché)')
+    await pg.evaluate("Camp.u.foglio=null;render()")
+    await pg.evaluate("Camp.u.foglio=null;render()"); await pg.wait_for_timeout(150)
+    await pg.click('[data-a=mo][data-v="foglio:diario"]'); await pg.wait_for_timeout(300)
+    dia = await pg.inner_text('.mo-fg'); check('incarichi' in dia.lower() and 'vai a' in dia.lower(), f'il diario ha la sezione «Incarichi» con dove andare {dia[:40]!r}')
+    check(await pg.query_selector('.mo-fg [data-a=mo][data-v="foglio:regole"]') is not None, 'dal diario si leggono le regole («Come si gioca»)')
+    await pg.click('.mo-fg [data-a=mo][data-v="foglio:regole"]'); await pg.wait_for_timeout(250)
+    check(len(await pg.inner_text('.mo-fg .tut-regole')) > 400, 'il foglio «Come si gioca» mostra le regole')
+    await pg.evaluate("Camp.u.foglio=null;render()")
+    # --- la battaglia: musica di battaglia, schedina del turno, vittoria e sconfitta ---
+    await pg.evaluate("""(()=>{const s=Ses.a.camp,m=s.mostri[0],q=s.eroi.map((e,i)=>e.hp>0?i:-1).filter(i=>i>=0),x=s.celle[m.q+','+m.r];
+      s.sfida={k:'battaglia',mostro:m.id,luogo:null,stanza:null,nemici:AMOS.composizione(s,m,q.length).nemici,ambiente:AARE.ambienteDa(x.t,x.poi),seme:4242,quali:q,dist:{},sorpresa:null,q:m.q,r:m.r};
+      Camp.u.foglio=null;Ses.vai();render()})()""")
+    await pg.wait_for_selector('[data-a=mo][data-v=combatti]', timeout=5000)
+    await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_selector('.bt', timeout=8000); await pg.wait_for_timeout(800)
+    q = await pg.evaluate("Snd.quale()"); check(q in ('avv-battaglia', 'avv-capo'), f'in battaglia suona la musica di battaglia ({q})')
+    try:
+        await pg.wait_for_function("document.querySelector('.bt .tut')", timeout=9000)
+        tid = await pg.evaluate("document.querySelector('.bt .tut').dataset.tut")
+        check(tid.startswith('bat-') and await dentro('.bt-mappa > .tut') is True, f'in battaglia la schedina «{tid}» sta nella mappa, dentro lo schermo')
+    except Exception:
+        check(False, 'in battaglia compare la schedina del turno')
+    await pg.screenshot(path=os.environ['FOTO_RIFINITURA']) if os.environ.get('FOTO_RIFINITURA') else None
+    await pg.evaluate("(()=>{const b=Bat.s;b.over={esito:'vittoria',giri:1};render()})()")
+    check(await pg.evaluate("Snd.quale()") == 'avv-vittoria', f'vinta: musica di vittoria ({await pg.evaluate("Snd.quale()")})')
+    await pg.evaluate("(()=>{const b=Bat.s;b.cb.filter(c=>c.lato==='eroi').forEach(c=>{c.hp=0});b.over={esito:'sconfitta',giri:1};render()})()")
+    check(await pg.evaluate("Snd.quale()") == 'avv-sconfitta', f'persa: musica di sconfitta ({await pg.evaluate("Snd.quale()")})')
+    # --- «Basta suggerimenti» li spegne per sempre ---
+    if await pg.query_selector('.tut'):
+        await pg.click('[data-a=tut][data-v=basta]'); await pg.wait_for_timeout(200)
+    else:
+        await pg.evaluate("AvvTut.act('tut','basta')")
+    check(await pg.query_selector('.tut') is None and await pg.evaluate("AvvTut.mem.spento") is True and '"spento":true' in (await pg.evaluate("localStorage.getItem('avv-tut')") or '').replace(' ', ''), '«Basta suggerimenti»: nessuna schedina, spento anche sul telefono')
+    check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

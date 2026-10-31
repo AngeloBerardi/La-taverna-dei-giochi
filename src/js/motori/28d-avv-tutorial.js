@@ -34,7 +34,7 @@ const ATUT=(()=>{
  const ID=SUGGERIMENTI.map(s=>s.id);
  const vuota=()=>({spento:false,sempre:false,visti:[]});
  // ---- il contesto ----
- function contesto(sch,a,x){x=x||{};const c={sch,prima:!a||(a.racc&&(a.racc.sessioni|0)===0)};
+ function contesto(sch,a,x){x=x||{};const c={sch,foglio:!!x.foglio,prima:!a||(a.racc&&(a.racc.sessioni|0)===0)};
   if(sch==='mappa'){const g=a?a.camp:x.camp;if(!g)return Object.assign(c,{fermo:true});const v=CP.vivi(g),e=v[0],l=e?CP.luogoDi(g,e):null;
    Object.assign(c,{dentro:!!g.dentro,fermo:!!(g.over||g.sfida||g.incontro||g.evento||(a&&(a.racc.scena||a.bat||a.fine))),tirato:v.some(h=>h.pm!=null),pmResto:v.some(h=>h.pm>0),
     giorno:g.giorno|0,perdizione:g.perdizione|0,notte:g.fase==='notte',inLuogo:!!l&&LU.servizi(l,g.giorno).length>0})}
@@ -43,7 +43,7 @@ const ATUT=(()=>{
   else if(sch==='dialogo'){const d=x.dia,sc=(d&&d.scelte)||[];Object.assign(c,{provaVisibile:sc.some(k=>k.prova&&k.ok),reazioni:!!(d&&d.reazioni&&d.reazioni.length)})}
   return c}
  // ---- quale ----
- function prossimo(c,mem){mem=Object.assign(vuota(),mem||{});if(!c||mem.spento||!SCHERMATE.includes(c.sch))return null;if(!c.prima&&!mem.sempre)return null;
+ function prossimo(c,mem){mem=Object.assign(vuota(),mem||{});if(!c||c.foglio||mem.spento||!SCHERMATE.includes(c.sch))return null;if(!c.prima&&!mem.sempre)return null;
   const s=SUGGERIMENTI.find(k=>k.sch===c.sch&&!mem.visti.includes(k.id)&&COND[k.cond](c));return s?s.id:null}
  const trova=id=>SUGGERIMENTI.find(k=>k.id===id)||null;
  // ---- la memoria (si salva sul telefono: stringa JSON) ----

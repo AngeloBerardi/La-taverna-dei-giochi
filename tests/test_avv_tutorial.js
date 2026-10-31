@@ -101,4 +101,10 @@ const nuova = (seme) => AVV.nuova(cap, gruppo(), seme || 3, { avvio: false });
   assert.doesNotThrow(() => ATUT.contesto('inventata', null, {})); assert.doesNotThrow(() => ATUT.contesto('battaglia', null, {})); assert.doesNotThrow(() => ATUT.contesto('dialogo', null, {}));
   assert(!/Math\.random/.test(SRC('motori/28d-avv-tutorial.js').replace(/\/\*[\s\S]*?\*\//g, '')), 'niente Math.random'); }
 
+// ---- 7. mentre un foglio è aperto (luogo, diario, poteri, pausa delle reazioni) la schedina non si mostra: non copre i suoi pulsanti ----
+{ const P = ATUT.prossimo; const aperto = ATUT.contesto('battaglia', null, { foglio: true, pronto: false }); assert.strictEqual(aperto.foglio, true);
+  assert.strictEqual(P(Object.assign({}, aperto, { turnoEroe: true }), null), null, 'con un foglio aperto niente suggerimento');
+  assert.strictEqual(P(Object.assign({}, aperto, { foglio: false, turnoEroe: true }), null), 'bat-turno', 'chiuso il foglio, torna');
+  assert.strictEqual(ATUT.contesto('mappa', null, {}).foglio, false, 'di norma nessun foglio'); }
+
 console.log('test_avv_tutorial: ok');

@@ -138,6 +138,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
 | `css/39e-sessione.css` | 2 |  |
+| `css/39f-tutorial.css` | 1 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -196,8 +197,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
 | `js/motori/28-campagna.js` | 38 | CAMP |
-| `js/motori/28a-avv-orchestratore.js` | 16 | AVV |
+| `js/motori/28a-avv-orchestratore.js` | 22 | AVV |
 | `js/motori/28b-avv-rientro.js` | 4 | ARIE |
+| `js/motori/28c-avv-audio.js` | 12 | AAUD |
+| `js/motori/28d-avv-tutorial.js` | 6 | ATUT |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -213,7 +216,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 6 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 20 | Snd |
+| `js/app/03-audio.js` | 22 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 39 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
@@ -221,7 +224,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
-| `js/app/07d-regole.js` | 42 | RULES |
+| `js/app/07d-regole.js` | 46 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -282,7 +285,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
 | `js/app/24hh-mondo-pannelli.js` | 19 | MoPan |
 | `js/app/24hi-dialogo.js` | 14 | Dia |
-| `js/app/24hj-sessione.js` | 20 | Ses |
+| `js/app/24hj-sessione.js` | 21 | Ses |
+| `js/app/24hk-audio-avv.js` | 2 | AvvAudio |
+| `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
