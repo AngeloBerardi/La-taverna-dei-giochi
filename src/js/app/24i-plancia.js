@@ -1,7 +1,7 @@
 /* ---- Plancia: barra in basso a cinque destinazioni (Taverna, Giochi, Avventura, Amici, Profilo). Visibile nelle lobby, non in partita ---- */
 const Plancia={
  last:'',
- vis(){return ui.screen==='room'&&!ui.tv&&!ui.bat},
+ vis(){return ui.screen==='room'&&!ui.tv&&!ui.bat&&!ui.camp},
  attivo(){return ui.avv||ui.eroi||ui.camp||ui.inv||ui.bat?'avventura':ui.amici||ui.dist||ui.tvm?'amici':ui.acc||ui.shop||ui.oste||ui.cfg?'profilo':ui.glist||ui.tab==='games'?'giochi':'taverna'},
  VOCI:[['taverna','Taverna','casa'],['giochi','Giochi','dado'],['avventura','Avventura','mappa'],['amici','Amici','amici'],['profilo','Profilo','utente']],
  draw(){let el=document.getElementById('plancia');if(!el){el=document.createElement('nav');el.id='plancia';el.setAttribute('aria-label','Navigazione principale');document.body.appendChild(el)}

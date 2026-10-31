@@ -7,7 +7,8 @@ const Inv={
  ICO:{arma:'spada',scudo:'scudo',armatura:'armatura',acc:'anello',cons:'pozione',miss:'chiave'},
  POSTI:[['arma','Mano','arma'],['scudo','Seconda mano','scudo'],['armatura','Armatura','armatura'],['acc1','Accessorio','acc'],['acc2','Accessorio','acc']],
  FILTRI:{fabbro:[['arma','Armi'],['armatura','Armature'],['scudo','Scudi']],emporio:[['acc','Accessori'],['cons','Consumabili']]},
- inCitta:s=>s.celle[s.party.q+','+s.party.r].poi==='citta',
+ // la bottega dove si trova l'eroe scelto: aperta in città e nei villaggi (non assediati) o accanto a un mercante; nei villaggi e dai mercanti solo merce comune
+ qui(s){const h=s.eroi[Inv.eroe]||s.eroi[0],l=CAMP.luogoDi(s,h),mer=CAMP.mercanteQui(s,h),aperta=!!(l&&ALUO.servizi(l,s.giorno).includes('bottega'));return{bottega:aperta||!!mer,soloComune:!!mer||!!(l&&l.tipo==='villaggio'),nome:aperta?l.nome:mer?'Mercante vagante':''}},
  dmed:d=>d?d.n*(d.dado+1)/2+d.bonus:0,
  sg:n=>(n>0?'+':'')+n,
  // l'oggetto scelto: { t:'z'|'c'|'e'|'n', k } = zaino (posizione), cintura (posizione), equipaggiato (posto), bottega (id)
@@ -33,7 +34,7 @@ const Inv={
   const righe=[['CA',a.ca,b.ca],['Attacco',a.attacco,b.attacco],['Danno medio',Inv.dmed(a.danno),Inv.dmed(b.danno)],['PF massimi',a.hpMax,b.hpMax],['Movimento',a.mov,b.mov],['Iniziativa',a.iniziativa,b.iniziativa]].filter(r=>r[1]!==r[2]);
   return`<div class="iv-cf"><small>${att?'Al posto di '+esc(AOGG.OGG[att].nome):'Posto libero'}</small>${righe.length?righe.map(([n,x,y])=>`<div><span>${n}</span><b>${x}</b><i>→</i><b class="${y>x?'su':'giu'}">${y}</b></div>`).join(''):'<div><span>Nessuna differenza nei numeri</span></div>'}</div>`},
  dettaglioH(s,h){const id=Inv.idSel(h);if(!id){Inv.sel=null;return''}
-  const it=AOGG.OGG[id],q=Inv.sel,citta=Inv.inCitta(s),altri=s.eroi.map((e,i)=>[e,i]).filter(([,i])=>i!==Inv.eroe);
+  const it=AOGG.OGG[id],q=Inv.sel,citta=Inv.qui(s).bottega,altri=s.eroi.map((e,i)=>[e,i]).filter(([,i])=>i!==Inv.eroe);
   const btn=(a,v,t,cls)=>`<button class="b sm ${cls||''}" data-a="${a}" ${v!=null?`data-v="${v}"`:''}>${t}</button>`;let az='';
   if(q.t==='z'){
    if(['arma','scudo','armatura','acc'].includes(it.slot)&&!AOGG.verifica(h,id,AOGG.slotPer(h,id)))az+=btn('ivequipa',null,'Equipaggia','gold');
@@ -49,22 +50,22 @@ const Inv={
 <p>${AOGG.descrivi(id).map(esc).join(' · ')}</p>${q.t!=='e'&&q.t!=='c'?Inv.confrontoH(h,id):''}<div class="iv-az">${az}</div></div>`},
  bottegaH(s,h){const tipo=Inv.tab,n=ABOT.negozio(s.seed,s.giorno,tipo),fl=Inv.FILTRI[tipo],f=Inv.filtro;
   const chips=`<div class="iv-fl"><button class="${f==='tutti'?'on':''}" data-a="ivfiltro" data-v="tutti">Tutto</button>${fl.map(([k,nm])=>`<button class="${f===k?'on':''}" data-a="ivfiltro" data-v="${k}">${nm}</button>`).join('')}</div>`;
-  const voci=n.roba.filter(v=>f==='tutti'||AOGG.OGG[v.id].slot===f),fissi=voci.filter(v=>v.qta===null),spe=voci.filter(v=>v.qta!==null);
+  const comune=Inv.qui(s).soloComune,voci=n.roba.filter(v=>(f==='tutti'||AOGG.OGG[v.id].slot===f)&&(!comune||AOGG.OGG[v.id].ra==='comune')),fissi=voci.filter(v=>v.qta===null),spe=voci.filter(v=>v.qta!==null);
   const cel=v=>Inv.cella(v.id,'n',v.id,{pr:v.pr,liv:AOGG.OGG[v.id].liv>(h.liv||1)});
   const giorni=ABOT.GIORNI_RINNOVO-((s.giorno-1)%ABOT.GIORNI_RINNOVO);
-  return`${chips}${spe.length?`<div class="sh2">Pezzi speciali ${infoH('Uno per tipo. La merce cambia ogni '+ABOT.GIORNI_RINNOVO+' giorni.')} <small class="muted">cambia tra ${giorni} giorn${giorni===1?'o':'i'}</small></div><div class="iv-gr">${spe.map(v=>ABOT.restano(s,n,v)===0?Inv.cella(null,'n',v.id,{nome:'Esaurito'}):cel(v)).join('')}</div>`:''}
+  return`${chips}${comune?'<small class="muted">Qui si trova solo merce comune: per il resto serve una città.</small>':''}${spe.length?`<div class="sh2">Pezzi speciali ${infoH('Uno per tipo. La merce cambia ogni '+ABOT.GIORNI_RINNOVO+' giorni.')} <small class="muted">cambia tra ${giorni} giorn${giorni===1?'o':'i'}</small></div><div class="iv-gr">${spe.map(v=>ABOT.restano(s,n,v)===0?Inv.cella(null,'n',v.id,{nome:'Esaurito'}):cel(v)).join('')}</div>`:''}
 <div class="sh2">Sempre in vendita</div><div class="iv-gr">${fissi.map(cel).join('')}</div>`},
  html(){const s=Camp.s;if(!s)return`<div class="modal"><div class="box col iv"><h2>Zaino</h2><p class="muted">Nessuna campagna in corso.</p><button class="b sm" data-a="ivx">Chiudi</button></div></div>`;
-  if(Inv.eroe>=s.eroi.length)Inv.eroe=0;const h=s.eroi[Inv.eroe],citta=Inv.inCitta(s);if(!citta&&Inv.tab!=='zaino')Inv.tab='zaino';
+  if(Inv.eroe>=s.eroi.length)Inv.eroe=0;const h=s.eroi[Inv.eroe],citta=Inv.qui(s).bottega;if(!citta&&Inv.tab!=='zaino')Inv.tab='zaino';
   const tab=(k,t)=>`<button class="${Inv.tab===k?'on':''}" data-a="ivtab" data-v="${k}">${t}</button>`;
   return`<div class="modal"><div class="box col iv"><div class="chead"><h2>Zaino e bottega</h2><button class="b sm" data-a="ivx" aria-label="Chiudi">${ic('x',18)}</button></div>
 <div class="chud"><span title="Monete comuni della compagnia">${ic('moneta',16)} ${s.oro}</span><span>${ic('sole',16)} Giorno ${s.giorno}</span></div>
 ${Inv.eroiTab(s)}<div class="iv-tb">${tab('zaino','Zaino')}${citta?tab('fabbro','Fabbro')+tab('emporio','Emporio'):''}</div>
-${citta?'':'<small class="muted">Le botteghe si aprono in città.</small>'}
+${citta?'':'<small class="muted">Le botteghe si aprono in città e nei villaggi, o da un mercante.</small>'}
 ${Inv.tab==='zaino'?Inv.zainoH(s,h):Inv.bottegaH(s,h)}${Inv.dettaglioH(s,h)}<p class="acc-msg" role="status">${esc(Inv.msg)}</p></div></div>`},
  act(a,v){const s=Camp.s;
-  if(a==='ivapri'){if(!s)return;ui.inv=true;Inv.sel=null;Inv.msg='';Inv.tab='zaino';if(Inv.eroe>=s.eroi.length)Inv.eroe=0;return render()}
-  if(a==='ivx'){ui.camp=true;return render()}
+  if(a==='ivapri'){if(!s)return;ui.camp=false;ui.inv=true;Camp.u.foglio=null;Inv.sel=null;Inv.msg='';Inv.eroe=Camp.eroeSel(s);Inv.tab=(v==='fabbro'||v==='emporio')&&Inv.qui(s).bottega?v:'zaino';Inv.filtro='tutti';return render()}
+  if(a==='ivx'){ui.inv=false;ui.camp=true;return render()}
   if(!s)return;
   if(a==='ivero'){Inv.eroe=+v;Inv.sel=null;return render()}
   if(a==='ivtab'){Inv.tab=v;Inv.sel=null;Inv.filtro='tutti';Inv.msg='';return render()}
