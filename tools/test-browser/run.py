@@ -918,7 +918,11 @@ async def sc_avv_mondo(b, srv):
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_timeout(700)
     check(await pg.query_selector('.bt') is not None and await pg.query_selector('.mo') is None and await pg.evaluate("Bat.mondo") is not None, 'si apre la battaglia della campagna')
     check(await pg.evaluate("!!localStorage.getItem('bat')") and await pg.evaluate("JSON.parse(localStorage.getItem('bat')).mondo") == await pg.evaluate("Camp.s.sfida.seme"), 'la battaglia è salvata col suo legame alla campagna')
-    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa
+    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa (prima i nemici finiscono il loro turno)
+    for _ in range(120):
+        if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')
+        elif not await pg.evaluate('Bat.anim||Bat.lavoro||!!Bat.pausa'): break
+        await pg.wait_for_timeout(250)
     await pg.click('[data-a=batfoglio][data-v=menu]'); await pg.wait_for_timeout(150)
     check(await pg.query_selector('[data-a=batabbandona]') is None and await pg.query_selector('[data-a=batesci]') is not None, 'nel menu niente «Abbandona»')
     await pg.click('[data-a=batesci]'); await pg.wait_for_timeout(300)
@@ -1480,6 +1484,12 @@ async def sc_avv_battaglia(b, srv):
             if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')   # una reazione da scegliere: «Nessuna reazione»
             await pg.wait_for_timeout(250)
         return False
+    async def ferma(sec=30):
+        for _ in range(sec * 4):
+            if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')
+            elif not await pg.evaluate('Bat.anim||Bat.lavoro||!!Bat.pausa'): return True
+            await pg.wait_for_timeout(250)
+        return False
     async def bottoni_piccoli():
         return await pg.evaluate("[...document.querySelectorAll('.bt button')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<40||r.height<40)}).map(e=>e.className+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))")
     # --- le scelte nella pagina Avventura ---
@@ -1513,7 +1523,7 @@ async def sc_avv_battaglia(b, srv):
     check('Muovi' in await pg.inner_text('.bt-ok'), 'il bottone Conferma dice cosa succede')
     await pg.click('[data-a=batannulla]'); await pg.wait_for_timeout(150)
     check(await pg.evaluate("Bat.c.modo") == 'riposo' and await pg.query_selector('.bt-ev.bt-meta') is None, 'Annulla toglie la selezione')
-    await tap(dest['q'], dest['r']); await tap(dest['q'], dest['r'], 1500)
+    await tap(dest['q'], dest['r']); await tap(dest['q'], dest['r'], 300); await ferma()   # il movimento può provocare attacchi di opportunità: si aspetta la fine dell'animazione
     pos = await pg.evaluate("(id=>{const c=ASCO.trova(Bat.s,id);return [c.q,c.r]})", chi)
     check(pos == [dest['q'], dest['r']] and await pg.evaluate("Bat.s.turno.pm") == pm0 - dest['costo'], f'il secondo tocco muove l\'eroe e spende {dest["costo"]} movimento')
     # fogli: Altro → Scatto in preparazione → Annulla
@@ -1560,16 +1570,16 @@ async def sc_avv_battaglia(b, srv):
     await pg.click('[data-a=batinfox]'); await pg.wait_for_timeout(100)
     check(await pg.query_selector('.bt-info') is None, 'la scheda si chiude')
     # fine turno: tocca ancora per confermare; finiti i turni degli eroi giocano i nemici, con i bottoni di velocità
-    nem = False
+    nem = False; ris = ''
     for _ in range(6):
         await pg.click('[data-a=batfine]'); await pg.wait_for_timeout(100)
         if await pg.query_selector('[data-a=batconferma]'): await pg.click('[data-a=batconferma]')
-        try:
-            await pg.wait_for_selector('.bt-barra.nem', timeout=4000); nem = True; break
+        try:   # il turno dei nemici può durare poco: si legge e si clicca subito, altrimenti si riprova al turno dopo
+            await pg.wait_for_selector('.bt-barra.nem', timeout=4000); ris = await pg.inner_text('.bt-ris', timeout=1000)
+            await pg.click('.bt-barra.nem [data-a=batvel][data-v="2"]', timeout=2000); nem = True; break
         except Exception:
             if not await aspetta_eroe(): break
-    check(nem and 'Turno di' in await pg.inner_text('.bt-ris'), 'turno nemico: «Turno di …» e bottoni di velocità')
-    await pg.click('.bt-barra.nem [data-a=batvel][data-v="2"]')
+    check(nem and 'Turno di' in ris, 'turno nemico: «Turno di …» e bottoni di velocità')
     check(await pg.evaluate("Bat.cfg.vel") == 2, 'velocità 2×')
     await pg.wait_for_function("(()=>{const a=ASCO.attore(Bat.s);return Bat.s.over||(a&&a.lato==='eroi'&&!Bat.lavoro&&!Bat.anim)||!!Bat.pausa})()", timeout=90000)
     # reazione: una scena trovata con il motore, in cui un nemico sta per colpire un eroe che può reagire
