@@ -13,7 +13,7 @@ const ALUO=(()=>{
  // ---- servizi e prezzi (W12) ----
  const SERVIZI={citta:['locanda','guaritore','tempio','bottega','bacheca'],villaggio:['locanda','guaritore','bottega'],santuario:['preghiera'],campo:['accampamento'],antro:['sotterraneo'],rovina:['sotterraneo'],torre:['sotterraneo'],tesoro:[]};
  const NOME_SERVIZIO={locanda:'Locanda',guaritore:'Guaritore',tempio:'Tempio',bottega:'Bottega',bacheca:'Bacheca delle taglie',preghiera:'Preghiera',accampamento:'Accampamento',sotterraneo:'Entra'};
- const PREZZI={locanda:8,offerta:20,razioneLungo:1,tempio:(liv)=>20+15*(liv||1),guaritore:(hp,hpMax)=>Math.ceil(Math.max(0,hpMax-hp)/2)};
+ const PREZZI={locanda:8,offerta:20,razioneLungo:1,tempio:(liv)=>20+10*(liv||1),guaritore:(hp,hpMax)=>Math.ceil(Math.max(0,hpMax-hp)/2)};
  const PREGHIERA={libera:3,offerta:8,chiusoPerGiorni:3};
  const BREVE={pct:.2,max:2,distanza:2},NATURALE=.1,LUNGO_ACCAMPAMENTO=.5;
  // servizi aperti in un luogo: un luogo assediato o chiuso non ne offre

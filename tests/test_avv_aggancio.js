@@ -39,7 +39,7 @@ const gioca = (s) => IA.partita(s, { eroi: 'eroica', nemici: 'normale' });
     if (vincenti) { const battuti = riep.nemici.filter((n) => n.esito === 'sconfitto' || n.esito === 'arreso').length; assert(battuti === 0 ? riep.xp === 0 : riep.xp > 0, 'PE solo per chi è battuto o arreso (non per chi scappa)'); assert.strictEqual(riep.xpPerEroe, Math.floor(riep.xp / riep.eroi.length)); assert(CAMP.vivi(nuova).length === riep.eroi.filter((e) => e.hp > 0).length); }
     // il resto della campagna resta quello di prima, e continua a funzionare
     for (const k of ['celle', 'party', 'giorno', 'fase', 'perdizione', 'oro', 'missione', 'seed', 'rng', 'n', 'v', 'g']) assert.deepStrictEqual(nuova[k], camp[k], k + ' non cambia');
-    const rip = CAMP.act(nuova, { t: 'riposa' }); assert(!rip.err && JSON.stringify(rip.s) === JSON.stringify(puro(rip.s)), 'la campagna riparte (riposo): ' + rip.err); assert.deepStrictEqual(rip.s.eroi.filter((e) => e.hp > 0).map((e) => e.usi['tocco-guaritore'] || 0), rip.s.eroi.filter((e) => e.hp > 0).map(() => 0), 'il riposo ridà le cariche'); provate++; }
+    const dormi = puro(nuova); dormi.oro = 100; const rip = CAMP.act(dormi, { t: 'lungo' }); assert(!rip.err && JSON.stringify(rip.s) === JSON.stringify(puro(rip.s)), 'la campagna riparte (riposo lungo alla locanda): ' + rip.err); assert.deepStrictEqual(rip.s.eroi.filter((e) => e.hp > 0).map((e) => e.usi['tocco-guaritore'] || 0), rip.s.eroi.filter((e) => e.hp > 0).map(() => 0), 'il riposo ridà le cariche'); provate++; }
   assert.strictEqual(provate, 6); assert(conPotere >= 6, 'poteri usati e riportati: ' + conPotere); }
 
 // ---- chi non c'era non guadagna, chi è a terra resta a terra, errori chiari ----

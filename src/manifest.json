@@ -102,6 +102,7 @@
  "src/js/motori/27l-avv-comandi.js",
  "src/js/motori/27m-avv-mondo.js",
  "src/js/motori/27n-avv-luoghi.js",
+ "src/js/motori/27o-avv-mostri.js",
  "src/js/motori/28-campagna.js",
  "src/js/motori/29-spie.js",
  "src/js/motori/30-domande.js",

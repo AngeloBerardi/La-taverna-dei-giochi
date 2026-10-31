@@ -18,7 +18,7 @@ assert.deepStrictEqual(L.servizi({ tipo: 'villaggio', assedio: true }, 1), [], '
 assert.deepStrictEqual(L.servizi({ tipo: 'santuario', pronto: 5 }, 4), []); assert.deepStrictEqual(L.servizi({ tipo: 'santuario', pronto: 5 }, 5), ['preghiera']);
 assert.deepStrictEqual(L.servizi(null, 1), []);
 for (const s of Object.values(L.SERVIZI).flat()) assert(L.NOME_SERVIZIO[s], 'nome del servizio ' + s);
-assert(L.PREZZI.tempio(5) > L.PREZZI.tempio(1) && L.PREZZI.tempio(1) === 35, 'il tempio costa di più agli eroi forti');
+assert(L.PREZZI.tempio(5) > L.PREZZI.tempio(1) && L.PREZZI.tempio(1) === 30, 'il tempio costa di più agli eroi forti');
 assert.strictEqual(L.PREZZI.guaritore(3, 10), 4); assert.strictEqual(L.PREZZI.guaritore(10, 10), 0);
 
 // preghiera
