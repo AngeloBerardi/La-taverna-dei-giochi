@@ -1,9 +1,9 @@
-# A8 — Capitolo 1 «La Corona Spezzata»: scaletta da approvare
+# A8 — Capitolo 1 «La Corona Spezzata»: scaletta
 
-Stato: **bozza per l'approvazione dell'utente** (31 ottobre 2026). Nessun dialogo è ancora scritto: dopo il via si scrivono atto per atto. Formato e API del racconto: `docs/AVVENTURA-A7.md`. Nessun nome di marchio: tutti i nomi qui sotto sono nostri.
+Stato: **approvata dall'utente il 31 ottobre 2026** con queste scelte: cattivo vero (il Maestro vuole la corona per sé e lo scontro non si evita), tre esiti (A, B, C), compagni Gherardo e Mirta, una PR per atto. Nessun dialogo è ancora scritto: si scrivono atto per atto (§9). Formato e API del racconto: `docs/AVVENTURA-A7.md`. Nessun nome di marchio: tutti i nomi qui sotto sono nostri.
 
 ## 1. In una riga
-Il re è scomparso e la corona delle Tre Marche si è spezzata in tre pezzi. La compagnia li cerca in tre regioni, una per atto, e scopre che il re non è stato rapito: **ha spezzato lui la corona**, perché lo stava consumando. A fine capitolo la compagnia sceglie che cosa ne sarà del re e del regno.
+Il re è scomparso e la corona delle Tre Marche si è spezzata in tre pezzi. La compagnia li cerca in tre regioni, una per atto, e scopre che dietro tutto c'è **il Maestro della Torre**, il mago di corte, che vuole la corona per sé e tiene il re prigioniero. Il Maestro è un nemico vero: lo scontro finale non si evita. A fine capitolo la compagnia decide che cosa fare della corona.
 
 Tono: fantasy classico, serio ma luminoso (tabella di `docs/AVVENTURA.md`). Il Locandiere racconta ogni «cantare» e riassume la puntata precedente.
 
@@ -20,8 +20,9 @@ Capi, famiglie e arene (accampamento, cripta, sala del maestro) esistono già in
 
 ## 3. La verità (si scopre a pezzi)
 - La **Corona delle Tre Marche** ha tre parti, ognuna con un potere: il **Cerchio** (comanda i vivi), la **Gemma** (dà pace ai morti), il **Sigillo** (tiene i corvi, gli «occhi del regno»). Chi la porta regge le tre terre, ma la corona si nutre degli anni di chi la porta.
-- Re **Ottavio il Mite** si consumava. Una notte, con il suo vecchio amico **Maestro Alberico Malavista**, ruppe di sua volontà la corona e si fece portare nella Torre dei Corvi, dove può guarire.
-- La rottura lanciò i pezzi dove ciascun potere era più forte: il **Cerchio** ai Corvi di strada (Corvino lo crede un dono della sorte), la **Gemma** nella tomba del vecchio re **Gualtiero**, che senza di essa si risveglia (il «Re senza corona»), il **Sigillo** resta al Maestro, che da allora manda corvi a sbarrare la strada a chiunque cerchi il re.
+- **Maestro Alberico Malavista**, mago di corte e consigliere da trent'anni, voleva la corona per sé e da anni la piegava di nascosto. Quando re **Ottavio il Mite** se ne accorse e volle toglierla dal suo capo, il Maestro la ruppe di proposito e fece portare il re nella Torre dei Corvi, dove lo tiene prigioniero: il potere dei tre pezzi passa dal sangue del re, e finché il re vive il Maestro può sperare di riunirli.
+- I pezzi, strappati, volarono dove ciascun potere era più forte: il **Cerchio** ai Corvi di strada (Corvino lo crede un dono della sorte), la **Gemma** nella tomba del vecchio re **Gualtiero**, che senza di essa si risveglia (il «Re senza corona»), il **Sigillo** è rimasto al Maestro. I pezzi bruciano chi li tocca contro la volontà del custode: al Maestro servono mani altrui.
+- Per questo il Maestro **lascia che siano altri a cercarli**: i suoi corvi seguono la compagnia della Reggente, Corvino riceve i suoi ordini, e alla fine il Maestro propone un patto (il re in cambio dei pezzi). È un inganno: con la corona intera diventerebbe re dei vivi e dei morti.
 - La **Reggente**, **Dama Berengaria**, sorella del re, non sa nulla: vuole la corona intera e il re sul trono. È onesta, dura, convinta che il regno venga prima del re.
 
 ## 4. Atti e cantari (4–5 sessioni, circa un'ora l'una)
@@ -33,12 +34,12 @@ Livelli attesi: da 1–2 a 7–8. Un cantare = una sessione; il Locandiere chiud
 - Compagni: **Gherardo** (a Valcorvo, in cella) e **Mirta** (al Casale dei Salici).
 
 ### Atto II — «La Gemma dei morti» (Brughiere Cenerine) · livelli 4→6
-- **Terzo cantare**: Rocca Pallida (i morti salgono dal pantano; il capitano chiede aiuto) · Fonte Cupa · la **Cripta dei Re**, cinque stanze scritte a mano (soglia dei sarcofagi, sala dei nomi, trappola del trono, cappella di Sir Ruggero, camera del re Gualtiero) · il Re senza corona · la **Gemma** · nel sarcofago, una **lettera di re Ottavio**: la prima prova che ha spezzato lui la corona.
+- **Terzo cantare**: Rocca Pallida (i morti salgono dal pantano; il capitano chiede aiuto) · Fonte Cupa · la **Cripta dei Re**, cinque stanze scritte a mano (soglia dei sarcofagi, sala dei nomi, trappola del trono, cappella di Sir Ruggero, camera del re Gualtiero) · il Re senza corona · la **Gemma** · nel sarcofago, una **lettera di re Ottavio**, scritta prima della rottura: «non date la corona al Maestro». È la prima prova contro di lui.
 - La Reggente chiede i pezzi: si possono consegnare subito a Valcorvo (viaggio, tempo, perdizione che sale) o tenerli.
 
 ### Atto III — «Il Sigillo e il re» (Boschi Velati) · livelli 6→8
 - **Quarto cantare**: Poggio Basso (i boscaioli vedono corvi che sbarrano i sentieri) · Altare delle Piogge (ultima notte prima della torre; Mirta e Gherardo parlano) · i corvi.
-- **Quinto cantare**: la **Torre dei Corvi**, sei stanze scritte a mano (soglia, biblioteca, gabbia dei famigli, osservatorio, sala delle ombre, sala del Maestro) · il Maestro · il re · la scelta finale · epilogo.
+- **Quinto cantare**: la **Torre dei Corvi**, sei stanze scritte a mano (soglia, biblioteca, gabbia dei famigli, osservatorio, sala delle ombre, sala del Maestro) · il patto del Maestro (si finge, si rifiuta o ci si cade) · lo scontro · il re liberato · la scelta finale · epilogo.
 
 ## 5. Le sei scene principali (più le intermedie)
 | # | Scena | Dove | Cosa succede | Prove / scelte chiave |
@@ -48,7 +49,7 @@ Livelli attesi: da 1–2 a 7–8. Un cantare = una sessione; il Locandiere chiud
 | 3 | **Il Casale dei Salici** | villaggio assediato | I Corvi chiedono il tributo; si tratta, si inganna o si combatte; si incontra Mirta, vedetta pentita. | Intimidire / Furtività / Persuasione; battaglia (banditi) |
 | 4 | **Corvino** | Accampamento dei Corvi | Il capobanda mostra il Cerchio e dice di averlo «ricevuto». Duello, patto o inganno. | Persuasione difficile per evitare lo scontro; battaglia con arena `accampamento` |
 | 5 | **La Cripta dei Re** | antro, 5 stanze | Il Re senza corona è re Gualtiero senza la Gemma: lo si vince o gli si ridà pace; la lettera di Ottavio. | Arcano/Storia (leggere i nomi), Medicina (riti per i morti), battaglia con arena `cripta` |
-| 6 | **Il Maestro e il re** | Torre dei Corvi | Il Maestro difende il re: ascolta chi ha le prove; altrimenti si combatte. Il re parla. Scelta finale. | Persuasione molto difficile, cinque prove di verità (§7), battaglia `sala-del-maestro` |
+| 6 | **Il Maestro e il re** | Torre dei Corvi | Il Maestro propone il patto: i pezzi in cambio del re. Si può fingere (Persuasione o Furtività, meglio con gli indizi), rifiutare, o cadere nell'inganno (il Maestro prende i pezzi e combatte più forte). Lo scontro non si evita. Poi il re, liberato, parla e la compagnia sceglie. | Persuasione/Furtività difficili, indizi (§7), battaglia `sala-del-maestro` |
 
 Intermedie (una o due per luogo): arrivo a Rocca Pallida, il capitano della Rocca, il guaritore di Fonte Cupa, il rito di Poggio Basso, la notte all'Altare delle Piogge, il viaggio di ritorno a Valcorvo.
 
@@ -63,15 +64,15 @@ Intermedie (una o due per luogo): arrivo a Rocca Pallida, il capitano della Rocc
 | Se se ne va | per disonore (scelte crudeli o avide) | per tradimento (tradirla o sacrificarla) |
 Se il gruppo ha quattro posti pieni, i compagni aspettano a Valcorvo e si rientra a ogni città.
 
-## 7. Le tre uscite e come si guadagnano
-Le **prove di verità** sono cinque indizi: (1) le penne e il sigillo sugli ordini di Corvino, (2) la lettera nella cripta, (3) la testimonianza di Gherardo sui turni di guardia, (4) la reliquia/segnale dei corvi di Mirta, (5) il quaderno del Maestro nella biblioteca della torre. Ogni indizio è una bandiera e riduce la difficoltà del confronto finale.
+## 7. Gli indizi e le tre uscite
+Gli **indizi** contro il Maestro sono cinque: (1) le penne e il sigillo sugli ordini di Corvino, (2) la lettera di Ottavio nella cripta, (3) la testimonianza di Gherardo (la notte della rottura i corvi spensero le torce e il Maestro era accanto al re), (4) i segnali dei corvi che Mirta sa leggere (dicono dove tiene il re e come si rompe il suo controllo), (5) il quaderno del Maestro nella biblioteca della torre. Ogni indizio è una bandiera: più ne hai, più è facile fingere il patto, più mosse hai nello scontro e più finali si aprono.
 
 | Esito | Condizioni | Che cosa accade |
 |---|---|---|
-| **A — La Corona ricomposta** | si sceglie di ricomporla (o si consegnano i pezzi alla Reggente) | Il Maestro viene sconfitto. Il Cerchio, la Gemma e il Sigillo tornano uniti; il regno è salvo e i morti dormono, ma il re, di nuovo incoronato, si consuma: muore al compiersi dell'anno. Berengaria governa «per lui». |
-| **B — Il re libero** | si risparmia il Maestro e si lascia spezzata la corona | Il re vive da uomo libero in una casa del bosco. La corona resta in tre reliquie nelle tre marche; il regno è senza capo ma senza maledizioni; i morti e i corvi andranno placati caso per caso. Berengaria non perdona. |
-| **C — La terza via** (difficile) | almeno 4 indizi su 5, entrambi i compagni con approvazione ≥ +20, prova di Arcano/Storia riuscita, Maestro non combattuto | Tre pezzi, tre sigilli, un **consiglio delle tre marche** invece di un solo portatore: la corona viene rifusa come simbolo e non come peso. Il re lascia volontariamente. Il Locandiere promette un secondo capitolo. |
-Ogni esito ha due varianti d'epilogo secondo lo stato dei compagni (rimasti, andati via, caduti) e la perdizione finale.
+| **A — La Corona ricomposta** | si vince lo scontro e si ricompongono i pezzi (strada base) | Il Maestro cade, il re è libero. La corona torna intera sul suo capo: i morti dormono, i Corvi si disperdono, i corvi servono di nuovo il regno. Ma la corona si nutre di chi la porta e il re lo sa: accetta lo stesso. Berengaria governa al suo fianco. |
+| **B — Il re libero** | si vince lo scontro e il re chiede di non ricomporre la corona (richiede di averlo liberato vivo e di fidarsi di lui: almeno 2 indizi) | Il re rinuncia: la corona resta in tre reliquie nelle tre marche (Cerchio a Valcorvo, Gemma a Rocca Pallida, Sigillo all'Altare delle Piogge). Niente più peso, niente più garanzie: i morti e i corvi andranno placati caso per caso. Berengaria non perdona. |
+| **C — La terza via** (difficile) | almeno 4 indizi su 5, entrambi i compagni con approvazione ≥ +20, prova di Arcano/Storia riuscita nella biblioteca (quaderno) | I tre pezzi vengono rifusi in una corona condivisa: un **consiglio delle tre marche** invece di un solo portatore, il peso si divide e non uccide nessuno. Il re lascia volontariamente. Il Locandiere promette un secondo capitolo. |
+Chi cade nell'inganno del patto affronta il Maestro con i pezzi in suo possesso (scontro «difficile», niente esito C). Ogni esito ha due varianti d'epilogo secondo lo stato dei compagni (rimasti, andati via, caduti) e la perdizione finale.
 
 ## 8. Missioni e contenuti
 - **Principali** (4): «Trovare il Cerchio», «Ridare pace al Re senza corona», «Il Sigillo e il re», più la «promessa alla Reggente» (consegnare i pezzi).
@@ -81,6 +82,8 @@ Ogni esito ha due varianti d'epilogo secondo lo stato dei compagni (rimasti, and
 - **Bottino**: pezzi della corona come oggetti-chiave (non equipaggiabili), una spada e un'armatura a tema per atto (liv 3, 5, 7, dalla lista di `AOGG`; niente oggetti nuovi senza `npm run regole`).
 
 ## 9. Da fare, in ordine
+Tre PR impilate: **A8-I** = A8.1–A8.3 (scaletta, infrastruttura, Atto I), **A8-II** = A8.4 (Atto II), **A8-III** = A8.5–A8.8 (Atto III, finale, test completi, documenti).
+
 1. **A8.1** — questa scaletta (approvata dall'utente prima del resto).
 2. **A8.2** — scheletro `src/avventura/corona.json`: `mondo` (regioni e luoghi), personaggi, compagni, missioni, bandiere, sommario/prossimo; il validatore controlla anche il mondo (`AMON.genera` collegato) e le catene di scene dei sotterranei scritti a mano.
 3. **A8.3** — Atto I: scene 1–4, compagni (reclutamento, chiacchiere), battaglie (arena `accampamento`), eventi della Marca.
@@ -90,8 +93,8 @@ Ogni esito ha due varianti d'epilogo secondo lo stato dei compagni (rimasti, and
 7. **A8.7** — test: il capitolo è valido; **ogni scena raggiungibile e ogni esito raggiungibile** (camminate casuali dal seme su migliaia di partite); i capi equilibrati ai livelli attesi con il bot di battaglia; stima della durata in turni e in cantari. La partita completa con il bot sull'orchestratore arriva con A9.
 8. **A8.8** — documento finale `docs/AVVENTURA-A8.md` (stato e numeri), mappa dei moduli, PR.
 
-## 10. Scelte aperte
-1. Trama: la verità (il re ha spezzato lui la corona) e il Maestro tragico vanno bene, o preferisci un cattivo vero?
-2. Esiti: tre (A, B, C) o solo due (A, B)?
-3. Compagni: Gherardo (nano guerriero) e Mirta (piccola ladra)?
-4. Consegna: una PR per atto (tre PR più piccole, ognuna con i suoi cantari da leggere) o una sola PR?
+## 10. Scelte confermate (31 ottobre 2026)
+1. **Cattivo vero**: il Maestro vuole la corona per sé, lo scontro finale non si evita; il patto è un inganno.
+2. **Tre esiti** (A, B, C), C solo con indizi, compagni fidati e una prova di Arcano/Storia.
+3. **Compagni**: Gherardo Pietrasorda e Mirta «Gazza».
+4. **Consegna**: una PR per atto: A8-I (infrastruttura, Atto I), A8-II (Atto II), A8-III (Atto III, finale, test completi). Ogni PR è impilata sulla precedente.
