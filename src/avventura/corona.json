@@ -1003,8 +1003,8 @@
         "e": { "chi": "_", "testo": "Sulla tavola, accanto al pane, il Cerchio, la Gemma e il Sigillo vibrano uno accanto all'altro. Che cosa ne facciamo?",
           "scelte": [
             { "t": "Ricomponiamo la corona e la diamo a Ottavio", "vai": "fa" },
-            { "t": "Lasciamo il re libero e la corona divisa in tre reliquie", "se": { "valore": "indizi", "min": 2 }, "mostra": true, "etichetta": "[servono 2 indizi]", "vai": "fb" },
-            { "t": "La terza via: tre mani, tre sedili, nessuna corona", "se": [ { "valore": "indizi", "min": 4 }, "quaderno-letto", { "alleato": "gherardo" }, { "alleato": "mirta" }, { "approv": "gherardo", "min": 20 }, { "approv": "mirta", "min": 20 }, { "non": { "bandiera": "patto" } } ], "mostra": true, "etichetta": "[servono 4 indizi, il diario del Maestro, nessun patto e i due compagni fidati]", "vai": "fc" }
+            { "t": "Lasciamo il re libero e la corona divisa in tre reliquie", "se": { "valore": "indizi", "min": 2 }, "mostra": true, "etichetta": "2 indizi", "vai": "fb" },
+            { "t": "La terza via: tre mani, tre sedili, nessuna corona", "se": [ { "valore": "indizi", "min": 4 }, "quaderno-letto", { "alleato": "gherardo" }, { "alleato": "mirta" }, { "approv": "gherardo", "min": 20 }, { "approv": "mirta", "min": 20 }, { "non": { "bandiera": "patto" } } ], "mostra": true, "etichetta": "4 indizi, il diario, i due compagni, nessun patto", "vai": "fc" }
           ] },
         "fa": { "chi": "_", "testo": "Posate i tre pezzi uno accanto all'altro e le incrinature si chiudono da sole, con un suono di campana. Il Cerchio, la Gemma e il Sigillo diventano un anello solo. Ottavio lo prende fra le mani, lo guarda a lungo e se lo mette in testa, senza una parola.", "effetti": [ { "t": "bandiera", "id": "finale-a" }, { "t": "bandiera", "id": "finale-fatto" }, { "t": "oggetto", "id": "armatura-del-sovrano", "n": 1 }, { "t": "missione", "id": "corona", "stato": "fatta" }, { "t": "diario", "testo": "Avete ricomposto la corona e l'avete data a Ottavio." } ],
           "scelte": [

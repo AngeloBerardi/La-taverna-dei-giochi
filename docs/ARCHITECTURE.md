@@ -192,8 +192,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27n-avv-luoghi.js` | 8 | ALUO |
 | `js/motori/27o-avv-mostri.js` | 7 | AMOS |
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
-| `js/motori/27q-avv-racconto.js` | 24 | ARAC |
-| `js/motori/27r-avv-eventi.js` | 27 | AEVE |
+| `js/motori/27q-avv-racconto.js` | 25 | ARAC |
+| `js/motori/27r-avv-eventi.js` | 29 | AEVE |
 | `js/motori/28-campagna.js` | 32 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
