@@ -177,6 +177,7 @@ const ARAC=(()=>{
     case'pf':if(!(typeof x.pct==='number'&&Math.abs(x.pct)<=1))e.push(p+': «pf» vuole pct da -1 a 1');break;
     case'battaglia':if(!x.fam&&!x.capo)e.push(p+': «battaglia» vuole fam o capo');if(x.fam&&!BE().FAMIGLIE[x.fam])e.push(p+': famiglia sconosciuta '+x.fam);
      if(x.capo&&!(BE().M[x.capo]&&BE().M[x.capo].capo))e.push(p+': capo sconosciuto '+x.capo);if(x.diff&&!DIFF.includes(x.diff))e.push(p+': difficoltà sconosciuta '+x.diff);
+     if(x.sorpresa&&!['eroi','nemici'].includes(x.sorpresa))e.push(p+': sorpresa sconosciuta '+x.sorpresa+' (eroi o nemici: chi è colto di sorpresa)');
      if(x.arena&&!AR().AMBIENTI.includes(x.arena))e.push(p+': ambiente sconosciuto '+x.arena);break;
     case'sposta':id(L[x.id]);break;case'apri':if(!SERVIZI.includes(x.id))e.push(p+': servizio sconosciuto '+x.id);break}};
   const valEffs=(L2,p)=>{if(L2==null)return;if(!Array.isArray(L2)){e.push(p+': gli effetti sono una lista');return}L2.forEach((x,i)=>valEff(x,p+' effetto '+(i+1)))};
@@ -230,6 +231,8 @@ const ARAC=(()=>{
   for(const sid of Object.keys(S))if(!vive.has(sid))e.push('scena '+sid+': non è raggiungibile (manca in «ingressi», in «dove» o in una uscita)');
   for(const k of['sommario','prossimo'])for(const[i,x]of(cap[k]||[]).entries()){valCond(x.se,k+' '+(i+1));if(typeof x.testo!=='string'||!x.testo)e.push(k+' '+(i+1)+': manca il testo')}
   for(const b of lette)if(!impostate.has(b))e.push('la bandiera «'+b+'» viene letta ma non è mai impostata (errore di battitura?)');
+  // eventi di strada scritti a mano nel capitolo (formato compatto di AEVE, in JSON)
+  if(cap.eventi!=null)for(const m of(typeof AEVE!=='undefined'?AEVE:require('./27r-avv-eventi.js')).valida(cap.eventi))e.push(m);
   return e}
  return{NARRATORE,MAX_TESTO,MAX_RIASSUNTO,PROPRI,FUORI,DIFF,SERVIZI,CANTARI,nuovo,cond,chiTira,probDi,etichetta,requisito,applica,act,vista,disponibili,cantare,finisciSessione,valida,personaggio,scena}})();
 if(typeof module!=='undefined')module.exports=ARAC;

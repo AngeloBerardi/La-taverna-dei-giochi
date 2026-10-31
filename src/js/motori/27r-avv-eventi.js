@@ -118,7 +118,7 @@ const AEVE=(()=>{
  // ---- scelta dell'evento ----
  const prng=seme=>MON.mulberry(seme>>>0);
  // eventi adatti al luogo e al momento: terreno, notte (true/false), perdizione; `usati` = id già visti (si ripetono solo se non resta altro)
- function adatti(o){o=o||{};return EVENTI.filter(e=>(!e.tag.length||!o.terreno||e.tag.includes(o.terreno))&&(e.notte==null||e.notte===!!o.notte)&&(e.p==null||(o.perdizione|0)>=e.p))}
+ function adatti(o){o=o||{};return EVENTI.concat(o.extra||[]).filter(e=>(!e.tag.length||!o.terreno||e.tag.includes(o.terreno))&&(e.notte==null||e.notte===!!o.notte)&&(e.p==null||(o.perdizione|0)>=e.p))}
  function eventoStrada(seme,o){o=o||{};const A=adatti(o),nuovi=A.filter(e=>!(o.usati||[]).includes(e.id)),L=nuovi.length?nuovi:A;if(!L.length)return null;return L[Math.floor(prng(seme)()*L.length)]}
  // l'evento come scena del racconto: la scena `a` offre le scelte, ogni esito è un nodo con gli effetti e la fine
  function scena(e){const N={},nodo=(t,eff)=>{const id='r'+Object.keys(N).length;N[id]=Object.assign({chi:'_',testo:t,fine:true},eff&&eff.length?{effetti:eff}:{});return id};
@@ -126,6 +126,18 @@ const AEVE=(()=>{
    if(c.prova){const p=c.prova;o.prova={ab:p.ab,cd:p.cd,ok:{vai:nodo(p.ok[0],p.ok[1])},ko:{vai:nodo(p.ko[0],p.ko[1])}}}else o.vai=nodo(c.fine[0],c.fine[1]);return o});
   N.a={chi:'_',testo:e.testo,scelte:sc};return{inizio:'a',nodi:N}}
  const capitolo=e=>({id:'evento-'+e.id,titolo:e.titolo||e.id,personaggi:{},scene:{[e.id]:scena(e)},ingressi:[e.id]});
+ // ---- eventi scritti a mano in un capitolo (`cap.eventi`, JSON, stesso formato compatto): si aggiungono al mazzo con `o.extra` e si controllano qui ----
+ const RAC=()=>typeof ARAC!=='undefined'?ARAC:require('./27q-avv-racconto.js');
+ function valida(lista){const e=[];if(lista==null)return e;if(!Array.isArray(lista))return['gli eventi del capitolo sono una lista'];const ids=new Set(EVENTI.map(x=>x.id));
+  lista.forEach((x,i)=>{const p='evento '+((x&&x.id)||(i+1))+': ',n0=e.length;if(!x||typeof x.id!=='string'||!x.id){e.push(p+'manca l\'id');return}
+   if(ids.has(x.id))e.push(p+'id già usato');ids.add(x.id);
+   if(!Array.isArray(x.tag))e.push(p+'«tag» è una lista di terreni (vuota = ovunque)');else for(const t of x.tag)if(!MON.TERRENI[t])e.push(p+'terreno sconosciuto '+t);
+   if(typeof x.testo!=='string'||!x.testo)e.push(p+'manca il testo');
+   if(!Array.isArray(x.scelte)||x.scelte.length<2||x.scelte.length>3)e.push(p+'due o tre scelte');
+   else{if(!x.scelte.some(c=>c&&!c.prova))e.push(p+'serve una scelta senza prova');
+    for(const c of x.scelte){if(!c||typeof c.t!=='string')e.push(p+'una scelta senza testo');else if(c.prova?!(Array.isArray(c.prova.ok)&&Array.isArray(c.prova.ko)):!Array.isArray(c.fine))e.push(p+'«'+c.t+'»: esito mal formato (testo, [effetti])')}}
+   if(e.length===n0)for(const m of RAC().valida(capitolo(x)))e.push(p+m)});
+  return e}
  // ---- missioni secondarie generate ----
  const CLIENTI=[['Gerardo il fattore','umano','guerriero'],['Marta la levatrice','umano','chierico'],['Frate Anselmo','umano','chierico'],['Rosalba la mercante','piccolo','bardo'],['Tullio il cacciatore','elfo','esploratore'],
   ['Agnese la vedova','umano','chierico'],['Bruno il maniscalco','nano','guerriero'],['Iolanda la pellegrina','elfo','bardo'],['Osvaldo il mugnaio','piccolo','ladro'],['Berta la locandiera','nano','chierico']];
@@ -180,5 +192,5 @@ const AEVE=(()=>{
   return Object.assign(cap,{missione:mid,tipo,complicazione:comp,entro,origine:origine.id,meta:meta.id,ricompensa:ric,cliente:cliente[0]})}
  // una missione a scadenza è fallita se oggi è oltre il giorno limite
  const scaduta=(cap,giorno)=>cap.entro!=null&&giorno>cap.entro;
- return{EVENTI,TIPI,COMPLICAZIONI,adatti,eventoStrada,scena,capitolo,missione,scaduta}})();
+ return{EVENTI,TIPI,COMPLICAZIONI,adatti,eventoStrada,scena,capitolo,valida,missione,scaduta}})();
 if(typeof module!=='undefined')module.exports=AEVE;

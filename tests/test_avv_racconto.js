@@ -30,6 +30,7 @@ trova(c => { delete c.scene.pozzo.nodi.b.scelte[0].prova.ko; }, /manca «ko»/, 
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'oggetto', id: 'spada-del-nulla' }); }, /«oggetto» riferisce «spada-del-nulla»/, 'oggetto inesistente');
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'battaglia', fam: 'draghi' }); }, /famiglia sconosciuta/, 'famiglia');
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'battaglia', capo: 'lupo-grigio' }); }, /capo sconosciuto/, 'capo (il lupo non lo è)');
+trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'battaglia', fam: 'bestie', sorpresa: 'tutti' }); }, /sorpresa sconosciuta/, 'sorpresa');
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'sposta', id: 'luna' }); }, /«sposta» riferisce «luna»/, 'luogo');
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'approv', id: 'tizio', n: 1 }); }, /«approv» riferisce «tizio»/, 'compagno');
 trova(c => { c.scene.pozzo.nodi.corda.effetti.push({ t: 'incanta' }); }, /effetto sconosciuto/, 'tipo di effetto');

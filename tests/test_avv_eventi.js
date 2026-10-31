@@ -55,6 +55,26 @@ for (const e of A.EVENTI) {
   assert(A.eventoStrada(1) !== null && A.eventoStrada(1, {}) !== null, 'senza filtri va bene qualunque');
 }
 
+// ---- eventi scritti a mano dentro un capitolo (`cap.eventi`): si controllano, entrano nel mazzo con `extra` e il capitolo che li ha è valido solo se lo sono ----
+{
+  const mio = { id: 'corvo-che-parla', tag: ['bosco'], testo: 'Un corvo con una piuma bianca nella coda vi segue di ramo in ramo. A un tratto dice, chiaro: «Tornate indietro».', scelte: [
+    { t: 'Lo ascolto', tono: ['mistero'], fine: ['Il corvo ripete la frase ancora una volta, poi se ne va. Vi resta addosso un brivido.', [{ t: 'perdizione', n: 1 }]] },
+    { t: 'Lo scaccio', prova: { ab: 'atletica', cd: 12, ok: ['Il sasso lo coglie di striscio: fugge gracchiando.', []], ko: ['Il sasso rimbalza e vi torna sulla spalla.', [{ t: 'pf', pct: -0.1 }]] } }] };
+  assert.deepStrictEqual(A.valida([mio]), [], 'un evento scritto bene passa');
+  assert.deepStrictEqual(A.valida(null), []); assert.deepStrictEqual(A.valida([]), []);
+  assert(/già usato/.test(A.valida([Object.assign({}, mio, { id: 'viandante-ferito' })]).join()), 'id già dei 30 eventi');
+  assert(/terreno sconosciuto/.test(A.valida([Object.assign({}, mio, { tag: ['luna'] })]).join()), 'terreno');
+  assert(/due o tre scelte/.test(A.valida([Object.assign({}, mio, { scelte: [mio.scelte[0]] })]).join()), 'una sola scelta');
+  assert(/senza prova/.test(A.valida([Object.assign({}, mio, { scelte: [mio.scelte[1], mio.scelte[1]] })]).join()), 'serve una scelta senza prova');
+  assert(/mal formato/.test(A.valida([Object.assign({}, mio, { scelte: [mio.scelte[0], { t: 'Boh', fine: 'sì' }] })]).join()), 'esito mal formato');
+  assert(/famiglia sconosciuta/.test(A.valida([Object.assign({}, mio, { scelte: [mio.scelte[0], { t: 'Boh', fine: ['Un mostro vi salta addosso.', [{ t: 'battaglia', fam: 'draghi' }]] }] })]).join()), 'gli effetti li controlla il racconto');
+  assert(A.adatti({ terreno: 'bosco', extra: [mio] }).some(e => e.id === mio.id) && !A.adatti({ terreno: 'palude', extra: [mio] }).some(e => e.id === mio.id), 'extra rispetta il terreno');
+  assert.strictEqual(A.eventoStrada(5, { terreno: 'bosco', extra: [mio], usati: A.EVENTI.map(e => e.id) }).id, mio.id, 'se i 30 sono già visti resta quello scritto nel capitolo');
+  const cap = { id: 'x', titolo: 'x', personaggi: {}, scene: { a: { titolo: 'A', inizio: 'n', nodi: { n: { chi: '_', testo: 'Ciao.', fine: true } } } }, ingressi: ['a'], eventi: [mio] };
+  assert.deepStrictEqual(R.valida(cap), [], 'il capitolo con eventi buoni è valido');
+  cap.eventi = [Object.assign({}, mio, { tag: ['luna'] })]; assert(R.valida(cap).some(m => /terreno sconosciuto/.test(m)), 'il capitolo con un evento guasto non è valido');
+}
+
 // ---- ogni evento si gioca da cima a fondo, in ogni scelta e in ogni esito ----
 {
   let esiti = 0;
