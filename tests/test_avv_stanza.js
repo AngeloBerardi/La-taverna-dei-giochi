@@ -12,7 +12,7 @@ const AST = require('../src/js/motori/28e-avv-stanza.js');
 const cap = require('../src/avventura/corona.json');
 const copia = (x) => JSON.parse(JSON.stringify(x));
 const A = { pelle: 0, capelli: 1, mantello: 2, viso: 0 };
-const mk = (nome, classe, razza, base) => E.nuovo({ nome, classe, razza, aspetto: A, base: { for: 8, des: 8, cos: 8, int: 8, sag: 8, car: 8, ...base } });
+const mk = (nome, classe, razza, base) => E.nuovo({ nome, classe, razza, aspetto: A, base: { for: 8, des: 8, cos: 8, int: 8, sag: 8, car: 8, ...base } }, 1000);   // data fissa: gli stati si confrontano
 const aldo = () => Object.assign(mk('Aldo', 'guerriero', 'umano', { for: 15, cos: 14, des: 12 }), { slot: 'e1' });
 const mira = () => Object.assign(mk('Mira', 'ladro', 'elfo', { des: 15, sag: 13, car: 12 }), { slot: 'e2' });
 const tobia = () => Object.assign(mk('Tobia', 'mago', 'piccolo', { int: 15, sag: 13, des: 12 }), { slot: 'e1' });   // stesso slot di Aldo, ma su un altro account
@@ -86,6 +86,18 @@ const continua = (s, seat) => av(s, seat == null ? 0 : seat, { t: 'racconto', a:
   no(AST.act(s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } }, base: s.av.evn - 1 }, prova), /un attimo prima/, 'una mossa su uno stato vecchio è rifiutata');
   ok(AST.act(s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } }, base: s.av.evn }, prova), 'su quello giusto passa'); }
 
+// ---- 1b. arruolamento: ognuno porta il proprio eroe prima della prima mossa ----
+{ const s0 = AST.nuova(prova, [{ nome: 'Anna', uid: 'u1', slot: 'e1', eroe: aldo() }, { nome: 'Bruno', uid: 'u2' }], 77, { avvio: false });
+  assert.strictEqual(s0.av.camp.eroi[1].nome, 'Bruno', 'chi non ha ancora scelto ha un eroe di prova'); assert.strictEqual(s0.posti[1].slot, null, 'e senza posto sull\'account'); assert(s0.pre && s0.pre.eroi.length === 2);
+  const eroe = (s, seat, h, slot) => AST.act(s, { seat, t: 'eroe', scheda: h, slot }, prova);
+  no(eroe(s0, 1, { nome: 'Falso', classe: 'mago', liv: 20, xp: 0 }, 'e3'), /non valida/, 'una scheda incoerente non entra');
+  const s1 = ok(eroe(s0, 1, tobia(), 'e2'), 'Bruno porta il suo eroe').s;
+  assert.deepStrictEqual(s1.av.camp.eroi.map((e) => e.nome), ['Aldo', 'Tobia']); assert.strictEqual(s1.posti[1].slot, 'e2'); assert.deepStrictEqual(s1.av.camp.eroi.map((e) => e.slot), ['p0', 'p1']);
+  assert.strictEqual(s1.av.evn, 0, 'la sessione ricomincia da capo, nessuna mossa persa'); assert.deepStrictEqual(ok(eroe(s0, 1, tobia(), 'e2')).s, s1, 'stessa scheda, stesso stato');
+  const s2 = ok(eroe(s1, 0, mira(), 'e5'), 'anche chi ospita può cambiare il suo').s; assert.strictEqual(s2.av.camp.eroi[0].nome, 'Mira'); assert.strictEqual(s2.av.camp.eroi[1].nome, 'Tobia');
+  const s3 = scenaDa(s2, 'gherardo'); assert.strictEqual(s3.pre, null, 'la prima mossa chiude l\'arruolamento'); no(eroe(s3, 1, aldo(), 'e1'), /già partita/);
+  assert(JSON.stringify(s3).length < JSON.stringify(s2).length, 'e si risparmiano le schede'); }
+
 // ---- 3b. concludere la sessione: lo vedono tutti, finché non si fa altro ----
 { let s = nuova(posti3()); s.av.camp.eroi[0].xp += 10; no(AST.act(s, { seat: 1, t: 'av', az: { t: 'chiudi' } }, prova), /chi ospita/);
   const r = ok(AST.act(s, { seat: 0, t: 'av', az: { t: 'chiudi' } }, prova), 'chiude chi ospita'); assert(r.riepilogo, 'la risposta porta il riepilogo'); assert(r.s.riep && r.s.riep.n === r.s.evn && r.s.riep.cantare, 'e resta nello stato per gli altri telefoni');
@@ -128,7 +140,7 @@ function giocaPosto(s, seat) { const a = IA.prossima(s.lotta, { livello: 'normal
     const chi = AST.guidaComb(s, att); assert(chi >= 0 && AST.presenti(s).includes(chi)); volte[chi] = (volte[chi] || 0) + 1;
     const altro = AST.presenti(s).find((k) => k !== chi); if (altro != null && n < 3) no(AST.act(s, { seat: altro, t: 'lotta', a: IA.prossima(s.lotta, { livello: 'normale' }) }, prova), /Non è il tuo turno/, 'gli altri non muovono l\'eroe altrui');
     const prima = copia(s.lotta), r = ok(giocaPosto(s, chi), 'mossa di ' + chi); const film = r.s.film;
-    assert.strictEqual(film.da, prima.evn, 'il film parte dallo stato di prima'); const rp = AST.rigioca(prima, film.azioni); assert(!rp.err, rp.err);
+    assert.strictEqual(film.da, prima.evn, 'il film parte dallo stato di prima'); assert.deepStrictEqual(r.s.ev, [{ t: 'film' }], 'il film si segnala in ev: gli altri telefoni lo animano'); const rp = AST.rigioca(prima, film.azioni); assert(!rp.err, rp.err);
     assert.deepStrictEqual(rp.s, r.s.lotta, 'rigiocare il film dà esattamente lo stato scritto'); assert.strictEqual(rp.passi.length, film.azioni.length); assert(rp.passi.every((p) => Array.isArray(p.ev)), 'ogni passo ha i suoi eventi per l\'animazione');
     s = r.s; passi++;
   }
@@ -159,6 +171,13 @@ function giocaPosto(s, seat) { const a = IA.prossima(s.lotta, { livello: 'normal
   assert.strictEqual(r0.tappa.oro + r1.tappa.oro + r2.tappa.oro, 90, 'l\'oro in comune si divide tra i giocatori'); assert.strictEqual(r1.tappa.oro, 30, 'in parti uguali');
   s = AST.accredita(s, r0.tappa); assert(AST.rientro(s, 0).finito, 'Anna ha riscosso tutto'); assert(!AST.rientro(s, 2).finito, 'Carla no'); assert.strictEqual(AST.rientro(s, 2).tappa.xp, 30);
   assert.strictEqual(AST.rientro(s, 9), null); assert.deepStrictEqual(JSON.parse(JSON.stringify(s)), s);
+  // …e si segna con una mossa, ciascuno la sua (nessuna mossa respinta: la versione di AVV non cambia)
+  { let q = nuova(posti3()); q.av.camp.eroi[0].xp += 100; q.av.camp.eroi[2].xp += 30; q.av.camp.oro += 90; const evn = q.av.evn;
+    const conto = (st, seat, slot, xp, oro) => AST.act(st, { seat, t: 'conto', tappa: { slot, xp, oro } }, prova);
+    no(conto(q, 1, 'p0', 1, 0), /proprio eroe/, 'non si riscuote per un altro');
+    q = ok(conto(q, 0, 'p0', 99999, 99999), 'Anna riscuote').s; assert(AST.rientro(q, 0).finito, 'tutto ciò che c\'era, e non di più'); assert.strictEqual(q.av.evn, evn, 'la versione che i telefoni mostrano non cambia');
+    assert(!AST.rientro(q, 2).finito, 'Carla non ha ancora riscosso'); no(conto(q, 0, 'p0', 1, 1), /Niente da riscuotere/, 'due volte no');
+    q = ok(conto(q, 2, 'p2', 30, 30), 'Carla riscuote').s; assert.strictEqual(AST.rientro(q, 2).pendente.xp, 0); assert(Array.isArray(q.righe)); }
   // un compagno non tocca mai un account
   let c = nuova(posti2()); c = scenaDa(c, 'gherardo'); c = continua(c, 0); c.av.camp.eroi[2].xp += 500; assert.strictEqual(AST.rientro(c, 0).tappa.xp, 0); assert.strictEqual(AST.rientro(c, 1).tappa.xp, 0, 'gli XP del compagno non vanno a nessuno'); }
 
@@ -173,6 +192,13 @@ function giocaPosto(s, seat) { const a = IA.prossima(s.lotta, { livello: 'normal
 // ---- 9. determinismo: le stesse mosse danno lo stesso stato ----
 { const gioca = () => { let s = nuova(posti3(), 31); s = scenaDa(s, 'scontro'); s = mossa(s, 0, { t: 'combatti' }); for (let n = 0; n < 600 && !s.lotta.over; n++) s = ok(giocaPosto(s, AST.guidaComb(s, SC.attore(s.lotta)))).s; return s; };
   assert.deepStrictEqual(gioca(), gioca(), 'stessa battaglia, stesso risultato'); }
+
+// ---- 11. riprendere una campagna salvata in una stanza ----
+{ let s = nuova(posti3()); s = scenaDa(s, 'gherardo'); s = continua(s, 0); const sal = AST.salva(s);
+  const r = AST.apri(sal, [{ nome: 'Anna', uid: 'u1' }, { nome: 'Bruno', uid: 'u2' }]); assert(r.s, r.err); const q = r.s;
+  assert.strictEqual(q.n, 2); assert.deepStrictEqual(q.posti.map((p) => p.eroe), [0, 1]); assert.strictEqual(q.pre, null, 'gli eroi sono già quelli del salvataggio'); assert.deepStrictEqual(q.av, AVV.apri(sal.av).s, 'la campagna riprende com\'era');
+  assert.strictEqual(AST.guida(q, 2), 0, 'l\'eroe senza posto lo guida chi ospita'); assert(AST.apri(sal, [{}, {}, {}, {}]).err, 'più posti che eroi: no'); assert(AST.apri(sal, []).err); assert(AST.apri({ v: 9 }, [{}]).err);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(q)), q); }
 
 // ---- 10. il motore non lancia dadi da solo e non cita marchi ----
 { const src = fs.readFileSync(path.join(__dirname, '../src/js/motori/28e-avv-stanza.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
