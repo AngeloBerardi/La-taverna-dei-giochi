@@ -3,7 +3,7 @@
   "titolo": "La Corona Spezzata",
   "sottotitolo": "Capitolo 1 dei Cantari di Ventura",
   "v": 1,
-  "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene gli Atti I (Marca dei Corvi) e II (Brughiere Cenerine).",
+  "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene gli Atti I (Marca dei Corvi), II (Brughiere Cenerine) e III (Boschi Velati, con i tre finali).",
   "mondo": {
     "regioni": [
       { "nome": "Marca dei Corvi", "terreno": "pianura", "fam": "banditi" },
@@ -38,7 +38,11 @@
     "bertino": { "nome": "Bertino il campanaro", "razza": "umano", "classe": "bardo", "aspetto": { "pelle": 1, "capelli": 0, "mantello": 4, "viso": 1 } },
     "ruggero": { "nome": "Sir Ruggero", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 4, "capelli": 6, "mantello": 0, "viso": 2 } },
     "gualtiero": { "nome": "Re Gualtiero", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 4, "capelli": 5, "mantello": 1, "viso": 3 } },
-    "ottavio": { "nome": "Re Ottavio", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 4, "mantello": 0, "viso": 1 } }
+    "ottavio": { "nome": "Re Ottavio", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 4, "mantello": 0, "viso": 1 } },
+    "ilario": { "nome": "Ilario il boscaiolo", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 2, "capelli": 1, "mantello": 3, "viso": 0 } },
+    "assunta": { "nome": "Assunta la vecchia", "razza": "umano", "classe": "chierico", "aspetto": { "pelle": 1, "capelli": 0, "mantello": 2, "viso": 1 } },
+    "pico": { "nome": "Pico il messo", "razza": "umano", "classe": "ladro", "aspetto": { "pelle": 2, "capelli": 3, "mantello": 5, "viso": 2 } },
+    "alberico": { "nome": "Maestro Alberico", "razza": "umano", "classe": "mago", "aspetto": { "pelle": 0, "capelli": 0, "mantello": 5, "viso": 3 } }
   },
   "compagni": {
     "gherardo": {
@@ -56,19 +60,21 @@
       "base": { "for": 9, "des": 15, "cos": 12, "int": 13, "sag": 11, "car": 13 },
       "aspetto": { "pelle": 3, "capelli": 2, "mantello": 4, "viso": 1 },
       "liv": "gruppo", "approv": 0, "lascia": -40, "fiducia": 35,
-      "scena": "mirta-parla", "addio": "mirta-addio",
+      "scena": "mirta-parla", "sceneP": "mirta-reliquia", "personale": "reliquia", "addio": "mirta-addio",
       "valori": { "avidita": 2, "mistero": 1, "pieta": 1, "onore": -1 },
       "desc": "Mirta detta Gazza: diciannove anni, mani svelte, un cappuccio troppo grande. Ha fatto la vedetta per i Corvi e ne ha abbastanza di avere paura."
     }
   },
   "missioni": {
-    "corona": { "titolo": "La Corona Spezzata", "descr": "Il re Ottavio è scomparso e la corona delle Tre Marche è in tre pezzi. Ritrovateli e ritrovate il re.", "ricompensa": [] },
+    "corona": { "titolo": "La Corona Spezzata", "descr": "Il re Ottavio è scomparso e la corona delle Tre Marche è in tre pezzi. Ritrovateli e ritrovate il re.", "ricompensa": [ { "t": "xp", "n": 800 }, { "t": "oro", "n": 300 } ] },
     "cerchio": { "titolo": "Il Cerchio", "descr": "Il primo pezzo della corona, il Cerchio, è in mano ai Corvi di strada, nell'accampamento oltre i salici.", "ricompensa": [ { "t": "xp", "n": 150 }, { "t": "oro", "n": 120 }, { "t": "oggetto", "id": "pozione-cura-maggiore", "n": 1 } ] },
     "casale": { "titolo": "Il tributo dei Corvi", "descr": "Il Casale dei Salici non può più pagare il tributo ai Corvi di strada.", "ricompensa": [ { "t": "xp", "n": 80 }, { "t": "oro", "n": 30 } ] },
     "gemma": { "titolo": "La Gemma dei morti", "descr": "I morti delle Brughiere Cenerine salgono dal pantano e si siedono sotto le mura di Rocca Pallida. La Gemma, secondo pezzo della corona, è nella Cripta dei Re, sepolta con il vecchio re Gualtiero.", "ricompensa": [ { "t": "xp", "n": 350 }, { "t": "oro", "n": 150 } ] },
     "ruggero": { "titolo": "Il cavaliere senza elmo", "descr": "Gherardo custodisce da vent'anni l'elmo del suo fratello d'armi Sir Ruggero, sepolto senza di esso nella cappella dei guardiani della Cripta dei Re. Rendetegli l'elmo.", "ricompensa": [ { "t": "xp", "n": 250 }, { "t": "oggetto", "id": "amuleto-vitale", "n": 1 } ] },
     "sale": { "titolo": "Il sale di Fonte Cupa", "descr": "Brunoro il salinaro vuole che qualche sacco di sale arrivi a Rocca Pallida, dove lo si spargerà davanti alle porte contro i morti.", "ricompensa": [ { "t": "xp", "n": 120 }, { "t": "oro", "n": 20 } ] },
-    "campane": { "titolo": "Le campane di Rocca Pallida", "descr": "Da undici notti la grande campana di Rocca Pallida non suona. Il campanaro Bertino crede che sia stregata.", "ricompensa": [ { "t": "xp", "n": 100 }, { "t": "oro", "n": 20 } ] }
+    "campane": { "titolo": "Le campane di Rocca Pallida", "descr": "Da undici notti la grande campana di Rocca Pallida non suona. Il campanaro Bertino crede che sia stregata.", "ricompensa": [ { "t": "xp", "n": 100 }, { "t": "oro", "n": 20 } ] },
+    "reliquia": { "titolo": "La reliquia della vecchia", "descr": "Da ragazzina Mirta rubò il ditale d'argento di una vecchia di Poggio Basso che l'aveva accolta in casa. Vuole restituirglielo prima di salire alla Torre dei Corvi.", "ricompensa": [ { "t": "xp", "n": 150 } ] },
+    "voce": { "titolo": "La voce nel pozzo", "descr": "Da tre notti il pozzo del Casale dei Salici parla. Tobia vuole sapere chi si nasconde là sotto.", "ricompensa": [ { "t": "xp", "n": 60 }, { "t": "oro", "n": 15 } ] }
   },
   "luoghi": {},
   "bandiere": [],
@@ -101,15 +107,134 @@
     { "se": { "bandiera": "campane-fatte" }, "testo": "La grande campana di Rocca Pallida suona di nuovo." },
     { "se": { "bandiera": "reggente-sospetta" }, "testo": "La Reggente ha cominciato a dubitare del Maestro Alberico." },
     { "se": { "bandiera": "reggente-incredula" }, "testo": "La Reggente non crede che il Maestro Alberico c'entri." },
+    { "se": { "bandiera": "pico-salvo" }, "testo": "Al Casale dei Salici avete tirato fuori dal pozzo Pico, ex messo dei Corvi, e Tobia lo ha accolto." },
+    { "se": { "bandiera": "pico-consegnato" }, "testo": "Al Casale dei Salici avete consegnato Pico, ex messo dei Corvi, al giudizio del villaggio." },
+    { "se": { "bandiera": "pico-lasciato" }, "testo": "Al Casale dei Salici avete lasciato che Pico, ex messo dei Corvi, uscisse dal pozzo e se ne andasse." },
+    { "se": { "bandiera": "poggio-visitato" }, "testo": "A Poggio Basso i boscaioli vi hanno parlato dei corvi con la piuma bianca che sbarrano i sentieri." },
+    { "se": { "bandiera": "assunta-perdona" }, "testo": "Mirta ha restituito il ditale d'argento ad Assunta, che le ha perdonato." },
+    { "se": { "bandiera": "assunta-fredda" }, "testo": "Mirta ha restituito il ditale d'argento ad Assunta, che non ha detto una parola." },
+    { "se": { "bandiera": "altare-notte-fatta" }, "testo": "All'Altare delle Piogge avete passato l'ultima notte prima della Torre dei Corvi." },
+    { "se": { "bandiera": "acqua-piogge" }, "testo": "All'Altare delle Piogge avete riempito una fiasca con l'acqua della pioggia." },
+    { "se": { "bandiera": "indizio-mirta" }, "testo": "Mirta conosce il fischio che calma i corvi e sa che il re è nella stanza col vetro, in cima alla torre." },
+    { "se": { "bandiera": "torre-soglia-ok" }, "testo": "Siete entrati nella Torre dei Corvi." },
+    { "se": { "bandiera": "quaderno-letto" }, "testo": "Nel quaderno del Maestro avete letto che la corona è una serratura e che il patto offerto è un inganno." },
+    { "se": { "bandiera": "corvi-liberi" }, "testo": "Avete liberato i corvi della gabbia: il Maestro non vede più con i loro occhi." },
+    { "se": { "bandiera": "maestro-cieco" }, "testo": "Avete spezzato la coppa con cui il Maestro vi spiava." },
+    { "se": { "bandiera": "ombre-spente" }, "testo": "L'acqua dell'Altare ha spento la fiamma nera della sala delle ombre." },
+    { "se": { "bandiera": "patto" }, "testo": "Avete dato al Maestro Alberico il Cerchio e la Gemma in cambio del re." },
+    { "se": { "bandiera": "maestro-ingannato" }, "testo": "Avete ingannato il Maestro Alberico fingendo di accettare il patto." },
+    { "se": { "bandiera": "maestro-sconfitto" }, "testo": "Il Maestro Alberico Malavista è caduto, e il re Ottavio si è svegliato." },
+    { "se": { "bandiera": "finale-a" }, "testo": "Avete ricomposto la corona e l'avete data a Ottavio." },
+    { "se": { "bandiera": "finale-b" }, "testo": "Avete lasciato il re libero e la corona divisa in tre reliquie." },
+    { "se": { "bandiera": "finale-c" }, "testo": "Avete affidato i tre pezzi a tre mani diverse: è nato il consiglio dell'Altare delle Piogge." },
     { "se": { "bandiera": "gherardo-lascia" }, "testo": "Gherardo Pietrasorda ha lasciato la compagnia." },
     { "se": { "bandiera": "mirta-lascia" }, "testo": "Mirta ha lasciato la compagnia." }
   ],
   "prossimo": [
+    { "se": { "bandiera": "finale-fatto" }, "testo": "Il primo cantare è compiuto. Il Locandiere vi versa da bere e aspetta il prossimo." },
+    { "se": { "bandiera": "maestro-sconfitto" }, "testo": "Il Maestro è caduto: il re, i tre pezzi e la scelta sono sul tavolo della torre." },
+    { "se": { "bandiera": "torre-soglia-ok" }, "testo": "La Torre dei Corvi si sale piano per piano, e la voce del Maestro aspetta in cima." },
+    { "se": { "bandiera": "altare-notte-fatta" }, "testo": "All'alba la Torre dei Corvi è a poche ore di marcia, e i corvi vi guardano." },
+    { "se": { "bandiera": "poggio-visitato" }, "testo": "L'Altare delle Piogge è l'ultimo posto sicuro prima della Torre dei Corvi." },
     { "se": { "bandiera": "atto3" }, "testo": "Il Cerchio e la Gemma puntano insieme ai Boschi Velati: l'ultimo pezzo, il Sigillo, è nella Torre dei Corvi." },
     { "se": { "missione": "gemma", "stato": "attiva" }, "testo": "La Gemma dorme nella Cripta dei Re, sotto le Brughiere Cenerine, e un re morto la sveglia ogni notte." },
     { "se": { "bandiera": "atto2" }, "testo": "Il Cerchio vibra verso le Brughiere Cenerine: è là che si trova il secondo pezzo, la Gemma." },
     { "se": { "missione": "cerchio", "stato": "attiva" }, "testo": "Il Cerchio è nelle mani dei Corvi, nel loro accampamento oltre i salici." },
     { "testo": "La Reggente vi aspetta a Valcorvo, e la pioggia non smette." }
+  ],
+  "eventi": [
+    { "id": "c1-carovana", "tag": [ "strada", "pianura" ],
+      "testo": "Una carovana di mercanti è ferma in mezzo alla strada, con i carri disposti a cerchio. Sui bordi dei carri sono posati dei corvi, immobili, e i cavalli non vogliono avanzare.",
+      "scelte": [
+        { "t": "Calmare i cavalli", "tono": [ "pieta" ], "prova": { "ab": "sopravvivenza", "cd": 12,
+            "ok": [ "I cavalli si quietano sotto le vostre mani. Il capocarovana vi mette in tasca qualche moneta e un po' di pane.", [ { "t": "oro", "n": 20 }, { "t": "xp", "n": 8 } ] ],
+            "ko": [ "Un cavallo scalcia: vi prende al fianco, e la carovana non si muove.", [ { "t": "pf", "pct": -0.1 } ] ] } },
+        { "t": "Scacciare i corvi con le armi", "tono": [ "durezza" ], "fine": [ "I corvi si alzano in un'unica nube nera e i cavalli si lanciano a briglia sciolta. Nessuno ringrazia.", [ { "t": "xp", "n": 5 }, { "t": "perdizione", "n": 1 } ] ] },
+        { "t": "Proseguire", "fine": [ "Non è affar vostro. Alle vostre spalle i corvi voltano la testa tutti insieme.", [] ] }
+      ] },
+    { "id": "c1-tributo", "tag": [ "strada" ],
+      "testo": "Una donna con il mantello nero dei Corvi, seduta su un ceppo, vi allunga una tavoletta. «Il tributo, viandanti. Mezza moneta a testa, o una storia: ma buona.»",
+      "scelte": [
+        { "t": "Pagare", "fine": [ "Le monete tintinnano nella sua mano. «Strada libera,» dice, e per una volta lo pensa.", [ { "t": "oro", "n": -10 } ] ] },
+        { "t": "Raccontarle una storia", "tono": [ "mistero" ], "prova": { "ab": "persuasione", "cd": 12,
+            "ok": [ "Ride alla fine, e le scappa una lacrima. «Va', tu e i tuoi. Ma racconta questa storia a chi non ha niente da pagare.»", [ { "t": "xp", "n": 10 } ] ],
+            "ko": [ "«Ho sentito di meglio.» Vi prende lo stesso le monete, e anche un poco di dignità.", [ { "t": "oro", "n": -15 } ] ] } },
+        { "t": "Rifiutare e tirare dritto", "tono": [ "durezza" ], "fine": [ "La donna fischia: da dietro un cespuglio saltano fuori due compagni con le lame.", [ { "t": "battaglia", "fam": "banditi", "diff": "facile" } ] ] }
+      ] },
+    { "id": "c1-casale-in-fiamme", "tag": [ "pianura", "collina" ],
+      "testo": "Un filo di fumo nero sale da un casale dietro la collina: troppo fumo per un camino. Una stalla brucia, e un contadino urla in mezzo all'aia, con un secchio in mano.",
+      "scelte": [
+        { "t": "Aiutare a spegnere il fuoco", "tono": [ "pieta" ], "prova": { "ab": "atletica", "cd": 13,
+            "ok": [ "Una catena di secchi, un tetto abbattuto a calci, e il fuoco muore. I buoi sono salvi e il contadino vi regala quello che ha.", [ { "t": "oro", "n": 15 }, { "t": "xp", "n": 12 } ] ],
+            "ko": [ "Una trave vi cade vicino. Salvate quasi tutto, ma uscite scottati.", [ { "t": "pf", "pct": -0.15 } ] ] } },
+        { "t": "Cercare chi ha appiccato il fuoco", "prova": { "ab": "sopravvivenza", "cd": 13,
+            "ok": [ "Due paia di stivali, un odore di olio: li raggiungete in un fosso. Non sono pronti a combattere.", [ { "t": "battaglia", "fam": "banditi", "diff": "facile" } ] ],
+            "ko": [ "Le tracce si perdono nell'erba bruciata, e il fumo vi brucia gli occhi.", [] ] } },
+        { "t": "Tirare dritto", "fine": [ "Il fumo vi segue per un'ora, e anche un po' di rimorso.", [ { "t": "perdizione", "n": 1 } ] ] }
+      ] },
+    { "id": "c1-campana", "tag": [ "palude" ],
+      "testo": "Nella nebbia suona una campana, lontana e lenta. A ogni rintocco sentite un passo che si avvicina e si ferma, poi un altro rintocco, e un altro passo.",
+      "scelte": [
+        { "t": "Seguire il suono", "prova": { "ab": "percezione", "cd": 12,
+            "ok": [ "Una campanella è appesa a un ramo morto con un nastro nero. La fate tacere, e dal tronco cavo cadono poche monete d'argento.", [ { "t": "oro", "n": 15 }, { "t": "xp", "n": 10 } ] ],
+            "ko": [ "Il suono vi gira intorno e non lo trovate. La nebbia vi si attacca addosso come un panno bagnato.", [ { "t": "perdizione", "n": 1 } ] ] } },
+        { "t": "Stringervi e proseguire", "fine": [ "Camminate in fila stretta finché il suono non si spegne, molto dopo.", [] ] }
+      ] },
+    { "id": "c1-senza-ombra", "tag": [ "palude" ], "notte": true,
+      "testo": "Un pellegrino cammina davanti a voi, a una ventina di passi, con un bastone e un cappuccio. La luna è alta, ma lui non ha ombra.",
+      "scelte": [
+        { "t": "Seguirlo a distanza", "prova": { "ab": "furtivita", "cd": 13,
+            "ok": [ "Cammina fino a un cumulo di sassi, vi posa un fiore secco e svanisce. Sotto i sassi c'è una moneta del vecchio regno.", [ { "t": "xp", "n": 15 } ] ],
+            "ko": [ "Si volta di scatto. Sotto il cappuccio non c'è niente di tutto quello che vi aspettavate. Scappate.", [ { "t": "perdizione", "n": 1 } ] ] } },
+        { "t": "Rivolgergli la parola", "tono": [ "pieta" ], "prova": { "ab": "persuasione", "cd": 12,
+            "ok": [ "Si ferma. «Grazie» dice, con una voce che sa di terra bagnata. «Nessuno mi chiedeva più il nome.» Poi non c'è più.", [ { "t": "xp", "n": 12 }, { "t": "perdizione", "n": -1 } ] ],
+            "ko": [ "Il pellegrino vi sfiora il braccio passando oltre, e un freddo vi entra nelle ossa.", [ { "t": "pf", "pct": -0.1 } ] ] } },
+        { "t": "Girare al largo", "fine": [ "Allungate il passo nel pantano, lontano dal sentiero.", [] ] }
+      ] },
+    { "id": "c1-cantore", "tag": [ "palude", "collina" ],
+      "testo": "Un vecchio, sepolto nel pantano fino ai fianchi, canta un ritornello senza parole. Vi fa cenno di avvicinarvi con una mano scura di fango.",
+      "scelte": [
+        { "t": "Tirarlo fuori", "tono": [ "pieta" ], "prova": { "ab": "atletica", "cd": 13,
+            "ok": [ "Il pantano lo molla con un risucchio. È vivo e caldo, e si ostina a pagarvi con la sua borsa.", [ { "t": "oro", "n": 20 }, { "t": "xp", "n": 10 } ] ],
+            "ko": [ "Il fango non lo vuole lasciare, e voi quasi ci restate dentro.", [ { "t": "pf", "pct": -0.1 } ] ] } },
+        { "t": "Cantare con lui", "tono": [ "pieta" ], "fine": [ "Non conoscete la melodia, ma la trovate. Quando smette, il vecchio sorride e chiude gli occhi. Vi sentite più leggeri.", [ { "t": "xp", "n": 5 }, { "t": "perdizione", "n": -1 } ] ] },
+        { "t": "Lasciarlo dov'è", "tono": [ "durezza" ], "fine": [ "Il canto vi segue per un pezzo, poi s'interrompe.", [ { "t": "perdizione", "n": 1 } ] ] }
+      ] },
+    { "id": "c1-corvo-parlante", "tag": [ "bosco" ],
+      "testo": "Un corvo con la piuma bianca nella coda vi segue di ramo in ramo. A un tratto parla, con una voce di vecchio, cortese: «Siete voi quelli della corona?»",
+      "scelte": [
+        { "t": "Rispondere di sì", "fine": [ "Il corvo inclina il capo e ride, una risata di carta. «Bene, bene.» Poi vola via verso nord-est.", [ { "t": "perdizione", "n": 1 } ] ] },
+        { "t": "Rispondere di no", "fine": [ "«Peccato» dice il corvo. «Mi sarebbe piaciuto dirvi una cosa.» E non ve la dice.", [ { "t": "xp", "n": 5 } ] ] },
+        { "t": "Colpirlo con un sasso", "tono": [ "durezza" ], "prova": { "ab": "percezione", "cd": 13,
+            "ok": [ "Il sasso lo coglie a un'ala. Cade a terra, e sul collo ha una catenina d'argento con un ciondolo a forma d'occhio.", [ { "t": "oro", "n": 20 } ] ],
+            "ko": [ "Il sasso fischia nel vuoto. Il corvo gracchia, e da ogni parte del bosco gli rispondono.", [ { "t": "perdizione", "n": 1 } ] ] } }
+      ] },
+    { "id": "c1-cacciatore", "tag": [ "bosco" ],
+      "testo": "Un cacciatore è appoggiato a un tronco con un lungo taglio al fianco: non un morso di lupo, ma un'ala. «Corvi,» sussurra, «mille corvi, tutti con la coda bianca. Mi hanno guardato dentro.»",
+      "scelte": [
+        { "t": "Medicarlo", "tono": [ "pieta" ], "prova": { "ab": "medicina", "cd": 12,
+            "ok": [ "La ferita si chiude. Il cacciatore vi lascia il suo carniere, ancora pieno.", [ { "t": "razioni", "n": 2 }, { "t": "xp", "n": 10 } ] ],
+            "ko": [ "Fate quel che potete. Gli resterà una cicatrice, e a voi un brutto presentimento.", [ { "t": "perdizione", "n": 1 } ] ] } },
+        { "t": "Lasciargli acqua e pane", "tono": [ "pieta" ], "fine": [ "Lo lasciate seduto, con la schiena al tronco e un tozzo in mano.", [ { "t": "razioni", "n": -1 }, { "t": "xp", "n": 5 } ] ] },
+        { "t": "Proseguire", "fine": [ "Non avete tempo da perdere. Il suo respiro vi resta nelle orecchie.", [ { "t": "perdizione", "n": 1 } ] ] }
+      ] },
+    { "id": "c1-lupi", "tag": [ "bosco" ], "notte": true,
+      "testo": "Gli ululati si avvicinano, poi si fa un silenzio troppo lungo. Quando alzate gli occhi i lupi vi hanno circondati e non attaccano: fissano il vostro fuoco, immobili.",
+      "scelte": [
+        { "t": "Tenere acceso il fuoco e fissarli", "tono": [ "onore" ], "prova": { "ab": "intimidire", "cd": 13,
+            "ok": [ "Il più grosso abbassa il muso e se ne va. Gli altri lo seguono, uno a uno, nell'oscurità.", [ { "t": "xp", "n": 12 } ] ],
+            "ko": [ "Il branco ringhia, e un lupo giovane si fa avanti.", [ { "t": "battaglia", "fam": "bestie", "diff": "facile" } ] ] } },
+        { "t": "Lasciare loro un pezzo di carne", "tono": [ "pieta" ], "fine": [ "Il capobranco annusa il dono, lo prende e si ritira. Dormite a turni, e nessuno sogna.", [ { "t": "razioni", "n": -1 }, { "t": "perdizione", "n": -1 } ] ] }
+      ] },
+    { "id": "c1-filare", "tag": [ "bosco", "collina" ],
+      "testo": "I corvi con la piuma bianca sono allineati sui rami lungo il sentiero, in due file, come per una processione. In mezzo, il sentiero è libero. Nessuno gracchia.",
+      "scelte": [
+        { "t": "Passare in mezzo", "fine": [ "Mille occhi vi seguono girando la testa tutti insieme. In fondo al filare, ai piedi di un olmo, trovate una piuma d'argento.", [ { "t": "xp", "n": 8 }, { "t": "perdizione", "n": 1 } ] ] },
+        { "t": "Aggirare il filare in silenzio", "prova": { "ab": "furtivita", "cd": 13,
+            "ok": [ "Camminate nel sottobosco, piano, e uscite dall'altra parte senza un fruscio.", [ { "t": "xp", "n": 10 } ] ],
+            "ko": [ "Un corvo gracchia, e tutti si levano insieme. Vi graffiano, vi piumano e se ne vanno.", [ { "t": "pf", "pct": -0.1 } ] ] } },
+        { "t": "Tornare indietro", "fine": [ "Cercate un altro sentiero. Dietro di voi, mille teste voltate.", [] ] }
+      ] }
   ],
   "scene": {
     "notte-dei-corvi": {
@@ -604,6 +729,310 @@
         "f1": { "chi": "berengaria", "testo": "Penne nere, un sigillo, il racconto di un capitano... E una lettera. Non è una prova per un tribunale, ma io non sono un tribunale: sono una sorella. Terrò il Maestro lontano dai pezzi e dalle chiavi. E se mi sbaglio, mi farete la grazia di dirmelo in faccia.", "effetti": [ { "t": "bandiera", "id": "reggente-sospetta" } ], "vai": "c" },
         "f2": { "chi": "berengaria", "testo": "Vi ascolto, e non vi credo. Il Maestro è il solo che non mi ha chiesto niente in questi mesi. Se mi portate qualcosa di più di un'impressione, tornate. Per ora cercate il Sigillo, e basta con le calunnie.", "effetti": [ { "t": "bandiera", "id": "reggente-incredula" } ], "vai": "c" },
         "g": { "chi": "berengaria", "testo": "Allora andate. Il Sigillo è l'ultimo pezzo: i vostri frammenti puntano ai Boschi Velati, e laggiù nessuna delle mie guardie è tornata. Prendete questo: serve a pagare chi vi darà il pane.", "effetti": [ { "t": "oro", "n": 100 }, { "t": "bandiera", "id": "reggente-gemma-fatta" } ], "fine": true }
+      }
+    },
+    "poggio-arrivo": {
+      "titolo": "Poggio Basso", "dove": "poggio-basso", "se": [ "atto3", { "non": { "bandiera": "poggio-visitato" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Poggio Basso è un villaggio di tronchi e di fumo nel cuore dei Boschi Velati. Le asce sono appese ai ganci e nessuno lavora: sugli alberi attorno alle case, fitti come foglie, stanno i corvi. Sono immobili, a migliaia, e hanno tutti la stessa piuma bianca nella coda.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Un uomo con le mani da boscaiolo vi viene incontro a passo lento, senza staccare gli occhi dagli alberi. «Se salutate, salutate piano» dice. «Si offendono.»", "vai": "c" },
+        "c": { "chi": "ilario", "testo": "Ilario, capo dei boscaioli. Da quaranta giorni i corvi sbarrano i sentieri: chi taglia un albero se li trova addosso. Non beccano, non graffiano: guardano. Ma i bambini non dormono e le bestie non mangiano. Qualcuno li comanda, e mi pare di sapere da dove.",
+          "scelte": [
+            { "t": "Che cosa sapete della torre?", "una": true, "tono": [ "mistero" ], "vai": "c1" },
+            { "t": "Dove possiamo fermarci prima di salire?", "una": true, "vai": "c2" },
+            { "t": "Mirta, tu conosci questo posto?", "se": { "compagno": "mirta" }, "una": true, "vai": "c3" },
+            { "t": "Vi aiutiamo a sprangare le case", "una": true, "tono": [ "pieta" ], "prova": { "ab": "atletica", "cd": 12, "ok": { "vai": "aiuto", "testo": "Le assi vanno a posto una dopo l'altra." }, "ko": { "vai": "c", "testo": "Una trave vi scivola e vi pesta un piede." } } },
+            { "t": "Proseguiamo", "effetti": [ { "t": "bandiera", "id": "poggio-visitato" }, { "t": "diario", "testo": "A Poggio Basso i corvi con la piuma bianca sbarrano i sentieri. La Torre dei Corvi è oltre il poggio; si passa dall'Altare delle Piogge." } ], "fine": true }
+          ] },
+        "c1": { "chi": "ilario", "testo": "Una torre nera oltre il poggio, che non c'era quando ero ragazzo, o che nessuno guardava. Un vecchio mago ci veniva a comprare erbe, ogni primavera, e pagava troppo. Poi più niente: solo corvi in volo, tutti verso di lì, e il fumo di un braciere che non si spegne mai.", "vai": "c" },
+        "c2": { "chi": "ilario", "testo": "L'Altare delle Piogge, mezza giornata a est. Una lastra di granito in una radura: la gente ci va a pregare perché venga la pioggia. I corvi là non entrano. Ci sono tre sedili di pietra e tre nicchie che nessuno ha mai capito. È l'ultimo posto sicuro prima della torre.", "vai": "c" },
+        "c3": { "chi": "mirta", "testo": "Passavo di qui, una volta. Non fa niente. Non guardatemi così.", "vai": "c" },
+        "aiuto": { "chi": "ilario", "testo": "Non vi dimenticheremo. Prendete questo pane e questa carne secca: sono quello che ci resta, ma i bambini hanno dormito due ore, e vale più di ogni cosa.", "effetti": [ { "t": "razioni", "n": 3 }, { "t": "xp", "n": 20 } ], "vai": "c" }
+      }
+    },
+    "mirta-reliquia": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "mirta", "testo": "Fermiamoci un momento. C'è una cosa che non vi ho detto, e non so nemmeno come dirla: sono già stata a Poggio Basso.", "vai": "b" },
+        "b": { "chi": "mirta", "testo": "Avevo quattordici anni, era inverno. Una vecchia di nome Assunta mi lasciò dormire nel fienile e mi diede la minestra. La mattina le ho rubato l'unica cosa che valesse: il ditale d'argento di sua madre. L'ho tenuto per cinque anni. Mi è servito soltanto a vergognarmi.", "vai": "c" },
+        "c": { "chi": "mirta", "testo": "Voglio restituirglielo. Prima della torre, prima di non poterlo più fare. Mi accompagnate? Non per farmi coraggio: per essere lì, se finisce male.",
+          "scelte": [
+            { "t": "Ti accompagno: restituire è un modo di essere liberi", "tono": [ "pieta" ], "effetti": [ { "t": "missione", "id": "reliquia", "stato": "attiva" } ], "vai": "d1" },
+            { "t": "Lo farai quando sarai pronta", "effetti": [ { "t": "missione", "id": "reliquia", "stato": "attiva" } ], "vai": "d2" },
+            { "t": "Non è il momento, Mirta", "tono": [ "durezza" ], "vai": "e" }
+          ] },
+        "d1": { "chi": "mirta", "testo": "Grazie. Non l'avevo mai detto a nessuno. Siete i primi che mi ascoltano senza ridere.", "fine": true },
+        "d2": { "chi": "mirta", "testo": "Quando sono pronta. Ma non domani: a Poggio, appena arriviamo.", "fine": true },
+        "e": { "chi": "mirta", "testo": "Giusto. Il mondo è pieno di cose più importanti. Ci proverò da sola, se arriveremo in tempo.", "fine": true }
+      }
+    },
+    "assunta": {
+      "titolo": "La casa di Assunta", "dove": "poggio-basso", "se": [ { "missione": "reliquia", "stato": "attiva" }, { "non": { "bandiera": "reliquia-resa" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La casa di Assunta è l'ultima del villaggio, con un fienile attaccato e un lume acceso. Mirta si ferma sulla soglia con la mano chiusa su qualcosa che non vuole mostrare. Una vecchia si affaccia, curva, con gli occhi pallidi e un grembiule rattoppato.", "vai": "b" },
+        "b": { "chi": "assunta", "testo": "Chi è? ... Sei tu. Sei quella ragazzina della neve.", "vai": "c" },
+        "c": { "chi": "mirta", "testo": "Sono io, Assunta. Ho una cosa che è tua.", "vai": "d" },
+        "d": { "chi": "_", "testo": "Mirta apre la mano: un ditale d'argento, piccolo, consumato dall'uso. Per un momento la vecchia non respira.", "vai": "e" },
+        "e": { "chi": "assunta", "testo": "Il ditale di mia madre. Ho cercato per tutta una primavera. Ho pensato ai topi, al fuoco, a mio marito. Non ho mai pensato a te.",
+          "scelte": [
+            { "t": "Lascio che sia Mirta a parlare", "tono": [ "pieta" ], "vai": "f1" },
+            { "t": "Parlo io per lei", "prova": { "ab": "persuasione", "cd": 12, "ok": { "vai": "g", "testo": "La vecchia ascolta e piega il capo." }, "ko": { "vai": "f2", "testo": "«Non parlate per lei. Parli lei.»" } } },
+            { "t": "Rendiamo il ditale e andiamo", "tono": [ "durezza" ], "vai": "fredda" }
+          ] },
+        "f1": { "chi": "mirta", "testo": "Mi dispiace. Non l'ho mai venduto. L'ho tenuto come si tiene una cosa che brucia. Non so perché.", "vai": "g" },
+        "f2": { "chi": "mirta", "testo": "Ho avuto freddo e fame, e ho preso la prima cosa che luccicava. Poi l'ho portato con me per cinque anni, e non l'ho mai venduto. Questo è tutto.", "vai": "g" },
+        "g": { "chi": "assunta", "testo": "Perché sapevi di chi era. Un ladro lo vende. Una bambina lo tiene. Entra, c'è la minestra. Il ditale tienilo tu: fa meglio il suo mestiere nelle mani di chi ha ancora freddo.", "effetti": [ { "t": "bandiera", "id": "reliquia-resa" }, { "t": "bandiera", "id": "assunta-perdona" }, { "t": "approv", "id": "mirta", "n": 15 }, { "t": "missione", "id": "reliquia", "stato": "fatta" }, { "t": "diario", "testo": "Assunta ha perdonato Mirta e le ha lasciato il ditale d'argento." } ], "fine": true },
+        "fredda": { "chi": "assunta", "testo": "Grazie di avermelo riportato. Buona strada.", "effetti": [ { "t": "bandiera", "id": "reliquia-resa" }, { "t": "bandiera", "id": "assunta-fredda" }, { "t": "missione", "id": "reliquia", "stato": "fatta" }, { "t": "diario", "testo": "Mirta ha restituito il ditale d'argento ad Assunta, che l'ha ripreso senza una parola." } ], "fine": true }
+      }
+    },
+    "altare-notte": {
+      "titolo": "L'ultima notte", "dove": "altare-piogge", "se": [ "atto3", { "non": { "bandiera": "altare-notte-fatta" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "L'Altare delle Piogge è una lastra di granito grigio in mezzo a una radura, con tre nicchie scavate nella pietra e tre sedili di roccia disposti a cerchio, come per un consiglio. I corvi non entrano nella radura. Cade una pioggia sottile e tiepida, che non bagna: si posa sul viso come un respiro.", "vai": "b" },
+        "b": { "chi": "_", "testo": "È l'ultima notte prima della torre: lo sapete tutti e nessuno lo dice. Qualcuno accende un fuoco, qualcuno controlla le armi. Le tre nicchie sono vuote, e i pezzi della corona che portate vibrano piano, come se riconoscessero il posto.", "vai": "c" },
+        "c": { "chi": "_", "testo": "Che cosa fate, prima di dormire?",
+          "scelte": [
+            { "t": "Raccolgo l'acqua della pioggia in una fiasca", "una": true, "tono": [ "mistero" ], "vai": "acqua" },
+            { "t": "Esamino le nicchie e i sedili", "una": true, "prova": { "ab": "arcano", "cd": 12, "ok": { "vai": "nicchie", "testo": "Le incisioni sotto il muschio si lasciano leggere." }, "ko": { "vai": "c", "testo": "La pietra tace." } } },
+            { "t": "Siedo accanto a Gherardo", "se": [ { "compagno": "gherardo" }, "ruggero-elmo" ], "una": true, "vai": "g1" },
+            { "t": "Siedo accanto a Gherardo", "se": [ { "compagno": "gherardo" }, "ruggero-sepolto", { "non": { "bandiera": "ruggero-elmo" } } ], "una": true, "vai": "g2" },
+            { "t": "Siedo accanto a Gherardo", "se": [ { "compagno": "gherardo" }, "ruggero-vinto" ], "una": true, "vai": "g3" },
+            { "t": "Siedo accanto a Gherardo", "se": [ { "compagno": "gherardo" }, { "non": { "bandiera": "ruggero-sepolto" } }, { "non": { "bandiera": "ruggero-vinto" } } ], "una": true, "vai": "g4" },
+            { "t": "Siedo accanto a Mirta", "se": [ { "compagno": "mirta" }, { "o": [ { "approv": "mirta", "min": 20 }, "reliquia-resa" ] }, { "non": { "bandiera": "indizio-mirta" } } ], "una": true, "tono": [ "mistero" ], "vai": "m1" },
+            { "t": "Siedo accanto a Mirta", "se": [ { "compagno": "mirta" }, { "approv": "mirta", "max": 19 }, { "non": { "bandiera": "reliquia-resa" } } ], "una": true, "vai": "m2" },
+            { "t": "Parliamo di domani, tutti insieme", "se": [ { "compagno": "gherardo" }, { "compagno": "mirta" } ], "una": true, "tono": [ "onore" ], "vai": "t" },
+            { "t": "Ripartiamo all'alba", "vai": "alba" }
+          ] },
+        "acqua": { "chi": "_", "testo": "Tenete la fiasca aperta sotto il cielo e la pioggia ci si deposita da sola, in gocce che luccicano come mercurio freddo. Quando la richiudete, il tappo vibra appena. Non è acqua per bere.", "effetti": [ { "t": "bandiera", "id": "acqua-piogge" }, { "t": "diario", "testo": "Avete riempito una fiasca con l'acqua delle piogge dell'Altare." } ], "vai": "c" },
+        "nicchie": { "chi": "_", "testo": "Sotto il muschio, le incisioni dicono: «Tre nicchie per tre pezzi. Tre sedili per tre mani. Chi regge la corona non siede da solo.» Un tempo, qui, le tre marche mandavano ciascuna il suo anziano a sedersi in cerchio, e ognuna teneva un pezzo, fino al giorno in cui un re volle tutto per sé.", "vai": "c" },
+        "g1": { "chi": "gherardo", "testo": "Ho dormito, a Rocca, senza sognare Ruggero. Per la prima volta in vent'anni. Pensavo che mi sarebbe sembrato un tradimento, invece è come se mi avesse detto: «Ora va'». Domani entriamo nella casa di chi ha rubato un re, e io ho meno pesi di ieri.", "vai": "c" },
+        "g2": { "chi": "gherardo", "testo": "Ruggero ha avuto la pace che gli spettava, e io non so se meritavo di vederla. Avrei voluto dargli l'elmo con le mie mani. Ma il turno è finito, mi hanno detto, e il turno è mio. Domani lo faccio con tutto quello che ho.", "vai": "c" },
+        "g3": { "chi": "gherardo", "testo": "Non vi biasimo, per Ruggero: faceva il guardiano, come lo avevo addestrato. Ma l'ho sognato che mi guardava, con quella faccia che sapeva ridere. Domani, se mi vedete esitare davanti a una porta, spingetemi avanti.", "vai": "c" },
+        "g4": { "chi": "gherardo", "testo": "Ho rivisto Ruggero nella cappella, in piedi con la spada, e non ho trovato il coraggio di dirgli tutto. Un guardiano che non sa dire addio a un fratello non è un buon guardiano. Se salviamo Ottavio, voglio dirgli che il suo capitano non ha dormito.", "vai": "c" },
+        "m1": { "chi": "mirta", "testo": "I corvi della torre hanno tutti la piuma bianca: sono i suoi occhi. Con i Corvi di strada imparai il fischio che li tiene buoni: due note giù, una su. E il re: i corvi sorvolano a cerchio una torre sola, una stanza sola, in cima. Là c'è un vetro, e dietro il vetro, qualcuno che non si muove.", "effetti": [ { "t": "bandiera", "id": "indizio-mirta" }, { "t": "conta", "id": "indizi" }, { "t": "diario", "testo": "Mirta conosce il fischio che calma i corvi (due note giù, una su) e sa che il re è nella stanza col vetro, in cima alla torre." } ], "vai": "c" },
+        "m2": { "chi": "mirta", "testo": "Ho paura, ecco. Non è il momento di parlarne. Non ancora.", "vai": "c" },
+        "t": { "chi": "_", "testo": "Gherardo e Mirta si studiano da una parte all'altra del fuoco. «Ragazza» dice Gherardo «se domani c'è da correre, corri avanti. Io tengo la porta.» «Se c'è da tenere una porta» risponde Mirta «ti lascio tutto l'onore.» Per la prima volta ridono insieme, e la risata sale e si perde nella pioggia.", "effetti": [ { "t": "approv", "id": "gherardo", "n": 3 }, { "t": "approv", "id": "mirta", "n": 3 } ], "vai": "c" },
+        "alba": { "chi": "_", "testo": "Dormite a turni, con la pioggia che vi lava le fronti. All'alba la radura è piena di una luce lattea, e la Torre dei Corvi si vede per la prima volta: un dito nero, a poche ore di marcia, con una nuvola di ali attorno alla cima.", "effetti": [ { "t": "pf", "pct": 1 }, { "t": "bandiera", "id": "altare-notte-fatta" }, { "t": "diario", "testo": "All'Altare delle Piogge avete passato l'ultima notte prima della Torre dei Corvi." } ], "fine": true }
+      }
+    },
+    "voce-pozzo": {
+      "titolo": "La voce nel pozzo", "dove": "casale-salici", "se": [ "casale-liberato", { "non": { "bandiera": "pozzo-fatto" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "tobia", "testo": "Bentornati. Ho un guaio nuovo, più piccolo del vecchio. Da tre notti il pozzo del Casale parla: una voce d'uomo, bassa, che chiede pane e non chiede altro. I miei dicono che è un morto. Io credo che sia peggio, cioè un vivo.",
+          "effetti": [ { "t": "missione", "id": "voce", "stato": "attiva" } ],
+          "scelte": [
+            { "t": "Scendiamo a vedere", "vai": "b" },
+            { "t": "Ci pensiamo dopo", "fine": true }
+          ] },
+        "b": { "chi": "_", "testo": "Vi sporgete sul bordo. Dal buio sale un fiato appena udibile: «Non sparate. Per pietà, non sparate.» Dieci braccia più sotto, su una sporgenza di pietra, c'è un uomo accucciato con un mantello nero strappato e la fame scritta in faccia.", "vai": "c" },
+        "c": { "chi": "pico", "testo": "Mi chiamo Pico. Ero dei Corvi: portavo gli ordini da un campo all'altro, non ho mai alzato una spada contro nessuno. Quando Corvino è caduto, quelli rimasti hanno cominciato a cercare chi aveva letto troppo. Mi sono nascosto qui. Calatemi un po' di pane, vi dirò quello che so.", "vai": "d" },
+        "d": { "chi": "_", "testo": "L'uomo vi guarda dal fondo del pozzo e Tobia, accanto a voi, trattiene il respiro.",
+          "scelte": [
+            { "t": "Che cosa sai della Torre dei Corvi?", "una": true, "tono": [ "mistero" ], "vai": "d1" },
+            { "t": "Mirta, lo conosci?", "se": { "compagno": "mirta" }, "una": true, "vai": "d2" },
+            { "t": "Lo tiriamo fuori e lo proteggiamo", "una": true, "tono": [ "pieta" ],
+              "prova": { "ab": "persuasione", "cd": 11, "ok": { "vai": "salva", "testo": "Tobia annuisce lentamente, e va a prendere una corda." }, "ko": { "vai": "rifiuto", "testo": "Tobia scuote il capo: «Non lo voglio in casa mia.»" } } },
+            { "t": "Lo consegniamo al giudizio del Casale", "tono": [ "onore", "durezza" ], "vai": "consegna" },
+            { "t": "Gli caliamo pane e una corda, poi andiamo", "vai": "lasciato" }
+          ] },
+        "d1": { "chi": "pico", "testo": "Una torre nera in mezzo ai Boschi Velati, con un portone di bronzo che si apre una volta al mese per le provviste. Ma c'è un'altra porta, più in basso, che usano le carbonaie: un cunicolo che sbocca nella cantina. Lo so perché ci ho consegnato il pane per tre inverni. Non c'è sorveglianza, solo un chiavistello di legno e una guardia che dorme.", "effetti": [ { "t": "bandiera", "id": "pico-porta" }, { "t": "diario", "testo": "Pico, ex messo dei Corvi, vi ha parlato della porta delle carbonaie: un cunicolo che porta nella cantina della Torre dei Corvi." } ], "vai": "d" },
+        "d2": { "chi": "mirta", "testo": "Pico. Mi dava le sue castagne quando il Capo mi dimenticava la cena. Non ha mai fatto male a una mosca, e piange per i cavalli. Se lo lasciate qui lo ammazzano.", "vai": "d" },
+        "salva": { "chi": "_", "testo": "Lo tirate su a forza di braccia, un palmo alla volta. Pico si siede sul bordo del pozzo con le mani che tremano e mangia come chi ha dimenticato il sapore del pane. Tobia gli porta una coperta, senza una parola. Domani, sapete, lo metterà a lavorare nei campi.", "effetti": [ { "t": "bandiera", "id": "pico-salvo" }, { "t": "bandiera", "id": "pozzo-fatto" }, { "t": "missione", "id": "voce", "stato": "fatta" }, { "t": "diario", "testo": "Pico, ex messo dei Corvi, è stato tirato fuori dal pozzo e accolto al Casale dei Salici." } ], "fine": true },
+        "rifiuto": { "chi": "tobia", "testo": "Chi mi assicura che non ci porterà qualcuno dietro? Decidete voi, ma io non lo voglio.", "vai": "d" },
+        "consegna": { "chi": "tobia", "testo": "Giustizia sia fatta, allora: il Casale lo ascolterà e lo giudicherà. Non mi aspetto che sia gentile. Ma almeno sarà pulita.", "effetti": [ { "t": "bandiera", "id": "pico-consegnato" }, { "t": "bandiera", "id": "pozzo-fatto" }, { "t": "missione", "id": "voce", "stato": "fatta" }, { "t": "diario", "testo": "Pico, ex messo dei Corvi, è stato consegnato al giudizio del Casale dei Salici." } ], "fine": true },
+        "lasciato": { "chi": "_", "testo": "Calate pane e una corda annodata, e lo guardate arrampicarsi fino al bordo mentre vi allontanate. Quando vi voltate, Pico ha già lasciato il pozzo e corre verso i salici, senza ringraziare nessuno.", "effetti": [ { "t": "bandiera", "id": "pico-lasciato" }, { "t": "bandiera", "id": "pozzo-fatto" }, { "t": "missione", "id": "voce", "stato": "fatta" }, { "t": "diario", "testo": "Pico, ex messo dei Corvi, ha lasciato il pozzo e se n'è andato per la sua strada." } ], "fine": true }
+      }
+    },
+    "torre-soglia": {
+      "titolo": "La Torre dei Corvi", "dove": "torre-corvi", "se": [ "atto3", { "non": { "bandiera": "torre-soglia-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La Torre dei Corvi sale da una radura morta come un dito di basalto nero. Non ha finestre fino a trenta braccia d'altezza. Sul portone di bronzo è inciso un corvo con le ali chiuse; sui cornicioni, sui davanzali, sui merli stanno i corvi, a migliaia, tutti con la piuma bianca nella coda, tutti rivolti verso di voi.", "vai": "b" },
+        "b": { "chi": "_", "testo": "I frammenti di corona che portate si fanno pesanti. Oltre quel portone qualcuno lo sa già. Come si entra?",
+          "scelte": [
+            { "t": "Mostro il sigillo dei corvi al portone", "se": { "oggetto": "sigillo-dei-corvi" }, "tono": [ "mistero" ], "vai": "sigillo" },
+            { "t": "Entriamo dalla porta delle carbonaie", "se": "pico-porta", "vai": "carbonaie" },
+            { "t": "Fischio il richiamo di Mirta e tento il portone", "se": [ { "compagno": "mirta" }, "indizio-mirta" ], "tono": [ "mistero" ],
+              "prova": { "ab": "furtivita", "cd": 12, "vant": true, "ok": { "vai": "fischio", "testo": "I corvi chinano il capo uno dopo l'altro." }, "ko": { "vai": "battaglia", "testo": "Una nota sbagliata, e il silenzio si spezza." } } },
+            { "t": "Forziamo il portone", "prova": { "ab": "atletica", "cd": 16, "ok": { "vai": "forza", "testo": "Il bronzo cede con un lamento." }, "ko": { "vai": "battaglia", "testo": "Il lamento del bronzo sveglia ogni corvo della torre." } } },
+            { "t": "Attacchiamo i custodi", "tono": [ "durezza" ], "vai": "battaglia" }
+          ] },
+        "sigillo": { "chi": "_", "testo": "Sotto il corvo inciso c'è una fessura a forma di piuma. Il sigillo vi entra come una chiave in una serratura fatta apposta. I corvi alzano il capo tutti insieme, con un fruscio che sembra un respiro, e il portone si apre senza fare rumore.", "vai": "dentro" },
+        "fischio": { "chi": "mirta", "testo": "Due note giù, una su. Non guardarli negli occhi, non fare movimenti bruschi. Adesso il portone: è solo bronzo, e il bronzo non ha orecchie.", "vai": "forza" },
+        "forza": { "chi": "_", "testo": "Il portone si apre di una spanna, poi di un braccio. Passate uno alla volta, rasente il muro, sotto gli occhi di mille corvi che vi seguono con la testa e non gracchiano.", "vai": "dentro" },
+        "carbonaie": { "chi": "_", "testo": "Pico aveva ragione: alla base della collina, dietro un ammasso di rovi, c'è un'apertura bassa tappata da assi marce. Il cunicolo sale a gomiti, odora di carbone e di topo e finisce in una cantina dove una guardia di terra e pietra sonnecchia contro una botte.",
+          "scelte": [
+            { "t": "Passo accanto alla guardia in silenzio", "prova": { "ab": "furtivita", "cd": 10, "ok": { "vai": "carbonaie-ok", "testo": "La guardia continua a russare." }, "ko": { "vai": "carbonaie-ko", "testo": "Una botte rotola. La guardia apre un occhio." } } },
+            { "t": "La mettiamo fuori combattimento", "tono": [ "durezza" ], "vai": "carbonaie-ko" }
+          ] },
+        "carbonaie-ok": { "chi": "_", "testo": "Salite la scala dei servi tenendo il fiato. Al piano di sopra c'è l'odore di una cucina e nessun corvo: tutti sono in alto, a guardare il portone.", "vai": "dentro" },
+        "carbonaie-ko": { "chi": "_", "testo": "La guardia si leva con un rumore di frana, e dalle botti sciamano scintille a forma di corvo.", "effetti": [ { "t": "battaglia", "fam": "torre", "diff": "facile", "arena": "antro" } ], "vai": "carbonaie-dopo" },
+        "carbonaie-dopo": { "chi": "_", "testo": "Il fracasso si spegne fra le botti. Nessuno scende: lassù i corvi guardano ancora il portone.", "vai": "dentro" },
+        "battaglia": { "chi": "_", "testo": "Un corvo grida, e mille ali si alzano nel cielo. Dal portone escono i guardiani di pietra, e i famigli, piccole scintille a forma di corvo, si buttano su di voi come aghi.", "effetti": [ { "t": "battaglia", "fam": "torre", "diff": "medio", "arena": "torre" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Il frastuono si spegne. I corvi sui cornicioni non si sono mossi: guardano. La porta di bronzo è spalancata, e nessuno ve la chiude alle spalle.", "vai": "dentro" },
+        "dentro": { "chi": "_", "testo": "Dentro, la torre è silenziosa e tiepida, e odora di inchiostro e di erbe bruciate. Un atrio vuoto, una scala a chiocciola che sale nel buio e, a sinistra, una porta bassa da cui viene il fruscio di una biblioteca.", "effetti": [ { "t": "bandiera", "id": "torre-soglia-ok" }, { "t": "diario", "testo": "Siete entrati nella Torre dei Corvi." } ], "fine": true }
+      }
+    },
+    "torre-biblioteca": {
+      "titolo": "La biblioteca del Maestro", "dove": "torre-corvi", "se": [ "torre-soglia-ok", { "non": { "bandiera": "torre-biblio-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Due piani di scaffali di quercia scura, con una scala di ferro che corre su una rotaia. I libri sono ordinati con una cura maniacale, per colore e per anno. I famigli dormono sugli scaffali, minuscoli e luminosi come candele. Sul leggio, al centro, c'è un quaderno aperto, rilegato in cuoio nero.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Nessuno vi ha visti, per ora. Che cosa fate?",
+          "scelte": [
+            { "t": "Leggo il quaderno", "se": { "non": { "bandiera": "quaderno-letto" } }, "tono": [ "mistero" ], "vai": "q" },
+            { "t": "Cerco fra gli scaffali", "una": true, "prova": { "ab": "percezione", "cd": 13, "ok": { "vai": "scaffali", "testo": "Un dorso è appena meno impolverato degli altri." }, "ko": { "vai": "b", "testo": "Sono tutti uguali, e tutti muti." } } },
+            { "t": "Salgo la scala a chiocciola", "effetti": [ { "t": "bandiera", "id": "torre-biblio-ok" } ], "fine": true }
+          ] },
+        "q": { "chi": "_", "testo": "Le pagine sono fitte di una scrittura ordinata, ma le parole non hanno senso: sono lettere vere messe in un ordine che non è il loro. A margine, schemi di un anello a tre mandate; al centro, a carboncino, il disegno di un re. È una cifra. Per leggerla serve ingegno, o tempo.",
+          "scelte": [
+            { "t": "Provo a decifrarla con l'arcano", "se": { "classe": "mago" }, "una": true, "prova": { "ab": "arcano", "cd": 13, "vant": true, "ok": { "vai": "decifrato", "testo": "Le lettere scivolano al loro posto." }, "ko": { "vai": "q", "testo": "La cifra ha una trappola: un rigo sbagliato e tutto si rimescola." } } },
+            { "t": "Provo a decifrarla: i segni di Mirta mi guidano", "se": [ { "non": { "classe": "mago" } }, "indizio-mirta" ], "una": true, "prova": { "ab": "arcano", "cd": 13, "vant": true, "ok": { "vai": "decifrato", "testo": "Il segno del corvo e della piuma: è la chiave di lettura." }, "ko": { "vai": "q", "testo": "Il rigo successivo contraddice quello prima." } } },
+            { "t": "Provo a decifrarla con l'arcano", "se": [ { "non": { "classe": "mago" } }, { "non": { "bandiera": "indizio-mirta" } } ], "una": true, "prova": { "ab": "arcano", "cd": 13, "ok": { "vai": "decifrato", "testo": "Dopo molti tentativi la cifra cede." }, "ko": { "vai": "q", "testo": "Ogni rigo sembra contraddire quello prima." } } },
+            { "t": "La confronto con le cronache dei re", "una": true, "prova": { "ab": "storia", "cd": 14, "ok": { "vai": "decifrato", "testo": "Nei nomi dei re trovate la chiave." }, "ko": { "vai": "q", "testo": "Le date non tornano." } } },
+            { "t": "Passo ore a studiarla, a lume di una candela", "effetti": [ { "t": "razioni", "n": -2 }, { "t": "perdizione", "n": 2 } ], "vai": "decifrato" },
+            { "t": "Lascio il quaderno", "vai": "b" }
+          ] },
+        "decifrato": { "chi": "_", "testo": "Lettera dopo lettera, la cifra si apre. È il diario del Maestro Alberico Malavista, e le prime righe sono limpide: «La corona non è un gioiello: è una serratura a tre mandate, e il re vivo ne è la chiave. Gualtiero la portò ventitré mesi e ne fu mangiato. Chi la ricompone e la porta, finisce come lui.»", "vai": "decifrato2" },
+        "decifrato2": { "chi": "_", "testo": "«Per questo mi servono Ottavio vivo e i tre pezzi nelle mie mani: la corona intera, al servizio di uno solo. Dovranno credermi un salvatore. Offrirò il re in cambio dei pezzi: nessun buono resiste a una vita in cambio di un gioiello. Se i tre pezzi restassero in tre mani, la serratura non si chiuderebbe su nessuno, nemmeno su di me.»", "effetti": [ { "t": "bandiera", "id": "quaderno-letto" }, { "t": "bandiera", "id": "indizio-quaderno" }, { "t": "conta", "id": "indizi" }, { "t": "diario", "testo": "Il diario del Maestro Alberico: la corona è una serratura, il re ne è la chiave, e il patto offerto è un inganno. Con i pezzi divisi in tre mani, la corona non si chiude su nessuno." } ], "vai": "b" },
+        "scaffali": { "chi": "_", "testo": "Dietro un tomo di botanica c'è un cassetto pieno di fiale rosse, con un biglietto: «Per quando la fatica supera il consenso.» Il Maestro non sa che a volte il consenso lo si conquista con una pozione.", "effetti": [ { "t": "oggetto", "id": "pozione-cura-maggiore", "n": 1 }, { "t": "xp", "n": 20 } ], "vai": "b" }
+      }
+    },
+    "torre-gabbia": {
+      "titolo": "La gabbia dei famigli", "dove": "torre-corvi", "se": [ "torre-biblio-ok", { "non": { "bandiera": "torre-gabbia-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Il piano superiore è una voliera: una gabbia di ferro a forma di campana, alta due piani, con dentro mille corvi dalla piuma bianca. Non gracchiano. Fissano il vuoto, tutti nella stessa direzione, e quando uno batte le ali lo fanno tutti insieme. Sul pavimento, un anello di ferro con le rune incise. Sono i suoi occhi, e lo sentite.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Come passate?",
+          "scelte": [
+            { "t": "Fischio il richiamo di Mirta", "se": [ { "compagno": "mirta" }, "indizio-mirta" ], "una": true, "tono": [ "mistero" ], "vai": "fischio" },
+            { "t": "Spezzo l'anello di ferro e li libero", "tono": [ "pieta" ], "prova": { "ab": "arcano", "cd": 13, "ok": { "vai": "liberi", "testo": "Le rune si spengono una dopo l'altra." }, "ko": { "vai": "battaglia", "testo": "L'anello si scarica addosso a voi, e la gabbia urla." } } },
+            { "t": "Passo piano tra le gabbie", "prova": { "ab": "furtivita", "cd": 12, "ok": { "vai": "su", "testo": "Nessun corvo si muove." }, "ko": { "vai": "battaglia", "testo": "Un'ala sbatte, e sbattono tutte." } } }
+          ] },
+        "fischio": { "chi": "mirta", "testo": "Due note giù, una su. Pian piano, ragazzi: sono solo uccelli stanchi. Il più grosso becca il lucchetto, la porticina si apre, e il resto del gregge si ritira in un angolo, come un'onda che si acquieta.", "effetti": [ { "t": "bandiera", "id": "corvi-calmi" } ], "vai": "su" },
+        "liberi": { "chi": "_", "testo": "Quando l'ultima runa si spegne, i corvi sbattono le ali tutti insieme e riempiono la torre di un fragore di vento. Escono dalle feritoie, uno dopo l'altro, come un fumo nero che si diradi. Lassù, a qualche piano di distanza, qualcuno ha appena perso gli occhi.", "effetti": [ { "t": "bandiera", "id": "corvi-liberi" }, { "t": "diario", "testo": "Avete liberato i corvi della gabbia: il Maestro Alberico non vede più con i loro occhi." } ], "vai": "su" },
+        "battaglia": { "chi": "_", "testo": "Il ferro canta e la voliera si sveglia: un ruggito di ali, e i famigli vi piombano addosso a nugoli, scintille nere e fulmini di piccole beccate.", "effetti": [ { "t": "battaglia", "fam": "torre", "diff": "medio", "arena": "torre" } ], "vai": "su" },
+        "su": { "chi": "_", "testo": "In fondo alla voliera una scala di ferro sale in una nuvola di polvere e di piume. Più su si sente un tintinnio d'acqua, come di una fontana in una stanza.", "effetti": [ { "t": "bandiera", "id": "torre-gabbia-ok" } ], "fine": true }
+      }
+    },
+    "torre-osservatorio": {
+      "titolo": "L'osservatorio", "dove": "torre-corvi", "se": [ "torre-gabbia-ok", { "non": { "bandiera": "torre-osserv-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Una sala rotonda sotto una cupola di vetro nero. Al centro, su un tripode, una coppa di bronzo piena d'acqua scura che non si increspa mai; accanto, un telescopio d'ottone grande come una bombarda. Alle pareti, mappe del regno coperte di segni: tre cerchi uniti da una linea e, al centro, un re disegnato a carboncino con le palpebre cucite. Sotto una finestra, un forziere ferrato.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Che cosa fate?",
+          "scelte": [
+            { "t": "Guardo nella coppa", "una": true, "tono": [ "mistero" ], "prova": { "ab": "arcano", "cd": 13, "ok": { "vai": "visione", "testo": "L'acqua si schiarisce come un vetro appena pulito." }, "ko": { "vai": "b", "testo": "L'acqua vi restituisce lo sguardo, e per un momento vi sembra di conoscerlo.", "effetti": [ { "t": "perdizione", "n": 2 } ] } } },
+            { "t": "Spezzo la coppa", "una": true, "tono": [ "durezza" ], "vai": "coppa" },
+            { "t": "Apro il forziere", "una": true, "prova": { "ab": "furtivita", "cd": 13, "ok": { "vai": "forziere", "testo": "Il meccanismo scatta in silenzio." }, "ko": { "vai": "b", "testo": "Una lama d'ombra scatta dal coperchio e vi taglia di striscio: il forziere resta chiuso.", "effetti": [ { "t": "pf", "pct": -0.15 } ] } } },
+            { "t": "Salgo ancora", "effetti": [ { "t": "bandiera", "id": "torre-osserv-ok" } ], "fine": true }
+          ] },
+        "visione": { "chi": "_", "testo": "Nell'acqua, per un attimo, c'è la sala in cima: una poltrona accanto al fuoco, un uomo seduto con le mani sul grembo, immobile, ma sveglio. Un vecchio in veste nera gli posa una mano sulla testa e sorride: «E voi verrete. Verrete sempre, i buoni.» L'acqua si increspa e si spegne.", "effetti": [ { "t": "xp", "n": 20 } ], "vai": "b" },
+        "coppa": { "chi": "_", "testo": "Il bronzo si spacca in due con un lamento di campana. L'acqua nera si sparge sul pavimento come inchiostro e il pavimento grida, un grido di corvo, e poi più nulla. Lassù, chi sorvegliava da questa coppa non vede più niente. E sa che qualcuno l'ha accecato.", "effetti": [ { "t": "bandiera", "id": "maestro-cieco" }, { "t": "diario", "testo": "Avete spezzato la coppa dell'osservatorio: il Maestro Alberico non può più spiarvi." } ], "vai": "b" },
+        "forziere": { "chi": "_", "testo": "Sul fondo, avvolto in un panno rosso, c'è uno scudo di argento scuro, liscio come uno specchio. Chi lo guarda vede la stanza capovolta, e un riflesso che non ha ancora deciso da che parte stare.", "effetti": [ { "t": "oggetto", "id": "scudo-specchio", "n": 1 }, { "t": "xp", "n": 40 } ], "vai": "b" }
+      }
+    },
+    "torre-ombre": {
+      "titolo": "La sala delle ombre", "dove": "torre-corvi", "se": [ "torre-osserv-ok", { "non": { "bandiera": "torre-ombre-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "L'ultima sala prima della cima è nera come il fondo di un pozzo. Al centro arde un braciere di bronzo con una fiamma nera, alta come un uomo, che non fa luce ma toglie colore. Dalle pareti si staccano le vostre ombre, una per ciascuno, e vi vengono incontro senza fretta. Davanti alla scala, un'armatura vuota con il fuoco dentro vi aspetta.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Il tempo stringe: le ombre sono già a due passi.",
+          "scelte": [
+            { "t": "Verso sul braciere l'acqua dell'Altare delle Piogge", "se": "acqua-piogge", "tono": [ "mistero" ], "vai": "acqua" },
+            { "t": "Studio il braciere", "una": true, "prova": { "ab": "arcano", "cd": 13, "ok": { "vai": "studio", "testo": "Il fuoco nero ha un solo punto debole." }, "ko": { "vai": "b", "testo": "La fiamma risponde allo sguardo con un sussurro, ma non dice niente di utile." } } },
+            { "t": "Sguscio fra le ombre verso la scala", "una": true, "prova": { "ab": "furtivita", "cd": 15, "ok": { "vai": "furtivo", "testo": "Le ombre cercano i loro padroni e non vi trovano." }, "ko": { "vai": "battaglia", "testo": "Un'ombra vi prende la mano, e il resto la segue." } } },
+            { "t": "Combattiamo", "vai": "battaglia" }
+          ] },
+        "acqua": { "chi": "_", "testo": "L'acqua dell'Altare cade sulla fiamma nera con un sibilo di ferro rovente. Il fuoco diventa fumo bianco, e il fumo bianco diventa pioggia fine. Le ombre si afflosciano a terra come mantelli, e l'armatura vuota si siede, lentamente, sui suoi stessi pezzi.", "effetti": [ { "t": "bandiera", "id": "ombre-spente" }, { "t": "xp", "n": 60 }, { "t": "diario", "testo": "L'acqua delle piogge ha spento la fiamma nera della sala delle ombre." } ], "vai": "su" },
+        "studio": { "chi": "_", "testo": "È un fuoco che si nutre di sé stesso: lo spegne solo ciò che ha sentito la pioggia dell'Altare, o un gelo vivo. Chi non ha niente da versare dovrà passarci in mezzo.", "vai": "b" },
+        "furtivo": { "chi": "_", "testo": "Strisciate lungo il muro, un passo dopo l'altro. L'armatura vuota gira l'elmo di scatto, ma non trova niente: qualcuno ha scelto bene dove mettere i piedi.", "effetti": [ { "t": "xp", "n": 40 } ], "vai": "su" },
+        "battaglia": { "chi": "_", "testo": "Le ombre allungano le mani e l'armatura vuota alza una spada di fuoco. Il braciere ruggisce e ogni scintilla ha la forma di un uccello che grida.", "effetti": [ { "t": "battaglia", "fam": "torre", "diff": "difficile", "arena": "torre" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Le ombre tornano al muro, una a una, e si ricompongono sotto le vostre suole come se non fossero mai uscite. Il braciere continua ad ardere, nero, e adesso vi ignora.", "vai": "su" },
+        "su": { "chi": "_", "testo": "La scala finisce in una botola di bronzo. Oltre, una luce calda e il crepitio di un camino. Una voce, bassa e gentile, scende fino a voi: «Entrate pure. Sono ore che vi aspetto.»", "effetti": [ { "t": "bandiera", "id": "torre-ombre-ok" } ], "fine": true }
+      }
+    },
+    "torre-maestro": {
+      "titolo": "Il Maestro della Torre", "dove": "torre-corvi", "se": [ "torre-ombre-ok", { "non": { "bandiera": "maestro-sconfitto" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La sala in cima è la più accogliente della torre: tappeti, un camino acceso, una tavola apparecchiata per quattro e una finestra aperta sui boschi. In una poltrona accanto al fuoco, un uomo in veste regale, con la barba curata, siede con le mani in grembo: lo sguardo vi segue, ma lui non si muove. Alla finestra, di spalle, un vecchio in veste nera accarezza un corvo grosso come un'aquila.", "vai": "b" },
+        "b": { "chi": "alberico", "testo": "Sedete, vi prego. Non rompo mai il pane con chi non ha mangiato. Sono Alberico Malavista, Maestro di corte. So chi siete, ho seguito ogni vostro passo e vi devo un ringraziamento: avete portato fin qui due pezzi che non riuscivo a farmi consegnare.", "vai": "c" },
+        "c": { "chi": "alberico", "testo": "Vi dico subito la verità: ho salvato il regno. Ottavio voleva fondere la corona con l'anello dei Re, e le tre Marche sarebbero bruciate in un anno. L'ho fermato e lo tengo addormentato qui, al caldo. Il terzo pezzo è già mio. Datemi gli altri due: sveglierò il re e vi lascerò andare con il suo ringraziamento.", "vai": "d" },
+        "d": { "chi": "_", "testo": "Il Maestro sorride e aspetta. Sulla tavola, accanto al pane, c'è una piccola cosa grigia: il Sigillo, il terzo pezzo. Che cosa rispondete?",
+          "scelte": [
+            { "t": "Lo ascoltiamo ancora", "una": true, "tono": [ "mistero" ], "vai": "d1" },
+            { "t": "Cito il suo quaderno", "se": "quaderno-letto", "una": true, "tono": [ "mistero" ], "vai": "d2" },
+            { "t": "Accetto il patto: i pezzi per il re", "se": { "oggetto": "frammento-di-corona" }, "tono": [ "pieta" ], "vai": "patto" },
+            { "t": "Fingo di accettare, per ingannarlo", "se": { "valore": "indizi", "min": 4 }, "prova": { "ab": "persuasione", "cd": 9, "ok": { "vai": "bluff", "testo": "Lo sguardo del Maestro si addolcisce." }, "ko": { "vai": "smascherati", "testo": "Alberico aggrotta le ciglia." } } },
+            { "t": "Fingo di accettare, per ingannarlo", "se": { "valore": "indizi", "min": 2, "max": 3 }, "prova": { "ab": "persuasione", "cd": 12, "ok": { "vai": "bluff", "testo": "Lo sguardo del Maestro si addolcisce." }, "ko": { "vai": "smascherati", "testo": "Alberico aggrotta le ciglia." } } },
+            { "t": "Fingo di accettare, per ingannarlo", "se": { "valore": "indizi", "min": 0, "max": 1 }, "prova": { "ab": "persuasione", "cd": 15, "ok": { "vai": "bluff", "testo": "Lo sguardo del Maestro si addolcisce." }, "ko": { "vai": "smascherati", "testo": "Alberico aggrotta le ciglia." } } },
+            { "t": "Colpiamo prima che ci veda", "se": { "o": [ "maestro-cieco", "corvi-liberi" ] }, "tono": [ "durezza" ], "vai": "cieco" },
+            { "t": "Rifiuto il patto", "tono": [ "onore" ], "vai": "rifiuto" }
+          ] },
+        "d1": { "chi": "alberico", "testo": "Una corona che si chiude su un uomo lo divora: guardate Gualtiero. Io la serratura la studio da trent'anni. Se si chiude su un uomo saggio il regno ha pace, e quell'uomo non può essere un re distratto. Può essere uno che sa cosa costa. Sacrificare uno per salvare tutti: chi non lo farebbe?", "vai": "d" },
+        "d2": { "chi": "alberico", "testo": "Ah, il mio quaderno. Lo sapevo che qualcuno, prima o poi, avrebbe imparato a leggerlo. Dunque conoscete la terza via: tre mani, tre sedili. È un bel sogno da altare, ma i sogni non hanno eserciti, e chi si siede da solo in mezzo a tre sedili finisce per svuotarli tutti.", "vai": "d" },
+        "patto": { "chi": "_", "testo": "Posate sulla tavola il Cerchio e la Gemma. Alberico li guarda come un ladro guarda un forziere aperto, poi accosta il Sigillo, e i tre pezzi cantano insieme una nota che vi entra nelle ossa.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": -2 }, { "t": "bandiera", "id": "patto" }, { "t": "diario", "testo": "Avete dato al Maestro Alberico il Cerchio e la Gemma in cambio del re." } ], "vai": "patto2" },
+        "patto2": { "chi": "alberico", "testo": "Grazie. Davvero. Vi faccio un'ultima gentilezza: non vi lascio vedere Ottavio che si sveglia. Gli sono affezionato, e non gli piacerebbe. Il corvo, adesso.", "vai": "battaglia-p" },
+        "bluff": { "chi": "_", "testo": "Posate i pezzi con la lentezza di chi ha deciso. Il Maestro si china sulla tavola con le dita già tese e per un attimo non guarda altro che l'oro e la pietra. È il vostro momento.", "effetti": [ { "t": "bandiera", "id": "maestro-ingannato" }, { "t": "diario", "testo": "Avete ingannato il Maestro Alberico fingendo di accettare il patto." } ], "vai": "battaglia-s" },
+        "smascherati": { "chi": "alberico", "testo": "Alzo gli occhi dal Sigillo e capisco. Che peccato. I buoni non sono mai così ingenui come si crede. Il corvo, adesso.", "vai": "battaglia" },
+        "rifiuto": { "chi": "alberico", "testo": "Un vero peccato. Mi sarebbe piaciuto che foste ragionevoli. Il corvo, adesso.", "vai": "battaglia" },
+        "cieco": { "chi": "_", "testo": "Il Maestro non vi vede più. Tende la mano verso il corvo, verso la finestra, verso la vostra voce, e non trova niente. Siete già a distanza di lama.", "vai": "battaglia-s" },
+        "battaglia": { "chi": "_", "testo": "Il corvo grosso come un'aquila spalanca le ali e la sala si riempie di lampi. Il vecchio in veste nera alza la mano e dalla punta delle dita escono tre fili di fulmine.", "effetti": [ { "t": "battaglia", "capo": "maestro-della-torre", "diff": "capo" } ], "vai": "dopo" },
+        "battaglia-s": { "chi": "_", "testo": "Colpite per primi. Il Maestro, colto di sorpresa, indietreggia con un grido; il corvo grosso come un'aquila spalanca le ali e la sala si riempie di lampi.", "effetti": [ { "t": "battaglia", "capo": "maestro-della-torre", "diff": "capo", "sorpresa": "nemici" } ], "vai": "dopo" },
+        "battaglia-p": { "chi": "_", "testo": "La mano del Maestro si alza e il suo corvo grida. Siete a due passi dalla sua tavola con le mani vuote: una raffica di fulmini vi coglie prima che abbiate il tempo di estrarre.", "effetti": [ { "t": "battaglia", "capo": "maestro-della-torre", "diff": "capo", "sorpresa": "eroi" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Il Maestro cade fra i tappeti, e la veste nera si sfa in un fumo di penne. Il corvo grosso come un'aquila si leva in volo, gira una volta intorno alla sala e va a posarsi sulla spalla di Ottavio, che per la prima volta batte le palpebre.", "vai": "dopo2" },
+        "dopo2": { "chi": "alberico", "testo": "Avrei... fatto un bel regno. Pulito. Senza nessuno che dubitasse. Prendete il Sigillo: senza di me è soltanto ferro vecchio. Ditemi, per cortesia... il pane è ancora caldo?", "vai": "dopo3" },
+        "dopo3": { "chi": "_", "testo": "Gli chiudete gli occhi. Sulla tavola, accanto al pane, i pezzi della corona vibrano ancora, piano.",
+          "scelte": [
+            { "t": "Raccogliete i tre pezzi dalla tavola", "se": "patto", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 3 } ], "vai": "spada" },
+            { "t": "Raccogliete il Sigillo dalla tavola", "se": { "non": { "bandiera": "patto" } }, "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 } ], "vai": "spada" }
+          ] },
+        "spada": { "chi": "_", "testo": "Sopra il camino, appesa a due chiodi, c'è una spada dritta e semplice, con l'elsa avvolta in cuoio consumato. Ha il peso giusto per la mano giusta: la Spada del Re, trofeo di un uomo che amava avere in casa le cose degli altri.", "effetti": [ { "t": "oggetto", "id": "spada-dei-re", "n": 1 }, { "t": "xp", "n": 600 }, { "t": "oro", "n": 250 }, { "t": "bandiera", "id": "maestro-sconfitto" }, { "t": "diario", "testo": "Il Maestro Alberico Malavista è caduto nella Torre dei Corvi." } ], "scena": "torre-re" }
+      }
+    },
+    "torre-re": {
+      "titolo": "Il re addormentato", "dove": "torre-corvi", "se": [ "maestro-sconfitto", { "non": { "bandiera": "finale-fatto" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Con la caduta del Maestro la sala sembra respirare. Il fuoco si abbassa, il corvo grosso come un'aquila gracchia una sola volta e sparisce dalla finestra. L'uomo nella poltrona batte le palpebre, le richiude, le riapre. Ha le mani di un re e il viso di chi ha dormito troppo.", "vai": "b" },
+        "b": { "chi": "ottavio", "testo": "Chi... chi siete? Che giorno è? Ho sognato... sentivo ogni parola e non potevo rispondere. È stato lungo, vero?",
+          "scelte": [
+            { "t": "Gherardo e Mirta si fanno avanti", "se": [ { "compagno": "gherardo" }, { "compagno": "mirta" } ], "vai": "gm" },
+            { "t": "Gherardo si fa avanti", "se": [ { "compagno": "gherardo" }, { "non": { "compagno": "mirta" } } ], "vai": "g" },
+            { "t": "Mirta si fa avanti", "se": [ { "compagno": "mirta" }, { "non": { "compagno": "gherardo" } } ], "vai": "m" },
+            { "t": "Raccontate al re quello che è successo", "vai": "d" }
+          ] },
+        "gm": { "chi": "ottavio", "testo": "Gherardo, vecchio testardo. Alzati: la porta l'ho aperta io, per fidarmi di lui, non è colpa tua. E tu, ragazza... una vedetta dei Corvi, mi dicono. Il regno ti deve una grazia, e la firmo oggi.", "vai": "d" },
+        "g": { "chi": "ottavio", "testo": "Gherardo, vecchio testardo. Alzati: la porta l'ho aperta io, per fidarmi di lui, non è colpa tua.", "vai": "d" },
+        "m": { "chi": "ottavio", "testo": "Una vedetta dei Corvi, dunque. Il regno ti deve una grazia, e la firmo oggi.", "vai": "d" },
+        "d": { "chi": "ottavio", "testo": "Il Maestro mi ha fermato quando ho capito. La corona ricomposta mi avrebbe divorato come Gualtiero, e io non l'ho voluta. Ora i pezzi sono vostri, e decidete voi. Io dico solo una cosa: qualunque cosa scegliate, non lasciate che pesi su uno solo.", "vai": "e" },
+        "e": { "chi": "_", "testo": "Sulla tavola, accanto al pane, il Cerchio, la Gemma e il Sigillo vibrano uno accanto all'altro. Che cosa ne facciamo?",
+          "scelte": [
+            { "t": "Ricomponiamo la corona e la diamo a Ottavio", "vai": "fa" },
+            { "t": "Lasciamo il re libero e la corona divisa in tre reliquie", "se": { "valore": "indizi", "min": 2 }, "mostra": true, "etichetta": "[servono 2 indizi]", "vai": "fb" },
+            { "t": "La terza via: tre mani, tre sedili, nessuna corona", "se": [ { "valore": "indizi", "min": 4 }, "quaderno-letto", { "alleato": "gherardo" }, { "alleato": "mirta" }, { "approv": "gherardo", "min": 20 }, { "approv": "mirta", "min": 20 }, { "non": { "bandiera": "patto" } } ], "mostra": true, "etichetta": "[servono 4 indizi, il diario del Maestro, nessun patto e i due compagni fidati]", "vai": "fc" }
+          ] },
+        "fa": { "chi": "_", "testo": "Posate i tre pezzi uno accanto all'altro e le incrinature si chiudono da sole, con un suono di campana. Il Cerchio, la Gemma e il Sigillo diventano un anello solo. Ottavio lo prende fra le mani, lo guarda a lungo e se lo mette in testa, senza una parola.", "effetti": [ { "t": "bandiera", "id": "finale-a" }, { "t": "bandiera", "id": "finale-fatto" }, { "t": "oggetto", "id": "armatura-del-sovrano", "n": 1 }, { "t": "missione", "id": "corona", "stato": "fatta" }, { "t": "diario", "testo": "Avete ricomposto la corona e l'avete data a Ottavio." } ],
+          "scelte": [
+            { "t": "Il ritorno a Valcorvo", "se": { "e": [ { "alleato": "gherardo" }, { "alleato": "mirta" }, { "perdizione": 0, "max": 39 } ] }, "vai": "fa-l1" },
+            { "t": "Il ritorno a Valcorvo", "se": { "non": { "e": [ { "alleato": "gherardo" }, { "alleato": "mirta" }, { "perdizione": 0, "max": 39 } ] } }, "vai": "fa-a1" }
+          ] },
+        "fa-l1": { "chi": "_", "testo": "La corona torna a Valcorvo in una carrozza chiusa, scortata da tre eserciti che per una volta marciano nella stessa direzione. Ottavio la porta ogni mattina per un'ora e la depone ogni sera; Berengaria, che gli siede accanto, lo obbliga a mangiare. Gherardo veglia le porte della sala del trono e per la prima volta in vent'anni dorme una notte intera.", "vai": "fa-l2" },
+        "fa-l2": { "chi": "_", "testo": "Mirta ha un posto nelle scuderie e una grazia scritta di pugno dal re, e quando può fischia ai corvi di Valcorvo: due note giù, una su. Ormai la vengono a trovare. Il Locandiere vi accoglie alla porta con il boccale in mano. «Il cantare finisce bene» dice, «ma una corona intera pesa, e lo sanno tutti. Tornate quando volete: la storia continua.»", "fine": "finale-a-luminoso" },
+        "fa-a1": { "chi": "_", "testo": "Ottavio porta la corona dal giorno dell'incoronazione, e nessuno lo vede più senza. Il regno ha un re vivo, la pace dei tre pezzi, e il popolo lo ama. Berengaria, accanto a lui, conta i capelli bianchi che gli spuntano ogni mese e non dice niente a nessuno.", "vai": "fa-a2" },
+        "fa-a2": { "chi": "_", "testo": "Vi separate a Valcorvo, ciascuno con la sua parte di ricompensa, in una piazza piena di campane. Il Locandiere vi aspetta con il boccale pieno e non fa domande. «La corona è intera» dice soltanto. «Se sia un bene, o no, lo dirà il tempo. I cantari, di solito, aspettano.»", "fine": "finale-a-amaro" },
+        "fb": { "chi": "_", "testo": "Non li ricomponete. Ottavio guarda i tre pezzi sulla tavola, poi voi, e annuisce. «Un re non ha bisogno di una serratura sul capo» dice. Il Cerchio resta a Valcorvo, su un cuscino di velluto nella sala del trono. La Gemma torna a Rocca Pallida, e il capitano Orsolino la custodisce con le sue mani. Il Sigillo viene portato in silenzio all'Altare delle Piogge e posato in una nicchia.", "effetti": [ { "t": "bandiera", "id": "finale-b" }, { "t": "bandiera", "id": "finale-fatto" }, { "t": "oggetto", "id": "amuleto-della-fenice", "n": 1 }, { "t": "missione", "id": "corona", "stato": "fatta" }, { "t": "diario", "testo": "Avete lasciato il re libero e la corona divisa in tre reliquie." } ],
+          "scelte": [
+            { "t": "Il ritorno a Valcorvo", "se": { "e": [ { "alleato": "gherardo" }, { "alleato": "mirta" }, { "perdizione": 0, "max": 39 } ] }, "vai": "fb-l1" },
+            { "t": "Il ritorno a Valcorvo", "se": { "non": { "e": [ { "alleato": "gherardo" }, { "alleato": "mirta" }, { "perdizione": 0, "max": 39 } ] } }, "vai": "fb-a1" }
+          ] },
+        "fb-l1": { "chi": "_", "testo": "Ottavio regna da re di carne, non di ferro. Fa tutto più lentamente e sbaglia più spesso, ma ascolta, e chi sbaglia ascoltando impara. Berengaria diventa la sua consigliera più severa. A Rocca Pallida la grande campana suona ogni sera, e nessun morto si siede più sotto le mura.", "vai": "fb-l2" },
+        "fb-l2": { "chi": "_", "testo": "Gherardo resta capitano della guardia, a patto di dormire sul pavimento davanti alla porta del re. Mirta ottiene la grazia e un cavallo, e parte a scoprire il mondo, con la promessa di tornare ogni primavera dove qualcuno la aspetta. Il Locandiere vi versa da bere. «Il re è libero» dice. «È più di quanto molti re possano dire.»", "fine": "finale-b-luminoso" },
+        "fb-a1": { "chi": "_", "testo": "Ottavio regna senza corona, e non tutti lo accettano. Alcuni nobili borbottano che un re senza il suo segno è un uomo qualunque, altri cominciano a guardare con interesse i tre pezzi sparsi. Berengaria ha il suo daffare a tenere insieme un regno che ha trovato la pace ma non ancora un accordo.", "vai": "fb-a2" },
+        "fb-a2": { "chi": "_", "testo": "Vi salutate a Valcorvo, ciascuno con la sua parte. Il Locandiere vi versa da bere. «Il re è libero» dice «e la corona è divisa. Se fra cent'anni lo racconteranno come una storia felice o come l'inizio di un'altra, io non lo so. I cantari, di solito, aspettano.»", "fine": "finale-b-amaro" },
+        "fc": { "chi": "_", "testo": "«Tre mani» dice Ottavio, e per la prima volta sorride. Ci mettete tre giorni a portare i pezzi all'Altare delle Piogge. Il Cerchio va a chi regge Valcorvo, la Gemma al capitano di Rocca Pallida, che piange senza vergogna, il Sigillo agli anziani dei Boschi Velati, che non sanno dove mettere le mani. Le tre nicchie si chiudono con uno scatto, e per un attimo la pioggia sul granito smette.", "effetti": [ { "t": "bandiera", "id": "finale-c" }, { "t": "bandiera", "id": "finale-fatto" }, { "t": "oggetto", "id": "anello-del-custode", "n": 1 }, { "t": "missione", "id": "corona", "stato": "fatta" }, { "t": "diario", "testo": "Avete affidato i tre pezzi a tre mani diverse: nasce il consiglio dell'Altare delle Piogge." } ],
+          "scelte": [
+            { "t": "Il primo consiglio dei tre", "se": { "perdizione": 0, "max": 39 }, "vai": "fc-l1" },
+            { "t": "Il primo consiglio dei tre", "se": { "non": { "perdizione": 0, "max": 39 } }, "vai": "fc-a1" }
+          ] },
+        "fc-l1": { "chi": "_", "testo": "Il consiglio dei tre si riunisce ogni solstizio sull'Altare, con la pioggia che cade dritta e i corvi di guardia sui rami. Non è un sistema comodo: si litiga, si rimanda, si gridano insulti che poi diventano proverbi. Ma nessuna mano regge tutto, e quando una vacilla le altre due la sorreggono.", "vai": "fc-l2" },
+        "fc-l2": { "chi": "_", "testo": "Gherardo siede dietro il sedile di Ottavio, custode di una corona che non c'è. Mirta, con il suo fischio, è la messaggera che porta le notizie da una Marca all'altra. Per voi hanno lasciato un quarto sedile di pietra, senza nicchia, per quando vorrete tornare. Il Locandiere alza il boccale. «Questa è la parte che i cantari non osano raccontare: un regno che impara a farcela da sé.»", "fine": "finale-c-luminoso" },
+        "fc-a1": { "chi": "_", "testo": "Il consiglio dei tre si riunisce ogni solstizio sull'Altare, e non tutti i sedili sono comodi. Ottavio è stanco, il capitano di Rocca Pallida è sospettoso, gli anziani dei boschi pensano ai loro boschi. Si litiga più che si decide, ma la pioggia cade, i corvi tacciono e nessuna mano regge tutto.", "vai": "fc-a2" },
+        "fc-a2": { "chi": "_", "testo": "Vi separate sotto la pioggia, ciascuno con una cosa che non vorrebbe dire. Tornati alla locanda, raccontate l'Altare e i tre sedili. Il Locandiere ride piano. «Una terza via» dice. «Più lenta delle altre due e meno bella da raccontare. Ma se tiene, la canteranno per più di cent'anni.»", "fine": "finale-c-amaro" }
       }
     }
   }

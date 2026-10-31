@@ -10,7 +10,7 @@ const ARAC=(()=>{
  const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js'),BE=()=>typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js'),AM=()=>typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js'),AR=()=>typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
  const NARRATORE='_',MAX_TESTO=700,PROPRI=['bandiera','conta','togli','approv','recluta','congeda','missione','diario'],FUORI=['oro','oggetto','pf','perdizione','xp','razioni','battaglia','sposta','apri'];
  const DIFF=['facile','medio','difficile','capo'],SERVIZI=['bottega','locanda','guaritore','tempio'],STATI_MISSIONE=['attiva','fatta','fallita'],CD_MIN=5,CD_MAX=25;
- const PRIM=['bandiera','valore','non','e','o','classe','razza','oggetto','livello','compagno','approv','missione','oro','perdizione','giorno','luogo'];
+ const PRIM=['bandiera','valore','non','e','o','classe','razza','oggetto','livello','compagno','alleato','approv','missione','oro','perdizione','giorno','luogo'];
  const MAX_RIASSUNTO=8,CANTARI=['Primo','Secondo','Terzo','Quarto','Quinto','Sesto','Settimo','Ottavo'];
  const nuovo=(cap,seme)=>({v:1,cap:cap,rng:DAD.semina(seme|0),bandiere:{},approv:{},compagni:{},missioni:{},scena:null,coda:[],ultima:null,reazioni:[],diario:[],fatte:{},sessioni:0,evn:0});
  const copia=x=>JSON.parse(JSON.stringify(x));
@@ -30,6 +30,7 @@ const ARAC=(()=>{
    case'oggetto':return eroi(ctx).some(h=>haOggetto(h,v))||((ctx&&ctx.comune)||[]).includes(v);
    case'livello':return liv(ctx)>=v;
    case'compagno':return CM.stato(s,v)==='gruppo';
+   case'alleato':return['gruppo','attende'].includes(CM.stato(s,v)); // reclutato, anche se aspetta alla locanda (la compagnia ha solo 4 posti)
    case'approv':return inFasce(s.approv[v]|0,c);
    case'missione':return((s.missioni[v]||{}).stato||'nessuna')===(c.stato||'attiva');
    case'oro':return((ctx&&ctx.oro)|0)>=v;
@@ -37,6 +38,10 @@ const ARAC=(()=>{
    case'giorno':return((ctx&&ctx.giorno)|0)>=v;
    case'luogo':return!!ctx&&ctx.luogo===v;
    default:throw new Error('condizione sconosciuta: '+JSON.stringify(c))}}
+ // una scelta è sempre disponibile se non ha condizioni, oppure se due scelte hanno condizioni opposte (X e {non:X}): così si può far ramificare il testo senza bottoni di troppo
+ const nrm=c=>typeof c==='string'?{bandiera:c}:Array.isArray(c)?c.map(nrm):c&&typeof c==='object'?Object.fromEntries(Object.entries(c).map(([k,v])=>[k,['non','e','o'].includes(k)?nrm(v):v])):c;
+ const opposte=(a,b)=>{a=nrm(a);b=nrm(b);return JSON.stringify({non:a})===JSON.stringify(b)||JSON.stringify({non:b})===JSON.stringify(a)};
+ const scelteCoperte=ch=>ch.some(c=>c.se==null&&!c.una)||ch.some((c,i)=>c.se!=null&&!c.una&&ch.some((d,j)=>j>i&&d.se!=null&&!d.una&&opposte(c.se,d.se)));
  // ---- prove ----
  const nomeAb=ab=>ER.NOME_AB[ab]||ab;
  const probDi=(h,p)=>DAD.prob(ER.bonus(h,p.ab),p.cd,{vant:!!p.vant});
@@ -161,7 +166,7 @@ const ARAC=(()=>{
    const k=Object.keys(c).find(x=>PRIM.includes(x));if(!k){e.push(p+': condizione sconosciuta '+JSON.stringify(c));return}const v=c[k];
    if(k==='bandiera')lette.add(v);else if(k==='valore')lette.add(v);else if(k==='non')valCond(v,p);else if(k==='e'||k==='o'){if(!Array.isArray(v)||!v.length)e.push(p+': «'+k+'» vuoto');else v.forEach(x=>valCond(x,p))}
    else if(k==='classe'){if(!ER.CLASSI[v])e.push(p+': classe sconosciuta '+v)}else if(k==='razza'){if(!ER.RAZZE[v])e.push(p+': razza sconosciuta '+v)}
-   else if(k==='oggetto'){if(!AO().OGG[v])e.push(p+': oggetto sconosciuto '+v)}else if(k==='compagno'||k==='approv'){if(!C[v])e.push(p+': compagno sconosciuto '+v)}
+   else if(k==='oggetto'){if(!AO().OGG[v])e.push(p+': oggetto sconosciuto '+v)}else if(k==='compagno'||k==='alleato'||k==='approv'){if(!C[v])e.push(p+': compagno sconosciuto '+v)}
    else if(k==='missione'){if(!M[v])e.push(p+': missione sconosciuta '+v);if(c.stato&&![...STATI_MISSIONE,'nessuna'].includes(c.stato))e.push(p+': stato di missione sconosciuto '+c.stato)}
    else if(k==='luogo'){if(!L[v])e.push(p+': luogo sconosciuto '+v)}else if(!Number.isFinite(v))e.push(p+': «'+k+'» vuole un numero')};
   const valEff=(x,p)=>{if(!x||typeof x!=='object'){e.push(p+': effetto non valido');return}
@@ -202,7 +207,7 @@ const ARAC=(()=>{
     const hasScelte=Array.isArray(n.scelte)&&n.scelte.length>0;
     if(hasScelte+(uscite(n)>0)!==1)e.push(p+': serve esattamente una uscita (scelte, vai, scena o fine)');
     if(uscite(n)>1)e.push(p+': più di una uscita');
-    if(hasScelte){if(!n.scelte.some(c=>c.se==null&&!c.una))e.push(p+': nessuna scelta sempre disponibile (si resterebbe bloccati)');
+    if(hasScelte){if(!scelteCoperte(n.scelte))e.push(p+': nessuna scelta sempre disponibile (si resterebbe bloccati)');
      n.scelte.forEach((c,i)=>{const q=p+', scelta '+(i+1);
       if(typeof c.t!=='string'||!c.t.trim())e.push(q+': manca il testo');
       valCond(c.se,q);valEffs(c.effetti,q);

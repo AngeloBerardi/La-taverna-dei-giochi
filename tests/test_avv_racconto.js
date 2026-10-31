@@ -20,6 +20,9 @@ trova(c => { c.scene.pozzo.nodi.b.scelte[2].vai = 'nonce'; }, /«nonce», che no
 trova(c => { c.scene.pozzo.nodi.zzz = { chi: '_', testo: 'Isolato.', fine: true }; }, /nodo zzz: non si raggiunge mai/, 'nodo irraggiungibile');
 trova(c => { const N = c.scene.pozzo.nodi; N.x = { chi: '_', testo: 'Un giro.', scelte: [{ t: 'Di là', vai: 'y' }] }; N.y = { chi: '_', testo: 'Un altro giro.', scelte: [{ t: 'Di qua', vai: 'x' }] }; N.b.scelte[2].vai = 'x'; }, /nodo x: vicolo cieco/, 'vicolo cieco (due nodi che si rimandano a vicenda)');
 trova(c => { c.scene.pozzo.nodi.b.scelte.forEach(x => { x.se = { bandiera: 'pozzo-indizio' }; delete x.una; }); }, /nessuna scelta sempre disponibile/, 'scelte tutte condizionate');
+// due scelte con condizioni opposte (X e {non: X}) coprono ogni caso; due condizioni diverse no
+assert(!/nessuna scelta sempre disponibile/.test(guasto(c => { const S = c.scene.pozzo.nodi.b.scelte; S.forEach(x => { delete x.una; }); S[0].se = 'pozzo-indizio'; S[1].se = { non: { bandiera: 'pozzo-indizio' } }; S.length = 2; })), 'condizioni opposte');
+trova(c => { const S = c.scene.pozzo.nodi.b.scelte; S.forEach(x => { delete x.una; }); S[0].se = 'pozzo-indizio'; S[1].se = { non: { bandiera: 'altra' } }; S.length = 2; }, /nessuna scelta sempre disponibile/, 'condizioni non opposte');
 trova(c => { c.scene.pozzo.nodi.a.vai = 'b'; c.scene.pozzo.nodi.a.fine = true; }, /più di una uscita|esattamente una uscita/, 'due uscite');
 trova(c => { delete c.scene.pozzo.nodi.a.vai; }, /esattamente una uscita/, 'nessuna uscita');
 trova(c => { c.scene.pozzo.nodi.a.testo = 'x'.repeat(R.MAX_TESTO + 1); }, /testo troppo lungo/, 'testo troppo lungo');
@@ -76,6 +79,9 @@ assert.strictEqual(R.valida(null)[0], 'capitolo mancante');
   sì({ oggetto: 'pozione-cura' }); no({ oggetto: 'chiave' }); sì({ oggetto: 'spada-lunga' });   // anche l'equipaggiamento conta
   sì({ livello: 3 }); no({ livello: 4 });                      // media 3,5 → 3
   sì({ compagno: 'ilda' }); no({ compagno: 'altro' }); sì({ approv: 'ilda', min: 20 }); no({ approv: 'ilda', min: 26 }); sì({ approv: 'ilda', max: 25 });
+  sì({ alleato: 'ilda' }); no({ alleato: 'altro' });
+  { const w = copia(s); w.compagni.ilda.stato = 'attende'; assert.strictEqual(R.cond({ alleato: 'ilda' }, w, ctx), true, 'chi aspetta alla locanda è un alleato'); assert.strictEqual(R.cond({ compagno: 'ilda' }, w, ctx), false, 'ma non è nel gruppo');
+    w.compagni.ilda = { stato: 'andato' }; assert.strictEqual(R.cond({ alleato: 'ilda' }, w, ctx), false, 'chi se n\'è andato non lo è più'); }
   sì({ missione: 'voce' }); no({ missione: 'voce', stato: 'fatta' }); sì({ missione: 'sconosciuta', stato: 'nessuna' });
   sì({ oro: 50 }); no({ oro: 51 }); sì({ perdizione: 25 }); no({ perdizione: 25, max: 29 }); sì({ giorno: 4 }); no({ giorno: 5 }); sì({ luogo: 'pozzo' }); no({ luogo: 'altrove' });
   assert.throws(() => R.cond({ colore: 1 }, s, ctx), /sconosciuta/);
