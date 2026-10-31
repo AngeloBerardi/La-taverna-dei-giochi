@@ -114,6 +114,7 @@
  "src/js/motori/28b-avv-rientro.js",
  "src/js/motori/28c-avv-audio.js",
  "src/js/motori/28d-avv-tutorial.js",
+ "src/js/motori/28e-avv-stanza.js",
  "src/js/motori/29-spie.js",
  "src/js/motori/30-domande.js",
  "src/js/motori/31-quiz.js",
