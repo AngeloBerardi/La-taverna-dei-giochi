@@ -18,7 +18,7 @@ const MoPan={
  topH(s){const p=s.perdizione,lv=ALUO.livelloPerdizione(p),notte=s.fase==='notte';
   return`<div class="mo-top"><button class="ib" data-a="campx" aria-label="Torna all'Avventura">${ic('x',18)}</button>
 <div class="mo-tm">${ic(notte?'luna':'sole',20)}<span><b>Giorno ${s.giorno}</b><small>Giro ${s.round}/${CAMP.PARAM.giriGiorno} · ${notte?'notte':'giorno'}</small></span></div>
-<span class="mo-oro" title="Monete della compagnia">${ic('moneta',16)} ${s.oro}</span>
+<span class="mo-oro" title="Monete della compagnia">${ic('moneta',16)} ${s.oro}</span>${Ses.a?Ses.viteH():''}
 <button class="ib" data-a="mo" data-v="foglio:diario" aria-label="Diario della missione">${ic('diario',18)}</button><button class="ib" data-a="ivapri" aria-label="Zaino e bottega">${ic('borsa',18)}</button></div>
 <div class="mo-perd l${lv}" role="img" aria-label="Perdizione ${p} su 100"><i style="width:${p}%"></i>${ALUO.SOGLIE.map(x=>`<u style="left:${x}%"></u>`).join('')}<span>${ic('teschio',12)} Perdizione ${p}/100</span></div>`},
  // ---- gli eroi: tocca per scegliere chi muovere ----
@@ -67,7 +67,7 @@ const MoPan={
  eventoH(s){const ev=s.evento,def=ALUO.evento(ev.id);if(!def)return'';
   return MoPan.foglio('Un incontro',`<p>${esc(ev.testo)}</p>${def.scelte.map((c,k)=>{const err=Camp.prova({t:'scegli',i:k});return`<button class="mo-sc" data-a="mo" data-v="scegli:${k}"${err?' disabled':''}><b>${esc(c.t)}</b><small>${esc(MoPan.effetti(c.eff))}</small>${err?`<small class="no">${esc(err)}</small>`:''}</button>`}).join('')}${MoPan.errH()}`,true)},
  // ---- luogo: i servizi aperti qui ----
- luogoH(s){const i=Camp.eroeSel(s),e=s.eroi[i],l=CAMP.luogoDi(s,e),mer=CAMP.mercanteQui(s,e),ser=l?ALUO.servizi(l,s.giorno):[],vivi=CAMP.vivi(s),pr=ALUO.PREZZI,P=Camp.prova,qui=vivi.filter(x=>x.q===e.q&&x.r===e.r);let r='';
+ luogoH(s){const i=Camp.eroeSel(s),e=s.eroi[i],l=CAMP.luogoDi(s,e),mer=CAMP.mercanteQui(s,e),ser=l?ALUO.servizi(l,s.giorno):[],vivi=CAMP.vivi(s),pr=ALUO.PREZZI,P=Camp.prova,qui=vivi.filter(x=>x.q===e.q&&x.r===e.r);let r=Ses.a?Ses.luogoH():'';
   if(l&&l.assedio)r+=`<p class="mo-av">${ic('spada',14)} ${esc(l.nome)} è sotto assedio: i servizi riaprono quando i nemici che lo circondano saranno sconfitti.</p>`;
   if(l&&CAMP.passoCorrente(s)===l.id&&!AMON.TIPI[l.tipo].sotterraneo)r+=MoPan.riga('Parla con chi comanda',MoPan.PASSO[l.tipo]||'',MoPan.bt('entra','Parla',P({t:'entra',eroe:i}),true),P({t:'entra',eroe:i}));
   for(const sv of ser){
@@ -98,6 +98,8 @@ const MoPan={
 <div class="sh2">Riposo lungo</div>${MoPan.riga('Fino all\'alba',(lun||'Serve una locanda (città, villaggio) o un accampamento.')+' Il nuovo giorno porta +'+CAMP.PARAM.alba+' perdizione.',MoPan.bt('lungo','Dormi',err,true),err)}${MoPan.errH()}`)},
  // ---- diario: missione, perdizione, cronaca ----
  diarioH(s){const m=s.missione,e=s.eroi[Camp.eroeSel(s)],lv=ALUO.livelloPerdizione(s.perdizione),nx=ALUO.SOGLIE[lv];
+  if(Ses.a)return MoPan.foglio('Diario',`${Ses.diarioH()}<div class="sh2">Perdizione ${s.perdizione}/100</div><small class="muted">${esc(lv?ALUO.NOTE_SOGLIA[lv]:'Il regno è ancora tranquillo.')}${nx?' Prossima soglia: '+nx+'.':''} Sale di ${CAMP.PARAM.alba} a ogni alba; calano con santuari, taglie e covi ripuliti.</small>${Ses.diarioFondoH()}
+<div class="sh2">Cronaca</div><div class="mo-log" role="log">${s.log.slice(-12).reverse().map(t=>`<p>${esc(t)}</p>`).join('')}</div>`);
   const passi=m.passi.map((id,k)=>{const l=s.luoghi[id],fatto=k<m.passo,ora=k===m.passo;return`<li class="${fatto?'fatto':ora?'ora':''}">${ic(fatto?'spunta':MoMappa.ICO[l?l.tipo:'tesoro']||'bersaglio',16)}<span><b>${esc(l?l.nome:id)}</b><small>${esc(MoPan.PASSO[l?l.tipo:'']||'')}${ora&&l?' · '+MoPan.rosa(e,l):''}</small></span></li>`}).join('');
   return MoPan.foglio('Diario',`<div class="sh2">${esc(m.titolo)}</div><ul class="mo-passi">${passi}</ul><button class="b" data-a="mo" data-v="obiettivo">${ic('bersaglio',16)} Mostra sulla mappa</button>
 <div class="sh2">Perdizione ${s.perdizione}/100</div><small class="muted">${esc(lv?ALUO.NOTE_SOGLIA[lv]:'Il regno è ancora tranquillo.')}${nx?' Prossima soglia: '+nx+'.':''} Sale di ${CAMP.PARAM.alba} a ogni alba; calano con santuari, taglie e covi ripuliti.</small>

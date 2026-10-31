@@ -14,6 +14,8 @@ const Dia={
  eroi(){const b=Bat.prova(3).slice(0,3).map((m,i)=>Object.assign({},m.eroe,{slot:'e'+(i+1)}));
   if(Dia.s&&Dia.cap)for(const id of ACMP.nelGruppo(Dia.s))b.push(Dia.compagno(id));return b},
  comp:{},
+ // di dove viene il racconto che si legge: in sessione (A9) è `Ses.a.racc` con gli eroi e il mondo della campagna, altrimenti la prova di sempre
+ fonte(){if(Ses.dia&&Ses.a&&Ses.cap)return{s:Ses.a.racc,cap:Ses.cap,ctx:AVV.ctx(Ses.a),ses:true,bat:!!Ses.a.bat};Dia.leggi();return{s:Dia.s,cap:Dia.cap,ctx:Dia.s&&Dia.cap?Dia.ctx():null,ses:false,bat:false}},
  compagno(id){return Dia.comp[id]||(Dia.comp[id]=ACMP.scheda(Dia.cap.compagni[id],3,id))},
  ctx(){return{eroi:Dia.eroi(),oro:Dia.oro,perdizione:0,giorno:1,luogo:null}},
  // ---- a parole: ciò che succede quando la scena finisce o cambia qualcosa ----
@@ -30,6 +32,7 @@ const Dia={
  registra(fuori){for(const f of fuori){if(f.t==='oro')Dia.oro=Math.max(0,Dia.oro+f.n);const t=Dia.effetto(f);if(t)Dia.righe.push(t)}},
  // ---- comandi ----
  async act(a,v){const[verbo,arg]=String(v).split(':');
+  if(Ses.dia&&['chiudi','scegli','continua'].includes(verbo))return Ses.dialogo(verbo,arg);
   try{
    if(verbo==='chiudi'){ui.dia=false;ui.avv=true;if(!(Dia.s&&Dia.s.scena))Dia.fine=null;Dia.salva();return render()}
    if(verbo==='nuovo'){Dia.s=null;Dia.oro=50;Dia.fine=null;Dia.righe=[];Dia.riassunto='';Dia.comp={};Dia.salva();return render()}
@@ -37,7 +40,7 @@ const Dia={
    if(verbo==='capitolo'){if(Dia.INDICE[arg]&&arg!==Dia.CAP){Dia.CAP=arg;Dia.cap=null;Dia.s=null;Dia.letto=false;Dia.oro=50;Dia.fine=null;Dia.righe=[];Dia.riassunto='';Dia.comp={};Dia.provato=false;Dia.msg='';try{localStorage.setItem('racc-cap',arg)}catch(e){ERR.n(e)}}return render()}
    if(Dia.occupato)return;Dia.occupato=true;await Dia.carica();Dia.msg='';
    const cap=Dia.cap;if(!Dia.s)Dia.s=ARAC.nuovo(cap.id,(Date.now()^(Math.random()*4294967296))>>>0);
-   if(verbo==='riprendi'){ui.avv=false;ui.dia=true;return render()}
+   if(verbo==='riprendi'){Ses.dia=false;ui.avv=false;ui.dia=true;return render()}
    if(verbo==='riassunto'){Dia.riassunto=LOC.apertura({cantare:ARAC.cantare(cap,Dia.s,Dia.ctx())});return render()}
    if(verbo==='sessione'){Dia.riassunto=LOC.chiusura({cantare:ARAC.cantare(cap,Dia.s,Dia.ctx())});Dia.s=ARAC.finisciSessione(Dia.s);Dia.salva();return render()}
    let az;
@@ -53,12 +56,12 @@ const Dia={
  provaH(p){if(!p)return'';const ab=EROI.NOME_AB[p.ab]||p.ab;
   return`<div class="dl-pr ${p.ok?'ok':'ko'}" role="status"><b>${esc(p.eroe)}</b> prova ${esc(ab)}: ${p.tiro} ${p.mod<0?'−':'+'} ${Math.abs(p.mod)} = <b>${p.tot}</b> contro ${p.cd} — ${p.critico?'colpo perfetto!':p.fallimento?'passo falso.':p.ok?'riesce.':'non riesce.'}</div>`},
  reazioniH(L){return(L||[]).map(r=>`<span class="dl-re ${r.n>0?'su':'giu'}" role="status">${esc(r.nome)} ${r.n>0?'approva':'non approva'} (${r.n>0?'+':'−'}${Math.abs(r.n)})${r.lascia?' — se ne va':''}</span>`).join('')},
- html(){Dia.leggi();const s=Dia.s,cap=Dia.cap;if(!s||!cap)return'';
-  const v=s.scena?ARAC.vista(s,cap,Dia.ctx()):null;
+ html(){const f=Dia.fonte(),s=f.s,cap=f.cap;if(!s||!cap)return'';
+  const v=s.scena?ARAC.vista(s,cap,f.ctx):null;
   if(!v)return`<div class="dl dl-ok" role="dialog" aria-label="Fine della scena"><div class="dl-top"><b>${esc(cap.titolo)}</b><button class="ib" data-a="dl" data-v="chiudi" aria-label="Chiudi">${ic('x',16)}</button></div>
 <div class="dl-corpo"><div class="dl-fine"><h2>Fine della scena</h2>${Dia.righe.length?`<ul>${Dia.righe.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:'<p class="muted">Niente da segnare.</p>'}
 <p class="muted">Qui i premi non contano: nella campagna vera entrano nella compagnia.</p></div></div><div class="dl-bar"><button class="b gold" data-a="dl" data-v="chiudi">Torna alla taverna</button></div></div>`;
-  const ok=Dia.rev.fatto&&Dia.rev.k===Dia.chiave(v);
+  const ok=Dia.rev.fatto&&Dia.rev.k===Dia.chiave(v,s);
   const sc=v.scelte.map(c=>`<button class="dl-sc${c.prova?' prova':''}" data-a="dl" data-v="scegli:${c.i}" ${c.ok?'':'disabled'}>${c.etichetta?`<b class="dl-et">[${esc(c.etichetta)}]</b>`:''}<span>${esc(c.t)}</span>${c.prova&&c.chi?`<small>tira ${esc(c.chi)}</small>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
   return`<div class="dl${ok?' dl-ok':''}" role="dialog" aria-label="Dialogo">
 <div class="dl-top"><b>${esc(cap.titolo)}</b><button class="ib" data-a="dl" data-v="chiudi" aria-label="Esci dal dialogo">${ic('x',16)}</button></div>
@@ -67,11 +70,11 @@ const Dia={
  <p class="dl-testo${v.chi.nome?'':' nar'}" data-t="${esc(v.testo)}" aria-label="${esc(v.testo)}">${ok?esc(v.testo):''}</p>
  <div class="dl-nota">${Dia.provaH(v.nota&&v.nota.prova)}${v.nota&&v.nota.testo?`<p class="dl-es">${esc(v.nota.testo)}</p>`:''}${Dia.reazioniH(v.reazioni)}</div>
  ${Dia.msg?`<p class="no" role="alert">${esc(Dia.msg)}</p>`:''}</div>
-<div class="dl-bar">${v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${sc}</div>`}</div></div>`},
- chiave(v){return v.scena+':'+v.nodo+':'+Dia.s.evn},
+<div class="dl-bar">${f.bat?`<button class="b gold dl-co" data-a="ses" data-v="combatti">${ic('spada',18)} All'armi!</button>`:v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${sc}</div>`}</div></div>`},
+ chiave(v,s){return v.scena+':'+v.nodo+':'+(s||Dia.s).evn},
  // dopo ogni disegno: il testo compare a poco a poco (un tocco lo mostra tutto); a movimento ridotto compare subito
- dopo(){const on=!!(ui.dia&&Dia.s&&Dia.cap);document.documentElement.classList.toggle('dl-on',on);clearInterval(Dia.timer);if(!on)return;
-  const el=document.querySelector('.dl-testo');if(!el)return;const t=el.dataset.t||'',k=Dia.chiave({scena:Dia.s.scena.id,nodo:Dia.s.scena.nodo});
+ dopo(){const f=Dia.fonte(),on=!!(ui.dia&&f.s&&f.cap);document.documentElement.classList.toggle('dl-on',on);clearInterval(Dia.timer);if(!on)return;
+  const el=document.querySelector('.dl-testo');if(!el||!f.s.scena)return;const t=el.dataset.t||'',k=Dia.chiave({scena:f.s.scena.id,nodo:f.s.scena.nodo},f.s);
   if(Dia.rev.k!==k)Dia.rev={k,n:0,fatto:false};
   const fine=()=>{Dia.rev.fatto=true;Dia.rev.n=t.length;const e=document.querySelector('.dl-testo');if(e)e.textContent=t;const d=document.querySelector('.dl');if(d)d.classList.add('dl-ok')};
   if(Dia.rev.fatto||Dia.rev.n>=t.length||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return fine();

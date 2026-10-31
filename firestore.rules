@@ -409,6 +409,28 @@ service cloud.firestore {
       allow delete: if accesso() && request.auth.uid == uid;
     }
 
+    // Salvataggi dell'Avventura (A9): privati del proprietario, tre posti (a1..a3). I dati stanno in una stringa (JSON, un solo campo, al massimo 900 000 caratteri: il documento
+    // non supera 1 MiB); il resto è il riassunto per l'elenco. Si scrive al più ogni 10 secondi (`agg` = ora del server). Le fasi sono quelle di AVV.FASI.
+    function avventuraOk(d) {
+      return d.keys().hasOnly(['v', 'cap', 'fase', 'vite', 'viteMax', 'sessioni', 'giorno', 'evn', 'fine', 'eroi', 'dati', 'agg'])
+        && d.v == 1 && d.cap is string && d.cap.size() >= 1 && d.cap.size() <= 40
+        && d.fase in ['mappa', 'citta', 'dialogo', 'battaglia', 'sotterraneo', 'fine']
+        && d.vite is int && d.vite >= 0 && d.vite <= 9 && d.viteMax is int && d.viteMax >= 1 && d.viteMax <= 9
+        && d.sessioni is int && d.sessioni >= 0 && d.sessioni < 1000 && d.giorno is int && d.giorno >= 1 && d.giorno < 10000
+        && d.evn is int && d.evn >= 0 && d.evn < 100000000
+        && (d.fine == null || (d.fine is string && d.fine.size() <= 60))
+        && d.eroi is list && d.eroi.size() <= 4
+        && d.dati is string && d.dati.size() >= 2 && d.dati.size() <= 900000
+        && d.agg == request.time;
+    }
+    match /players/{uid}/avventure/{a} {
+      allow read: if accesso() && request.auth.uid == uid;
+      allow create: if accesso() && request.auth.uid == uid && a in ['a1', 'a2', 'a3'] && avventuraOk(request.resource.data);
+      allow update: if accesso() && request.auth.uid == uid && a in ['a1', 'a2', 'a3'] && avventuraOk(request.resource.data)
+        && request.resource.data.cap == resource.data.cap && request.time > resource.data.agg + duration.value(10, 's');
+      allow delete: if accesso() && request.auth.uid == uid;
+    }
+
     match /players/{uid} {
       // il nome e le monete servono agli altri (classifiche, tavolo): lettura per chi ha fatto l'accesso
       allow read: if accesso();

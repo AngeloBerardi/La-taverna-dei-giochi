@@ -142,6 +142,14 @@
     { "se": { "missione": "cerchio", "stato": "attiva" }, "testo": "Il Cerchio è nelle mani dei Corvi, nel loro accampamento oltre i salici." },
     { "testo": "La Reggente vi aspetta a Valcorvo, e la pioggia non smette." }
   ],
+  "finali": {
+    "finale-a-luminoso": { "titolo": "La corona ricomposta", "testo": "I tre pezzi si sono richiusi sul capo di Ottavio, e Gherardo e Mirta gli stanno al fianco. Il regno ha di nuovo un re, e il buio dei corvi si ritira oltre le Brughiere." },
+    "finale-a-amaro": { "titolo": "La corona ricomposta, a caro prezzo", "testo": "La corona è intera sul capo di Ottavio, ma chi doveva stargli accanto se n'è andato e il buio non si è ritirato del tutto. Il re regna, e veglia." },
+    "finale-b-luminoso": { "titolo": "Il re libero", "testo": "La corona resta in tre reliquie: a Valcorvo, a Rocca Pallida, all'Altare delle Piogge. Gherardo e Mirta vegliano su Ottavio, e nessuno potrà più portarla da solo." },
+    "finale-b-amaro": { "titolo": "Il re libero, e solo", "testo": "Le tre reliquie sono al sicuro e Ottavio è libero, ma ha pochi amici a cui dirlo e la perdizione ancora pesa sul regno." },
+    "finale-c-luminoso": { "titolo": "La terza via", "testo": "Tre mani, tre sedili, un consiglio all'Altare delle Piogge: il regno non ha più un solo padrone. Gherardo e Mirta siedono al tavolo con voi." },
+    "finale-c-amaro": { "titolo": "La terza via, incompiuta", "testo": "Il consiglio dei tre si è riunito, ma i seggi sono pieni a metà e la perdizione pesa sulle decisioni. È una promessa, non ancora una pace." }
+  },
   "eventi": [
     { "id": "c1-carovana", "tag": [ "strada", "pianura" ],
       "testo": "Una carovana di mercanti è ferma in mezzo alla strada, con i carri disposti a cerchio. Sui bordi dei carri sono posati dei corvi, immobili, e i cavalli non vogliono avanzare.",

@@ -137,6 +137,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
+| `css/39e-sessione.css` | 2 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -194,7 +195,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
-| `js/motori/28-campagna.js` | 32 | CAMP |
+| `js/motori/28-campagna.js` | 38 | CAMP |
+| `js/motori/28a-avv-orchestratore.js` | 16 | AVV |
+| `js/motori/28b-avv-rientro.js` | 4 | ARIE |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -262,7 +265,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22r-accordi.js` | 29 | ACOL, APC, ANEED, acMotif, acMix, acDisc, acStack |
 | `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
-| `js/app/24a-firebase.js` | 11 | FB |
+| `js/app/24a-firebase.js` | 12 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
 | `js/app/24c-account.js` | 6 | Acc |
 | `js/app/24d-locandiere.js` | 3 | Oste |
@@ -277,8 +280,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24he-battaglia.js` | 25 | Bat |
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
-| `js/app/24hh-mondo-pannelli.js` | 18 | MoPan |
-| `js/app/24hi-dialogo.js` | 13 | Dia |
+| `js/app/24hh-mondo-pannelli.js` | 19 | MoPan |
+| `js/app/24hi-dialogo.js` | 14 | Dia |
+| `js/app/24hj-sessione.js` | 20 | Ses |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

@@ -1,4 +1,5 @@
 /* ---- Campagna (Cantari di Ventura, A6.5): la vista del mondo a tutto schermo e il filo del gioco. ----
+   In sessione (A9, app/24hj-sessione.js: `Ses.a`) `Camp.s` è lo specchio di `Ses.a.camp` e ogni azione passa da `Camp.agisci` → `Ses` → AVV.act; fuori sessione è la «Campagna libera» di prima (CAMP.act, salvataggio `camp`).
    Regole: motori/28-campagna.js (CAMP, stato v3) con 27m (mondo), 27n (luoghi), 27o (mostri). Qui si tengono lo stato e la selezione (`Camp.s`, `Camp.u`, `Camp.v`) e si
    traducono i tocchi in azioni di CAMP.act; la mappa è in 24hg-mondo-mappa.js (`MoMappa`), pannelli e fogli in 24hh-mondo-pannelli.js (`MoPan`), lo scontro in 24he-battaglia.js (`Bat`,
    avviato da `combatti` e chiuso da `fineBattaglia`). Un solo comando nel `switch` di 07c: `data-a="mo" data-v="verbo:argomento"`. Stile: css/39-campagna.css (prefisso mo-). */
@@ -23,7 +24,8 @@ const Camp={
   let acc=0,j=-1;if(pm!=null)for(let n=0;n<costi.length;n++){if(acc+costi[n]>pm)break;acc+=costi[n];j=n}
   return{...base,passi,costi,costo:tot,pm,contatto,tirato,n:j+1,completo:pm!=null&&j===costi.length-1,fine:pm==null?passi[passi.length-1]:j>=0?passi[j]:null,costoFino:acc}},
  // prova un'azione senza applicarla: ritorna il motivo per cui non si può (testo) oppure ''
- prova(a){try{const r=CAMP.act(Camp.s,a);return r.err||''}catch(e){ERR.n(e);return'Non adesso'}},
+ agisci(a){return Ses.a?Ses.camp(a):CAMP.act(Camp.s,a)},
+ prova(a){if(Ses.a)return Ses.prova(a);try{const r=CAMP.act(Camp.s,a);return r.err||''}catch(e){ERR.n(e);return'Non adesso'}},
  haLuogo(s,i){const e=s.eroi[i];return!!(e&&(CAMP.luogoDi(s,e)||CAMP.mercanteQui(s,e)))},
  // ---- tocchi sulla mappa ----
  tocca(c){const s=Camp.s,u=Camp.u;if(!s||s.over||s.sfida||s.dentro||s.incontro||s.evento||u.foglio)return;const x=s.celle[c.q+','+c.r];
@@ -37,18 +39,18 @@ const Camp={
  vai(){const s=Camp.s,u=Camp.u,a=Camp.anteprima(s);if(!a||a.err||!a.tirato||a.n<1)return render();const d=a.completo?u.dest:a.fine;
   return Camp.fai({t:'muovi',eroe:Camp.eroeSel(s),q:d.q,r:d.r,tutti:Camp.gruppo(s).length>1})},
  // ---- applicare un'azione ----
- fai(a,tieni){const s=Camp.s,u=Camp.u;if(!s)return;let r;try{r=CAMP.act(s,a)}catch(e){ERR.n(e);r={err:'Azione non riuscita'}}
+ fai(a,tieni){const s=Camp.s,u=Camp.u;if(!s)return;let r;try{r=Camp.agisci(a)}catch(e){ERR.n(e);r={err:'Azione non riuscita'}}
   if(r.err){u.msg=r.err;return render()}
   Camp.s=r.s;u.msg='';u.dado=a.t==='risolvi'?r.s.ultima:null;if(a.t!=='tira')u.dest=null;u.mostro=null;
   if(!tieni||['lungo','entra','muovi','fineTurno'].includes(a.t))u.foglio=null;if(['muovi','fineTurno','lungo'].includes(a.t))Camp.v.cx=Camp.v.cy=null;
-  Camp.salva();render()},
+  Camp.salva();if(Ses.a)Ses.dopoCamp(a);render()},
  // ---- battaglia ----
  combatti(){const s=Camp.s;if(!s||!s.sfida)return;
   if(Bat.mondo===s.sfida.seme&&Bat.s){ui.camp=false;ui.bat=true;Bat.foglio=null;return render()}
   try{Bat.daMondo(CAMP.battaglia(s),s.sfida.quali.map(i=>s.eroi[i].aspetto),s.sfida.seme)}catch(e){ERR.n(e);Camp.u.msg='Non riesco a preparare la battaglia: riprova.';return render()}
   ui.camp=false;ui.bat=true;render()},
  // il pulsante «Continua» alla fine della battaglia del mondo: il risultato entra nella campagna e si torna alla mappa
- fineBattaglia(){const b=Bat.s,s=Camp.s;if(!b||!b.over||!s||!s.sfida)return;let r;try{r=CAMP.act(s,{t:'esito',riep:ASCO.riepilogo(b)})}catch(e){ERR.n(e);r={err:'Non riesco a registrare il risultato'}}
+ fineBattaglia(){const b=Bat.s,s=Camp.s;if(Ses.a)return b&&b.over?Ses.fineBattaglia(b):undefined;if(!b||!b.over||!s||!s.sfida)return;let r;try{r=CAMP.act(s,{t:'esito',riep:ASCO.riepilogo(b)})}catch(e){ERR.n(e);r={err:'Non riesco a registrare il risultato'}}
   if(r.err){Bat.msg=r.err;return render()}
   Camp.s=r.s;Camp.u.dado=null;Camp.u.msg='';Camp.v.cx=Camp.v.cy=null;Camp.salva();Bat.chiudiMondo();render()},
  // ---- disegno ----
@@ -58,7 +60,7 @@ const Camp={
  // chiamato da afterRender: la mappa prende la misura vera dello schermo
  dopo(){const on=!!(ui.camp&&Camp.s);document.documentElement.classList.toggle('mo-on',on);if(!on)return;const svg=document.querySelector('.mo-svg');if(svg)MoMappa.applica(svg)},
  // ---- salvataggio ----
- salva(){try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){ERR.n(e)}},
+ salva(){if(Ses.a)return;try{localStorage.setItem('camp',JSON.stringify({s:Camp.s}))}catch(e){ERR.n(e)}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('camp')||'null');if(j&&j.s&&j.s.g==='campagna')Camp.s=CAMP.migra(j.s)}catch(e){ERR.n(e)}},
  cfgH(){return Eroi.lista&&Object.keys(Eroi.lista).length?'<button class="b sm gold" data-a="campstart">Campagna '+ic('spada',16)+'</button>':''},
  // gli eroi vengono sempre riletti dal profilo: la scheda in memoria potrebbe non essere ancora stata caricata
@@ -68,7 +70,7 @@ const Camp={
  // ---- comandi: campstart / campx / campnuova e «mo» con v = «verbo» oppure «verbo:argomento» ----
  act(a,v){
   if(a==='campstart'){return(async()=>{if(!Camp.s||Camp.s.over)await Camp.parti();if(!Camp.s||Camp.s.over){render();return}ui.eroi=false;ui.camp=true;render()})()}
-  if(a==='campx'){ui.camp=false;ui.avv=true;return render()}
+  if(a==='campx'){if(Ses.a)return Ses.esci();ui.camp=false;ui.avv=true;return render()}
   if(a==='campnuova'){return(async()=>{await Camp.parti();render()})()}
   const s=Camp.s;if(!s||a!=='mo')return;const u=Camp.u,i=String(v).indexOf(':'),verbo=i<0?String(v):String(v).slice(0,i),arg=i<0?'':String(v).slice(i+1),sel=Camp.eroeSel(s);
   switch(verbo){

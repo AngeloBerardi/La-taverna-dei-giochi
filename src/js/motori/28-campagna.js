@@ -230,14 +230,17 @@ const CAMP=(()=>{
   s.v=3;s.raggio=s.raggio||6;sincronizza(s);MOS.rinasci(s,DAD.gen(s))}
  // porta uno stato salvato alla versione corrente (restituisce una copia; uno stato già v3 resta com'è)
  function migra(st){const s=copia(st);if(!(s.v>=2&&Number.isInteger(s.rng)))vecchio(s);if(s.v<3)aV3(s);return inventario(s)}
+ // la scheda di un eroe (dell'account o compagno) com'è in campagna; `pos` = dove si trova (all'inizio la partenza)
+ function eroeNuovo(h,i,pos){const d=EROI.derivati(h),p=pos||{q:0,r:0};
+  return{slot:h.slot||'e'+((i|0)+1),nome:h.nome,razza:h.razza,classe:h.classe,aspetto:h.aspetto,liv:h.liv,xp:h.xp,hp:h.hp,hpMax:h.hpMax,ca:d.ca,mov:d.mov,base:h.base,oro:h.oro||0,equip:{...(h.equip||{})},zaino:[...(h.zaino||[])],cintura:[...(h.cintura||[])],q:p.q,r:p.r,pm:null,brevi:0,...(h.compagno?{compagno:h.compagno}:{}),...poteri(h)}}
  // ---- nuova campagna ----
  // opts: { raggio, regioni, luoghi, conta, mercanti (dal capitolo, A8), titolo, passi (id dei luoghi della missione) }
  function nuova(eroi,seed,opts){
   opts=opts||{};if(!eroi||eroi.length<1||eroi.length>MAX_EROI)throw new Error('servono da 1 a '+MAX_EROI+' eroi');
-  const mondo=MON.genera(seed>>>0,{raggio:opts.raggio,regioni:opts.regioni,luoghi:opts.luoghi,conta:opts.conta,mercanti:opts.mercanti});
+  const mondo=MON.genera(seed>>>0,{raggio:opts.raggio,regioni:opts.regioni,luoghi:opts.luoghi,conta:opts.conta,mercanti:opts.mercanti,partenza:opts.partenza});
   const tipo=t=>Object.values(mondo.luoghi).find(l=>l.tipo===t&&!l.partenza),passi=opts.passi||PASSI.map(t=>(tipo(t)||{id:t}).id);
   const s={v:3,g:'campagna',seed:seed>>>0,rng:DAD.semina(seed),n:eroi.length,raggio:mondo.raggio,celle:mondo.celle,regioni:mondo.regioni,luoghi:mondo.luoghi,mercanti:mondo.mercanti,giorno:1,round:1,fase:'giorno',turno:0,
-   eroi:eroi.map((h,i)=>{const d=EROI.derivati(h);return{slot:h.slot||'e'+(i+1),nome:h.nome,razza:h.razza,classe:h.classe,aspetto:h.aspetto,liv:h.liv,xp:h.xp,hp:h.hp,hpMax:h.hpMax,ca:d.ca,mov:d.mov,base:h.base,oro:h.oro||0,equip:{...(h.equip||{})},zaino:[...(h.zaino||[])],cintura:[...(h.cintura||[])],q:0,r:0,pm:null,brevi:0,...poteri(h)}}),
+   eroi:eroi.map((h,i)=>eroeNuovo(h,i)),
    party:{q:0,r:0},perdizione:0,sbarrate:false,oro:eroi.reduce((a,h)=>a+(h.oro||0),0),missione:{titolo:opts.titolo||'La Torre dei Corvi',passo:0,passi},incontro:null,sfida:null,evento:null,dentro:null,sotterranei:{},mostri:[],proxMostro:0,sconfitti:[],log:[],over:null,evn:0,negozi:{}};
   const rnd=DAD.gen(s);MOS.rinasci(s,rnd);rinnovaTaglie(s);L(s,'La compagnia lascia il villaggio. Giorno 1.');return s}
  // ---- azioni ----
@@ -295,9 +298,53 @@ const CAMP=(()=>{
    r=a.t==='compra'?BO.compra(s,a.eroe,a.tipo,a.id):BO.vendi(s,a.eroe,a.id);
    if(!r.err)L(s,e.nome+(a.t==='compra'?' compra ':' vende ')+nome(a.id)+' per '+(a.t==='compra'?r.pr:r.v)+' monete.')}
   return r.err?{err:r.err}:{}}
+ // ---- ponte per l'orchestratore (A9, motori/28a-avv-orchestratore.js): gli effetti del racconto sul mondo ----
+ // livelli: chi ha l'esperienza per salire di livello sale (PF massimi, CA, movimento, poteri e talenti scelti con la prima proposta). Si può chiamare quando si vuole: non fa nulla se non c'è niente da fare.
+ function salgono(s){const su=[];
+  for(const e of s.eroi){const n=EROI.livelloPerXp(e.xp||0);if(n<=e.liv)continue;
+   const g=EROI.guadagna(e,0),vivo=e.hp>0;e.liv=g.liv;e.hpMax=g.hpMax;e.hp=vivo?Math.min(g.hpMax,Math.max(1,g.hp)):0;
+   const d=EROI.derivati(e);e.ca=d.ca;e.mov=d.mov;const c=AP.completa({...e,scelte:e.scelte||{}});e.scelte={...c.scelte};su.push(e.nome+' sale al livello '+e.liv+'!')}
+  return su}
+ function livelli(st){const s=copia(st),su=salgono(s);for(const r of su)L(s,r);return{s,su}}
+ const nomeOg=id=>(AO.OGG[id]||{}).nome||id;
+ const toglie=(s,id,n)=>{let k=0;while(k<n){const e=s.eroi.find(h=>(h.zaino||[]).includes(id)||(h.cintura||[]).includes(id));if(!e)break;
+  const l=e.zaino.includes(id)?e.zaino:e.cintura;l.splice(l.indexOf(id),1);k++}return k};
+ // ponte(stato, effetto, rnd) → { s, righe:[testo] } | { err }. Effetti: oro{n} oggetto{id,n} pf{pct} perdizione{n} xp{n} razioni{n} sposta{id}
+ // e, per i compagni, ingresso{scheda} / congedo{id}. Il racconto chiede, il ponte esegue: stesse regole di bottino, perdizione e livelli del resto della campagna.
+ function ponte(st,f,rnd){const s=migra(st);rnd=rnd||DAD.gen(s);const righe=[],R=t=>{righe.push(t);L(s,t)};
+  switch(f.t){
+   case'oro':{const n=f.n|0,x=n<0?-Math.min(-n,s.oro):n;if(x){s.oro+=x;R(x>0?'Ricevete '+x+' monete.':'Pagate '+(-x)+' monete.')}break}
+   case'oggetto':{const id=f.id,n=f.n==null?1:f.n|0;if(!AO.OGG[id])return{err:'Oggetto sconosciuto: '+id};
+    if(n>0){const r=BO.assegna(s,{oro:0,oggetti:Array(n).fill(id)});
+     if(r.presi.length)R('Ricevete: '+nomeOg(id)+(r.presi.length>1?' ×'+r.presi.length:'')+' ('+r.presi.map(x=>s.eroi[x.eroe].nome).filter((x,i,a)=>a.indexOf(x)===i).join(', ')+').');
+     if(r.convertiti.length)R(nomeOg(id)+': zaini pieni, lo vendete per '+r.convertiti.length*Math.floor((AO.OGG[id].pr||0)/2)+' monete.')}
+    else if(n<0){const k=toglie(s,id,-n);if(k)R('Date via: '+nomeOg(id)+(k>1?' ×'+k:'')+'.')}
+    break}
+   case'pf':{const p=+f.pct||0;if(!p)break;for(const e of vivi(s)){const d=Math.ceil(e.hpMax*Math.abs(p));e.hp=p>0?Math.min(e.hpMax,e.hp+d):Math.max(1,e.hp-d)}
+    R(p>=1?'Tutti si rimettono in forze.':p>0?'Gli eroi recuperano un po\' di forze.':'Gli eroi perdono forze.');break}
+   case'perdizione':{if(f.n)perd(s,f.n|0,rnd);break}
+   case'xp':{const n=f.n|0;if(!n)break;for(const e of vivi(s))e.xp=(e.xp||0)+n;R(n+' punti esperienza a testa.');for(const r of salgono(s))R(r);break}
+   case'razioni':{const n=f.n|0;if(n>0){const r=BO.assegna(s,{oro:0,oggetti:Array(n).fill('razione')});if(r.presi.length)R(r.presi.length===1?'Una razione in più.':r.presi.length+' razioni in più.')}
+    else if(n<0){const k=toglie(s,'razione',-n);if(k)R(k===1?'Consumate una razione.':'Consumate '+k+' razioni.')}break}
+   case'sposta':{const l=s.luoghi[f.id];if(!l)return{err:'Luogo sconosciuto: '+f.id};for(const e of s.eroi){e.q=l.q;e.r=l.r;e.pm=null}s.party={q:l.q,r:l.r};rivela(s,l.q,l.r,PARAM.vistaEroe);R('La compagnia arriva a '+l.nome+'.');break}
+   case'ingresso':{const h=f.scheda;if(!h||!h.compagno)return{err:'Scheda del compagno mancante'};if(s.eroi.some(e=>e.compagno===h.compagno))break;
+    if(s.eroi.length>=MAX_EROI)return{err:'La compagnia è al completo'};s.eroi.push(eroeNuovo(h,s.eroi.length,s.party));s.n=s.eroi.length;R(h.nome+' si unisce alla compagnia.');break}
+   case'congedo':{if(s.sfida)return{err:'Non durante una battaglia'};const i=s.eroi.findIndex(e=>e.compagno===f.id);if(i<0)break;const e=s.eroi[i];
+    if(s.eroi.length<2)return{err:'Deve restare almeno un eroe'};s.eroi.splice(i,1);s.n=s.eroi.length;
+    BO.assegna(s,{oro:0,oggetti:[...(e.zaino||[]),...(e.cintura||[])]});R(e.nome+' lascia la compagnia.');break}
+   default:return{err:'Effetto sconosciuto: '+f.t}}
+  if(!vivi(s).length&&!s.over)s.over={win:false,reason:'Tutti gli eroi sono caduti'};
+  return{s,righe}}
+ // risveglio(stato, luogo, rnd, { pf, oro, perdizione }) → { s }: la compagnia si sveglia in un luogo sicuro dopo una sconfitta. Tutti, anche i caduti, con la metà dei PF (almeno 1); si perde metà dell'oro comune; la perdizione sale.
+ function risveglio(st,luogoId,rnd,o){const s=migra(st);rnd=rnd||DAD.gen(s);o=o||{};const l=s.luoghi[luogoId];if(!l)return{err:'Luogo sconosciuto: '+luogoId};
+  const pf=o.pf==null?.5:o.pf,persa=o.oro==null?.5:o.oro,pd=o.perdizione==null?10:o.perdizione;
+  for(const e of s.eroi){e.q=l.q;e.r=l.r;e.pm=null;e.brevi=0;e.hp=Math.max(1,Math.min(e.hpMax,Math.ceil(e.hpMax*pf)))}
+  const toglie2=Math.floor(s.oro*persa);s.oro-=toglie2;s.party={q:l.q,r:l.r};rivela(s,l.q,l.r,PARAM.vistaEroe);
+  s.sfida=null;s.incontro=null;s.evento=null;s.dentro=null;if(s.over&&!s.over.win&&s.perdizione<100)s.over=null;
+  L(s,'La compagnia si risveglia a '+l.nome+(toglie2?': nel buio sono sparite '+toglie2+' monete.':'.'));perd(s,pd,rnd);sincronizza(s);return{s,persi:toglie2}}
  const celleVisibili=s=>Object.values(s.celle).filter(c=>c.visto);
  // aiuti per la vista: dove può arrivare un eroe col movimento che ha (o 0 se non ha ancora tirato), mostri che si vedono
  const raggiungibili=(s,i)=>{const e=s.eroi[i];return!e||e.hp<=0||e.pm==null?{}:MON.raggiungibili(s.celle,e,e.pm,{vieta:celleMostri(s),costo:costoCella(s)})};
  return{TERRENI,MAX_EROI,migra,PASSI,NOME_POI,DIREZIONI,K,dist,vicini,mulberry,genera:MON.genera,percorso,rivela:(s,q,r,g)=>MON.rivela(s.celle,q,r,g),vivi,nuova,act,inventario,pericoloQui:s=>pericolo(s,s.party),celleVisibili,celleRaggio,passabile,TIPI,PARAM,
-  battaglia,raggiungibili,dettaglioBoss,luogoDi,mercanteQui,passoCorrente,costoCella,faseDi,visibili:s=>MOS.visibili(s),famiglia:nomeFam,sottQui}})();
+  battaglia,raggiungibili,dettaglioBoss,luogoDi,mercanteQui,passoCorrente,costoCella,faseDi,visibili:s=>MOS.visibili(s),famiglia:nomeFam,sottQui,eroeNuovo,livelli,ponte,risveglio}})();
 if(typeof module!=='undefined')module.exports=CAMP;

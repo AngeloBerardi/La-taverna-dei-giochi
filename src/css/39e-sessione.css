@@ -1,0 +1,21 @@
+/* ---- Sessione (Cantari di Ventura, A9): vite, tre posti di salvataggio, fogli di sconfitta / fine sessione / fine capitolo, rientro sull'account. Prefisso se-. ---- */
+/* le vite: cuori pieni e vuoti, nella barra della mappa e nei fogli */
+.se-vite{display:inline-flex;align-items:center;gap:2px;flex:none;color:#e0523c}.se-vite i{display:inline-flex;font-style:normal}.se-vite i.vuota{opacity:.28;filter:grayscale(1)}
+.mo-top .se-vite{gap:1px}.se-vita{display:flex;margin:2px 0}.se-vita .se-vite{gap:6px}
+/* i fogli stanno sopra la mappa (z 96) e il dialogo (z 96): sono `.modal` più alti */
+.modal.se-modal,.pg .modal.se-modal{z-index:100;position:fixed;inset:0;place-items:center;overflow:visible;padding:16px;background:rgba(0,0,0,.74)}
+.box.se{width:min(100%,420px);max-height:100%;overflow:auto;gap:10px}.box.se h2{margin:0}
+.se-testo{margin:0;font:600 15px/1.45 var(--f-b);white-space:pre-line}
+.se-bt{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}.se-bt small{flex:1 1 100%}
+.se-ri{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font:600 14px var(--f-b)}.se-ri .muted{opacity:.7}
+.se-st{margin:0;font:600 13px var(--f-b);color:#d9b97a}
+/* la pagina Avventura: un posto = una campagna */
+.se-slot{position:relative;padding:0}.se-slot.vuoto{padding:10px 12px;border-style:dashed;background:none;opacity:.85}.se-slot.nuovo{flex-direction:column;align-items:stretch;padding:10px 12px}
+.se-go{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:56px;padding:8px 44px 8px 12px;text-align:left;color:inherit;font:inherit;background:none;border:0;cursor:pointer}
+.se-go:disabled{opacity:.6}
+.se-x{position:absolute;top:0;right:0;width:44px;height:44px;display:grid;place-items:center;color:inherit;background:none;border:0;opacity:.7;cursor:pointer}
+.se-slot .se-bt{padding:0 12px 8px}
+.se-eroi{display:flex;flex-wrap:wrap;gap:8px}
+.se-er{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px;min-height:64px;padding:6px 8px;color:inherit;font:inherit;cursor:pointer;border:2px solid #5a4630;background:rgba(0,0,0,.25)}
+.se-er.on{border-color:#f0c166;background:rgba(240,193,102,.16)}.se-er b{font:800 13px var(--f-d)}.se-er small{font-size:11px;opacity:.8}
+.se-vite i:not(.vuota) svg{fill:currentColor}

@@ -1,5 +1,5 @@
 /* ---- Zaino e bottega (Cantari di Ventura): equipaggiamento, zaino a griglia, confronto con ciò che indossi, negozi della città. ----
-   Si apre dalla campagna (24h-campagna.js) e lavora sullo stato `Camp.s` con le azioni di CAMP.act (equipa, togli, cintura, zaino,
+   Si apre dalla campagna (24h-campagna.js) e lavora sullo stato `Camp.s` con le azioni di `Camp.agisci` (CAMP.act; in sessione AVV.act: equipa, togli, cintura, zaino,
    usa, passa, compra, vendi). Cataloghi e regole: motori/27b-avv-oggetti.js (AOGG), 27c-avv-bottino.js (ABOT). Stile: css/39b-inventario.css. */
 const Inv={
  tab:'zaino',eroe:0,sel:null,filtro:'tutti',msg:'',
@@ -72,14 +72,14 @@ ${Inv.tab==='zaino'?Inv.zainoH(s,h):Inv.bottegaH(s,h)}${Inv.dettaglioH(s,h)}<p c
   if(a==='ivfiltro'){Inv.filtro=v;Inv.sel=null;return render()}
   if(a==='ivsel'){const[t,k]=v.split(':'),q=Inv.sel;Inv.sel=q&&q.t===t&&String(q.k)===k?null:{t,k};Inv.msg='';return render()}
   const h=s.eroi[Inv.eroe],q=Inv.sel,id=Inv.idSel(h),e=Inv.eroe;if(!h||!q||!id)return;let r;
-  if(a==='ivequipa')r=CAMP.act(s,{t:'equipa',eroe:e,id});
-  else if(a==='ivtogli')r=CAMP.act(s,{t:'togli',eroe:e,slot:q.k});
-  else if(a==='ivcintura')r=CAMP.act(s,{t:'cintura',eroe:e,id});
-  else if(a==='ivzaino')r=CAMP.act(s,{t:'zaino',eroe:e,id});
-  else if(a==='ivusa')r=CAMP.act(s,{t:'usa',eroe:e,id});
-  else if(a==='ivpassa')r=CAMP.act(s,{t:'passa',eroe:e,a:+v,id});
-  else if(a==='ivvendi')r=CAMP.act(s,{t:'vendi',eroe:e,id});
-  else if(a==='ivcompra')r=CAMP.act(s,{t:'compra',eroe:e,tipo:Inv.tab,id});
+  if(a==='ivequipa')r=Camp.agisci({t:'equipa',eroe:e,id});
+  else if(a==='ivtogli')r=Camp.agisci({t:'togli',eroe:e,slot:q.k});
+  else if(a==='ivcintura')r=Camp.agisci({t:'cintura',eroe:e,id});
+  else if(a==='ivzaino')r=Camp.agisci({t:'zaino',eroe:e,id});
+  else if(a==='ivusa')r=Camp.agisci({t:'usa',eroe:e,id});
+  else if(a==='ivpassa')r=Camp.agisci({t:'passa',eroe:e,a:+v,id});
+  else if(a==='ivvendi')r=Camp.agisci({t:'vendi',eroe:e,id});
+  else if(a==='ivcompra')r=Camp.agisci({t:'compra',eroe:e,tipo:Inv.tab,id});
   if(!r)return;if(r.err){Inv.msg=r.err;return render()}
   Camp.s=r.s;Camp.salva();Inv.msg=r.s.log[r.s.log.length-1]||'';if(a!=='ivcompra')Inv.sel=null;render()}
 };

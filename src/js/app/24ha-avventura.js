@@ -3,7 +3,7 @@
 const Avv={
  msg:'',
  // salvataggio in corso (nessuna campagna finita)
- inCorso(){return Camp.s&&!Camp.s.over?Camp.s:null},
+ inCorso(){return!Ses.a&&Camp.s&&!Camp.s.over?Camp.s:null},
  online(){return FB.st==='ok'&&!!FB.p},
  eroiElenco(){const L=Eroi.lista||{};return EROI.SLOT_ID.filter(id=>L[id]).map(id=>({...L[id],slot:id}))},
  COME:[
@@ -21,8 +21,10 @@ const Avv={
    '<p class="muted" style="margin:0">Per creare e salvare gli eroi serve il profilo online.</p>';
   return`<div class="modal"><div class="box col av"><h2>Cantari di Ventura ${infoH('Una campagna a capitoli: ogni sessione è un «cantare». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
 <p class="muted" style="margin:0">Una compagnia, una mappa a esagoni e la perdizione che avanza.</p>
+${Ses.sezioneH()}
+<div class="sh2">Campagna libera ${infoH('Solo la mappa del mondo, senza la storia: i premi restano nella campagna e non tornano agli eroi.')}</div>
 ${s?Avv.cartaCont(s):''}
-${on?`<button class="b ${s?'':'gold '}ecta" data-a="avvnuova" ${pochi&&Eroi.lista?'disabled':''}>${ic('spada',18)} ${s?'Nuova campagna':'Parti in campagna'}</button>${pochi&&Eroi.lista?'<small class="muted" style="text-align:center">Prima crea un eroe.</small>':''}`:`<button class="b gold ecta" data-a="acc">Accedi per giocare</button>`}
+${on?`<button class="b ${s?'':'sm '}ecta" data-a="avvnuova" ${pochi&&Eroi.lista?'disabled':''}>${ic('spada',18)} ${s?'Nuova campagna libera':'Parti in campagna libera'}</button>${pochi&&Eroi.lista?'<small class="muted" style="text-align:center">Prima crea un eroe.</small>':''}`:`<button class="b gold ecta" data-a="acc">Accedi per giocare</button>`}
 <div class="sh2">I tuoi eroi</div>${eroi}
 ${on?`<button class="b ${pochi?'gold ':''}sm" data-a="eroi">${pochi?'Crea il tuo primo eroe':'Gestisci gli eroi'}</button>`:''}
 ${Bat.setupH()}
@@ -33,7 +35,7 @@ ${Dia.setupH()}
 <div class="av-come">${Avv.COME.map(([t,x])=>`<div><b>${esc(t)}</b> ${infoH(esc(x))}</div>`).join('')}</div>
 <p class="acc-msg" role="status">${esc(Avv.msg)}</p></div></div>`},
  async act(a){
-  if(a==='avv'){Plancia.chiudi();ui.avv=true;Avv.msg='';render();if(Avv.online()&&!Eroi.lista){await Eroi.carica()}return}
+  if(a==='avv'){Plancia.chiudi();ui.avv=true;Avv.msg='';Ses.nuova=Ses.conf=null;render();if(Avv.online()&&!Eroi.lista){await Eroi.carica()}if(Avv.online()){await Ses.leggiElenco();if(ui.avv)render()}return}
   if(a==='avvx'){ui.avv=false;return render()}
   if(a==='avvcontinua'){if(!Avv.inCorso())return render();ui.avv=false;ui.camp=true;return render()}
   if(a==='avvnuova'){if(Avv.busy)return;Avv.busy=true;Avv.msg='';render();

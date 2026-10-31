@@ -11,6 +11,14 @@ const cap = require('../src/avventura/corona.json');
 assert.strictEqual(cap.id, 'corona', 'il file si chiama come il capitolo');
 assert.deepStrictEqual(R.valida(cap), [], 'il capitolo è valido');
 
+// ---- ogni finale ha il suo titolo e il suo epilogo (la schermata di fine di A9) ----
+{
+  const esiti = new Set(); const uscite = (n) => { if (typeof n.fine === 'string') esiti.add(n.fine); for (const c of n.scelte || []) { if (typeof c.fine === 'string') esiti.add(c.fine); for (const b of [c.prova && c.prova.ok, c.prova && c.prova.ko]) if (b && typeof b.fine === 'string') esiti.add(b.fine); } if (n.prova) for (const b of [n.prova.ok, n.prova.ko]) if (b && typeof b.fine === 'string') esiti.add(b.fine); };
+  for (const sc of Object.values(cap.scene)) for (const n of Object.values(sc.nodi)) uscite(n);
+  assert.deepStrictEqual([...esiti].sort(), Object.keys(cap.finali).sort(), 'un epilogo per ogni finale, e solo per quelli');
+  for (const f of Object.values(cap.finali)) assert(f.titolo.length <= 60 && f.testo.length >= 60 && f.testo.length <= 300, 'titolo e testo di misura: ' + f.titolo);
+}
+
 // ---- niente nomi di marchi (repo e sito sono pubblici) ----
 const marchi = [/\bCatan\b/i, /\bUNO\b/, /Dungeons|Pathfinder|Baldur|Tolkien|Hobbit|Gandalf|Skyrim|Witcher|Zelda|Warcraft|Hearthstone|Diablo/i];
 const testi = JSON.stringify(cap);

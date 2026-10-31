@@ -75,6 +75,17 @@ const FB={
  // poteri e talenti scelti ai livelli (campo `scelte`, vedi motori/27e-avv-poteri.js)
  async scegliEroe(slot,scelte){const F=FB.m.F;await F.updateDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot),{scelte})},
  async eliminaEroe(slot){const F=FB.m.F;await F.deleteDoc(F.doc(FB.db,'players',FB.uid,'eroi',slot))},
+ // ---- salvataggi dell'Avventura (players/{uid}/avventure/a1..a3, vedi motori/28a-avv-orchestratore.js) ----
+ async avventure(){const F=FB.m.F,q=await F.getDocs(F.collection(FB.db,'players',FB.uid,'avventure')),m={};for(const d of q.docs)m[d.id]=d.data();return m},
+ async salvaAvventura(slot,sal){const F=FB.m.F;await F.setDoc(F.doc(FB.db,'players',FB.uid,'avventure',slot),{...sal,agg:F.serverTimestamp()})},
+ async eliminaAvventura(slot){const F=FB.m.F;await F.deleteDoc(F.doc(FB.db,'players',FB.uid,'avventure',slot))},
+ // rientro sull'account (A9, motori/28b-avv-rientro.js): una tappa per eroe e il salvataggio col conto aggiornato in UNA scrittura, così non si accredita due volte.
+ // tappe: [{ slot, h (scheda dopo la tappa), prima (scheda di adesso) }]; chi guadagna scrive `agg` (le regole impongono 60 s dall'ultimo guadagno)
+ async rientro(tappe,slot,sal){const F=FB.m.F,b=F.writeBatch(FB.db);
+  for(const t of tappe){const h=t.h,d={liv:h.liv,xp:h.xp,oro:h.oro,hp:h.hp,hpMax:h.hpMax,equip:h.equip,zaino:h.zaino||[],cintura:h.cintura||[]};if(h.xp>t.prima.xp||h.oro>t.prima.oro)d.agg=F.serverTimestamp();b.update(F.doc(FB.db,'players',FB.uid,'eroi',t.slot),d)}
+  b.set(F.doc(FB.db,'players',FB.uid,'avventure',slot),{...sal,agg:F.serverTimestamp()});await b.commit()},
+ // il premio della fine del capitolo: passa dalla coda dei premi (le regole accettano al massimo 30 monete per volta, una ogni 50 s)
+ premiaAvventura(monete){if(!(monete>0))return;FB.q.push({n:Math.min(30,monete|0),won:true,gid:'avventura'});FB.saveQ();FB.flush()},
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----
  mail(){return FB.auth&&FB.auth.currentUser&&FB.auth.currentUser.email||''},
  async collega(email,pw){const Au=FB.m.Au;await Au.linkWithCredential(FB.auth.currentUser,Au.EmailAuthProvider.credential(email,pw))},

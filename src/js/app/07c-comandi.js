@@ -56,6 +56,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'batcfg':case'batavvia':case'batmondo':case'batcont':case'batrigioca':case'batesci':case'batabbandona':case'batvedi':case'batfoglio':case'batchiudi':case'batlog':case'batvel':case'batsalta':case'batinfox':case'batinfo':case'batzoom':case'batuso':case'batfine':case'batconferma':case'batannulla':case'batconc':case'batrea':return Bat.act(a,v);
  case'campstart':case'campx':case'campnuova':case'mo':return Camp.act(a,v);
  case'dl':return Dia.act(a,v);
+ case'ses':return Ses.act(a,v);
  case'tvfull':case'tvm':case'tvmx':case'tvcopy':case'tvcast':case'tvcastx':case'tvshare':return TV.act(a);
  case'dist':case'distx':case'distnew':case'distjoin':case'distgo':case'distdel':case'distcopy':case'distexit':case'distnot':return Dist.act(a,v);
  case'giaregia':return GIA.prendiRegia();
