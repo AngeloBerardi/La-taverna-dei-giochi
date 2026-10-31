@@ -942,6 +942,89 @@ async def sc_avv_mondo(b, srv):
     check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}')
     await ctx.close()
 
+async def sc_avv_racconto(b, srv):
+    """Dialoghi (A7): capitolo di prova scaricato al bisogno, ritratto e testo a comparsa, scelte con etichette e probabilità, prove, compagno che si unisce, approvazione, riassunto, ripresa."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    async def piccoli():
+        return await pg.evaluate("[...document.querySelectorAll('.dl button')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<40||r.height<40)}).map(e=>e.className+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))")
+    async def pronto():
+        await pg.wait_for_selector('.dl.dl-ok', timeout=8000); await pg.wait_for_timeout(150)
+    async def vai(sel):
+        await pg.click(sel); await pg.wait_for_timeout(250)
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
+    check(await pg.query_selector('[data-a=dl][data-v="avvia:pozzo"]') is not None and 'racconto di prova' in (await pg.inner_text('.av')).lower(), 'Avventura: sezione «Racconto di prova»')
+    check(await pg.query_selector('[data-a=dl][data-v=riprendi]') is None and await pg.query_selector('[data-a=dl][data-v=riassunto]') is None, 'nessuna scena in corso, niente riassunto')
+    # --- prima scena: narratore, testo a comparsa ---
+    await pg.click('[data-a=dl][data-v="avvia:pozzo"]'); await pg.wait_for_selector('.dl', timeout=8000)
+    check(await pg.evaluate("getComputedStyle(document.getElementById('plancia')).display") == 'none', 'la barra in basso sparisce durante il dialogo')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth") and abs((await pg.evaluate("document.querySelector('.dl').getBoundingClientRect().width")) - 390) < 1, 'nessuno scorrimento orizzontale a 390 px')
+    check(await pg.query_selector('.dl-rit.dl-nar') is not None and await pg.query_selector('.dl-nome') is None, 'il narratore non ha nome, solo il libro')
+    full = await pg.evaluate("document.querySelector('.dl-testo').dataset.t"); mid = await pg.evaluate("document.querySelector('.dl-testo').textContent.length")
+    check(mid < len(full) and await pg.evaluate("getComputedStyle(document.querySelector('.dl-co')).visibility") == 'hidden', f'il testo compare a poco a poco ({mid}/{len(full)}) e «Continua» aspetta')
+    await pg.click('.dl-corpo'); await pg.wait_for_timeout(150)
+    check(await pg.inner_text('.dl-testo') == full and await pg.evaluate("getComputedStyle(document.querySelector('.dl-co')).visibility") == 'visible', 'un tocco mostra tutto il testo')
+    check(await pg.evaluate("Dia.s.missioni.voce.stato") == 'attiva', 'l\'effetto del primo nodo: missione aperta')
+    await vai('.dl-co'); await pronto()
+    # --- scelte: etichette, probabilità, chi tira ---
+    sc = await pg.evaluate("[...document.querySelectorAll('.dl-sc')].map(b=>({et:(b.querySelector('.dl-et')||{}).textContent||'',t:b.querySelector('span').textContent,dis:b.disabled,small:(b.querySelector('small')||{}).textContent||''}))")
+    check(len(sc) == 4 and re.match(r'^\[Percezione \d+%\]$', sc[0]['et']) and sc[0]['small'].startswith('tira '), f'quattro scelte, la prima con probabilità e chi tira {sc[0]}')
+    check(sc[1]['et'] == '[Solo Mago]' and not sc[1]['dis'], 'con un mago c\'è la scelta [Solo Mago]')
+    prob = int(re.search(r'(\d+)%', sc[0]['et']).group(1)); atteso = await pg.evaluate("(()=>{const p=ARAC.chiTira(Dia.ctx(),{ab:'percezione',cd:12});return Math.round(p.p*100)})()")
+    check(prob == atteso, f'la percentuale è quella del motore ({prob}% = {atteso}%)')
+    check(len(await piccoli()) == 0, f'tutti i bottoni sono almeno 40×40 px {await piccoli()}')
+    # --- la prova (dado nello stato): si legge il risultato, e se va male la scelta sparisce ---
+    await pg.evaluate("Dia.s.rng=777"); await vai('.dl-sc >> nth=0')
+    u = await pg.evaluate("Dia.s.ultima"); check(u and u['ab'] == 'percezione' and u['cd'] == 12 and await pg.query_selector('.dl-pr') is not None, f'la prova mostra il tiro: {u and (u["tiro"], u["tot"], u["ok"])}')
+    txt = await pg.inner_text('.dl-pr'); check(str(u['tot']) in txt and 'contro 12' in txt and ('riesce' in txt or 'perfetto' in txt or 'non riesce' in txt or 'passo falso' in txt), 'riga della prova: ' + txt)
+    if u['ok']: check(await pg.evaluate("Dia.s.scena.nodo") == 'corda' and 'cavità laterale' in await pg.inner_text('.dl-es'), 'prova riuscita: indizio e si va alla corda')
+    else:
+        await pronto(); check(await pg.evaluate("Dia.s.scena.nodo") == 'b' and await pg.evaluate("document.querySelectorAll('.dl-sc.prova').length") == 0, 'prova fallita: si torna alla scelta, senza la prova già tentata')
+    # --- uscire a metà e riprendere ---
+    await pg.click('.dl-top [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('.dl') is None and await pg.query_selector('[data-a=dl][data-v=riprendi]') is not None, 'uscendo a metà c\'è «Scena in corso»')
+    nodo = await pg.evaluate("Dia.s.scena.nodo"); await pg.click('[data-a=dl][data-v=riprendi]'); await pg.wait_for_selector('.dl'); await pronto()
+    check(await pg.evaluate("Dia.s.scena.nodo") == nodo, 'si riprende dallo stesso punto')
+    # --- la strada del mago: luce, corda, Ilda ---
+    if await pg.evaluate("Dia.s.scena.nodo") == 'b':
+        await pg.click('.dl-sc >> text=Solo Mago'); await pg.wait_for_timeout(250)
+    check(await pg.evaluate("Dia.s.bandiere['luce-nel-pozzo']") is True or await pg.evaluate("!!Dia.s.bandiere['pozzo-indizio']"), 'una scelta è stata registrata nelle bandiere')
+    for _ in range(4):
+        if await pg.evaluate("Dia.s.scena.nodo") == 'ilda1': break
+        await pronto(); await vai('.dl-co')
+    await pronto()
+    check(await pg.inner_text('.dl-nome b') == 'Ilda' and 'esploratore' in (await pg.inner_text('.dl-nome small')).lower() and await pg.query_selector('.dl-rit svg') is not None, 'Ilda parla con il suo ritratto')
+    check('{eroe}' not in await pg.evaluate("document.querySelector('.dl-testo').dataset.t"), 'il segnaposto {eroe} è sostituito')
+    check(await pg.evaluate("Dia.s.missioni.voce.stato") == 'fatta' and 'monete' in (await pg.evaluate("Dia.righe.join('|')")), 'missione conclusa: monete e punti nelle righe di fine')
+    sc = await pg.evaluate("[...document.querySelectorAll('.dl-sc')].map(b=>b.querySelector('span').textContent)")
+    check(len(sc) == 3 and sc[0].startswith('Cerchiamo tuo fratello'), 'tre risposte a Ilda')
+    await vai('.dl-sc >> nth=0')
+    check('Ilda approva' in await pg.inner_text('.dl-re') and await pg.query_selector('.dl-re.su') is not None, 'reazione: Ilda approva la scelta pietosa')
+    check(await pg.evaluate("ACMP.stato(Dia.s,'ilda')") == 'gruppo' and await pg.evaluate("Dia.s.approv.ilda") == 18, 'Ilda entra nel gruppo, approvazione 18')
+    await pronto(); await vai('.dl-co'); await pg.wait_for_timeout(200)
+    check('Fine della scena' in await pg.inner_text('.dl') and 'si unisce alla compagnia' in await pg.inner_text('.dl-fine') and '30 monete' in await pg.inner_text('.dl-fine') and '25 punti esperienza' in await pg.inner_text('.dl-fine'), 'fine della scena: elenco di ciò che è successo')
+    await pg.click('.dl-bar [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('.dl') is None and await pg.query_selector('[data-a=dl][data-v=riprendi]') is None, 'torna la pagina, nessuna scena in corso')
+    # --- parlare con Ilda: «avidità» la raffredda ---
+    btn = await pg.inner_text('[data-a=dl][data-v="parla:ilda"]'); check('Neutrale' in btn and '(18)' in btn or 'Neutrale' in btn, 'Parla con Ilda: ' + btn)
+    await pg.click('[data-a=dl][data-v="parla:ilda"]'); await pg.wait_for_selector('.dl'); await pronto(); await vai('.dl-co') if await pg.query_selector('.dl-co') else None
+    await pronto(); await vai('.dl-sc >> nth=2')
+    check('non approva' in await pg.inner_text('.dl-re') and await pg.evaluate("Dia.s.approv.ilda") == 10, 'una scelta avida: Ilda non approva (−8)')
+    await pronto(); await vai('.dl-co'); await pg.click('.dl-bar [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
+    # --- il Locandiere riassume; la sessione si chiude e il cantare cambia ---
+    await pg.click('[data-a=dl][data-v=riassunto]'); await pg.wait_for_timeout(250)
+    r1 = await pg.inner_text('.dl-riass'); check(r1.startswith('Primo cantare') and 'Nella sessione precedente' in r1 and 'Ilda' in r1, 'riassunto del Locandiere: ' + r1[:90])
+    await pg.click('[data-a=dl][data-v=sessione]'); await pg.wait_for_timeout(250)
+    check('Per oggi basta' in await pg.inner_text('.dl-riass') and await pg.evaluate("Dia.s.sessioni") == 1, 'chiusura della sessione dal Locandiere')
+    await pg.click('[data-a=dl][data-v=riassunto]'); await pg.wait_for_timeout(250)
+    check((await pg.inner_text('.dl-riass')).startswith('Secondo cantare'), 'la volta dopo è il secondo cantare')
+    # --- sopravvive al ricaricamento; si ricomincia da capo ---
+    await pg.reload(); await pg.wait_for_timeout(900); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
+    check(await pg.evaluate("(()=>{Dia.leggi();return Dia.s&&Dia.s.sessioni===1&&ACMP.stato(Dia.s,'ilda')==='gruppo'})()"), 'lo stato del racconto resta salvato')
+    await pg.click('[data-a=dl][data-v=nuovo]'); await pg.wait_for_timeout(250)
+    check(await pg.query_selector('[data-a=dl][data-v=riassunto]') is None and not await pg.evaluate("!!localStorage.getItem('racc')"), 'ricomincia da capo: tutto azzerato')
+    check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}')
+    await ctx.close()
+
 async def sc_inventario(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'))})()")
@@ -1506,7 +1589,8 @@ async def sc_avv_battaglia(b, srv):
     nt, nc = await pg.evaluate("document.querySelectorAll('.bt-tok').length"), await pg.evaluate("document.querySelectorAll('.bt-ch').length")
     check(nt >= 5 and nt == nc, f'un segnalino e un tondo dell\'iniziativa per ogni combattente ({nt}/{nc})')
     check(await pg.evaluate("document.querySelectorAll('.bt-tok.bt-eroe').length") == 4 and await pg.query_selector('.bt-tok.bt-nem svg, .bt-tok.bt-nem g') is not None, 'quattro eroi (ritratti) e i nemici (sagome)')
-    check('Comincia lo scontro' in await pg.inner_text('.bt-log'), 'il registro apre con lo scontro')
+    # il riquadro mostra solo le ultime 3 righe: sotto carico i nemici possono aver già agito, quindi si guarda il registro intero
+    check(await pg.query_selector('.bt-log') is not None and await pg.evaluate("Bat.log.some(r=>/Comincia lo scontro/.test(r.testo))"), 'il registro apre con lo scontro')
     # --- primo turno di un eroe ---
     check(await aspetta_eroe(), 'arriva il turno di un eroe (i nemici giocano da soli)')
     check(len(await bottoni_piccoli()) == 0, f'tutti i bottoni sono almeno 40×40 px {await bottoni_piccoli()}')

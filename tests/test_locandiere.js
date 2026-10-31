@@ -47,4 +47,19 @@ assert.strictEqual(LOC.norm('  Cos’è, il «Perudo»?! '), 'cos e il perudo');
 // nessun HTML nelle risposte (la vista usa esc, ma meglio non produrne)
 for (const q of ['consigli', 'regole di uno', 'monete', 'classifica', 'account', 'ospiti', 'aiuto', 'boh']) assert(!/[<>]/.test(LOC.risposta(q, c)), q);
 assert(LOC.rapide(c).length === 4 && LOC.rapide({ ...c, n: 1 })[1] === 'Un gioco da solo');
+// il cantare: apertura («Nella sessione precedente…»), chiusura, domanda libera e chip
+{
+  const k = { titolo: 'Secondo cantare', capitolo: 'La voce nel pozzo', sessioni: 1, apertura: ['Avete tirato fuori Ilda dal pozzo.', 'Avete  lasciato la voce  senza risposta.'], chiusura: 'Ilda vi aspetta.' };
+  const ca = { ...c, cantare: k };
+  assert(/^Secondo cantare, «La voce nel pozzo»\. Nella sessione precedente… Avete tirato fuori Ilda dal pozzo\. Avete lasciato la voce senza risposta\. Ilda vi aspetta\.$/.test(LOC.apertura(ca)), LOC.apertura(ca));
+  assert(/^Per oggi basta così\. Ilda vi aspetta\. Il cantare è salvato/.test(LOC.chiusura(ca)), LOC.chiusura(ca));
+  assert(/Nessuna storia in corso/.test(LOC.apertura(c)) && /Alla prossima/.test(LOC.chiusura(c)), 'senza storia in corso');
+  assert(/La storia comincia adesso/.test(LOC.apertura({ ...c, cantare: { titolo: 'Primo cantare', capitolo: 'La Corona Spezzata', sessioni: 0, apertura: [], chiusura: '' } })), 'prima sessione');
+  assert(/non è successo nulla/.test(LOC.apertura({ ...c, cantare: { ...k, apertura: [], chiusura: '' } })), 'sessione senza fatti');
+  for (const q of ['A che punto siamo?', 'Riassumimi l\'ultima volta', 'dove eravamo rimasti', 'cosa è successo nella puntata scorsa']) assert.strictEqual(LOC.risposta(q, ca), LOC.apertura(ca), q);
+  assert(/Nessuna storia in corso/.test(LOC.risposta('a che punto siamo', c)), 'senza storia lo dice');
+  assert.strictEqual(LOC.rapide(ca)[0], 'A che punto siamo?'); assert.strictEqual(LOC.rapide(ca).length, 4);
+  assert(!/[<>]/.test(LOC.apertura(ca) + LOC.chiusura(ca)));
+  assert(/consiglio|proverei|giocatore/i.test(LOC.risposta('che gioco ci consigli?', ca)), 'i consigli di sempre restano');
+}
 console.log('locandiere ok');

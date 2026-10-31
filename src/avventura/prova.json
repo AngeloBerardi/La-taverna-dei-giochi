@@ -1,0 +1,109 @@
+{
+  "id": "prova",
+  "titolo": "La voce nel pozzo",
+  "sottotitolo": "Racconto di prova",
+  "v": 1,
+  "note": "Capitolo breve per provare dialoghi, prove di abilità, compagni e riassunto del Locandiere. Il Capitolo 1 vero verrà scritto in A8.",
+  "personaggi": {
+    "oste": { "nome": "Beppe l'oste", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 2, "mantello": 3, "viso": 1 } }
+  },
+  "compagni": {
+    "ilda": {
+      "nome": "Ilda", "razza": "elfo", "classe": "esploratore",
+      "base": { "for": 10, "des": 15, "cos": 12, "int": 10, "sag": 13, "car": 8 },
+      "aspetto": { "pelle": 2, "capelli": 4, "mantello": 1, "viso": 2 },
+      "liv": "gruppo", "approv": 0, "lascia": -40, "fiducia": 30, "personale": "fratello",
+      "scena": "ilda-parla", "sceneP": "ilda-fratello", "addio": "ilda-addio",
+      "valori": { "pieta": 2, "onore": 1, "avidita": -2, "durezza": -1 },
+      "desc": "Cacciatrice di frontiera, parla poco e ascolta tutto. Cerca il fratello scomparso."
+    }
+  },
+  "missioni": {
+    "voce": { "titolo": "La voce nel pozzo", "descr": "Qualcuno chiama dal vecchio pozzo di Ca' del Vento.", "ricompensa": [ { "t": "oro", "n": 30 }, { "t": "xp", "n": 25 } ] },
+    "fratello": { "titolo": "Il fratello di Ilda", "descr": "Ilda cerca suo fratello, scomparso nelle terre intorno al villaggio.", "ricompensa": [ { "t": "xp", "n": 40 }, { "t": "oggetto", "id": "pozione-cura", "n": 2 }, { "t": "approv", "id": "ilda", "n": 10 } ], "scena": "ilda-fratello" }
+  },
+  "luoghi": {
+    "pozzo": { "nome": "Il vecchio pozzo" },
+    "villaggio": { "nome": "Ca' del Vento" }
+  },
+  "bandiere": [],
+  "ingressi": [],
+  "sommario": [
+    { "se": { "bandiera": "ilda-salvata" }, "testo": "Avete tirato fuori dal vecchio pozzo di Ca' del Vento una viandante di nome Ilda." },
+    { "se": { "bandiera": "ilda-ripagata" }, "testo": "Avete aiutato Ilda con qualche moneta e vi siete salutati al villaggio." },
+    { "se": { "bandiera": "ilda-rifiutata" }, "testo": "Per il salvataggio di Ilda avete chiesto una ricompensa, e l'avete avuta." },
+    { "se": { "bandiera": "voce-ignorata" }, "testo": "Avete lasciato la voce nel pozzo senza risposta." },
+    { "se": { "bandiera": "ilda-fratello-trovato" }, "testo": "Ilda ha ritrovato la cintura di suo fratello nella torre in rovina." },
+    { "se": { "bandiera": "ilda-lascia" }, "testo": "Ilda se n'è andata dalla compagnia." }
+  ],
+  "prossimo": [
+    { "se": { "missione": "fratello", "stato": "attiva" }, "testo": "Ilda vi aspetta: ha una promessa da mantenere a suo fratello." },
+    { "se": { "compagno": "ilda" }, "testo": "Ilda ha ancora molto da raccontare, se avrete la pazienza di ascoltarla." },
+    { "testo": "Il pozzo di Ca' del Vento è sempre là, e la nebbia del mattino pure." }
+  ],
+  "scene": {
+    "pozzo": {
+      "dove": "pozzo", "una": true, "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Il villaggio di Ca' del Vento dorme nella nebbia del mattino. Dal vecchio pozzo, tra le pietre coperte di muschio, sale una voce sottile, come di chi chiami da molto lontano.", "effetti": [ { "t": "missione", "id": "voce" } ], "vai": "b" },
+        "b": { "chi": "_", "testo": "«C'è qualcuno?» ripete la voce. «Vi prego, il lume mi si è spento da ore!»",
+          "scelte": [
+            { "t": "Ascolto con attenzione: da dove viene davvero?", "una": true,
+              "prova": { "ab": "percezione", "cd": 12,
+                "ok": { "vai": "corda", "testo": "Non è un'eco: la voce viene da una cavità laterale, poco sotto l'orlo.", "effetti": [ { "t": "bandiera", "id": "pozzo-indizio" } ] },
+                "ko": { "vai": "b", "testo": "Troppa eco: non capite da dove arrivi." } } },
+            { "t": "Evoco una luce da calare nel pozzo", "se": { "classe": "mago" }, "effetti": [ { "t": "bandiera", "id": "luce-nel-pozzo" } ], "vai": "luce" },
+            { "t": "Calo una corda", "tono": [ "pieta" ], "vai": "corda" },
+            { "t": "Non è affar nostro: andiamo", "tono": [ "durezza" ], "effetti": [ { "t": "bandiera", "id": "voce-ignorata" }, { "t": "missione", "id": "voce", "stato": "fallita" } ], "fine": "ignorata" }
+          ] },
+        "luce": { "chi": "_", "testo": "La luce scende lenta e scopre una sagoma raggomitolata su una sporgenza. Una donna alza il viso, abbagliata, ma non ha più paura.", "vai": "corda" },
+        "corda": { "chi": "_", "testo": "Calate la corda e, uno dopo l'altro, la issate. Ha un mantello da cacciatrice e le mani sbucciate.", "effetti": [ { "t": "missione", "id": "voce", "stato": "fatta" } ], "vai": "ilda1" },
+        "ilda1": { "chi": "ilda", "testo": "«Mi chiamo Ilda. Cercavo mio fratello, scomparso da queste parti; il pozzo ha ceduto sotto i miei piedi. Vi devo la vita, {eroe}.»",
+          "scelte": [
+            { "t": "Cerchiamo tuo fratello insieme", "tono": [ "pieta" ], "effetti": [ { "t": "recluta", "id": "ilda" }, { "t": "bandiera", "id": "ilda-salvata" }, { "t": "approv", "id": "ilda", "n": 10 } ], "vai": "ok" },
+            { "t": "Prendi queste monete e riposa al villaggio", "se": { "oro": 20 }, "effetti": [ { "t": "oro", "n": -20 }, { "t": "bandiera", "id": "ilda-ripagata" } ], "vai": "saluto" },
+            { "t": "Una ricompensa non guasterebbe", "tono": [ "avidita" ],
+              "prova": { "ab": "intimidire", "cd": 11,
+                "ok": { "vai": "borsa", "testo": "Sospira e vi mette in mano una borsa.", "effetti": [ { "t": "oro", "n": 30 } ] },
+                "ko": { "vai": "borsa", "testo": "Vi guarda in silenzio e non risponde." } } }
+          ] },
+        "ok": { "chi": "ilda", "testo": "«Allora è deciso. Conosco i sentieri, non vi rallenterò.»", "fine": "compagna" },
+        "saluto": { "chi": "ilda", "testo": "«Siete gente di cuore. Che il fuoco non vi manchi mai.»", "fine": "aiutata" },
+        "borsa": { "chi": "ilda", "testo": "«Come volete. Ma se mai avrete bisogno di me, sapete dove trovarmi.»", "effetti": [ { "t": "bandiera", "id": "ilda-rifiutata" } ], "fine": "ricompensa" }
+      }
+    },
+    "ilda-parla": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "ilda", "testo": "«Mio fratello cantava ai viandanti per qualche moneta. Era più bravo di me con le parole, io con l'arco.»",
+          "scelte": [
+            { "t": "Raccontami di lui", "tono": [ "pieta" ], "vai": "b" },
+            { "t": "Meno chiacchiere, la strada è lunga", "tono": [ "durezza" ], "vai": "c" },
+            { "t": "Un cantastorie vale qualcosa?", "tono": [ "avidita" ], "vai": "c" }
+          ] },
+        "b": { "chi": "ilda", "testo": "«Diceva che ogni strada ha la sua canzone. Spero di ritrovarlo per sentire la prossima.»", "fine": true },
+        "c": { "chi": "ilda", "testo": "«Come preferite. Io ascolto il bosco, che dice più cose di tutti noi.»", "fine": true }
+      }
+    },
+    "ilda-fratello": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "ilda", "testo": "«Ho trovato un segno: la sua cintura, incastrata tra le pietre di una torre in rovina. Venite con me?»", "effetti": [ { "t": "missione", "id": "fratello" } ],
+          "scelte": [
+            { "t": "Cerchiamo dentro la torre", "prova": { "ab": "percezione", "cd": 13,
+                "ok": { "vai": "trovato", "testo": "Sotto un cumulo di calcinacci brilla una fibbia d'ottone.", "effetti": [ { "t": "bandiera", "id": "ilda-fratello-trovato" } ] },
+                "ko": { "vai": "trovato", "testo": "Frugate a lungo e trovate soltanto polvere e un vecchio nido.", "effetti": [ { "t": "bandiera", "id": "ilda-fratello-trovato" } ] } } },
+            { "t": "Domani, oggi siamo stanchi", "vai": "dopo" }
+          ] },
+        "trovato": { "chi": "ilda", "testo": "«È sua. Non è morto qui: se ne è andato a nord, lo so. Grazie di essere venuti.»", "effetti": [ { "t": "missione", "id": "fratello", "stato": "fatta" } ], "fine": true },
+        "dopo": { "chi": "ilda", "testo": "«Aspetterò. Ma il tempo non lavora per noi.»", "fine": true }
+      }
+    },
+    "ilda-addio": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "ilda", "testo": "«Non fa per me. Ho passato troppo tempo sotto terra e non voglio dividere la strada con chi non ascolta. Addio.»", "fine": true }
+      }
+    }
+  }
+}
