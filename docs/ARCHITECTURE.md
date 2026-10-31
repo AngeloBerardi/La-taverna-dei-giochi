@@ -136,6 +136,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39a-avventura.css` | 1 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
+| `css/39d-dialogo.css` | 4 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -171,7 +172,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
 | `js/motori/22-bottega.js` | 1 | BOTTEGA |
 | `js/motori/23-elo.js` | 2 | ELO |
-| `js/motori/24-locandiere.js` | 6 | LOC |
+| `js/motori/24-locandiere.js` | 7 | LOC |
 | `js/motori/25-distanza.js` | 3 | DIST |
 | `js/motori/26-qr.js` | 6 | QR |
 | `js/motori/27-eroi.js` | 9 | EROI |
@@ -190,6 +191,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27m-avv-mondo.js` | 12 | AMON |
 | `js/motori/27n-avv-luoghi.js` | 8 | ALUO |
 | `js/motori/27o-avv-mostri.js` | 7 | AMOS |
+| `js/motori/27p-avv-compagni.js` | 6 | ACMP |
+| `js/motori/27q-avv-racconto.js` | 21 | ARAC |
+| `js/motori/27r-avv-eventi.js` | 27 | AEVE |
 | `js/motori/28-campagna.js` | 32 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
@@ -274,6 +278,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
 | `js/app/24hh-mondo-pannelli.js` | 18 | MoPan |
+| `js/app/24hi-dialogo.js` | 10 | Dia |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

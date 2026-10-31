@@ -198,6 +198,16 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 5. Il **Locandiere** apre e chiude ogni sessione con un riassunto («Nella sessione precedente…») letto dalle bandiere.
 6. Validatore per i test: ogni nodo raggiungibile, nessun vicolo cieco, riferimenti a oggetti/mostri/luoghi esistenti, nessuna scelta senza uscita.
 7. Vista dialogo: ritratto di chi parla, testo a comparsa, scelte con etichette ([Persuasione 65%], [Solo Mago]).
+- **Stato (31 ottobre 2026)**: fatta, con queste scelte (manuale dei capitoli, API e scarti in `docs/AVVENTURA-A7.md`):
+  - File: motori puri `27p` compagni (`ACMP`), `27q` racconto (`ARAC`: condizioni, effetti, prove, scene e nodi, vista, scene disponibili, cantare, validatore), `27r` eventi (`AEVE`: 30 eventi di strada e missioni secondarie generate); app `24hi` (`Dia`) + `css/39d-dialogo.css` (prefisso `dl-`); capitolo di prova `src/avventura/prova.json`. Numeri 27p–27r invece di 44, per rispettare l'ordine di caricamento.
+  - **Capitoli come dati**: JSON validato nel build con `ARAC.valida` (nodi irraggiungibili, vicoli ciechi, riferimenti a oggetti, mostri, arene, razze, classi e luoghi, bandiere lette e mai impostate) e scritto in `dist/avventura/<id>.<hash>.json`; la vista lo scarica solo quando serve.
+  - **Effetti per l'orchestratore**: il racconto non tocca la campagna; oro, oggetti, PF, perdizione, esperienza, razioni, battaglie, spostamenti e servizi escono come `fuori` e li applicherà `AVV` in A9.
+  - **Compagni**: scheda vera costruita da `EROI` al livello del gruppo, quattro posti (gli altri aspettano), approvazione −100…+100 secondo i valori di ciascuno, abbandono alla soglia con scena di addio, missione personale oltre la fiducia.
+  - **Eventi e missioni generate**: 30 eventi (terreno, notte, perdizione) ripetibili dal seme; missioni di 5 tipi con 6 complicazioni, scritte come capitoli-frammento validi (offerta, arrivo, ritorno).
+  - **Locandiere**: apre («Secondo cantare… Nella sessione precedente…») e chiude la sessione dalle bandiere; risponde a «a che punto siamo?».
+  - Vista a tutto schermo (`ui.dia`): ritratto, testo a comparsa (un tocco lo completa), nota con la riga del tiro, reazioni dei compagni, scelte con `[Persuasione 65%]`, `[Solo Mago]`, `[Con Pozione di cura]`; «Racconto di prova» nella pagina Avventura.
+  - Test: `test_avv_racconto`, `test_avv_compagni`, `test_avv_eventi`, `test_locandiere` esteso; scenario browser `avv_racconto` (34 controlli a 390 px).
+  - Rimandato: il capitolo vero (A8), l'orchestratore che applica `fuori` e salva il racconto con la campagna (A9), musica e testi delle regole del racconto (A10).
 
 ## A8 — Capitolo 1 (contenuto)
 1. Trama in tre atti per 3–5 sessioni da un'ora, fantasy classico, ambientata nel regno della Taverna; scaletta approvata dall'utente prima di scrivere i dialoghi.
