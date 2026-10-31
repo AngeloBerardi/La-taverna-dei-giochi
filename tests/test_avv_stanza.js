@@ -76,6 +76,7 @@ const continua = (s, seat) => av(s, seat == null ? 0 : seat, { t: 'racconto', a:
   // di gruppo: solo chi ospita
   no(AST.act(s, { seat: 1, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } } }, prova), /chi ospita/, 'il giro lo chiude chi ospita'); no(AST.act(s, { seat: 1, t: 'av', az: { t: 'camp', a: { t: 'tira', tutti: true } } }, prova), /chi ospita/);
   ok(AST.act(s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } } }, prova), 'chi ospita chiude il giro');
+  no(AST.act(s, { seat: 1, t: 'av', az: { t: 'camp', a: { t: 'entra', eroe: 1 } } }, prova), /chi ospita/, 'entrare in un sotterraneo è del gruppo, anche se porta un eroe'); no(AST.act(s, { seat: 1, t: 'av', az: { t: 'camp', a: { t: 'muovi', eroe: 1, q: 0, r: 0, tutti: true } } }, prova), /chi ospita/, 'muovere tutti è di chi ospita');
   no(AST.act(s, { seat: 1, t: 'av', az: { t: 'scena', id: 'voto' } }, prova), /chi ospita/, 'le scene le apre chi ospita'); no(AST.act(s, { seat: 1, t: 'av', az: { t: 'chiudi' } }, prova), /chi ospita/);
   no(AST.act(s, { seat: 0, t: 'av', az: { t: 'esito', riep: {} } }, prova), /da sola/, 'il risultato di una battaglia non si dà a mano'); no(AST.act(s, { seat: 0, t: 'av', az: { t: 'boh' } }, prova), /sconosciuta/);
   no(AST.act(s, { seat: 5, t: 'av', az: { t: 'camp', a: { t: 'tira', eroe: 0 } } }, prova), /Posto/); no(AST.act(s, { t: 'av', az: {} }, prova), /Posto/); no(AST.act(s, { seat: 0 }, prova), /mancante/); no(AST.act(null, { seat: 0, t: 'av' }, prova), /non valido/);
@@ -84,6 +85,11 @@ const continua = (s, seat) => av(s, seat == null ? 0 : seat, { t: 'racconto', a:
   // base: la mossa vale solo sullo stato da cui è partita
   no(AST.act(s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } }, base: s.av.evn - 1 }, prova), /un attimo prima/, 'una mossa su uno stato vecchio è rifiutata');
   ok(AST.act(s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'fineTurno' } }, base: s.av.evn }, prova), 'su quello giusto passa'); }
+
+// ---- 3b. concludere la sessione: lo vedono tutti, finché non si fa altro ----
+{ let s = nuova(posti3()); s.av.camp.eroi[0].xp += 10; no(AST.act(s, { seat: 1, t: 'av', az: { t: 'chiudi' } }, prova), /chi ospita/);
+  const r = ok(AST.act(s, { seat: 0, t: 'av', az: { t: 'chiudi' } }, prova), 'chiude chi ospita'); assert(r.riepilogo, 'la risposta porta il riepilogo'); assert(r.s.riep && r.s.riep.n === r.s.evn && r.s.riep.cantare, 'e resta nello stato per gli altri telefoni');
+  const dopo = ok(AST.act(r.s, { seat: 0, t: 'av', az: { t: 'camp', a: { t: 'tira', eroe: 0 } } }, prova)).s; assert.strictEqual(dopo.riep, null, 'alla mossa dopo non c\'è più'); }
 
 // ---- 4. dialogo: «continua» a chiunque, scelte a voto ----
 { let s = nuova(posti3()); s = scenaDa(s, 'lunga'); assert.strictEqual(AVV.fase(s.av), 'dialogo');

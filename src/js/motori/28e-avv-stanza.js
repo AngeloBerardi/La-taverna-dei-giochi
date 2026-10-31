@@ -2,7 +2,7 @@
    `AST` non rifà nulla: tiene lo stato di AVV (`av`) e, durante uno scontro, quello di ASCO (`lotta`), e decide CHI può fare COSA: un posto = un eroe, i compagni e gli eroi dei posti assenti li guida chi ospita,
    le scelte del dialogo si votano, in battaglia muove solo chi guida l'eroe di turno e il resto lo gioca l'IA (`AIA`). Ogni mossa è una funzione pura sullo stato (`act`), quindi passa da SYNC.mossa
    come in tutti i giochi di stanza. La battaglia viaggia come `film`: le azioni giocate (la mossa e le risposte dell'IA) da rigiocare sullo stato di prima, così ogni telefono la anima passo per passo.
-   Stato: { g:'avventura', v, sim:true, n, names, cur, ev, evn, over, posti:[{nome,uid,slot,eroe,qui,ospite}], av, lotta, film:{da,azioni}|null, voto:{chiave,v:{posto:i}}|null }.
+   Stato: { g:'avventura', v, sim:true, n, names, cur, ev, evn, over, posti:[{nome,uid,slot,eroe,qui,ospite}], av, lotta, film:{da,azioni}|null, voto:{chiave,v:{posto:i}}|null, riep:{…,n}|null }.
    Azioni (sempre con `seat`, il posto di chi le manda; `base` facoltativo: la versione che il telefono mostrava, se è già cambiata la mossa è rifiutata):
    {t:'av',az:<azione di AVV>} · {t:'voto',i}|{t:'voto',ora:true} · {t:'combatti'} · {t:'lotta',a:<azione di ASCO>} · {t:'chiudiLotta'} · {t:'presenza',posto,qui} · {t:'siede',posto,nome,uid}.
    Niente Math.random: il dado è in `av.rng`/`lotta.rng`. Piano: docs/AVVENTURA-A11.md. */
@@ -39,10 +39,12 @@ const AST=(()=>{
   return{g:'avventura',v:VERSIONE,sim:true,n:posti.length,names:posti.map((p,i)=>p.nome||eroi[i].nome),cur:0,ev:[],evn:0,over:null,
    posti:posti.map((p,i)=>({nome:p.nome||eroi[i].nome,uid:p.uid||null,slot:p.eroe&&p.slot?p.slot:null,eroe:i,qui:true,ospite:!!p.ospite})),av,lotta:null,film:null,voto:null}}
  // ---- permessi ----
+ // le azioni della mappa che riguardano UN eroe (con `eroe`): le fa chi lo guida. Le altre (fine giro, riposo lungo, entrare e uscire dai sotterranei, scelte d'evento, fuga, muovere tutti) sono del gruppo: le fa chi ospita
+ const PER_EROE=['tira','muovi','breve','cura','rialza','prega','taglia','risolvi','equipa','togli','cintura','zaino','usa','passa','compra','vendi'];
  // chi può mandare una azione di AVV (e perché no)
  function permessoAv(s,az,seat){const g=host(s);
   switch(az.t){
-   case'camp':{const b=az.a||{};if(Number.isInteger(b.eroe)&&!b.tutti){const i=b.eroe;if(i<0||i>=s.av.camp.eroi.length)return'Eroe sconosciuto';return guida(s,i)===seat?'':'Non è il tuo eroe'}return seat===g?'':'Lo decide chi ospita'}
+   case'camp':{const b=az.a||{};if(PER_EROE.includes(b.t)&&Number.isInteger(b.eroe)&&!b.tutti){const i=b.eroe;if(i<0||i>=s.av.camp.eroi.length)return'Eroe sconosciuto';return guida(s,i)===seat?'':'Non è il tuo eroe'}return seat===g?'':'Lo decide chi ospita'}
    case'racconto':{const b=az.a||{};if(b.t==='scegli')return'Le scelte si votano';return''}   // «continua»: qualunque posto presente
    case'scena':case'parla':case'compagnia':case'bacheca':case'chiudi':return seat===g?'':'Lo decide chi ospita';
    case'esito':return'La battaglia si chiude da sola';
@@ -85,6 +87,7 @@ const AST=(()=>{
     if(s.lotta)return{err:'Prima va combattuta la battaglia'};
     const no=permessoAv(s,az,seat);if(no)return{err:no};
     const r=AV.act(s.av,az,cap);if(r.err)return{err:r.err};s.av=r.s;s.voto=null;
+    s.riep=r.riepilogo?Object.assign({},r.riepilogo,{n:s.evn+1}):null;   // la chiusura della sessione la vedono tutti i telefoni (ciascuno poi riscuote il proprio eroe)
     const out=fine(s,r.righe);if(r.cambio)out.cambio=r.cambio;if(r.riepilogo)out.riepilogo=r.riepilogo;return out}
    case'voto':{if(s.lotta)return{err:'Prima va combattuta la battaglia'};if(a.base!=null&&a.base!==s.av.evn)return{err:STANTIO};
     if(!s.av.racc.scena)return{err:'Non c\'è niente da votare'};const sc=scelteOk(s,cap);if(!sc.length)return{err:'In questa scena non ci sono scelte'};
@@ -120,5 +123,5 @@ const AST=(()=>{
  const accredita=(s,t)=>{const n=copia(s);n.av=AR.accredita(s.av,t);return n};
  // ---- salvataggio: quello di AVV, con i posti ----
  const salva=s=>({v:VERSIONE,av:AV.salva(s.av),posti:copia(s.posti)});
- return{VERSIONE,MAX,act,nuova,vista,guida,miei,host,presenti,automatico,guidaComb,eroeDi,rigioca,rientro,accredita,salva,eroeProva,permessoAv}})();
+ return{VERSIONE,MAX,act,nuova,vista,guida,miei,host,presenti,automatico,guidaComb,eroeDi,rigioca,rientro,accredita,salva,eroeProva,permessoAv,PER_EROE}})();
 if(typeof module!=='undefined')module.exports=AST;
