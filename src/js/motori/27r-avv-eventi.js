@@ -190,7 +190,12 @@ const AEVE=(()=>{
   const cap={id,titolo:base.t,personaggi:{cl:{nome:cliente[0],razza:cliente[1],classe:cliente[2],aspetto:per}},missioni:{[mid]:{titolo:base.t,descr:base.o.replace(/[«»]/g,''),ricompensa:ric,scena:'offerta'}},
    luoghi:{[origine.id]:{nome:origine.nome},[meta.id]:{nome:meta.nome}},bandiere:[],ingressi:['offerta'],scene:sceneArr,sommario:[{se:{missione:mid,stato:'fatta'},testo:`Avete concluso il lavoro per ${cliente[0]}: ${base.t.toLowerCase()}.`},{se:{missione:mid,stato:'attiva'},testo:`Avete promesso a ${cliente[0]}: ${base.t.toLowerCase()}.`}]};
   return Object.assign(cap,{missione:mid,tipo,complicazione:comp,entro,origine:origine.id,meta:meta.id,ricompensa:ric,cliente:cliente[0]})}
+ // la stessa missione con le scene e il personaggio col prefisso del suo id («gen-4f2-offerta», «gen-4f2-cl»): più incarichi convivono nello stesso capitolo senza scontrarsi (A10, la bacheca)
+ function generata(seme,m){const f=missione(seme,m);if(!f)return null;const P=f.id+'-',scene={};
+  for(const k of Object.keys(f.scene)){const sc=f.scene[k];for(const n of Object.values(sc.nodi))if(n.chi==='cl')n.chi=P+'cl';scene[P+k]=sc}
+  f.scene=scene;f.personaggi={[P+'cl']:f.personaggi.cl};f.ingressi=f.ingressi.map(i=>P+i);for(const mm of Object.values(f.missioni))if(mm.scena)mm.scena=P+mm.scena;
+  return f}
  // una missione a scadenza è fallita se oggi è oltre il giorno limite
  const scaduta=(cap,giorno)=>cap.entro!=null&&giorno>cap.entro;
- return{EVENTI,TIPI,COMPLICAZIONI,adatti,eventoStrada,scena,capitolo,valida,missione,scaduta}})();
+ return{EVENTI,TIPI,COMPLICAZIONI,adatti,eventoStrada,scena,capitolo,valida,missione,generata,scaduta}})();
 if(typeof module!=='undefined')module.exports=AEVE;

@@ -3,7 +3,7 @@
    quale fase si è (mappa, città, dialogo, battaglia, sotterraneo, fine), applica gli effetti `fuori` del racconto (oro, oggetti, PF, perdizione, XP, razioni, spostamenti, compagni, scontri),
    conta le vite di gruppo, chiude la sessione e prepara il salvataggio. Il rientro sull'account è di `ARIE` (28b).
    Contratto come gli altri motori: nuova(...) -> stato, act(stato, azione, capitolo) -> {s, righe, cambio?} | {err}. Lo stato è JSON puro; i dadi vengono da `s.rng` (27a): niente Math.random.
-   Azioni: {t:'camp',a} · {t:'scena',id} · {t:'parla',id} · {t:'racconto',a:{t:'scegli',i}|{t:'continua'}} · {t:'esito',riep} · {t:'compagnia',id,azione:'entra'|'attende'} · {t:'chiudi'}. Piano: docs/AVVENTURA-A9.md. */
+   Azioni: {t:'camp',a} · {t:'scena',id} · {t:'parla',id} · {t:'racconto',a:{t:'scegli',i}|{t:'continua'}} · {t:'esito',riep} · {t:'compagnia',id,azione:'entra'|'attende'} · {t:'bacheca'} · {t:'chiudi'}. Piano: docs/AVVENTURA-A9.md. */
 const AVV=(()=>{
  const DAD=typeof ADADI!=='undefined'?ADADI:require('./27a-avv-dadi.js');
  const CP=typeof CAMP!=='undefined'?CAMP:require('./28-campagna.js');
@@ -13,9 +13,10 @@ const AVV=(()=>{
  const SC=typeof ASCO!=='undefined'?ASCO:require('./27i-avv-scontro.js');
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const MOS=typeof AMOS!=='undefined'?AMOS:require('./27o-avv-mostri.js');
+ const LU=typeof ALUO!=='undefined'?ALUO:require('./27n-avv-luoghi.js');
  const VERSIONE=1,FASI=['mappa','citta','dialogo','battaglia','sotterraneo','fine'];
  // i numeri dell'orchestratore in un posto solo (il bilanciamento fine è di A13)
- const PARAM={vite:3,pfRisveglio:.5,oroPersa:.5,perdizioneSconfitta:10,perdizioneFuga:1,eventoStrada:.14,eventoNotte:.08,monete:30,righe:60};
+ const PARAM={vite:3,pfRisveglio:.5,oroPersa:.5,perdizioneSconfitta:10,perdizioneFuga:1,eventoStrada:.14,eventoNotte:.08,monete:30,righe:60,incarichiMax:2,incarichiTenuti:10};
  const copia=x=>JSON.parse(JSON.stringify(x));
  const seme32=g=>Math.floor(g()*4294967296)>>>0;
  // ---- dove si trova il gruppo ----
@@ -32,7 +33,44 @@ const AVV=(()=>{
  // gli eventi di strada sono scene generate: l'orchestratore le aggiunge al capitolo solo per il tempo che servono
  const evDi=(cap,id)=>EV.EVENTI.concat((cap&&cap.eventi)||[]).find(e=>e.id===id)||null;
  const conEvento=(cap,ev)=>Object.assign({},cap,{scene:Object.assign({},cap.scene,{['ev-'+ev.id]:EV.scena(ev)})});
- function capDi(s,cap){const sc=s.racc.scena;if(!sc||!/^ev-/.test(sc.id))return cap;const e=evDi(cap,sc.id.slice(3));return e?conEvento(cap,e):cap}
+ // ---- gli incarichi della bacheca (A10): missioni generate dal seme, in `s.gen` restano pochi byte e il capitolo-frammento si riscrive ogni volta ----
+ // un incarico = { id, seme, liv, giorno (di quando è nato), origine (il luogo del cliente), meta (il sotterraneo), rif? (offerta rifiutata) }
+ function frammento(s,e){const L=[e.origine,e.meta].map(id=>s.camp.luoghi[id]).filter(Boolean).map(l=>({id:l.id,tipo:l.tipo,nome:l.nome}));
+  return L.length===2?EV.generata(e.seme,{luoghi:L,giorno:e.giorno,liv:e.liv,origine:e.origine}):null}
+ // offerta (da accettare) · attiva · fatta · rifiutata · scaduta (oltre il giorno limite, o già segnata «fallita»)
+ function statoGen(s,e,f){const m=(s.racc.missioni||{})[f.missione];if(m&&m.stato==='fatta')return'fatta';if(m&&m.stato==='fallita')return'scaduta';
+  if(EV.scaduta(f,s.camp.giorno))return'scaduta';if(m&&m.stato==='attiva')return'attiva';return e.rif?'rifiutata':'offerta'}
+ const incarichi=s=>(s.gen||[]).map(e=>{const f=frammento(s,e);return f?{e,f,stato:statoGen(s,e,f)}:null}).filter(Boolean);
+ // il capitolo con dentro gli incarichi che servono (offerti, attivi, fatti per il riassunto, o quello di cui si sta giocando una scena)
+ function conIncarichi(s,cap,inGioco){const v=incarichi(s).filter(x=>['offerta','attiva','fatta'].includes(x.stato)||(inGioco&&inGioco.indexOf(x.e.id+'-')===0));if(!v.length)return cap;
+  const g={personaggi:{},missioni:{},luoghi:{},scene:{},ingressi:[],sommario:[]};
+  for(const {f} of v){Object.assign(g.personaggi,f.personaggi);Object.assign(g.missioni,f.missioni);Object.assign(g.luoghi,f.luoghi);Object.assign(g.scene,f.scene);g.ingressi.push(...f.ingressi);g.sommario.push(...f.sommario)}
+  return Object.assign({},cap,{personaggi:Object.assign({},g.personaggi,cap.personaggi),missioni:Object.assign({},g.missioni,cap.missioni),luoghi:Object.assign({},g.luoghi,cap.luoghi),
+   scene:Object.assign({},cap.scene,g.scene),ingressi:(cap.ingressi||[]).concat(g.ingressi),sommario:(cap.sommario||[]).concat(g.sommario)})}
+ // il capitolo come lo vede il racconto: eventi di strada (solo mentre servono) e incarichi
+ function capDi(s,cap){const sc=s.racc.scena;let c=cap;
+  if(sc&&/^ev-/.test(sc.id)){const e=evDi(cap,sc.id.slice(3));if(e)c=conEvento(cap,e)}
+  return conIncarichi(s,c,sc?sc.id:null)}
+ // la bacheca del luogo dove sta il gruppo: si può leggere (c'è un'offerta in sospeso, o se ne può far nascere una) o dice perché no
+ function bacheca(s,cap){const c=s.camp,l=luogoGruppo(c);if(!l||!['citta','villaggio'].includes(l.tipo)||!LU.servizi(l,c.giorno).length)return{visibile:false};
+  if(s.racc.scena||s.bat||c.sfida||c.incontro||c.evento||c.dentro)return{visibile:true,ok:false,perche:'Non adesso'};
+  const inc=incarichi(s),att=inc.filter(x=>x.stato==='attiva').length,aperta=inc.find(x=>x.e.origine===l.id&&x.stato==='offerta');
+  if(aperta)return{visibile:true,ok:true,riusa:aperta.e.id,testo:'C\'è un\'offerta che aspetta una risposta.'};
+  if(att>=PARAM.incarichiMax)return{visibile:true,ok:false,perche:'Avete già '+att+' incarichi da concludere'};
+  if(inc.some(x=>x.e.origine===l.id&&x.e.giorno===c.giorno))return{visibile:true,ok:false,perche:'Per oggi non c\'è altro'};
+  return{visibile:true,ok:true,testo:'Chi ha bisogno d\'aiuto lascia un biglietto.'}}
+ function azBacheca(s,cap,righe){const b=bacheca(s,cap);if(!b.visibile)return{err:'Qui non c\'è una bacheca'};if(!b.ok)return{err:b.perche};let id=b.riusa;
+  if(!id){const c=s.camp,l=luogoGruppo(c);   // mete: i sotterranei liberi (quelli della storia hanno le loro scene); anche due incarichi possono portare allo stesso
+   const mete=Object.values(c.luoghi).filter(x=>['antro','rovina','torre'].includes(x.tipo)&&!storia(cap,x.id)).map(x=>({id:x.id,tipo:x.tipo,nome:x.nome}));
+   const seme=seme32(DAD.gen(s)),liv=livelloGruppo(s),f=EV.generata(seme,{luoghi:[{id:l.id,tipo:l.tipo,nome:l.nome}].concat(mete),giorno:c.giorno,liv,origine:l.id});
+   if(!f)return{err:'Per ora la bacheca è vuota'};
+   s.gen.push({id:f.id,seme,liv,giorno:c.giorno,origine:l.id,meta:f.meta});potaGen(s,cap);id=f.id}
+  return passoRacconto(s,cap,{t:'avvia',id:id+'-offerta'},righe)}
+ // si tengono pochi incarichi: fuori per primi quelli chiusi (fatti, scaduti, rifiutati), i più vecchi
+ function potaGen(s,cap){while(s.gen.length>PARAM.incarichiTenuti){const st=new Map(incarichi(s).map(x=>[x.e.id,x.stato])),i=s.gen.findIndex(e=>!['offerta','attiva'].includes(st.get(e.id)));if(i<0)break;s.gen.splice(i,1)}}
+ // un incarico a scadenza oltre il suo giorno: la missione si segna «fallita» (una volta sola) e il diario lo dice
+ function scadenze(s,righe){for(const {e,f,stato} of incarichi(s)){const m=s.racc.missioni[f.missione];
+  if(stato==='scaduta'&&m&&m.stato==='attiva'){m.stato='fallita';righe.push('L\'incarico «'+f.missioni[f.missione].titolo+'» è scaduto.')}}}
  const nuovaSessione=s=>({da:{giorno:s.camp.giorno,oro:s.camp.oro,xp:Object.fromEntries(s.camp.eroi.filter(e=>!e.compagno).map(e=>[e.slot,e.xp|0]))},battaglie:0,sconfitte:0});
  // ---- nuova campagna ----
  // eroi: schede dell'account ({…, slot}); seme: numero; opz.avvio=false non fa partire il prologo
@@ -40,7 +78,7 @@ const AVV=(()=>{
   const camp=CP.nuova(eroi,seme,{regioni:w.regioni,luoghi:w.luoghi,conta:w.conta,partenza:w.partenza,mercanti:w.mercanti,raggio:w.raggio,titolo:cap.titolo});
   const par=Object.values(camp.luoghi).find(l=>l.partenza)||Object.values(camp.luoghi)[0];
   const s={v:VERSIONE,g:'avventura',cap:cap.id,seme:seme>>>0,rng:DAD.semina((seme>>>0)+7),evn:0,camp,racc:RA.nuovo(cap.id,seme),bat:null,vite:PARAM.vite,viteMax:PARAM.vite,ultimaCitta:par?par.id:null,fase:'mappa',
-   strada:{usati:[]},conto:{iniziale:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:e.xp|0,liv:e.liv}])),oroIniziale:camp.oro,accreditato:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:0,oro:0}]))},
+   strada:{usati:[]},gen:[],conto:{iniziale:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:e.xp|0,liv:e.liv}])),oroIniziale:camp.oro,accreditato:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:0,oro:0}]))},
    sessione:null,fine:null,log:[]};
   s.sessione=nuovaSessione(s);
   const primo=opz.avvio===false?null:(cap.ingressi||[])[0];
@@ -49,14 +87,15 @@ const AVV=(()=>{
  // ---- salvataggio: versione e migrazione ----
  function migra(st){if(!st||st.g!=='avventura')throw new Error('non è un salvataggio dell\'Avventura');if(st.v>VERSIONE)throw new Error('salvataggio più nuovo di questa versione');
   const s=copia(st);s.camp=CP.migra(s.camp);
-  if(!s.strada)s.strada={usati:[]};if(!s.sessione)s.sessione=nuovaSessione(s);if(!Array.isArray(s.log))s.log=[];if(s.viteMax==null)s.viteMax=PARAM.vite;
+  if(!s.strada)s.strada={usati:[]};if(!Array.isArray(s.gen))s.gen=[];if(!s.sessione)s.sessione=nuovaSessione(s);if(!Array.isArray(s.log))s.log=[];if(s.viteMax==null)s.viteMax=PARAM.vite;
   s.v=VERSIONE;return s}
  // il riassunto che si vede nell'elenco dei salvataggi, e i dati interi in una stringa (un solo campo per Firestore)
  function salva(s){return{v:VERSIONE,cap:s.cap,fase:fase(s),vite:s.vite,viteMax:s.viteMax,sessioni:s.racc.sessioni|0,giorno:s.camp.giorno,evn:s.evn|0,fine:s.fine?s.fine.esito:null,
   eroi:s.camp.eroi.filter(e=>!e.compagno).map(e=>({nome:e.nome,classe:e.classe,liv:e.liv})),dati:JSON.stringify(s)}}
  function apri(sal){try{const s=typeof sal==='string'?JSON.parse(sal):typeof sal.dati==='string'?JSON.parse(sal.dati):sal.dati||sal;return{s:migra(s)}}catch(e){return{err:'Salvataggio illeggibile: '+e.message}}}
  // ---- il racconto ----
- function passoRacconto(s,cap,a,righe){const r=RA.act(s.racc,a,capDi(s,cap),ctx(s));if(r.err)return r;s.racc=r.s;
+ function passoRacconto(s,cap,a,righe){const prima=s.racc.scena?s.racc.scena.id:null,r=RA.act(s.racc,a,capDi(s,cap),ctx(s));if(r.err)return r;s.racc=r.s;
+  if(r.esito==='rifiutata'&&prima){const m=/^(gen-[a-z0-9]+)-offerta$/.exec(prima),e=m&&s.gen.find(x=>x.id===m[1]);if(e)e.rif=true}   // l'offerta rifiutata non torna
   const e=applica(s,cap,r.fuori||[],righe);if(e)return e;
   if(typeof r.esito==='string'&&/^finale-/.test(r.esito))concludi(s,cap,r.esito,righe);
   return{}}
@@ -119,14 +158,16 @@ const AVV=(()=>{
  function azCamp(s,cap,a,righe){const c=s.camp;
   if(s.bat||c.sfida)return{err:'Prima va combattuta la battaglia'};if(s.racc.scena)return{err:'C\'è un racconto in corso'};
   if(a.t==='esito')return{err:'Il risultato della battaglia si dà con «esito»'};
-  if(a.t==='entra'){const e=a.eroe!=null?c.eroi[a.eroe]:CP.vivi(c)[0],l=e&&CP.luogoDi(c,e);if(l&&storia(cap,l.id))return{err:'Qui la storia decide il passo: apri la scena del luogo'}}
+  if(a.t==='entra'){const e=a.eroe!=null?c.eroi[a.eroe]:CP.vivi(c)[0],l=e&&CP.luogoDi(c,e);if(l&&(storia(cap,l.id)||genBlocca(s,l.id)))return{err:'Qui la storia decide il passo: apri la scena del luogo'}}
   const r=CP.act(c,a);if(r.err)return r;s.camp=r.s;
   if(a.t==='muovi')strada(s,cap,righe);
   return{}}
+ // dove c'è un incarico attivo non ancora compiuto, la sua scena d'arrivo decide il passo (come per le scene del capitolo)
+ const genBlocca=(s,id)=>incarichi(s).some(x=>x.stato==='attiva'&&x.e.meta===id&&!(s.racc.bandiere||{})[x.f.id+'-fatto']);
  function azScena(s,cap,id,righe,vieneDa){const c=s.camp;
   if(s.racc.scena)return{err:'C\'è già una scena in corso'};if(s.bat||c.sfida||c.incontro||c.evento||c.dentro)return{err:'Non adesso'};
   const l=luogoGruppo(c);if(vieneDa==='luogo'){if(!l)return{err:'Riunite la compagnia in un luogo'};
-   if(!RA.disponibili(cap,s.racc,ctx(s),l.id).includes(id))return{err:'Qui non c\'è nulla da fare'}}
+   if(!RA.disponibili(capDi(s,cap),s.racc,ctx(s),l.id).includes(id))return{err:'Qui non c\'è nulla da fare'}}
   return passoRacconto(s,cap,{t:'avvia',id},righe)}
  function azCompagnia(s,cap,a,righe){const c=s.camp,l=luogoGruppo(c),d=(cap.compagni||{})[a.id];
   if(!d)return{err:'Compagno sconosciuto'};if(!l||l.tipo!=='citta')return{err:'I compagni si cambiano in città'};if(s.racc.scena||s.bat||c.sfida)return{err:'Non adesso'};
@@ -139,9 +180,10 @@ const AVV=(()=>{
  function riepilogo(s,cap){const da=s.sessione.da,c=s.camp;
   return{sessione:(s.racc.sessioni|0)+1,giorni:c.giorno-da.giorno,oro:c.oro-da.oro,xp:Object.fromEntries(c.eroi.filter(e=>!e.compagno).map(e=>[e.slot,(e.xp|0)-(da.xp[e.slot]|0)])),battaglie:s.sessione.battaglie,sconfitte:s.sessione.sconfitte}}
  function chiudi(s,cap){const f=fase(s);if(f!=='mappa'&&f!=='citta')return{err:'La sessione si chiude sulla mappa, non nel mezzo di una scena o di una battaglia'};
-  const rie=riepilogo(s,cap);s.racc=RA.finisciSessione(s.racc);s.sessione=nuovaSessione(s);rie.cantare=RA.cantare(cap,s.racc,ctx(s));return{riepilogo:rie}}
+  const rie=riepilogo(s,cap);s.racc=RA.finisciSessione(s.racc);s.sessione=nuovaSessione(s);rie.cantare=RA.cantare(capDi(s,cap),s.racc,ctx(s));return{riepilogo:rie}}
  // ---- dopo ogni azione ----
  function dopo(s,cap,righe){
+  scadenze(s,righe);
   const lv=CP.livelli(s.camp);s.camp=lv.s;righe.push(...lv.su);
   if(s.camp.over&&!s.fine){
    if(!s.camp.over.win&&s.camp.perdizione<100)sconfitta(s,cap,righe);
@@ -162,6 +204,7 @@ const AVV=(()=>{
     const b=a.a||{};if(b.t!=='scegli'&&b.t!=='continua')return{err:'Azione del racconto non valida'};r=passoRacconto(s,cap,b,righe);break}
    case'esito':r=esito(s,cap,a.riep,righe);break;
    case'compagnia':r=azCompagnia(s,cap,a,righe);break;
+   case'bacheca':r=azBacheca(s,cap,righe);break;
    case'chiudi':r=chiudi(s,cap);break;
    default:return{err:'Azione sconosciuta: '+a.t}}}
   catch(e){return{err:e.message}}
@@ -169,10 +212,14 @@ const AVV=(()=>{
   dopo(s,cap,righe);s.fase=fase(s);
   const out={s,righe};if(s.fase!==prima)out.cambio={da:prima,a:s.fase};if(r&&r.riepilogo)out.riepilogo=r.riepilogo;return out}
  // ---- per la vista: tutto ciò che serve a disegnare, senza toccare lo stato ----
- function vista(s,cap){const c=s.camp,l=luogoGruppo(c),cx=ctx(s);
+ // gli incarichi per il diario e per la bacheca: titolo, cliente, dove, scadenza, ricompensa a parole
+ const premio=r=>(r||[]).map(x=>x.t==='oro'?x.n+' monete':x.t==='xp'?x.n+' di esperienza':x.t==='oggetto'?'un oggetto':'').filter(Boolean).join(', ');
+ function incarichiVista(s){return incarichi(s).filter(x=>x.stato!=='rifiutata').map(x=>{const f=x.f,L=s.camp.luoghi;
+   return{id:x.e.id,titolo:f.missioni[f.missione].titolo,cliente:f.cliente,da:(L[x.e.origine]||{}).nome||'',luogo:(L[x.e.meta]||{}).nome||'',stato:x.stato,entro:f.entro,premio:premio(f.ricompensa),tipo:f.tipo}})}
+ function vista(s,cap){const c=s.camp,l=luogoGruppo(c),cx=ctx(s),cd=capDi(s,cap);
   return{fase:fase(s),vite:s.vite,viteMax:s.viteMax,luogo:l?{id:l.id,nome:l.nome,tipo:l.tipo}:null,
-   scene:!s.racc.scena&&!s.bat&&!c.sfida&&l?RA.disponibili(cap,s.racc,cx,l.id).map(id=>({id,titolo:(cap.scene[id]||{}).titolo||id})):[],
+   scene:!s.racc.scena&&!s.bat&&!c.sfida&&l?RA.disponibili(cd,s.racc,cx,l.id).map(id=>({id,titolo:(cd.scene[id]||{}).titolo||id})):[],bacheca:bacheca(s,cap),incarichi:incarichiVista(s),
    compagni:Object.keys(cap.compagni||{}).filter(id=>CM.stato(s.racc,id)!=='sconosciuto').map(id=>({id,nome:cap.compagni[id].nome,stato:CM.stato(s.racc,id),approv:CM.approv(s.racc,cap,id),parla:!!CM.parla(s.racc,cap,id)})),
-   racconto:s.racc.scena?RA.vista(s.racc,capDi(s,cap),cx):null,fine:s.fine,ultimaCitta:s.ultimaCitta}}
- return{VERSIONE,FASI,PARAM,nuova,act,fase,ctx,vista,battaglia,quali,salva,apri,migra,storia,livelloGruppo}})();
+   racconto:s.racc.scena?RA.vista(s.racc,cd,cx):null,fine:s.fine,ultimaCitta:s.ultimaCitta}}
+ return{VERSIONE,FASI,PARAM,nuova,act,fase,ctx,vista,battaglia,quali,salva,apri,migra,storia,livelloGruppo,capitolo:capDi,incarichi:incarichiVista,bacheca}})();
 if(typeof module!=='undefined')module.exports=AVV;

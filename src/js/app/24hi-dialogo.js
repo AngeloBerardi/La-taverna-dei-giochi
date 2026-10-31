@@ -15,7 +15,7 @@ const Dia={
   if(Dia.s&&Dia.cap)for(const id of ACMP.nelGruppo(Dia.s))b.push(Dia.compagno(id));return b},
  comp:{},
  // di dove viene il racconto che si legge: in sessione (A9) è `Ses.a.racc` con gli eroi e il mondo della campagna, altrimenti la prova di sempre
- fonte(){if(Ses.dia&&Ses.a&&Ses.cap)return{s:Ses.a.racc,cap:Ses.cap,ctx:AVV.ctx(Ses.a),ses:true,bat:!!Ses.a.bat};Dia.leggi();return{s:Dia.s,cap:Dia.cap,ctx:Dia.s&&Dia.cap?Dia.ctx():null,ses:false,bat:false}},
+ fonte(){if(Ses.dia&&Ses.a&&Ses.cap)return{s:Ses.a.racc,cap:AVV.capitolo(Ses.a,Ses.cap),ctx:AVV.ctx(Ses.a),ses:true,bat:!!Ses.a.bat};Dia.leggi();return{s:Dia.s,cap:Dia.cap,ctx:Dia.s&&Dia.cap?Dia.ctx():null,ses:false,bat:false}},
  compagno(id){return Dia.comp[id]||(Dia.comp[id]=ACMP.scheda(Dia.cap.compagni[id],3,id))},
  ctx(){return{eroi:Dia.eroi(),oro:Dia.oro,perdizione:0,giorno:1,luogo:null}},
  // ---- a parole: ciò che succede quando la scena finisce o cambia qualcosa ----

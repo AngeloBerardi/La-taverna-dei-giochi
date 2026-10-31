@@ -324,4 +324,70 @@ assert(!/\b(Catan|Dungeons|Pathfinder)\b/i.test(sorgente + JSON.stringify(prova)
   assert(cap.finali && Object.keys(cap.finali).every((k) => k.length <= 60), 'ogni esito di fine del capitolo sta in 60 caratteri');
 }
 
+// ---- la bacheca: incarichi generati dal seme (A10) ----
+{
+  const EV = require('../src/js/motori/27r-avv-eventi.js');
+  const nuova = (seme, g) => AVV.nuova(cap, g || due(), seme || 11, { avvio: false });
+  const chiedi = (x) => ok(AVV.act(x, { t: 'bacheca' }, cap), 'bacheca').s;
+  const scegli = (x, i) => ok(AVV.act(x, { t: 'racconto', a: { t: 'scegli', i } }, cap), 'scelta ' + i).s;
+  const altroGiorno = (x) => { const y = copia(x); y.camp.giorno += 1; return y; };
+  let s = nuova();
+  // c'è una bacheca in città, non in mezzo alla strada
+  assert(AVV.bacheca(s, cap).visibile && AVV.bacheca(s, cap).ok); assert.strictEqual(AVV.vista(s, cap).bacheca.ok, true); assert.deepStrictEqual(AVV.incarichi(s), []);
+  { const f = copia(s), q = C.celleRaggio(3).find((x) => { const c = f.camp.celle[C.K(x.q, x.r)]; return c && !c.luogo; }); f.camp.eroi.forEach((e) => { e.q = q.q; e.r = q.r; });
+    assert.strictEqual(AVV.bacheca(f, cap).visibile, false); assert(AVV.act(f, { t: 'bacheca' }, cap).err, 'senza bacheca'); assert.strictEqual(AVV.vista(f, cap).bacheca.visibile, false); }
+  assert.strictEqual(AVV.capitolo(s, cap), cap, 'senza incarichi il capitolo è quello');
+  // chiedere un incarico: nasce l'offerta e si apre il dialogo
+  const r1 = ok(AVV.act(s, { t: 'bacheca' }, cap), 'bacheca'); s = r1.s;
+  assert.strictEqual(AVV.fase(s), 'dialogo'); assert.strictEqual(r1.cambio.a, 'dialogo'); assert.strictEqual(s.gen.length, 1);
+  const g = s.gen[0], mid = 'm-' + g.id;
+  assert(/^gen-[a-z0-9]+$/.test(g.id)); assert.deepStrictEqual(Object.keys(g).sort(), ['giorno', 'id', 'liv', 'meta', 'origine', 'seme']); assert.strictEqual(g.origine, 'valcorvo'); assert(['antro', 'rovina', 'torre'].includes(s.camp.luoghi[g.meta].tipo));
+  assert(JSON.stringify(s.gen).length < 160, 'poche decine di byte per incarico'); assert.strictEqual(s.racc.scena.id, g.id + '-offerta');
+  // il capitolo con l'incarico è valido; scene e personaggio col prefisso, niente scontri di id
+  const mc = AVV.capitolo(s, cap), err = R.valida(mc); assert.deepStrictEqual(err, [], err.join('; '));
+  assert(mc.scene[g.id + '-offerta'] && mc.scene[g.id + '-arrivo'] && mc.scene[g.id + '-ritorno'] && mc.personaggi[g.id + '-cl'] && !mc.scene.offerta && !mc.personaggi.cl); assert.strictEqual(Object.keys(mc.scene).length, Object.keys(cap.scene).length + 3);
+  assert.strictEqual(R.vista(s.racc, mc, AVV.ctx(s)).chi.nome, mc.personaggi[g.id + '-cl'].nome, 'parla il cliente'); assert.strictEqual(AVV.vista(s, cap).racconto.scena, g.id + '-offerta');
+  // accettare: missione attiva, di nuovo in città
+  s = chiudiScena(s, cap); assert.strictEqual(s.racc.missioni[mid].stato, 'attiva'); assert.strictEqual(AVV.fase(s), 'citta');
+  let inc = AVV.incarichi(s); assert.strictEqual(inc.length, 1); assert.strictEqual(inc[0].stato, 'attiva'); assert.strictEqual(inc[0].luogo, s.camp.luoghi[g.meta].nome); assert(inc[0].titolo && inc[0].cliente && inc[0].premio && inc[0].da === 'Valcorvo');
+  // un incarico nuovo al giorno per luogo; al massimo due da concludere
+  assert.strictEqual(AVV.bacheca(s, cap).ok, false); assert(AVV.act(s, { t: 'bacheca' }, cap).err);
+  const r2 = ok(AVV.act(altroGiorno(s), { t: 'bacheca' }, cap), 'secondo'); assert.strictEqual(r2.s.gen.length, 2); assert.notStrictEqual(r2.s.gen[1].id, g.id); assert.notStrictEqual(r2.s.gen[1].seme, g.seme);
+  const due2 = chiudiScena(r2.s, cap); assert.strictEqual(AVV.incarichi(due2).filter((x) => x.stato === 'attiva').length, 2);
+  const tre = altroGiorno(altroGiorno(due2)); assert.strictEqual(AVV.bacheca(tre, cap).ok, false); assert(/già 2 incarichi/.test(AVV.bacheca(tre, cap).perche)); assert(AVV.act(tre, { t: 'bacheca' }, cap).err);
+  // rifiutare: non torna; il giorno dopo ne nasce un altro. Un'offerta lasciata a metà si riprende, non se ne crea una seconda
+  { const n = chiudiScena(scegli(chiedi(nuova()), 2), cap); assert.strictEqual(n.gen[0].rif, true); assert.strictEqual(AVV.fase(n), 'citta'); assert.deepStrictEqual(AVV.incarichi(n), [], 'rifiutato = non si vede'); assert.strictEqual(n.racc.missioni['m-' + n.gen[0].id], undefined);
+    assert.strictEqual(AVV.bacheca(n, cap).ok, false, 'oggi basta'); const n2 = chiedi(altroGiorno(n)); assert.strictEqual(n2.gen.length, 2); assert.notStrictEqual(n2.gen[1].id, n.gen[0].id);
+    const h = chiedi(nuova()); const id = h.gen[0].id; h.racc.scena = null; assert.strictEqual(AVV.bacheca(h, cap).riusa, id); const rr = chiedi(h); assert.strictEqual(rr.gen.length, 1); assert.strictEqual(rr.racc.scena.id, id + '-offerta'); }
+  // l'arrivo: dove c'è un incarico attivo la storia decide il passo; la scena porta alla battaglia; poi si torna dal cliente
+  { let a = chiudiScena(chiedi(nuova(11, quattro())), cap); const ga = a.gen[0], L = a.camp.luoghi[ga.meta], O = a.camp.luoghi[ga.origine], mid2 = 'm-' + ga.id, oro0 = a.camp.oro;
+    const teletrasporta = (x, l) => { x.camp.eroi.forEach((e) => { e.q = l.q; e.r = l.r; }); return x; };
+    teletrasporta(a, L); assert(AVV.vista(a, cap).scene.some((q) => q.id === ga.id + '-arrivo'), 'la scena d\'arrivo è nel luogo'); assert(!AVV.vista(a, cap).scene.some((q) => q.id === ga.id + '-ritorno'));
+    const no = AVV.act(a, { t: 'camp', a: { t: 'entra', eroe: 0 } }, cap); assert(no.err && /storia/.test(no.err), no.err);
+    a = ok(AVV.act(a, { t: 'scena', id: ga.id + '-arrivo' }, cap), 'arrivo').s; a = chiudiScena(a, cap); assert(a.bat, 'battaglia dell\'incarico');
+    // con l'imboscata le battaglie sono due (all'ingresso e nel luogo): si vincono tutte, finché la scena le chiede
+    for (let k = 0; a.bat && k < 4; k++) { const f = IA.partita(AVV.battaglia(a), { eroi: 'eroica', nemici: 'normale' }); assert.strictEqual(f.over.esito, 'vittoria', 'si vince'); a = ok(AVV.act(a, { t: 'esito', riep: SC.riepilogo(f) }, cap), 'esito').s; a = chiudiScena(a, cap); }
+    assert(!a.bat, 'nessuna battaglia in sospeso');
+    assert(a.racc.bandiere[ga.id + '-fatto'], 'bandiera del lavoro compiuto'); assert.strictEqual(a.racc.missioni[mid2].stato, 'attiva');
+    assert(!AVV.act(a, { t: 'camp', a: { t: 'entra', eroe: 0 } }, cap).err || !/storia/.test(AVV.act(a, { t: 'camp', a: { t: 'entra', eroe: 0 } }, cap).err), 'compiuto, il sotterraneo si può visitare');
+    assert(!AVV.vista(a, cap).scene.some((q) => q.id === ga.id + '-arrivo'), 'e l\'arrivo non si rigioca');
+    teletrasporta(a, O); assert(AVV.vista(a, cap).scene.some((q) => q.id === ga.id + '-ritorno'), 'dal cliente si torna'); a = chiudiScena(vai(a, ga.id + '-ritorno', cap), cap);
+    assert.strictEqual(a.racc.missioni[mid2].stato, 'fatta'); assert.strictEqual(AVV.incarichi(a)[0].stato, 'fatta'); assert(a.camp.oro >= oro0 - 40, 'pagati (o quasi)');
+    assert(AVV.capitolo(a, cap).sommario.some((q) => /Avete concluso il lavoro/.test(q.testo)), 'il riassunto del Locandiere lo conosce'); }
+  // la scadenza: oltre il giorno limite la missione si segna fallita (una volta) e le sue scene spariscono
+  { let x = nuova(); const O = x.camp.luoghi.valcorvo, M = Object.values(x.camp.luoghi).find((l) => l.tipo === 'rovina');
+    let seme = 1, f; for (; seme < 2000; seme++) { f = EV.generata(seme, { luoghi: [O, M].map((l) => ({ id: l.id, tipo: l.tipo, nome: l.nome })), giorno: 1, liv: 1, origine: O.id }); if (f && f.entro != null) break; }
+    assert(f && f.entro != null, 'un seme con scadenza'); x.gen.push({ id: f.id, seme, liv: 1, giorno: 1, origine: O.id, meta: M.id }); x.racc.missioni[f.missione] = { stato: 'attiva', passo: 0 };
+    assert.strictEqual(AVV.incarichi(x)[0].stato, 'attiva'); assert.strictEqual(AVV.incarichi(x)[0].entro, f.entro);
+    x.camp.giorno = f.entro + 1; assert.strictEqual(AVV.incarichi(x)[0].stato, 'scaduta'); const r = ok(AVV.act(x, { t: 'chiudi' }, cap), 'azione dopo la scadenza');
+    assert.strictEqual(r.s.racc.missioni[f.missione].stato, 'fallita'); assert(r.righe.some((q) => /scaduto/.test(q)), 'lo dice'); assert.strictEqual(AVV.incarichi(r.s)[0].stato, 'scaduta');
+    assert(!Object.keys(AVV.capitolo(r.s, cap).scene).some((k) => k.indexOf(f.id) === 0), 'le scene scadute spariscono'); const r3 = ok(AVV.act(r.s, { t: 'chiudi' }, cap)); assert.strictEqual(r3.righe.filter((q) => /scaduto/.test(q)).length, 0, 'lo dice una volta sola'); }
+  // si tengono pochi incarichi; salvataggio piccolo, vecchi salvataggi aperti, stessa partita = stessi incarichi
+  { let x = nuova(); for (let k = 0; k < 12; k++) { x = chiudiScena(scegli(chiedi(altroGiorno(x)), 2), cap); }
+    assert.strictEqual(x.gen.length, 10, 'tenuti al massimo ' + 10); assert(JSON.stringify(x.gen).length < 1500, 'e restano piccoli'); assert.strictEqual(new Set(x.gen.map((e) => e.id)).size, 10);
+    const sv = AVV.salva(r2.s), ap = AVV.apri(sv).s; assert.deepStrictEqual(ap.gen, r2.s.gen); assert.strictEqual(AVV.incarichi(ap).length, 2);
+    const vecchio = copia(r2.s); delete vecchio.gen; assert.deepStrictEqual(AVV.apri({ dati: JSON.stringify(vecchio) }).s.gen, [], 'senza gen: nessun incarico');
+    assert.strictEqual(JSON.stringify(chiedi(nuova())), JSON.stringify(chiedi(nuova())), 'ripetibile'); assert.notStrictEqual(JSON.stringify(chiedi(nuova(11)).gen), JSON.stringify(chiedi(nuova(12)).gen), 'semi diversi'); }
+}
+
 console.log('OK test_avv_orchestratore');

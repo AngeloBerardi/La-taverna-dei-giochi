@@ -65,6 +65,8 @@ const Ses={
   const era=!!Ses.a.racc.scena,r=Ses.fai({t:'racconto',a:az});if(r.err){Dia.msg=r.err;return render()}Dia.msg='';
   if(era&&!Ses.a.racc.scena&&!Ses.a.bat&&Ses.righe.length)say(Ses.righe.slice(0,2).join(' · '),3200);Ses.vai(true);render()},
  scena(id){const r=Ses.fai({t:'scena',id});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Dia.msg='';Ses.vai(true);render()},
+ // la bacheca degli incarichi: legge un'offerta (nuova o in sospeso) e apre il dialogo
+ bacheca(){const r=Ses.fai({t:'bacheca'});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Dia.msg='';Ses.vai(true);render()},
  parla(id){const r=Ses.fai({t:'parla',id});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Dia.msg='';Ses.vai(true);render()},
  compagnia(id,az){const r=Ses.fai({t:'compagnia',id,azione:az});Camp.u.msg=r.err||'';if(!r.err)Ses.vai();render()},
  chiudiSessione(){const r=Ses.fai({t:'chiudi'});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Ses.vai();render()},
@@ -98,7 +100,8 @@ const Ses={
  viteH(){const a=Ses.a;return`<span class="se-vite" role="img" aria-label="Vite della compagnia: ${a.vite} su ${a.viteMax}">${Array.from({length:a.viteMax},(_,i)=>`<i class="${i<a.vite?'':'vuota'}">${ic('cuore',14)}</i>`).join('')}</span>`},
  // il foglio del luogo: scene della storia, compagni, fine sessione
  luogoH(){const a=Ses.a,v=AVV.vista(a,Ses.cap);let r='';
-  for(const sc of v.scene)r+=MoPan.riga(esc(sc.titolo),'Una scena della storia.',`<button class="b gold" data-a="ses" data-v="scena:${esc(sc.id)}">${ic('diario',16)} Vai</button>`);
+  if(v.bacheca&&v.bacheca.visibile)r+=MoPan.riga('Bacheca degli incarichi',esc(v.bacheca.ok?v.bacheca.testo:''),`<button class="b gold" data-a="ses" data-v="bacheca"${v.bacheca.ok?'':' disabled'}>${ic('diario',16)} Leggi</button>`,v.bacheca.ok?'':v.bacheca.perche);
+  for(const sc of v.scene)r+=MoPan.riga(esc(sc.titolo),sc.id.indexOf('gen-')===0?'Un incarico che avete accettato.':'Una scena della storia.',`<button class="b gold" data-a="ses" data-v="scena:${esc(sc.id)}">${ic('diario',16)} Vai</button>`);
   const pieno=a.camp.eroi.length>=ACMP.POSTI,citta=v.luogo&&v.luogo.tipo==='citta';
   for(const c of v.compagni){const liv=ACMP.livello(c.approv).nome;
    if(c.stato==='gruppo'&&c.parla)r+=MoPan.riga('Parla con '+esc(c.nome),esc(liv)+' ('+c.approv+')',`<button class="b" data-a="ses" data-v="parla:${esc(c.id)}">Parla</button>`);
@@ -109,7 +112,12 @@ const Ses={
  diarioH(){const a=Ses.a,cap=Ses.cap,m=a.racc.missioni||{},att=Object.keys(m).filter(id=>m[id].stato==='attiva'&&cap.missioni[id]),fatte=Object.keys(m).filter(id=>m[id].stato==='fatta'&&cap.missioni[id]),
    riga=(id,k)=>`<li class="${k}">${ic(k==='fatto'?'spunta':'bersaglio',16)}<span><b>${esc(cap.missioni[id].titolo)}</b><small>${esc(cap.missioni[id].descr||'')}</small></span></li>`,ap=a.racc.diario||[];
   return`<div class="sh2">${esc(cap.titolo)}</div><ul class="mo-passi">${att.map(id=>riga(id,'ora')).join('')||'<li><span><small>Nessuna missione attiva: parla con chi incontri.</small></span></li>'}${fatte.map(id=>riga(id,'fatto')).join('')}</ul>
+${Ses.incarichiH()}
 ${ap.length?`<div class="sh2">Appunti</div><div class="mo-log">${ap.slice(-6).reverse().map(x=>`<p>${esc(x)}</p>`).join('')}</div>`:''}`},
+ // gli incarichi della bacheca: dove andare, entro quando, che cosa danno
+ incarichiH(){const L=AVV.incarichi(Ses.a);if(!L.length)return'';
+  const sotto=x=>x.stato==='attiva'?`Per ${x.cliente} · vai a ${x.luogo}${x.entro?`, entro il giorno ${x.entro}`:''} · ${x.premio}`:x.stato==='offerta'?`Offerta di ${x.cliente} a ${x.da}: va ancora accettata`:x.stato==='fatta'?`${x.cliente} · concluso`:`${x.cliente} · scaduto`;
+  return`<div class="sh2">Incarichi</div><ul class="mo-passi">${L.map(x=>`<li class="${x.stato==='attiva'?'ora':x.stato==='fatta'?'fatto':''}">${ic(x.stato==='fatta'?'spunta':'bersaglio',16)}<span><b>${esc(x.titolo)}</b><small>${esc(sotto(x))}</small></span></li>`).join('')}</ul>`},
  diarioFondoH(){const f=AVV.fase(Ses.a);
   return`<div class="sh2">Vite della compagnia</div><div class="se-vita">${Ses.viteH()}</div><small class="muted">Una battaglia persa ne costa una: ci si risveglia nell'ultima città con metà dei PF, metà dell'oro in meno e più perdizione. Senza vite la campagna è persa.</small>
 <div class="se-bt">${['mappa','citta'].includes(f)?'<button class="b gold" data-a="ses" data-v="chiudi">Concludi la sessione</button>':''}<button class="b" data-a="campx">Esci</button></div>`},
@@ -137,7 +145,7 @@ ${Ses.conf===s?`<div class="se-bt"><small>Eliminare questa campagna?</small><but
   return`<div class="sh2">Sul profilo dei tuoi eroi</div><ul class="se-ri">${righe}</ul>${p.finito?'':Avv.online()?`<button class="b gold" data-a="ses" data-v="riscuoti"${Ses.occ?' disabled':''}>Riscuota${p.scritture>1?' ('+p.scritture+' tappe)':''}</button>`.replace('Riscuota','Riscuoti'):'<small class="muted">Per riscuotere serve il profilo online.</small>'}${st?`<p class="se-st" role="status">${esc(st.msg)}</p>`:''}`},
  html(){const a=Ses.a,v=Ses.vista;if(!a||!v)return'';const box=(t,corpo,bt)=>`<div class="modal se-modal"><div class="box col se" role="dialog" aria-label="${esc(t)}"><h2>${esc(t)}</h2>${corpo}<div class="se-bt">${bt}</div></div></div>`,d=Ses.occ?' disabled':'';
   if(v==='sveglia'){const l=a.camp.luoghi[a.ultimaCitta];return box('La compagnia è sconfitta',`<p>${esc(Ses.righe[0]||'')}</p><p class="muted">Vi risvegliate a ${esc(l?l.nome:'una città')} con metà dei PF, meno monete e più perdizione.</p><div class="se-vita">${Ses.viteH()}</div>`,'<button class="b gold" data-a="ses" data-v="ok">Rialzati</button>')}
-  if(v==='apertura'){const k=ARAC.cantare(Ses.cap,a.racc,AVV.ctx(a));return box(k.titolo,`<p class="se-testo">${esc(LOC.apertura({cantare:k}))}</p>${ARIE.piano(a).finito?'':Ses.riH()}`,`<button class="b gold" data-a="ses" data-v="ok"${d}>Si parte</button>`)}
+  if(v==='apertura'){const k=ARAC.cantare(AVV.capitolo(a,Ses.cap),a.racc,AVV.ctx(a));return box(k.titolo,`<p class="se-testo">${esc(LOC.apertura({cantare:k}))}</p>${ARIE.piano(a).finito?'':Ses.riH()}`,`<button class="b gold" data-a="ses" data-v="ok"${d}>Si parte</button>`)}
   if(v==='sessione'){const r=Ses.riep||{},k=r.cantare;return box('Per oggi basta così',`<p class="se-testo">${esc(k?LOC.chiusura({cantare:k}):'')}</p><small class="muted">Giorni di viaggio: ${r.giorni|0} · battaglie: ${r.battaglie|0} · monete: ${(r.oro|0)>=0?'+':''}${r.oro|0}</small>${Ses.riH()}`,`<button class="b" data-a="ses" data-v="ok"${d}>Resto qui</button><button class="b gold" data-a="ses" data-v="esci"${d}>Alla taverna</button>`)}
   if(v==='fine'){const f=a.fine||{},nomi=(f.sbloccati||[]).map(id=>(Ses.cap.compagni[id]||{}).nome).filter(Boolean);
    return box(f.titolo||'Il cantare è finito',`<p class="se-testo">${esc(f.testo||'')}</p><small class="muted">${f.vinta?'Giorno '+f.giorni+' · vite rimaste: '+f.vite:'Il cantare finisce qui.'}</small>${nomi.length?`<p><b>Compagni di strada:</b> ${nomi.map(esc).join(', ')}</p>`:''}${f.vinta&&f.monete?`<p><b>Premio:</b> ${f.monete} monete della Taverna${f.premiato?' (già nel borsellino)':''}.</p>`:''}${Ses.riH()}`,`<button class="b gold" data-a="ses" data-v="esci"${d}>Alla taverna</button>`)}
@@ -154,6 +162,7 @@ ${Ses.conf===s?`<div class="se-bt"><small>Eliminare questa campagna?</small><but
    case'elimina2':return Ses.elimina(arg);
    case'scena':return Ses.scena(arg);
    case'parla':return Ses.parla(arg);
+   case'bacheca':return Ses.bacheca();
    case'compagnia':{const[id,az]=arg.split(':');return Ses.compagnia(id,az)}
    case'chiudi':return Ses.chiudiSessione();
    case'combatti':return Ses.combatti();
