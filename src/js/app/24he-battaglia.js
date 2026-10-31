@@ -9,15 +9,15 @@ const Bat={
  // la compagnia di prova: quattro eroi (guerriero, mago, chierico, ladro) del livello scelto, con qualche oggetto in cintura
  PROVA:[['guerriero','Brenno','umano',{for:15,des:12,cos:14,int:8,sag:10,car:8},['pozione-cura']],['mago','Iselda','elfo',{for:8,des:14,cos:12,int:15,sag:10,car:8},['bomba-fuoco']],
   ['chierico','Fra Tomaso','nano',{for:12,des:10,cos:13,int:8,sag:15,car:10},['pozione-cura','pozione-cura']],['ladro','Nina','piccolo',{for:8,des:15,cos:13,int:12,sag:10,car:10},['bomba-fuoco']]],
- s:null,c:null,v:{k:1,cx:null,cy:null},aspetti:{},cfg:null,log:[],foglio:null,pausa:null,msg:'',msgSetup:'',
+ s:null,c:null,mondo:null,v:{k:1,cx:null,cy:null},aspetti:{},cfg:null,log:[],foglio:null,pausa:null,msg:'',msgSetup:'',
  anim:false,lavoro:false,salta:false,vedi:false,logAperto:false,gen:0,
  // ---- salvataggio ----
  carica(){try{const j=JSON.parse(localStorage.getItem('batcfg')||'null');Bat.cfg=Object.assign({},Bat.DEF,j&&typeof j==='object'?j:{})}catch(e){ERR.n(e);Bat.cfg=Object.assign({},Bat.DEF)}
   Bat.cfg.liv=Math.max(1,Math.min(8,Bat.cfg.liv|0||1))},
  salvaCfg(){try{localStorage.setItem('batcfg',JSON.stringify(Bat.cfg))}catch(e){ERR.n(e)}},
- salva(){try{if(!Bat.s||Bat.s.over)localStorage.removeItem('bat');else localStorage.setItem('bat',JSON.stringify({v:1,s:Bat.s,aspetti:Bat.aspetti,log:Bat.log.slice(-60)}))}catch(e){ERR.n(e)}},
+ salva(){try{if(!Bat.s||(Bat.s.over&&!Bat.mondo))localStorage.removeItem('bat');else localStorage.setItem('bat',JSON.stringify({v:1,s:Bat.s,aspetti:Bat.aspetti,log:Bat.log.slice(-60),mondo:Bat.mondo||null}))}catch(e){ERR.n(e)}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('bat')||'null');
-  if(j&&j.v===1&&j.s&&j.s.v===1&&j.s.arena&&!j.s.over){Bat.s=j.s;Bat.aspetti=j.aspetti||{};Bat.log=Array.isArray(j.log)?j.log:[];Bat.c=ACOM.nuovo(Bat.s)}}catch(e){ERR.n(e)}},
+  if(j&&j.v===1&&j.s&&j.s.v===1&&j.s.arena&&(!j.s.over||j.mondo)){Bat.s=j.s;Bat.mondo=j.mondo||null;Bat.aspetti=j.aspetti||{};Bat.log=Array.isArray(j.log)?j.log:[];Bat.c=ACOM.nuovo(Bat.s)}}catch(e){ERR.n(e)}},
  inCorso(){return!!Bat.s&&!Bat.s.over},
  auto(c){return c.lato==='nemici'||c.hp<=0},
  // ---- avvio ----
@@ -27,7 +27,7 @@ const Bat={
  async conto(){let L=Eroi.lista;try{L=await FB.eroi();Eroi.lista=L}catch(e){console.warn('Bat',e)}
   return EROI.SLOT_ID.map(id=>L&&L[id]&&EROI.coerente(L[id])?{...L[id],slot:id}:null).filter(Boolean).slice(0,ASCO.MAX_EROI)
    .map(h=>({eroe:APOT.completa({...h,hp:EROI.derivati(h).hpMax,usi:{},conc:undefined}),dist:0}))},
- async avvia(){if(Bat.lavoro||Bat.avviando)return;Bat.avviando=true;Bat.msgSetup='';
+ async avvia(){if(Bat.lavoro||Bat.avviando)return;if(Bat.mondo){Bat.msgSetup='Prima concludi la battaglia della campagna.';return render()}Bat.avviando=true;Bat.msgSetup='';
   try{const cfg=Bat.cfg;let squad;
    if(cfg.party==='conto'){squad=await Bat.conto();if(!squad.length){Bat.msgSetup='Non hai eroi sul profilo: scegli la compagnia di prova.';return}}else squad=Bat.prova(cfg.liv);
    const liv=cfg.party==='conto'?Math.max(1,Math.round(squad.reduce((a,m)=>a+(m.eroe.liv||1),0)/squad.length)):cfg.liv,seme=(Date.now()^(Math.random()*4294967296))>>>0;
@@ -38,6 +38,12 @@ const Bat={
    Bat.foglio=null;Bat.pausa=null;Bat.msg='';Bat.anim=false;Bat.salta=false;Bat.vedi=false;Bat.logAperto=false;Bat.salva();ui.avv=false;ui.bat=true}
   catch(e){ERR.n(e);Bat.msgSetup='Non riesco a preparare la battaglia: riprova.'}
   finally{Bat.avviando=false;render()}},
+ // la battaglia della campagna (A6.5): `stato` = CAMP.battaglia(s), `aspetti` = gli aspetti degli eroi che partecipano (nell'ordine di `sfida.quali`), `chiave` = il seme della sfida
+ daMondo(stato,aspetti,chiave){Bat.gen++;Bat.s=stato;Bat.c=ACOM.nuovo(stato);Bat.mondo=chiave;Bat.aspetti={};aspetti.forEach((a,k)=>{Bat.aspetti['e'+(k+1)]=a});
+  Bat.v={k:1,cx:null,cy:null};Bat.log=[{testo:`Comincia lo scontro: ${stato.cb.filter(c=>c.lato==='nemici').length} nemici contro ${stato.cb.filter(c=>c.lato==='eroi').length} eroi.`,lato:null,peso:'normale'}];
+  Bat.foglio=null;Bat.pausa=null;Bat.msg='';Bat.anim=false;Bat.salta=false;Bat.vedi=false;Bat.logAperto=false;Bat.salva()},
+ // dopo «Continua»: la battaglia è registrata nella campagna e non serve più
+ chiudiMondo(){Bat.gen++;Bat.s=null;Bat.c=null;Bat.mondo=null;Bat.log=[];Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;Bat.salva();ui.bat=false;ui.camp=true;document.documentElement.classList.remove('bat-on')},
  // ---- tocchi sulla mappa e comandi ----
  tocca(cella){if(!Bat.s||Bat.anim||Bat.lavoro||Bat.pausa||Bat.s.over||Bat.foglio)return;Bat.msg='';
   if(!cella){Bat.c=ACOM.annulla(Bat.c,Bat.s);return render()}
@@ -121,7 +127,7 @@ ${Bat.risH(s,p,att)}${Bat.barraH(s,p)}${Bat.foglioH(s,p)}${Bat.pausaH(s)}${Bat.f
   else if(f==='altro'){titolo='Altre azioni';corpo=p.speciali.map(x=>riga('speciale:'+x.t,x.nome,'',x.desc,x.ok,x.perche,'')).join('')}
   else if(f==='menu'){titolo='Battaglia';const v=Bat.cfg.vel||1;
    corpo=`<div class="bt-menu"><div class="bt-vv"><span>Velocità dei nemici</span><button class="b sm${v===1?' gold':''}" data-a="batvel" data-v="1">1×</button><button class="b sm${v===2?' gold':''}" data-a="batvel" data-v="2">2×</button></div>
-<button class="b" data-a="batlog">Registro completo</button><button class="b" data-a="batesci">Esci e riprendi dopo</button><button class="b" data-a="batabbandona">Abbandona la battaglia</button><button class="b gold" data-a="batchiudi">Torna alla battaglia</button></div>`}
+<button class="b" data-a="batlog">Registro completo</button><button class="b" data-a="batesci">Esci e riprendi dopo</button>${Bat.mondo?'':'<button class="b" data-a="batabbandona">Abbandona la battaglia</button>'}<button class="b gold" data-a="batchiudi">Torna alla battaglia</button></div>`}
   else return'';
   return`<div class="bt-vela" data-a="batchiudi"></div><div class="bt-foglio" role="dialog" aria-label="${titolo}"><div class="bt-fh"><b>${titolo}</b><button class="ib" data-a="batchiudi" aria-label="Chiudi">${ic('x',16)}</button></div><div class="bt-fl">${corpo}</div></div>`},
  // la reazione che il giocatore può scegliere (scudo, ritiro, riduzione del danno…)
@@ -130,13 +136,14 @@ ${Bat.risH(s,p,att)}${Bat.barraH(s,p)}${Bat.foglioH(s,p)}${Bat.pausaH(s)}${Bat.f
 ${q.opzioni.map(o=>`<button class="bt-riga" data-a="batrea" data-v="${esc(o.id)}"><b>${esc(o.nome)}</b><small>${esc(o.desc)}</small></button>`).join('')}<button class="b" data-a="batrea" data-v="">${esc(q.rifiuta)}</button></div></div>`},
  // fine della battaglia: esito, giri, punti esperienza e stato degli eroi
  fineH(s){if(!s.over)return'';const R=ASCO.riepilogo(s),ok=R.esito==='vittoria';
-  if(Bat.vedi)return`<div class="bt-barra fine"><button class="b" data-a="batvedi">${esc(ACRO.ESITO[R.esito]||'Fine')}</button><button class="b gold" data-a="batesci">Esci</button></div>`;
+  if(Bat.vedi)return`<div class="bt-barra fine"><button class="b" data-a="batvedi">${esc(ACRO.ESITO[R.esito]||'Fine')}</button><button class="b gold" data-a="${Bat.mondo?'batmondo':'batesci'}">${Bat.mondo?'Continua':'Esci'}</button></div>`;
   const stato={'in-piedi':'in piedi','a-terra':'a terra',fuggito:'fuggito'};
   return`<div class="bt-vela"></div><div class="bt-fine ${ok?'vitt':'sconf'}" role="alertdialog" aria-label="${esc(ACRO.ESITO[R.esito]||'Fine')}"><h2>${esc(ACRO.ESITO[R.esito]||'Fine')}</h2>
 <p class="muted">${R.giri} ${R.giri===1?'giro':'giri'} · ${R.xp} PE${R.xp?` (${R.xpPerEroe} a testa)`:''}</p>
 <ul>${R.eroi.map(h=>`<li class="${h.hp<=0?'ko':''}"><span>${Eroi.ritratto(Bat.aspetti[h.id],(ASCO.trova(s,h.id)||{}).razza,(ASCO.trova(s,h.id)||{}).classe,34)}</span><b>${esc(h.nome)}</b><small>${Math.max(0,h.hp)}/${h.hpMax} PF · ${stato[h.stato]||h.stato}</small></li>`).join('')}</ul>
-<p class="muted">Battaglia di prova: i tuoi eroi non cambiano.</p>
-<button class="b gold" data-a="batrigioca">${ok?'Combatti ancora':'Riprova'}</button><button class="b" data-a="batvedi">Guarda il campo</button><button class="b" data-a="batesci">Esci</button></div>`},
+${Bat.mondo?`<p class="muted">${R.esito==='vittoria'?'Il bottino e l\'esperienza entrano nella campagna.':'La compagnia si ritira: la campagna ne tiene conto.'}</p>${Bat.msg?`<p class="no" role="status">${esc(Bat.msg)}</p>`:''}
+<button class="b gold" data-a="batmondo">Continua</button><button class="b" data-a="batvedi">Guarda il campo</button></div>`:`<p class="muted">Battaglia di prova: i tuoi eroi non cambiano.</p>
+<button class="b gold" data-a="batrigioca">${ok?'Combatti ancora':'Riprova'}</button><button class="b" data-a="batvedi">Guarda il campo</button><button class="b" data-a="batesci">Esci</button></div>`}`},
  // ---- la sezione nella pagina Avventura: scelte e pulsante «Combatti» ----
  chip(a,v,t,on){return`<button class="chip${on?' on':''}" data-a="${a}" data-v="${v}" aria-pressed="${on}">${t}</button>`},
  setupH(){const c=Bat.cfg||Bat.DEF,s=Bat.inCorso()?Bat.s:null,pers=Avv.online()&&Avv.eroiElenco().length;
@@ -150,17 +157,18 @@ ${c.party==='prova'?`<div class="bt-gr lv" role="group" aria-label="Livello"><sp
 <div class="bt-gr" role="group" aria-label="Reazioni">${Bat.chip('batcfg','rea:chiedi','Reazioni: le scelgo io',c.rea==='chiedi')}${Bat.chip('batcfg','rea:auto','Reazioni automatiche',c.rea==='auto')}</div></div>
 <button class="b gold ecta" data-a="batavvia" ${Bat.avviando?'disabled':''}>${ic('spada',18)} Combatti</button>${Bat.msgSetup?`<small class="muted" style="text-align:center" role="status">${esc(Bat.msgSetup)}</small>`:''}`},
  // ---- comandi (data-a="bat…") ----
- chiudiAvv(){Bat.gen++;Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;ui.bat=false;ui.avv=true;document.documentElement.classList.remove('bat-on')},
+ chiudiAvv(){Bat.gen++;Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;ui.bat=false;if(Bat.mondo)ui.camp=true;else ui.avv=true;document.documentElement.classList.remove('bat-on')},
  act(a,v){
   switch(a){
    case'batcfg':{const i=String(v).indexOf(':'),k=String(v).slice(0,i),x=String(v).slice(i+1);
     if(k==='liv')Bat.cfg.liv=Math.max(1,Math.min(8,Bat.cfg.liv+(x==='+'?1:-1)));else if(['fam','diff','party','rea'].includes(k))Bat.cfg[k]=x;
     Bat.salvaCfg();Bat.msgSetup='';return render()}
    case'batavvia':return Bat.avvia();
+   case'batmondo':return Camp.fineBattaglia();
    case'batcont':if(!Bat.inCorso())return render();Bat.msgSetup='';ui.avv=false;ui.bat=true;Bat.foglio=null;return render();
-   case'batrigioca':Bat.s=null;Bat.salva();ui.bat=false;ui.avv=true;return Bat.avvia();
-   case'batesci':if(Bat.s&&Bat.s.over){Bat.s=null;Bat.salva()}return(Bat.chiudiAvv(),render());
-   case'batabbandona':Bat.s=null;Bat.c=null;Bat.log=[];Bat.salva();return(Bat.chiudiAvv(),render());
+   case'batrigioca':if(Bat.mondo)return;Bat.s=null;Bat.salva();ui.bat=false;ui.avv=true;return Bat.avvia();
+   case'batesci':if(Bat.s&&Bat.s.over&&!Bat.mondo){Bat.s=null;Bat.salva()}return(Bat.chiudiAvv(),render());
+   case'batabbandona':if(Bat.mondo)return;Bat.s=null;Bat.c=null;Bat.log=[];Bat.salva();return(Bat.chiudiAvv(),render());
    case'batvedi':Bat.vedi=!Bat.vedi;return render();
    case'batfoglio':if(Bat.lavoro||Bat.pausa)return;Bat.foglio=Bat.foglio===v?null:v;return render();
    case'batchiudi':Bat.foglio=null;return render();
