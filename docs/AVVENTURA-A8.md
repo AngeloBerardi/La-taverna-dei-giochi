@@ -1,6 +1,6 @@
 # A8 — Capitolo 1 «La Corona Spezzata»: scaletta
 
-Stato: **approvata dall'utente il 31 ottobre 2026** con queste scelte: cattivo vero (il Maestro vuole la corona per sé e lo scontro non si evita), tre esiti (A, B, C), compagni Gherardo e Mirta, una PR per atto. Nessun dialogo è ancora scritto: si scrivono atto per atto (§9). Formato e API del racconto: `docs/AVVENTURA-A7.md`. Nessun nome di marchio: tutti i nomi qui sotto sono nostri.
+Stato: **approvata dall'utente il 31 ottobre 2026** con queste scelte: cattivo vero (il Maestro vuole la corona per sé e lo scontro non si evita), tre esiti (A, B, C), compagni Gherardo e Mirta, una PR per atto. L'Atto I è scritto (§11); l'Atto II e l'Atto III seguono in due PR impilate (§9). Formato e API del racconto: `docs/AVVENTURA-A7.md`. Nessun nome di marchio: tutti i nomi qui sotto sono nostri.
 
 ## 1. In una riga
 Il re è scomparso e la corona delle Tre Marche si è spezzata in tre pezzi. La compagnia li cerca in tre regioni, una per atto, e scopre che dietro tutto c'è **il Maestro della Torre**, il mago di corte, che vuole la corona per sé e tiene il re prigioniero. Il Maestro è un nemico vero: lo scontro finale non si evita. A fine capitolo la compagnia decide che cosa fare della corona.
@@ -93,7 +93,23 @@ Tre PR impilate: **A8-I** = A8.1–A8.3 (scaletta, infrastruttura, Atto I), **A8
 7. **A8.7** — test: il capitolo è valido; **ogni scena raggiungibile e ogni esito raggiungibile** (camminate casuali dal seme su migliaia di partite); i capi equilibrati ai livelli attesi con il bot di battaglia; stima della durata in turni e in cantari. La partita completa con il bot sull'orchestratore arriva con A9.
 8. **A8.8** — documento finale `docs/AVVENTURA-A8.md` (stato e numeri), mappa dei moduli, PR.
 
-## 10. Scelte confermate (31 ottobre 2026)
+## 10. Convenzioni di scrittura (valgono per tutti e tre gli atti)
+- **Un solo file**: `src/avventura/corona.json`. Ogni scena ha `titolo`; con `dove` (id di un luogo della mappa) compare nel menu del luogo, senza `dove` parte da un `ingressi`, da un compagno (`scena`, `addio`) o da un'uscita di un'altra scena.
+- **Scene con scontri**: niente `una`; si chiudono con una bandiera (`casale-liberato`, `cerchio-preso`) e la condizione `se` usa quella bandiera. Così, se la compagnia perde, la scena si può rifare.
+- **Nodo-battaglia**: testo di introduzione, effetto `battaglia` (`fam` o `capo`, `diff` facile|medio|difficile|capo), uscita `vai` verso il nodo «dopo». Contratto per l'orchestratore (A9): lo scontro parte quando il giocatore preme l'uscita; con la vittoria il racconto riprende dal nodo seguente; con la sconfitta o la fuga la scena si interrompe (le bandiere già impostate restano) e si può riaprire. L'anteprima della pagina Avventura dà lo scontro per vinto.
+- **Toni**: `pieta`, `onore`, `avidita`, `durezza`, `mistero`. Ogni compagno ha i suoi pesi (±3 × 4 punti di approvazione): Gherardo ama l'onore, Mirta l'avidità e il mistero.
+- **Difficoltà delle prove**: 9–10 facile (aiutata da un indizio), 12–13 normale, 14 impegnativa, 17 solo per chi si è preparato. Sempre almeno una strada senza prova e una senza combattimento per ogni passaggio importante.
+- **Ricompense**: esperienza e monete stanno nelle missioni (`ricompensa`), non nei nodi; nei nodi solo piccoli premi di scelta (anticipo, grazia).
+- **Anteprima**: la pagina Avventura → scheda «Capitolo 1» fa giocare le scene una per una (stato salvato nel telefono, un capitolo alla volta); la campagna con la mappa arriva con A9.
+
+## 11. Stato di A8-I (31 ottobre 2026): Atto I
+- Fatto: `mondo` completo dei tre atti (9 luoghi scritti a mano + la città di partenza, 400 semi provati), personaggi, i due compagni, tre missioni, riassunti dei cantari 1 e 2, **10 scene e 62 nodi**: «La notte dei corvi», «Il Palazzo del Reggente», «La prigione di Valcorvo», «Il Casale dei Salici», «L'Accampamento dei Corvi», «La Reggente e il Cerchio», chiacchierate e congedi di Gherardo e Mirta.
+- Strada: dal Locandiere alla Reggente; Gherardo si libera con la grazia (Persuasione o Percezione + Persuasione), con 40 monete o scassinando (Furtività); al Casale si tratta, si intimidisce, si coglie di sorpresa o si combatte, e Mirta si recluta, si affida al villaggio o si lascia andare; a Corvino si arriva con indizi (ordini nel carro, sigillo) o con la forza; il Cerchio indica le Brughiere.
+- Novità del motore (le servivano all'Atto I): `AMON.genera` accetta `opz.partenza` (si parte da una città, per esempio Valcorvo), `ARAC.valida` controlla il blocco `mondo` (mappa collegata e luoghi nella loro regione su 24 semi, id unici) e che ogni scena con `dove` abbia il `titolo`; `Dia` ha le schede «Racconto di prova» e «Capitolo 1».
+- Test: `test_avv_corona` (valido, nessun marchio, mondo su 120 semi, compagni a ogni livello, 600 partite a caso che raggiungono tutti i 62 nodi e tutte le bandiere, partita identica a parità di seme, riassunto), `test_avv_racconto` e `test_avv_mondo` estesi, scenario browser `avv_racconto` (47 controlli).
+- Da fare: eventi di strada scritti (10) e missioni secondarie scritte (3) in A8-III; le missioni personali e la prova di Mirta sulla torre in A8-II/III.
+
+## 12. Scelte confermate (31 ottobre 2026)
 1. **Cattivo vero**: il Maestro vuole la corona per sé, lo scontro finale non si evita; il patto è un inganno.
 2. **Tre esiti** (A, B, C), C solo con indizi, compagni fidati e una prova di Arcano/Storia.
 3. **Compagni**: Gherardo Pietrasorda e Mirta «Gazza».

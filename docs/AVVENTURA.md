@@ -215,6 +215,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 3. Arene a mano per le battaglie importanti.
 4. Finale con almeno due esiti a seconda delle scelte.
 - **Scaletta approvata (31 ottobre 2026)**: `docs/AVVENTURA-A8.md` — tre atti (Marca dei Corvi, Brughiere Cenerine, Boschi Velati), tre capi già nel bestiario, compagni Gherardo e Mirta, il Maestro della Torre come cattivo vero, tre esiti (A ricomposta, B re libero, C terza via), tre PR (A8-I, A8-II, A8-III).
+- **Stato A8-I (31 ottobre 2026)**: Atto I scritto in `src/avventura/corona.json` (mondo dei tre atti, 2 compagni, 3 missioni, 10 scene e 62 nodi, riassunti dei primi due cantari); `AMON.genera` accetta `opz.partenza`, `ARAC.valida` controlla `mondo` e `titolo`, `Dia` ha la scheda «Capitolo 1» (anteprima delle scene nella pagina Avventura). Dettagli e convenzioni di scrittura in `docs/AVVENTURA-A8.md`.
 5. Prova completa con il bot (A13 in piccolo): il capitolo si finisce, durata stimata in turni.
 
 ## A9 — Orchestratore, vite, salvataggi, rientro sull'account

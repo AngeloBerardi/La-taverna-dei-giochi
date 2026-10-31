@@ -1021,7 +1021,36 @@ async def sc_avv_racconto(b, srv):
     await pg.reload(); await pg.wait_for_timeout(900); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
     check(await pg.evaluate("(()=>{Dia.leggi();return Dia.s&&Dia.s.sessioni===1&&ACMP.stato(Dia.s,'ilda')==='gruppo'})()"), 'lo stato del racconto resta salvato')
     await pg.click('[data-a=dl][data-v=nuovo]'); await pg.wait_for_timeout(250)
-    check(await pg.query_selector('[data-a=dl][data-v=riassunto]') is None and not await pg.evaluate("!!localStorage.getItem('racc')"), 'ricomincia da capo: tutto azzerato')
+    check(await pg.query_selector('[data-a=dl][data-v=riassunto]') is None and not await pg.evaluate("!!localStorage.getItem('racc-prova')"), 'ricomincia da capo: tutto azzerato')
+    # --- Capitolo 1: anteprima delle scene scritte ---
+    tab = '[data-a=dl][data-v="capitolo:corona"]'
+    check(await pg.query_selector(tab) is not None and await pg.get_attribute(tab, 'aria-pressed') == 'false', 'ci sono le due schede: racconto di prova e Capitolo 1')
+    await pg.click(tab); await pg.wait_for_selector('[data-a=dl][data-v="avvia:notte-dei-corvi"]', timeout=8000)
+    check('Capitolo 1' in await pg.inner_text('.av') and await pg.query_selector('[data-a=dl][data-v="avvia:pozzo"]') is None, 'si passa al Capitolo 1: il primo cantare comincia dalla notte dei corvi')
+    check(await pg.query_selector('[data-a=dl][data-v="avvia:udienza"]') is None, 'le scene dei luoghi non ci sono ancora (servono le bandiere)')
+    await pg.click('[data-a=dl][data-v="avvia:notte-dei-corvi"]'); await pg.wait_for_selector('.dl', timeout=8000)
+    check(await pg.evaluate("Dia.s.cap") == 'corona' and 'Locandiere' in await pg.inner_text('.dl-nome'), 'parla il Locandiere')
+    async def avanti():
+        await pg.click('.dl-corpo'); await pg.wait_for_timeout(120); await vai('.dl-co')
+    await avanti(); await avanti(); await avanti(); await pronto()
+    sc = await pg.evaluate("[...document.querySelectorAll('.dl-sc')].map(b=>({et:(b.querySelector('.dl-et')||{}).textContent||'',t:b.querySelector('span').textContent}))")
+    check(len(sc) == 3 and re.match(r'^\[Percezione \d+%\]$', sc[0]['et']) and 'palazzo' in sc[2]['t'], f'tre scelte, la prima è una prova {sc}')
+    check(len(await piccoli()) == 0, f'tutti i bottoni sono almeno 40×40 px {await piccoli()}')
+    await vai('.dl-sc >> nth=2'); await pronto(); await vai('.dl-co') if await pg.query_selector('.dl-co') else None
+    await pg.wait_for_selector('.dl-fine', timeout=5000)
+    check(await pg.evaluate("Dia.s.bandiere['udienza-aperta']") and await pg.evaluate("Dia.s.missioni.corona.stato") == 'attiva', 'la scena finisce: udienza aperta e missione «La Corona Spezzata» attiva')
+    await pg.click('.dl-bar [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('[data-a=dl][data-v="avvia:notte-dei-corvi"]') is None, 'la scena fatta non si ripropone come inizio')
+    udi = '[data-a=dl][data-v="avvia:udienza"]'
+    check(await pg.query_selector(udi) is not None and 'Valcorvo' in await pg.inner_text(udi) and 'Palazzo' in await pg.inner_text(udi), 'ora a Valcorvo c\'è il Palazzo del Reggente')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth"), 'nessuno scorrimento orizzontale nella pagina Avventura')
+    await pg.click(udi); await pg.wait_for_selector('.dl'); await pronto()
+    check('Reggente' in await pg.evaluate("document.querySelector('.dl-testo').dataset.t") or await pg.query_selector('.dl-rit') is not None, 'si apre l\'udienza')
+    await pg.click('.dl-top [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=dl][data-v="capitolo:prova"]'); await pg.wait_for_timeout(300)
+    check(await pg.query_selector('[data-a=dl][data-v="avvia:pozzo"]') is not None, 'si torna al racconto di prova')
+    await pg.click('[data-a=dl][data-v="capitolo:corona"]'); await pg.wait_for_selector('[data-a=dl][data-v=riprendi]', timeout=5000)
+    check(await pg.evaluate("Dia.s&&Dia.s.cap==='corona'&&!!Dia.s.scena"), 'ogni capitolo ricorda il suo stato (la scena in corso torna)')
     check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}')
     await ctx.close()
 

@@ -1,0 +1,301 @@
+{
+  "id": "corona",
+  "titolo": "La Corona Spezzata",
+  "sottotitolo": "Capitolo 1 dei Cantari di Ventura",
+  "v": 1,
+  "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene l'Atto I (Marca dei Corvi).",
+  "mondo": {
+    "regioni": [
+      { "nome": "Marca dei Corvi", "terreno": "pianura", "fam": "banditi" },
+      { "nome": "Brughiere Cenerine", "terreno": "palude", "fam": "nonmorti" },
+      { "nome": "Boschi Velati", "terreno": "bosco", "fam": "bestie" }
+    ],
+    "partenza": { "id": "valcorvo", "tipo": "citta", "nome": "Valcorvo" },
+    "luoghi": [
+      { "id": "casale-salici", "tipo": "villaggio", "nome": "Casale dei Salici", "reg": 0, "dmin": 2, "dmax": 4 },
+      { "id": "cappella-pellegrino", "tipo": "santuario", "nome": "Cappella del Pellegrino", "reg": 0, "dmin": 2, "dmax": 5 },
+      { "id": "accampamento-corvi", "tipo": "campo", "nome": "Accampamento dei Corvi", "reg": 0, "dmin": 4, "dmax": 7 },
+      { "id": "rocca-pallida", "tipo": "citta", "nome": "Rocca Pallida", "reg": 1, "dmin": 4, "dmax": 8 },
+      { "id": "fonte-cupa", "tipo": "villaggio", "nome": "Fonte Cupa", "reg": 1, "dmin": 3, "dmax": 8 },
+      { "id": "cripta-dei-re", "tipo": "antro", "nome": "Cripta dei Re", "reg": 1, "dmin": 5, "dmax": 8 },
+      { "id": "poggio-basso", "tipo": "villaggio", "nome": "Poggio Basso", "reg": 2, "dmin": 3, "dmax": 8 },
+      { "id": "altare-piogge", "tipo": "santuario", "nome": "Altare delle Piogge", "reg": 2, "dmin": 4, "dmax": 8 },
+      { "id": "torre-corvi", "tipo": "torre", "nome": "Torre dei Corvi", "reg": 2, "dmin": 5, "dmax": 8 }
+    ],
+    "conta": { "villaggio": 0, "santuario": 0, "rovina": 1, "campo": 0, "tesoro": 3 }
+  },
+  "personaggi": {
+    "locandiere": { "nome": "Il Locandiere", "razza": "umano", "classe": "bardo", "aspetto": { "pelle": 2, "capelli": 3, "mantello": 2, "viso": 1 } },
+    "araldo": { "nome": "Araldo Bertoldo", "razza": "umano", "classe": "bardo", "aspetto": { "pelle": 1, "capelli": 1, "mantello": 4, "viso": 2 } },
+    "berengaria": { "nome": "Dama Berengaria", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 5, "mantello": 0, "viso": 3 } },
+    "tobia": { "nome": "Tobia del Casale", "razza": "umano", "classe": "esploratore", "aspetto": { "pelle": 2, "capelli": 6, "mantello": 3, "viso": 0 } },
+    "gabelliere": { "nome": "Il gabelliere dei Corvi", "razza": "orco", "classe": "guerriero", "aspetto": { "pelle": 3, "capelli": 0, "mantello": 5, "viso": 1 } },
+    "corvino": { "nome": "Corvino", "razza": "umano", "classe": "ladro", "aspetto": { "pelle": 0, "capelli": 4, "mantello": 5, "viso": 2 } }
+  },
+  "compagni": {
+    "gherardo": {
+      "nome": "Gherardo", "razza": "nano", "classe": "guerriero",
+      "base": { "for": 15, "des": 11, "cos": 15, "int": 9, "sag": 12, "car": 9 },
+      "aspetto": { "pelle": 2, "capelli": 6, "mantello": 0, "viso": 2 },
+      "liv": "gruppo", "approv": 0, "lascia": -50, "fiducia": 40,
+      "scena": "gherardo-parla", "addio": "gherardo-addio",
+      "valori": { "onore": 3, "pieta": 1, "durezza": 1, "avidita": -2 },
+      "equip": { "arma": "ascia" },
+      "desc": "Gherardo Pietrasorda, capitano della guardia reale, cinquantadue anni e la barba intrecciata come una promessa. Ha perso il suo re e non se lo perdona."
+    },
+    "mirta": {
+      "nome": "Mirta", "razza": "piccolo", "classe": "ladro",
+      "base": { "for": 9, "des": 15, "cos": 12, "int": 13, "sag": 11, "car": 13 },
+      "aspetto": { "pelle": 3, "capelli": 2, "mantello": 4, "viso": 1 },
+      "liv": "gruppo", "approv": 0, "lascia": -40, "fiducia": 35,
+      "scena": "mirta-parla", "addio": "mirta-addio",
+      "valori": { "avidita": 2, "mistero": 1, "pieta": 1, "onore": -1 },
+      "desc": "Mirta detta Gazza: diciannove anni, mani svelte, un cappuccio troppo grande. Ha fatto la vedetta per i Corvi e ne ha abbastanza di avere paura."
+    }
+  },
+  "missioni": {
+    "corona": { "titolo": "La Corona Spezzata", "descr": "Il re Ottavio è scomparso e la corona delle Tre Marche è in tre pezzi. Ritrovateli e ritrovate il re.", "ricompensa": [] },
+    "cerchio": { "titolo": "Il Cerchio", "descr": "Il primo pezzo della corona, il Cerchio, è in mano ai Corvi di strada, nell'accampamento oltre i salici.", "ricompensa": [ { "t": "xp", "n": 150 }, { "t": "oro", "n": 120 }, { "t": "oggetto", "id": "pozione-cura-maggiore", "n": 1 } ] },
+    "casale": { "titolo": "Il tributo dei Corvi", "descr": "Il Casale dei Salici non può più pagare il tributo ai Corvi di strada.", "ricompensa": [ { "t": "xp", "n": 80 }, { "t": "oro", "n": 30 } ] }
+  },
+  "luoghi": {},
+  "bandiere": [],
+  "ingressi": [ "notte-dei-corvi" ],
+  "sommario": [
+    { "se": { "bandiera": "udienza-fatta" }, "testo": "La Reggente Berengaria vi ha affidato la ricerca dei tre pezzi della corona spezzata." },
+    { "se": { "bandiera": "gherardo-libero" }, "testo": "Avete liberato Gherardo Pietrasorda, il capitano della guardia, e lo avete accolto fra voi." },
+    { "se": { "bandiera": "casale-liberato" }, "testo": "Il Casale dei Salici non paga più il tributo ai Corvi di strada." },
+    { "se": { "bandiera": "mirta-risparmiata" }, "testo": "Mirta, detta Gazza, vedetta pentita dei Corvi, ha scelto di venire con voi." },
+    { "se": { "bandiera": "mirta-consegnata" }, "testo": "Mirta, vedetta dei Corvi, è stata affidata agli anziani del Casale." },
+    { "se": { "bandiera": "mirta-lasciata" }, "testo": "Mirta, vedetta dei Corvi, è stata lasciata libera e se n'è andata." },
+    { "se": { "bandiera": "indizio-sigillo" }, "testo": "Tra le carte di Corvino avete trovato un ordine con un sigillo d'argento: una piuma e un occhio." },
+    { "se": { "bandiera": "corvino-sconfitto" }, "testo": "Corvino è caduto in battaglia e il Cerchio, primo pezzo della corona, è vostro." },
+    { "se": { "bandiera": "corvino-parlato" }, "testo": "Corvino vi ha ceduto il Cerchio, primo pezzo della corona, senza combattere." },
+    { "se": { "bandiera": "gherardo-lascia" }, "testo": "Gherardo Pietrasorda ha lasciato la compagnia." },
+    { "se": { "bandiera": "mirta-lascia" }, "testo": "Mirta ha lasciato la compagnia." }
+  ],
+  "prossimo": [
+    { "se": { "bandiera": "atto2" }, "testo": "Il Cerchio vibra verso le Brughiere Cenerine: è là che si trova il secondo pezzo, la Gemma." },
+    { "se": { "missione": "cerchio", "stato": "attiva" }, "testo": "Il Cerchio è nelle mani dei Corvi, nel loro accampamento oltre i salici." },
+    { "testo": "La Reggente vi aspetta a Valcorvo, e la pioggia non smette." }
+  ],
+  "scene": {
+    "notte-dei-corvi": {
+      "titolo": "La notte dei corvi", "inizio": "a",
+      "nodi": {
+        "a": { "chi": "locandiere", "testo": "Sedete, viandanti, e lasciate che il fuoco asciughi i mantelli. Questa è la storia di un re che non c'è più e di una corona rotta in tre pezzi. La racconto dal principio e continuerò finché non sarà finita. Primo cantare: la notte dei corvi.", "vai": "b" },
+        "b": { "chi": "_", "testo": "A Valcorvo piove da tre giorni. La sala della locanda è piena di gente zitta, e tutti guardano il fuoco per non guardarsi fra loro. Sul tetto, fitti come foglie nere, i corvi non si muovono.", "vai": "c" },
+        "c": { "chi": "araldo", "testo": "Genti di Valcorvo! Per ordine di Dama Berengaria, Reggente delle Tre Marche: il re Ottavio manca da nove notti e la corona è stata trovata spezzata nella sala del trono. Chi ha braccia e coraggio si presenti a palazzo. La ricompensa sarà all'altezza del servizio.", "vai": "d" },
+        "d": { "chi": "_", "testo": "L'araldo posa il rotolo e beve senza sedersi. Qualcuno bisbiglia, qualcuno esce sotto la pioggia. La locanda aspetta di vedere che cosa farete.",
+          "scelte": [
+            { "t": "Osservo i corvi sul tetto", "una": true,
+              "prova": { "ab": "percezione", "cd": 12,
+                "ok": { "vai": "penna", "testo": "Un corvo scende fino al davanzale e perde una piuma: quella che vedete non è un gioco di luce." },
+                "ko": { "vai": "d", "testo": "Sono troppi e tutti uguali: non capite che cosa vi turbi." } } },
+            { "t": "Chiedo all'araldo che cosa si sa della notte della scomparsa", "una": true, "tono": [ "mistero" ], "vai": "araldo-sa" },
+            { "t": "Vado a palazzo", "vai": "e" }
+          ] },
+        "penna": { "chi": "_", "testo": "La piuma è nera come l'inchiostro, ma sul calamo c'è un segno d'argento, piccolo e preciso, che nessun uccello ha mai avuto in natura.", "effetti": [ { "t": "bandiera", "id": "penna-nera" }, { "t": "diario", "testo": "Una piuma di corvo con un segno d'argento sul calamo: qualcuno ha marchiato i corvi di Valcorvo." } ], "vai": "d" },
+        "araldo-sa": { "chi": "araldo", "testo": "Porte chiuse dall'interno, guardie addormentate come sassi, la corona in tre pezzi sul tappeto. Il capitano della guardia, Gherardo Pietrasorda, è in cella dalla stessa notte. E nella Marca i Corvi di strada hanno smesso di chiedere il pedaggio: ora prendono e basta.", "effetti": [ { "t": "bandiera", "id": "gherardo-noto" } ], "vai": "d" },
+        "e": { "chi": "locandiere", "testo": "Così, mentre la pioggia batteva i vetri, i viandanti si alzarono dal fuoco. Perché ogni storia comincia quando qualcuno apre una porta.", "effetti": [ { "t": "bandiera", "id": "udienza-aperta" }, { "t": "missione", "id": "corona", "stato": "attiva" }, { "t": "diario", "testo": "Il re Ottavio è scomparso e la corona delle Tre Marche è spezzata. La Reggente cerca braccia a Valcorvo." } ], "fine": true }
+      }
+    },
+    "udienza": {
+      "titolo": "Il Palazzo del Reggente", "dove": "valcorvo", "se": [ { "bandiera": "udienza-aperta" }, { "non": { "bandiera": "udienza-fatta" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Il palazzo di Valcorvo odora di cera e di paura. Sotto un trono vuoto, una donna in nero ascolta tre cortigiani senza guardarli. Quando vi vede, li congeda con un gesto.", "vai": "b" },
+        "b": { "chi": "berengaria", "testo": "Sono Berengaria, sorella del re e Reggente finché lui non torna. Non ho tempo per i giri di parole. La corona delle Tre Marche è in pezzi e senza di lei il regno si spezza. Voglio i pezzi, tutti e tre. E voglio mio fratello.", "vai": "c" },
+        "c": { "chi": "berengaria", "testo": "Parlate, e sia breve.",
+          "scelte": [
+            { "t": "Dove si trovano i pezzi?", "una": true, "vai": "d1" },
+            { "t": "Che cosa successe la notte della scomparsa?", "una": true, "tono": [ "mistero" ], "vai": "d2" },
+            { "t": "Studio la Reggente mentre parla", "una": true,
+              "prova": { "ab": "percezione", "cd": 12,
+                "ok": { "vai": "c", "testo": "Berengaria stringe il bracciolo quando nomina Gherardo: non lo crede colpevole, ma il popolo vuole un nome.", "effetti": [ { "t": "bandiera", "id": "reggente-dubbio-gherardo" } ] },
+                "ko": { "vai": "c", "testo": "Un viso di pietra: non lasciate trasparire niente, e lei nemmeno." } } },
+            { "t": "Chiedo la grazia per il capitano Gherardo", "se": { "bandiera": "gherardo-noto" }, "una": true,
+              "prova": { "ab": "persuasione", "cd": 14,
+                "ok": { "vai": "grazia", "testo": "La Reggente tace a lungo, poi annuisce." },
+                "ko": { "vai": "c", "testo": "«Il popolo ha bisogno di un colpevole.» Non si muove." } } },
+            { "t": "So che non lo credi colpevole: liberalo", "se": { "bandiera": "reggente-dubbio-gherardo" }, "una": true, "tono": [ "onore" ],
+              "prova": { "ab": "persuasione", "cd": 9,
+                "ok": { "vai": "grazia", "testo": "Berengaria abbassa lo sguardo. «Siete uno scocciatore. E avete ragione.»" },
+                "ko": { "vai": "c", "testo": "«Non adesso.» Ma la voce le trema." } } },
+            { "t": "Parliamo del compenso", "vai": "compenso" },
+            { "t": "Accetto l'incarico", "vai": "chiudi" }
+          ] },
+        "d1": { "chi": "berengaria", "testo": "Non lo so. Ma ogni pezzo ha un potere, e il potere va dove è più forte. Il Cerchio, che comanda i vivi, deve essere nella Marca: i Corvi di strada da banditi sono diventati un esercito. Hanno un accampamento a est, oltre il Casale dei Salici. Degli altri due non ho notizie.", "effetti": [ { "t": "bandiera", "id": "cerchio-indizio" } ], "vai": "c" },
+        "d2": { "chi": "berengaria", "testo": "Porte chiuse dall'interno e guardie addormentate. Gherardo giura di non aver chiuso occhio, ma non sa dirmi altro. L'ho fatto mettere in cella: il popolo vuole un colpevole e io non posso dargli il re.", "effetti": [ { "t": "bandiera", "id": "gherardo-noto" } ], "vai": "c" },
+        "grazia": { "chi": "berengaria", "testo": "Va bene. Un ordine di scarcerazione, scritto di mio pugno. Ma se mi tradisce, risponderete voi.", "effetti": [ { "t": "bandiera", "id": "gherardo-graziato" }, { "t": "diario", "testo": "La Reggente ha firmato la grazia per Gherardo Pietrasorda." } ], "vai": "c" },
+        "compenso": { "chi": "berengaria", "testo": "Il regno non paga male chi lo serve. Quanto chiedete?",
+          "scelte": [
+            { "t": "Un anticipo generoso", "tono": [ "avidita" ],
+              "prova": { "ab": "persuasione", "cd": 13,
+                "ok": { "vai": "chiudi", "testo": "Berengaria alza un sopracciglio, poi allunga una borsa pesante.", "effetti": [ { "t": "oro", "n": 60 } ] },
+                "ko": { "vai": "chiudi", "testo": "«Non è il momento di mercanteggiare.» Vi allunga una borsa più leggera.", "effetti": [ { "t": "oro", "n": 30 } ] } } },
+            { "t": "Il giusto, grazie", "effetti": [ { "t": "oro", "n": 40 } ], "vai": "chiudi" },
+            { "t": "Nulla: il re vale più delle monete", "tono": [ "pieta", "onore" ], "effetti": [ { "t": "xp", "n": 20 } ], "vai": "chiudi" }
+          ] },
+        "chiudi": { "chi": "berengaria", "testo": "Allora è fatto. Cominciate dal Cerchio: ho sentito dire che la banda dei Corvi ha un accampamento oltre i salici. Portatemelo, e poi vedremo gli altri due.", "effetti": [ { "t": "bandiera", "id": "udienza-fatta" }, { "t": "missione", "id": "cerchio", "stato": "attiva" }, { "t": "diario", "testo": "La Reggente vi ha affidato la ricerca dei tre pezzi della corona. Il primo, il Cerchio, è probabilmente in mano ai Corvi di strada, oltre il Casale dei Salici." } ], "fine": true }
+      }
+    },
+    "gherardo-cella": {
+      "titolo": "La prigione di Valcorvo", "dove": "valcorvo", "se": [ { "bandiera": "gherardo-noto" }, { "non": { "bandiera": "gherardo-libero" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Le prigioni di Valcorvo sono umide e piene di echi. In fondo al corridoio, su una branda troppo corta, siede un nano con la barba intrecciata e l'uniforme della guardia reale ancora addosso. Alza gli occhi senza alzarsi.", "vai": "b" },
+        "b": { "chi": "gherardo", "testo": "Pietrasorda, Gherardo, capitano della guardia. Se siete venuti a interrogarmi, ho già detto tutto: il fuoco acceso, il vento nella torcia, e poi il pavimento. E poi l'alba, con le porte chiuse dall'interno e il mio re sparito.", "vai": "c" },
+        "c": { "chi": "gherardo", "testo": "Dite quel che volete, ma non fatelo con pietà. La pietà non apre le serrature.",
+          "scelte": [
+            { "t": "Raccontami la tua notte", "una": true, "tono": [ "mistero" ], "vai": "d1" },
+            { "t": "Ho con me la grazia della Reggente", "se": { "bandiera": "gherardo-graziato" }, "vai": "libero-grazia" },
+            { "t": "Pago io la cauzione", "se": { "oro": 40 }, "effetti": [ { "t": "oro", "n": -40 } ], "vai": "libero-pago" },
+            { "t": "Scasso la serratura di nascosto",
+              "prova": { "ab": "furtivita", "cd": 13,
+                "ok": { "vai": "libero-evaso", "testo": "La serratura cede con un clic che vi sembra un tuono. Nessuno viene.", "effetti": [ { "t": "bandiera", "id": "gherardo-evaso" } ] },
+                "ko": { "vai": "scoperti", "testo": "Una guardia si volta troppo presto." } } },
+            { "t": "Torno quando ho i mezzi", "fine": true },
+            { "t": "Il tuo posto è qui", "tono": [ "durezza" ], "fine": true }
+          ] },
+        "d1": { "chi": "gherardo", "testo": "Il fuoco, il vento nella torcia, i corvi alla finestra: li ricordo adesso, dopo nove giorni di muffa. Ma non ricordo di averli visti entrare. Poi più niente.", "vai": "c" },
+        "scoperti": { "chi": "_", "testo": "Una guardia si volta. Fate appena in tempo a spegnere la lanterna e a battere in ritirata, con il cuore in gola.", "effetti": [ { "t": "perdizione", "n": 1 } ], "vai": "c" },
+        "libero-grazia": { "chi": "gherardo", "testo": "Un nano non rifiuta un ordine scritto. Se la Reggente mi libera, vuole che io cerchi il re, e ci sto. Ho un'ascia, la schiena larga e un conto aperto con chi ha spento quelle torce.", "effetti": [ { "t": "recluta", "id": "gherardo" }, { "t": "bandiera", "id": "gherardo-libero" }, { "t": "diario", "testo": "Gherardo Pietrasorda, ex capitano della guardia reale, si è unito alla compagnia." } ], "fine": true },
+        "libero-pago": { "chi": "gherardo", "testo": "Quaranta monete per un nano in una cella: pochi mi avrebbero stimato così tanto. Vi devo un debito, e un nano il debito lo paga con l'ascia.", "effetti": [ { "t": "recluta", "id": "gherardo" }, { "t": "bandiera", "id": "gherardo-libero" }, { "t": "diario", "testo": "Gherardo Pietrasorda, ex capitano della guardia reale, si è unito alla compagnia." } ], "fine": true },
+        "libero-evaso": { "chi": "gherardo", "testo": "Non è così che un capitano esce da una cella, ma un nano non fa le pulci a una chiave. Mi ricorderò di voi. La Reggente, forse, meno volentieri.", "effetti": [ { "t": "recluta", "id": "gherardo" }, { "t": "bandiera", "id": "gherardo-libero" }, { "t": "perdizione", "n": 1 }, { "t": "diario", "testo": "Avete fatto evadere Gherardo Pietrasorda: ora è con voi, ma la Reggente non lo sa." } ], "fine": true }
+      }
+    },
+    "casale-salici": {
+      "titolo": "Il Casale dei Salici", "dove": "casale-salici", "se": { "non": { "bandiera": "casale-liberato" } }, "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Il Casale dei Salici sembra un villaggio che trattiene il fiato. Le porte sono sbarrate, i bambini non giocano nella polvere. Nella piazza, un vecchio vi viene incontro con le mani aperte, per mostrare che non nasconde niente.", "effetti": [ { "t": "missione", "id": "casale", "stato": "attiva" } ], "vai": "b" },
+        "b": { "chi": "tobia", "testo": "Il cielo vi manda, o il caso. Sono Tobia, anziano del Casale. Domani i Corvi tornano per il tributo: il grano, le bestie e, se non basta, i nostri figli come garanzia. Non abbiamo più niente da dare.", "vai": "c" },
+        "c": { "chi": "tobia", "testo": "Che cosa volete sapere? Il tempo stringe.",
+          "scelte": [
+            { "t": "Che cosa sapete dei Corvi?", "una": true, "tono": [ "mistero" ], "vai": "d1" },
+            { "t": "Li aspettiamo in piazza", "vai": "attesa" },
+            { "t": "Non è affar nostro", "tono": [ "durezza" ], "effetti": [ { "t": "perdizione", "n": 1 } ], "fine": true }
+          ] },
+        "d1": { "chi": "tobia", "testo": "Una volta erano ladri di strada. Da quest'inverno hanno armi buone, un capo che non perde mai e ordini scritti. E c'è una ragazzina, la Gazza, che sta sul tetto del granaio e li avvisa quando qualcuno si avvicina.", "effetti": [ { "t": "bandiera", "id": "mirta-nota" } ], "vai": "c" },
+        "attesa": { "chi": "_", "testo": "All'alba la piazza è vuota e il vento fa danzare i salici. Poi arrivano: tre uomini a cavallo, un arciere sul tetto del granaio e il gabelliere dei Corvi, con la sua lista e il suo sorriso.", "vai": "e" },
+        "e": { "chi": "gabelliere", "testo": "Un'altra giornata di tributo, Casale! E chi sono questi? Nuovi sudditi o nuovi guai?",
+          "scelte": [
+            { "t": "Trattare con il gabelliere", "tono": [ "onore" ],
+              "prova": { "ab": "persuasione", "cd": 14,
+                "ok": { "vai": "parte", "testo": "Il gabelliere ascolta, poi sputa nella polvere e fa dietrofront." },
+                "ko": { "vai": "battaglia", "testo": "Ride in faccia: «Parlate bene, ma non siete i miei padroni.»" } } },
+            { "t": "Intimidirlo", "tono": [ "durezza" ],
+              "prova": { "ab": "intimidire", "cd": 14,
+                "ok": { "vai": "parte", "testo": "Il suo sorriso si ritira: ha capito di essere in minoranza." },
+                "ko": { "vai": "battaglia", "testo": "Non cade nel trucco: fa un cenno all'arciere." } } },
+            { "t": "Coglierli di sorpresa",
+              "prova": { "ab": "furtivita", "cd": 13,
+                "ok": { "vai": "battaglia-facile", "testo": "Siete addosso ai Corvi prima che possano capire." },
+                "ko": { "vai": "battaglia", "testo": "L'arciere vi vede e urla." } } },
+            { "t": "Attaccare", "vai": "battaglia" }
+          ] },
+        "parte": { "chi": "gabelliere", "testo": "Ne parlerò al Capo. E il Capo non è un uomo paziente. Il suo campo è là, oltre i salici, per chi lo vuole trovare.", "effetti": [ { "t": "bandiera", "id": "campo-noto" } ], "vai": "granaio0" },
+        "battaglia-facile": { "chi": "_", "testo": "Il primo cade senza sapere da dove sia arrivato il colpo. Gli altri sono più lenti di voi.", "effetti": [ { "t": "battaglia", "fam": "banditi", "diff": "facile" } ], "vai": "dopo" },
+        "battaglia": { "chi": "_", "testo": "Le lame escono dai foderi. Il gabelliere urla, l'arciere incocca: quando la polvere si posa, qualcuno non si rialzerà.", "effetti": [ { "t": "battaglia", "fam": "banditi", "diff": "medio" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "La piazza torna a respirare. Tobia piange senza vergogna, e dietro di lui qualcuno apre una finestra.", "effetti": [ { "t": "bandiera", "id": "campo-noto" } ], "vai": "granaio0" },
+        "granaio0": { "chi": "_", "testo": "Dal tetto del granaio scende una ragazzina con un cappuccio troppo grande. Ha le mani alzate e lo sguardo di chi conta le porte.", "vai": "granaio" },
+        "granaio": { "chi": "mirta", "testo": "Non picchiatemi! Facevo la vedetta, non ho mai ucciso nessuno. Vi dico dov'è il campo, ma non ditelo a Corvino. Anzi: vi ci porto, se mi portate via di qui.",
+          "scelte": [
+            { "t": "Che cosa sai di Corvino?", "una": true, "tono": [ "mistero" ],
+              "prova": { "ab": "persuasione", "cd": 12,
+                "ok": { "vai": "granaio", "testo": "Si morde il labbro e parla: «Gli ordini arrivano scritti, con un sigillo nero. Lui li brucia, ma una volta ne ho visto uno con le piume d'argento.»", "effetti": [ { "t": "bandiera", "id": "mirta-sigillo" } ] },
+                "ko": { "vai": "granaio", "testo": "Si chiude a riccio e non dice altro." } } },
+            { "t": "Vieni con noi", "tono": [ "pieta", "mistero" ], "vai": "mirta-viene" },
+            { "t": "Ti affido a Tobia", "tono": [ "durezza", "onore" ], "vai": "mirta-affidata" },
+            { "t": "Vattene, e non farti rivedere", "tono": [ "pieta" ], "vai": "mirta-via" }
+          ] },
+        "mirta-viene": { "chi": "mirta", "testo": "Davvero? Non mi legate? Va bene, va bene. So dove tengono i cavalli, so dove dormono e so scappare. Chiamatemi Gazza.", "effetti": [ { "t": "recluta", "id": "mirta" }, { "t": "bandiera", "id": "mirta-risparmiata" }, { "t": "diario", "testo": "Mirta, detta Gazza, ex vedetta dei Corvi, si è unita alla compagnia." } ], "vai": "fine-casale" },
+        "mirta-affidata": { "chi": "tobia", "testo": "La terrò d'occhio io. A un villaggio serve anche una seconda possibilità, anche se non sempre ce l'ha meritata.", "effetti": [ { "t": "bandiera", "id": "mirta-consegnata" } ], "vai": "fine-casale" },
+        "mirta-via": { "chi": "mirta", "testo": "Non ve ne pentirete. O forse sì. Grazie, comunque.", "effetti": [ { "t": "bandiera", "id": "mirta-lasciata" } ], "vai": "fine-casale" },
+        "fine-casale": { "chi": "tobia", "testo": "Il Casale vi deve più di quanto possa pagare. Prendete queste monete: non sono molte, ma sono le ultime di tutto il villaggio.", "effetti": [ { "t": "bandiera", "id": "casale-liberato" }, { "t": "missione", "id": "casale", "stato": "fatta" } ], "fine": true }
+      }
+    },
+    "corvino": {
+      "titolo": "L'Accampamento dei Corvi", "dove": "accampamento-corvi", "se": { "non": { "bandiera": "cerchio-preso" } }, "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "L'accampamento dei Corvi sta in un avvallamento fra i salici: tende nere, un fuoco al centro e un carro rialzato come un palco. Una sentinella vi vede da lontano e non dà l'allarme. Sorride soltanto, come se vi aspettasse.", "vai": "b" },
+        "b": { "chi": "corvino", "testo": "Ah, i cercatori. La Reggente manda sempre qualcuno a chiedere. Io sono Corvino. Quello che cercate lo porto in testa.", "vai": "b2" },
+        "b2": { "chi": "_", "testo": "Sulla fronte del capobanda brilla un cerchio d'oro opaco, antico, che pulsa piano come un cuore. A ogni battito, tutte le piume dell'accampamento si voltano verso di voi.", "vai": "c" },
+        "c": { "chi": "corvino", "testo": "Me l'hanno portato i corvi una notte di pioggia, come un dono. Io non rifiuto i doni. Ma sono un uomo ragionevole: che cosa mi date per toglierlo da qui?",
+          "scelte": [
+            { "t": "Chi te l'ha portato?", "una": true, "tono": [ "mistero" ], "vai": "d1" },
+            { "t": "Cerco gli ordini sul carro", "se": { "bandiera": "corvino-ordini" }, "una": true,
+              "prova": { "ab": "furtivita", "cd": 13,
+                "ok": { "vai": "ordini", "testo": "Fra le mappe e i sacchi, una pergamena piegata con un sigillo d'argento." },
+                "ko": { "vai": "battaglia-corvino", "testo": "Una sentinella vi vede frugare e dà l'allarme." } } },
+            { "t": "Chiedo il Cerchio con le buone maniere", "una": true,
+              "prova": { "ab": "persuasione", "cd": 17,
+                "ok": { "vai": "cede", "testo": "Corvino resta in silenzio. Poi, con sorpresa di tutti, sorride." },
+                "ko": { "vai": "c", "testo": "Corvino ride: «Con le buone? Non c'è una buona maniera.»" } } },
+            { "t": "Il sigillo che ho visto non mente", "se": { "bandiera": "indizio-sigillo" }, "una": true,
+              "prova": { "ab": "persuasione", "cd": 13,
+                "ok": { "vai": "cede", "testo": "Corvino impallidisce: sa di che sigillo parlate." },
+                "ko": { "vai": "c", "testo": "«Sigilli, sigilli. Io ho una spada.»" } } },
+            { "t": "Prendo il Cerchio con la forza", "tono": [ "durezza" ], "vai": "battaglia-corvino" }
+          ] },
+        "d1": { "chi": "corvino", "testo": "Nessuno che si faccia vedere. Piume nere, un segno d'argento. Gli ordini arrivano la sera, scritti: io li brucio. Quasi tutti.", "effetti": [ { "t": "bandiera", "id": "corvino-ordini" } ], "vai": "c" },
+        "ordini": { "chi": "_", "testo": "Lo spiegate alla luce del fuoco: non è un ordine di battaglia ma un elenco di villaggi e di giorni, e in fondo un segno, una piuma e un occhio. Qualcuno ha deciso dove devono colpire i Corvi.", "effetti": [ { "t": "oggetto", "id": "sigillo-dei-corvi", "n": 1 }, { "t": "bandiera", "id": "indizio-sigillo" }, { "t": "diario", "testo": "Un ordine con un sigillo d'argento (una piuma e un occhio) mostra che qualcuno guida i Corvi di strada." } ], "vai": "c" },
+        "cede": { "chi": "corvino", "testo": "Prendetelo. Da quando lo porto sogno corvi che parlano, e non voglio più dormire con loro. Dite alla Reggente che i Corvi di strada hanno finito di essere un esercito. Almeno finché durerà la mia pazienza.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 }, { "t": "bandiera", "id": "cerchio-preso" }, { "t": "bandiera", "id": "corvino-parlato" } ], "vai": "fine" },
+        "battaglia-corvino": { "chi": "_", "testo": "Corvino si alza e la sua risata è la prima a spegnersi. «Allora è deciso.» I Corvi escono dalle tende come uno stormo.", "effetti": [ { "t": "battaglia", "capo": "capobanda-corvino", "diff": "capo" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Corvino cade in ginocchio. Il Cerchio gli scivola dalla fronte e rotola nella polvere, ancora tiepido. Intorno a voi i Corvi gettano le armi.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 }, { "t": "bandiera", "id": "cerchio-preso" }, { "t": "bandiera", "id": "corvino-sconfitto" } ], "vai": "fine" },
+        "fine": { "chi": "_", "testo": "Il Cerchio pesa più di quanto sembri. Nel suo bordo c'è una incrinatura sottile e, quando lo girate, il metallo vibra e punta con insistenza verso sud, verso le Brughiere Cenerine, come un ago verso la sua calamita.", "effetti": [ { "t": "missione", "id": "cerchio", "stato": "fatta" }, { "t": "bandiera", "id": "atto2" }, { "t": "diario", "testo": "Il Cerchio è vostro. Vibra verso le Brughiere Cenerine, dove deve trovarsi il secondo pezzo." } ], "fine": true }
+      }
+    },
+    "rapporto": {
+      "titolo": "La Reggente e il Cerchio", "dove": "valcorvo", "se": [ { "bandiera": "cerchio-preso" }, { "non": { "bandiera": "rapporto-fatto" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Berengaria prende il Cerchio con due dita, come si prende una brace. Lo gira alla luce delle finestre e il metallo risponde con un lieve tintinnio.", "vai": "b" },
+        "b": { "chi": "berengaria", "testo": "Il primo pezzo. Mi sembra di sentire mio fratello respirare in questo ferro. Datemelo: la corona sarà più vicina a essere intera se lo tengo io.",
+          "scelte": [
+            { "t": "Lo teniamo noi finché non avremo gli altri due", "tono": [ "onore" ],
+              "prova": { "ab": "persuasione", "cd": 12,
+                "ok": { "vai": "tenete", "testo": "Berengaria vi guarda a lungo. «Avete ragione: i pezzi si chiamano fra loro.»", "effetti": [ { "t": "bandiera", "id": "reggente-rispetta" } ] },
+                "ko": { "vai": "tenete", "testo": "Cede, ma a denti stretti.", "effetti": [ { "t": "bandiera", "id": "reggente-offesa" } ] } } },
+            { "t": "Non ci fidiamo di nessuno, nemmeno di voi", "tono": [ "durezza" ], "effetti": [ { "t": "bandiera", "id": "reggente-offesa" } ], "vai": "tenete" },
+            { "t": "Le mostro come il Cerchio vibra verso sud", "una": true, "tono": [ "mistero" ], "vai": "sud" }
+          ] },
+        "sud": { "chi": "berengaria", "testo": "Verso sud... le Brughiere. Allora è vero quel che scrive il capitano di Rocca Pallida.", "vai": "b" },
+        "tenete": { "chi": "berengaria", "testo": "Sia. Ma la strada per le Brughiere passa per Rocca Pallida: il capitano Orsolino mi scrive da giorni che i morti escono dal pantano. La Gemma, che dà pace ai morti, deve essere là. Prendete questo per il viaggio.", "effetti": [ { "t": "bandiera", "id": "rapporto-fatto" }, { "t": "oro", "n": 80 }, { "t": "diario", "testo": "La Reggente vi manda a Rocca Pallida, nelle Brughiere Cenerine, dove i morti escono dal pantano." } ], "fine": true }
+      }
+    },
+    "gherardo-parla": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "gherardo", "testo": "Ditemi. Ma niente complimenti: per un nano sono come lame di burro.",
+          "scelte": [
+            { "t": "Parlami del re Ottavio", "una": true, "tono": [ "onore" ], "vai": "r1" },
+            { "t": "Perché hanno incolpato te?", "una": true, "vai": "r2" },
+            { "t": "Quella notte, che cosa ricordi davvero?", "se": { "approv": "gherardo", "min": 20 }, "una": true, "vai": "r3" },
+            { "t": "Niente. Pensavo ad alta voce", "fine": true }
+          ] },
+        "r1": { "chi": "gherardo", "testo": "Ottavio il Mite. Trent'anni sul trono e mai una guerra. Ogni mattina mangiava con le guardie del turno, e una volta mi disse che la corona gli pesava come una doppia armatura. Pensai che parlasse per modo di dire.", "vai": "a" },
+        "r2": { "chi": "gherardo", "testo": "Perché ero io di guardia. Perché un colpevole serve. E perché la Reggente non può permettersi di dire che il suo regno si è fatto rubare un re sotto il naso.", "vai": "a" },
+        "r3": { "chi": "gherardo", "testo": "Se mi fido di voi, lo dico. I corvi spensero le torce, ricordo le ali. E ricordo un uomo in piedi accanto al re, di spalle, con il mantello nero dei maghi di corte: il Maestro Alberico. Ma lui era sempre là, ogni sera. Non ho mai pensato di sospettare.", "effetti": [ { "t": "bandiera", "id": "indizio-gherardo" }, { "t": "diario", "testo": "Gherardo ricorda il Maestro Alberico accanto al re la notte della scomparsa." } ], "vai": "a" }
+      }
+    },
+    "gherardo-addio": {
+      "inizio": "a",
+      "nodi": { "a": { "chi": "gherardo", "testo": "Ho servito un re che non c'è e ora servo voi, che non mi rispettate. Basta così. Se mai ritroverete Ottavio, ditegli che il suo capitano non ha dormito.", "fine": true } }
+    },
+    "mirta-parla": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "mirta", "testo": "Che c'è? Non vi sto rubando niente. Per ora.",
+          "scelte": [
+            { "t": "Come sei finita con i Corvi?", "una": true, "tono": [ "pieta" ], "vai": "r1" },
+            { "t": "Che cosa sai dei corvi, quelli con le ali?", "una": true, "tono": [ "mistero" ], "vai": "r2" },
+            { "t": "Niente, scusa", "fine": true }
+          ] },
+        "r1": { "chi": "mirta", "testo": "Fame, in un inverno. Corvino mi diede pane e un tetto. Non è un buon uomo, ma è stato il primo a non cacciarmi via.", "vai": "a" },
+        "r2": { "chi": "mirta", "testo": "Sono strani da due mesi. Non beccano e non cercano cibo: sorvegliano. Una volta ho provato a fischiare per scacciarli e uno mi ha guardata come se capisse.", "vai": "a" }
+      }
+    },
+    "mirta-addio": {
+      "inizio": "a",
+      "nodi": { "a": { "chi": "mirta", "testo": "Mi avete trattata come una persona e poi come una scorta. Non è abbastanza. Addio, e non cercatemi fra i salici.", "fine": true } }
+    }
+  }
+}

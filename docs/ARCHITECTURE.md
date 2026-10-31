@@ -192,7 +192,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27n-avv-luoghi.js` | 8 | ALUO |
 | `js/motori/27o-avv-mostri.js` | 7 | AMOS |
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
-| `js/motori/27q-avv-racconto.js` | 21 | ARAC |
+| `js/motori/27q-avv-racconto.js` | 24 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 27 | AEVE |
 | `js/motori/28-campagna.js` | 32 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
@@ -278,7 +278,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
 | `js/app/24hh-mondo-pannelli.js` | 18 | MoPan |
-| `js/app/24hi-dialogo.js` | 10 | Dia |
+| `js/app/24hi-dialogo.js` | 13 | Dia |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
