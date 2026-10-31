@@ -3,7 +3,7 @@
   "titolo": "La Corona Spezzata",
   "sottotitolo": "Capitolo 1 dei Cantari di Ventura",
   "v": 1,
-  "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene l'Atto I (Marca dei Corvi).",
+  "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene gli Atti I (Marca dei Corvi) e II (Brughiere Cenerine).",
   "mondo": {
     "regioni": [
       { "nome": "Marca dei Corvi", "terreno": "pianura", "fam": "banditi" },
@@ -30,7 +30,15 @@
     "berengaria": { "nome": "Dama Berengaria", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 5, "mantello": 0, "viso": 3 } },
     "tobia": { "nome": "Tobia del Casale", "razza": "umano", "classe": "esploratore", "aspetto": { "pelle": 2, "capelli": 6, "mantello": 3, "viso": 0 } },
     "gabelliere": { "nome": "Il gabelliere dei Corvi", "razza": "orco", "classe": "guerriero", "aspetto": { "pelle": 3, "capelli": 0, "mantello": 5, "viso": 1 } },
-    "corvino": { "nome": "Corvino", "razza": "umano", "classe": "ladro", "aspetto": { "pelle": 0, "capelli": 4, "mantello": 5, "viso": 2 } }
+    "corvino": { "nome": "Corvino", "razza": "umano", "classe": "ladro", "aspetto": { "pelle": 0, "capelli": 4, "mantello": 5, "viso": 2 } },
+    "sentinella": { "nome": "La sentinella", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 3, "mantello": 0, "viso": 0 } },
+    "orsolino": { "nome": "Capitano Orsolino", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 4, "mantello": 1, "viso": 2 } },
+    "brunoro": { "nome": "Brunoro il salinaro", "razza": "umano", "classe": "esploratore", "aspetto": { "pelle": 2, "capelli": 2, "mantello": 3, "viso": 3 } },
+    "anselma": { "nome": "Madre Anselma", "razza": "umano", "classe": "chierico", "aspetto": { "pelle": 0, "capelli": 5, "mantello": 2, "viso": 1 } },
+    "bertino": { "nome": "Bertino il campanaro", "razza": "umano", "classe": "bardo", "aspetto": { "pelle": 1, "capelli": 0, "mantello": 4, "viso": 1 } },
+    "ruggero": { "nome": "Sir Ruggero", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 4, "capelli": 6, "mantello": 0, "viso": 2 } },
+    "gualtiero": { "nome": "Re Gualtiero", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 4, "capelli": 5, "mantello": 1, "viso": 3 } },
+    "ottavio": { "nome": "Re Ottavio", "razza": "umano", "classe": "guerriero", "aspetto": { "pelle": 1, "capelli": 4, "mantello": 0, "viso": 1 } }
   },
   "compagni": {
     "gherardo": {
@@ -38,7 +46,7 @@
       "base": { "for": 15, "des": 11, "cos": 15, "int": 9, "sag": 12, "car": 9 },
       "aspetto": { "pelle": 2, "capelli": 6, "mantello": 0, "viso": 2 },
       "liv": "gruppo", "approv": 0, "lascia": -50, "fiducia": 40,
-      "scena": "gherardo-parla", "addio": "gherardo-addio",
+      "scena": "gherardo-parla", "sceneP": "gherardo-ruggero", "personale": "ruggero", "addio": "gherardo-addio",
       "valori": { "onore": 3, "pieta": 1, "durezza": 1, "avidita": -2 },
       "equip": { "arma": "ascia" },
       "desc": "Gherardo Pietrasorda, capitano della guardia reale, cinquantadue anni e la barba intrecciata come una promessa. Ha perso il suo re e non se lo perdona."
@@ -56,7 +64,11 @@
   "missioni": {
     "corona": { "titolo": "La Corona Spezzata", "descr": "Il re Ottavio è scomparso e la corona delle Tre Marche è in tre pezzi. Ritrovateli e ritrovate il re.", "ricompensa": [] },
     "cerchio": { "titolo": "Il Cerchio", "descr": "Il primo pezzo della corona, il Cerchio, è in mano ai Corvi di strada, nell'accampamento oltre i salici.", "ricompensa": [ { "t": "xp", "n": 150 }, { "t": "oro", "n": 120 }, { "t": "oggetto", "id": "pozione-cura-maggiore", "n": 1 } ] },
-    "casale": { "titolo": "Il tributo dei Corvi", "descr": "Il Casale dei Salici non può più pagare il tributo ai Corvi di strada.", "ricompensa": [ { "t": "xp", "n": 80 }, { "t": "oro", "n": 30 } ] }
+    "casale": { "titolo": "Il tributo dei Corvi", "descr": "Il Casale dei Salici non può più pagare il tributo ai Corvi di strada.", "ricompensa": [ { "t": "xp", "n": 80 }, { "t": "oro", "n": 30 } ] },
+    "gemma": { "titolo": "La Gemma dei morti", "descr": "I morti delle Brughiere Cenerine salgono dal pantano e si siedono sotto le mura di Rocca Pallida. La Gemma, secondo pezzo della corona, è nella Cripta dei Re, sepolta con il vecchio re Gualtiero.", "ricompensa": [ { "t": "xp", "n": 350 }, { "t": "oro", "n": 150 } ] },
+    "ruggero": { "titolo": "Il cavaliere senza elmo", "descr": "Gherardo custodisce da vent'anni l'elmo del suo fratello d'armi Sir Ruggero, sepolto senza di esso nella cappella dei guardiani della Cripta dei Re. Rendetegli l'elmo.", "ricompensa": [ { "t": "xp", "n": 250 }, { "t": "oggetto", "id": "amuleto-vitale", "n": 1 } ] },
+    "sale": { "titolo": "Il sale di Fonte Cupa", "descr": "Brunoro il salinaro vuole che qualche sacco di sale arrivi a Rocca Pallida, dove lo si spargerà davanti alle porte contro i morti.", "ricompensa": [ { "t": "xp", "n": 120 }, { "t": "oro", "n": 20 } ] },
+    "campane": { "titolo": "Le campane di Rocca Pallida", "descr": "Da undici notti la grande campana di Rocca Pallida non suona. Il campanaro Bertino crede che sia stregata.", "ricompensa": [ { "t": "xp", "n": 100 }, { "t": "oro", "n": 20 } ] }
   },
   "luoghi": {},
   "bandiere": [],
@@ -71,10 +83,30 @@
     { "se": { "bandiera": "indizio-sigillo" }, "testo": "Tra le carte di Corvino avete trovato un ordine con un sigillo d'argento: una piuma e un occhio." },
     { "se": { "bandiera": "corvino-sconfitto" }, "testo": "Corvino è caduto in battaglia e il Cerchio, primo pezzo della corona, è vostro." },
     { "se": { "bandiera": "corvino-parlato" }, "testo": "Corvino vi ha ceduto il Cerchio, primo pezzo della corona, senza combattere." },
+    { "se": { "bandiera": "rocca-arrivata" }, "testo": "A Rocca Pallida il capitano Orsolino vi ha raccontato dei morti che ogni notte si siedono sotto le mura." },
+    { "se": { "bandiera": "fonte-visitata" }, "testo": "A Fonte Cupa Madre Anselma vi ha dato la chiave della Cripta dei Re." },
+    { "se": { "bandiera": "rito-appreso" }, "testo": "Madre Anselma vi ha insegnato il rito dell'ultimo saluto: il nome, il turno finito, gli occhi chiusi." },
+    { "se": { "bandiera": "sale-onesto" }, "testo": "Avete detto al capitano Orsolino che il sale di Fonte Cupa era mezzo fango." },
+    { "se": { "bandiera": "sale-truffato" }, "testo": "Avete portato a Rocca Pallida il sale di Fonte Cupa, mezzo fango, e avete taciuto." },
+    { "se": { "bandiera": "sale-ignaro" }, "testo": "Avete consegnato a Rocca Pallida il sale di Fonte Cupa." },
+    { "se": { "bandiera": "ruggero-elmo" }, "testo": "Gherardo ha reso l'elmo al fratello d'armi Ruggero, che ora riposa nella Cripta." },
+    { "se": [ { "bandiera": "ruggero-sepolto" }, { "non": { "bandiera": "ruggero-elmo" } } ], "testo": "Il cavaliere Ruggero ha trovato pace nella cappella dei guardiani." },
+    { "se": { "bandiera": "ruggero-calmo" }, "testo": "Gherardo ha riconosciuto il cavaliere Ruggero, che vi ha lasciati passare senza trovare pace." },
+    { "se": { "bandiera": "ruggero-vinto" }, "testo": "Avete dovuto abbattere il cavaliere Ruggero nella cappella dei guardiani." },
+    { "se": { "bandiera": "gualtiero-pace" }, "testo": "Il Re senza corona ha ascoltato il rito, vi ha ceduto la Gemma e si è addormentato." },
+    { "se": { "bandiera": "gualtiero-vinto" }, "testo": "Il Re senza corona è caduto in battaglia e la Gemma, secondo pezzo della corona, è vostra." },
+    { "se": { "bandiera": "indizio-lettera" }, "testo": "Nella tomba avete trovato una lettera di re Ottavio: «Non datela al Maestro»." },
+    { "se": { "bandiera": "rocca-ritorno-fatto" }, "testo": "A Rocca Pallida i morti non si siedono più sotto le mura." },
+    { "se": { "bandiera": "orsolino-promessa" }, "testo": "Avete giurato al capitano Orsolino che la Gemma tornerà a Rocca Pallida, a cose finite." },
+    { "se": { "bandiera": "campane-fatte" }, "testo": "La grande campana di Rocca Pallida suona di nuovo." },
+    { "se": { "bandiera": "reggente-sospetta" }, "testo": "La Reggente ha cominciato a dubitare del Maestro Alberico." },
+    { "se": { "bandiera": "reggente-incredula" }, "testo": "La Reggente non crede che il Maestro Alberico c'entri." },
     { "se": { "bandiera": "gherardo-lascia" }, "testo": "Gherardo Pietrasorda ha lasciato la compagnia." },
     { "se": { "bandiera": "mirta-lascia" }, "testo": "Mirta ha lasciato la compagnia." }
   ],
   "prossimo": [
+    { "se": { "bandiera": "atto3" }, "testo": "Il Cerchio e la Gemma puntano insieme ai Boschi Velati: l'ultimo pezzo, il Sigillo, è nella Torre dei Corvi." },
+    { "se": { "missione": "gemma", "stato": "attiva" }, "testo": "La Gemma dorme nella Cripta dei Re, sotto le Brughiere Cenerine, e un re morto la sveglia ogni notte." },
     { "se": { "bandiera": "atto2" }, "testo": "Il Cerchio vibra verso le Brughiere Cenerine: è là che si trova il secondo pezzo, la Gemma." },
     { "se": { "missione": "cerchio", "stato": "attiva" }, "testo": "Il Cerchio è nelle mani dei Corvi, nel loro accampamento oltre i salici." },
     { "testo": "La Reggente vi aspetta a Valcorvo, e la pioggia non smette." }
@@ -222,7 +254,7 @@
         "c": { "chi": "corvino", "testo": "Me l'hanno portato i corvi una notte di pioggia, come un dono. Io non rifiuto i doni. Ma sono un uomo ragionevole: che cosa mi date per toglierlo da qui?",
           "scelte": [
             { "t": "Chi te l'ha portato?", "una": true, "tono": [ "mistero" ], "vai": "d1" },
-            { "t": "Cerco gli ordini sul carro", "se": { "bandiera": "corvino-ordini" }, "una": true,
+            { "t": "Cerco gli ordini sul carro", "se": [ { "bandiera": "corvino-ordini" }, { "non": { "bandiera": "indizio-sigillo" } } ], "una": true,
               "prova": { "ab": "furtivita", "cd": 13,
                 "ok": { "vai": "ordini", "testo": "Fra le mappe e i sacchi, una pergamena piegata con un sigillo d'argento." },
                 "ko": { "vai": "battaglia-corvino", "testo": "Una sentinella vi vede frugare e dà l'allarme." } } },
@@ -237,7 +269,7 @@
             { "t": "Prendo il Cerchio con la forza", "tono": [ "durezza" ], "vai": "battaglia-corvino" }
           ] },
         "d1": { "chi": "corvino", "testo": "Nessuno che si faccia vedere. Piume nere, un segno d'argento. Gli ordini arrivano la sera, scritti: io li brucio. Quasi tutti.", "effetti": [ { "t": "bandiera", "id": "corvino-ordini" } ], "vai": "c" },
-        "ordini": { "chi": "_", "testo": "Lo spiegate alla luce del fuoco: non è un ordine di battaglia ma un elenco di villaggi e di giorni, e in fondo un segno, una piuma e un occhio. Qualcuno ha deciso dove devono colpire i Corvi.", "effetti": [ { "t": "oggetto", "id": "sigillo-dei-corvi", "n": 1 }, { "t": "bandiera", "id": "indizio-sigillo" }, { "t": "diario", "testo": "Un ordine con un sigillo d'argento (una piuma e un occhio) mostra che qualcuno guida i Corvi di strada." } ], "vai": "c" },
+        "ordini": { "chi": "_", "testo": "Lo spiegate alla luce del fuoco: non è un ordine di battaglia ma un elenco di villaggi e di giorni, e in fondo un segno, una piuma e un occhio. Qualcuno ha deciso dove devono colpire i Corvi.", "effetti": [ { "t": "oggetto", "id": "sigillo-dei-corvi", "n": 1 }, { "t": "bandiera", "id": "indizio-sigillo" }, { "t": "conta", "id": "indizi" }, { "t": "diario", "testo": "Un ordine con un sigillo d'argento (una piuma e un occhio) mostra che qualcuno guida i Corvi di strada." } ], "vai": "c" },
         "cede": { "chi": "corvino", "testo": "Prendetelo. Da quando lo porto sogno corvi che parlano, e non voglio più dormire con loro. Dite alla Reggente che i Corvi di strada hanno finito di essere un esercito. Almeno finché durerà la mia pazienza.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 }, { "t": "bandiera", "id": "cerchio-preso" }, { "t": "bandiera", "id": "corvino-parlato" } ], "vai": "fine" },
         "battaglia-corvino": { "chi": "_", "testo": "Corvino si alza e la sua risata è la prima a spegnersi. «Allora è deciso.» I Corvi escono dalle tende come uno stormo.", "effetti": [ { "t": "battaglia", "capo": "capobanda-corvino", "diff": "capo" } ], "vai": "dopo" },
         "dopo": { "chi": "_", "testo": "Corvino cade in ginocchio. Il Cerchio gli scivola dalla fronte e rotola nella polvere, ancora tiepido. Intorno a voi i Corvi gettano le armi.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 }, { "t": "bandiera", "id": "cerchio-preso" }, { "t": "bandiera", "id": "corvino-sconfitto" } ], "vai": "fine" },
@@ -268,12 +300,12 @@
           "scelte": [
             { "t": "Parlami del re Ottavio", "una": true, "tono": [ "onore" ], "vai": "r1" },
             { "t": "Perché hanno incolpato te?", "una": true, "vai": "r2" },
-            { "t": "Quella notte, che cosa ricordi davvero?", "se": { "approv": "gherardo", "min": 20 }, "una": true, "vai": "r3" },
+            { "t": "Quella notte, che cosa ricordi davvero?", "se": [ { "approv": "gherardo", "min": 20 }, { "non": { "bandiera": "indizio-gherardo" } } ], "una": true, "vai": "r3" },
             { "t": "Niente. Pensavo ad alta voce", "fine": true }
           ] },
         "r1": { "chi": "gherardo", "testo": "Ottavio il Mite. Trent'anni sul trono e mai una guerra. Ogni mattina mangiava con le guardie del turno, e una volta mi disse che la corona gli pesava come una doppia armatura. Pensai che parlasse per modo di dire.", "vai": "a" },
         "r2": { "chi": "gherardo", "testo": "Perché ero io di guardia. Perché un colpevole serve. E perché la Reggente non può permettersi di dire che il suo regno si è fatto rubare un re sotto il naso.", "vai": "a" },
-        "r3": { "chi": "gherardo", "testo": "Se mi fido di voi, lo dico. I corvi spensero le torce, ricordo le ali. E ricordo un uomo in piedi accanto al re, di spalle, con il mantello nero dei maghi di corte: il Maestro Alberico. Ma lui era sempre là, ogni sera. Non ho mai pensato di sospettare.", "effetti": [ { "t": "bandiera", "id": "indizio-gherardo" }, { "t": "diario", "testo": "Gherardo ricorda il Maestro Alberico accanto al re la notte della scomparsa." } ], "vai": "a" }
+        "r3": { "chi": "gherardo", "testo": "Se mi fido di voi, lo dico. I corvi spensero le torce, ricordo le ali. E ricordo un uomo in piedi accanto al re, di spalle, con il mantello nero dei maghi di corte: il Maestro Alberico. Ma lui era sempre là, ogni sera. Non ho mai pensato di sospettare.", "effetti": [ { "t": "bandiera", "id": "indizio-gherardo" }, { "t": "conta", "id": "indizi" }, { "t": "diario", "testo": "Gherardo ricorda il Maestro Alberico accanto al re la notte della scomparsa." } ], "vai": "a" }
       }
     },
     "gherardo-addio": {
@@ -296,6 +328,283 @@
     "mirta-addio": {
       "inizio": "a",
       "nodi": { "a": { "chi": "mirta", "testo": "Mi avete trattata come una persona e poi come una scorta. Non è abbastanza. Addio, e non cercatemi fra i salici.", "fine": true } }
+    },
+    "rocca-arrivo": {
+      "titolo": "Le mura di Rocca Pallida", "dove": "rocca-pallida", "se": [ "atto2", { "non": { "bandiera": "rocca-arrivata" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Rocca Pallida sorge su un dosso di calcare in mezzo al pantano e, al tramonto, sembra una lapide. Il portone è chiuso. Sulle mura le torce bruciano a gruppi di tre, con grandi vuoti fra un gruppo e l'altro, come se chi le tiene avesse paura del buio fra le fiamme.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Ai piedi delle mura, nella nebbia, c'è gente seduta. Una trentina di figure in fila, immobili, con la faccia contro la pietra come bambini in castigo. Nessuna si volta mentre vi avvicinate. Dall'alto una voce tesa grida: «Fermi! Dopo il vespro non si apre a nessuno!»", "vai": "c" },
+        "c": { "chi": "sentinella", "testo": "Chiunque siate, aspettate l'alba. Con le prime luci i morti se ne vanno e allora si parla. Di notte no: ordini del capitano.",
+          "scelte": [
+            { "t": "Siamo cercatori della Reggente", "se": "udienza-fatta", "vai": "d" },
+            { "t": "Aprite: abbiamo camminato tutto il giorno", "prova": { "ab": "persuasione", "cd": 12, "ok": { "vai": "d", "testo": "La sentinella esita, poi fa un cenno: la grata comincia a salire." }, "ko": { "vai": "c", "testo": "«Questa è la scusa di tutti. Anche i morti la userebbero.»" } } },
+            { "t": "Aprite, o dirò al capitano che avete lasciato fuori i cercatori del re", "tono": [ "durezza" ], "prova": { "ab": "intimidire", "cd": 14, "ok": { "vai": "d", "testo": "«Va bene, va bene! Non gridate: li svegliate.»" }, "ko": { "vai": "c", "testo": "«Gridate pure. Io ho più paura di loro che di voi.»" } } },
+            { "t": "Aspettiamo l'alba accanto ai morti", "tono": [ "mistero" ], "effetti": [ { "t": "perdizione", "n": 1 } ], "vai": "alba" }
+          ] },
+        "alba": { "chi": "_", "testo": "Passate la notte con la schiena contro il muro, fra trenta sagome che non respirano. Verso l'alba una di loro gira la testa e vi guarda, non con odio: con invidia. Poi il cielo schiarisce, i morti si alzano uno a uno, in fila, e rientrano nella nebbia senza una parola. La grata si alza.", "vai": "d" },
+        "d": { "chi": "_", "testo": "Dentro, Rocca Pallida è un ammasso di case basse e di sacchi di sale accatastati lungo i muri. Il capitano Orsolino vi riceve nella stanza della guardia, in piedi, senza sedersi, come uno che non dorme da una settimana.", "vai": "e" },
+        "e": { "chi": "orsolino", "testo": "Cercatori della Reggente, dunque. Finalmente qualcuno che non mi chiede di farli sparire con una preghiera. Da undici notti i morti dei vecchi cimiteri salgono dal pantano e si siedono sotto le mura. Non attaccano, non parlano. All'alba tornano giù. Ho perso otto uomini che non reggevano a guardarli.", "vai": "f" },
+        "f": { "chi": "orsolino", "testo": "Ditemi che cosa vi serve sapere, e poi ditemi se resterete.",
+          "scelte": [
+            { "t": "Che cosa vogliono i morti?", "una": true, "vai": "g1" },
+            { "t": "Da dove vengono?", "una": true, "vai": "g2" },
+            { "t": "Il Cerchio vibra verso queste brughiere: che cosa c'è qui?", "se": "cerchio-preso", "una": true, "tono": [ "mistero" ], "vai": "g3" },
+            { "t": "Gherardo, tu conosci la Cripta dei Re?", "se": { "compagno": "gherardo" }, "una": true, "vai": "g4" },
+            { "t": "Accettiamo l'incarico", "vai": "h" }
+          ] },
+        "g1": { "chi": "orsolino", "testo": "Aspettano, mi pare. Come chi sta in coda davanti a una porta. Non guardano me: guardano a sud, verso la Cripta dei Re, quando credono che nessuno veda. Una volta ho visto la mano di uno di loro che si apriva e si chiudeva, come se cercasse qualcosa da tenere.", "vai": "f" },
+        "g2": { "chi": "orsolino", "testo": "Le brughiere sono un cimitero grande come una contea. Ma i primi a salire sono stati quelli del vecchio cimitero dei soldati, vicino alla Cripta dei Re. I re di Valcorvo dormono là sotto con la loro guardia. Il cancello è sigillato da cent'anni, e da prima che io nascessi nessuno ha avuto motivo di aprirlo.", "vai": "f" },
+        "g3": { "chi": "orsolino", "testo": "Il Cerchio... Allora è vero quel che scrive la Reggente. C'è una leggenda: la Gemma, quella che dà pace ai morti, fu sepolta con Gualtiero, il primo re che portò la corona intera. Se la corona si è spezzata, la Gemma è tornata dov'è nata. Là sotto.", "effetti": [ { "t": "diario", "testo": "Secondo il capitano Orsolino, la Gemma è nella Cripta dei Re, sepolta con il vecchio re Gualtiero." } ], "vai": "f" },
+        "g4": { "chi": "gherardo", "testo": "La veglia dei novilunii, sì: quattro guardie per notte nella cappella dei guardiani. La feci da ragazzo. C'è un cavaliere che non tornò da una di quelle veglie, vent'anni fa, e io... lasciamo stare. Vedremo sul posto.", "vai": "f" },
+        "h": { "chi": "orsolino", "testo": "Vi do alloggio e il pane che abbiamo. Cercate la causa dove sta, in fondo alle brughiere. Ma passate da Fonte Cupa prima della Cripta: il cancello si apre solo con la chiave, e la vecchia Anselma la porta al collo.", "effetti": [ { "t": "bandiera", "id": "rocca-arrivata" }, { "t": "missione", "id": "gemma", "stato": "attiva" }, { "t": "diario", "testo": "A Rocca Pallida i morti si siedono sotto le mura. Bisogna scendere nella Cripta dei Re; la chiave è a Fonte Cupa, da Madre Anselma." } ], "fine": true }
+      }
+    },
+    "fonte-cupa": {
+      "titolo": "Fonte Cupa", "dove": "fonte-cupa", "se": [ "atto2", { "non": { "bandiera": "fonte-visitata" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Fonte Cupa è un villaggio di case di fango e canne attorno a una polla nera che non gela mai. Dalla polla escono rivoli salati che la gente raccoglie in vasche basse: il sale delle Brughiere, grigio e amaro, che si vende fino a Valcorvo. Nessuno vi saluta. Tutti guardano verso nord, dove la nebbia si è fatta scura.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Alla vasca più grande un uomo massiccio dalle mani bianche di sale smette di lavorare e vi viene incontro, con la prudenza di chi ha già pagato una volta per fidarsi troppo.", "vai": "c" },
+        "c": { "chi": "brunoro", "testo": "Brunoro, salinaro. Se cercate sale, è nei sacchi. Se cercate guai, ne abbiamo in avanzo. Se cercate la Cripta dei Re, parlate con Madre Anselma: ma con gentilezza, è vecchia.",
+          "scelte": [
+            { "t": "Parlo con Madre Anselma", "vai": "d" },
+            { "t": "Che cosa succede al villaggio?", "una": true, "vai": "c1" },
+            { "t": "Il sale: ne avete in abbondanza?", "se": { "missione": "sale", "stato": "nessuna" }, "una": true, "vai": "c2" },
+            { "t": "Ho altro da fare, grazie", "fine": true }
+          ] },
+        "c1": { "chi": "brunoro", "testo": "I pozzi danno acqua più salata e più nera, e la notte ci sono voci sotto terra. Non parole: respiri. Ai bambini viene sonno a mezzogiorno. Ho mandato mia moglie dai parenti a Rocca, ma a Rocca non si dorme.", "vai": "c" },
+        "c2": { "chi": "brunoro", "testo": "Cinquanta sacchi pronti per il carro di Valcorvo. Ma il carro non parte più, con le notti che ci sono. Rocca Pallida ne compra per spargerlo davanti alle porte: dicono che i morti non passino una linea di sale. Se ne portaste voi qualche sacco, ve ne sarei grato.",
+          "scelte": [
+            { "t": "Lo portiamo noi", "effetti": [ { "t": "missione", "id": "sale", "stato": "attiva" }, { "t": "bandiera", "id": "sale-caricato" } ], "vai": "c3" },
+            { "t": "Non adesso", "vai": "c" }
+          ] },
+        "c3": { "chi": "brunoro", "testo": "Dieci sacchi, sul carretto dietro la casa: sale buono, col mio nome sopra. Sessanta monete a consegna, le paga il capitano. E... non apriteli per strada, se potete: si bagnano.", "vai": "c" },
+        "d": { "chi": "_", "testo": "La casa di Madre Anselma ha la porta aperta e un lume acceso anche di giorno. Dentro è pieno di erbe appese e di sacchetti di tela. La vecchia, curva su un mortaio, non alza gli occhi.", "vai": "e" },
+        "e": { "chi": "anselma", "testo": "Siete qui per i morti. Venivano tutti per i morti, ultimamente. La chiave della Cripta la porto al collo da quarant'anni e non l'ho mai usata: una porta chiusa fa meno paura di una porta aperta. Che cosa mi date per aprirla?",
+          "scelte": [
+            { "t": "Le mostro il Cerchio", "se": "cerchio-preso", "tono": [ "mistero" ], "vai": "chiave" },
+            { "t": "La Reggente ci manda a placare i morti", "prova": { "ab": "persuasione", "cd": 12, "ok": { "vai": "chiave", "testo": "Anselma annuisce lentamente: «Nessuno manda nessuno, quaggiù. Ma voi sembrate onesti.»" }, "ko": { "vai": "e", "testo": "«La Reggente sta a Valcorvo. I morti stanno qui.»" } } },
+            { "t": "Pago quaranta monete", "se": { "oro": 40 }, "tono": [ "avidita" ], "effetti": [ { "t": "oro", "n": -40 } ], "vai": "chiave" },
+            { "t": "Me ne vado", "fine": true }
+          ] },
+        "chiave": { "chi": "anselma", "testo": "Prendetela. Il cancello è a mezza giornata a sud, sotto il dosso con le tre pietre in piedi. Non dormite lì davanti. E se in fondo trovate chi ha lasciato la porta aperta, ditegli di richiuderla da dentro.", "effetti": [ { "t": "oggetto", "id": "chiave-dell-antro", "n": 1 }, { "t": "bandiera", "id": "fonte-visitata" }, { "t": "diario", "testo": "Madre Anselma di Fonte Cupa vi ha dato la chiave della Cripta dei Re." } ], "vai": "rito" },
+        "rito": { "chi": "anselma", "testo": "C'è un rito per i morti che non sanno di esserlo: poche parole e un gesto. Si dice al morto il suo nome, si dice che il turno è finito, si chiudono gli occhi. Funziona con chi aspetta di essere chiamato. Vi piacerebbe impararlo? Mi ci vuole un'ora, e un'ora qui è una razione di sonno.",
+          "scelte": [
+            { "t": "Insegnatemelo", "tono": [ "pieta" ], "effetti": [ { "t": "razioni", "n": -1 }, { "t": "bandiera", "id": "rito-appreso" }, { "t": "diario", "testo": "Avete imparato il rito dell'ultimo saluto: il nome, il turno finito, gli occhi chiusi." } ], "vai": "rito-ok" },
+            { "t": "Non c'è tempo", "fine": true }
+          ] },
+        "rito-ok": { "chi": "anselma", "testo": "Così. Voce bassa, mano aperta. E se tremate, fate finta di no: il morto sa quando la voce trema, ma gli piace fingere di non saperlo.", "fine": true }
+      }
+    },
+    "rocca-sale": {
+      "titolo": "Il sale per le porte", "dove": "rocca-pallida", "se": [ { "missione": "sale", "stato": "attiva" }, { "non": { "bandiera": "sale-consegnato" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Orsolino fa scaricare i sacchi nel cortile. I soldati li aprono con i coltelli e spargono una striscia grigia davanti a ogni porta. Dalle mura, i morti della notte scorsa non ci sono: ma l'idea di una linea contro di loro dà ai soldati un'aria quasi sollevata.", "vai": "b" },
+        "b": { "chi": "orsolino", "testo": "Sale di Fonte Cupa. Meno bianco del solito. Sessanta monete, come pattuito, se regge.",
+          "scelte": [
+            { "t": "Controllo il sale prima di consegnarlo", "una": true, "prova": { "ab": "percezione", "cd": 12, "ok": { "vai": "c", "testo": "Rompete un grumo fra le dita: dentro c'è altro." }, "ko": { "vai": "b", "testo": "Vi pare sale e basta." } } },
+            { "t": "Consegniamo il sale", "vai": "d" }
+          ] },
+        "c": { "chi": "_", "testo": "Dentro è fango secco. Un sacco su tre è fatto così: sale in superficie e argilla sotto. Una linea come questa non ferma un cane, figuriamoci un morto. Brunoro l'ha mescolato per stendere il poco sale che gli resta.",
+          "scelte": [
+            { "t": "Lo dico a Orsolino", "tono": [ "onore" ], "effetti": [ { "t": "bandiera", "id": "sale-onesto" } ], "vai": "e" },
+            { "t": "Prendo le sessanta monete e taccio", "tono": [ "avidita" ], "effetti": [ { "t": "bandiera", "id": "sale-truffato" }, { "t": "perdizione", "n": 1 } ], "vai": "f" }
+          ] },
+        "d": { "chi": "orsolino", "testo": "Sessanta monete. Dite a Brunoro che il capitano lo ringrazia e che spero regga.", "effetti": [ { "t": "oro", "n": 60 }, { "t": "bandiera", "id": "sale-ignaro" }, { "t": "bandiera", "id": "sale-consegnato" }, { "t": "missione", "id": "sale", "stato": "fatta" } ], "fine": true },
+        "e": { "chi": "orsolino", "testo": "Fango. Sotto il sale. E io ho messo otto uomini a guardare quella linea. Grazie di avermelo detto: mi ha salvato la notte. Pagherò solo i sacchi buoni, e un po' di più a voi, per l'onestà.", "effetti": [ { "t": "oro", "n": 40 }, { "t": "bandiera", "id": "sale-consegnato" }, { "t": "missione", "id": "sale", "stato": "fatta" } ], "fine": true },
+        "f": { "chi": "orsolino", "testo": "Sessanta monete. E che regga.", "effetti": [ { "t": "oro", "n": 60 }, { "t": "bandiera", "id": "sale-consegnato" }, { "t": "missione", "id": "sale", "stato": "fatta" }, { "t": "diario", "testo": "Il sale di Fonte Cupa è mezzo fango: l'avete consegnato lo stesso, e il capitano ci conta." } ], "fine": true }
+      }
+    },
+    "rocca-ritorno": {
+      "titolo": "L'alba senza morti", "dove": "rocca-pallida", "se": [ "gemma-presa", { "non": { "bandiera": "rocca-ritorno-fatto" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "All'alba nessuno siede sotto le mura. La striscia di sale è ancora lì, ma il pantano è muto e la nebbia sale piano, senza facce. I soldati escono sul cammino di ronda a due a due, increduli, e guardano il vuoto come si guarda una stanza dopo un funerale.", "vai": "b" },
+        "b": { "chi": "orsolino", "testo": "Sono tornati giù. Tutti, nella stessa ora: me lo hanno detto le sentinelle, una per una, e hanno pianto, uomini che non piangevano dalla guerra dei Quattro Fiumi. Non voglio sapere come avete fatto. Voglio solo ringraziarvi.",
+          "scelte": [
+            { "t": "La Gemma deve tornare dal re", "tono": [ "onore" ], "vai": "c" },
+            { "t": "Non c'è di che, capitano", "vai": "d" }
+          ] },
+        "c": { "chi": "orsolino", "testo": "Lo capisco. Ma se la portate lontano, un giorno avrò di nuovo i miei morti seduti sotto le mura. Giurate almeno che, a cose finite, la Gemma tornerà a dormire qui, dove ce n'è bisogno.",
+          "scelte": [
+            { "t": "Lo giuro", "tono": [ "onore" ], "effetti": [ { "t": "bandiera", "id": "orsolino-promessa" }, { "t": "diario", "testo": "Avete giurato a Orsolino che la Gemma tornerà a Rocca Pallida, a cose finite." } ], "vai": "d" },
+            { "t": "Non posso giurarlo", "tono": [ "durezza" ], "vai": "d" }
+          ] },
+        "d": { "chi": "orsolino", "testo": "Ecco la paga che manda la Reggente, e qualcosa di mio: sono le monete che avevo messo da parte per far mangiare i miei uomini in un inverno peggiore di questo. Le campane, intanto... Ne parli con Bertino: sulla torre. Dice che sono stregate.", "effetti": [ { "t": "oro", "n": 100 }, { "t": "bandiera", "id": "rocca-ritorno-fatto" } ], "fine": true }
+      }
+    },
+    "rocca-campane": {
+      "titolo": "La torre delle campane", "dove": "rocca-pallida", "se": [ "gemma-presa", { "non": { "bandiera": "campane-fatte" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La torre delle campane è una canna di pietra bianca con una scala a chiocciola. In cima, sotto un tetto di assi, stanno tre campane, due piccole e una grande, e un uomo che le accarezza come cani ammalati.", "effetti": [ { "t": "missione", "id": "campane", "stato": "attiva" } ], "vai": "b" },
+        "b": { "chi": "bertino", "testo": "Bertino, campanaro. La grande si chiama Marta ed è la più vecchia del regno dopo il re Gualtiero. Da undici notti non suona: la corda è tesa ma il battaglio non batte, come se Marta non volesse. Eppure stanotte, quando i morti sono scesi, l'ho sentita ronzare. Da sola.",
+          "scelte": [
+            { "t": "Tiro la corda", "prova": { "ab": "atletica", "cd": 12, "ok": { "vai": "c", "testo": "La corda cede, il battaglio scatta." }, "ko": { "vai": "b", "testo": "La corda scorre a vuoto, come se la campana tenesse il fiato." } } },
+            { "t": "Accosto la Gemma alla campana", "se": { "oggetto": "frammento-di-corona" }, "tono": [ "mistero" ], "vai": "c" },
+            { "t": "Lascio perdere", "fine": true }
+          ] },
+        "c": { "chi": "_", "testo": "La grande campana suona. Il suono non scende: sale, e dalla nebbia delle brughiere lontane risponde un altro suono, più basso, una nota di pietra. Tutti i cani di Rocca smettono di abbaiare. Bertino piange senza vergogna.", "effetti": [ { "t": "bandiera", "id": "campane-fatte" }, { "t": "missione", "id": "campane", "stato": "fatta" } ], "vai": "d" },
+        "d": { "chi": "bertino", "testo": "Mia madre dormiva con quel suono. Vi devo la nostra mattina. Se un giorno doveste farne ancora, suonate Marta: risponde ai morti buoni.", "fine": true }
+      }
+    },
+    "gherardo-ruggero": {
+      "inizio": "a",
+      "nodi": {
+        "a": { "chi": "gherardo", "testo": "Aspettate. Prima di arrivare alla Cripta c'è una cosa che devo dire, e voglio dirla a voi, non a uno specchio.", "vai": "b" },
+        "b": { "chi": "gherardo", "testo": "Ruggero Valdenebbia. Capitano della guardia prima di me e mio fratello d'armi: giurammo sul pane e sul ferro. Vent'anni fa fece la veglia di novilunio nella Cripta dei Re e non tornò. Dissero: un crollo. Lo seppellirono là sotto, nella cappella dei guardiani, senza elmo.", "vai": "c" },
+        "c": { "chi": "gherardo", "testo": "L'elmo ce l'ho io. Gliel'ho tenuto vent'anni: non ho avuto cuore di metterlo nella tomba, perché così non sarebbe finita davvero. Ora i morti camminano, e se Ruggero cammina, cammina scoperto. Non lo sopporto. Mi aiutate a rendergli l'elmo?",
+          "scelte": [
+            { "t": "Certo: è un debito d'onore", "tono": [ "onore" ], "effetti": [ { "t": "missione", "id": "ruggero", "stato": "attiva" } ], "vai": "d1" },
+            { "t": "Ci arriveremo, se la strada lo permette", "effetti": [ { "t": "missione", "id": "ruggero", "stato": "attiva" } ], "vai": "d2" },
+            { "t": "Non possiamo permetterci deviazioni", "tono": [ "durezza" ], "vai": "e" }
+          ] },
+        "d1": { "chi": "gherardo", "testo": "Grazie. Ho taciuto troppo. Quando saremo davanti alla cappella, lasciate che gli parli io: se c'è ancora qualcosa di lui, mi riconoscerà.", "fine": true },
+        "d2": { "chi": "gherardo", "testo": "È quanto chiedo. Tengo l'elmo nello zaino: non lo vedrete, ma sapete che c'è.", "fine": true },
+        "e": { "chi": "gherardo", "testo": "Capisco. Un soldato sa quando la sua pena non conta. Ne riparleremo, se ancora vorrete ascoltarmi.", "fine": true }
+      }
+    },
+    "cripta-soglia": {
+      "titolo": "La soglia dei sarcofagi", "dove": "cripta-dei-re", "se": [ "atto2", { "non": { "bandiera": "cripta-soglia-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Sotto il dosso con le tre pietre in piedi c'è una lastra di bronzo verde, alta come due uomini, con un buco di serratura grande quanto un pugno. Da sotto sale un freddo che sa di sale e di cera spenta. Non ci sono guardie. Non servono: chi viene fin qui sa già a che cosa va incontro.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Il cancello va aperto, in un modo o nell'altro.",
+          "scelte": [
+            { "t": "Apro con la chiave di Madre Anselma", "se": { "oggetto": "chiave-dell-antro" }, "vai": "c" },
+            { "t": "Lascio che il Cerchio apra la serratura", "se": { "oggetto": "frammento-di-corona" }, "tono": [ "mistero" ], "effetti": [ { "t": "perdizione", "n": 1 } ], "vai": "cerchio" },
+            { "t": "Scasso la serratura", "prova": { "ab": "furtivita", "cd": 14, "ok": { "vai": "c", "testo": "I tamburi della serratura scattano uno a uno." }, "ko": { "vai": "rumore", "testo": "Il bronzo canta come una campana." } } },
+            { "t": "Sfondo il cancello", "tono": [ "durezza" ], "prova": { "ab": "atletica", "cd": 14, "ok": { "vai": "c", "testo": "Il cardine cede con un urlo." }, "ko": { "vai": "rumore", "testo": "Il colpo rimbomba per tutta la Cripta." } } }
+          ] },
+        "cerchio": { "chi": "_", "testo": "Il Cerchio vibra tanto che i denti vi dolgono. Il bronzo si arrossa, poi scivola nel muro come cera. Per un istante vi pare che qualcosa, dentro il metallo, vi abbia riconosciuti.", "vai": "c" },
+        "rumore": { "chi": "_", "testo": "Dal fondo del corridoio vengono passi lenti, e altri, e altri ancora. Qualcuno ha sentito, e non è contento di essere svegliato.", "effetti": [ { "t": "battaglia", "fam": "nonmorti", "diff": "facile", "arena": "antro" } ], "vai": "dopo-rumore" },
+        "dopo-rumore": { "chi": "_", "testo": "Il silenzio torna. Il cancello, ormai, è aperto o rotto: poco importa. Davanti a voi il corridoio scende nel buio.", "vai": "c" },
+        "c": { "chi": "_", "testo": "Dentro, i sarcofagi hanno i coperchi spostati, tutti verso l'interno, come se i morti si fossero alzati con cautela per non svegliare nessuno. Lungo il corridoio, sedute con la schiena ai muri e le mani in grembo, stanno le guardie dei re: elmi, spade arrugginite, occhi spenti rivolti alla sala in fondo.", "vai": "d" },
+        "d": { "chi": "_", "testo": "Una di loro gira la testa di un palmo, lentamente. Poi un'altra. Non è un attacco. È una domanda: «Siete il cambio?»",
+          "scelte": [
+            { "t": "Dico il rito dell'ultimo saluto", "se": "rito-appreso", "tono": [ "pieta" ], "vai": "rito" },
+            { "t": "Gherardo parla alla sua guardia", "se": { "compagno": "gherardo" }, "tono": [ "onore" ], "vai": "gherardo" },
+            { "t": "Passo in silenzio, lungo il muro", "prova": { "ab": "furtivita", "cd": 13, "ok": { "vai": "e", "testo": "Nemmeno un elmo si volta." }, "ko": { "vai": "battaglia", "testo": "Un fodero cigola." } } },
+            { "t": "Li affronto", "tono": [ "durezza" ], "vai": "battaglia" }
+          ] },
+        "rito": { "chi": "_", "testo": "Voce bassa, mano aperta. Dite i nomi che potete, dite che il turno è finito, e a chi vi sta più vicino chiudete gli occhi con due dita. Uno dopo l'altro gli elmi si abbassano. Il corridoio si riempie di un rumore leggero, come di foglie secche: sono i morti che si distendono.", "vai": "e" },
+        "gherardo": { "chi": "gherardo", "testo": "Camerati. Sono Gherardo Pietrasorda, capitano della guardia di Ottavio. Il turno è finito. Potete andare a dormire: la veglia, ora, la facciamo noi.", "effetti": [ { "t": "approv", "id": "gherardo", "n": 4 } ], "vai": "gherardo2" },
+        "gherardo2": { "chi": "_", "testo": "Nessuno risponde. Ma uno dopo l'altro gli elmi si abbassano, e le mani sfilano via dal grembo le armi per posarle a terra, piano, perché non facciano rumore.", "vai": "e" },
+        "battaglia": { "chi": "_", "testo": "Gli elmi si girano tutti insieme. Le mani sfilano le lame dal grembo.", "effetti": [ { "t": "battaglia", "fam": "nonmorti", "diff": "medio", "arena": "antro" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "L'ultima guardia si piega su sé stessa, con una specie di sollievo. Nel corridoio resta un odore di ferro e di cera.", "vai": "e" },
+        "e": { "chi": "_", "testo": "Il corridoio sbocca in una sala più larga: colonne alte, nomi scolpiti, una porta di pietra con tre anelli. Dietro di voi i sarcofagi restano aperti e vuoti.", "effetti": [ { "t": "bandiera", "id": "cripta-soglia-ok" } ], "fine": true }
+      }
+    },
+    "cripta-nomi": {
+      "titolo": "La sala dei nomi", "dove": "cripta-dei-re", "se": [ "cripta-soglia-ok", { "non": { "bandiera": "cripta-nomi-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Dodici colonne portano ciascuna un nome in lettere antiche: i re di Valcorvo, dal primo all'ultimo, e un tredicesimo spazio vuoto, in attesa. In fondo la porta di pietra ha tre anelli da girare. Sopra gli anelli sono incisi tre versi.", "vai": "b" },
+        "b": { "chi": "_", "testo": "«Il giovane aprì la strada. Il giusto la tenne. Il pentito la chiuse.» Nient'altro: nessun nome, nessun indizio su quale anello vada girato per primo.",
+          "scelte": [
+            { "t": "Leggo i nomi sulle colonne", "una": true, "prova": { "ab": "storia", "cd": 12, "ok": { "vai": "c", "testo": "Le lettere consumate si lasciano leggere." }, "ko": { "vai": "b", "testo": "La polvere ha mangiato quasi tutto." } } },
+            { "t": "Gherardo recita la linea dei re", "se": { "compagno": "gherardo" }, "una": true, "tono": [ "onore" ], "vai": "c" },
+            { "t": "Decifro i nomi con calma, per un'ora", "una": true, "effetti": [ { "t": "razioni", "n": -1 } ], "vai": "c" },
+            { "t": "Giro gli anelli: Gualtiero, Ermanno, Aldobrando", "se": "nomi-letti", "vai": "porta" },
+            { "t": "Giro gli anelli: Aldobrando, Ermanno, Gualtiero", "se": "nomi-letti", "vai": "scatto" },
+            { "t": "Giro gli anelli: Ermanno, Gualtiero, Aldobrando", "se": "nomi-letti", "vai": "scatto" },
+            { "t": "Provo gli anelli a orecchio", "prova": { "ab": "percezione", "cd": 15, "ok": { "vai": "porta", "testo": "Al terzo scatto, la porta risponde." }, "ko": { "vai": "scatto", "testo": "Lo scatto sbagliato fa tremare le colonne." } } },
+            { "t": "Forzo la porta di pietra", "tono": [ "durezza" ], "prova": { "ab": "atletica", "cd": 15, "ok": { "vai": "porta", "testo": "La pietra scricchiola e cede." }, "ko": { "vai": "scatto", "testo": "La porta non cede, e la sala si desta." } } }
+          ] },
+        "c": { "chi": "_", "testo": "Le lettere dicono: GUALTIERO IL GIOVANE, ERMANNO IL GIUSTO, ALDOBRANDO IL PENTITO. Sono i tre re che per primi portarono la corona intera. Gli altri nove nomi sono di reggenti, di parenti, di re brevi. Sull'ultima colonna, sotto il nome di Ottavio, c'è un graffio recente.", "effetti": [ { "t": "bandiera", "id": "nomi-letti" }, { "t": "diario", "testo": "Nella Cripta: Gualtiero il Giovane, Ermanno il Giusto, Aldobrando il Pentito; i tre versi sulla porta li nominano in quell'ordine." } ], "vai": "b" },
+        "scatto": { "chi": "_", "testo": "Gli anelli scattano con un colpo secco. Dai muri esce un lamento, e dalle nicchie due guardie con le mani già sulle lame.", "effetti": [ { "t": "battaglia", "fam": "nonmorti", "diff": "facile", "arena": "antro" } ], "vai": "dopo-scatto" },
+        "dopo-scatto": { "chi": "_", "testo": "Le guardie giacciono. Gli anelli sono tornati nella loro posizione di prima, e sembrano aspettarvi.", "vai": "b" },
+        "porta": { "chi": "_", "testo": "Gli anelli scattano uno dopo l'altro con un rumore di ossa. La porta si ritira nel muro. Il corridoio dopo odora di polvere bruciata, e da qualche parte, lontano, una nota sale e scende come un respiro.", "effetti": [ { "t": "bandiera", "id": "cripta-nomi-ok" } ], "fine": true }
+      }
+    },
+    "cripta-trono": {
+      "titolo": "La trappola del trono", "dove": "cripta-dei-re", "se": [ "cripta-nomi-ok", { "non": { "bandiera": "cripta-trono-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La sala è un cerchio. Al centro, su tre gradini, un trono di pietra nera con lo schienale a forma di corona aperta. Il pavimento è un mosaico di lastre bianche e nere, e fra le bianche corrono righe sottili di polvere, come cicatrici. Dall'altra parte c'è la porta della cappella.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Nelle pareti, tutti all'altezza del petto, corre una fila di fori. Qualcuno, molto tempo fa, voleva che chi attraversasse la sala non la attraversasse due volte.",
+          "scelte": [
+            { "t": "Cerco la lastra giusta", "prova": { "ab": "percezione", "cd": 13, "ok": { "vai": "c", "testo": "Le lastre nere cedono. Le bianche, no." }, "ko": { "vai": "d", "testo": "Una lastra si abbassa sotto il piede." } } },
+            { "t": "Mirta apre il passaggio", "se": { "compagno": "mirta" }, "prova": { "ab": "furtivita", "cd": 11, "chi": "mirta", "ok": { "vai": "c", "testo": "Mirta ride piano: «Facile. Chi le ha fatte non pensava ai ladri.»" }, "ko": { "vai": "d", "testo": "Mirta inciampa su una lastra." } } },
+            { "t": "Salto di lastra in lastra", "prova": { "ab": "acrobazia", "cd": 13, "ok": { "vai": "c", "testo": "Atterrate in punta di piedi, senza un rumore." }, "ko": { "vai": "d", "testo": "Il piede scivola sulla polvere." } } },
+            { "t": "Aggiro la sala dal passaggio dei servi", "effetti": [ { "t": "razioni", "n": -1 } ], "vai": "servi" },
+            { "t": "Mi siedo sul trono", "una": true, "tono": [ "mistero" ], "effetti": [ { "t": "pf", "pct": -0.1 }, { "t": "perdizione", "n": 1 } ], "vai": "trono" }
+          ] },
+        "trono": { "chi": "_", "testo": "Vi sedete. Un peso vi preme la fronte, come una corona che non c'è. Vedete un uomo di mezza età che piange davanti a uno specchio, e sa che qualcuno lo sta uccidendo piano, con gentilezza. Non vedete il suo volto. Poi il trono vi lascia andare, e vi accorgete di tremare.", "vai": "b" },
+        "d": { "chi": "_", "testo": "Una lastra cede. Dai fori esce un coro di frecce nere: il ferro è vecchio e arrugginito, ma non per questo meno cattivo.", "effetti": [ { "t": "pf", "pct": -0.2 } ], "vai": "c" },
+        "servi": { "chi": "_", "testo": "Dietro il trono una porticina bassa dà su un cunicolo stretto, pieno di polvere e di ragnatele grigie. Un'ora di carponi, e poi si esce dall'altro lato della sala senza aver messo piede sul pavimento.", "vai": "c" },
+        "c": { "chi": "_", "testo": "Siete dall'altra parte. Dietro il trono, incisa nella pietra con una scrittura diversa dall'antica, c'è una riga: «QUI SI SIEDE CHI NON PORTA PIÙ NIENTE.»", "effetti": [ { "t": "bandiera", "id": "cripta-trono-ok" } ], "fine": true }
+      }
+    },
+    "cripta-cappella": {
+      "titolo": "La cappella di Sir Ruggero", "dove": "cripta-dei-re", "se": [ "cripta-trono-ok", { "non": { "bandiera": "cripta-cappella-ok" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La cappella dei guardiani è bassa, con otto nicchie lungo le pareti e un altare spoglio. Una sola nicchia ha il sarcofago aperto, e accanto, in piedi, con la spada piantata nel pavimento e le mani sul pomo, c'è un cavaliere morto. La corazza è grigia di polvere, ma è stata bella. Il capo è scoperto: capelli radi e un viso che, da vivo, sapeva ridere.", "vai": "b" },
+        "b": { "chi": "_", "testo": "Non vi ha visti. Guarda l'ingresso della sala, e aspetta, con la pazienza di chi ha avuto vent'anni per impararla.",
+          "scelte": [
+            { "t": "Gherardo gli porta l'elmo", "se": [ { "compagno": "gherardo" }, { "missione": "ruggero", "stato": "attiva" } ], "tono": [ "onore" ], "vai": "elmo1" },
+            { "t": "Gherardo lo chiama per nome", "se": [ { "compagno": "gherardo" }, { "non": { "missione": "ruggero", "stato": "attiva" } } ], "prova": { "ab": "persuasione", "cd": 12, "chi": "gherardo", "vant": true, "ok": { "vai": "nome", "testo": "Il cavaliere morto gira la testa verso la voce." }, "ko": { "vai": "b", "testo": "Il cavaliere non reagisce: guarda attraverso di voi." } } },
+            { "t": "Dico il rito dell'ultimo saluto", "se": "rito-appreso", "tono": [ "pieta" ], "vai": "rito" },
+            { "t": "Gli parlo da soldato a soldato", "prova": { "ab": "persuasione", "cd": 14, "ok": { "vai": "parla", "testo": "Il cavaliere morto alza una mano, e la mano trema." }, "ko": { "vai": "b", "testo": "La spada si muove di un palmo nel pavimento." } } },
+            { "t": "Passo oltre in silenzio", "prova": { "ab": "furtivita", "cd": 14, "ok": { "vai": "esci", "testo": "Il cavaliere non vi segue nemmeno con gli occhi." }, "ko": { "vai": "battaglia", "testo": "Un passo troppo pesante, un'ombra sul muro." } } },
+            { "t": "Lo affronto, nonostante Gherardo", "se": { "compagno": "gherardo" }, "tono": [ "durezza" ], "effetti": [ { "t": "approv", "id": "gherardo", "n": -20 } ], "vai": "battaglia" },
+            { "t": "Lo affronto", "se": { "non": { "compagno": "gherardo" } }, "tono": [ "durezza" ], "vai": "battaglia" }
+          ] },
+        "elmo1": { "chi": "gherardo", "testo": "Ruggero. Sono Gherardo. Quello che ti sedeva a destra e ti rubava il pane di cipolle. Ti ho portato una cosa che avrei dovuto portarti vent'anni fa.", "vai": "elmo2" },
+        "elmo2": { "chi": "_", "testo": "Il cavaliere morto si volta lentamente. Gherardo gli tende l'elmo con due mani, come si offre il pane. Per un momento non succede niente. Poi le dita grigie si chiudono sul ferro, e il morto si mette l'elmo in testa con una cura che quasi spezza il cuore.", "vai": "elmo3" },
+        "elmo3": { "chi": "ruggero", "testo": "Ghe... rardo. Fa... freddo. La veglia... è finita?", "vai": "elmo4" },
+        "elmo4": { "chi": "gherardo", "testo": "È finita, fratello. Il turno è mio, ora. Dormi.", "vai": "elmo5" },
+        "elmo5": { "chi": "_", "testo": "Ruggero resta un attimo ancora, poi lascia andare la spada, che cade con un tonfo, e si distende nel suo sarcofago. Il coperchio scivola da solo. Sulla pietra resta posata la sua corazza grigia, che pare aspettare un nuovo guardiano.", "effetti": [ { "t": "oggetto", "id": "corazza-del-guardiano", "n": 1 }, { "t": "bandiera", "id": "ruggero-sepolto" }, { "t": "bandiera", "id": "ruggero-elmo" }, { "t": "missione", "id": "ruggero", "stato": "fatta" }, { "t": "approv", "id": "gherardo", "n": 12 }, { "t": "diario", "testo": "Gherardo ha reso l'elmo a Sir Ruggero, che ora riposa nel suo sarcofago." } ], "vai": "esci" },
+        "nome": { "chi": "gherardo", "testo": "Ruggero. Ruggero Valdenebbia. Sono io. Il turno è finito.", "vai": "nome2" },
+        "nome2": { "chi": "_", "testo": "Il cavaliere morto stringe il pomo della spada, poi lo molla. Annuisce una volta, come a un ordine ricevuto, e si siede sul bordo del sarcofago, lasciando libera la porta. Non si distende: guarda Gherardo, che non trova niente da dire.", "effetti": [ { "t": "bandiera", "id": "ruggero-calmo" }, { "t": "diario", "testo": "Gherardo ha riconosciuto Sir Ruggero e lo ha convinto a lasciarvi passare, ma Ruggero non ha trovato pace." } ], "vai": "esci" },
+        "rito": { "chi": "_", "testo": "Dite il suo nome, dite che il turno è finito, e con due dita gli chiudete gli occhi che ancora vi guardano. Il cavaliere morto si osserva le mani come se le vedesse per la prima volta, poi si siede sul bordo del sarcofago e, con la dignità di un soldato che finalmente obbedisce a un ordine, si distende. Il coperchio si chiude.", "effetti": [ { "t": "oggetto", "id": "corazza-del-guardiano", "n": 1 }, { "t": "bandiera", "id": "ruggero-sepolto" } ], "vai": "esci" },
+        "parla": { "chi": "ruggero", "testo": "Chi... passa? Io... guardo. Mi avevano detto... fino al cambio. Il cambio... non è mai venuto.", "vai": "parla2" },
+        "parla2": { "chi": "_", "testo": "Gli rispondete come vi viene: che il turno è finito, che il cambio siete voi. Il cavaliere morto piega il capo. Lascia andare la spada. Si distende nel sarcofago come chi, dopo vent'anni in piedi, scopre di avere le gambe stanche.", "effetti": [ { "t": "oggetto", "id": "corazza-del-guardiano", "n": 1 }, { "t": "bandiera", "id": "ruggero-sepolto" } ], "vai": "esci" },
+        "battaglia": { "chi": "_", "testo": "Il cavaliere estrae la spada dal pavimento come da un fodero. «Chi... passa...», sillaba una voce che non ha più polmoni.", "effetti": [ { "t": "battaglia", "fam": "nonmorti", "diff": "difficile", "arena": "antro" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Il cavaliere cade con un fracasso di ferro e lascia sul pavimento la corazza, leggera come svuotata. Il viso che da vivo sapeva ridere vi guarda, senza rancore, finché non gli coprite gli occhi.", "effetti": [ { "t": "oggetto", "id": "corazza-del-guardiano", "n": 1 }, { "t": "bandiera", "id": "ruggero-vinto" }, { "t": "diario", "testo": "Avete dovuto abbattere il cavaliere Ruggero nella cappella dei guardiani." } ], "vai": "esci" },
+        "esci": { "chi": "_", "testo": "Dietro l'altare c'è una porta bassa, e al di là una sala più grande e più alta, dove l'aria vibra di una nota che è quasi un canto.", "effetti": [ { "t": "bandiera", "id": "cripta-cappella-ok" } ], "fine": true }
+      }
+    },
+    "cripta-re": {
+      "titolo": "La camera del re Gualtiero", "dove": "cripta-dei-re", "se": [ "cripta-cappella-ok", { "non": { "bandiera": "gemma-presa" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "La camera è una cupola bassa, e al centro, su un sarcofago aperto che fa da trono, siede un giovane re. Armatura leggera, capelli d'oro scuro ancora fermi nella polvere, una fronte nuda dove un tempo andava la corona. Nelle mani, contro il petto, tiene una gemma incrinata da cui esce la nota che avete sentito per tutta la discesa.", "vai": "b" },
+        "b": { "chi": "gualtiero", "testo": "Chi turba la veglia del re? Avevo una corona, una volta. Ora ho solo questa, e il canto che mi tiene sveglio. Tornate da chi vi manda.", "vai": "c" },
+        "c": { "chi": "gualtiero", "testo": "Ditemi chi siete, se volete. I vivi parlano sempre, quando hanno paura.",
+          "scelte": [
+            { "t": "Gherardo si inginocchia: «Il turno è finito, maestà»", "se": [ { "compagno": "gherardo" }, "ruggero-sepolto" ], "tono": [ "onore" ], "vai": "pace" },
+            { "t": "Dico il rito dell'ultimo saluto", "se": "rito-appreso", "tono": [ "pieta" ], "prova": { "ab": "medicina", "cd": 12, "ok": { "vai": "pace", "testo": "Il re ascolta il suo nome come si ascolta una musica ritrovata." }, "ko": { "vai": "ira", "testo": "La voce vi trema, e il re se ne accorge." } } },
+            { "t": "Gli parlo del suo regno, e di chi è venuto dopo di lui", "prova": { "ab": "storia", "cd": 14, "ok": { "vai": "pace", "testo": "Il re china il capo: «Ermanno... mio figlio... il giusto?»" }, "ko": { "vai": "c", "testo": "«Non sapete nulla di me.»" } } },
+            { "t": "Gli chiedo la Gemma", "prova": { "ab": "persuasione", "cd": 15, "ok": { "vai": "pace", "testo": "Il re guarda la Gemma, poi voi: «Prendetela, se potete sopportarla.»" }, "ko": { "vai": "ira", "testo": "Il re stringe la Gemma al petto." } } },
+            { "t": "Lo affronto", "tono": [ "durezza" ], "vai": "ira" }
+          ] },
+        "ira": { "chi": "gualtiero", "testo": "Voi non avete rispetto per i re? Allora imparerete cosa vuol dire servirne uno, anche senza corona.", "vai": "battaglia" },
+        "battaglia": { "chi": "_", "testo": "Il giovane re si alza. Le colonne della cupola gemono e dai sarcofagi alle pareti sale un respiro di ferro. «Alla guardia!», grida, e dalle nicchie arrivano gli ultimi custodi.", "effetti": [ { "t": "battaglia", "capo": "re-senza-corona", "diff": "capo" } ], "vai": "dopo" },
+        "dopo": { "chi": "_", "testo": "Il Re senza corona cade in ginocchio. La Gemma gli scivola dalle mani e rotola sul pavimento. La nota si spegne. Per un momento, nel silenzio, tutta la brughiera trattiene il fiato. Poi, uno dopo l'altro, i morti di sopra tornano nella terra.", "effetti": [ { "t": "bandiera", "id": "gualtiero-vinto" } ], "vai": "gemma" },
+        "pace": { "chi": "gualtiero", "testo": "Quel nome... il mio nome. Qualcuno lo dice con la voce giusta. Sono stanco. Ho portato la corona ventitré mesi e mi ha mangiato gli anni. Prendete la Gemma: non voglio più sentire il canto. Ma state attenti: la corona non vuole dividersi, e nessuno la porta senza pagarla.", "effetti": [ { "t": "bandiera", "id": "gualtiero-pace" }, { "t": "xp", "n": 150 } ], "vai": "pace2" },
+        "pace2": { "chi": "_", "testo": "Il giovane re posa la Gemma sul sarcofago, la guarda ancora un poco, e si distende. Il canto cala a poco a poco, come una candela che si spegne senza paura. Sulla fronte nuda, quando chiude gli occhi, c'è l'ombra di un sorriso.", "vai": "gemma" },
+        "gemma": { "chi": "_", "testo": "La Gemma pesa pochissimo e scotta di un freddo vivo. Nel suo cuore c'è la stessa incrinatura sottile del Cerchio, e quando la accostate al Cerchio i due pezzi vibrano insieme e si indicano a vicenda. In una nicchia dietro il sarcofago, avvolta in un panno, riposa la spada del giovane re, che brucia piano come una brace sotto la cenere.", "effetti": [ { "t": "oggetto", "id": "frammento-di-corona", "n": 1 }, { "t": "oggetto", "id": "lama-della-brace", "n": 1 }, { "t": "bandiera", "id": "gemma-presa" }, { "t": "missione", "id": "gemma", "stato": "fatta" }, { "t": "diario", "testo": "La Gemma, secondo pezzo della corona, è vostra. Il Re senza corona riposa." } ], "vai": "lettera" },
+        "lettera": { "chi": "_", "testo": "Nella sepoltura, sotto un lembo di panno, c'è una busta di pergamena nuova, fuori posto fra tante cose antiche. Porta il sigillo di re Ottavio. Qualcuno è venuto fin qui, prima di voi, e l'ha lasciata per chi sarebbe venuto dopo.", "vai": "l1" },
+        "l1": { "chi": "ottavio", "testo": "A chi troverà questa lettera, a corona spezzata. Se leggete, ho sbagliato: non ho saputo fermarlo prima. Il Maestro Alberico mi chiede da mesi di «sistemare» la corona, e dietro ogni sua gentilezza sento un desiderio. Se si spezza, cercate chi per primo vi offrirà aiuto. Non datela al Maestro. Non datela a nessuno che la voglia.", "effetti": [ { "t": "bandiera", "id": "indizio-lettera" }, { "t": "conta", "id": "indizi" }, { "t": "diario", "testo": "Lettera di re Ottavio nella Cripta: «Non datela al Maestro. Non datela a nessuno che la voglia.»" } ], "vai": "l2" },
+        "l2": { "chi": "_", "testo": "In fondo, a margine, in una grafia più piccola e storta: «Dite a Berengaria che non è colpa sua.» Ripiegate la lettera con cura. Sopra di voi la brughiera è muta; i due frammenti nello zaino continuano a puntare insieme verso nord-est, verso i Boschi Velati, dove la nebbia è nera come inchiostro.", "effetti": [ { "t": "bandiera", "id": "atto3" }, { "t": "diario", "testo": "Il Cerchio e la Gemma puntano verso i Boschi Velati: l'ultimo pezzo, il Sigillo, è là." } ], "fine": true }
+      }
+    },
+    "reggente-gemma": {
+      "titolo": "La Reggente e la Gemma", "dove": "valcorvo", "se": [ "gemma-presa", { "non": { "bandiera": "reggente-gemma-fatta" } } ], "inizio": "a",
+      "nodi": {
+        "a": { "chi": "_", "testo": "Il palazzo è cambiato: più guardie, meno servi, le finestre sbarrate dall'interno. Berengaria vi riceve nella sala del consiglio, da sola. Accanto a lei c'è la sedia del mago di corte, vuota, con un mantello nero piegato con cura sullo schienale.", "vai": "b" },
+        "b": { "chi": "berengaria", "testo": "Due pezzi su tre. Mi avete dato più speranza in poche settimane che i miei consiglieri in dieci mesi. Il Maestro Alberico è in ritiro di studio da quando mio fratello è sparito: mi manda i suoi corvi con le notizie, mai di persona. Mostratemi i pezzi.", "vai": "c" },
+        "c": { "chi": "berengaria", "testo": "Ditemi tutto, e ditelo bene.",
+          "scelte": [
+            { "t": "Le mostriamo il Cerchio e la Gemma", "una": true, "vai": "d" },
+            { "t": "Le consegniamo la lettera del re", "se": "indizio-lettera", "una": true, "vai": "e" },
+            { "t": "Le dico dei nostri sospetti sul Maestro", "se": { "valore": "indizi", "min": 3 }, "una": true, "prova": { "ab": "persuasione", "cd": 9, "ok": { "vai": "f1", "testo": "Berengaria ascolta senza interrompere." }, "ko": { "vai": "f2", "testo": "Berengaria stringe le labbra." } } },
+            { "t": "Le dico dei nostri sospetti sul Maestro", "se": { "valore": "indizi", "min": 2, "max": 2 }, "una": true, "prova": { "ab": "persuasione", "cd": 12, "ok": { "vai": "f1", "testo": "Berengaria ascolta senza interrompere." }, "ko": { "vai": "f2", "testo": "Berengaria stringe le labbra." } } },
+            { "t": "Le dico dei nostri sospetti sul Maestro", "se": { "valore": "indizi", "min": 1, "max": 1 }, "una": true, "prova": { "ab": "persuasione", "cd": 15, "ok": { "vai": "f1", "testo": "Berengaria ascolta senza interrompere." }, "ko": { "vai": "f2", "testo": "Berengaria stringe le labbra." } } },
+            { "t": "Riprendiamo il viaggio", "vai": "g" }
+          ] },
+        "d": { "chi": "_", "testo": "Quando la Reggente tende la mano per toccare la Gemma, la pietra le morde la pelle di un freddo bianco: ritira il palmo con una piccola bruciatura. Il Cerchio, sul tavolo, vibra come un animale offeso.", "effetti": [ { "t": "bandiera", "id": "reggente-bruciata" } ], "vai": "d2" },
+        "d2": { "chi": "berengaria", "testo": "Non vogliono me. Strano: credevo di meritarli. Tenete voi i pezzi: bruciano chi non scelgono, e il regno ha già troppe cose scelte senza di lui. Portateli dove devono andare, e riportatemi mio fratello.", "vai": "c" },
+        "e": { "chi": "_", "testo": "Berengaria legge la lettera lentamente, due volte. Alla riga in fondo, quella scritta più piccola, si porta la mano alla bocca. Per un momento tutta la sua durezza sembra una cosa prestata.", "vai": "e2" },
+        "e2": { "chi": "berengaria", "testo": "«Che non è colpa sua.» Vorrei crederci. E il Maestro... Alberico è con me da trent'anni, era il maestro di mio fratello. Non lo dico a voce alta nemmeno a me stessa. Ma terrò gli occhi aperti e le porte chiuse.", "effetti": [ { "t": "bandiera", "id": "reggente-lettera" }, { "t": "bandiera", "id": "reggente-sospetta" } ], "vai": "c" },
+        "f1": { "chi": "berengaria", "testo": "Penne nere, un sigillo, il racconto di un capitano... E una lettera. Non è una prova per un tribunale, ma io non sono un tribunale: sono una sorella. Terrò il Maestro lontano dai pezzi e dalle chiavi. E se mi sbaglio, mi farete la grazia di dirmelo in faccia.", "effetti": [ { "t": "bandiera", "id": "reggente-sospetta" } ], "vai": "c" },
+        "f2": { "chi": "berengaria", "testo": "Vi ascolto, e non vi credo. Il Maestro è il solo che non mi ha chiesto niente in questi mesi. Se mi portate qualcosa di più di un'impressione, tornate. Per ora cercate il Sigillo, e basta con le calunnie.", "effetti": [ { "t": "bandiera", "id": "reggente-incredula" } ], "vai": "c" },
+        "g": { "chi": "berengaria", "testo": "Allora andate. Il Sigillo è l'ultimo pezzo: i vostri frammenti puntano ai Boschi Velati, e laggiù nessuna delle mie guardie è tornata. Prendete questo: serve a pagare chi vi darà il pane.", "effetti": [ { "t": "oro", "n": 100 }, { "t": "bandiera", "id": "reggente-gemma-fatta" } ], "fine": true }
+      }
     }
   }
 }
