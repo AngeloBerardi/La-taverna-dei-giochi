@@ -132,7 +132,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/36-distanza.css` | 1 |  |
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 6 |  |
-| `css/39-campagna.css` | 3 |  |
+| `css/39-campagna.css` | 10 |  |
 | `css/39a-avventura.css` | 1 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
@@ -187,7 +187,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27j-avv-ia.js` | 15 | AIA |
 | `js/motori/27k-avv-cronaca.js` | 13 | ACRO |
 | `js/motori/27l-avv-comandi.js` | 16 | ACOM |
-| `js/motori/28-campagna.js` | 18 | CAMP |
+| `js/motori/27m-avv-mondo.js` | 12 | AMON |
+| `js/motori/27n-avv-luoghi.js` | 8 | ALUO |
+| `js/motori/27o-avv-mostri.js` | 7 | AMOS |
+| `js/motori/28-campagna.js` | 32 | CAMP |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -201,7 +204,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/38-accordi.js` | 18 | ACC, RND, clone, COL, NTOK, DIRS, K |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
 | `js/app/01a-vendor.js` | 1 |  |
-| `js/app/01b-icone.js` | 5 | ICONE, ic, glifo |
+| `js/app/01b-icone.js` | 6 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 20 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
@@ -262,13 +265,15 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24e-distanza.js` | 10 | FsDb, Dist |
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 15 | Eroi |
-| `js/app/24h-campagna.js` | 8 | Camp |
+| `js/app/24h-campagna.js` | 10 | Camp |
 | `js/app/24ha-avventura.js` | 5 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 16 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
-| `js/app/24he-battaglia.js` | 24 | Bat |
+| `js/app/24he-battaglia.js` | 25 | Bat |
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
+| `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
+| `js/app/24hh-mondo-pannelli.js` | 18 | MoPan |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
