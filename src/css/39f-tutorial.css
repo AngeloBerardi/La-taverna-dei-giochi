@@ -1,0 +1,13 @@
+/* ---- Suggerimenti al tocco e regole dell'Avventura (A10). Prefisso tut-. ---- */
+/* la schedina: sta dentro la mappa, la mappa della battaglia o il dialogo, mai sopra i pulsanti d'azione */
+.tut{position:absolute;z-index:40;padding:10px 12px;color:#f3e6c8;text-align:left;background:linear-gradient(180deg,#4a3220,#2b1b0f);border:2px solid #c9a24a;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.6);cursor:default}
+.tut>b{display:block;font:700 15px/1.2 var(--f-d,var(--f-b));letter-spacing:.02em;color:#f0c866}
+.tut>p{margin:4px 0 8px;font:500 13.5px/1.4 var(--f-b)}
+.tut-bt{display:flex;flex-wrap:wrap;gap:8px}.tut-bt .b{min-height:40px}
+.mo-mappa>.tut{left:8px;right:60px;top:72px}
+.bt-mappa>.tut{left:8px;right:56px;bottom:8px}
+.dl>.tut{left:12px;right:12px;top:calc(60px + env(safe-area-inset-top,0px))}
+/* i comandi nella pagina Avventura e il testo delle regole (anche nel foglio del diario) */
+.tut-pag{display:flex;flex-wrap:wrap;gap:8px}.tut-pag .b{min-height:44px}
+.tut-regole{margin:8px 0;padding:6px 12px 8px;text-align:left;border:1px solid color-mix(in srgb,#c9a24a 45%,transparent);border-radius:10px;background:rgba(0,0,0,.16)}
+.tut-regole p{margin:10px 0 4px;font:500 14px/1.45 var(--f-b)}.tut-regole ul{margin:0 0 6px;padding-left:18px}.tut-regole li{margin:5px 0;font:500 14px/1.45 var(--f-b)}

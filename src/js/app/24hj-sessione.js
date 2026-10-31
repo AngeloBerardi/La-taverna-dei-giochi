@@ -52,7 +52,7 @@ const Ses={
   ui.camp=true;if(apri&&['mappa','citta'].includes(f)&&AVV.vista(a,Ses.cap).scene.length)Camp.u.foglio='luogo'},
  // ---- azioni: tutto passa da AVV.act ----
  fai(az){const a=Ses.a;if(!a)return{err:'Nessuna campagna aperta'};let r;try{r=AVV.act(a,az,Ses.cap)}catch(e){ERR.n(e);r={err:'Azione non riuscita'}}
-  if(r.err)return r;Ses.a=r.s;Camp.s=r.s.camp;Ses.righe=r.righe||[];
+  if(r.err)return r;AvvAudio.dopo(az,a,r.s);Ses.a=r.s;Camp.s=r.s.camp;Ses.righe=r.righe||[];
   if(r.s.vite<a.vite&&!r.s.fine)Ses.vista='sveglia';if(r.riepilogo){Ses.riep=r.riepilogo;Ses.vista='sessione'}
   if(r.s.fine&&!a.fine){Ses.vista='fine';Ses.premia()}
   Ses.scriviLocale();if(r.cambio||r.riepilogo||r.s.fine)Ses.remoto();return r},

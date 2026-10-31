@@ -56,7 +56,7 @@ const Camp={
  // ---- disegno ----
  html(){const s=Camp.s;
   if(!s)return`<div class="modal"><div class="box col"><h2>Campagna</h2><p class="muted">Dalla pagina Avventura scegli i tuoi eroi e parti.</p><button class="b sm" data-a="campx">Chiudi</button></div></div>`;
-  return`<div class="mo" role="dialog" aria-modal="true" aria-label="Campagna">${MoPan.topH(s)}<div class="mo-mappa">${MoMappa.svg(s)}${MoPan.sopraH(s)}</div><div class="mo-giu">${MoPan.eroiH(s)}${MoPan.ctxH(s)}${MoPan.barraH(s)}</div>${MoPan.fogliH(s)}</div>`},
+  return`<div class="mo" role="dialog" aria-modal="true" aria-label="Campagna">${MoPan.topH(s)}<div class="mo-mappa">${MoMappa.svg(s)}${MoPan.sopraH(s)}${AvvTut.html('mappa')}</div><div class="mo-giu">${MoPan.eroiH(s)}${MoPan.ctxH(s)}${MoPan.barraH(s)}</div>${MoPan.fogliH(s)}</div>`},
  // chiamato da afterRender: la mappa prende la misura vera dello schermo
  dopo(){const on=!!(ui.camp&&Camp.s);document.documentElement.classList.toggle('mo-on',on);if(!on)return;const svg=document.querySelector('.mo-svg');if(svg)MoMappa.applica(svg)},
  // ---- salvataggio ----

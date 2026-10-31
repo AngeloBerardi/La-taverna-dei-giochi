@@ -40,6 +40,7 @@ const BatAnima={
   const b=el.querySelector('.bt-hpf');if(b){const p=hp/mx;b.setAttribute('width',(26*p).toFixed(1));b.setAttribute('fill',p>.5?'#5fbf6a':p>.25?'#e8b43a':'#d9503f')}},
  toast(t,ms){const el=document.querySelector('.bt-toast');if(!el)return;el.textContent=t;el.classList.add('on');clearTimeout(BatAnima._tt);BatAnima._tt=setTimeout(()=>el.classList.remove('on'),ms)},
  passo(x,s,f,rid){
+  AvvAudio.passo(x,f);   // suoni del passo (A10): chiamato una volta sola per passo, quindi «Salta» li salta
   switch(x.t){
    case'sposta':return BatAnima.sposta(x,s,f,rid);
    case'dado':return BatAnima.dado(x,s,f,rid);

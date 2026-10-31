@@ -80,7 +80,7 @@ const Bat={
  html(){const s=Bat.s;if(!s)return'';Bat.c=ACOM.fresco(Bat.c,s);
   const att=ASCO.attore(s),p=ACOM.pannello(Bat.c,s),e=ACOM.evidenzia(Bat.c,s);
   return`<div class="bt${Bat.anim?' anima':''}${Bat.lavoro?' lavoro':''}" role="dialog" aria-modal="true" aria-label="Battaglia">${Bat.topH(s,att)}
-<div class="bt-mappa">${BatMappa.svg(s,{ev:e,vista:Bat.v,aspetti:Bat.aspetti})}<div class="bt-alto">${Bat.altoH(s)}</div>${Bat.zoomH()}<div class="bt-dado" aria-live="polite"></div><div class="bt-toast" role="status"></div>${Bat.testoH(e)}</div>
+<div class="bt-mappa">${BatMappa.svg(s,{ev:e,vista:Bat.v,aspetti:Bat.aspetti})}<div class="bt-alto">${Bat.altoH(s)}</div>${Bat.zoomH()}<div class="bt-dado" aria-live="polite"></div><div class="bt-toast" role="status"></div>${Bat.testoH(e)}${AvvTut.html('battaglia')}</div>
 ${Bat.risH(s,p,att)}${Bat.barraH(s,p)}${Bat.foglioH(s,p)}${Bat.pausaH(s)}${Bat.fineH(s)}</div>`},
  // la fila dell'iniziativa: chi è di turno è sempre il primo
  topH(s,att){const ids=s.ordine.map(id=>ASCO.trova(s,id)).filter(c=>c&&ASCO.inCampo(c)),k=ids.findIndex(c=>att&&c.id===att.id),rot=k>0?ids.slice(k).concat(ids.slice(0,k)):ids;

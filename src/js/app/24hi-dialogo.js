@@ -70,7 +70,7 @@ const Dia={
  <p class="dl-testo${v.chi.nome?'':' nar'}" data-t="${esc(v.testo)}" aria-label="${esc(v.testo)}">${ok?esc(v.testo):''}</p>
  <div class="dl-nota">${Dia.provaH(v.nota&&v.nota.prova)}${v.nota&&v.nota.testo?`<p class="dl-es">${esc(v.nota.testo)}</p>`:''}${Dia.reazioniH(v.reazioni)}</div>
  ${Dia.msg?`<p class="no" role="alert">${esc(Dia.msg)}</p>`:''}</div>
-<div class="dl-bar">${f.bat?`<button class="b gold dl-co" data-a="ses" data-v="combatti">${ic('spada',18)} All'armi!</button>`:v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${sc}</div>`}</div></div>`},
+<div class="dl-bar">${f.bat?`<button class="b gold dl-co" data-a="ses" data-v="combatti">${ic('spada',18)} All'armi!</button>`:v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${sc}</div>`}</div>${AvvTut.html('dialogo')}</div>`},
  chiave(v,s){return v.scena+':'+v.nodo+':'+(s||Dia.s).evn},
  // dopo ogni disegno: il testo compare a poco a poco (un tocco lo mostra tutto); a movimento ridotto compare subito
  dopo(){const f=Dia.fonte(),on=!!(ui.dia&&f.s&&f.cap);document.documentElement.classList.toggle('dl-on',on);clearInterval(Dia.timer);if(!on)return;

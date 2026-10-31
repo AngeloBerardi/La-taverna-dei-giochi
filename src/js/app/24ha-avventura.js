@@ -33,6 +33,7 @@ ${Dia.setupH()}
 <p class="muted" style="margin:0">Nessun compagno ancora.</p>
 <div class="sh2">Come si gioca</div>
 <div class="av-come">${Avv.COME.map(([t,x])=>`<div><b>${esc(t)}</b> ${infoH(esc(x))}</div>`).join('')}</div>
+${AvvTut.pagH()}
 <p class="acc-msg" role="status">${esc(Avv.msg)}</p></div></div>`},
  async act(a){
   if(a==='avv'){Plancia.chiudi();ui.avv=true;Avv.msg='';Ses.nuova=Ses.conf=null;render();if(Avv.online()&&!Eroi.lista){await Eroi.carica()}if(Avv.online()){await Ses.leggiElenco();if(ui.avv)render()}return}

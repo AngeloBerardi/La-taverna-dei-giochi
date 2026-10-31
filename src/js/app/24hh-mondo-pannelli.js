@@ -56,7 +56,7 @@ const MoPan={
   return`<div class="mo-sott"><div class="mo-sh">${ic(MoMappa.ICO[l.tipo]||'p_antro',24)}<span><b>${esc(l.nome)}</b><small>Stanza ${Math.min(sott.stanza+1,n)} di ${n} · ogni stanza costa un giro</small></span></div><div class="mo-stanze" role="img" aria-label="Stanze: ${sott.stanza} superate su ${n}">${st}</div><p class="mo-sq">${esc(s.log[s.log.length-1]||'')}</p></div>`},
  // ---- il foglio da mostrare ----
  fogliH(s){if(s.over)return MoPan.fineH(s);if(s.sfida)return MoPan.sfidaH(s);if(s.incontro)return MoPan.incontroH(s);if(s.evento)return MoPan.eventoH(s);
-  const f=Camp.u.foglio;return f==='luogo'?MoPan.luogoH(s):f==='riposo'?MoPan.riposoH(s):f==='diario'?MoPan.diarioH(s):f==='mostro'?MoPan.mostroH(s):''},
+  const f=Camp.u.foglio;return f==='luogo'?MoPan.luogoH(s):f==='riposo'?MoPan.riposoH(s):f==='diario'?MoPan.diarioH(s):f==='regole'?MoPan.regoleH():f==='mostro'?MoPan.mostroH(s):''},
  fineH(s){const o=s.over,w=o.win;return MoPan.foglio(w?'Vittoria!':'Sconfitta',`<p><b>${esc(o.reason)}</b></p><small class="muted">${w?'In '+(o.giorni||s.giorno)+' giorni.':'Giorno '+s.giorno+', perdizione '+s.perdizione+'/100.'}</small><button class="b gold" data-a="campnuova">Nuova campagna</button><button class="b" data-a="campx">Torna all'Avventura</button>`,true,w?'mo-verde':'mo-rosso')},
  sfidaH(s){const f=s.sfida,cont={};for(const id of f.nemici){const d=BEST.M[id],n=d?d.nome:'Nemico';cont[n]=(cont[n]||0)+1}
   const eroi=f.quali.map(i=>s.eroi[i]),lontani=eroi.filter(e=>(f.dist[e.slot]||0)>=2);
@@ -97,13 +97,16 @@ const MoPan={
   return MoPan.foglio('Riposo',`<div class="sh2">Riposo breve</div><small class="muted">Un respiro: non si fa vicino ai nemici (${ALUO.BREVE.distanza} esagoni). Costa il resto del movimento.</small>${b}
 <div class="sh2">Riposo lungo</div>${MoPan.riga('Fino all\'alba',(lun||'Serve una locanda (città, villaggio) o un accampamento.')+' Il nuovo giorno porta +'+CAMP.PARAM.alba+' perdizione.',MoPan.bt('lungo','Dormi',err,true),err)}${MoPan.errH()}`)},
  // ---- diario: missione, perdizione, cronaca ----
+ // le regole in un foglio, dal diario
+ regoleBt(){return`<button class="b sm" data-a="mo" data-v="foglio:regole">${ic('diario',16)} Come si gioca</button>`},
+ regoleH(){return MoPan.foglio('Come si gioca',AvvTut.regoleH())},
  diarioH(s){const m=s.missione,e=s.eroi[Camp.eroeSel(s)],lv=ALUO.livelloPerdizione(s.perdizione),nx=ALUO.SOGLIE[lv];
   if(Ses.a)return MoPan.foglio('Diario',`${Ses.diarioH()}<div class="sh2">Perdizione ${s.perdizione}/100</div><small class="muted">${esc(lv?ALUO.NOTE_SOGLIA[lv]:'Il regno è ancora tranquillo.')}${nx?' Prossima soglia: '+nx+'.':''} Sale di ${CAMP.PARAM.alba} a ogni alba; calano con santuari, taglie e covi ripuliti.</small>${Ses.diarioFondoH()}
-<div class="sh2">Cronaca</div><div class="mo-log" role="log">${s.log.slice(-12).reverse().map(t=>`<p>${esc(t)}</p>`).join('')}</div>`);
+<div class="sh2">Cronaca</div><div class="mo-log" role="log">${s.log.slice(-12).reverse().map(t=>`<p>${esc(t)}</p>`).join('')}</div>${MoPan.regoleBt()}`);
   const passi=m.passi.map((id,k)=>{const l=s.luoghi[id],fatto=k<m.passo,ora=k===m.passo;return`<li class="${fatto?'fatto':ora?'ora':''}">${ic(fatto?'spunta':MoMappa.ICO[l?l.tipo:'tesoro']||'bersaglio',16)}<span><b>${esc(l?l.nome:id)}</b><small>${esc(MoPan.PASSO[l?l.tipo:'']||'')}${ora&&l?' · '+MoPan.rosa(e,l):''}</small></span></li>`}).join('');
   return MoPan.foglio('Diario',`<div class="sh2">${esc(m.titolo)}</div><ul class="mo-passi">${passi}</ul><button class="b" data-a="mo" data-v="obiettivo">${ic('bersaglio',16)} Mostra sulla mappa</button>
 <div class="sh2">Perdizione ${s.perdizione}/100</div><small class="muted">${esc(lv?ALUO.NOTE_SOGLIA[lv]:'Il regno è ancora tranquillo.')}${nx?' Prossima soglia: '+nx+'.':''} Sale di ${CAMP.PARAM.alba} a ogni alba; calano con santuari, taglie e covi ripuliti.</small>
-<div class="sh2">Cronaca</div><div class="mo-log" role="log">${s.log.slice(-12).reverse().map(t=>`<p>${esc(t)}</p>`).join('')}</div>`)},
+<div class="sh2">Cronaca</div><div class="mo-log" role="log">${s.log.slice(-12).reverse().map(t=>`<p>${esc(t)}</p>`).join('')}</div>${MoPan.regoleBt()}`)},
  // ---- un gruppo di nemici visto sulla mappa ----
  mostroH(s){const m=s.mostri.find(x=>x.id===Camp.u.mostro);if(!m)return'';const e=s.eroi[Camp.eroeSel(s)],d=CAMP.dist(e,m),n=AMOS.composizione(s,m,CAMP.vivi(s).length).nemici.length;
   return MoPan.foglio(CAMP.famiglia(m.fam),`<p><b>Livello ${Math.min(8,m.liv+ALUO.EFFETTI[ALUO.livelloPerdizione(s.perdizione)].mostri+(s.fase==='notte'?1:0))} · ${n} ${n===1?'nemico':'nemici'}</b></p><small class="muted">${MoPan.STATO[m.stato]||''}. ${d} ${d===1?'esagono':'esagoni'} da ${esc(e.nome)}. ${m.pausa>0?'Si sta riprendendo dallo scontro.':'Di notte e con più perdizione sono più forti.'}</small>`)}
