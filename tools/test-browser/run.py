@@ -1589,7 +1589,8 @@ async def sc_avv_battaglia(b, srv):
     nt, nc = await pg.evaluate("document.querySelectorAll('.bt-tok').length"), await pg.evaluate("document.querySelectorAll('.bt-ch').length")
     check(nt >= 5 and nt == nc, f'un segnalino e un tondo dell\'iniziativa per ogni combattente ({nt}/{nc})')
     check(await pg.evaluate("document.querySelectorAll('.bt-tok.bt-eroe').length") == 4 and await pg.query_selector('.bt-tok.bt-nem svg, .bt-tok.bt-nem g') is not None, 'quattro eroi (ritratti) e i nemici (sagome)')
-    check('Comincia lo scontro' in await pg.inner_text('.bt-log'), 'il registro apre con lo scontro')
+    # il riquadro mostra solo le ultime 3 righe: sotto carico i nemici possono aver già agito, quindi si guarda il registro intero
+    check(await pg.query_selector('.bt-log') is not None and await pg.evaluate("Bat.log.some(r=>/Comincia lo scontro/.test(r.testo))"), 'il registro apre con lo scontro')
     # --- primo turno di un eroe ---
     check(await aspetta_eroe(), 'arriva il turno di un eroe (i nemici giocano da soli)')
     check(len(await bottoni_piccoli()) == 0, f'tutti i bottoni sono almeno 40×40 px {await bottoni_piccoli()}')
