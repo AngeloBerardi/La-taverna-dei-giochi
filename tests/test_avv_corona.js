@@ -148,6 +148,13 @@ assert(compagniVisti.has('gherardo') && compagniVisti.has('mirta'), 'entrambi i 
   assert(/Gemma/.test(R.cantare(cap, s, ctx).apertura.join(' ')) && /Boschi Velati/.test(R.cantare(cap, s, ctx).chiusura), 'il riassunto racconta la Gemma e la chiusura indica i Boschi Velati: ' + R.cantare(cap, s, ctx).chiusura);
 }
 
+// ---- il riassunto è breve: in fondo al capitolo ricorda solo le ultime righe del sommario ----
+{
+  const t = { eroi: [], oro: 0, perdizione: 0, giorno: 1 }, f = R.nuovo(cap.id, 3);
+  for (const x of cap.sommario) { const c = JSON.stringify(x.se).match(/"bandiera":"([^"]+)"/g) || []; for (const m of c) f.bandiere[m.slice(12, -1)] = true; }
+  const q = R.cantare(cap, f, t); assert(q.apertura.length <= R.MAX_RIASSUNTO && q.apertura.length > 0, 'il riassunto non supera ' + R.MAX_RIASSUNTO + ' righe: ' + q.apertura.length);
+}
+
 // ---- il riassunto del Locandiere segue le scelte ----
 const s0 = R.nuovo(cap.id, 5); const ctx0 = { eroi: [], oro: 0, perdizione: 0, giorno: 1 };
 assert.deepStrictEqual(R.cantare(cap, s0, ctx0).apertura, [], 'all\'inizio non c\'è niente da riassumere');

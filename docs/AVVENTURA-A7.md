@@ -23,7 +23,7 @@ Il piano parlava di `44-avv-racconto.js`: i numeri sono quelli della serie 27 (o
   "luoghi":     { "pozzo": {"nome":"…"} },           // per «sposta», «luogo» e «dove»
   "bandiere":   [],                                   // bandiere impostate fuori dal racconto (dall'orchestratore)
   "ingressi":   ["scena", …],                         // scene che l'orchestratore può avviare «da fuori»
-  "sommario":   [ {"se": cond, "testo":"…"} ],        // righe del «Nella sessione precedente…»
+  "sommario":   [ {"se": cond, "testo":"…"} ],        // righe del «Nella sessione precedente…» (in ordine di racconto; se ne leggono le ultime 8, `ARAC.MAX_RIASSUNTO`)
   "prossimo":   [ {"se": cond, "testo":"…"} ],        // chiusura: vale la prima che si verifica (l'ultima senza «se» è il ripiego)
   "scene": { "id": { "titolo":"voce del menu del luogo (obbligatorio con «dove»)", "dove":"luogo|[luoghi]", "se": cond, "una": true, "inizio":"nodo", "nodi": { … } } },
   "mondo": { "regioni":[{nome,terreno,fam} ×3], "partenza":{id,tipo,nome}, "luoghi":[{id,tipo,nome,reg,dmin,dmax}], "conta":{…} } }   // mappa scritta a mano, vedi A8

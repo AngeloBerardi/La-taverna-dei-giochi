@@ -11,7 +11,7 @@ const ARAC=(()=>{
  const NARRATORE='_',MAX_TESTO=700,PROPRI=['bandiera','conta','togli','approv','recluta','congeda','missione','diario'],FUORI=['oro','oggetto','pf','perdizione','xp','razioni','battaglia','sposta','apri'];
  const DIFF=['facile','medio','difficile','capo'],SERVIZI=['bottega','locanda','guaritore','tempio'],STATI_MISSIONE=['attiva','fatta','fallita'],CD_MIN=5,CD_MAX=25;
  const PRIM=['bandiera','valore','non','e','o','classe','razza','oggetto','livello','compagno','approv','missione','oro','perdizione','giorno','luogo'];
- const CANTARI=['Primo','Secondo','Terzo','Quarto','Quinto','Sesto','Settimo','Ottavo'];
+ const MAX_RIASSUNTO=8,CANTARI=['Primo','Secondo','Terzo','Quarto','Quinto','Sesto','Settimo','Ottavo'];
  const nuovo=(cap,seme)=>({v:1,cap:cap,rng:DAD.semina(seme|0),bandiere:{},approv:{},compagni:{},missioni:{},scena:null,coda:[],ultima:null,reazioni:[],diario:[],fatte:{},sessioni:0,evn:0});
  const copia=x=>JSON.parse(JSON.stringify(x));
  const eroi=ctx=>(ctx&&ctx.eroi)||[],vivi=ctx=>eroi(ctx).filter(h=>h.hp==null||h.hp>0);
@@ -119,7 +119,8 @@ const ARAC=(()=>{
   const D=[].concat(sc.dove);if(dove!=null&&!D.includes(dove))return false;return cond(sc.se,s,ctx)&&!(sc.una&&(s.fatte[id]|0)>0)})}
  // ---- il cantare: riassunto per il Locandiere, letto dalle bandiere ----
  function cantare(cap,s,ctx){const n=Math.min(s.sessioni|0,CANTARI.length-1),ok=L=>(L||[]).filter(x=>cond(x.se,s,ctx)).map(x=>sost(x.testo,ctx));
-  return{titolo:CANTARI[n]+' cantare',capitolo:cap.titolo||'',sessioni:s.sessioni|0,apertura:ok(cap.sommario),chiusura:ok(cap.prossimo)[0]||''}}
+  // il sommario è scritto in ordine di racconto: del passato si ricordano le ultime MAX_RIASSUNTO righe, non l'intera storia
+  return{titolo:CANTARI[n]+' cantare',capitolo:cap.titolo||'',sessioni:s.sessioni|0,apertura:ok(cap.sommario).slice(-MAX_RIASSUNTO),chiusura:ok(cap.prossimo)[0]||''}}
  const finisciSessione=s=>Object.assign({},s,{sessioni:(s.sessioni|0)+1});
  // ---- validatore ----
  const archi=n=>{const o=[],ex=x=>{if(!x)return;if(x.vai)o.push({nodo:x.vai});if(x.scena)o.push({scena:x.scena});if(x.fine!=null&&x.fine!==false)o.push({fine:1})};
@@ -230,5 +231,5 @@ const ARAC=(()=>{
   for(const k of['sommario','prossimo'])for(const[i,x]of(cap[k]||[]).entries()){valCond(x.se,k+' '+(i+1));if(typeof x.testo!=='string'||!x.testo)e.push(k+' '+(i+1)+': manca il testo')}
   for(const b of lette)if(!impostate.has(b))e.push('la bandiera «'+b+'» viene letta ma non è mai impostata (errore di battitura?)');
   return e}
- return{NARRATORE,MAX_TESTO,PROPRI,FUORI,DIFF,SERVIZI,CANTARI,nuovo,cond,chiTira,probDi,etichetta,requisito,applica,act,vista,disponibili,cantare,finisciSessione,valida,personaggio,scena}})();
+ return{NARRATORE,MAX_TESTO,MAX_RIASSUNTO,PROPRI,FUORI,DIFF,SERVIZI,CANTARI,nuovo,cond,chiTira,probDi,etichetta,requisito,applica,act,vista,disponibili,cantare,finisciSessione,valida,personaggio,scena}})();
 if(typeof module!=='undefined')module.exports=ARAC;
