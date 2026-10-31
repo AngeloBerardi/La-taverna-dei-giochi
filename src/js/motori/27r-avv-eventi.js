@@ -166,7 +166,7 @@ const AEVE=(()=>{
    c:{chi:'_',testo:'Lo scontro è inevitabile.',effetti:[bat(fam,diff),{t:'bandiera',id:at}].concat(comp==='maledizione'?[perd(3)]:[]),vai:'d'},
    d:{chi:'_',testo:comp==='maledizione'?'Una cosa fredda e antica vi sfiora e passa. Vi resta addosso un brivido.':`Fatto: ${base.f}`,fine:'fatto'}};
   if(!nA.b.scelte)delete nA.b.scelte;if(nA.b.vai==null)delete nA.b.vai;
-  sceneArr.arrivo={dove:meta.id,se:[{missione:mid},{non:{bandiera:at}}],inizio:'a',nodi:nA};
+  sceneArr.arrivo={titolo:'Il luogo dell\'incarico',dove:meta.id,se:[{missione:mid},{non:{bandiera:at}}],inizio:'a',nodi:nA};
   // ritorno: il cliente paga; con il doppio gioco prova a pagare di meno
   const nR={a:{chi:'cl',testo:comp==='doppiogioco'?'«Ottimo lavoro. Ecco la parte che vi spetta…» Il cliente conta le monete con una lentezza sospetta.':'«Siete tornati! Ecco quanto vi avevo promesso.»',
    scelte:comp==='doppiogioco'?[{t:'Contare le monete',prova:{ab:'percezione',cd:12,ok:{vai:'giusto',testo:'Il conto non torna. Lo guardate in faccia finché non aggiunge il resto.',effetti:[oro(Math.round(premioOro*.5))]},ko:{vai:'meno',testo:'Vi accorgete troppo tardi che mancano delle monete.'}}},{t:'Fidarsi',vai:'meno'}]:undefined,
@@ -174,7 +174,7 @@ const AEVE=(()=>{
    giusto:{chi:'cl',testo:'«Vi ringrazio ancora.»',effetti:[{t:'missione',id:mid,stato:'fatta'}],fine:'pagata'},
    meno:{chi:'cl',testo:'«Ora, se non vi dispiace, ho da fare.»',effetti:[{t:'missione',id:mid,stato:'fatta'},oro(-Math.round(premioOro*.4))],fine:'truffata'}};
   if(!nR.a.scelte)delete nR.a.scelte;if(nR.a.vai==null)delete nR.a.vai;if(comp!=='doppiogioco')delete nR.meno;
-  sceneArr.ritorno={dove:origine.id,se:[{missione:mid},{bandiera:at}],inizio:'a',nodi:nR};
+  sceneArr.ritorno={titolo:'Il ritorno dal cliente',dove:origine.id,se:[{missione:mid},{bandiera:at}],inizio:'a',nodi:nR};
   const cap={id,titolo:base.t,personaggi:{cl:{nome:cliente[0],razza:cliente[1],classe:cliente[2],aspetto:per}},missioni:{[mid]:{titolo:base.t,descr:base.o.replace(/[«»]/g,''),ricompensa:ric,scena:'offerta'}},
    luoghi:{[origine.id]:{nome:origine.nome},[meta.id]:{nome:meta.nome}},bandiere:[],ingressi:['offerta'],scene:sceneArr,sommario:[{se:{missione:mid,stato:'fatta'},testo:`Avete concluso il lavoro per ${cliente[0]}: ${base.t.toLowerCase()}.`},{se:{missione:mid,stato:'attiva'},testo:`Avete promesso a ${cliente[0]}: ${base.t.toLowerCase()}.`}]};
   return Object.assign(cap,{missione:mid,tipo,complicazione:comp,entro,origine:origine.id,meta:meta.id,ricompensa:ric,cliente:cliente[0]})}

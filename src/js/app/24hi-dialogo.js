@@ -7,8 +7,8 @@ const Dia={
  cap:null,s:null,oro:50,fine:null,righe:[],msg:'',riassunto:'',occupato:false,letto:false,
  rev:{k:'',n:0,fatto:false},timer:null,
  // ---- stato di prova, salvato nel telefono ----
- leggi(){if(Dia.letto)return;Dia.letto=true;try{const j=JSON.parse(localStorage.getItem('racc')||'null');if(j&&j.v===1&&j.s&&j.s.cap===Dia.CAP){Dia.s=j.s;Dia.oro=j.oro|0;Dia.fine=j.fine||null;Dia.righe=Array.isArray(j.righe)?j.righe:[]}}catch(e){ERR.n(e)}},
- salva(){try{if(!Dia.s)localStorage.removeItem('racc');else localStorage.setItem('racc',JSON.stringify({v:1,s:Dia.s,oro:Dia.oro,fine:Dia.fine,righe:Dia.righe}))}catch(e){ERR.n(e)}},
+ leggi(){if(Dia.letto)return;Dia.letto=true;try{const c=localStorage.getItem('racc-cap');if(c&&Dia.INDICE[c])Dia.CAP=c;if(!Dia.INDICE[Dia.CAP]&&Object.keys(Dia.INDICE)[0])Dia.CAP=Object.keys(Dia.INDICE)[0];const j=JSON.parse(localStorage.getItem('racc-'+Dia.CAP)||'null');if(j&&j.v===1&&j.s&&j.s.cap===Dia.CAP){Dia.s=j.s;Dia.oro=j.oro|0;Dia.fine=j.fine||null;Dia.righe=Array.isArray(j.righe)?j.righe:[]}}catch(e){ERR.n(e)}},
+ salva(){try{localStorage.setItem('racc-cap',Dia.CAP);if(!Dia.s)localStorage.removeItem('racc-'+Dia.CAP);else localStorage.setItem('racc-'+Dia.CAP,JSON.stringify({v:1,s:Dia.s,oro:Dia.oro,fine:Dia.fine,righe:Dia.righe}))}catch(e){ERR.n(e)}},
  async carica(){if(Dia.cap)return Dia.cap;const i=Dia.INDICE[Dia.CAP];if(!i)throw new Error('capitolo mancante');const r=await fetch(i.url);if(!r.ok)throw new Error('capitolo non scaricato');Dia.cap=await r.json();return Dia.cap},
  // la compagnia di prova: tre eroi (resta un posto per Ilda) più i compagni che sono nel gruppo
  eroi(){const b=Bat.prova(3).slice(0,3).map((m,i)=>Object.assign({},m.eroe,{slot:'e'+(i+1)}));
@@ -34,6 +34,7 @@ const Dia={
    if(verbo==='chiudi'){ui.dia=false;ui.avv=true;if(!(Dia.s&&Dia.s.scena))Dia.fine=null;Dia.salva();return render()}
    if(verbo==='nuovo'){Dia.s=null;Dia.oro=50;Dia.fine=null;Dia.righe=[];Dia.riassunto='';Dia.comp={};Dia.salva();return render()}
    if(verbo==='salta'){Dia.rev.fatto=true;return Dia.dopo()}
+   if(verbo==='capitolo'){if(Dia.INDICE[arg]&&arg!==Dia.CAP){Dia.CAP=arg;Dia.cap=null;Dia.s=null;Dia.letto=false;Dia.oro=50;Dia.fine=null;Dia.righe=[];Dia.riassunto='';Dia.comp={};Dia.provato=false;Dia.msg='';try{localStorage.setItem('racc-cap',arg)}catch(e){ERR.n(e)}}return render()}
    if(Dia.occupato)return;Dia.occupato=true;await Dia.carica();Dia.msg='';
    const cap=Dia.cap;if(!Dia.s)Dia.s=ARAC.nuovo(cap.id,(Date.now()^(Math.random()*4294967296))>>>0);
    if(verbo==='riprendi'){ui.avv=false;ui.dia=true;return render()}
@@ -77,12 +78,23 @@ const Dia={
   el.textContent=t.slice(0,Dia.rev.n);
   Dia.timer=setInterval(()=>{const e=document.querySelector('.dl-testo');if(!e||!ui.dia){clearInterval(Dia.timer);return}Dia.rev.n=Math.min(t.length,Dia.rev.n+3);e.textContent=t.slice(0,Dia.rev.n);if(Dia.rev.n>=t.length){clearInterval(Dia.timer);fine()}},22)},
  // ---- la sezione nella pagina Avventura ----
- setupH(){const i=Dia.INDICE[Dia.CAP];if(!i)return'';Dia.leggi();const s=Dia.s,cap=Dia.cap,incorso=!!(s&&s.scena);
-  const ilda=s&&ACMP.stato(s,'ilda')==='gruppo',ap=s?s.approv.ilda|0:0;
+ luogoDi(cap,id){const w=cap.mondo||{},l=(w.luoghi||[]).concat(w.partenza?[w.partenza]:[]).find(x=>x.id===id);return l?l.nome:((cap.luoghi||{})[id]||{}).nome||id},
+ // anteprima di un capitolo vero: le scene che si possono avviare adesso (ingressi e luoghi), i compagni nel gruppo
+ capH(i,cont){const cap=Dia.cap;
+  if(!cap||cap.id!==Dia.CAP){if(!Dia.provato){Dia.provato=true;Dia.carica().then(()=>render()).catch(e=>{ERR.n(e);Dia.msg='Il capitolo non si scarica: riprova più tardi.';render()})}return`<p class="muted" role="status">Apro il capitolo…</p>`}
+  const st=Dia.s||ARAC.nuovo(cap.id,1),ing=(cap.ingressi||[]).filter(id=>!(st.fatte[id]>0)),sc=ARAC.disponibili(cap,st,Dia.ctx(),null);
+  const bt=(id,tx,gold)=>`<button class="b ${gold?'gold ':''}ecta" data-a="dl" data-v="avvia:${esc(id)}" ${Dia.occupato?'disabled':''}>${ic('diario',18)} ${esc(tx)}</button>`;
+  return`<p class="muted" style="margin:0">«${esc(i.titolo)}»${i.sottotitolo?' · '+esc(i.sottotitolo):''}. Anteprima delle scene: gli scontri non si combattono (si danno per vinti) e i premi non contano.</p>${cont}
+${ing.map(id=>bt(id,cap.scene[id].titolo||id,!(Dia.s&&Dia.s.scena))).join('')}${sc.map(id=>bt(id,Dia.luogoDi(cap,[].concat(cap.scene[id].dove)[0])+' · '+cap.scene[id].titolo)).join('')}
+${ACMP.nelGruppo(st).map(id=>`<button class="b sm" data-a="dl" data-v="parla:${esc(id)}">Parla con ${esc(cap.compagni[id].nome)} · ${esc(ACMP.livello(st.approv[id]|0).nome)} (${st.approv[id]|0})</button>`).join('')}
+${!ing.length&&!sc.length&&!(Dia.s&&Dia.s.scena)?'<p class="muted">Nessuna scena da giocare, per ora: altre arrivano con i prossimi luoghi del capitolo.</p>':''}`},
+ setupH(){const ids=Object.keys(Dia.INDICE);if(!ids.length)return'';Dia.leggi();const i=Dia.INDICE[Dia.CAP];if(!i)return'';const s=Dia.s,cap=Dia.cap,incorso=!!(s&&s.scena),prova=Dia.CAP==='prova';
+  const sch=ids.length>1?`<div class="dl-ctl" role="group" aria-label="Capitolo">${ids.map(id=>`<button class="b sm${id===Dia.CAP?' gold':''}" data-a="dl" data-v="capitolo:${esc(id)}" aria-pressed="${id===Dia.CAP}">${esc(id==='prova'?'Racconto di prova':Dia.INDICE[id].titolo)}</button>`).join('')}</div>`:'';
   const cont=incorso?`<button class="av-card av-cont" data-a="dl" data-v="riprendi"><span class="av-tx"><b>Scena in corso</b><small>${esc(i.titolo)}</small></span><span class="av-go">Continua</span></button>`:'';
-  return`<div class="sh2">Racconto di prova ${infoH('Una scena breve per provare i dialoghi: chi parla, scelte con la probabilità scritta sul bottone, un compagno che può unirsi e andarsene. Nessun premio vero.')}</div>
-<p class="muted" style="margin:0">«${esc(i.titolo)}»: tre eroi di prova ascoltano una voce che esce da un pozzo.</p>${cont}
+  const ilda=prova&&s&&ACMP.stato(s,'ilda')==='gruppo',ap=s?s.approv.ilda|0:0;
+  const corpo=prova?`<p class="muted" style="margin:0">«${esc(i.titolo)}»: tre eroi di prova ascoltano una voce che esce da un pozzo.</p>${cont}
 <button class="b ${incorso?'':'gold '}ecta" data-a="dl" data-v="avvia:pozzo" ${Dia.occupato?'disabled':''}>${ic('diario',18)} ${s&&s.fatte&&s.fatte.pozzo?'Riascolta la scena del pozzo':'Ascolta la scena del pozzo'}</button>
-${ilda?`<button class="b sm" data-a="dl" data-v="parla:ilda">Parla con Ilda · ${esc(ACMP.livello(ap).nome)} (${ap})</button>`:''}
+${ilda?`<button class="b sm" data-a="dl" data-v="parla:ilda">Parla con Ilda · ${esc(ACMP.livello(ap).nome)} (${ap})</button>`:''}`:Dia.capH(i,cont);
+  return`<div class="sh2">${prova?'Racconto di prova':'Capitolo 1'} ${infoH(prova?'Una scena breve per provare i dialoghi: chi parla, scelte con la probabilità scritta sul bottone, un compagno che può unirsi e andarsene. Nessun premio vero.':'Le scene scritte del primo capitolo, da leggere e provare una per una nell\'ordine che preferisci. La campagna con la mappa le userà tutte; qui gli scontri non si combattono e i premi non contano.')}</div>${sch}${corpo}
 ${s?`<div class="dl-ctl"><button class="b sm" data-a="dl" data-v="riassunto">A che punto siamo?</button><button class="b sm" data-a="dl" data-v="sessione">Concludi la sessione</button><button class="b sm" data-a="dl" data-v="nuovo">Ricomincia da capo</button></div>`:''}
 ${Dia.riassunto?`<p class="dl-riass" role="status">${esc(Dia.riassunto)}</p>`:''}${Dia.msg&&!ui.dia?`<small class="muted" role="status">${esc(Dia.msg)}</small>`:''}`}};
