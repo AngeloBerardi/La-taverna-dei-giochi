@@ -75,4 +75,16 @@ const vieta = new Set(Object.keys(D).filter(k => k !== '0,0')); assert.deepStric
 // rivela: raggio 2 = 19 celle
 const t = M.genera(2); for (const c of Object.values(t.celle)) c.visto = false; M.rivela(t.celle, 3, -1, 2); assert.strictEqual(Object.values(t.celle).filter(c => c.visto).length, 19);
 assert(M.vicino([{ q: 0, r: 0 }], { q: 2, r: 0 }, 3) && !M.vicino([{ q: 0, r: 0 }], { q: 4, r: 0 }, 3));
+// la partenza può essere una città scelta dal capitolo: nome e id suoi, due città collegate, nessun villaggio di partenza in più
+for (let seed = 1; seed <= 30; seed++) {
+  const w = M.genera(seed, { partenza: { id: 'valcorvo', tipo: 'citta', nome: 'Valcorvo' }, luoghi: [{ id: 'rocca', tipo: 'citta', nome: 'La Rocca', reg: 1, dmin: 4, dmax: 8 }, { id: 'casale', tipo: 'villaggio', nome: 'Il Casale', reg: 0, dmin: 2, dmax: 4 }] });
+  const v = w.luoghi.valcorvo; assert(v && v.tipo === 'citta' && v.partenza && v.nome === 'Valcorvo' && v.q === 0 && v.r === 0, 'la partenza è la città del capitolo');
+  assert(!Object.values(w.luoghi).some(l => l.nome === 'Casale di partenza'), 'niente casale di partenza');
+  assert.strictEqual(Object.values(w.luoghi).filter(l => l.tipo === 'citta').length, 2, 'due città, nessuna generata in più');
+  assert(M.connessa(w), 'tutti i luoghi si raggiungono a piedi');
+  const via = M.percorso(w.celle, v, w.luoghi.rocca, 6); assert(via && via.length >= 2, 'le due città sono collegate');
+  assert(w.celle[K(w.luoghi.rocca.q, w.luoghi.rocca.r)].reg === 1 && w.celle[K(w.luoghi.casale.q, w.luoghi.casale.r)].reg === 0, 'ogni luogo sta nella sua regione');
+}
+// una partenza non sicura (torre) non vale: si torna al casale
+assert.strictEqual(M.genera(4, { partenza: { tipo: 'torre', nome: 'X' } }).luoghi[Object.keys(M.genera(4).luoghi)[0]].tipo, 'villaggio');
 console.log('ok test_avv_mondo');

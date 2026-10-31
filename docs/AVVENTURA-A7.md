@@ -25,7 +25,8 @@ Il piano parlava di `44-avv-racconto.js`: i numeri sono quelli della serie 27 (o
   "ingressi":   ["scena", …],                         // scene che l'orchestratore può avviare «da fuori»
   "sommario":   [ {"se": cond, "testo":"…"} ],        // righe del «Nella sessione precedente…»
   "prossimo":   [ {"se": cond, "testo":"…"} ],        // chiusura: vale la prima che si verifica (l'ultima senza «se» è il ripiego)
-  "scene": { "id": { "dove":"luogo|[luoghi]", "se": cond, "una": true, "inizio":"nodo", "nodi": { … } } } }
+  "scene": { "id": { "titolo":"voce del menu del luogo (obbligatorio con «dove»)", "dove":"luogo|[luoghi]", "se": cond, "una": true, "inizio":"nodo", "nodi": { … } } },
+  "mondo": { "regioni":[{nome,terreno,fam} ×3], "partenza":{id,tipo,nome}, "luoghi":[{id,tipo,nome,reg,dmin,dmax}], "conta":{…} } }   // mappa scritta a mano, vedi A8
 ```
 **Nodo**: `{ chi, testo (≤ 700 lettere), effetti:[…], …UNA uscita }` con `chi` = id di un personaggio o compagno, oppure `_` (narratore, senza ritratto). Le uscite sono `scelte:[…]`, `vai:"nodo"` (Continua), `scena:"altra"` (si passa a un'altra scena) o `fine:true|"esito"` (Chiudi: l'esito torna all'orchestratore). Gli effetti del nodo scattano quando **ci si entra**.
 **Scelta**: `{ t, se, mostra, una, tono:[…], etichetta, effetti:[…], …UNA uscita (vai|scena|fine) oppure prova }`.

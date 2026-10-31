@@ -43,7 +43,7 @@
   ],
   "scene": {
     "pozzo": {
-      "dove": "pozzo", "una": true, "inizio": "a",
+      "titolo": "Il vecchio pozzo", "dove": "pozzo", "una": true, "inizio": "a",
       "nodi": {
         "a": { "chi": "_", "testo": "Il villaggio di Ca' del Vento dorme nella nebbia del mattino. Dal vecchio pozzo, tra le pietre coperte di muschio, sale una voce sottile, come di chi chiami da molto lontano.", "effetti": [ { "t": "missione", "id": "voce" } ], "vai": "b" },
         "b": { "chi": "_", "testo": "«C'è qualcuno?» ripete la voce. «Vi prego, il lume mi si è spento da ore!»",

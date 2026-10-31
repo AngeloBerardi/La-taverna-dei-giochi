@@ -1,7 +1,7 @@
 /* ---- Mondo (A6.1): la mappa a esagoni della campagna, generata dal seme (motore puro, nessun DOM). ----
    Raggio 9 (271 esagoni), tre regioni con nome, terreno dominante e famiglia di mostri; luoghi di tipo diverso (città, villaggi, santuari,
    antri, rovine, torre, accampamenti, forzieri) e mercanti vaganti sulle strade. Tutti i luoghi sono sempre collegati da terreno calpestabile.
-   Il capitolo (A8) può dare nomi e terreni delle regioni (`opz.regioni`) e luoghi scritti a mano (`opz.luoghi`: tipo, nome, regione, e
+   Il capitolo (A8) può dare nomi e terreni delle regioni (`opz.regioni`) e luoghi scritti a mano (`opz.luoghi`: tipo, nome, reg (indice della regione), id, e
    facoltativamente q,r): il generatore li rispetta e riempie il resto. Qui ci sono anche percorsi e raggio di visione.
    Contratto: genera(seme, opz) -> { raggio, celle, regioni, luoghi, partenza, mercanti }; JSON puro, stesso seme = stessa mappa. */
 const AMON=(()=>{
@@ -66,7 +66,9 @@ const AMON=(()=>{
     return !ordine.some(i=>dist(luoghi[i],p)<sep)});if(c.length)return c[Math.floor(rnd()*c.length)]}return null};
   const piazza=(tipo,v,extra)=>{const c=scegli(v);return c?metti(tipo,c,extra):null};
   // la partenza è un villaggio al centro
-  metti('villaggio',O,{nome:'Casale di partenza',partenza:true});
+  // (il capitolo può farla partire da un altro luogo sicuro, per esempio una città: `opz.partenza` = { tipo, nome, id })
+  const P0=opz.partenza||{},tipo0=P0.tipo&&TIPI[P0.tipo]&&TIPI[P0.tipo].sicuro?P0.tipo:'villaggio';
+  metti(tipo0,O,{nome:P0.nome||'Casale di partenza',partenza:true,id:P0.id});
   // luoghi scritti a mano dal capitolo, prima di tutto
   for(const f of opz.luoghi||[]){if(!TIPI[f.tipo])throw new Error('tipo di luogo sconosciuto: '+f.tipo);
    let c=f.q!=null&&f.r!=null?{q:f.q,r:f.r}:scegli({reg:f.reg,dmin:f.dmin,dmax:f.dmax,sep:3});if(!c||!celle[K(c.q,c.r)])throw new Error('luogo fuori dalla mappa: '+(f.nome||f.tipo));
@@ -81,11 +83,12 @@ const AMON=(()=>{
   for(let i=0;i<nVil;i++)piazza('villaggio',{reg:1+i%2,dmin:3,sep:3});
   for(const t of['santuario','rovina','campo','tesoro']){const n=(opz.conta&&opz.conta[t]!=null)?opz.conta[t]:CONTA[t];for(let i=0;i<n;i++)piazza(t,{reg:t==='santuario'||t==='rovina'?i%3:null,dmin:t==='tesoro'||t==='campo'?2:3,sep:t==='tesoro'?2:3})}
   // collegamenti: strade tra città, villaggi e luoghi grandi; poi ogni luogo si lega alla rete aprendo un passo dove serve
-  const di=t=>ordine.filter(i=>luoghi[i].tipo===t).map(i=>luoghi[i]),citta=di('citta')[0]||luoghi[ordine[0]],par=luoghi[ordine[0]];
+  const di=t=>ordine.filter(i=>luoghi[i].tipo===t).map(i=>luoghi[i]),cit=di('citta'),citta=cit.find(l=>!l.partenza)||cit[0]||luoghi[ordine[0]],par=luoghi[ordine[0]];
   const strada=(a,b)=>{for(const c of percorso(celle,a,b,6)||[]){const x=celle[K(c.q,c.r)];if(!passabile(x.t))x.t='pianura';if(!x.poi&&x.t!=='strada')x.t='strada'}};
-  strada(par,citta);const vill=di('villaggio').filter(v=>!v.partenza);
-  for(const v of vill)strada(citta,v);
-  for(const t of['antro','torre']){const l=di(t)[0];if(l){const v=vill.concat([citta]).reduce((m,x)=>dist(x,l)<dist(m,l)?x:m);strada(v,l)}}
+  strada(par,citta);for(const c of cit)if(c!==citta&&c!==par)strada(par,c);const vill=di('villaggio').filter(v=>!v.partenza);
+  const vicina=(l,L)=>L.reduce((m,x)=>dist(x,l)<dist(m,l)?x:m);
+  for(const v of vill)strada(cit.length>1?vicina(v,cit):citta,v);
+  for(const t of['antro','torre']){const l=di(t)[0];if(l){const v=vicina(l,vill.concat(cit.length?cit:[citta]));strada(v,l)}}
   for(const i of ordine){const l=luoghi[i];const p=percorso(celle,par,l,6)||[];for(const c of p){const x=celle[K(c.q,c.r)];if(!passabile(x.t))x.t='pianura'}}
   // mercanti vaganti: sulle strade, lontano dai luoghi
   const vie=interne.filter(c=>celle[K(c.q,c.r)].t==='strada'&&!celle[K(c.q,c.r)].poi),mercanti=[];

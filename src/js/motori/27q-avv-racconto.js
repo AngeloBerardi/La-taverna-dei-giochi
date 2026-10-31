@@ -1,13 +1,13 @@
 /* ---- Racconto (A7): capitoli a scene e nodi di dialogo, condizioni, effetti, prove di abilità, riassunto e validatore (regole pure). ----
    Un capitolo (`src/avventura/<id>.json`) ha: id, titolo, personaggi{id:{nome,razza,classe,aspetto}}, compagni{} (vedi ACMP), missioni{id:{titolo,descr,ricompensa:[effetti],scena}},
-   luoghi{id:{nome}}, bandiere[] (iniziali), ingressi[] (scene che l'orchestratore può avviare), sommario[{se,testo}], prossimo[{se,testo}], scene{id:{dove,se,una,inizio,nodi{}}}.
+   luoghi{id:{nome}}, bandiere[] (iniziali), ingressi[] (scene che l'orchestratore può avviare), sommario[{se,testo}], prossimo[{se,testo}], scene{id:{titolo,dove,se,una,inizio,nodi{}}}.
    Nodo: { chi, testo, effetti[], e UNA uscita: scelte[] | vai | scena | fine }. Scelta: { t, se, mostra, una, tono[], etichetta, effetti[], e UNA uscita: vai | scena | fine | prova{ab,cd,chi,vant,ok{},ko{}} }.
    Condizioni (`se`): {bandiera:id} {valore:id,min|max} {non:c} {e:[c]} {o:[c]} {classe} {razza} {oggetto} {livello:n} {compagno:id} {approv:id,min,max} {missione:id,stato}
    {oro:n} {perdizione,min|max} {giorno:n} {luogo:id}; una lista = tutte. Effetti: { t, id, n, … }: propri (bandiera conta togli approv recluta congeda missione diario) e per l'orchestratore
    (oro oggetto pf perdizione xp razioni battaglia sposta apri), che finiscono in `fuori`. Lo stato `s` è JSON; `act` lavora su una copia e il dado è `s.rng` (`ADADI`), mai Math.random. */
 const ARAC=(()=>{
  const ER=typeof EROI!=='undefined'?EROI:require('./27-eroi.js'),DAD=typeof ADADI!=='undefined'?ADADI:require('./27a-avv-dadi.js'),CM=typeof ACMP!=='undefined'?ACMP:require('./27p-avv-compagni.js');
- const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js'),BE=()=>typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js'),AR=()=>typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
+ const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js'),BE=()=>typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js'),AM=()=>typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js'),AR=()=>typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
  const NARRATORE='_',MAX_TESTO=700,PROPRI=['bandiera','conta','togli','approv','recluta','congeda','missione','diario'],FUORI=['oro','oggetto','pf','perdizione','xp','razioni','battaglia','sposta','apri'];
  const DIFF=['facile','medio','difficile','capo'],SERVIZI=['bottega','locanda','guaritore','tempio'],STATI_MISSIONE=['attiva','fatta','fallita'],CD_MIN=5,CD_MAX=25;
  const PRIM=['bandiera','valore','non','e','o','classe','razza','oggetto','livello','compagno','approv','missione','oro','perdizione','giorno','luogo'];
@@ -125,10 +125,35 @@ const ARAC=(()=>{
  const archi=n=>{const o=[],ex=x=>{if(!x)return;if(x.vai)o.push({nodo:x.vai});if(x.scena)o.push({scena:x.scena});if(x.fine!=null&&x.fine!==false)o.push({fine:1})};
   ex(n);for(const c of n.scelte||[]){ex(c);if(c.prova){ex(c.prova.ok);ex(c.prova.ko)}}return o};
  const uscite=x=>['vai','scena','fine'].filter(k=>x[k]!=null&&x[k]!==false).length;
+ // mondo del capitolo (`mondo`: regioni, partenza e luoghi scritti a mano): si genera la mappa con molti semi e si controlla che ogni luogo ci sia, sia collegato e stia nella sua regione
+ const SEMI_MONDO=24;
+ function validaMondo(w,e){
+  const ids=new Set();if(!w||typeof w!=='object'||Array.isArray(w)){e.push('mondo: dev\'essere un oggetto');return ids}
+  const M=AM(),reg=w.regioni==null?[]:w.regioni;
+  if(!Array.isArray(reg)||reg.length>3)e.push('mondo: le regioni sono al massimo tre');
+  else reg.forEach((g,i)=>{const p='mondo, regione '+(i+1);if(g.terreno&&!(M.TERRENI[g.terreno]&&M.passabile(g.terreno)))e.push(p+': terreno sconosciuto o non calpestabile «'+g.terreno+'»');if(g.fam&&!BE().FAMIGLIE[g.fam])e.push(p+': famiglia sconosciuta «'+g.fam+'»')});
+  const voci=[];
+  if(w.partenza!=null){const g=w.partenza,p='mondo, partenza';if(!g||typeof g!=='object')e.push(p+': dev\'essere un oggetto');else{if(!M.TIPI[g.tipo]||!M.TIPI[g.tipo].sicuro)e.push(p+': il tipo dev\'essere un luogo sicuro (citta, villaggio, santuario, campo)');if(!g.nome)e.push(p+': manca il nome');voci.push({p,id:g.id,f:g,partenza:true})}}
+  if(w.luoghi!=null&&!Array.isArray(w.luoghi))e.push('mondo: «luoghi» è una lista');
+  (Array.isArray(w.luoghi)?w.luoghi:[]).forEach((g,i)=>{const p='mondo, luogo '+(i+1)+(g&&g.nome?' («'+g.nome+'»)':'');if(!g||typeof g!=='object'){e.push(p+': dev\'essere un oggetto');return}
+   if(!M.TIPI[g.tipo])e.push(p+': tipo sconosciuto «'+g.tipo+'»');if(!g.nome)e.push(p+': manca il nome');
+   if(g.reg!=null&&!(Number.isInteger(g.reg)&&g.reg>=0&&g.reg<3))e.push(p+': «reg» è un indice da 0 a 2');
+   for(const k of['dmin','dmax'])if(g[k]!=null&&!Number.isFinite(g[k]))e.push(p+': «'+k+'» vuole un numero');
+   voci.push({p,id:g.id,f:g})});
+  for(const v of voci){if(typeof v.id!=='string'||!/^[a-z0-9-]+$/.test(v.id)){e.push(v.p+': id mancante o non valido');continue}if(ids.has(v.id))e.push(v.p+': id «'+v.id+'» ripetuto');ids.add(v.id)}
+  if(e.length)return ids;
+  for(let seme=1;seme<=SEMI_MONDO;seme++){let m;
+   try{m=M.genera(seme,w)}catch(x){e.push('mondo, seme '+seme+': '+x.message);break}
+   if(!M.connessa(m)){e.push('mondo, seme '+seme+': un luogo non si raggiunge a piedi');break}
+   const male=voci.map(v=>{const l=m.luoghi[v.id];if(!l)return v.p+' non esiste sulla mappa';if(l.tipo!==(v.f.tipo))return v.p+' ha il tipo sbagliato';
+    if(v.f.reg!=null&&m.celle[M.K(l.q,l.r)].reg!==v.f.reg)return v.p+' non cade nella regione '+v.f.reg+' (allarga «dmin» e «dmax»)';return null}).find(Boolean);
+   if(male){e.push('mondo, seme '+seme+': '+male);break}}
+  return ids}
  function valida(cap){
-  const e=[],P=(cap&&cap.personaggi)||{},C=(cap&&cap.compagni)||{},M=(cap&&cap.missioni)||{},L=(cap&&cap.luoghi)||{},S=(cap&&cap.scene)||{};
+  const e=[],P=(cap&&cap.personaggi)||{},C=(cap&&cap.compagni)||{},M=(cap&&cap.missioni)||{},L=Object.assign({},(cap&&cap.luoghi)||{}),S=(cap&&cap.scene)||{};
   if(!cap||typeof cap!=='object')return['capitolo mancante'];
   if(!/^[a-z0-9-]+$/.test(cap.id||''))e.push('id del capitolo non valido');if(!cap.titolo)e.push('manca il titolo');if(!Object.keys(S).length)e.push('nessuna scena');
+  if(cap.mondo!=null)for(const id of validaMondo(cap.mondo,e))L[id]=L[id]||{};
   const impostate=new Set(cap.bandiere||[]),lette=new Set();
   for(const id of Object.keys(C)){impostate.add(id+'-fiducia');impostate.add(id+'-lascia')}
   const valCond=(c,p)=>{if(c==null||typeof c==='boolean')return;if(typeof c==='string'){lette.add(c);return}if(Array.isArray(c)){c.forEach(x=>valCond(x,p));return}
@@ -163,7 +188,8 @@ const ARAC=(()=>{
   const edgeScena={};
   for(const[sid,sc]of Object.entries(S)){const pre='scena '+sid;
    if(!/^[a-z0-9-]+$/.test(sid))e.push(pre+': id non valido');
-   if(sc.dove)entrate.add(sid);valCond(sc.se,pre);
+   if(sc.dove&&!(typeof sc.titolo==='string'&&sc.titolo.trim()))e.push(pre+': una scena con «dove» vuole il «titolo» (è la voce del menu del luogo)');
+   if(sc.dove){entrate.add(sid);for(const d of[].concat(sc.dove))if(!L[d])e.push(pre+': «dove» riferisce il luogo «'+d+'», che non esiste')}valCond(sc.se,pre);
    const N=sc.nodi||{};if(!N[sc.inizio]){e.push(pre+': il nodo iniziale «'+sc.inizio+'» non esiste');continue}
    const arrivo=new Set([sc.inizio]),coda=[sc.inizio],verso=new Set();edgeScena[sid]=verso;
    const rev={},fini=[];

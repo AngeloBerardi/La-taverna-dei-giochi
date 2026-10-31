@@ -41,6 +41,23 @@ trova(c => { c.compagni.ilda.addio = 'non-esiste'; }, /la scena «non-esiste» n
 trova(c => { c.compagni.ilda.base = { for: 15, des: 15, cos: 15, int: 15, sag: 15, car: 15 }; }, /servono \d+ punti/, 'scheda del compagno oltre il budget');
 trova(c => { c.compagni.ilda.valori.pieta = 9; }, /da -3 a 3/, 'valore di tono');
 trova(c => { c.missioni.voce.ricompensa.push({ t: 'oro', n: 1.5 }); }, /vuole n intero/, 'numero intero');
+trova(c => { delete c.scene.pozzo.titolo; }, /vuole il «titolo»/, 'scena di un luogo senza titolo');
+// ---- il mondo del capitolo (mappa scritta a mano) ----
+const conMondo = (f) => (c) => { c.mondo = { regioni: [{ nome: 'A', terreno: 'pianura', fam: 'banditi' }, { nome: 'B', terreno: 'palude', fam: 'nonmorti' }, { nome: 'C', terreno: 'bosco', fam: 'bestie' }], partenza: { id: 'valcorvo', tipo: 'citta', nome: 'Valcorvo' },
+  luoghi: [{ id: 'casale', tipo: 'villaggio', nome: 'Il Casale', reg: 0, dmin: 2, dmax: 4 }, { id: 'rocca', tipo: 'citta', nome: 'La Rocca', reg: 1, dmin: 4, dmax: 8 }] }; f(c.mondo, c); };
+assert.deepStrictEqual(R.valida(Object.assign(copia(cap), { mondo: undefined })), [], 'senza mondo resta valido');
+assert.strictEqual(guasto(conMondo(() => { })), '', 'un mondo ben fatto è valido');
+trova(conMondo(m => { m.luoghi[0].tipo = 'zzz'; }), /tipo sconosciuto «zzz»/, 'tipo di luogo');
+trova(conMondo(m => { m.luoghi[1].id = 'casale'; }), /ripetuto/, 'id ripetuto');
+trova(conMondo(m => { delete m.luoghi[1].id; }), /id mancante/, 'id mancante');
+trova(conMondo(m => { m.regioni[1].terreno = 'acqua'; }), /non calpestabile/, 'terreno che non si cammina');
+trova(conMondo(m => { m.regioni[0].fam = 'draghi'; }), /famiglia sconosciuta/, 'famiglia di mostri');
+trova(conMondo(m => { m.partenza.tipo = 'torre'; }), /luogo sicuro/, 'partenza non sicura');
+trova(conMondo(m => { m.luoghi[1].reg = 7; }), /indice da 0 a 2/, 'regione fuori scala');
+trova(conMondo(m => { m.luoghi[1].dmin = 1; m.luoghi[1].dmax = 1; }), /non cade nella regione/, 'luogo che non sta nella sua regione');
+trova(conMondo((m, c) => { c.scene.pozzo.dove = 'rocca'; }), /^$/, 'un luogo del mondo vale per «dove»');
+trova(conMondo((m, c) => { c.scene.pozzo.dove = 'nonce'; }), /«dove» riferisce il luogo «nonce»/, '«dove» con luogo sconosciuto');
+trova(conMondo((m, c) => { c.scene.pozzo.nodi.a.effetti = [{ t: 'sposta', id: 'rocca' }]; }), /^$/, 'sposta verso un luogo del mondo');
 assert.strictEqual(R.valida(null)[0], 'capitolo mancante');
 
 // ---- condizioni ----
