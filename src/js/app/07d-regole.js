@@ -244,4 +244,7 @@ const RULES={
 <li>Ognuno comanda il <b>proprio eroe</b> (movimento, riposo breve, zaino, bottega). <b>Chi ospita</b> (il primo posto presente) guida i compagni della storia e ciò che riguarda tutto il gruppo: fine giro, riposo lungo, scene, entrare e uscire dai sotterranei.</li>
 <li>Le <b>scelte dei dialoghi si votano</b>: vince la più votata, a parità quella di chi ospita; chi ospita può chiudere il voto prima. «Continua» lo può premere chiunque.</li>
 <li>Negli <b>scontri</b> muove solo chi guida l'eroe di turno; nemici e alleati senza nessuno al telefono li gioca il computer. Le reazioni si risolvono da sole. Se un telefono esce, il suo eroe lo guida chi ospita e, quando torna, riprende il suo posto.</li>
-<li>A fine sessione ognuno <b>riscuote il proprio eroe</b> sul proprio profilo; la campagna si salva sul profilo di chi ospita e si può riprendere dalla pagina Avventura.</li></ul>`};
+<li>A fine sessione ognuno <b>riscuote il proprio eroe</b> sul proprio profilo; la campagna si salva sul profilo di chi ospita e si può riprendere dalla pagina Avventura.</li></ul>
+<p><b>Grafica 3D</b></p>
+<ul><li>Mappa e battaglie si vedono in <b>3D</b>: rilievi, boschi, edifici, miniature degli eroi (dal loro aspetto) e dei mostri, fuoco, veleno, ghiaccio e acqua che si muovono, luce di giorno e di notte, perdizione che tinge il mondo. Si gioca con gli stessi tocchi di sempre.</li>
+<li>Nella pagina Avventura, «Grafica 3D»: <b>Automatica</b> (prova il telefono e, se è lento, torna alla grafica piatta), <b>Sempre</b> o <b>No</b>. Con «riduci animazioni» attivo la scena resta ferma.</li></ul>`};

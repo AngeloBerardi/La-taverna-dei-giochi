@@ -33,14 +33,15 @@ const BatAnima={
   clearTimeout(BatAnima._dt);BatAnima._dt=setTimeout(()=>{el.className='bt-dado'},vive)},
  // numero che sale dal segnalino: rosso per i danni, verde per le cure
  num(x){const el=BatAnima.tok(x.chi);if(!el)return;const [px,py]=BatAnima.pos(el),pos=x.v>0,t=(pos?'+':'−')+Math.abs(x.v);
-  BatAnima.testo(`bt-num ${pos?'pos':'neg'} t-${x.tipo||'x'}${x.crit?' crit':''}`,px,py-26,t,ACRO.VIVE.numero)},
+  BatAnima.testo(`bt-num ${pos?'pos':'neg'} t-${x.tipo||'x'}${x.crit?' crit':''}`,px,py-26-Scena3D.sup(),t,ACRO.VIVE.numero)},
  etic(id,testo,tono){const el=BatAnima.tok(id);if(!el)return;const [px,py]=BatAnima.pos(el),ora=performance.now(),e=BatAnima._et[id]||{t:0,n:0};
-  if(ora-e.t>1100)e.n=0;const k=e.n++;e.t=ora;BatAnima._et[id]=e;BatAnima.testo(`bt-et ${tono||'neutro'}`,px,py-36-k*14,testo,ACRO.VIVE.etichetta)},
+  if(ora-e.t>1100)e.n=0;const k=e.n++;e.t=ora;BatAnima._et[id]=e;BatAnima.testo(`bt-et ${tono||'neutro'}`,px,py-36-Scena3D.sup()-k*14,testo,ACRO.VIVE.etichetta)},
  hp(id,d){const el=BatAnima.tok(id);if(!el)return;const mx=+el.dataset.max,hp=Math.max(0,Math.min(mx,+el.dataset.hp+d));el.dataset.hp=hp;
   const b=el.querySelector('.bt-hpf');if(b){const p=hp/mx;b.setAttribute('width',(26*p).toFixed(1));b.setAttribute('fill',p>.5?'#5fbf6a':p>.25?'#e8b43a':'#d9503f')}},
  toast(t,ms){const el=document.querySelector('.bt-toast');if(!el)return;el.textContent=t;el.classList.add('on');clearTimeout(BatAnima._tt);BatAnima._tt=setTimeout(()=>el.classList.remove('on'),ms)},
  passo(x,s,f,rid){
   AvvAudio.passo(x,f);   // suoni del passo (A10): chiamato una volta sola per passo, quindi «Salta» li salta
+  Scena3D.passo(x,s,f,rid);   // miniature, dardi e scoppi in 3D (A12), se attivo
   switch(x.t){
    case'sposta':return BatAnima.sposta(x,s,f,rid);
    case'dado':return BatAnima.dado(x,s,f,rid);

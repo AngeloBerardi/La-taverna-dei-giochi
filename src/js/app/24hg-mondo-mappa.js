@@ -21,7 +21,7 @@ const MoMappa={
  centro(s){const v=Camp.v;if(v.cx!=null)return{x:v.cx,y:v.cy};const e=s.eroi[Camp.eroeSel(s)]||s.eroi[0],[x,y]=MoMappa.xy(e.q,e.r);return{x,y}},
  limita(s){const R=MoMappa.riquadro(s),v=Camp.v;v.k=Math.max(MoMappa.KMIN,Math.min(MoMappa.KMAX,v.k||2.2));if(v.cx==null)return;v.cx=Math.max(R.x,Math.min(R.x+R.w,v.cx));v.cy=Math.max(R.y,Math.min(R.y+R.h,v.cy))},
  viewBox(s,svg){const R=MoMappa.riquadro(s),k=Camp.v.k,W=R.w/k,w=svg&&svg.clientWidth||390,h=svg&&svg.clientHeight||560,H=W*h/w,c=MoMappa.centro(s);return[c.x-W/2,c.y-H/2,W,H].map(n=>n.toFixed(1)).join(' ')},
- applica(svg){const s=Camp.s;if(!svg||!s)return;svg.setAttribute('viewBox',MoMappa.viewBox(s,svg));svg.classList.toggle('zn',Camp.v.k>=MoMappa.KNOMI)},
+ applica(svg){const s=Camp.s;if(!svg||!s)return;svg.setAttribute('viewBox',MoMappa.viewBox(s,svg));svg.classList.toggle('zn',Camp.v.k>=MoMappa.KNOMI);Scena3D.vista()},
  zoom(svg,f,px,py){const s=Camp.s,v=Camp.v,c0=MoMappa.centro(s),k0=v.k,k1=Math.max(MoMappa.KMIN,Math.min(MoMappa.KMAX,k0*f));if(k1===k0)return;
   const p=px!=null?{x:px,y:py}:c0;v.k=k1;v.cx=p.x+(c0.x-p.x)*k0/k1;v.cy=p.y+(c0.y-p.y)*k0/k1;MoMappa.limita(s);MoMappa.applica(svg)},
  // ---- disegno ----
@@ -29,15 +29,15 @@ const MoMappa={
   const rit=Eroi.ritratto(e.aspetto,e.razza,e.classe,px).replace('<svg class="rit" viewBox="0 0 100 100"',`<svg class="rit" x="${-R}" y="${-R}" viewBox="0 0 100 100"`),pc=Math.max(0,e.hp)/e.hpMax,col=pc>.5?'#7ac26a':pc>.25?'#e8b84a':'#e0705e';
   return`<g class="mo-tok${ko?' ko':''}${sel?' sel':''}" transform="translate(${o[0]} ${o[1]})"><g clip-path="url(#mo-cl${R===10?'a':R===8.5?'b':'c'})">${rit}</g><circle r="${R}" fill="none" stroke="${sel?'#f3d37a':'#1a120a'}" stroke-width="${sel?2.4:1.6}"/>`
    +(ko?glifo('teschio',0,0,R*1.1,'#fff',.9):`<rect x="${-R}" y="${R+1}" width="${R*2}" height="3" fill="#000" opacity=".65"/><rect x="${-R}" y="${R+1}" width="${(R*2*pc).toFixed(1)}" height="3" fill="${col}"/>`)+'</g>'},
- svg(s){const u=Camp.u,Z=MoMappa.SZ-1.2,R=MoMappa.riquadro(s),vivi=CAMP.vivi(s),isel=Camp.eroeSel(s),esel=s.eroi[isel],obj=s.luoghi[CAMP.passoCorrente(s)],ant=Camp.anteprima(s);
+ svg(s){const d3=Scena3D.on(),qh=p=>d3?(ASCE.ALT_MON[(s.celle[p.q+','+p.r]||{}).t]||0):0,u=Camp.u,Z=MoMappa.SZ-1.2,R=MoMappa.riquadro(s),vivi=CAMP.vivi(s),isel=Camp.eroeSel(s),esel=s.eroi[isel],obj=s.luoghi[CAMP.passoCorrente(s)],ant=Camp.anteprima(s);
   const vicino=c=>vivi.some(e=>CAMP.dist(e,c)<=AMOS.VISTA),ragg=esel&&esel.hp>0&&esel.pm>0&&!s.sfida?CAMP.raggiungibili(s,isel):{};let g='',ov='',lu='',reg='';
-  for(const c of Object.values(s.celle)){const[cx,cy]=MoMappa.xy(c.q,c.r);
-   if(!c.visto){g+=`<polygon points="${MoMappa.hex(cx,cy,Z)}" fill="#15110d" stroke="#231c15" stroke-width="1"/>`;continue}
-   const mem=vicino(c)?1:.66;g+=`<polygon points="${MoMappa.hex(cx,cy,Z)}" fill="${MoMappa.COL[c.t]}" stroke="rgba(0,0,0,.35)" stroke-width="1" opacity="${mem}"/>`;
-   if(MoMappa.GLI[c.t]&&!c.luogo)g+=glifo(MoMappa.GLI[c.t],cx,cy,15,'#000',.28*mem);
-   const k=c.q+','+c.r;if(ragg[k]!=null&&!(esel.q===c.q&&esel.r===c.r))ov+=`<polygon points="${MoMappa.hex(cx,cy,Z)}" fill="rgba(243,211,122,.3)" stroke="rgba(243,211,122,.75)" stroke-width="1.2" pointer-events="none"/>`;
+  for(const c of Object.values(s.celle)){const[cx,cy]=MoMappa.xy(c.q,c.r),hh=d3&&c.visto?(ASCE.ALT_MON[c.t]||0):0;
+   if(!c.visto){if(!d3)g+=`<polygon points="${MoMappa.hex(cx,cy,Z)}" fill="#15110d" stroke="#231c15" stroke-width="1"/>`;continue}
+   const mem=vicino(c)?1:.66;if(!d3)g+=`<polygon points="${MoMappa.hex(cx,cy,Z)}" fill="${MoMappa.COL[c.t]}" stroke="rgba(0,0,0,.35)" stroke-width="1" opacity="${mem}"/>`;
+   if(!d3&&MoMappa.GLI[c.t]&&!c.luogo)g+=glifo(MoMappa.GLI[c.t],cx,cy,15,'#000',.28*mem);
+   const k=c.q+','+c.r;if(ragg[k]!=null&&!(esel.q===c.q&&esel.r===c.r))ov+=`<polygon points="${MoMappa.hex(cx,cy-hh,Z)}" fill="rgba(243,211,122,.3)" stroke="rgba(243,211,122,.75)" stroke-width="1.2" pointer-events="none"/>`;
    const l=c.luogo&&s.luoghi[c.luogo];if(l){const fatto=l.ripulito,ass=l.assedio,ob=obj&&obj.id===l.id;
-    lu+=`<g transform="translate(${cx} ${cy})"${fatto?' opacity=".55"':''}>${ob?'<circle r="15" class="mo-ob" fill="none" stroke="#f3d37a" stroke-width="2.4"/>':''}<circle r="11" fill="${ass?'#4a1a14':'#2a1c0e'}" stroke="${ass?'#e0705e':'#e8c98a'}" stroke-width="1.6"/>${glifo(MoMappa.ICO[l.tipo]||'p_tesoro',0,0,16,'#f3e6c8',1)}`
+    lu+=`<g transform="translate(${cx} ${cy-hh})"${fatto?' opacity=".55"':''}>${ob?'<circle r="15" class="mo-ob" fill="none" stroke="#f3d37a" stroke-width="2.4"/>':''}${d3?`<g transform="translate(15 -26)"><circle r="8.5" fill="${ass?'#4a1a14':'#2a1c0e'}" stroke="${ass?'#e0705e':'#e8c98a'}" stroke-width="1.4"/>${glifo(MoMappa.ICO[l.tipo]||'p_tesoro',0,0,12,'#f3e6c8',1)}</g>`:`<circle r="11" fill="${ass?'#4a1a14':'#2a1c0e'}" stroke="${ass?'#e0705e':'#e8c98a'}" stroke-width="1.6"/>${glifo(MoMappa.ICO[l.tipo]||'p_tesoro',0,0,16,'#f3e6c8',1)}`}`
      +(l.tipo==='citta'||l.tipo==='torre'||l.tipo==='villaggio'||l.tipo==='santuario'||l.tipo==='rovina'||l.tipo==='antro'?`<text class="nm" y="${Z+3}" text-anchor="middle">${esc(l.nome)}</text>`:'')+'</g>'}}
   for(const r of s.regioni||[]){const c=s.celle[r.centro.q+','+r.centro.r];if(c&&c.visto){const[x,y]=MoMappa.xy(r.centro.q,r.centro.r);reg+=`<text class="rg" x="${x}" y="${y}" text-anchor="middle">${esc(r.nome.toUpperCase())}</text>`}}
   // tragitto scelto
@@ -45,13 +45,13 @@ const MoMappa={
    via=`<polyline points="${pts}" class="mo-via" fill="none"/><polygon points="${MoMappa.hex(dx,dy,Z)}" fill="none" class="mo-dest"/>`+(fi&&(fi.q!==u.dest.q||fi.r!==u.dest.r)?`<circle cx="${fx}" cy="${fy}" r="5" class="mo-fine"/>`:'')}
   else if(u.dest){const[dx,dy]=MoMappa.xy(u.dest.q,u.dest.r);via=`<polygon points="${MoMappa.hex(dx,dy,Z)}" fill="none" class="mo-dest"/>`}
   // mercanti e mostri: si vedono solo vicino a un eroe in piedi
-  let mo='';for(const x of s.mercanti||[])if(vicino(x)){const[cx,cy]=MoMappa.xy(x.q,x.r);mo+=`<g transform="translate(${cx} ${cy})"><circle r="10" fill="#6a4a14" stroke="#f3d37a" stroke-width="1.6"/>${glifo('p_mercante',0,0,15,'#fff',1)}</g>`}
+  let mo='';for(const x of s.mercanti||[])if(vicino(x)){const[cx,cy]=MoMappa.xy(x.q,x.r);mo+=`<g transform="translate(${cx} ${cy-qh(x)})"><circle r="10" fill="#6a4a14" stroke="#f3d37a" stroke-width="1.6"/>${glifo('p_mercante',0,0,15,'#fff',1)}</g>`}
   for(const m of AMOS.visibili(s)){const[cx,cy]=MoMappa.xy(m.q,m.r),f=MoMappa.FAM[m.fam]||['spada','#c26a3c'],sel=u.mostro===m.id;
-   mo+=`<g class="mo-mn ${m.stato}${sel?' sel':''}" transform="translate(${cx} ${cy})"><circle r="11.5" fill="${f[1]}" stroke="${sel?'#fff':'#1a0c06'}" stroke-width="${sel?2.4:1.8}"/>${glifo(f[0],0,0,15,'#1a0c06',1)}<circle cx="9" cy="-9" r="6" fill="#1a0c06" stroke="#f3e6c8" stroke-width="1"/><text x="9" y="-5.8" text-anchor="middle" class="lv">${m.liv}</text></g>`}
+   mo+=`<g class="mo-mn ${m.stato}${sel?' sel':''}" transform="translate(${cx} ${cy-qh(m)})"><circle r="11.5" fill="${f[1]}" stroke="${sel?'#fff':'#1a0c06'}" stroke-width="${sel?2.4:1.8}"/>${glifo(f[0],0,0,15,'#1a0c06',1)}<circle cx="9" cy="-9" r="6" fill="#1a0c06" stroke="#f3e6c8" stroke-width="1"/><text x="9" y="-5.8" text-anchor="middle" class="lv">${m.liv}</text></g>`}
   // eroi: raggruppati per esagono
   const per={};s.eroi.forEach((e,i)=>{(per[e.q+','+e.r]=per[e.q+','+e.r]||[]).push(i)});let eroi='';
-  for(const [k,L] of Object.entries(per)){const[q,r]=k.split(',').map(Number),[cx,cy]=MoMappa.xy(q,r);eroi+=`<g transform="translate(${cx} ${cy})">${L.map((i,j)=>MoMappa.token(s.eroi[i],i,L.length,j,i===isel)).join('')}</g>`}
-  const notte=s.fase==='notte'?`<rect x="${R.x}" y="${R.y}" width="${R.w}" height="${R.h}" fill="#0b1236" opacity=".3" pointer-events="none"/>`:'';
+  for(const [k,L] of Object.entries(per)){const[q,r]=k.split(',').map(Number),[cx,cy]=MoMappa.xy(q,r);eroi+=`<g transform="translate(${cx} ${cy-qh({q,r})})">${L.map((i,j)=>MoMappa.token(s.eroi[i],i,L.length,j,i===isel)).join('')}</g>`}
+  const notte=s.fase==='notte'&&!d3?`<rect x="${R.x}" y="${R.y}" width="${R.w}" height="${R.h}" fill="#0b1236" opacity=".3" pointer-events="none"/>`:'';
   return`<svg class="mo-svg${Camp.v.k>=MoMappa.KNOMI?' zn':''}" viewBox="${MoMappa.viewBox(s)}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mappa del mondo"><defs>${[['a',10],['b',8.5],['c',7.5]].map(([n,r])=>`<clipPath id="mo-cl${n}"><circle r="${r}"/></clipPath>`).join('')}</defs>
 ${g}${reg}${ov}${lu}${notte}${via}${mo}${eroi}</svg>`},
  // ---- gesti ----
