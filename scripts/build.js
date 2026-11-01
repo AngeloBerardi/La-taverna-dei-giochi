@@ -64,6 +64,21 @@ for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.end
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));
+// capitoli dell'Avventura (src/avventura/*.json): validati dal racconto (scene raggiungibili, niente vicoli ciechi, riferimenti esistenti), scritti a parte in
+// dist/avventura/<id>.<hash>.json e scaricati solo quando servono. Nella pagina va l'indice (titolo e indirizzo). Formato: docs/AVVENTURA-A7.md
+const ARAC = require('../src/js/motori/27q-avv-racconto.js'), capDir = path.join(root, 'src/avventura'), capitoli = {};
+fs.rmSync(path.join(root, 'dist/avventura'), { recursive: true, force: true });
+fs.mkdirSync(path.join(root, 'dist/avventura'), { recursive: true });
+for (const n of fs.existsSync(capDir) ? fs.readdirSync(capDir).filter(n => n.endsWith('.json')).sort() : []) {
+  const c = JSON.parse(fs.readFileSync(path.join(capDir, n), 'utf8')), err = ARAC.valida(c);
+  if (err.length) throw new Error(`capitolo ${n} non valido: ${err.join('; ')}`);
+  if (c.id + '.json' !== n) throw new Error(`capitolo ${n}: il nome del file deve essere uguale all'id (${c.id})`);
+  const src = JSON.stringify(c), file = `${c.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
+  fs.writeFileSync(path.join(root, 'dist/avventura', file), src);
+  capitoli[c.id] = { titolo: c.titolo, sottotitolo: c.sottotitolo || '', url: '/avventura/' + file };
+}
+if (!/\/\*CAPITOLI\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*CAPITOLI*/{} non trovato (app/24hi-dialogo.js)');
+html = html.replace(/\/\*CAPITOLI\*\/\s*\{\}/, JSON.stringify(capitoli));
 // carte con illustrazione in assets/cards/<ID>.webp (es. JH, QS, KC, X): usate al posto del disegno vettoriale
 const cardsDir = path.join(root, 'assets/cards');
 const imgs = fs.existsSync(cardsDir) ? fs.readdirSync(cardsDir).filter(n => /^[JQKX][HDCS]?\.webp$/.test(n)).map(n => n.replace('.webp', '')) : [];

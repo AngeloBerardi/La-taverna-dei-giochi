@@ -276,14 +276,14 @@ const ASCO=(()=>{
  // ---- incontri: quali mostri mettere contro una compagnia (A4.6). Budget di PE per livello e numero di eroi, bruti davanti, tiratori e supporti dietro ----
  // PE di un mostro = 15+10×livello (BEST): il budget di un eroe è quello di un mostro del suo livello, moltiplicato per la difficoltà. `capo` = il capo della famiglia più una scorta.
  const XP_LIV=l=>15+10*l,DIFFICOLTA={facile:{m:.7},medio:{m:1.2},difficile:{m:1.6},capo:{m:.5}},MAX_MOSTRI=8;
- // incontro(famiglia, livello, nEroi, difficolta, rnd) → { fam, liv, nEroi, difficolta, budget, xp, nemici:[id del bestiario] }; `rnd` è un numero (seme) o una funzione 0..1
- function incontro(fam,liv,nEroi,diff,rnd){const D=DIFFICOLTA[diff];if(!D)throw new Error('difficoltà sconosciuta: '+diff);if(!BE.FAMIGLIE[fam])throw new Error('famiglia sconosciuta: '+fam);
+ // incontro(famiglia, livello, nEroi, difficolta, rnd, scala) → (`scala` = moltiplicatore del budget dalla difficoltà della campagna, ADIF.gruppi; 1 se manca) { fam, liv, nEroi, difficolta, budget, xp, nemici:[id del bestiario] }; `rnd` è un numero (seme) o una funzione 0..1
+ function incontro(fam,liv,nEroi,diff,rnd,scala){const D=DIFFICOLTA[diff];if(!D)throw new Error('difficoltà sconosciuta: '+diff);if(!BE.FAMIGLIE[fam])throw new Error('famiglia sconosciuta: '+fam);
   nEroi=Math.max(1,Math.min(MAX_EROI,nEroi|0||1));liv=Math.max(1,liv|0||1);const r=typeof rnd==='function'?rnd:DAD.gen({rng:DAD.semina(rnd==null?1:rnd)});
   const tutti=BE.ID.map(i=>BE.M[i]).filter(m=>m.fam===fam),capo=tutti.find(m=>m.capo)||null,pool=tutti.filter(m=>!m.capo);
   const vic=(a,b)=>Math.abs(a.liv-liv)-Math.abs(b.liv-liv)||b.liv-a.liv,dietro=m=>m.ruolo!=='bruto'&&m.ruolo!=='sciame';
   let ok=pool.filter(m=>m.liv<=liv+1&&m.liv>=liv-3);if(!ok.length)ok=pool.slice().sort(vic).slice(0,2);
   if(!ok.some(m=>!dietro(m)))ok.push(pool.filter(m=>!dietro(m)).sort(vic)[0]);        // la famiglia non ha bruti di questo livello: i più vicini
-  const budget=Math.round(nEroi*XP_LIV(liv)*D.m),scelti=[],conta={},xp=()=>scelti.reduce((a,m)=>a+m.xp,0),tetto=Math.min(MAX_MOSTRI,nEroi+3);
+  const budget=Math.round(nEroi*XP_LIV(liv)*D.m*(scala>0?scala:1)),scelti=[],conta={},xp=()=>scelti.reduce((a,m)=>a+m.xp,0),tetto=Math.min(MAX_MOSTRI,nEroi+3);
   const mette=m=>{scelti.push(m);conta[m.id]=(conta[m.id]||0)+1};
   if(diff==='capo')mette(capo||pool.slice().sort((a,b)=>b.liv-a.liv)[0]);
   else{const davanti=ok.filter(m=>!dietro(m)&&m.xp<=budget);if(davanti.length)mette(davanti[Math.floor(r()*davanti.length)]);else mette(ok.slice().sort((a,b)=>a.xp-b.xp)[0])}

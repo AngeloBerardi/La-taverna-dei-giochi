@@ -81,6 +81,9 @@ const snapDoc=(r,v)=>({exists:()=>v!==null,data:()=>v===null?undefined:clone(v),
 export const getDoc=async r=>{const m=r.k.match(/^players\/([^/]+)\/eroi\//);if(m&&m[1]!==me())throw denied();return snapDoc(r,await store.get(r.k))};
 export const setDoc=async(r,d)=>{const v=stamp(clone(d));await regolePartite(r.k,v,await store.get(r.k));regoleEroi(r.k,v,await store.get(r.k));await store.put(r.k,v);window.__w.push(['set',r.k])};
 export const updateDoc=async(r,d)=>{const cur=(await store.get(r.k))||{},v={...cur,...stamp(clone(d))};await regolePartite(r.k,v,cur);regoleEroi(r.k,v,cur);await store.put(r.k,v);window.__w.push(['upd',r.k])};
+// writeBatch: le scritture si applicano in ordine e, se una è negata (regole simulate), si fermano; come l'SDK vero tutto o niente non è garantito, ma basta a provare il rientro
+export const writeBatch=db=>{const w=[],b={set:(r,d)=>{w.push(['s',r,d]);return b},update:(r,d)=>{w.push(['u',r,d]);return b},delete:r=>{w.push(['d',r]);return b},
+ commit:async()=>{for(const[o,r,d]of w){if(o==='s')await setDoc(r,d);else if(o==='u')await updateDoc(r,d);else await deleteDoc(r)}}};return b};
 export const deleteDoc=async r=>{await regolePartite(r.k,null,await store.get(r.k));regoleEroi(r.k,null,null);await store.del(r.k);window.__w.push(['del',r.k])};
 export const getDocs=async q=>{const mq=q.c.match(/^players\/([^/]+)\/eroi$/);if(mq&&mq[1]!==me())throw denied();let rows=await store.list(q.c);
   for(const c of q.cs||[]){

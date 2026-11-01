@@ -69,6 +69,15 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   pad:(fs,t,d,v,o)=>fs.forEach(f=>{osc('sawtooth',f,t,d,v,o,{at:.7,lp:850,det:-9});osc('sawtooth',f,t,d,v,o,{at:.7,lp:850,det:9})}),
   bass:(f,t,d,v,o)=>{osc('triangle',f,t,d,v,o);osc('sine',f/2,t,d,v*.7,o)},
   timp:(f,t,v,o)=>{osc('sine',f,t,1,v,o,{sl:f*.6,slt:.25});noise(t,.07,v*.35,o,180,'lowpass')}};
+ /* effetti a «partitura»: liste di note primitive registrate da fuori con `Snd.fx(nome, lista)` (per esempio i suoni dell'Avventura, motori/28c-avv-audio.js) e suonate da `Snd.play(nome)`.
+    Nota: {k:'osc',w,f,t,d,v,sl?,slt?,lp?,lpE?,det?,at?} · {k:'noise',t,d,v,f,ty,sw?} · {k:'bell'|'pluck',m,t,v} · {k:'flute'|'brass',m,t,v,d} · {k:'timp',f,t,v} · {k:'pad',m:[…],t,d,v}  (t = ritardo in s, m = nota MIDI, f = Hz). */
+ const FX={};
+ function suonaFx(P,t0,o){for(const n of P){const t=t0+(n.t||0);switch(n.k){
+  case'osc':osc(n.w,n.f,t,n.d,n.v,o,{sl:n.sl,slt:n.slt,lp:n.lp,lpE:n.lpE,det:n.det,at:n.at});break;
+  case'noise':{const fl=noise(t,n.d,n.v,o,n.f,n.ty);if(n.sw)fl.frequency.exponentialRampToValueAtTime(Math.max(20,n.sw),t+n.d*.8);break}
+  case'bell':I.bell(mf(n.m),t,n.v,o);break;case'pluck':I.pluck(mf(n.m),t,n.v,o);break;
+  case'flute':I.flute(mf(n.m),t,n.v,o,n.d);break;case'brass':I.brass(mf(n.m),t,n.v,o,n.d);break;
+  case'timp':I.timp(n.f,t,n.v,o);break;case'pad':I.pad(n.m.map(mf),t,n.d,n.v,o);break}}}
  function sched(){if(!ctx)return;if(!mus){nt=ctx.currentTime+.1;return}if(nt<ctx.currentTime-.4)nt=ctx.currentTime+.05;
   while(nt<ctx.currentTime+.3){let T=TR[track],i=st%T.bar;if(i===0&&want!==track){track=want;st=0;T=TR[track];i=0}
    const b=Math.floor(st/T.bar)%8,c=T.prog[b%T.prog.length],iv=c[1]?[0,4,7,12,16]:[0,3,7,12,15],t=nt+(T.swing&&i%2?T.sd*T.swing:0),barLen=T.sd*T.bar;
@@ -127,7 +136,8 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
   case'gtelegramma':for(let i=0;i<9;i++){noise(t+i*.09+Math.random()*.03,.03,.22,o,2500,'bandpass');osc('square',180,t+i*.09,.02,.04,o)}I.bell(mf(96),t+.95,.12,o);break;
   case'gapplauso':for(let i=0;i<70;i++)noise(t+Math.random()*2.6,.04,.05+Math.random()*.08,o,1500+Math.random()*2500,'bandpass');break;
   case'gbuio':osc('sawtooth',180,t,.9,.12,o,{sl:40,lp:900});noise(t+.85,.04,.3,o,2000);break;
-  case'err':osc('sawtooth',110,t,.18,.15,o,{lp:900});break;case'ok':osc('triangle',900,t,.06,.1,o);noise(t,.015,.06,o,4000);break}}
+  case'err':osc('sawtooth',110,t,.18,.15,o,{lp:900});break;case'ok':osc('triangle',900,t,.06,.1,o);noise(t,.015,.06,o,4000);break;
+  default:if(FX[n])suonaFx(FX[n],t,o)}}
  /* ambienti sonori continui (pioggia, vento, fuoco, folla, orologio, mare): rumore filtrato, niente file. Seguono l'interruttore degli effetti. */
  const AMB={},AT={};let ag=null,nb=null;
  function rumore(){if(nb)return nb;const n=ctx.sampleRate*3|0;nb=ctx.createBuffer(1,n,ctx.sampleRate);const a=nb.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;return nb}
@@ -149,6 +159,8 @@ const Snd=(()=>{let ctx=null,mg,sg,comp,mus=ST('rg-mus')!=='0',sfx=ST('rg-sfx')!
  return{start,play,init,amb,get mus(){return mus},get sfx(){return sfx},track(k){want=TR[k]?k:'menu'},
   // un tema in più (per esempio la musica di un kit giallo): stesso formato delle tracce qui sopra
   def(k,T){TR[k]=T},
+  // un effetto in più a partitura (vedi `suonaFx`); `quale()` dice la traccia richiesta (per le prove), `fx(k)` se l'effetto esiste
+  fx(k,P){if(P)FX[k]=P;return !!FX[k]},quale(){return want},
   setMus(v){mus=v;ST('rg-mus',v?'1':'0');if(v){start();if(mg)mg.gain.setTargetAtTime(.5,ctx.currentTime,.15)}else if(mg)mg.gain.setTargetAtTime(0,ctx.currentTime,.1)},
   setSfx(v){sfx=v;ST('rg-sfx',v?'1':'0');amb(AT.lista)},
   duck(v){if(ctx&&mg)mg.gain.setTargetAtTime(v||!mus?0:.5,ctx.currentTime,.4)}}})();

@@ -1,0 +1,42 @@
+/* Dialoghi (app/24hi-dialogo.js). Prefisso dl-. Tutto schermo a 390 px: in alto il titolo, al centro chi parla e il testo, in basso le scelte. Legno scuro e ottone come battaglia e mappa. */
+html.dl-on,html.dl-on body{overflow:hidden;overscroll-behavior:none}
+.dl{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 18%,#3a2a1a 0%,#1d150e 55%,#120d09 100%);color:#f3e6c8;padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent}
+.dl button{font-family:inherit;cursor:pointer}
+.dl .muted{color:#b8a68d}
+.dl-top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px 6px 14px;background:linear-gradient(180deg,#3a2616,#24170d);border-bottom:2px solid #8a5a1e}
+.dl-top b{font:800 15px/1.2 var(--f-d);color:#f0c166;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-top .ib{flex:none;width:44px;height:44px}
+.dl-corpo{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:12px;cursor:pointer}
+.dl-chi{display:flex;align-items:flex-end;gap:12px}
+.dl-rit{flex:none;display:grid;place-items:center;width:88px;height:88px;border-radius:50%;overflow:hidden;border:3px solid #cf8f2c;background:radial-gradient(circle at 50% 35%,#5a4126,#2a1d10);box-shadow:0 0 0 2px #3a2616,0 6px 14px #0008}
+.dl-rit.dl-nar{border-color:#8a6a2a;background:#2a1d10;color:#d9b97a}
+.dl-nome{display:flex;flex-direction:column;gap:2px;padding-bottom:6px}.dl-nome b{font:800 20px/1.1 var(--f-d);color:#f0c166}.dl-nome small{color:#b8a68d;letter-spacing:.08em;text-transform:uppercase;font:700 11px/1 var(--f-b)}
+.dl-testo{margin:0;padding:14px 16px;min-height:96px;font:500 18px/1.5 var(--f-b);background:linear-gradient(180deg,#2c2013,#22180f);border:2px solid #8a5a1e;border-radius:6px;box-shadow:inset 0 0 0 1px #0006,0 4px 12px #0006;white-space:pre-wrap}
+.dl-testo.nar{font-style:italic;color:#e3d2ad;border-style:dashed;border-color:#6a4a22}
+.dl-nota{display:flex;flex-direction:column;gap:6px;font:500 14px/1.4 var(--f-b)}
+.dl-nota:empty{display:none}
+.dl-es{margin:0;color:#d9c8a2;font-style:italic}
+.dl-pr{padding:8px 10px;border-left:4px solid #8a8a8a;background:#ffffff0d;border-radius:0 4px 4px 0}
+.dl-pr.ok{border-color:#7fbf6a}.dl-pr.ko{border-color:#d0654f}
+.dl-re{align-self:flex-start;padding:3px 10px;border-radius:12px;font:700 13px/1.4 var(--f-b);background:#ffffff14}
+.dl-re.su{color:#a8dc92}.dl-re.giu{color:#e8a08f}
+.dl-corpo .no{margin:0;color:#e8a08f}
+/* in basso: le scelte compaiono quando il testo è finito (o al primo tocco) */
+.dl-bar{flex:none;padding:8px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:2px solid #8a5a1e;background:linear-gradient(180deg,#24170d,#1a110a);max-height:55%;overflow-y:auto}
+.dl-scelte{display:flex;flex-direction:column;gap:8px;visibility:hidden;opacity:0;transition:opacity .2s}
+.dl-ok .dl-scelte,.dl-ok .dl-co{visibility:visible;opacity:1}
+.dl-co{width:100%;min-height:48px;visibility:hidden;opacity:0;transition:opacity .2s}
+.dl-sc{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;width:100%;min-height:48px;padding:10px 12px;text-align:left;font:600 16px/1.3 var(--f-b);color:#f3e6c8;background:linear-gradient(180deg,#4a3320,#33231a);border:2px solid #7a5628;border-radius:6px}
+.dl-sc:active{transform:translateY(1px)}
+.dl-sc:disabled{opacity:.5;cursor:default}
+.dl-sc.prova{border-color:#a8832e}
+.dl-et{flex:none;font:800 13px/1.3 var(--f-b);color:#f0c166;letter-spacing:.02em}
+.dl-sc small{flex-basis:100%;font:500 12px/1.3 var(--f-b);color:#b8a68d}
+.dl-fine{padding:18px 16px;border:2px solid #8a5a1e;border-radius:6px;background:linear-gradient(180deg,#2c2013,#22180f)}
+.dl-fine h2{margin:0 0 10px;font:800 22px var(--f-d);color:#f0c166}.dl-fine ul{margin:0 0 10px;padding-left:20px;line-height:1.7}
+.dl-bar .b{width:100%;min-height:48px}
+/* nella pagina Avventura */
+.dl-ctl{display:flex;flex-wrap:wrap;gap:6px}
+.dl-ctl .b{flex:1 1 auto;min-height:44px}
+.dl-riass{margin:0;padding:10px 12px;border-left:4px solid var(--gold2);background:color-mix(in srgb,currentColor 7%,transparent);border-radius:0 4px 4px 0;font-style:italic;line-height:1.45}
+@media (prefers-reduced-motion:reduce){.dl-scelte,.dl-co{transition:none}}

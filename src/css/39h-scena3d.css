@@ -1,0 +1,6 @@
+/* ---- Scena 3D (A12): il canvas three.js sta sotto l'SVG di mappa e battaglia; con il 3D acceso l'SVG diventa trasparente e disegna solo la plancia ---- */
+.s3-cv{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:0}
+.s3 .mo-svg{position:relative;z-index:1;background:transparent}
+.s3 .bt-svg{z-index:1}
+.s3 .bt-svg .bt-ev{opacity:.7}
+.s3-set{display:flex;gap:6px;flex-wrap:wrap}

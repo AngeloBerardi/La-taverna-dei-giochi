@@ -218,4 +218,34 @@ const RULES={
 <li><b>Burraco</b> = combinazione di 7+ carte: pulito (senza jolly) +200, sporco +100.</li>
 <li>Quando finisci le carte prendi il <b>pozzetto</b> (al volo se finisci calando). Una sola volta per coppia.</li>
 <li><b>Chiusura</b> (+100): serve aver preso il pozzetto e avere almeno un burraco; chiudi scartando l’ultima carta (non un jolly o una pinella).</li>
-<li>Punti carte: Jolly 30, pinella 20, Asso 15, dall’8 al Re 10, dal 3 al 7 5. Le carte in mano si sottraggono; pozzetto non preso −100. Se il mazzo finisce, la mano termina.</li></ul>`};
+<li>Punti carte: Jolly 30, pinella 20, Asso 15, dall’8 al Re 10, dal 3 al 7 5. Le carte in mano si sottraggono; pozzetto non preso −100. Se il mazzo finisce, la mano termina.</li></ul>`,
+ avventura:`<p>Una <b>campagna a capitoli</b> per 1–4 eroi: ogni sessione è un «cantare», il Locandiere racconta e voi decidete con i dadi. Gli eroi vivono sul tuo account; i posti liberi li prendono i <b>compagni</b> della storia.</p>
+<p><b>La mappa</b></p>
+<ul><li>Un <b>giorno</b> dura 8 giri: 5 di luce e 3 di notte. A ogni giro ogni eroe <b>tira il movimento</b> (un d4 più la velocità, meno 2, almeno 3; con la Concentrazione due dadi e tieni il migliore).</li>
+<li>Tocca la destinazione per vedere cammino e costo, tocca ancora per partire. Strada e pianura costano poco, boschi, colli e paludi di più. Gli eroi possono <b>separarsi</b> o muoversi «Insieme».</li>
+<li>A fine giro si muovono i gruppi di nemici, che vedi entro 3 esagoni: se uno ti raggiunge, parte la <b>battaglia</b> con gli eroi vicini.</li></ul>
+<p><b>Notte, perdizione, riposo</b></p>
+<ul><li>A ogni alba la <b>perdizione</b> sale di 3. A 25, 50 e 75 il mondo peggiora (mostri più forti, strade sbarrate, villaggi assediati); a 100 la campagna è persa. Santuari, taglie e covi ripuliti la fanno calare.</li>
+<li><b>Riposo breve</b>: 20% dei PF, due al giorno, mai vicino ai nemici. <b>Riposo lungo</b> (passa al giorno dopo): in locanda a 8 monete a testa, o all'accampamento con una razione a testa.</li>
+<li>Oro e razioni sono comuni. Città e villaggi hanno locanda, guaritore e bottega; la città anche tempio e <b>bacheca</b> con taglie e incarichi.</li></ul>
+<p><b>Prove e dialoghi</b></p>
+<ul><li>Una prova è un <b>d20</b> più l'abilità contro una <b>CD</b>. Un 20 naturale riesce sempre, un 1 fallisce sempre. <b>Vantaggio</b> = due dadi, vale il migliore; <b>svantaggio</b> = vale il peggiore.</li>
+<li>Le scelte con prova mostrano la probabilità: <b>[Persuasione 65%]</b>. Anche i compagni dicono la loro, e si ricordano come li tratti.</li></ul>
+<p><b>Battaglia</b></p>
+<ul><li>Griglia a esagoni. Si gioca a turni nell'ordine di <b>iniziativa</b>. Nel tuo turno: <b>movimento</b> (si tira), <b>1 azione</b>, <b>1 azione bonus</b> e, fuori turno, <b>1 reazione</b>.</li>
+<li><b>Attacco</b>: d20 più bonus contro la <b>CA</b> del bersaglio; se colpisci tiri il danno, e un 20 naturale lo raddoppia. Ostacoli bassi danno <b>copertura</b>, stare in alto dà vantaggio, tirare con un nemico adiacente svantaggio.</li>
+<li>Nove tipi di danno (taglio, perforante, contundente, fuoco, gelo, fulmine, necrotico, radioso, veleno): alcuni mostri li <b>resistono</b> o ne sono <b>vulnerabili</b>. Toccando un esagono o un bersaglio vedi cosa succederà prima di confermare.</li>
+<li>Chi è a terra non si attacca. Si può fuggire dall'uscita sul bordo; un nemico ferito può arrendersi.</li></ul>
+<p><b>Vite e sessioni</b></p>
+<ul><li>La compagnia ha delle <b>vite</b> in comune (4 a Normale). Se tutti cadono: una vita in meno, ci si risveglia nell'ultima città a metà PF, con metà dell'oro in meno e la perdizione che sale di 10. A zero vite la campagna è persa, ma gli eroi restano e l'esperienza maturata torna comunque.</li>
+<li><b>Difficoltà</b>, da scegliere quando si inizia (non si cambia a campagna avviata): <b>Racconto</b> (nemici più deboli, 6 vite, perdizione lenta, un quarto di esperienza in più), <b>Normale</b> (4 vite, perdizione a 3 per alba) ed <b>Eroica</b> (nemici più numerosi, 3 vite, perdizione a 4 per alba). Il tempo scorre uguale per tutti: più la difficoltà sale, meno giorni si possono sprecare.</li>
+<li>Il salvataggio è automatico. «Concludi la sessione» (in mappa o in città) riporta esperienza, oro e oggetti agli eroi e chiude il cantare. Nella prima sessione compaiono piccoli <b>suggerimenti</b>: si chiudono con «Capito» e si rivedono dalla pagina Avventura.</li></ul>
+<p><b>In compagnia</b></p>
+<ul><li>Da «Avventura» → <b>In compagnia</b> si apre il cantare nella tua stanza (fino a 4 giocatori): ognuno si siede al tavolo e porta <b>uno dei suoi eroi</b>; chi non ne ha uno gioca con un eroe di prova. Sulla <b>TV</b> (Impostazioni → Schermo comune) si vedono la mappa, gli scontri e i dialoghi in grande.</li>
+<li>Ognuno comanda il <b>proprio eroe</b> (movimento, riposo breve, zaino, bottega). <b>Chi ospita</b> (il primo posto presente) guida i compagni della storia e ciò che riguarda tutto il gruppo: fine giro, riposo lungo, scene, entrare e uscire dai sotterranei.</li>
+<li>Le <b>scelte dei dialoghi si votano</b>: vince la più votata, a parità quella di chi ospita; chi ospita può chiudere il voto prima. «Continua» lo può premere chiunque.</li>
+<li>Negli <b>scontri</b> muove solo chi guida l'eroe di turno; nemici e alleati senza nessuno al telefono li gioca il computer. Le reazioni si risolvono da sole. Se un telefono esce, il suo eroe lo guida chi ospita e, quando torna, riprende il suo posto.</li>
+<li>A fine sessione ognuno <b>riscuote il proprio eroe</b> sul proprio profilo; la campagna si salva sul profilo di chi ospita e si può riprendere dalla pagina Avventura.</li></ul>
+<p><b>Grafica 3D</b></p>
+<ul><li>Mappa e battaglie si vedono in <b>3D</b>: rilievi, boschi, edifici, miniature degli eroi (dal loro aspetto) e dei mostri, fuoco, veleno, ghiaccio e acqua che si muovono, luce di giorno e di notte, perdizione che tinge il mondo. Si gioca con gli stessi tocchi di sempre.</li>
+<li>Nella pagina Avventura, «Grafica 3D»: <b>Automatica</b> (prova il telefono e, se è lento, torna alla grafica piatta), <b>Sempre</b> o <b>No</b>. Con «riduci animazioni» attivo la scena resta ferma.</li></ul>`};
