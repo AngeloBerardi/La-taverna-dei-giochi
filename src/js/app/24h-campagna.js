@@ -45,7 +45,7 @@ const Camp={
   if(!tieni||['lungo','entra','muovi','fineTurno'].includes(a.t))u.foglio=null;if(['muovi','fineTurno','lungo'].includes(a.t))Camp.v.cx=Camp.v.cy=null;
   Camp.salva();if(Ses.a)Ses.dopoCamp(a);render()},
  // ---- battaglia ----
- combatti(){const s=Camp.s;if(!s||!s.sfida)return;
+ combatti(){if(inAvv())return AvvStanza.combatti();const s=Camp.s;if(!s||!s.sfida)return;
   if(Bat.mondo===s.sfida.seme&&Bat.s){ui.camp=false;ui.bat=true;Bat.foglio=null;return render()}
   try{Bat.daMondo(CAMP.battaglia(s),s.sfida.quali.map(i=>s.eroi[i].aspetto),s.sfida.seme)}catch(e){ERR.n(e);Camp.u.msg='Non riesco a preparare la battaglia: riprova.';return render()}
   ui.camp=false;ui.bat=true;render()},

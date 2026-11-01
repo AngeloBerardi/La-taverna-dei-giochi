@@ -1,0 +1,43 @@
+/* ---- Avventura in compagnia (A11, app/24hm-avv-stanza.js): il tavolo, la striscia dei posti, il voto, la TV. Prefisso avt-. ---- */
+.avt-att{padding:24px 16px;text-align:center}
+.avt-tavolo{padding:14px 16px 96px;color:#f3e6c8}
+.avt-tavolo h2{margin:0 0 10px;font:800 20px/1.2 var(--f-d);color:#f0c166}
+.avt-posti{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px}
+.avt-posti li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(58,38,22,.7);border:2px solid #6b4520}
+.avt-posti li.mio{border-color:#f0c166}
+.avt-posti li.tocca{box-shadow:0 0 0 3px rgba(240,193,102,.45)}
+.avt-posti li.fuori{opacity:.55}
+.avt-rit{display:inline-flex;flex:none;border-radius:50%;overflow:hidden;background:#2b1d12;border:2px solid #8a5a1e}
+.avt-tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.avt-tx b{font:800 15px/1.2 var(--f-d);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avt-tx small{font-size:12px;opacity:.8}
+.avt-st{flex:none;font-size:12px;font-weight:700;color:#f0c166}
+/* la striscia in alto: le schermate dell'Avventura (z 96) lasciano un bordo per lei */
+.avt-strip{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);height:34px;z-index:97;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.avt-chip{pointer-events:auto;position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:50%;border:2px solid #6b4520;background:#2b1d12;cursor:pointer}
+.avt-chip .avt-rit{border:0;width:26px;height:26px}
+.avt-chip.mio{border-color:#f0c166}
+.avt-chip.fuori{opacity:.45;filter:grayscale(1)}
+.avt-chip.tocca{box-shadow:0 0 0 3px rgba(240,193,102,.7)}
+.avt-chip.vota::after{content:"";position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border-radius:50%;background:#7bc96f;border:2px solid #14100c}
+html.avt-str .mo,html.avt-str .bt,html.avt-str .dl{padding-top:calc(env(safe-area-inset-top,0px) + 34px)}
+.avt-modal{z-index:98}
+.avt .se-eroi{margin:4px 0}
+/* il voto sulle scelte del dialogo */
+.avt-voto{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px;padding:6px 10px;border-radius:10px;background:rgba(0,0,0,.28);font-size:13px;color:#f3e6c8}
+.avt-voto .si{color:#9fe08f;font-weight:700}
+.avt-voto .no{opacity:.75}
+.avt-voto .b.sm{margin-left:auto}
+.avt-vt{display:inline-flex;gap:3px;margin-right:6px;vertical-align:middle}
+.avt-vt i{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#f0c166;color:#2b1d12;font:800 11px/1 var(--f-d);font-style:normal}
+/* la TV (sola visione): gli stessi fogli, senza comandi, con il testo più grande */
+html[data-tv].avt-on .mo button,html[data-tv].avt-on .bt button,html[data-tv].avt-on .dl button,html[data-tv].avt-on .mo [data-a],html[data-tv].avt-on .bt [data-a],html[data-tv].avt-on .dl [data-a]{pointer-events:none}
+html[data-tv].avt-on .dl-corpo{max-width:1100px;margin:0 auto;width:100%}
+html[data-tv].avt-on .dl-testo{font-size:clamp(20px,2.4vw,40px);line-height:1.45}
+html[data-tv].avt-on .dl-sc{font-size:clamp(16px,1.7vw,28px)}
+html[data-tv].avt-on .dl-bar{max-width:1100px;margin:0 auto;width:100%}
+html[data-tv].avt-on .avt-chip{width:44px;height:44px}
+html[data-tv].avt-on .avt-chip .avt-rit{width:38px;height:38px}
+html[data-tv].avt-on .avt-strip{height:52px;gap:14px}
+html[data-tv].avt-on.avt-str .mo,html[data-tv].avt-on.avt-str .bt,html[data-tv].avt-on.avt-str .dl{padding-top:calc(env(safe-area-inset-top,0px) + 52px)}
+html[data-tv].avt-on .avt-voto{font-size:clamp(14px,1.5vw,24px)}

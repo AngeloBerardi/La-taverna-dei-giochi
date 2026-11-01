@@ -489,6 +489,7 @@ service cloud.firestore {
                 || elo('fantasma')
                 || elo('trono')
                 || elo('giallo')
+                || elo('avventura')
                 || elo('scoundrel')
                 || elo('machiavelli')
                 || elo('azul')

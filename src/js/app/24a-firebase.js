@@ -84,6 +84,10 @@ const FB={
  async rientro(tappe,slot,sal){const F=FB.m.F,b=F.writeBatch(FB.db);
   for(const t of tappe){const h=t.h,d={liv:h.liv,xp:h.xp,oro:h.oro,hp:h.hp,hpMax:h.hpMax,equip:h.equip,zaino:h.zaino||[],cintura:h.cintura||[]};if(h.xp>t.prima.xp||h.oro>t.prima.oro)d.agg=F.serverTimestamp();b.update(F.doc(FB.db,'players',FB.uid,'eroi',t.slot),d)}
   b.set(F.doc(FB.db,'players',FB.uid,'avventure',slot),{...sal,agg:F.serverTimestamp()});await b.commit()},
+ // il rientro di stanza (A11): solo le schede dei propri eroi, senza toccare i salvataggi; il conto di quanto è già tornato lo tiene la stanza
+ async rientroEroi(tappe){const F=FB.m.F,b=F.writeBatch(FB.db);
+  for(const t of tappe){const h=t.h,d={liv:h.liv,xp:h.xp,oro:h.oro,hp:h.hp,hpMax:h.hpMax,equip:h.equip,zaino:h.zaino||[],cintura:h.cintura||[]};if(h.xp>t.prima.xp||h.oro>t.prima.oro)d.agg=F.serverTimestamp();b.update(F.doc(FB.db,'players',FB.uid,'eroi',t.slot),d)}
+  await b.commit()},
  // il premio della fine del capitolo: passa dalla coda dei premi (le regole accettano al massimo 30 monete per volta, una ogni 50 s)
  premiaAvventura(monete){if(!(monete>0))return;FB.q.push({n:Math.min(30,monete|0),won:true,gid:'avventura'});FB.saveQ();FB.flush()},
  // ---- account: l'anonimo si collega a un'email (stesso profilo), o si entra in un profilo già legato ----

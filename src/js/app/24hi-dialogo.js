@@ -62,7 +62,7 @@ const Dia={
 <div class="dl-corpo"><div class="dl-fine"><h2>Fine della scena</h2>${Dia.righe.length?`<ul>${Dia.righe.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:'<p class="muted">Niente da segnare.</p>'}
 <p class="muted">Qui i premi non contano: nella campagna vera entrano nella compagnia.</p></div></div><div class="dl-bar"><button class="b gold" data-a="dl" data-v="chiudi">Torna alla taverna</button></div></div>`;
   const ok=Dia.rev.fatto&&Dia.rev.k===Dia.chiave(v,s);
-  const sc=v.scelte.map(c=>`<button class="dl-sc${c.prova?' prova':''}" data-a="dl" data-v="scegli:${c.i}" ${c.ok?'':'disabled'}>${c.etichetta?`<b class="dl-et">[${esc(c.etichetta)}]</b>`:''}<span>${esc(c.t)}</span>${c.prova&&c.chi?`<small>tira ${esc(c.chi)}</small>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
+  const sc=v.scelte.map(c=>`<button class="dl-sc${c.prova?' prova':''}" data-a="dl" data-v="scegli:${c.i}" ${c.ok?'':'disabled'}>${AvvStanza.segno(c.i)}${c.etichetta?`<b class="dl-et">[${esc(c.etichetta)}]</b>`:''}<span>${esc(c.t)}</span>${c.prova&&c.chi?`<small>tira ${esc(c.chi)}</small>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
   return`<div class="dl${ok?' dl-ok':''}" role="dialog" aria-label="Dialogo">
 <div class="dl-top"><b>${esc(cap.titolo)}</b><button class="ib" data-a="dl" data-v="chiudi" aria-label="Esci dal dialogo">${ic('x',16)}</button></div>
 <div class="dl-corpo" data-a="dl" data-v="salta">
@@ -70,7 +70,7 @@ const Dia={
  <p class="dl-testo${v.chi.nome?'':' nar'}" data-t="${esc(v.testo)}" aria-label="${esc(v.testo)}">${ok?esc(v.testo):''}</p>
  <div class="dl-nota">${Dia.provaH(v.nota&&v.nota.prova)}${v.nota&&v.nota.testo?`<p class="dl-es">${esc(v.nota.testo)}</p>`:''}${Dia.reazioniH(v.reazioni)}</div>
  ${Dia.msg?`<p class="no" role="alert">${esc(Dia.msg)}</p>`:''}</div>
-<div class="dl-bar">${f.bat?`<button class="b gold dl-co" data-a="ses" data-v="combatti">${ic('spada',18)} All'armi!</button>`:v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${sc}</div>`}</div>${AvvTut.html('dialogo')}</div>`},
+<div class="dl-bar">${f.bat?`<button class="b gold dl-co" data-a="ses" data-v="combatti">${ic('spada',18)} All'armi!</button>`:v.continua?`<button class="b gold dl-co" data-a="dl" data-v="continua">${esc(v.continua)}</button>`:`<div class="dl-scelte">${AvvStanza.votoH()}${sc}</div>`}</div>${AvvTut.html('dialogo')}</div>`},
  chiave(v,s){return v.scena+':'+v.nodo+':'+(s||Dia.s).evn},
  // dopo ogni disegno: il testo compare a poco a poco (un tocco lo mostra tutto); a movimento ridotto compare subito
  dopo(){const f=Dia.fonte(),on=!!(ui.dia&&f.s&&f.cap);document.documentElement.classList.toggle('dl-on',on);clearInterval(Dia.timer);if(!on)return;

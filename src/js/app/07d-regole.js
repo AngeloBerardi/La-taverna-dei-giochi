@@ -238,4 +238,10 @@ const RULES={
 <li>Chi è a terra non si attacca. Si può fuggire dall'uscita sul bordo; un nemico ferito può arrendersi.</li></ul>
 <p><b>Vite e sessioni</b></p>
 <ul><li>La compagnia ha <b>3 vite</b> in comune. Se tutti cadono: una vita in meno, ci si risveglia nell'ultima città a metà PF, con metà dell'oro in meno e la perdizione che sale di 10. A zero vite la campagna è persa, ma gli eroi restano e l'esperienza maturata torna comunque.</li>
-<li>Il salvataggio è automatico. «Concludi la sessione» (in mappa o in città) riporta esperienza, oro e oggetti agli eroi e chiude il cantare. Nella prima sessione compaiono piccoli <b>suggerimenti</b>: si chiudono con «Capito» e si rivedono dalla pagina Avventura.</li></ul>`};
+<li>Il salvataggio è automatico. «Concludi la sessione» (in mappa o in città) riporta esperienza, oro e oggetti agli eroi e chiude il cantare. Nella prima sessione compaiono piccoli <b>suggerimenti</b>: si chiudono con «Capito» e si rivedono dalla pagina Avventura.</li></ul>
+<p><b>In compagnia</b></p>
+<ul><li>Da «Avventura» → <b>In compagnia</b> si apre il cantare nella tua stanza (fino a 4 giocatori): ognuno si siede al tavolo e porta <b>uno dei suoi eroi</b>; chi non ne ha uno gioca con un eroe di prova. Sulla <b>TV</b> (Impostazioni → Schermo comune) si vedono la mappa, gli scontri e i dialoghi in grande.</li>
+<li>Ognuno comanda il <b>proprio eroe</b> (movimento, riposo breve, zaino, bottega). <b>Chi ospita</b> (il primo posto presente) guida i compagni della storia e ciò che riguarda tutto il gruppo: fine giro, riposo lungo, scene, entrare e uscire dai sotterranei.</li>
+<li>Le <b>scelte dei dialoghi si votano</b>: vince la più votata, a parità quella di chi ospita; chi ospita può chiudere il voto prima. «Continua» lo può premere chiunque.</li>
+<li>Negli <b>scontri</b> muove solo chi guida l'eroe di turno; nemici e alleati senza nessuno al telefono li gioca il computer. Le reazioni si risolvono da sole. Se un telefono esce, il suo eroe lo guida chi ospita e, quando torna, riprende il suo posto.</li>
+<li>A fine sessione ognuno <b>riscuote il proprio eroe</b> sul proprio profilo; la campagna si salva sul profilo di chi ospita e si può riprendere dalla pagina Avventura.</li></ul>`};

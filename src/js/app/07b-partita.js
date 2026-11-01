@@ -4,6 +4,7 @@ async function startGame(id,seats,opts){const S=seats||lobbySeats(),g=GAMES.find
  if(!g||!g.ok(S.length)){ui.err=g?g.name+' si gioca con '+g.range+' giocatori':'Gioco sconosciuto';return render()}
  if(R.on&&R.doc&&R.doc.phase==='play'&&!seats){ui.err='C’è già una partita in corso in questa stanza';return render()}
  if(g.check){const m=g.check(S,opts||defOpts(id));if(m){ui.err=m;return render()}}
+ if(id==='avventura'){try{await AvvStanza.prepara(S)}catch(e){ERR.n(e);ui.err='Non riesco a preparare il cantare: riprova.';return render()}}   // capitolo, seme e l'eroe di chi avvia (A11)
  const o=opts||defOpts(id);if(id==='mindx')o.x=1;const s=ENG[id].newGame(S.length,S.map(x=>x.name),id==='rlegacy'?Object.assign({},o,{camp:RLV.campFor()}):o);s.g=id;s.gid=rid();ui.err='';
  if(isRG(id)&&ST('rg-intro')!=='1')ui.story=true;
  if(R.on){try{const e=await SYNC.esegui(R.ref,cur=>SYNC.partita(cur,{dopo:seats&&G?G.gid:null,patch:{phase:'play',game:id,opts:o,seats:S,s}}));

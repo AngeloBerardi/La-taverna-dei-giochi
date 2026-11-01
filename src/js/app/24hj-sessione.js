@@ -43,7 +43,7 @@ const Ses={
   if(!nuova&&(a.racc.sessioni|0)>0&&!a.racc.scena&&!a.fine)Ses.vista='apertura';
   if(a.fine)Ses.vista='fine';
   Ses.vai(true)},
- esci(){if(Ses.a){Ses.scriviLocale();Ses.remoto()}Ses.a=null;Ses.slot=null;Ses.dia=false;Ses.vista=null;Ses.ri=null;ui.ses=ui.dia=ui.camp=ui.bat=ui.inv=false;Camp.s=null;Camp.riprendi();ui.avv=true;
+ esci(){if(inAvv())return AvvStanza.esci();if(Ses.a){Ses.scriviLocale();Ses.remoto()}Ses.a=null;Ses.slot=null;Ses.dia=false;Ses.vista=null;Ses.ri=null;ui.ses=ui.dia=ui.camp=ui.bat=ui.inv=false;Camp.s=null;Camp.riprendi();ui.avv=true;
   Ses.leggiElenco().then(()=>{if(ui.avv)render()});render()},
  // ---- quale schermata: la fase di AVV decide ----
  // `apri` = se la storia ha scene da giocare qui, si apre il foglio del luogo (dopo un arrivo, una scena, una battaglia)
@@ -51,7 +51,7 @@ const Ses={
   if(f==='dialogo'||(f==='battaglia'&&a.racc.scena)){ui.dia=true;Ses.dia=true;return}
   ui.camp=true;if(apri&&['mappa','citta'].includes(f)&&AVV.vista(a,Ses.cap).scene.length)Camp.u.foglio='luogo'},
  // ---- azioni: tutto passa da AVV.act ----
- fai(az){const a=Ses.a;if(!a)return{err:'Nessuna campagna aperta'};let r;try{r=AVV.act(a,az,Ses.cap)}catch(e){ERR.n(e);r={err:'Azione non riuscita'}}
+ fai(az){if(inAvv())return AvvStanza.fai(az);const a=Ses.a;if(!a)return{err:'Nessuna campagna aperta'};let r;try{r=AVV.act(a,az,Ses.cap)}catch(e){ERR.n(e);r={err:'Azione non riuscita'}}
   if(r.err)return r;AvvAudio.dopo(az,a,r.s);Ses.a=r.s;Camp.s=r.s.camp;Ses.righe=r.righe||[];
   if(r.s.vite<a.vite&&!r.s.fine)Ses.vista='sveglia';if(r.riepilogo){Ses.riep=r.riepilogo;Ses.vista='sessione'}
   if(r.s.fine&&!a.fine){Ses.vista='fine';Ses.premia()}
@@ -61,7 +61,7 @@ const Ses={
  prova(a){try{return AVV.act(Ses.a,{t:'camp',a},Ses.cap).err||''}catch(e){ERR.n(e);return'Non adesso'}},
  // dopo un'azione della mappa: se la fase è cambiata (un evento di strada, una battaglia) si cambia schermata; arrivati in un luogo con scene, si apre il suo foglio
  dopoCamp(a){Ses.vai(a.t==='muovi')},
- dialogo(verbo,arg){if(verbo==='chiudi')return Ses.esci();const az=verbo==='scegli'?{t:'scegli',i:+arg}:verbo==='continua'?{t:'continua'}:null;if(!az)return;
+ dialogo(verbo,arg){if(inAvv())return AvvStanza.dialogo(verbo,arg);if(verbo==='chiudi')return Ses.esci();const az=verbo==='scegli'?{t:'scegli',i:+arg}:verbo==='continua'?{t:'continua'}:null;if(!az)return;
   const era=!!Ses.a.racc.scena,r=Ses.fai({t:'racconto',a:az});if(r.err){Dia.msg=r.err;return render()}Dia.msg='';
   if(era&&!Ses.a.racc.scena&&!Ses.a.bat&&Ses.righe.length)say(Ses.righe.slice(0,2).join(' · '),3200);Ses.vai(true);render()},
  scena(id){const r=Ses.fai({t:'scena',id});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Dia.msg='';Ses.vai(true);render()},
@@ -71,17 +71,17 @@ const Ses={
  compagnia(id,az){const r=Ses.fai({t:'compagnia',id,azione:az});Camp.u.msg=r.err||'';if(!r.err)Ses.vai();render()},
  chiudiSessione(){const r=Ses.fai({t:'chiudi'});if(r.err){Camp.u.msg=r.err;return render()}Camp.u.msg='';Camp.u.foglio=null;Ses.vai();render()},
  // battaglia chiesta dal racconto: la mappa non c'entra, si apre `Bat` con gli stessi eroi; quella del mondo la apre Camp.combatti
- combatti(){const a=Ses.a;if(!a)return;
+ combatti(){if(inAvv())return AvvStanza.combatti();const a=Ses.a;if(!a)return;
   if(a.camp.sfida){Ses.dia=false;ui.dia=false;ui.camp=true;return Camp.combatti()}
   if(!a.bat)return;const seme=a.bat.seme;
   if(Bat.mondo===seme&&Bat.s){ui.dia=false;ui.bat=true;Bat.foglio=null;return render()}
   try{Bat.daMondo(AVV.battaglia(a),AVV.quali(a).map(i=>a.camp.eroi[i].aspetto),seme)}catch(e){ERR.n(e);Dia.msg='Non riesco a preparare la battaglia: riprova.';return render()}
   ui.dia=false;ui.camp=false;ui.bat=true;render()},
- fineBattaglia(b){const r=Ses.fai({t:'esito',riep:ASCO.riepilogo(b)});if(r.err){Bat.msg=r.err;return render()}
+ fineBattaglia(b){if(inAvv())return AvvStanza.chiudiLotta();const r=Ses.fai({t:'esito',riep:ASCO.riepilogo(b)});if(r.err){Bat.msg=r.err;return render()}
   Bat.chiudiMondo();Camp.u.dado=null;Camp.u.msg='';Camp.v.cx=Camp.v.cy=null;Ses.vai(true);render()},
  premia(){const a=Ses.a;if(!a||!a.fine||!Avv.online())return;const p=ARIE.premio(a);if(p.monete>0){FB.premiaAvventura(p.monete);Ses.a=ARIE.premiato(a);Camp.s=Ses.a.camp;Ses.scriviLocale()}},
  // ---- rientro sull'account: a tappe, aspettando il minuto che le regole chiedono tra un guadagno e l'altro ----
- async riscuoti(){if(Ses.occ||!Ses.a||!Avv.online())return;Ses.occ=true;clearTimeout(Ses.tm);Ses.tm=null;Ses.pend=null;   // la scrittura del rientro porta già lo stato più recente
+ async riscuoti(){if(inAvv())return AvvStanza.riscuoti();if(Ses.occ||!Ses.a||!Avv.online())return;Ses.occ=true;clearTimeout(Ses.tm);Ses.tm=null;Ses.pend=null;   // la scrittura del rientro porta già lo stato più recente
   let piano=ARIE.piano(Ses.a);Ses.ri={msg:piano.finito?'Niente da riscuotere.':'Scrivo sul tuo profilo…',tappe:piano.scritture,fatte:0};render();
   try{while(!piano.finito){const L=await FB.eroi(),da=piano.eroi.filter(x=>!x.finito);let nuovo=Ses.a;const tappe=[];
     for(const x of da){const h=L[x.slot];if(!h||!EROI.coerente(h)){nuovo=ARIE.accredita(nuovo,{slot:x.slot,xp:x.pendente.xp,oro:x.pendente.oro});continue}   // l'eroe non c'è più: non si aspetta
@@ -140,7 +140,7 @@ ${ap.length?`<div class="sh2">Appunti</div><div class="mo-log">${ap.slice(-6).re
 ${Ses.conf===s?`<div class="se-bt"><small>Eliminare questa campagna?</small><button class="b sm" data-a="ses" data-v="elimina2:${s}">Elimina</button><button class="b sm" data-a="ses" data-v="annulla">No</button></div>`:`<button class="se-x" data-a="ses" data-v="elimina:${s}" aria-label="Elimina la campagna">${ic('x',14)}</button>`}</div>`}
   return h+(Ses.msg?`<small class="no" role="status">${esc(Ses.msg)}</small>`:'')},
  // ---- fogli sopra la mappa: sconfitta, fine sessione, fine del capitolo ----
- riH(){const a=Ses.a,p=ARIE.piano(a);if(!p.eroi.length)return'';const st=Ses.ri;
+ riH(){if(inAvv())return AvvStanza.riH();const a=Ses.a,p=ARIE.piano(a);if(!p.eroi.length)return'';const st=Ses.ri;
   const righe=p.eroi.map(x=>`<li><b>${esc(x.nome)}</b> ${x.finito?'<span class="muted">tutto riscosso</span>':[x.pendente.xp?'+'+x.pendente.xp+' PE':'',x.pendente.oro?(x.pendente.oro>0?'+':'−')+Math.abs(x.pendente.oro)+' monete':''].filter(Boolean).join(' · ')}</li>`).join('');
   return`<div class="sh2">Sul profilo dei tuoi eroi</div><ul class="se-ri">${righe}</ul>${p.finito?'':Avv.online()?`<button class="b gold" data-a="ses" data-v="riscuoti"${Ses.occ?' disabled':''}>Riscuota${p.scritture>1?' ('+p.scritture+' tappe)':''}</button>`.replace('Riscuota','Riscuoti'):'<small class="muted">Per riscuotere serve il profilo online.</small>'}${st?`<p class="se-st" role="status">${esc(st.msg)}</p>`:''}`},
  html(){const a=Ses.a,v=Ses.vista;if(!a||!v)return'';const box=(t,corpo,bt)=>`<div class="modal se-modal"><div class="box col se" role="dialog" aria-label="${esc(t)}"><h2>${esc(t)}</h2>${corpo}<div class="se-bt">${bt}</div></div></div>`,d=Ses.occ?' disabled':'';

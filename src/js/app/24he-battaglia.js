@@ -15,7 +15,7 @@ const Bat={
  carica(){try{const j=JSON.parse(localStorage.getItem('batcfg')||'null');Bat.cfg=Object.assign({},Bat.DEF,j&&typeof j==='object'?j:{})}catch(e){ERR.n(e);Bat.cfg=Object.assign({},Bat.DEF)}
   Bat.cfg.liv=Math.max(1,Math.min(8,Bat.cfg.liv|0||1))},
  salvaCfg(){try{localStorage.setItem('batcfg',JSON.stringify(Bat.cfg))}catch(e){ERR.n(e)}},
- salva(){try{if(!Bat.s||(Bat.s.over&&!Bat.mondo))localStorage.removeItem('bat');else localStorage.setItem('bat',JSON.stringify({v:1,s:Bat.s,aspetti:Bat.aspetti,log:Bat.log.slice(-60),mondo:Bat.mondo||null}))}catch(e){ERR.n(e)}},
+ salva(){if(inAvv())return;try{if(!Bat.s||(Bat.s.over&&!Bat.mondo))localStorage.removeItem('bat');else localStorage.setItem('bat',JSON.stringify({v:1,s:Bat.s,aspetti:Bat.aspetti,log:Bat.log.slice(-60),mondo:Bat.mondo||null}))}catch(e){ERR.n(e)}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('bat')||'null');
   if(j&&j.v===1&&j.s&&j.s.v===1&&j.s.arena&&(!j.s.over||j.mondo)){Bat.s=j.s;Bat.mondo=j.mondo||null;Bat.aspetti=j.aspetti||{};Bat.log=Array.isArray(j.log)?j.log:[];Bat.c=ACOM.nuovo(Bat.s)}}catch(e){ERR.n(e)}},
  inCorso(){return!!Bat.s&&!Bat.s.over},
@@ -45,11 +45,11 @@ const Bat={
  // dopo «Continua»: la battaglia è registrata nella campagna e non serve più
  chiudiMondo(){Bat.gen++;Bat.s=null;Bat.c=null;Bat.mondo=null;Bat.log=[];Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;Bat.salva();ui.bat=false;ui.camp=true;document.documentElement.classList.remove('bat-on')},
  // ---- tocchi sulla mappa e comandi ----
- tocca(cella){if(!Bat.s||Bat.anim||Bat.lavoro||Bat.pausa||Bat.s.over||Bat.foglio)return;Bat.msg='';
+ tocca(cella){if(inAvv()&&!AvvStanza.puoBat()){if(Bat.s&&!Bat.s.over&&!ui.tv){Bat.msg='Non è il tuo turno.';render()}return}if(!Bat.s||Bat.anim||Bat.lavoro||Bat.pausa||Bat.s.over||Bat.foglio)return;Bat.msg='';
   if(!cella){Bat.c=ACOM.annulla(Bat.c,Bat.s);return render()}
   const r=ACOM.tocca(Bat.c,Bat.s,cella);Bat.c=r.c;if(r.azione)return Bat.umano(r.azione);render()},
  // un'azione di un giocatore: se serve una reazione si ferma e aspetta; poi `dopo` fa giocare i nemici
- async umano(a){Bat.lavoro=true;try{await Bat.gioca(a)}catch(e){ERR.n(e);Bat.msg='Azione non riuscita.';Bat.anim=false;Bat.c=ACOM.nuovo(Bat.s)}finally{Bat.lavoro=false}if(ui.bat)render()},
+ async umano(a){if(inAvv())return AvvStanza.lotta(a);Bat.lavoro=true;try{await Bat.gioca(a)}catch(e){ERR.n(e);Bat.msg='Azione non riuscita.';Bat.anim=false;Bat.c=ACOM.nuovo(Bat.s)}finally{Bat.lavoro=false}if(ui.bat)render()},
  // esegue un'azione con la sua animazione. Torna false se non è stata eseguita (errore o reazione da scegliere).
  async gioca(a){const r=ASCO.act(Bat.s,a);
   if(r.pausa){Bat.pausa={azione:a,p:r.pausa};Bat.anim=false;Bat.c=ACOM.nuovo(Bat.s);render();return false}
@@ -58,7 +58,7 @@ const Bat={
   await BatAnima.gira(r.ev,r.s,Bat);
   Bat.s=r.s;Bat.c=ACOM.nuovo(r.s);Bat.anim=false;Bat.salva();if(g===Bat.gen&&ui.bat)render();return g===Bat.gen},
  // i turni dei nemici (e degli eroi a terra) si giocano da soli, uno dopo l'altro
- async avanza(){if(Bat.lavoro||Bat.pausa||!Bat.s||Bat.s.over||!ui.bat)return;Bat.lavoro=true;const g=Bat.gen;
+ async avanza(){if(inAvv())return;if(Bat.lavoro||Bat.pausa||!Bat.s||Bat.s.over||!ui.bat)return;Bat.lavoro=true;const g=Bat.gen;
   try{for(let n=0;n<400&&g===Bat.gen&&ui.bat&&!Bat.s.over&&!Bat.pausa;n++){
     const att=ASCO.attore(Bat.s);if(!att||!Bat.auto(att)){Bat.salta=false;break}
     let ok=await Bat.gioca(AIA.prossima(Bat.s,{livello:'normale'}));
@@ -111,7 +111,7 @@ ${Bat.risH(s,p,att)}${Bat.barraH(s,p)}${Bat.foglioH(s,p)}${Bat.pausaH(s)}${Bat.f
  etichettaPronto(c){const a=c.pronto;if(!a)return'';
   if(a.t==='potere'){const p=APOT.P[a.id];return p?p.nome:'Potere'}if(a.t==='oggetto'){const p=APOT.oggetto(a.id);return p?p.nome:'Oggetto'}
   if(a.t==='attacca')return'Attacca';if(a.t==='muovi')return'Muovi';if(a.t==='fine')return'Fine turno';return(ACOM.SPECIALI[a.t]||[a.t])[0]},
- barraH(s,p){if(s.over||Bat.pausa)return'';
+ barraH(s,p){if(s.over||Bat.pausa)return'';if(inAvv()&&!AvvStanza.puoBat())return'';
   if(!p.eroe){const v=Bat.cfg.vel||1;return`<div class="bt-barra nem"><button class="b sm${v===1?' gold':''}" data-a="batvel" data-v="1" aria-pressed="${v===1}">1×</button><button class="b sm${v===2?' gold':''}" data-a="batvel" data-v="2" aria-pressed="${v===2}">2×</button><button class="b sm" data-a="batsalta">Salta ${ic('freccia',16)}</button></div>`}
   const c=Bat.c;
   if(c.pronto)return`<div class="bt-barra"><button class="b" data-a="batannulla">Annulla</button><button class="b gold bt-ok" data-a="batconferma">${ic('spunta',20)} ${esc(Bat.etichettaPronto(c))}</button></div>`;

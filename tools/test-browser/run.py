@@ -1984,6 +1984,172 @@ async def sc_avv_rifinitura(b, srv):
     check(await pg.query_selector('.tut') is None and await pg.evaluate("AvvTut.mem.spento") is True and '"spento":true' in (await pg.evaluate("localStorage.getItem('avv-tut')") or '').replace(' ', ''), '«Basta suggerimenti»: nessuna schedina, spento anche sul telefono')
     check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}'); await ctx.close()
 
+async def sc_avv_tv(b, srv):
+    """Avventura in compagnia (A11): una stanza live con 2 telefoni e 1 TV. Un eroe a testa dal profilo, la storia a votazione, la battaglia condivisa (film), assenza e rientro, rientro sull'account di ciascuno."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 31)
+    await A.wait_for_function("R.mode==='rt'&&R.members.length>0", timeout=30000)
+    seme = "(async(slot,n,c,r)=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:1,mantello:2,viso:0}});await FB.salvaEroe(slot,mk(n,c,r))})"
+    await A.evaluate(seme + "('e1','Aldo','guerriero','umano')")
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 32, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await B.evaluate(seme + "('e1','Tobia','mago','piccolo')")
+    ctxT, T = await telefono_rt(b, srv, sh, '', 33, '?tv=' + code + '&net=rt'); await T.set_viewport_size({'width': 1280, 'height': 720})
+    await T.wait_for_function("ui.tv&&R.mode==='rt'&&R.doc", timeout=30000)
+    for p_ in (A, B): await p_.set_viewport_size({'width': 390, 'height': 760})
+    await A.wait_for_function("R.members.length>=2", timeout=20000)
+    # --- si parte: il gioco è nell'elenco e parte su tutti ---
+    check(await A.evaluate("!!GAMES.find(g=>g.id==='avventura')&&GN('avventura')") == 'Cantari di Ventura', 'il gioco «Cantari di Ventura» è tra i giochi')
+    await A.evaluate("AvvStanza.seme0=4711"); await A.evaluate("startGame('avventura')")   # seme fisso: la stessa storia a ogni prova
+    for p_ in (A, B, T): await p_.wait_for_function("ui.screen==='game'&&G&&G.g==='avventura'", timeout=40000)
+    for p_ in (A, B, T): await p_.wait_for_function("Ses.cap&&Ses.a", timeout=20000)
+    await A.wait_for_timeout(800)
+    st = await A.evaluate("({n:G.n,posti:G.posti.map(p=>[p.nome,p.eroe,p.qui]),eroi:G.av.camp.eroi.map(e=>e.nome),pre:!!G.pre,fase:AVV.fase(G.av)})")
+    check(st['n'] == 2 and [p[0] for p in st['posti']] == ['Ada', 'Bruno'] and st['pre'], f'A: due posti, arruolamento aperto {st}')
+    check(st['eroi'][0] == 'Aldo', f'A: porta il suo eroe dal profilo {st["eroi"]}')
+    check(await B.evaluate('G.gid') == await A.evaluate('G.gid') == await T.evaluate('G.gid'), 'stessa partita su A, B e TV')
+    check(await T.evaluate('[ui.tv,viewer(),local().length]') == [True, -1, 0], 'TV: non ha un posto')
+    # --- il tavolo: si apre da solo, ognuno porta il suo eroe prima di muovere ---
+    for p_ in (A, B): await p_.wait_for_selector('.avt-modal .avt', timeout=10000)
+    check(await T.query_selector('.avt-modal') is None, 'TV: nessun foglio da toccare')
+    check(len(await A.query_selector_all('.avt-strip .avt-chip')) == 2 and len(await T.query_selector_all('.avt-strip .avt-chip')) == 2, 'striscia in alto: un tondo per posto, anche sulla TV')
+    await B.wait_for_selector('.avt-modal [data-a=avt][data-v="eroe:e1"]', timeout=10000)
+    await B.click('.avt-modal [data-a=avt][data-v="eroe:e1"]'); await B.wait_for_timeout(1500)
+    for p_ in (A, B, T): await p_.wait_for_function("G.av.camp.eroi[1].nome==='Tobia'", timeout=10000)
+    check(await A.evaluate("G.posti[1].slot")=='e1' and await A.evaluate("G.av.evn")==0, 'B: porta Tobia dal suo profilo; la sessione riparte da capo, nessuna mossa persa')
+    await A.screenshot(path='/tmp/claude-0/avt-tavolo.png')
+    for p_ in (A, B): await p_.click('.avt-modal [data-a=avt][data-v=chiudi]')
+    await A.wait_for_timeout(300)
+    check(await A.query_selector('.avt-modal') is None and await A.query_selector('.dl') is not None, 'il tavolo si chiude: sotto c\'è il dialogo')
+    check(await T.query_selector('.dl') is not None and await T.evaluate("document.documentElement.classList.contains('avt-on')"), 'TV: mostra il dialogo a tutto schermo')
+    # --- la storia: «continua» a chi vuole, le scelte a votazione ---
+    visti = {'voto': False, 'continua_da_B': False}
+    async def stato():
+        return await A.evaluate("({evn:G.av.evn,fase:AVV.fase(G.av),voto:G.voto?Object.keys(G.voto.v).length:0,lotta:!!G.lotta,scelte:!!document.querySelector('.dl-sc')})")
+    async def attendi_evn(evn, ms=8000):
+        for p_ in (A, B, T): await p_.wait_for_function(f"G.av.evn>{evn}", timeout=ms)
+    for passo in range(80):
+        s0 = await stato()
+        if s0['lotta'] or s0['fase'] in ('mappa', 'citta') or not await A.query_selector('.dl'): break
+        if await A.query_selector('[data-a=ses][data-v=combatti]'): break
+        if await A.query_selector('.dl-sc:not([disabled])'):
+            if not visti['voto']:
+                # voti diversi: A (chi ospita) la prima, B la seconda; a parità vale chi ospita. Prima voto solo B: la scelta non si applica, tutti vedono «ha votato»
+                n_sc = len(await A.query_selector_all('.dl-sc:not([disabled])'))
+                await B.click('.dl-sc:not([disabled]) >> nth=%d' % (1 if n_sc > 1 else 0)); await B.wait_for_timeout(900)
+                s1 = await stato()
+                check(s1['evn'] == s0['evn'] and s1['voto'] == 1, f'B ha votato: la storia aspetta chi manca {s1}')
+                check(await T.query_selector('.avt-voto .si') is not None and await A.query_selector('.avt-vt') is not None, 'TV e A vedono chi ha votato')
+                check(await B.query_selector('.avt-chip.vota') is not None, 'la striscia segna chi ha votato')
+                await A.click('.dl-sc:not([disabled]) >> nth=0'); await attendi_evn(s0['evn'])
+                check(await A.evaluate('G.voto')==None and await T.evaluate('G.av.evn')==await A.evaluate('G.av.evn'), 'votato anche A: si applica una scelta, stessa su tutti')
+                visti['voto'] = True
+            else:
+                await A.click('.dl-sc:not([disabled]) >> nth=0'); await B.wait_for_timeout(200)
+                await B.click('.dl-sc:not([disabled]) >> nth=0'); await A.wait_for_timeout(600)
+        elif await A.query_selector('.dl-co'):
+            quale = B if (passo % 2 and A) else A
+            if quale is B: visti['continua_da_B'] = True
+            await quale.click('.dl-co'); await A.wait_for_timeout(250)
+        else:
+            await A.click('.dl-corpo'); await A.wait_for_timeout(250)
+    s0 = await stato()
+    print('DOPO LA STORIA', s0)
+    check(visti['voto'], 'ci sono state scelte da votare')
+    check(visti['continua_da_B'], 'anche B ha potuto far proseguire il racconto')
+    # --- la mappa: ognuno muove il suo eroe, il gruppo lo decide chi ospita ---
+    for p_ in (A, B, T): await p_.wait_for_selector('.mo', timeout=10000)
+    await A.wait_for_timeout(500)
+    check(await B.evaluate('Camp.u.sel') == 1 and await A.evaluate('Camp.u.sel') == 0, 'ognuno parte con il proprio eroe selezionato')
+    r = await B.evaluate("Camp.agisci({t:'tira',eroe:0})")
+    check('err' in r and 'tuo eroe' in r['err'], f'B non può far muovere l\'eroe di A: {r}')
+    r = await B.evaluate("Camp.agisci({t:'tira',eroe:0,tutti:true})")
+    check('err' in r and 'ospita' in r['err'], f'B non decide per tutto il gruppo: {r}')
+    await B.evaluate("(()=>{const r=Camp.agisci({t:'tira',eroe:1});if(!r.err){Camp.s=r.s;render()}})()"); await B.wait_for_timeout(1200)
+    for p_ in (A, T): await p_.wait_for_function("G.av.camp.eroi[1].pm!=null", timeout=10000)
+    check(await A.evaluate("G.av.camp.eroi[0].pm") is None and await A.evaluate("G.av.camp.eroi[1].pm") is not None, 'B ha tirato il movimento del suo eroe: lo vedono A e la TV')
+    await A.screenshot(path='/tmp/claude-0/avt-mappa-A.png'); await T.screenshot(path='/tmp/claude-0/avt-mappa-TV.png')
+    # --- uno scontro: scena del casale (si porta il gruppo sul posto con uno stato di prova scritto nella stanza) ---
+    await A.evaluate("""SYNC.esegui(R.ref,cur=>{const s=JSON.parse(JSON.stringify(cur.s)),l=s.av.camp.luoghi['casale-salici'];s.av.camp.eroi.forEach(e=>{e.q=l.q;e.r=l.r});s.evn++;s.av.evn++;return{doc:{...cur,s,rev:cur.rev+1}}})""")
+    for p_ in (A, B, T): await p_.wait_for_function("G.av.camp.eroi.every(e=>e.q===G.av.camp.luoghi['casale-salici'].q)", timeout=20000)
+    r = await A.evaluate("Ses.scena('casale-salici')||'ok'")
+    await A.wait_for_timeout(900)
+    for p_ in (A, B, T): await p_.wait_for_function("AVV.fase(G.av)==='dialogo'", timeout=10000)
+    for passo in range(40):
+        if await A.query_selector('[data-a=ses][data-v=combatti]'): break
+        if await A.query_selector('.dl-sc:not([disabled])'):
+            await A.click('.dl-sc:not([disabled]) >> nth=0'); await B.wait_for_timeout(200); await B.click('.dl-sc:not([disabled]) >> nth=0'); await A.wait_for_timeout(500)
+        elif await A.query_selector('.dl-co'): await B.click('.dl-co'); await A.wait_for_timeout(250)
+        else: await A.click('.dl-corpo'); await A.wait_for_timeout(250)
+    check(await B.query_selector('[data-a=ses][data-v=combatti]') is not None and await T.query_selector('.dl') is not None, 'la scena porta alla battaglia: «All\'armi!» su A e B')
+    await B.click('[data-a=ses][data-v=combatti]')
+    for p_ in (A, B, T): await p_.wait_for_function("G.lotta&&ui.bat&&Bat.s", timeout=15000)
+    await A.wait_for_timeout(1500)
+    for p_ in (A, B, T): await p_.wait_for_function("!AvvStanza.anim&&!Bat.anim&&!Bat.lavoro", timeout=30000)
+    uguale = "JSON.stringify(Bat.s)===JSON.stringify(G.lotta)"
+    check(await A.evaluate(uguale) and await B.evaluate(uguale) and await T.evaluate(uguale), 'la battaglia è la stessa su A, B e TV (nemici già mossi dall\'IA)')
+    await A.screenshot(path='/tmp/claude-0/avt-bat-A.png'); await T.screenshot(path='/tmp/claude-0/avt-bat-TV.png')
+    giocate = {'A': 0, 'B': 0}; rifiutate = 0
+    for _ in range(120):
+        if await A.evaluate("!G.lotta||G.lotta.over"): break
+        mosso = False
+        for nome, p_ in (('A', A), ('B', B)):
+            if await p_.evaluate("AvvStanza.puoBat()"):
+                evn = await p_.evaluate("G.lotta.evn")
+                # l'altro telefono non può muovere al posto suo
+                altro = B if p_ is A else A
+                if giocate['A'] + giocate['B'] == 0:
+                    r = await altro.evaluate("(()=>{const r=AvvStanza.manda({t:'lotta',a:AIA.prossima(Bat.s,{livello:'normale'}),base:G.lotta.evn});return r.err||'ok'})()")
+                    check('turno' in r, f'l\'altro telefono non può giocare il turno di chi è di turno: {r}')
+                await p_.evaluate("Bat.umano(AIA.prossima(Bat.s,{livello:'normale'}))"); giocate[nome] += 1; mosso = True
+                for q_ in (A, B, T): await q_.wait_for_function(f"G.lotta===null||G.lotta.evn>{evn}", timeout=15000)
+                for q_ in (A, B, T): await q_.wait_for_function("!AvvStanza.anim&&!Bat.anim&&!Bat.lavoro", timeout=40000)
+                break
+        if not mosso: await A.wait_for_timeout(400)
+    check(await A.evaluate("!!(G.lotta&&G.lotta.over)"), f'la battaglia è finita {giocate}')
+    check(giocate['A'] > 0 and giocate['B'] > 0, f'hanno giocato entrambi i telefoni, ciascuno col suo eroe {giocate}')
+    await A.wait_for_timeout(600)
+    check(await A.evaluate(uguale) and await B.evaluate(uguale) and await T.evaluate(uguale), 'a battaglia finita: lo stesso stato su tutti')
+    await B.click('[data-a=batmondo]')
+    for p_ in (A, B, T): await p_.wait_for_function("G.lotta===null&&!ui.bat&&Bat.s===null", timeout=15000)
+    check(await A.evaluate("AVV.fase(G.av)") in ('mappa', 'citta', 'dialogo') and await T.query_selector('.mo, .dl') is not None, 'chiusa la battaglia si torna alla storia o alla mappa, su tutti')
+    print('XP', await A.evaluate("G.av.camp.eroi.map(e=>[e.nome,e.xp,e.hp])"))
+    # --- assenza e rientro: chi perde la linea resta al suo posto, il suo eroe lo guida chi ospita ---
+    await A.evaluate('RT.TOLLERANZA=2500'); await B.evaluate('__rtDrop()')
+    await A.wait_for_function("G.posti[1].qui===false", timeout=40000)
+    for p_ in (A, T): await p_.wait_for_function("G.posti[1].qui===false", timeout=20000)
+    check(await A.evaluate("AST.guida(G,1)")==0 and await A.query_selector('.avt-chip.fuori') is not None, 'B fuori: il suo eroe lo guida chi ospita, la striscia lo mostra spento')
+    r = await A.evaluate("(()=>{const r=Camp.agisci({t:'tira',eroe:1});return r.err||'ok'})()")
+    check(r == 'ok', f'chi ospita può far muovere l\'eroe di chi è fuori: {r}')
+    await B.evaluate('__rtBack()')
+    await A.wait_for_function("G.posti[1].qui===true", timeout=40000)
+    await T.wait_for_function("G.posti[1].qui===true", timeout=20000); await B.wait_for_function("G.posti[1].qui===true", timeout=20000)
+    check(await T.evaluate("G.posti[1].qui") is True and await A.evaluate("AST.guida(G,1)")==1, 'B rientra da solo e riprende il suo eroe')
+    # --- fine sessione: tutti vedono il foglio, ciascuno riscuote il PROPRIO eroe sul PROPRIO profilo ---
+    acc = "FB.eroi().then(L=>[L.e1.xp,L.e1.oro])"
+    xp0 = {n: await p_.evaluate(acc) for n, p_ in (('A', A), ('B', B))}
+    await A.evaluate("Ses.chiudiSessione()")
+    for p_ in (A, B, T): await p_.wait_for_selector('.se-modal', timeout=15000)
+    check(await B.evaluate("G.riep&&G.riep.n>0") and 'sul profilo del tuo eroe' in (await B.inner_text('.se-modal')).lower(), 'fine sessione: il foglio compare su tutti, con il rientro del proprio eroe')
+    check('sul profilo' not in (await T.inner_text('.se-modal')).lower(), 'la TV non riscuote niente')
+    pend = {n: await p_.evaluate("AST.rientro(G,%d)" % i) for n, p_, i in (('A', A, 0), ('B', B, 1))}
+    print('PENDENTE', {n: (v['pendente'] if v else None) for n, v in pend.items()})
+    await B.click('.se-modal [data-a=ses][data-v=riscuoti]')
+    await B.wait_for_function("AST.rientro(G,1).finito", timeout=60000)
+    x1 = await B.evaluate(acc); pb = pend['B']['pendente']
+    check(x1 == [xp0['B'][0] + pb['xp'], max(0, xp0['B'][1] + pb['oro'])] and (pb['xp'] or pb['oro']), f'B: esperienza e monete della campagna sono tornate sul suo eroe ({xp0["B"]} → {x1}, da riscuotere {pb})')
+    check(await A.evaluate(acc) == xp0['A'], 'A: il profilo di A non è stato toccato dal rientro di B')
+    await A.wait_for_function("AST.rientro(G,1).finito", timeout=15000)
+    check(await A.evaluate("!AST.rientro(G,0).finito") or pend['A']['pendente']['xp'] == 0, 'A: il suo eroe aspetta ancora (il rientro è per eroe)')
+    # la campagna condivisa è salvata sul profilo di chi ospita
+    await A.wait_for_function("FB.avventure().then(R=>Object.keys(R).length>0)", timeout=30000)
+    sal = await A.evaluate("FB.avventure().then(R=>Object.keys(R))")
+    check(len(sal) == 1, f'la campagna è salvata sul profilo di chi ospita ({sal}) e non su quello di B ({await B.evaluate("FB.avventure().then(R=>Object.keys(R))")})')
+    await A.screenshot(path='/tmp/claude-0/avt-fine-A.png')
+    for p_ in (A, B, T): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
+    for c in (ctxA, ctxB, ctxT): await c.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

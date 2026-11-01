@@ -22,6 +22,7 @@ const Avv={
   return`<div class="modal"><div class="box col av"><h2>Cantari di Ventura ${infoH('Una campagna a capitoli: ogni sessione è un «cantare». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
 <p class="muted" style="margin:0">Una compagnia, una mappa a esagoni e la perdizione che avanza.</p>
 ${Ses.sezioneH()}
+${AvvStanza.sezioneH()}
 <div class="sh2">Campagna libera ${infoH('Solo la mappa del mondo, senza la storia: i premi restano nella campagna e non tornano agli eroi.')}</div>
 ${s?Avv.cartaCont(s):''}
 ${on?`<button class="b ${s?'':'sm '}ecta" data-a="avvnuova" ${pochi&&Eroi.lista?'disabled':''}>${ic('spada',18)} ${s?'Nuova campagna libera':'Parti in campagna libera'}</button>${pochi&&Eroi.lista?'<small class="muted" style="text-align:center">Prima crea un eroe.</small>':''}`:`<button class="b gold ecta" data-a="acc">Accedi per giocare</button>`}

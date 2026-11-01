@@ -243,6 +243,8 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 5. Salvataggio della campagna condivisa sull'account di chi ospita; ciascuno riceve XP e oggetti sul proprio eroe.
 6. Scenario `avv_tv` in `tools/test-browser/` con 1 TV e 2 telefoni simulati.
 
+- **Stato A11 (1 novembre 2026)**: fatta (piano e contratti in `docs/AVVENTURA-A11.md`): `AST` (`motori/28e-avv-stanza.js`, motore puro) decide posti, permessi, voto, arruolamento, battaglia condivisa (`film`), presenza, rientro per eroe e ripresa dei salvataggi; `AvvStanza` (`app/24hm-avv-stanza.js`) è il tramite: la stanza è una partita come le altre (`ENG/VIEW/FX.avventura`, mosse `SYNC.mossa`) e le schermate di A5–A9 ne sono lo specchio, con guardie di una riga nelle viste esistenti. Scelte di dialogo: **voto** (a parità, chi ospita). Scenario `avv_tv`: 1 TV e 2 telefoni. Resta per dopo: una vista TV pensata apposta (ora sono gli stessi fogli, ingranditi), scelta del proprio eroe nella ripresa di una campagna salvata (oggi per ordine).
+
 ## A12 — Grafica 3D
 1. Mappa a esagoni e arene in three.js low-poly nello stile della Taverna 3D (skill `asset-3d-taverna`), caricato su richiesta, con la vista SVG come ripiego per i telefoni lenti.
 2. Miniature degli eroi generate da razza, classe e aspetto; mostri originali per famiglia.
@@ -258,4 +260,4 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 
 ## Domande aperte (da chiudere all'inizio della task indicata)
 - A1: la tab Avventura sostituisce il pulsante «Eroi» nel profilo o restano entrambi?
-- A11: chi decide le scelte di dialogo in co-op: chi parla o voto?
+- A11 (chiusa): le scelte di dialogo si votano; a parità vale chi ospita.

@@ -12,7 +12,8 @@ const AvvTut={
   if(sch==='dialogo'){const f=Dia.fonte();return ATUT.contesto('dialogo',Ses.a,{dia:f&&f.s&&f.cap&&f.s.scena?ARAC.vista(f.s,f.cap,f.ctx):null})}
   return{sch}},
  id(sch){try{return ATUT.prossimo(AvvTut.contesto(sch),AvvTut.carica())}catch(e){ERR.n(e);return null}},
- html(sch){const id=AvvTut.id(sch),s=id&&ATUT.trova(id);if(!s)return'';
+ html(sch){if(inAvv()&&(ui.tv||(sch==='battaglia'&&!AvvStanza.puoBat())))return'';   // in stanza: niente suggerimenti sulla TV né a chi non è di turno
+  const id=AvvTut.id(sch),s=id&&ATUT.trova(id);if(!s)return'';
   return`<div class="tut" role="status" aria-live="polite" data-tut="${s.id}"><b>${esc(s.titolo)}</b><p>${esc(s.testo)}</p><div class="tut-bt"><button class="b sm gold" data-a="tut" data-v="ok:${s.id}">Capito</button><button class="b sm" data-a="tut" data-v="basta">Basta suggerimenti</button></div></div>`},
  // il testo delle regole, da mettere dentro una pagina o un foglio
  regoleH(){return`<div class="tut-regole">${RULES.avventura}</div>`},

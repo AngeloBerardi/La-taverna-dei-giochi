@@ -47,6 +47,13 @@ Piani e contratti: `docs/AVVENTURA.md` (piano), `AVVENTURA-A4.md` (battaglia), `
 - La **bacheca** delle città e dei villaggi offre **incarichi generati** (consegne, recuperi, ripuliture) con ricompensa e scadenza; al massimo 2 aperti per volta e uno nuovo al giorno per luogo.
 - Nella prima sessione appaiono **suggerimenti al tocco**, uno alla volta: si chiudono con «Capito» e non tornano. Si spengono o si rivedono dalla pagina Avventura.
 
+## In compagnia (A11)
+- Da «Avventura → In compagnia» il cantare si apre nella stanza (1–4 giocatori, `R.mode='rt'`); sulla TV (`?tv=CODICE`, sola visione) si vedono mappa, scontri e dialoghi in grande.
+- Un posto = un eroe: prima della prima mossa ognuno porta uno dei suoi eroi dal profilo (senza profilo, un eroe di prova). Chi ospita (il primo posto presente) guida i **compagni** e le azioni di gruppo; ognuno comanda il proprio eroe.
+- Le scelte dei dialoghi si **votano** (maggioranza; a parità vale chi ospita, che può chiudere il voto); «continua» lo preme chiunque.
+- Scontri: muove chi guida l'eroe di turno, il resto lo gioca l'IA; reazioni automatiche. Chi esce lascia il posto (lo guida chi ospita), chi rientra riprende il suo eroe.
+- Rientro: ciascuno riscuote **solo il proprio eroe** sul proprio profilo (stesse tappe e limiti di prima); la campagna condivisa si salva sul profilo di chi ospita e si può riprendere in compagnia.
+
 ## Riferimento visivo (com'è il genere, da riprodurre nello stile; nessuna immagine copiata)
 - **Mappa del mondo**: esagoni piatti con terreni dai colori pieni e contorno scuro (prateria verde, bosco verde cupo, colli ocra, palude verde-grigio, montagna grigio-blu), nebbia che copre il non esplorato, strade chiare; segnalini degli eroi con ritratto tondo e anello d'ottone. Riferimenti per la lettura: i tavoli di viaggio a esagoni dei giochi di esplorazione cooperativi (percorsi, nebbia, pericolo che avanza) e le mappe di campagna dei giochi di ruolo da tavolo.
 - **Battaglia**: griglia a esagoni vista dall'alto, altezza con rialzi più chiari, ostacoli come sagome a rilievo; sagome dei mostri disegnate da noi, nello stile piatto della mappa. Ordine di iniziativa in alto, azioni in una barra in basso (Attacca, Poteri, Oggetti, Altro), numeri di danno che salgono dal segnalino e colorati per tipo.
