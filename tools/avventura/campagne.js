@@ -32,7 +32,7 @@ function gioca(opz) {
   const cap = opz.cap || CAP, caso = rng((opz.seme || 1) * 7919 + 3), furbo = opz.stile !== 'caso', forte = opz.abilita === 'medio' ? 'normale' : 'eroica';
   const d0 = Object.assign({}, ADIF.D[opz.diff || 'normale']); if (opz.mod) Object.assign(ADIF.D[opz.diff || 'normale'], opz.mod);   // prove di taratura: si cambiano i numeri senza toccare il motore
   let s = AVV.nuova(cap, opz.eroi || squadra(opz.sigle || ['g', 'm', 'c', 'l'], opz.seme), opz.seme || 1, Object.assign({ difficolta: opz.diff }, opz.opzioni));
-  const M = { passi: 0, battaglie: 0, vinte: 0, perse: 0, sconfitte: 0, sessioni: 0, scene: 0, riposi: 0, cure: 0, errori: [], giorniSessione: [], xpSessione: [], oroSessione: [], motivo: null };
+  const M = { passi: 0, battSess: 0, battaglie: 0, vinte: 0, perse: 0, sconfitte: 0, sessioni: 0, scene: 0, riposi: 0, cure: 0, errori: [], giorniSessione: [], xpSessione: [], oroSessione: [], motivo: null };
   const fai = (a) => { const r = AVV.act(s, a, cap); if (r.err) return r; s = r.s; return r; };
   const dbg = (...x) => { if (opz.dbg) console.log(...x); };
   const cc = () => s.camp, viv = () => C.vivi(cc());
@@ -59,7 +59,7 @@ function gioca(opz) {
   // ---- battaglie: l'IA gioca per gli eroi (bravi o meno) e per i nemici ----
   function battaglia() {
     const b = AVV.battaglia(s); if (!b) return { err: 'nessuna battaglia' };
-    const fin = IA.partita(b, { eroi: forte, nemici: 'normale' }); M.battaglie++;
+    const fin = IA.partita(b, { eroi: forte, nemici: 'normale' }); M.battaglie++; M.battSess++;
     dbg('  battaglia g' + cc().giorno, 'liv', Math.round(cc().eroi.reduce((a, e) => a + e.liv, 0) / cc().eroi.length * 10) / 10, 'eroi', cc().eroi.length, 'vs', b.cb.filter((x) => x.lato !== 'eroi').map((x) => x.def).join(','), '→', fin.over.esito, 'giri', fin.giro, 'PF', fin.cb.filter((x) => x.lato === 'eroi').map((x) => x.hp + '/' + x.hpMax).join(' '));
     const r = fai({ t: 'esito', riep: SC.riepilogo(fin) });
     if (!r.err) { if (fin.over.esito === 'vittoria') M.vinte++; else M.perse++; }
@@ -135,6 +135,8 @@ function gioca(opz) {
       if (puoRialzare && qui.tipo === 'citta') { const x = fai({ t: 'camp', a: { t: 'rialza', eroe: c.eroi.indexOf(caduti[0]) } }); if (!x.err) return x; }
       if (media() < .85) { let x = fai({ t: 'camp', a: { t: 'cura', eroe: c.eroi.indexOf(v[0]) } }); if (x.err) x = fai({ t: 'camp', a: { t: 'lungo' } }); if (!x.err) { M.cure++; return x; } }
     }
+    // una sessione vera dura un po': in una città, dopo un certo numero di battaglie o di giorni di viaggio, la compagnia si ferma e chiude il cantare (opz.sessBatt / opz.sessGiorni; 0 = mai)
+    if (alSicuro && ((opz.sessBatt === undefined ? 8 : opz.sessBatt) > 0 && M.battSess >= (opz.sessBatt === undefined ? 8 : opz.sessBatt) || (opz.sessGiorni === undefined ? 5 : opz.sessGiorni) > 0 && c.giorno - ultimo.giorno >= (opz.sessGiorni === undefined ? 5 : opz.sessGiorni))) return { vuoto: true };
     // la scena di qui (se la storia decide il passo) viene prima di tutto, se la compagnia è all'altezza della regione
     const liv = livMedio();
     const scene = vista.scene.filter((q) => permessa(q.id));
@@ -167,7 +169,7 @@ function gioca(opz) {
     if (r && r.vuoto) { // niente da fare: si chiude la sessione (nuove scene possono aprirsi al prossimo cantare)
       a0 = conto(); const x = fai({ t: 'chiudi' });
       if (x.err) { if (++vuoti > 12) { M.motivo = 'bloccata: ' + x.err; break; } const y = fai({ t: 'camp', a: { t: 'fineTurno' } }); if (y.err) { M.motivo = 'bloccata: ' + y.err; break; } continue; }
-      vuoti = 0; M.sessioni++; if (a0 && a0.xp === conto().xp && a0.oro === conto().oro && a0.giorno === conto().giorno) { if (++fermi >= 6) { M.motivo = 'stallo'; break; } } else fermi = 0; const a = conto(); M.giorniSessione.push(a.giorno - ultimo.giorno); M.xpSessione.push(a.xp - ultimo.xp); M.oroSessione.push(a.oro - ultimo.oro); ultimo = a;
+      vuoti = 0; M.sessioni++; M.battSess = 0; if (a0 && a0.xp === conto().xp && a0.oro === conto().oro && a0.giorno === conto().giorno) { if (++fermi >= 6) { M.motivo = 'stallo'; break; } } else fermi = 0; const a = conto(); M.giorniSessione.push(a.giorno - ultimo.giorno); M.xpSessione.push(a.xp - ultimo.xp); M.oroSessione.push(a.oro - ultimo.oro); ultimo = a;
       dbg('— sessione chiusa, giorno', a.giorno, 'xp', a.xp, 'oro', a.oro);
     } else vuoti = 0;
   }

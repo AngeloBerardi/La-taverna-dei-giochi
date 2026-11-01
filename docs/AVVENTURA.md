@@ -222,7 +222,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 
 ## A9 — Orchestratore, vite, salvataggi, rientro sull'account
 1. `AVV`: stato unico con fasi `mappa` | `battaglia` | `dialogo` | `città` | `sotterraneo` | `fine`, che passa il controllo ai motori.
-2. **Vite di gruppo** (3, da confermare in A13): una battaglia persa toglie una vita, la compagnia si risveglia nell'ultima città con metà PF e una penalità: metà dell'oro comune perso e perdizione +10; a zero vite la campagna è persa.
+2. **Vite di gruppo** (3 in A9; con A13 dipendono dalla difficoltà: Racconto 6, Normale 4, Eroica 3): una battaglia persa toglie una vita, la compagnia si risveglia nell'ultima città con metà PF e una penalità: metà dell'oro comune perso e perdizione +10; a zero vite la campagna è persa.
 3. Salvataggio: automatico a ogni cambio di fase, in locale e su Firestore (`players/{uid}/avventure/a1..a3`), con versione e migrazione.
 4. **Rientro sull'account**: a fine sessione XP, oro e oggetti tornano agli eroi; regole Firestore con aumento massimo per scrittura e intervallo minimo (senza Cloud Functions è una protezione leggera, sufficiente per giocare tra amici).
 5. Fine campagna: riepilogo, compagni sbloccati per il futuro, monete della Taverna come premio.
@@ -256,6 +256,7 @@ Scopo: il cuore del gioco. Motore puro `ASCO`, stato JSON, deterministico.
 1. Simulazione di intere campagne con il bot: tassi di vittoria per composizione della squadra, durata, oro e XP per sessione.
 2. Ritocchi alle tabelle di A0; difficoltà selezionabile (Racconto, Normale, Eroica).
 3. Accessibilità (dimensioni dei bersagli, contrasto), prestazioni su telefoni economici.
+- **Stato A13 (1 novembre 2026)**: fatta (numeri, metodo e limiti in `docs/AVVENTURA-A13.md`). **Tre difficoltà** (Racconto, Normale, Eroica) in una tabella (`ADIF`, `motori/27ha-avv-difficolta.js`): budget dei gruppi nemici ×0,6/×0,75/×0,85, vite 6/4/3, perdizione per alba 2/3/4, esperienza ×1,25/×1/×1, costo della sconfitta; scelta nella carta «Nuova campagna» (e nella stanza in compagnia), `camp.diff` nello stato, i salvataggi vecchi giocano a Normale con le vite che hanno. Bot di **campagne intere** (`tools/avventura/campagne.js`, attraverso l'orchestratore): con la compagnia g+m+c+l su 36 campagne finisce il 92% a Racconto, il 50% a Normale, l'11% a Eroica (il bot non usa pozioni né bacheca); per composizione, per classe e per sessione (giorni, PE, oro) le tabelle sono nel documento. **Difetto del motore corretto**: una sconfitta sulla mappa che portava la perdizione a 100 con la penalità del risveglio lasciava la campagna senza fine. Bersagli ≥ 44 px, contrasto AA e budget del 3D (40 chiamate, ~21 000 triangoli) verificati da `avv_accessibilita` e `avv_prestazioni`. Rimandato: giro di bilanciamento delle classi (il bardo costa 9–15 punti di vittorie in battaglia), bot con pozioni e bacheca, prova su telefoni veri.
 
 ---
 

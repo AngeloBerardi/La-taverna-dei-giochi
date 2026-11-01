@@ -874,11 +874,13 @@ async def sc_avv_mondo(b, srv):
     check(nascoste > 200, f'nebbia: {nascoste} celle su 271 non ancora esplorate')
     # scorrimento col dito e zoom con la rotella
     vb0 = await pg.evaluate("document.querySelector('.mo-svg').getAttribute('viewBox')")
-    await pg.mouse.move(195, 300); await pg.mouse.down(); await pg.mouse.move(120, 300, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(100)
+    # un punto della mappa non coperto da suggerimenti o fogli (la scelta di y dipende dall'altezza dei riquadri: non si fissa a occhio)
+    ylibero = await pg.evaluate("(()=>{const r=document.querySelector('.mo-svg').getBoundingClientRect();for(let y=Math.round(r.top+r.height/2);y<r.bottom-10;y+=10){const e=document.elementFromPoint(195,y);if(e&&e.closest('.mo-svg'))return y}for(let y=Math.round(r.top+r.height/2);y>r.top+10;y-=10){const e=document.elementFromPoint(195,y);if(e&&e.closest('.mo-svg'))return y}return 300})()")
+    await pg.mouse.move(195, ylibero); await pg.mouse.down(); await pg.mouse.move(120, ylibero, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(100)
     vb1 = await pg.evaluate("document.querySelector('.mo-svg').getAttribute('viewBox')")
     check(vb0 != vb1 and await pg.evaluate("Camp.v.cx") is not None, 'trascinando la mappa scorre')
     k0 = await pg.evaluate("Camp.v.k")
-    await pg.mouse.move(195, 300); await pg.mouse.wheel(0, -300); await pg.wait_for_timeout(100)
+    await pg.mouse.move(195, ylibero); await pg.mouse.wheel(0, -300); await pg.wait_for_timeout(100)
     check(await pg.evaluate("Camp.v.k") > k0, 'la rotella ingrandisce')
     await pg.click('[data-a=mo][data-v="zoom:-"]'); await pg.click('[data-a=mo][data-v="zoom:-"]'); await pg.click('[data-a=mo][data-v="zoom:-"]'); await pg.click('[data-a=mo][data-v="zoom:-"]'); await pg.wait_for_timeout(100)
     check(await pg.evaluate("Camp.v.k") == 1 and await pg.evaluate("document.querySelector('.mo-svg').classList.contains('zn')") is False, 'allontanando si vede tutto il mondo (nomi dei luoghi nascosti)')
@@ -2124,6 +2126,15 @@ async def sc_avv_tv(b, srv):
     await B.click('[data-a=batmondo]')
     for p_ in (A, B, T): await p_.wait_for_function("G.lotta===null&&!ui.bat&&Bat.s===null", timeout=15000)
     check(await A.evaluate("AVV.fase(G.av)") in ('mappa', 'citta', 'dialogo') and await T.query_selector('.mo, .dl') is not None, 'chiusa la battaglia si torna alla storia o alla mappa, su tutti')
+    # se la battaglia è stata vinta (con gruppi più piccoli succede) la scena continua: la si legge fino alla mappa, perché nel resto della prova serve muovere gli eroi
+    for _ in range(80):
+        if await A.evaluate("AVV.fase(G.av)") in ('mappa', 'citta') or await A.query_selector('[data-a=ses][data-v=combatti]'): break
+        if await A.query_selector('.dl-sc:not([disabled])'):
+            await A.click('.dl-sc:not([disabled]) >> nth=0'); await B.wait_for_timeout(200)
+            if await B.query_selector('.dl-sc:not([disabled])'): await B.click('.dl-sc:not([disabled]) >> nth=0')
+            await A.wait_for_timeout(600)
+        elif await A.query_selector('.dl-co'): await A.click('.dl-co'); await A.wait_for_timeout(250)
+        else: await A.click('.dl-corpo'); await A.wait_for_timeout(250)
     print('XP', await A.evaluate("G.av.camp.eroi.map(e=>[e.nome,e.xp,e.hp])"))
     # --- assenza e rientro: chi perde la linea resta al suo posto, il suo eroe lo guida chi ospita ---
     await A.evaluate('RT.TOLLERANZA=2500'); await B.evaluate('__rtDrop()')
@@ -2131,6 +2142,9 @@ async def sc_avv_tv(b, srv):
     for p_ in (A, T): await p_.wait_for_function("G.posti[1].qui===false", timeout=20000)
     check(await A.evaluate("AST.guida(G,1)")==0 and await A.query_selector('.avt-chip.fuori') is not None, 'B fuori: il suo eroe lo guida chi ospita, la striscia lo mostra spento')
     r = await A.evaluate("(()=>{const r=Camp.agisci({t:'tira',eroe:1});return r.err||'ok'})()")
+    if 'già tirato' in r:   # nel turno di adesso il movimento è già stato tirato: si passa al giro dopo e si riprova
+        await A.evaluate("Camp.agisci({t:'fineTurno'})"); await A.wait_for_timeout(1800)
+        r = await A.evaluate("(()=>{const r=Camp.agisci({t:'tira',eroe:1});return r.err||'ok'})()")
     check(r == 'ok', f'chi ospita può far muovere l\'eroe di chi è fuori: {r}')
     await B.evaluate('__rtBack()')
     await A.wait_for_function("G.posti[1].qui===true", timeout=40000)

@@ -182,13 +182,15 @@ const AVV=(()=>{
   return{sessione:(s.racc.sessioni|0)+1,giorni:c.giorno-da.giorno,oro:c.oro-da.oro,xp:Object.fromEntries(c.eroi.filter(e=>!e.compagno).map(e=>[e.slot,(e.xp|0)-(da.xp[e.slot]|0)])),battaglie:s.sessione.battaglie,sconfitte:s.sessione.sconfitte}}
  function chiudi(s,cap){const f=fase(s);if(f!=='mappa'&&f!=='citta')return{err:'La sessione si chiude sulla mappa, non nel mezzo di una scena o di una battaglia'};
   const rie=riepilogo(s,cap);s.racc=RA.finisciSessione(s.racc);s.sessione=nuovaSessione(s);rie.cantare=RA.cantare(capDi(s,cap),s.racc,ctx(s));return{riepilogo:rie}}
+ const finePerdizione=s=>({esito:'persa',vinta:false,titolo:'La perdizione ha inghiottito il regno',testo:'Il buio ha vinto. Gli eroi tornano alla Taverna con ciò che hanno imparato.',sbloccati:[],monete:0,vite:s.vite,giorni:s.camp.giorno});
  // ---- dopo ogni azione ----
  function dopo(s,cap,righe){
   scadenze(s,righe);
   const lv=CP.livelli(s.camp);s.camp=lv.s;righe.push(...lv.su);
   if(s.camp.over&&!s.fine){
-   if(!s.camp.over.win&&s.camp.perdizione<100)sconfitta(s,cap,righe);
-   else if(!s.camp.over.win)s.fine={esito:'persa',vinta:false,titolo:'La perdizione ha inghiottito il regno',testo:'Il buio ha vinto. Gli eroi tornano alla Taverna con ciò che hanno imparato.',sbloccati:[],monete:0,vite:s.vite,giorni:s.camp.giorno};
+   if(!s.camp.over.win&&s.camp.perdizione<100){sconfitta(s,cap,righe);
+    if(!s.fine&&s.camp.over&&!s.camp.over.win&&s.camp.perdizione>=100)s.fine=finePerdizione(s)}   // la penalità del risveglio (+perdizione) può portare a 100: la campagna è persa, non ferma
+   else if(!s.camp.over.win)s.fine=finePerdizione(s);
    else s.camp.over=null}
   const l=luogoGruppo(s.camp);if(l&&l.tipo==='citta')s.ultimaCitta=l.id;
   s.log.push(...righe);if(s.log.length>PARAM.righe)s.log.splice(0,s.log.length-PARAM.righe)}

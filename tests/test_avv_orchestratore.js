@@ -194,6 +194,20 @@ function CtoSC(g) { return C.battaglia(g.camp).cb; }
   assert.strictEqual(r2.s.vite, VITE, 'e non è colpa delle vite');
 }
 
+// ---- una sconfitta sulla mappa che porta la perdizione a 100 (la penalità del risveglio): la campagna è persa, non resta ferma senza fine ----
+{
+  const m = AVV.nuova(prova, due(), 77, { avvio: false }); const c = m.camp; c.mostri = []; c.mercanti = [];
+  const e0 = c.eroi[0], t = { q: e0.q + 5, r: e0.r };
+  c.mostri.push({ id: 'mx1', fam: 'banditi', liv: 1, diff: 'facile', seme: 7, ids: ['brigante'], q: t.q, r: t.r, stato: 'vaga', pausa: 0 });
+  c.perdizione = 95;
+  let g = ok(AVV.act(m, { t: 'camp', a: { t: 'tira', tutti: true } }, prova)).s;
+  g = ok(AVV.act(g, { t: 'camp', a: { t: 'muovi', eroe: 0, q: t.q - 1, r: t.r, tutti: true } }, prova), 'contatto').s;
+  assert(g.camp.sfida, 'battaglia sulla mappa');
+  const r = ok(AVV.act(g, { t: 'esito', riep: perdita(AVV.battaglia(g)) }, prova));
+  assert(r.s.fine && !r.s.fine.vinta && r.s.fine.esito === 'persa' && /perdizione/i.test(r.s.fine.titolo), 'la perdizione a 100 chiude la campagna: ' + JSON.stringify(r.s.fine && r.s.fine.titolo));
+  assert.strictEqual(AVV.fase(r.s), 'fine'); assert(AVV.act(r.s, { t: 'chiudi' }, prova).err, 'e non si gioca più');
+}
+
 // ---- l'ultima città si ricorda; dopo la sconfitta ci si risveglia lì ----
 {
   let m = AVV.nuova(prova, due(), 9); m = chiudiScena(vai(m, 'viaggio'), prova); assert.strictEqual(m.ultimaCitta, 'rocca-pallida');
