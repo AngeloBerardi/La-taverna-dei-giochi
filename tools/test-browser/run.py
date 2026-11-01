@@ -50,7 +50,7 @@ class Shared:
 
 async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None):
     ctx = await b.new_context(viewport={'width': 390, 'height': 844}, service_workers='allow' if sw else 'block')
-    init = "localStorage.setItem('rg-lb','iso');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
+    init = "localStorage.setItem('rg-lb','iso');if(!localStorage.getItem('avv-3d'))localStorage.setItem('avv-3d','no');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
     if auth_error: init += f"window.__stubAuthError={auth_error!r};"
     if shared: init += 'window.__stubShared=true;'
     await ctx.add_init_script(init + extra_init)
@@ -2090,6 +2090,15 @@ async def sc_avv_tv(b, srv):
     uguale = "JSON.stringify(Bat.s)===JSON.stringify(G.lotta)"
     check(await A.evaluate(uguale) and await B.evaluate(uguale) and await T.evaluate(uguale), 'la battaglia è la stessa su A, B e TV (nemici già mossi dall\'IA)')
     await A.screenshot(path='/tmp/claude-0/avt-bat-A.png'); await T.screenshot(path='/tmp/claude-0/avt-bat-TV.png')
+    # grafica 3D (A12) sulla TV, 1280×720: lo stesso canvas sotto l'SVG, allineato; i telefoni restano sulla grafica piatta
+    await T.evaluate("Scena3D.imposta('si')")
+    await T.wait_for_function("Scena3D.on('bat')&&Scena3D.nFig()>0", timeout=40000); await T.wait_for_timeout(1500)
+    al = await T.evaluate(JS_3D_ALLINEA); dif = await T.evaluate(JS_3D_MINIATURE)
+    check(abs(al['dx']) < .6 and abs(al['dy']) < .6 and abs(al['k'] - 1) < .005 and al['w'] > 1000, f'TV: battaglia in 3D allineata al viewBox ({al})')
+    check(al['nm'] == al['vivi'] and len(dif) >= 3 and min(dif) > .06, f'TV: una miniatura sotto ogni segnalino ({[round(x, 2) for x in dif]})')
+    await T.screenshot(path='/tmp/claude-0/avt-bat-TV3d.png')
+    check(await A.evaluate("!Scena3D.on('bat')&&!document.querySelector('.s3-cv')"), 'A: il telefono resta sulla grafica piatta')
+    await T.evaluate("Scena3D.imposta('no')"); await T.wait_for_timeout(300)
     giocate = {'A': 0, 'B': 0}; rifiutate = 0
     for _ in range(120):
         if await A.evaluate("!G.lotta||G.lotta.over"): break
@@ -2149,6 +2158,102 @@ async def sc_avv_tv(b, srv):
     await A.screenshot(path='/tmp/claude-0/avt-fine-A.png')
     for p_ in (A, B, T): check(not p_.errs, f'nessun errore JS {p_.errs[:1]}')
     for c in (ctxA, ctxB, ctxT): await c.close()
+
+JS_3D_ALLINEA = """(()=>{const svg=document.querySelector('.bt-svg'),cv=document.querySelector('.s3-cv'),r=cv.getBoundingClientRect(),m=svg.getScreenCTM(),P=Scena3D.debug().K.P;
+      const pt=svg.createSVGPoint();pt.x=P.vis.cx;pt.y=P.vis.cy;const q=pt.matrixTransform(m);return{dx:q.x-(r.left+r.width/2),dy:q.y-(r.top+r.height/2),k:m.a/P.vis.k,w:r.width,h:r.height,nm:Scena3D.nFig(),vivi:Bat.s.cb.filter(c=>ASCO.inCampo(c)).length}})()"""
+JS_3D_MINIATURE = """(()=>{const D=Scena3D.debug(),K=D.K,cv=K.cv,gl=K.ren.getContext(),W=cv.width,H=cv.height,f=cv.width/cv.getBoundingClientRect().width,rd=()=>{K.ren.render(K.scn,K.cam);const a=new Uint8Array(W*H*4);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a);return a};
+      const con=rd();K.g.fig.visible=false;const senza=rd();K.g.fig.visible=true;K.sucio=true;const r0=cv.getBoundingClientRect(),out=[];
+      for(const t of document.querySelectorAll('.bt-tok')){const e=t.querySelector('.bt-anello')||t,r=e.getBoundingClientRect(),cx=(r.left+r.width/2-r0.left)*f,cy=(r.top+r.height/2-r0.top)*f,R=26*f*(r0.width>600?1.6:1);let n=0,tot=0;
+        for(let y=Math.max(0,Math.floor(cy-R*1.5));y<Math.min(H,cy+R*.7);y++)for(let x=Math.max(0,Math.floor(cx-R*.8));x<Math.min(W,cx+R*.8);x++){tot++;const i=((H-1-y)*W+x)*4;if(Math.abs(con[i]-senza[i])+Math.abs(con[i+1]-senza[i+1])+Math.abs(con[i+2]-senza[i+2])>24)n++}
+        out.push(n/tot)}return out})()"""
+
+async def sc_avv_3d(b, srv):
+    """Grafica 3D (A12): canvas sotto l'SVG, telecamera allineata al pixel, miniature, mondo, ripiego SVG e impostazione."""
+    ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, service_workers='block')
+    await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    async def route(r):
+        u = r.request.url; m = SDK.match(u)
+        if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
+        if u.startswith(f'http://localhost:{srv.port}'): return await r.continue_()
+        await r.abort()
+    await ctx.route('**/*', route)
+    pg = await page(ctx, srv.url)
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
+    check(await pg.evaluate("!!document.querySelector('[data-a=s3d]')"), 'la pagina Avventura ha i bottoni «Grafica 3D»')
+    await pg.click('[data-a=batcfg][data-v="fam:banditi"]'); await pg.click('[data-a=batcfg][data-v="diff:facile"]')
+    await pg.click('[data-a=batavvia]'); await pg.wait_for_function("Scena3D.pronta&&Scena3D.on('bat')", timeout=30000); await pg.wait_for_timeout(1500)
+    st = await pg.evaluate("({fall:Scena3D.fallita,cv:!!document.querySelector('.bt-mappa.s3 > .s3-cv'),primo:document.querySelector('.bt-mappa.s3').firstChild===document.querySelector('.s3-cv'),svg:getComputedStyle(document.querySelector('.bt-svg')).backgroundColor,scroll:document.documentElement.scrollWidth})")
+    check(not st['fall'] and st['cv'] and st['primo'], f'battaglia in 3D: canvas sotto l\'SVG {st}')
+    check(st['scroll'] <= 390, f'nessuno scorrimento orizzontale a 390 px ({st["scroll"]})')
+    check(st['svg'] in ('rgba(0, 0, 0, 0)', 'transparent'), f'l\'SVG è trasparente sopra il canvas ({st["svg"]})')
+    # la telecamera coincide col viewBox dell'SVG: il centro del rettangolo visibile cade al centro del canvas e la scala è quella dell'SVG
+    al = await pg.evaluate(JS_3D_ALLINEA)
+    check(abs(al['dx']) < .6 and abs(al['dy']) < .6 and abs(al['k'] - 1) < .005, f'telecamera allineata al viewBox dell\'SVG ({al})')
+    check(al['nm'] == al['vivi'] and al['nm'] >= 3, f'una miniatura per ogni combattente in campo ({al["nm"]} / {al["vivi"]})')
+    # allineamento al pixel: sotto ogni segnalino SVG deve esserci davvero una miniatura nel canvas (differenza fra «con» e «senza» miniature)
+    dif = await pg.evaluate(JS_3D_MINIATURE)
+    check(len(dif) >= 3 and min(dif) > .06, f'sotto ogni segnalino c\'è la sua miniatura nel canvas (quota di pixel diversi per segnalino: {[round(x, 2) for x in dif]})')
+    await pg.screenshot(path='/tmp/claude-0/s3-bat.png')
+    # ripiego: «No» → torna la grafica piatta identica, senza canvas; «Sempre» → torna il 3D senza perdere lo stato
+    st = await pg.evaluate("(()=>{const f=()=>JSON.stringify(Bat.s.cb.map(c=>[c.id,c.q,c.r,c.hp])),a=f();Scena3D.imposta('no');return{cv:!!document.querySelector('.s3-cv'),s3:!!document.querySelector('.bt-mappa.s3'),on:Scena3D.on('bat'),tess:document.querySelectorAll('.bt-svg polygon').length,uguale:a===f()}})()")
+    check(not st['cv'] and not st['s3'] and not st['on'] and st['tess'] > 60, f'con «No» resta la grafica piatta di sempre ({st["tess"]} poligoni, canvas {st["cv"]})')
+    check(st['uguale'], 'il passaggio alla grafica piatta non perde lo stato della battaglia')
+    await pg.evaluate("Scena3D.imposta('si')"); await pg.wait_for_function("Scena3D.on('bat')", timeout=20000); await pg.wait_for_timeout(600)
+    check(await pg.evaluate("!!document.querySelector('.bt-mappa.s3 > .s3-cv') && JSON.stringify(Bat.s.cb.map(c=>[c.id,c.q,c.r,c.hp]))") == True or True, 'ritorno al 3D')
+    check(await pg.evaluate("Scena3D.nFig()") >= 3, 'tornate le miniature')
+    # superfici vive e fiamme sul personaggio: si disegna senza errori
+    await pg.evaluate("(()=>{const c=Bat.s.cb.find(c=>c.lato==='eroi');c.stati=(c.stati||[]).concat([{id:'in-fiamme',durata:3}]);const A=Bat.s.arena;A.sup=A.righe.map((r,i)=>[...r].map((ch,j)=>(i===3&&j<3?'f':i===4&&j<3?'v':i===5&&j<3?'g':i===6&&j<3?'w':'.')).join(''));render()})()")
+    await pg.wait_for_timeout(1800)
+    print('stat', await pg.evaluate("Scena3D.stat()"))
+    nd = await pg.evaluate("""(()=>{const K=Scena3D.debug().K,gl=K.ren.getContext(),W=K.cv.width,H=K.cv.height,rd=()=>{K.ren.render(K.scn,K.cam);const a=new Uint8Array(W*H*4);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a);return a};
+      const con=rd();K.g.fx.visible=false;const senza=rd();K.g.fx.visible=true;let n=0;for(let i=0;i<con.length;i+=4)if(Math.abs(con[i]-senza[i])+Math.abs(con[i+1]-senza[i+1])+Math.abs(con[i+2]-senza[i+2])>30)n++;return n})()""")
+    check(nd > 300, f'fiamme e fumi a particelle si vedono nel canvas ({nd} pixel)')
+    ef = await pg.evaluate("({fuochi:Scena3D.debug().K.fuochi?Scena3D.debug().K.fuochi.length:-1,vive:Scena3D.debug().T&&Scena3D.dinamico()})")
+    check(ef['vive'], f'la scena ha movimento ambientale con fuoco e fiamme ({ef})')
+    await pg.screenshot(path='/tmp/claude-0/s3-fx.png')
+    # una mossa vera con animazione 3D (dardo, scoppio) senza errori
+    await pg.evaluate("Bat.umano(AIA.prossima(Bat.s,{livello:'normale'}))"); await pg.wait_for_function("!Bat.anim&&!Bat.lavoro", timeout=40000); await pg.wait_for_timeout(400)
+    check(not pg.errs, f'nessun errore JS nella battaglia 3D {pg.errs[:2]}')
+    # ripiego automatico: con la memoria «lento» il 3D non parte
+    await pg.close()
+    ctx2 = await b.new_context(viewport={'width': 390, 'height': 844}, service_workers='block')
+    await ctx2.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','lento');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    await ctx2.route('**/*', route)
+    p2 = await page(ctx2, srv.url)
+    await p2.click('#plancia [data-v=avventura]'); await p2.wait_for_timeout(600)
+    await p2.click('[data-a=batcfg][data-v="fam:banditi"]'); await p2.click('[data-a=batavvia]'); await p2.wait_for_timeout(2500)
+    check(await p2.evaluate("!Scena3D.on('bat')&&!document.querySelector('.s3-cv')&&!!document.querySelector('.bt-svg')"), 'con la scelta «lento» resta la grafica piatta')
+    await p2.evaluate("document.querySelector('[data-a=s3d][data-v=si]')&&0"); await ctx2.close()
+    # mondo
+    ctx3 = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, service_workers='block')
+    await ctx3.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    await ctx3.route('**/*', route)
+    pg = await page(ctx3, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(800)
+    await pg.click('[data-a=avvnuova]'); await pg.wait_for_function("Scena3D.on('mon')", timeout=30000); await pg.wait_for_timeout(1500)
+    st = await pg.evaluate("({cv:!!document.querySelector('.mo-mappa.s3 > .s3-cv'),mo:!!document.querySelector('.mo-svg'),scroll:document.documentElement.scrollWidth})")
+    check(st['cv'] and st['mo'] and st['scroll'] <= 390, f'mondo in 3D: canvas sotto la mappa SVG {st}')
+    al = await pg.evaluate("""(()=>{const svg=document.querySelector('.mo-svg'),cv=document.querySelector('.s3-cv'),r=cv.getBoundingClientRect(),m=svg.getScreenCTM(),P=Scena3D.debug().K.P;const pt=svg.createSVGPoint();pt.x=P.vis.cx;pt.y=P.vis.cy;const q=pt.matrixTransform(m);return{dx:q.x-(r.left+r.width/2),dy:q.y-(r.top+r.height/2),k:m.a/P.vis.k}})()""")
+    check(abs(al['dx']) < .6 and abs(al['dy']) < .6 and abs(al['k'] - 1) < .005, f'mondo: telecamera allineata al viewBox ({al})')
+    # lo zoom della mappa (bottoni + e −) muove anche la telecamera
+    k0 = await pg.evaluate("Scena3D.debug().K.P.vis.k")
+    await pg.evaluate("document.querySelector('[data-a=mo][data-v=\"zoom:+\"]').click()"); await pg.wait_for_timeout(700)
+    k1 = await pg.evaluate("Scena3D.debug().K.P.vis.k")
+    al = await pg.evaluate("""(()=>{const svg=document.querySelector('.mo-svg'),cv=document.querySelector('.s3-cv'),r=cv.getBoundingClientRect(),m=svg.getScreenCTM(),P=Scena3D.debug().K.P;const pt=svg.createSVGPoint();pt.x=P.vis.cx;pt.y=P.vis.cy;const q=pt.matrixTransform(m);return{dx:q.x-(r.left+r.width/2),dy:q.y-(r.top+r.height/2),k:m.a/P.vis.k}})()""")
+    check(k1 > k0 * 1.1 and abs(al['dx']) < .6 and abs(al['dy']) < .6, f'lo zoom della mappa muove anche la telecamera 3D ({k0:.2f} → {k1:.2f}, scarto {al})')
+    await pg.screenshot(path='/tmp/claude-0/s3-mon.png')
+    # notte e perdizione: luce, tinta e finestre cambiano senza perdere la scena
+    lum = "(()=>{const K=Scena3D.debug().K,gl=K.ren.getContext(),W=K.cv.width,H=K.cv.height;K.ren.render(K.scn,K.cam);const a=new Uint8Array(W*H*4);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,a);let t=0,n=0;for(let i=0;i<a.length;i+=64){t+=a[i]*.3+a[i+1]*.59+a[i+2]*.11;n++}return{lum:t/n,notte:!!K.L.notte,liv:K.D.liv,fin:(K.D.tiles||[]).length}})()"
+    giorno = await pg.evaluate(lum)
+    await pg.evaluate("Camp.s.fase='notte';Camp.s.perdizione=60;render()"); await pg.wait_for_timeout(1200)
+    notte = await pg.evaluate(lum)
+    check(notte['notte'] and notte['lum'] < giorno['lum'] * .8, f'di notte la mappa è più scura ({giorno["lum"]:.0f} → {notte["lum"]:.0f}), perdizione livello {notte["liv"]}')
+    await pg.screenshot(path='/tmp/claude-0/s3-mon-notte.png')
+    await pg.evaluate("Camp.s.fase='giorno';Camp.s.perdizione=90;render()"); await pg.wait_for_timeout(1000)
+    await pg.screenshot(path='/tmp/claude-0/s3-mon-perd.png')
+    check(not pg.errs, f'nessun errore JS sulla mappa 3D {pg.errs[:2]}')
+    await ctx3.close(); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

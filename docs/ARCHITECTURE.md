@@ -140,6 +140,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39e-sessione.css` | 2 |  |
 | `css/39f-tutorial.css` | 1 |  |
 | `css/39g-stanza.css` | 4 |  |
+| `css/39h-scena3d.css` | 1 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -203,6 +204,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28c-avv-audio.js` | 12 | AAUD |
 | `js/motori/28d-avv-tutorial.js` | 6 | ATUT |
 | `js/motori/28e-avv-stanza.js` | 15 | AST |
+| `js/motori/28f-avv-scena.js` | 12 | ASCE |
+| `js/motori/28g-avv-mini.js` | 14 | AMIN |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -291,6 +294,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hk-audio-avv.js` | 2 | AvvAudio |
 | `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
+| `js/app/24hn-scena3d.js` | 22 | Scena3D |
+| `js/app/24ho-scena-fx.js` | 16 |  |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

@@ -54,6 +54,9 @@ Piani e contratti: `docs/AVVENTURA.md` (piano), `AVVENTURA-A4.md` (battaglia), `
 - Scontri: muove chi guida l'eroe di turno, il resto lo gioca l'IA; reazioni automatiche. Chi esce lascia il posto (lo guida chi ospita), chi rientra riprende il suo eroe.
 - Rientro: ciascuno riscuote **solo il proprio eroe** sul proprio profilo (stesse tappe e limiti di prima); la campagna condivisa si salva sul profilo di chi ospita e si può riprendere in compagnia.
 
+## Grafica 3D (A12)
+- Mappa e battaglie hanno una vista 3D low-poly (rilievi, boschi, edifici, miniature, fuoco/veleno/ghiaccio/acqua vivi, giorno/notte, perdizione) sotto l'SVG di sempre: stessi tocchi, stesse etichette. Impostazione «Grafica 3D» nella pagina Avventura: Automatica (prova i fps e torna alla grafica piatta se il telefono è lento), Sempre, No. Con «riduci animazioni» la scena resta ferma. Dettagli tecnici in `docs/AVVENTURA-A12.md`.
+
 ## Riferimento visivo (com'è il genere, da riprodurre nello stile; nessuna immagine copiata)
 - **Mappa del mondo**: esagoni piatti con terreni dai colori pieni e contorno scuro (prateria verde, bosco verde cupo, colli ocra, palude verde-grigio, montagna grigio-blu), nebbia che copre il non esplorato, strade chiare; segnalini degli eroi con ritratto tondo e anello d'ottone. Riferimenti per la lettura: i tavoli di viaggio a esagoni dei giochi di esplorazione cooperativi (percorsi, nebbia, pericolo che avanza) e le mappe di campagna dei giochi di ruolo da tavolo.
 - **Battaglia**: griglia a esagoni vista dall'alto, altezza con rialzi più chiari, ostacoli come sagome a rilievo; sagome dei mostri disegnate da noi, nello stile piatto della mappa. Ordine di iniziativa in alto, azioni in una barra in basso (Attacca, Poteri, Oggetti, Altro), numeri di danno che salgono dal segnalino e colorati per tipo.
