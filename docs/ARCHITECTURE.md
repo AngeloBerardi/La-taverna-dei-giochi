@@ -112,6 +112,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/23-scaffale-scatole.css` | 4 |  |
 | `css/24-gattini.css` | 3 |  |
 | `css/25-catan.css` | 9 |  |
+| `css/25b-coloni-duello.css` | 6 |  |
 | `css/26-fisso.css` | 4 |  |
 | `css/27-pets.css` | 2 |  |
 | `css/28-uno.css` | 4 |  |
@@ -166,6 +167,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/18-catan.js` | 32 | CATAN, RND, clone, EXT, X, XS, RES |
 | `js/motori/18b-catan-marinai.js` | 8 | DIRS, key, dist, split, SC, landOf, tryGen |
 | `js/motori/18c-catan-cek.js` | 21 | K, TR, LV, KN, PC, HAND, F |
+| `js/motori/18d-coloni-duello.js` | 24 | CDUEL, RND, die, clone, shuffle, TY, TN |
 | `js/motori/19-pets.js` | 8 | PETS, RND, clone, COUNTS, NAMES, TARGET, L |
 | `js/motori/20-uno.js` | 10 | UNO, RND, clone, COLORS, col, pts, L |
 | `js/motori/21-trono.js` | 10 | THRONE, RND, clone, TYPES, VAL, NAMES, MANIP |
@@ -203,7 +205,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/01a-vendor.js` | 1 |  |
 | `js/app/01b-icone.js` | 5 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
-| `js/app/03-audio.js` | 20 | Snd |
+| `js/app/03-audio.js` | 21 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 39 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
@@ -211,7 +213,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 8 |  |
-| `js/app/07d-regole.js` | 42 | RULES |
+| `js/app/07d-regole.js` | 44 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -241,6 +243,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22f3-catan-cek.js` | 12 | CTK, cekE, cekKn, cekAct, cekTrack, cekDie, cekCanKnNew |
 | `js/app/22f4-catan-tavolo.js` | 26 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
 | `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
+| `js/app/22f6-coloni-duello.js` | 16 | CDS_SHORT, cduMe, cduCost, cduStat, cduTargets, cduSize, cduBoard |
 | `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanRowsH, fanFit |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
 | `js/app/22i-uno.js` | 10 | UCOL, USVG, USYM, UORD, ucardH, ubackH, uSort |

@@ -1505,6 +1505,50 @@ async def sc_avv_battaglia(b, srv):
     check(not pg.errs, f'nessun errore nella pagina {pg.errs[:2]}')
     await ctx.close()
 
+async def sc_coloni_duello(b, srv):
+    """I Coloni: il Duello: vista a 390 px, nessuno scroll, tocchi sul tavolo (carta e posto, strada, colonia, città, scambio, fine azioni, pesca, scambio di carta)."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("async()=>{await startGame('coloniduello',[{dev:ME.dev,k:'m',name:'Tester'},{dev:'altro',k:'m',name:'Bruno'}]);await Q;await new Promise(r=>setTimeout(r,4200));ui.anim=false;render()}")
+    async def metti(js):
+        # js riceve una copia dello stato (s) e il motore (C): lo modifica, poi si ridisegna
+        await pg.evaluate("async(js)=>{const s=JSON.parse(JSON.stringify(G)),C=CDUEL;(new Function('s','C',js))(s,C);pushState(s);await Q;await new Promise(r=>setTimeout(r,500));ui.anim=false;render()}", js)
+    async def stato(js): return await pg.evaluate(f"(()=>{{const s=G,C=CDUEL;return {js}}})()")
+    base = "s.turn=s.cur=0;s.phase='main';s.pend=[];for(const[,r]of C.regs(s.p[0]))r.r=0;"
+    sx = await pg.evaluate("[document.documentElement.scrollWidth<=innerWidth,!!document.querySelector('.dqb'),document.querySelectorAll('.dqr').length]")
+    check(sx[0] and sx[1] and sx[2] == 12, f'tavolo disegnato senza scroll, 12 regioni ({sx})')
+    await metti(base + "s.hands[0]=['arciere','veggente'];for(const[,r]of C.regs(s.p[0]))if(r.t==='L'||r.t==='N')r.r=1;")
+    await pg.click('.dqc[data-v="0"]'); await pg.wait_for_timeout(200)
+    hot = await pg.evaluate("document.querySelectorAll('.dqslot.dqhot').length")
+    check(hot >= 2, f'una carta da giocare evidenzia i posti liberi ({hot})')
+    await pg.click('.dqslot.dqhot'); await pg.wait_for_timeout(700)
+    check(await stato("s.p[0].cols.some(c=>c.top.includes('arciere')||c.bot.includes('arciere'))&&s.hands[0].length===1"), 'toccando il posto la carta entra in gioco e lascia la mano')
+    await metti(base + "for(const[,r]of C.regs(s.p[0])){if(r.t==='L')r.r=1;if(r.t==='A')r.r=2}")
+    await pg.click('.dqroad.ghost.dqhot'); await pg.wait_for_timeout(700)
+    check(await stato("s.p[0].rl||s.p[0].rr"), 'toccando il lato libero si costruisce la strada')
+    await metti(base + "s.p[0].rr=true;for(const[,r]of C.regs(s.p[0])){if(['L','A','G','N'].includes(r.t))r.r=1}")
+    await pg.click('.dqroad.built.dqhot'); await pg.wait_for_timeout(700)
+    check(await stato("s.p[0].cols.length===3&&s.p[0].rt.length===4"), 'toccando la strada in fondo nasce una colonia con 2 regioni nuove')
+    await metti(base + "for(const[,r]of C.regs(s.p[0])){if(r.t==='R')r.r=3;if(r.t==='G')r.r=2}")
+    await pg.click('.dqs.dqhot'); await pg.wait_for_timeout(700)
+    check(await stato("s.p[0].cols.some(c=>c.c===2)&&C.vp(s,0)===4"), 'toccando una colonia affordable diventa città (4 punti)')
+    big = await pg.evaluate("[document.documentElement.scrollWidth<=innerWidth,document.documentElement.scrollHeight<=innerHeight+2]")
+    check(all(big), f'anche con città il layout resta nello schermo ({big})')
+    await metti(base + "const l=C.regs(s.p[0]).find(x=>x[1].t==='L');l[1].r=3;")
+    await pg.click('[data-a=cdtrm]'); await pg.click('[data-a=cdtr][data-v=L]'); await pg.wait_for_timeout(200)
+    await pg.click('.dqr.dqhot'); await pg.wait_for_timeout(700)
+    check(await stato("C.nres(s.p[0])===1"), 'scambio 3:1: tocco il tipo e poi la regione che riceve')
+    await metti(base + "s.hands[0]=['arciere'];")
+    await pg.click('[data-a=cdfin]'); await pg.wait_for_timeout(500)
+    check(await stato("s.phase==='draw'"), 'fine azioni porta alla pesca')
+    await pg.click('.dqstack:not([disabled])'); await pg.wait_for_timeout(600)
+    check(await stato("s.hands[0].length===2"), 'toccando un mazzo si pesca')
+    await pg.click('.dqstack:not([disabled])'); await pg.wait_for_timeout(600)
+    check(await stato("s.phase==='exch'&&s.hands[0].length===3"), 'raggiunto il limite parte lo scambio facoltativo')
+    await pg.click('[data-a=cdskip]'); await pg.wait_for_timeout(600)
+    check(await stato("s.turn===1&&s.phase==='roll'"), 'saltando lo scambio il turno passa all’avversario')
+    check(not await pg.evaluate("/undefined|NaN/.test(document.body.innerText)"), 'nessun testo vuoto o NaN')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
