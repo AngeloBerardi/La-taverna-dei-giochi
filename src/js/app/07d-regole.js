@@ -33,6 +33,14 @@ const RULES={
 <li><b>Corridoi</b>: per ogni habitat conta il gruppo più grande di tessere collegate da lati dello stesso habitat (1 punto a tessera). Bonus al corridoio più lungo: in 2 giocatori +2 (pari: +1 a testa); in 3–4 +3 al primo e +1 al secondo; in solitario +2 se arriva a 7.</li>
 <li><b>Fine</b>: vince chi ha più punti; in caso di pareggio chi ha più pigne.</li></ul>`,
 
+ coloniduello:`<p>Duello a carte per due. Ognuno costruisce il proprio <b>principato</b>: colonie e strade al centro, <b>regioni</b> sopra e sotto che producono risorse. Vince chi, nel proprio turno, arriva a <b>12 punti</b> (<b>7</b> nella partita breve).</p>
+<ul><li><b>Il principato:</b> 2 colonie, 1 strada e 6 regioni (legno, argilla, grano, lana, roccia, oro), ognuna con un numero da 1 a 6. Una regione tiene da 0 a 3 risorse: oltre il tetto si perde il resto.</li>
+<li><b>Tiro:</b> a inizio turno si tirano il <b>dado numerato</b> (ogni regione con quel numero guadagna 1 risorsa, 2 se accanto alla sua fabbrica) e il <b>dado evento</b>: banditi, commercio, festa, raccolto abbondante o una carta evento.</li>
+<li><b>Banditi:</b> chi ha più di 7 risorse perde quelle di lana e oro (i magazzini le proteggono).</li>
+<li><b>Azioni, in qualsiasi ordine:</b> tocca una strada libera per costruirla (1 legno, 2 argilla); tocca la strada in fondo per fondare una <b>colonia</b> (legno, argilla, grano, lana, +2 regioni); tocca una colonia per farla <b>città</b> (3 roccia, 2 grano); gioca carte dalla mano su un posto libero sopra o sotto una colonia; <b>scambia</b> 3 risorse uguali con 1 a scelta (2 con la nave giusta).</li>
+<li><b>Carte:</b> edifici (abbazia, mercato, sala, magazzino, ponte, fabbriche), navi, eroi (forza, abilità, commercio) e azioni (Veggente prima del tiro, Orafo, Carovana, Trasloco, Cartografo).</li>
+<li><b>Punti:</b> colonia 1, città 2, segno del <b>comando</b> 1 (3 o più punti forza e più dell’avversario), segno del <b>commercio</b> 1 (stessa regola).</li>
+<li><b>Fine turno:</b> si pesca fino al limite (3 carte, +1 per ogni punto progresso), poi, se vuoi, scambi una carta o paghi 2 risorse per guardare un mazzo.</li></ul>`,
  perudo:`<p>Gioco di bluff con i dadi (tradizione peruviana). Ognuno ha un <b>bicchiere con 5 dadi</b> che solo lui vede. Vince l’ultimo giocatore che ha ancora dei dadi.</p>
 <ul><li><b>Dichiarare:</b> a turno si dichiara quanti dadi di un certo valore ci sono <b>in tutto il tavolo</b>, dadi di tutti compresi (es. “4 × Tre”). Chi apre sceglie liberamente.</li>
 <li><b>Rilanciare:</b> si dichiara più dadi dello stesso valore, oppure lo stesso numero di dadi ma un valore più alto.</li>
