@@ -17,6 +17,7 @@ const CAMP=(()=>{
  const MON=typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js');
  const LU=typeof ALUO!=='undefined'?ALUO:require('./27n-avv-luoghi.js');
  const MOS=typeof AMOS!=='undefined'?AMOS:require('./27o-avv-mostri.js');
+ const DIF=typeof ADIF!=='undefined'?ADIF:require('./27ha-avv-difficolta.js');
  const {TERRENI,K,dist,vicini,DIREZIONI,mulberry,celleRaggio,passabile,percorso}=MON;
  const MAX_EROI=4,PASSI=['citta','antro','torre'],NOME_POI=Object.fromEntries(Object.entries(MON.TIPI).map(([k,v])=>[k,v.n]));
  // numeri della campagna in un solo posto (il bilanciamento fine è di A12)
@@ -74,7 +75,7 @@ const CAMP=(()=>{
   for(const e of s.eroi){e.brevi=0;e.pm=null;
    if(cura!=null){if(e.hp>0)e.hp=cura>=1?e.hpMax:Math.min(e.hpMax,e.hp+Math.max(1,Math.floor(e.hpMax*cura)));AP.riposo(e,'lungo')}
    else{if(e.hp>0)e.hp=Math.min(e.hpMax,e.hp+Math.max(1,Math.floor(e.hpMax*LU.NATURALE)));AP.riposo(e,'breve')}}
-  perd(s,PARAM.alba,rnd);L(s,'Giorno '+s.giorno+'. La perdizione sale a '+s.perdizione+'.');
+  perd(s,DIF.di(s.diff).perdizione,rnd);L(s,'Giorno '+s.giorno+'. La perdizione sale a '+s.perdizione+'.');
   if(!s.over){MOS.rinasci(s,rnd);rinnovaTaglie(s)}}
  function rinnovaTaglie(s){for(const l of Object.values(s.luoghi)){if(!LU.SERVIZI[l.tipo].includes('bacheca'))continue;
   l.taglie=(l.taglie||[]).filter(t=>t.riscossa?false:s.mostri.some(m=>m.id===t.mostro)||s.sconfitti.includes(t.mostro));
@@ -95,7 +96,7 @@ const CAMP=(()=>{
  function battaglia(s){const f=s.sfida;if(!f)return null;
   return SC.daCampagna({eroi:f.quali.map(i=>s.eroi[i]),seed:s.seed,evn:s.evn,giorno:s.giorno},{nemici:f.nemici,ambiente:f.ambiente,seme:f.seme,dist:f.dist,sorpresa:f.sorpresa||undefined})}
  function esito(s,a,rnd){const f=s.sfida;if(!f)return{err:'Nessuna battaglia in corso'};const riep=a.riep;if(!riep||riep.esito==null)return{err:'La battaglia non è finita'};
-  const r=SC.aggiorna({eroi:f.quali.map(i=>s.eroi[i])},riep);if(r.err)return{err:r.err};
+  const r=SC.aggiorna({eroi:f.quali.map(i=>s.eroi[i])},DIF.scalaXp(riep,s));if(r.err)return{err:r.err};
   f.quali.forEach((i,k)=>{s.eroi[i]=r.s.eroi[k]});const m=s.mostri.find(x=>x.id===f.mostro),sott=f.luogo?s.sotterranei[f.luogo]:null,pos={q:f.q,r:f.r};
   if(!vivi(s).length){s.over={win:false,reason:'Tutti gli eroi sono caduti'};s.sfida=null;return{}}
   if(riep.esito==='vittoria'){
@@ -179,7 +180,7 @@ const CAMP=(()=>{
  function avanza(s,rnd){const sott=sottQui(s);if(!sott)return{err:'Non sei in un sotterraneo'};const l=s.luoghi[s.dentro],st=sott.stanze[sott.stanza],v=vivi(s);if(!st)return{err:'Il sotterraneo è finito'};
   passaGiro(s,rnd,true);if(s.over)return{};
   const fam=l.fam||LU.FAMIGLIA_SOTT[l.tipo],liv=Math.min(8,MOS.livelloMedio(s)+(st.diff==='difficile'?1:0)+LU.EFFETTI[LU.livelloPerdizione(s.perdizione)].mostri),n=Math.min(4,v.length),pos={q:l.q,r:l.r};
-  if(st.k==='battaglia'||st.k==='boss'){const nem=SC.incontro(fam,liv,n,st.k==='boss'?dettaglioBoss(fam,MOS.livelloMedio(s)):st.diff||'medio',seme32(rnd)).nemici;
+  if(st.k==='battaglia'||st.k==='boss'){const nem=SC.incontro(fam,liv,n,st.k==='boss'?dettaglioBoss(fam,MOS.livelloMedio(s)):st.diff||'medio',seme32(rnd),DIF.gruppi(s)).nemici;
    s.sfida={k:'battaglia',mostro:null,luogo:l.id,stanza:sott.stanza,nemici:nem,ambiente:LU.AMBIENTE_SOTT[l.tipo],seme:seme32(rnd),quali:s.eroi.map((e,i)=>e.hp>0?i:-1).filter(i=>i>=0),dist:{},sorpresa:null,q:l.q,r:l.r};
    L(s,LU.testoStanza(st,l.tipo));return{}}
   if(st.k==='trappola'){s.incontro={kind:'trappola',cd:st.cd+Math.floor(s.perdizione/15),testo:st.testo,ab:st.ab.slice(),dan:st.dan,stanza:true,q:l.q,r:l.r};L(s,st.testo);return{}}
@@ -229,17 +230,17 @@ const CAMP=(()=>{
   if(s.incontro){if(s.incontro.multi)s.incontro=null;else{s.incontro.q=part.q;s.incontro.r=part.r}}
   s.v=3;s.raggio=s.raggio||6;sincronizza(s);MOS.rinasci(s,DAD.gen(s))}
  // porta uno stato salvato alla versione corrente (restituisce una copia; uno stato già v3 resta com'è)
- function migra(st){const s=copia(st);if(!(s.v>=2&&Number.isInteger(s.rng)))vecchio(s);if(s.v<3)aV3(s);return inventario(s)}
+ function migra(st){const s=copia(st);if(!(s.v>=2&&Number.isInteger(s.rng)))vecchio(s);if(s.v<3)aV3(s);s.diff=DIF.valida(s.diff);return inventario(s)}
  // la scheda di un eroe (dell'account o compagno) com'è in campagna; `pos` = dove si trova (all'inizio la partenza)
  function eroeNuovo(h,i,pos){const d=EROI.derivati(h),p=pos||{q:0,r:0};
   return{slot:h.slot||'e'+((i|0)+1),nome:h.nome,razza:h.razza,classe:h.classe,aspetto:h.aspetto,liv:h.liv,xp:h.xp,hp:h.hp,hpMax:h.hpMax,ca:d.ca,mov:d.mov,base:h.base,oro:h.oro||0,equip:{...(h.equip||{})},zaino:[...(h.zaino||[])],cintura:[...(h.cintura||[])],q:p.q,r:p.r,pm:null,brevi:0,...(h.compagno?{compagno:h.compagno}:{}),...poteri(h)}}
  // ---- nuova campagna ----
- // opts: { raggio, regioni, luoghi, conta, mercanti (dal capitolo, A8), titolo, passi (id dei luoghi della missione) }
+ // opts: { raggio, regioni, luoghi, conta, mercanti (dal capitolo, A8), titolo, passi (id dei luoghi della missione), difficolta ('racconto'|'normale'|'eroica', 27ha) }
  function nuova(eroi,seed,opts){
   opts=opts||{};if(!eroi||eroi.length<1||eroi.length>MAX_EROI)throw new Error('servono da 1 a '+MAX_EROI+' eroi');
   const mondo=MON.genera(seed>>>0,{raggio:opts.raggio,regioni:opts.regioni,luoghi:opts.luoghi,conta:opts.conta,mercanti:opts.mercanti,partenza:opts.partenza});
   const tipo=t=>Object.values(mondo.luoghi).find(l=>l.tipo===t&&!l.partenza),passi=opts.passi||PASSI.map(t=>(tipo(t)||{id:t}).id);
-  const s={v:3,g:'campagna',seed:seed>>>0,rng:DAD.semina(seed),n:eroi.length,raggio:mondo.raggio,celle:mondo.celle,regioni:mondo.regioni,luoghi:mondo.luoghi,mercanti:mondo.mercanti,giorno:1,round:1,fase:'giorno',turno:0,
+  const s={v:3,g:'campagna',diff:DIF.valida(opts.difficolta),seed:seed>>>0,rng:DAD.semina(seed),n:eroi.length,raggio:mondo.raggio,celle:mondo.celle,regioni:mondo.regioni,luoghi:mondo.luoghi,mercanti:mondo.mercanti,giorno:1,round:1,fase:'giorno',turno:0,
    eroi:eroi.map((h,i)=>eroeNuovo(h,i)),
    party:{q:0,r:0},perdizione:0,sbarrate:false,oro:eroi.reduce((a,h)=>a+(h.oro||0),0),missione:{titolo:opts.titolo||'La Torre dei Corvi',passo:0,passi},incontro:null,sfida:null,evento:null,dentro:null,sotterranei:{},mostri:[],proxMostro:0,sconfitti:[],log:[],over:null,evn:0,negozi:{}};
   const rnd=DAD.gen(s);MOS.rinasci(s,rnd);rinnovaTaglie(s);L(s,'La compagnia lascia il villaggio. Giorno 1.');return s}

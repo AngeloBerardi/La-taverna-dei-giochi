@@ -3,7 +3,7 @@
 .tut{position:absolute;z-index:3;padding:10px 12px;color:#f3e6c8;text-align:left;background:linear-gradient(180deg,#4a3220,#2b1b0f);border:2px solid #c9a24a;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.6);cursor:default}
 .tut>b{display:block;font:700 15px/1.2 var(--f-d,var(--f-b));letter-spacing:.02em;color:#f0c866}
 .tut>p{margin:4px 0 8px;font:500 13.5px/1.4 var(--f-b)}
-.tut-bt{display:flex;flex-wrap:wrap;gap:8px}.tut-bt .b{min-height:40px}
+.tut-bt{display:flex;flex-wrap:wrap;gap:8px}.tut-bt .b,.tut-bt .b.sm{min-height:44px}
 .mo-mappa>.tut{left:8px;right:60px;top:72px}
 .bt-mappa>.tut{left:8px;right:56px;top:92px}   /* sotto il registro (alto) e lontano dal testo di anteprima in basso */
 .dl>.tut{left:12px;right:12px;top:calc(60px + env(safe-area-inset-top,0px))}

@@ -1,5 +1,6 @@
 /* Avventura (app/24ha-avventura.js): pagina della barra in basso. Prefisso av-. Superfici con color-mix(currentColor): valgono su ogni tema */
 .av{display:flex;flex-direction:column;gap:10px}
+.av .b.sm{min-height:44px}   /* A13: bersagli da 44 px anche per i bottoni piccoli della pagina */
 .av h2 .info{vertical-align:2px}
 .av-card{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;text-align:left;color:inherit;font:inherit;cursor:pointer;border:2px solid var(--gold2);background:linear-gradient(180deg,color-mix(in srgb,var(--gold2) 22%,transparent),color-mix(in srgb,var(--gold2) 8%,transparent))}
 .av-card:active{transform:translateY(1px)}

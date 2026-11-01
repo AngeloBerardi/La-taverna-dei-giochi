@@ -5,7 +5,7 @@
    Un solo comando: data-a="ses" data-v="verbo:argomento". Stile: css/39e-sessione.css (prefisso se-). Piano: docs/AVVENTURA-A9.md. */
 const Ses={
  CAP:'corona',SLOT:['a1','a2','a3'],
- a:null,cap:null,slot:null,dia:false,vista:null,righe:[],riep:null,msg:'',occ:false,ult:0,tm:null,pend:null,elenco:{},nuova:null,sel:[],ri:null,conf:null,
+ a:null,cap:null,slot:null,dia:false,vista:null,righe:[],riep:null,msg:'',occ:false,ult:0,tm:null,pend:null,elenco:{},nuova:null,sel:[],diff:ADIF.valida((()=>{try{return localStorage.getItem('avv-diff')}catch(e){return null}})()),ri:null,conf:null,
  // ---- il capitolo ----
  async carica(id){id=id||Ses.CAP;if(Ses.cap&&Ses.cap.id===id)return Ses.cap;const i=Dia.INDICE[id];if(!i)throw new Error('capitolo mancante');
   const r=await fetch(i.url);if(!r.ok)throw new Error('capitolo non scaricato');return Ses.cap=await r.json()},
@@ -30,7 +30,7 @@ const Ses={
    if(!eroi.length){Ses.msg='Scegli almeno un eroe.';return}
    await Ses.carica();if(Ses.elenco[slot]&&Ses.elenco[slot].remoto)await FB.eliminaAvventura(slot).catch(e=>ERR.n(e,'posto avventura'));Ses.togliLocale(slot);Ses.pend=null;Ses.ult=0;   // una creazione non ha attesa: le regole contano i 10 secondi solo tra due aggiornamenti
    const seme=(Date.now()^(Math.random()*4294967296))>>>0;   // il seme casuale nasce qui, nella vista: i motori non lanciano dadi da soli
-   Ses.a=AVV.nuova(Ses.cap,eroi,seme);Ses.slot=slot;Ses.nuova=null;Ses.avvia(true)}
+   Ses.a=AVV.nuova(Ses.cap,eroi,seme,{difficolta:Ses.diff});Ses.slot=slot;Ses.nuova=null;Ses.avvia(true)}
   catch(e){ERR.n(e);Ses.msg='Non riesco a partire: riprova.'}
   finally{Ses.occ=false;render()}},
  async apri(slot){if(Ses.occ)return;Ses.occ=true;Ses.msg='';render();
@@ -129,14 +129,19 @@ ${ap.length?`<div class="sh2">Appunti</div><div class="mo-log">${ap.slice(-6).re
   if(!ids.length)return`<div class="av-card se-slot nuovo"><div class="av-tx"><b>Nuova campagna</b><small>Prima crea un eroe da «Gestisci gli eroi».</small></div><div class="se-bt"><button class="b" data-a="ses" data-v="annulla">Chiudi</button></div></div>`;
   return`<div class="av-card se-slot nuovo"><div class="av-tx"><b>Nuova campagna</b><small>Scegli fino a ${CAMP.MAX_EROI} eroi; i compagni della storia si uniscono lungo la strada.</small></div>
 <div class="se-eroi">${ids.map(id=>{const h=L[id],on=Ses.sel.includes(id);return`<button class="se-er${on?' on':''}" data-a="ses" data-v="scegli:${id}" aria-pressed="${on}">${Ses.portrait(h,44)}<b>${esc(h.nome)}</b><small>${esc(EROI.CLASSI[h.classe].nome)} ${h.liv}</small></button>`}).join('')}</div>
+${Ses.diffH()}
 <div class="se-bt"><button class="b gold" data-a="ses" data-v="parti"${Ses.sel.length&&!Ses.occ?'':' disabled'}>${ic('spada',16)} Parti</button><button class="b" data-a="ses" data-v="annulla">Annulla</button></div></div>`},
+ // la difficoltà di un salvataggio sta nello stato (`camp.diff`), non nel riepilogo del posto (le regole di Firestore ammettono solo le chiavi note): si legge una volta per versione
+ diffDi(d){try{const k=(d.evn|0)+':'+(d.dati||'').length;Ses.dc=Ses.dc||{};if(!(k in Ses.dc))Ses.dc[k]=ADIF.valida((JSON.parse(d.dati).camp||{}).diff);return Ses.dc[k]}catch(e){return'normale'}},
+ // difficoltà: tre pulsanti a scelta unica (radio) e la descrizione di quella scelta; vive in `ADIF` (27ha)
+ diffH(){const d=ADIF.di(Ses.diff);return`<div class="se-diff" role="radiogroup" aria-label="Difficoltà">${ADIF.ID.map(id=>`<button class="se-df${id===d.id?' on':''}" role="radio" aria-checked="${id===d.id}" data-a="ses" data-v="diff:${id}"><b>${esc(ADIF.D[id].nome)}</b><small>${esc(ADIF.D[id].breve)}</small></button>`).join('')}</div><small class="muted se-dd" role="status">${esc(d.desc)}</small>`},
  sezioneH(){if(!Avv.online()||!Dia.INDICE[Ses.CAP])return'';const i=Dia.INDICE[Ses.CAP],E=Ses.elenco;
   let h=`<div class="sh2">${esc(i.titolo)} ${infoH('Tre posti per tre campagne. Ogni sessione si salva da sola, sul telefono e sul tuo profilo; quando concludi, esperienza, monete e oggetti tornano ai tuoi eroi.')}</div>`;
   for(const s of Ses.SLOT){const e=E[s];
    if(Ses.nuova===s){h+=Ses.sceltaH(s);continue}
    if(!e){h+=`<button class="av-card se-slot vuoto" data-a="ses" data-v="nuova:${s}"><span class="av-tx"><b>Posto libero</b><small>Comincia un nuovo cantare</small></span><span class="av-go">Nuova</span></button>`;continue}
    const d=e.sal,fin=d.fine,viti=Array.from({length:d.viteMax||3},(_,k)=>`<i class="${k<d.vite?'':'vuota'}">${ic('cuore',12)}</i>`).join('');
-   h+=`<div class="av-card se-slot"><button class="se-go" data-a="ses" data-v="apri:${s}" ${Ses.occ?'disabled':''}><span class="av-tx"><b>${esc((d.eroi||[]).map(x=>x.nome).join(', ')||'Compagnia')}</b><small>${fin?(/^finale/.test(fin)?'Concluso':'Perduto'):'Giorno '+d.giorno+' · cantare '+((d.sessioni|0)+1)}${e.remoto&&!e.locale?' · dal profilo':''}</small></span><span class="se-vite">${viti}</span><span class="av-go">${fin?'Rivedi':'Continua'}</span></button>
+   h+=`<div class="av-card se-slot"><button class="se-go" data-a="ses" data-v="apri:${s}" ${Ses.occ?'disabled':''}><span class="av-tx"><b>${esc((d.eroi||[]).map(x=>x.nome).join(', ')||'Compagnia')}</b><small>${fin?(/^finale/.test(fin)?'Concluso':'Perduto'):'Giorno '+d.giorno+' · cantare '+((d.sessioni|0)+1)}${Ses.diffDi(d)!=='normale'?' · '+esc(ADIF.di(Ses.diffDi(d)).nome):''}${e.remoto&&!e.locale?' · dal profilo':''}</small></span><span class="se-vite">${viti}</span><span class="av-go">${fin?'Rivedi':'Continua'}</span></button>
 ${Ses.conf===s?`<div class="se-bt"><small>Eliminare questa campagna?</small><button class="b sm" data-a="ses" data-v="elimina2:${s}">Elimina</button><button class="b sm" data-a="ses" data-v="annulla">No</button></div>`:`<button class="se-x" data-a="ses" data-v="elimina:${s}" aria-label="Elimina la campagna">${ic('x',14)}</button>`}</div>`}
   return h+(Ses.msg?`<small class="no" role="status">${esc(Ses.msg)}</small>`:'')},
  // ---- fogli sopra la mappa: sconfitta, fine sessione, fine del capitolo ----
@@ -154,6 +159,7 @@ ${Ses.conf===s?`<div class="se-bt"><small>Eliminare questa campagna?</small><but
  act(a,v){if(a!=='ses')return;const i=String(v).indexOf(':'),verbo=i<0?String(v):String(v).slice(0,i),arg=i<0?'':String(v).slice(i+1);
   switch(verbo){
    case'nuova':{Ses.nuova=arg;Ses.msg='';Ses.conf=null;Ses.sel=EROI.SLOT_ID.filter(id=>(Eroi.lista||{})[id]).slice(0,CAMP.MAX_EROI);return render()}
+   case'diff':{Ses.diff=ADIF.valida(arg);try{localStorage.setItem('avv-diff',Ses.diff)}catch(e){}return render()}
    case'scegli':{const k=Ses.sel.indexOf(arg);if(k>=0)Ses.sel.splice(k,1);else if(Ses.sel.length<CAMP.MAX_EROI)Ses.sel.push(arg);return render()}
    case'annulla':Ses.nuova=null;Ses.conf=null;return render();
    case'parti':return Ses.parti();

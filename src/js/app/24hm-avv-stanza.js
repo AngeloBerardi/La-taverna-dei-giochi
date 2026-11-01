@@ -21,7 +21,7 @@ const AvvStanza={
   AvvStanza.pre={seme,rip:AvvStanza.rip,posti:S.map(x=>{const io=x.dev===ME.dev&&x.k==='m';return{nome:x.name,uid:x.uid||null,ospite:x.k!=='m',eroe:io&&h?JSON.parse(JSON.stringify(h)):null,slot:io?slot:null}})}},
  nuova(n,names,o){const p=AvvStanza.pre;AvvStanza.pre=null;AvvStanza.rip=null;if(!p||!Ses.cap)throw new Error('Cantari di Ventura: capitolo non pronto');
   if(p.rip){const r=AST.apri(p.rip,p.posti);if(r.err)throw new Error(r.err);return r.s}
-  return AST.nuova(Ses.cap,p.posti,p.seme,{})},
+  return AST.nuova(Ses.cap,p.posti,p.seme,{difficolta:Ses.diff})},
  // ---- mosse ----
  // La mossa si calcola qui (la vista ha subito la risposta o l'errore), poi parte come per ogni gioco di stanza (SYNC.mossa: atomica, `rev`); se un altro telefono è passato prima ci si riallinea.
  manda(a){if(!AvvStanza.on())return{err:'Nessuna partita'};if(ui.tv)return{err:'La TV guarda soltanto'};const seat=viewer();if(seat<0)return{err:'Non sei seduto a questo tavolo'};a.seat=seat;let r;

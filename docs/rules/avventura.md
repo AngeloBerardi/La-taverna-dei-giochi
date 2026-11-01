@@ -37,8 +37,19 @@ Piani e contratti: `docs/AVVENTURA.md` (piano), `AVVENTURA-A4.md` (battaglia), `
 - **Poteri** di classe e di razza, **talenti**, **oggetti** e **stati** (in fiamme, avvelenato, stordito…). Le **reazioni** difensive (scudo, parata, ritiro) si chiedono quando servono; l'attacco di opportunità parte da solo.
 - Chi è **a terra** non si attacca e conta come fuori. **Fuga**: dall'uscita sul bordo, oppure di gruppo (prova: basta che riesca metà). Un mostro ferito a ≤ 25% può **arrendersi**. Oltre 40 giri la battaglia finisce in stallo.
 
+## Difficoltà (A13)
+Si sceglie alla partenza e vive nello stato (`camp.diff`); i salvataggi vecchi giocano a Normale. Quattro leve (tabella `ADIF`, `motori/27ha-avv-difficolta.js`):
+| | Racconto | Normale | Eroica |
+|---|---|---|---|
+| Budget dei gruppi nemici (sul mondo, nei sotterranei e negli scontri del racconto) | ×0,6 | ×0,75 | ×0,85 |
+| Vite | 6 | 4 | 3 |
+| Perdizione per alba | 2 | 3 | 4 |
+| Esperienza degli scontri | ×1,25 | ×1 | ×1 |
+| Sconfitta: PF al risveglio · oro perso · perdizione | 75% · ¼ · +5 | 50% · ½ · +10 | 50% · ½ · +10 |
+Misure con il bot (compagnia guerriero+mago+chierico+ladro): Racconto ~90% delle campagne finite, Normale ~55–70%, Eroica ~25%. Dettagli e per composizione: `docs/AVVENTURA-A13.md`.
+
 ## Vite di gruppo, fine
-- La compagnia ha **3 vite** in comune. **Sconfitta** (tutti gli eroi a terra o fuggiti): −1 vita, risveglio nell'**ultima città** visitata, tutti a metà PF, **metà dell'oro perso**, **perdizione +10**. **Fuga**: nessuna vita persa, perdizione +1.
+- La compagnia ha **4 vite** in comune a Normale (Racconto 6, Eroica 3; vedi «Difficoltà»). **Sconfitta** (tutti gli eroi a terra o fuggiti): −1 vita, risveglio nell'**ultima città** visitata, tutti a metà PF, **metà dell'oro perso**, **perdizione +10**. **Fuga**: nessuna vita persa, perdizione +1.
 - A **zero vite** la campagna è persa: gli eroi dell'account restano come sono e l'esperienza maturata torna comunque; niente monete in premio né compagni sbloccati.
 - Il capitolo si vince portando a termine la sua storia («La Corona Spezzata»: il re è scomparso e i pezzi della corona sono sparsi in tre regioni); il diario dice sempre dove andare. La campagna libera ha una missione sola: ascoltare chi comanda in città, ripulire l'antro, abbattere la Torre dei Corvi.
 

@@ -35,9 +35,9 @@ const AST=(()=>{
  // `posti[i].slot` ricorda il posto originale sull'account di ciascuno, per il rientro.
  function nuova(cap,posti,seme,opz){opz=opz||{};if(!Array.isArray(posti)||posti.length<1||posti.length>MAX)throw new Error('servono da 1 a '+MAX+' posti');
   const eroi=posti.map((p,i)=>{const h=p.eroe&&ER.coerente(p.eroe)?copia(p.eroe):eroeProva(i,p.nome);return Object.assign(h,{slot:'p'+i})});
-  const av=AV.nuova(cap,eroi,seme,{avvio:opz.avvio!==false});
+  const av=AV.nuova(cap,eroi,seme,{avvio:opz.avvio!==false,difficolta:opz.difficolta});
   return{g:'avventura',v:VERSIONE,sim:true,n:posti.length,names:posti.map((p,i)=>p.nome||eroi[i].nome),cur:0,ev:[],evn:0,over:null,
-   posti:posti.map((p,i)=>({nome:p.nome||eroi[i].nome,uid:p.uid||null,slot:p.eroe&&p.slot?p.slot:null,eroe:i,qui:true,ospite:!!p.ospite})),av,lotta:null,film:null,voto:null,riep:null,pre:{seme,eroi}}}
+   posti:posti.map((p,i)=>({nome:p.nome||eroi[i].nome,uid:p.uid||null,slot:p.eroe&&p.slot?p.slot:null,eroe:i,qui:true,ospite:!!p.ospite})),av,lotta:null,film:null,voto:null,riep:null,pre:{seme,eroi,difficolta:av.camp.diff}}}
  // riprende una campagna salvata (da `salva`/AVV.salva): i posti prendono gli eroi dei giocatori nell'ordine del salvataggio; quelli senza posto li guida chi ospita
  function apri(sal,posti){const r=AV.apri(sal&&sal.av?sal.av:sal);if(r.err)return r;const av=r.s,gioc=av.camp.eroi.map((e,i)=>({e,i})).filter(x=>!x.e.compagno);
   if(!Array.isArray(posti)||!posti.length)return{err:'Serve almeno un posto'};if(posti.length>gioc.length)return{err:'La campagna salvata ha '+gioc.length+(gioc.length===1?' eroe':' eroi')+': servono al massimo altrettanti posti'};
@@ -96,7 +96,7 @@ const AST=(()=>{
    // prima della prima mossa ognuno porta il proprio eroe dal suo account (la sessione si ricostruisce dallo stesso seme: ancora nessuna scelta da perdere)
    case'eroe':{if(!s.pre)return{err:'La compagnia è già partita: gli eroi non si cambiano'};if(!a.scheda||!ER.coerente(a.scheda))return{err:'Scheda dell\'eroe non valida'};
     if(!cap)return{err:'Capitolo mancante'};const p=s.posti[seat];s.pre.eroi[p.eroe]=Object.assign(copia(a.scheda),{slot:'p'+p.eroe});p.slot=a.slot?String(a.slot).slice(0,12):null;
-    s.av=AV.nuova(cap,s.pre.eroi,s.pre.seme,{avvio:true});return fine(s,righe)}
+    s.av=AV.nuova(cap,s.pre.eroi,s.pre.seme,{avvio:true,difficolta:s.pre.difficolta});return fine(s,righe)}
    case'av':{const az=a.az||{};if(a.base!=null&&a.base!==s.av.evn)return{err:STANTIO};
     if(s.lotta)return{err:'Prima va combattuta la battaglia'};
     const no=permessoAv(s,az,seat);if(no)return{err:no};

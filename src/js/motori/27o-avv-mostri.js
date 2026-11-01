@@ -6,6 +6,7 @@
 const AMOS=(()=>{
  const MON=typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js');
  const LU=typeof ALUO!=='undefined'?ALUO:require('./27n-avv-luoghi.js');
+ const DIF=typeof ADIF!=='undefined'?ADIF:require('./27ha-avv-difficolta.js');
  const SC=typeof ASCO!=='undefined'?ASCO:require('./27i-avv-scontro.js');
  const K=MON.K,dist=MON.dist;
  const VISTA=3,AIUTO=3,BASE=5,MAX_GRUPPI=8,DISTANZA_NASCITA=5;
@@ -27,11 +28,11 @@ const AMOS=(()=>{
   if(!cs.length)return null;const c=cs[Math.floor(rnd()*cs.length)],fam=o.fam||(regioni[c.reg==null?reg:c.reg]||regioni[0]).fam;
   const n=(s.proxMostro=(s.proxMostro||0)+1),r2=rnd(),diff=o.diff||(r2<.2?'facile':r2>.85?'difficile':'medio'),liv=Math.max(1,Math.min(8,o.liv!=null?o.liv:livelloMedio(s)+(c.reg===2?1:0)));
   const g={id:'m'+n,fam,liv,diff,seme:seme32(rnd),ids:[],q:c.q,r:c.r,stato:o.stato||'vaga',pausa:0};if(o.assedio)g.assedio=o.assedio;
-  g.ids=SC.incontro(fam,liv,Math.max(1,Math.min(4,s.eroi.length)),diff,g.seme).nemici;s.mostri.push(g);return g}
+  g.ids=SC.incontro(fam,liv,Math.max(1,Math.min(4,s.eroi.length)),diff,g.seme,DIF.gruppi(s)).nemici;s.mostri.push(g);return g}
  // riporta il numero dei gruppi all'obiettivo (alba, soglie di perdizione); gli assedianti non contano
  function rinasci(s,rnd){let n=0;const liberi=()=>s.mostri.filter(m=>!m.assedio).length;while(liberi()<Math.min(MAX_GRUPPI,obiettivo(s))&&n<12){if(!nuovoGruppo(s,rnd))break;n++}return n}
  // composizione al contatto: i mostri del bestiario, secondo il livello di oggi e il numero di eroi che entrano
- function composizione(s,m,nEroi){const liv=Math.max(1,Math.min(8,m.liv+bonusLivello(s)));return SC.incontro(m.fam,liv,Math.max(1,Math.min(4,nEroi)),m.diff,m.seme)}
+ function composizione(s,m,nEroi){const liv=Math.max(1,Math.min(8,m.liv+bonusLivello(s)));return SC.incontro(m.fam,liv,Math.max(1,Math.min(4,nEroi)),m.diff,m.seme,DIF.gruppi(s))}
  const vicinoA=(s,m,r)=>bersagli(s).some(e=>dist(e,m)<=r);
  // un passo verso (o via da) un punto: tra i vicini liberi il più vicino, a parità un po' di caso
  function passoVerso(s,m,t,rnd,occ){let best=null,bd=dist(m,t);const v=MON.vicini(m.q,m.r).filter(n=>libera(s,n.q,n.r,occ));

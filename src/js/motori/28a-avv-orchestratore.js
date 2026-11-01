@@ -11,6 +11,7 @@ const AVV=(()=>{
  const CM=typeof ACMP!=='undefined'?ACMP:require('./27p-avv-compagni.js');
  const EV=typeof AEVE!=='undefined'?AEVE:require('./27r-avv-eventi.js');
  const SC=typeof ASCO!=='undefined'?ASCO:require('./27i-avv-scontro.js');
+ const DIF=typeof ADIF!=='undefined'?ADIF:require('./27ha-avv-difficolta.js');
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const MOS=typeof AMOS!=='undefined'?AMOS:require('./27o-avv-mostri.js');
  const LU=typeof ALUO!=='undefined'?ALUO:require('./27n-avv-luoghi.js');
@@ -75,9 +76,9 @@ const AVV=(()=>{
  // ---- nuova campagna ----
  // eroi: schede dell'account ({…, slot}); seme: numero; opz.avvio=false non fa partire il prologo
  function nuova(cap,eroi,seme,opz){opz=opz||{};const w=cap.mondo||{};
-  const camp=CP.nuova(eroi,seme,{regioni:w.regioni,luoghi:w.luoghi,conta:w.conta,partenza:w.partenza,mercanti:w.mercanti,raggio:w.raggio,titolo:cap.titolo});
+  const camp=CP.nuova(eroi,seme,{difficolta:opz.difficolta,regioni:w.regioni,luoghi:w.luoghi,conta:w.conta,partenza:w.partenza,mercanti:w.mercanti,raggio:w.raggio,titolo:cap.titolo});
   const par=Object.values(camp.luoghi).find(l=>l.partenza)||Object.values(camp.luoghi)[0];
-  const s={v:VERSIONE,g:'avventura',cap:cap.id,seme:seme>>>0,rng:DAD.semina((seme>>>0)+7),evn:0,camp,racc:RA.nuovo(cap.id,seme),bat:null,vite:PARAM.vite,viteMax:PARAM.vite,ultimaCitta:par?par.id:null,fase:'mappa',
+  const s={v:VERSIONE,g:'avventura',cap:cap.id,seme:seme>>>0,rng:DAD.semina((seme>>>0)+7),evn:0,camp,racc:RA.nuovo(cap.id,seme),bat:null,vite:DIF.di(camp.diff).vite,viteMax:DIF.di(camp.diff).vite,ultimaCitta:par?par.id:null,fase:'mappa',
    strada:{usati:[]},gen:[],conto:{iniziale:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:e.xp|0,liv:e.liv}])),oroIniziale:camp.oro,accreditato:Object.fromEntries(camp.eroi.map(e=>[e.slot,{xp:0,oro:0}]))},
    sessione:null,fine:null,log:[]};
   s.sessione=nuovaSessione(s);
@@ -116,7 +117,7 @@ const AVV=(()=>{
  // ---- battaglie del racconto ----
  function preparaBat(s,f){const c=s.camp,v=c.eroi.map((e,i)=>e.hp>0?i:-1).filter(i=>i>=0).slice(0,SC.MAX_EROI||4),fam=f.fam||(BE.M[f.capo]||{}).fam;
   if(!fam||!v.length)throw new Error('battaglia non preparabile: '+JSON.stringify(f));
-  const g=DAD.gen(s),liv=Math.min(8,MOS.livelloMedio(c)),inc=SC.incontro(fam,liv,v.length,f.diff||'medio',seme32(g));
+  const g=DAD.gen(s),liv=Math.min(8,MOS.livelloMedio(c)),inc=SC.incontro(fam,liv,v.length,f.diff||'medio',seme32(g),DIF.gruppi(c));
   s.bat={k:'racconto',nemici:inc.nemici,ambiente:f.arena||null,seme:seme32(g),sorpresa:f.sorpresa||null,quali:v,dist:{},capo:f.capo||null}}
  // la battaglia pronta da giocare: di CAMP (mostro sulla mappa, stanza di un sotterraneo) o chiesta dal racconto
  function battaglia(s){if(s.camp.sfida)return CP.battaglia(s.camp);const b=s.bat;if(!b)return null;
@@ -139,7 +140,7 @@ const AVV=(()=>{
  function sconfitta(s,cap,righe){s.sessione.sconfitte++;s.vite=Math.max(0,s.vite-1);s.bat=null;s.racc.scena=null;
   if(s.camp.over&&!s.camp.over.win&&s.camp.perdizione<100)s.camp.over=null;
   if(s.vite<=0){s.fine={esito:'persa',vinta:false,titolo:'La compagnia è perduta',testo:'Le vite sono finite. Gli eroi tornano alla Taverna con ciò che hanno imparato.',sbloccati:[],monete:0,vite:0,giorni:s.camp.giorno};righe.push('Le vite sono finite.');return}
-  const r=CP.risveglio(s.camp,s.ultimaCitta,null,{pf:PARAM.pfRisveglio,oro:PARAM.oroPersa,perdizione:PARAM.perdizioneSconfitta});
+  const r=CP.risveglio(s.camp,s.ultimaCitta,null,{pf:DIF.di(s.camp.diff).pfRisveglio,oro:DIF.di(s.camp.diff).oroPersa,perdizione:DIF.di(s.camp.diff).perdizioneSconfitta});
   if(r.err)throw new Error(r.err);s.camp=r.s;
   righe.push('La compagnia è sconfitta. '+(s.vite===1?'Resta una sola vita.':'Restano '+s.vite+' vite.')+(r.persi?' Nel buio sono sparite '+r.persi+' monete.':''))}
  // ---- fine del capitolo ----

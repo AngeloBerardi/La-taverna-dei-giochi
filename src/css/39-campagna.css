@@ -7,7 +7,7 @@
 html.mo-on,html.mo-on body{overflow:hidden;overscroll-behavior:none}
 .mo{position:fixed;inset:0;z-index:96;display:flex;flex-direction:column;background:#14100c;color:#f3e6c8;padding-top:env(safe-area-inset-top,0px);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .mo button{font-family:inherit;cursor:pointer}.mo .muted{color:#b8a68d}
-.mo .b{min-height:46px}.mo .b.sm{min-height:40px}.mo .b:disabled{opacity:.45}
+.mo .b{min-height:46px}.mo .b.sm{min-height:44px}.mo .b:disabled{opacity:.45}
 /* in alto: giorno, monete, diario, zaino; sotto la perdizione con le soglie a 25, 50 e 75 */
 .mo-top{flex:none;display:flex;align-items:center;gap:8px;padding:6px 8px;background:linear-gradient(180deg,#3a2616,#24170d);border-top:0}
 .mo-top .ib{flex:none}
@@ -28,7 +28,7 @@ html.mo-on,html.mo-on body{overflow:hidden;overscroll-behavior:none}
 .mo-tok.ko{opacity:.6}.mo-tok{pointer-events:none}
 @keyframes mo-pulsa{50%{opacity:.45}}
 .mo-zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:8px;z-index:2}
-.mo-cron{position:absolute;left:8px;right:60px;top:8px;z-index:2;min-height:42px;padding:10px;text-align:left;color:#f3e6c8;background:rgba(26,17,10,.82);border:2px solid #8a5a1e;border-radius:10px;font:600 13px/1.3 var(--f-b);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mo-cron{position:absolute;left:8px;right:60px;top:8px;z-index:2;min-height:44px;padding:10px;text-align:left;color:#f3e6c8;background:rgba(26,17,10,.82);border:2px solid #8a5a1e;border-radius:10px;font:600 13px/1.3 var(--f-b);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mo-dado{position:absolute;left:8px;right:60px;bottom:8px;z-index:2;display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;font:600 14px/1.25 var(--f-b);border-left:5px solid;background:rgba(26,17,10,.92)}
 .mo-dado.ok{border-color:#3c8f4e}.mo-dado.ko{border-color:#c0453a}
 /* sotto: eroi, tiro del movimento, azioni */
@@ -42,18 +42,18 @@ html.mo-on,html.mo-on body{overflow:hidden;overscroll-behavior:none}
 .mo-ctx{margin:6px 6px 0;padding:8px 10px;display:flex;flex-direction:column;gap:6px;border:2px solid #5a3f22;border-radius:12px;background:#1d1510}.mo-ctx.dest{border-color:#f0c166}
 .mo-cr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.mo-cr span{display:flex;flex-direction:column;gap:2px;min-width:0}.mo-cr b{font:800 14px var(--f-b)}.mo-cr small{font:600 12px/1.3 var(--f-b);color:#c9b690}
 .mo-bt{display:flex;gap:6px}.mo-bt .b{flex:1;padding:6px 8px;font-size:15px}
-.mo-chip{flex:none;display:flex;align-items:center;gap:4px;min-height:40px;padding:0 10px;color:#f3e6c8;font:800 12px var(--f-b);border:2px solid #5a3f22;border-radius:18px;background:#2a1d10}.mo-chip.on{border-color:#f0c166;background:#4a3218}
+.mo-chip{flex:none;display:flex;align-items:center;gap:4px;min-height:44px;padding:0 10px;color:#f3e6c8;font:800 12px var(--f-b);border:2px solid #5a3f22;border-radius:18px;background:#2a1d10}.mo-chip.on{border-color:#f0c166;background:#4a3218}
 .mo-msg,.mo .no{margin:0;font:700 12.5px var(--f-b);color:#ff9a8a}
 .mo-barra{display:flex;gap:8px;padding:8px}.mo-barra .b{flex:1;min-height:50px;font-size:16px;padding:0 6px}
 /* fogli: luogo, riposo, diario, mostro e quelli che chiedono una risposta (prove, eventi, battaglia, fine) */
 .mo-vela{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:3}
 .mo-fg{position:absolute;left:0;right:0;bottom:0;z-index:4;max-height:72%;display:flex;flex-direction:column;background:#1d1510;border-top:3px solid #cf8f2c;padding-bottom:env(safe-area-inset-bottom,0px)}
 .mo-fg.mo-rosso{border-top-color:#c0453a}.mo-fg.mo-verde{border-top-color:#3c8f4e}
-.mo-fh{flex:none;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;font:900 17px var(--f-d);color:#f0c166}.mo-fh .ib{width:40px;height:40px}
+.mo-fh{flex:none;display:flex;align-items:center;justify-content:space-between;padding:8px 12px;font:900 17px var(--f-d);color:#f0c166}.mo-fh .ib{width:44px;height:44px}
 .mo-fl{overflow:auto;padding:0 10px 12px;display:flex;flex-direction:column;gap:7px}.mo-fl p{margin:0;font:600 14px/1.4 var(--f-b)}.mo-fl .sh2{margin:6px 0 0;color:#f0c166}
 .mo-sv{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:2px solid #4a3218;border-radius:12px;background:#2a1d10}
 .mo-sv>span{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.mo-sv b{font:800 14px var(--f-b)}.mo-sv small{font:600 12px/1.3 var(--f-b);color:#c9b690}.mo-sv small.no{color:#ff9a8a}
-.mo-sb{flex:none;display:flex;flex-direction:column;gap:5px;min-width:112px}.mo-sb .b{min-height:42px;padding:0 10px;font-size:14px;white-space:nowrap}
+.mo-sb{flex:none;display:flex;flex-direction:column;gap:5px;min-width:112px}.mo-sb .b{min-height:44px;padding:0 10px;font-size:14px;white-space:nowrap}
 .mo-av{padding:8px 10px;border-radius:10px;background:rgba(192,69,58,.25);border-left:4px solid #c0453a}
 .mo-sc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:8px 12px;text-align:left;color:inherit;border:2px solid #8a5a1e;border-radius:12px;background:#2a1d10}.mo-sc:disabled{opacity:.5}
 .mo-sc b{font:800 15px var(--f-b)}.mo-sc small{font:600 12px var(--f-b);color:#d9b97a}.mo-sc small.no{color:#ff9a8a}

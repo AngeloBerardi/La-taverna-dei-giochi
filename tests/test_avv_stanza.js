@@ -150,10 +150,11 @@ function giocaPosto(s, seat) { const a = IA.prossima(s.lotta, { livello: 'normal
   no(AST.act(s, { seat: 1, t: 'chiudiLotta' }, prova), /Nessuna battaglia/); }
 
 // ---- 6. un posto assente: il suo eroe lo gioca chi ospita (o l'IA se non c'è nessuno); il rientro lo riporta ----
-{ let s = nuova(posti3()); s = scenaDa(s, 'scontro'); s = mossa(s, 0, { t: 'presenza', posto: 1, qui: false }); s = mossa(s, 2, { t: 'combatti' });
+{ const DIFQ = require('../src/js/motori/27ha-avv-difficolta.js'), g0 = DIFQ.D.normale.gruppi; DIFQ.D.normale.gruppi = 1;   // qui serve una battaglia abbastanza lunga da far giocare tutti e tre: si usano i gruppi interi della tabella
+  let s = nuova(posti3()); s = scenaDa(s, 'scontro'); s = mossa(s, 0, { t: 'presenza', posto: 1, qui: false }); s = mossa(s, 2, { t: 'combatti' });
   const chiHaGiocato = new Set();
   for (let n = 0; n < 600 && !s.lotta.over; n++) { const att = SC.attore(s.lotta); assert(att.lato === 'eroi'); const chi = AST.guidaComb(s, att); assert.notStrictEqual(chi, 1, 'Bruno non c\'è: il suo eroe lo guida un altro'); chiHaGiocato.add(chi); s = ok(giocaPosto(s, chi)).s; }
-  assert(s.lotta.over, 'la battaglia finisce anche senza di lui'); assert(chiHaGiocato.has(0) && chiHaGiocato.has(2), 'hanno giocato Anna (anche per Bruno) e Carla');
+  assert(s.lotta.over, 'la battaglia finisce anche senza di lui'); assert(chiHaGiocato.has(0) && chiHaGiocato.has(2), 'hanno giocato Anna (anche per Bruno) e Carla'); DIFQ.D.normale.gruppi = g0;
   // se esce proprio chi è di turno, tocca a chi ospita; se non c'è nessuno, la battaglia aspetta ferma
   let t = nuova(posti2()); t = scenaDa(t, 'scontro'); t = mossa(t, 0, { t: 'combatti' });
   const att0 = SC.attore(t.lotta), di = AST.guidaComb(t, att0), altro = 1 - di; const evn0 = t.lotta.evn;
@@ -203,5 +204,13 @@ function giocaPosto(s, seat) { const a = IA.prossima(s.lotta, { livello: 'normal
 // ---- 10. il motore non lancia dadi da solo e non cita marchi ----
 { const src = fs.readFileSync(path.join(__dirname, '../src/js/motori/28e-avv-stanza.js'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   assert(!/Math\.random/.test(src), 'niente Math.random'); assert(!/catan|azul|\bUNO\b/i.test(src.replace(/\buno\b/g, '')), 'niente marchi'); }
+
+// ---- difficoltà (A13): la sceglie chi crea la stanza; resta quando gli ospiti portano il loro eroe e fissa le vite ----
+{ const DIFQ = require('../src/js/motori/27ha-avv-difficolta.js');
+  for (const id of DIFQ.ID) { const s0 = AST.nuova(prova, [{ nome: 'Anna', uid: 'u1', slot: 'e1', eroe: aldo() }, { nome: 'Bruno', uid: 'u2' }], 77, { avvio: false, difficolta: id });
+    assert.strictEqual(s0.av.camp.diff, id); assert.strictEqual(s0.pre.difficolta, id); assert.strictEqual(s0.av.vite, DIFQ.D[id].vite, id + ': vite');
+    const s1 = ok(AST.act(s0, { seat: 1, t: 'eroe', scheda: tobia(), slot: 'e2' }, prova), 'Bruno porta il suo eroe').s;
+    assert.strictEqual(s1.av.camp.diff, id, id + ': resta dopo il cambio di eroe'); assert.strictEqual(s1.av.vite, DIFQ.D[id].vite); }
+  assert.strictEqual(AST.nuova(prova, posti2(), 5, { avvio: false }).av.camp.diff, 'normale', 'senza scelta: Normale'); }
 
 console.log('test_avv_stanza: ok');

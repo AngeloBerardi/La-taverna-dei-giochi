@@ -17,5 +17,10 @@
 .se-slot .se-bt{padding:0 12px 8px}
 .se-eroi{display:flex;flex-wrap:wrap;gap:8px}
 .se-er{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:76px;min-height:64px;padding:6px 8px;color:inherit;font:inherit;cursor:pointer;border:2px solid #5a4630;background:rgba(0,0,0,.25)}
-.se-er.on{border-color:#f0c166;background:rgba(240,193,102,.16)}.se-er b{font:800 13px var(--f-d)}.se-er small{font-size:11px;opacity:.8}
+.se-er.on{border-color:#f0c166;background:rgba(240,193,102,.16)}
+.se-diff{display:flex;gap:6px;margin:10px 0 4px}
+.se-df{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;padding:6px 4px;color:inherit;font:inherit;text-align:center;cursor:pointer;border:2px solid #5a4630;background:rgba(0,0,0,.25)}
+.se-df b{font:800 13px var(--f-d)}.se-df small{font-size:11px;opacity:.85;line-height:1.2}
+.se-df.on{border-color:#f0c166;background:rgba(240,193,102,.16)}
+.se-dd{display:block;min-height:32px}.se-er b{font:800 13px var(--f-d)}.se-er small{font-size:11px;opacity:.8}
 .se-vite i:not(.vuota) svg{fill:currentColor}

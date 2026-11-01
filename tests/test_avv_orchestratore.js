@@ -11,6 +11,8 @@ const IA = require('../src/js/motori/27j-avv-ia.js');
 const CM = require('../src/js/motori/27p-avv-compagni.js');
 const R = require('../src/js/motori/27q-avv-racconto.js');
 const AVV = require('../src/js/motori/28a-avv-orchestratore.js');
+const DIF = require('../src/js/motori/27ha-avv-difficolta.js');
+const VITE = DIF.D.normale.vite;   // le vite di partenza senza scelta (la difficoltà predefinita)
 const cap = require('../src/avventura/corona.json');
 const copia = (x) => JSON.parse(JSON.stringify(x));
 const A = { pelle: 0, capelli: 1, mantello: 2, viso: 0 };
@@ -44,7 +46,7 @@ prova.finali = { 'finale-a-luminoso': { titolo: 'Una fine luminosa', testo: 'Tut
 
 // ---- i giocatori sono eroi veri con uno slot; nuova campagna e prologo ----
 let s = AVV.nuova(cap, due(), 4242);
-assert.strictEqual(s.g, 'avventura'); assert.strictEqual(s.cap, 'corona'); assert.strictEqual(s.vite, 3); assert.strictEqual(s.viteMax, 3);
+assert.strictEqual(s.g, 'avventura'); assert.strictEqual(s.cap, 'corona'); assert.strictEqual(s.vite, DIF.D.normale.vite); assert.strictEqual(s.viteMax, DIF.D.normale.vite); assert.strictEqual(s.camp.diff, 'normale', 'senza scelta si gioca a Normale');
 assert.strictEqual(s.camp.luoghi[s.ultimaCitta].nome, 'Valcorvo', 'si parte da Valcorvo');
 assert.strictEqual(AVV.fase(s), 'dialogo', 'il prologo parte da solo'); assert.strictEqual(s.racc.scena.id, 'notte-dei-corvi');
 assert.deepStrictEqual(JSON.parse(JSON.stringify(s)), s, 'lo stato è JSON puro');
@@ -62,7 +64,7 @@ s = chiudiScena(s);
 assert.strictEqual(AVV.fase(s), 'citta', 'finito il prologo si è in città'); assert.strictEqual(s.fase, 'citta');
 assert(s.log.length === 0 || Array.isArray(s.log));
 const vis = AVV.vista(s, cap); assert.strictEqual(vis.luogo.id, 'valcorvo'); assert(vis.scene.some((x) => x.id === 'udienza'), 'le scene del luogo si vedono');
-assert.strictEqual(vis.vite, 3);
+assert.strictEqual(vis.vite, VITE);
 // il salvataggio non è enorme (Firestore: un documento, un campo)
 assert(AVV.salva(s).dati.length < 200000, 'salvataggio piccolo: ' + AVV.salva(s).dati.length);
 
@@ -125,7 +127,7 @@ const fin = IA.partita(AVV.battaglia(b1), { eroi: 'eroica', nemici: 'normale' })
 let b2 = ok(AVV.act(b1, { t: 'esito', riep: SC.riepilogo(fin) }, prova), 'esito della battaglia'); assert.strictEqual(b2.cambio.a, 'dialogo', 'la scena riprende'); b2 = b2.s;
 assert.strictEqual(b2.racc.scena.nodo, 'a', 'dal nodo che l\'ha introdotta, con «Continua»');
 assert.strictEqual(fin.over.esito, 'vittoria'); assert.strictEqual(b2.bat, null); assert(b2.camp.eroi[0].xp > xp0, 'esperienza della battaglia');
-assert.strictEqual(b2.vite, 3, 'una vittoria non costa niente'); b2 = chiudiScena(b2, prova); assert(b2.racc.bandiere['scontro-vinto'], 'dopo la battaglia il racconto va avanti'); assert.strictEqual(b2.camp.oro, oro0 + 5);
+assert.strictEqual(b2.vite, VITE, 'una vittoria non costa niente'); b2 = chiudiScena(b2, prova); assert(b2.racc.bandiere['scontro-vinto'], 'dopo la battaglia il racconto va avanti'); assert.strictEqual(b2.camp.oro, oro0 + 5);
 assert.strictEqual(b2.sessione.battaglie, 1);
 // sconfitta: una vita in meno, ci si sveglia nell'ultima città, metà PF, metà oro, perdizione +10, la scena è interrotta ma si può rifare
 {
@@ -133,16 +135,16 @@ assert.strictEqual(b2.sessione.battaglie, 1);
   for (const e of k.camp.eroi) { e.q = k.camp.luoghi['casale-salici'].q; e.r = k.camp.luoghi['casale-salici'].r; }   // lontano: non conta dove si perde, conta l'ultima città
   const pd = k.camp.perdizione;
   const r = ok(AVV.act(k, { t: 'esito', riep: perdita(AVV.battaglia(k)) }, prova), 'sconfitta'); const d = r.s;
-  assert.strictEqual(d.vite, 2, 'una vita in meno'); assert.strictEqual(d.bat, null); assert.strictEqual(d.racc.scena, null, 'la scena è interrotta');
+  assert.strictEqual(d.vite, VITE - 1, 'una vita in meno'); assert.strictEqual(d.bat, null); assert.strictEqual(d.racc.scena, null, 'la scena è interrotta');
   const l = d.camp.luoghi[d.ultimaCitta]; assert(d.camp.eroi.every((e) => e.q === l.q && e.r === l.r), 'tutti nell\'ultima città');
   assert(d.camp.eroi.every((e) => e.hp === Math.max(1, Math.ceil(e.hpMax / 2))), 'metà PF, anche i caduti');
   assert.strictEqual(d.camp.oro, 51, 'metà dell\'oro comune persa (101 → 51)'); assert.strictEqual(d.camp.perdizione, pd + 10, 'perdizione +10'); assert.strictEqual(d.camp.over, null);
-  assert.strictEqual(r.cambio.a, 'citta'); assert(r.righe.some((t) => /Restano 2 vite/.test(t)), r.righe.join('|'));
+  assert.strictEqual(r.cambio.a, 'citta'); assert(r.righe.some((t) => new RegExp('Restano ' + (VITE - 1) + ' vite').test(t)), r.righe.join('|'));
   assert.strictEqual(d.sessione.sconfitte, 1);
   assert(AVV.vista(d, prova).scene.some((q2) => q2.id === 'scontro'), 'la scena si può rifare');
   // fuga: nessuna vita persa, la scena si interrompe, perdizione +1
   const f = vai(p, 'scontro');
-  const rf = ok(AVV.act(f, { t: 'esito', riep: (() => { const bb = AVV.battaglia(f); bb.over = { esito: 'fuga', giri: 3 }; return SC.riepilogo(bb); })() }, prova), 'fuga'); assert.strictEqual(rf.s.vite, 3); assert.strictEqual(rf.s.racc.scena, null); assert.strictEqual(rf.s.camp.perdizione, 1);
+  const rf = ok(AVV.act(f, { t: 'esito', riep: (() => { const bb = AVV.battaglia(f); bb.over = { esito: 'fuga', giri: 3 }; return SC.riepilogo(bb); })() }, prova), 'fuga'); assert.strictEqual(rf.s.vite, VITE); assert.strictEqual(rf.s.racc.scena, null); assert.strictEqual(rf.s.camp.perdizione, 1);
   // tre sconfitte: la campagna è persa, niente più azioni
   let t = vai(p, 'scontro'), n = 0;
   while (t.vite > 0 && n++ < 5) {
@@ -174,11 +176,11 @@ assert.strictEqual(b2.sessione.battaglie, 1);
   assert(g.camp.sfida && AVV.fase(g) === 'battaglia', 'contatto = battaglia'); assert.strictEqual(mossa.cambio.a, 'battaglia');
   assert.strictEqual(AVV.battaglia(g).cb.length, CtoSC(g).length, 'è la battaglia di CAMP');
   assert(AVV.act(g, { t: 'camp', a: { t: 'tira', tutti: true } }, prova).err, 'prima si combatte');
-  const rs = ok(AVV.act(g, { t: 'esito', riep: perdita(AVV.battaglia(g)) }, prova), 'sconfitta nel mondo'); assert.strictEqual(rs.s.vite, 2); assert.strictEqual(rs.s.camp.sfida, null);
+  const rs = ok(AVV.act(g, { t: 'esito', riep: perdita(AVV.battaglia(g)) }, prova), 'sconfitta nel mondo'); assert.strictEqual(rs.s.vite, VITE - 1); assert.strictEqual(rs.s.camp.sfida, null);
   assert(rs.s.camp.eroi.every((e) => e.hp > 0), 'risvegliati'); assert.strictEqual(rs.s.camp.over, null, 'non è la fine: il mondo continua'); assert.strictEqual(AVV.fase(rs.s), 'citta');
-  const rv = ok(AVV.act(g, { t: 'esito', riep: vincita(AVV.battaglia(g), 5) }, prova), 'vittoria nel mondo'); assert.strictEqual(rv.s.vite, 3); assert.strictEqual(rv.s.camp.sfida, null);
+  const rv = ok(AVV.act(g, { t: 'esito', riep: vincita(AVV.battaglia(g), 5) }, prova), 'vittoria nel mondo'); assert.strictEqual(rv.s.vite, VITE); assert.strictEqual(rv.s.camp.sfida, null);
   // fuga dal mondo: CAMP ritira la compagnia, nessuna vita persa
-  const rfu = ok(AVV.act(g, { t: 'esito', riep: (() => { const bb = AVV.battaglia(g); bb.over = { esito: 'fuga', giri: 2 }; return SC.riepilogo(bb); })() }, prova)); assert.strictEqual(rfu.s.vite, 3);
+  const rfu = ok(AVV.act(g, { t: 'esito', riep: (() => { const bb = AVV.battaglia(g); bb.over = { esito: 'fuga', giri: 2 }; return SC.riepilogo(bb); })() }, prova)); assert.strictEqual(rfu.s.vite, VITE);
 }
 function CtoSC(g) { return C.battaglia(g.camp).cb; }
 
@@ -189,7 +191,7 @@ function CtoSC(g) { return C.battaglia(g.camp).cb; }
   assert.strictEqual(r.s.fine, null, 'a 98 si vive ancora');
   const m2 = AVV.nuova(prova, due(), 5, { avvio: false }); m2.camp.perdizione = 99;
   const r2 = ok(AVV.act(m2, { t: 'scena', id: 'guadagni' }, prova)); assert(r2.s.fine && !r2.s.fine.vinta && /perdizione/i.test(r2.s.fine.titolo), 'perdizione 100');
-  assert.strictEqual(r2.s.vite, 3, 'e non è colpa delle vite');
+  assert.strictEqual(r2.s.vite, VITE, 'e non è colpa delle vite');
 }
 
 // ---- l'ultima città si ricorda; dopo la sconfitta ci si risveglia lì ----
@@ -287,7 +289,7 @@ function CtoSC(g) { return C.battaglia(g.camp).cb; }
 // ---- salvataggio, ripresa e migrazione ----
 {
   let m = AVV.nuova(cap, due(), 4242); m = chiudiScena(m); m = chiudiScena(vai(m, 'udienza', cap), cap, 80);
-  const sal = AVV.salva(m); assert.strictEqual(sal.cap, 'corona'); assert.strictEqual(sal.vite, 3); assert(sal.eroi.length === 2 && sal.eroi[0].nome === 'Aldo'); assert.strictEqual(typeof sal.dati, 'string');
+  const sal = AVV.salva(m); assert.strictEqual(sal.cap, 'corona'); assert.strictEqual(sal.vite, VITE); assert(sal.eroi.length === 2 && sal.eroi[0].nome === 'Aldo'); assert.strictEqual(typeof sal.dati, 'string');
   const ap = AVV.apri(sal); assert.deepStrictEqual(ap.s, AVV.migra(m), 'si riapre identico'); assert.deepStrictEqual(AVV.apri(JSON.stringify(m)).s, AVV.migra(m), 'anche da testo');
   const r1 = AVV.act(ap.s, { t: 'chiudi' }, cap), r2 = AVV.act(m, { t: 'chiudi' }, cap); assert.strictEqual(JSON.stringify(r1), JSON.stringify(r2), 'si riprende da dove si era');
   assert(AVV.apri('{').err && AVV.apri({ dati: '{"g":"campagna"}' }).err, 'dati illeggibili o di un altro gioco');

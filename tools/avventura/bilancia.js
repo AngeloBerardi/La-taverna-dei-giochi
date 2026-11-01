@@ -1,29 +1,30 @@
 #!/usr/bin/env node
 // Bilanciamento della battaglia (Cantari di Ventura): simula incontri generati da `ASCO.incontro` con il bot bravo (eroi: eroica, mostri: normale) e,
 // se serve, con il bot casuale, e stampa la tabella. Il test `tests/test_avv_bilanciamento.js` usa le stesse funzioni con pochi incontri.
-//   node tools/avventura/bilancia.js [--fam bestie,banditi,nonmorti,torre] [--diff facile,medio,difficile,capo] [--k 8] [--casuale] [--liv 1-8] [--n 1,2,3,4] [--json]
+//   node tools/avventura/bilancia.js [--fam bestie,banditi,nonmorti,torre] [--diff facile,medio,difficile,capo] [--k 8] [--casuale] [--liv 1-8] [--n 1,2,3,4] [--classi g,m,c,l,e,b] [--json]
 const path = require('path');
 const R = (f) => require(path.join(__dirname, '../../src/js/motori', f));
 const E = R('27-eroi.js'); global.EROI = E;
 const A = R('27e-avv-poteri.js'), BE = R('27f-avv-bestiario.js'), AR = R('27h-avv-arene.js'), C = R('27i-avv-scontro.js'), IA = R('27j-avv-ia.js');
 const BASI = { guerriero: { for: 15, des: 12, cos: 14, int: 8, sag: 10, car: 8 }, ladro: { for: 8, des: 15, cos: 13, int: 12, sag: 10, car: 10 }, mago: { for: 8, des: 14, cos: 12, int: 15, sag: 10, car: 8 },
-  chierico: { for: 12, des: 10, cos: 13, int: 8, sag: 15, car: 10 } };
+  chierico: { for: 12, des: 10, cos: 13, int: 8, sag: 15, car: 10 }, esploratore: { for: 10, des: 15, cos: 13, int: 8, sag: 14, car: 8 }, bardo: { for: 8, des: 14, cos: 12, int: 10, sag: 8, car: 15 } };
 const ASP = { pelle: 0, capelli: 0, mantello: 0, viso: 0 }, RAZZE = ['umano', 'elfo', 'nano', 'piccolo'];
 // la compagnia di prova: guerriero, mago, chierico, ladro (come nei test), con le scelte di livello già fatte
 // `sb` = seme di partenza dei personaggi (ogni eroe ne usa uno diverso): stessa compagnia, a ogni chiamata
-function squadra(n, liv, sb) {
-  return ['guerriero', 'mago', 'chierico', 'ladro'].slice(0, n).map((cl, i) => {
+const SIGLE = { g: 'guerriero', m: 'mago', c: 'chierico', l: 'ladro', e: 'esploratore', b: 'bardo' };
+function squadra(n, liv, sb, classi) {
+  return (classi && classi.length ? classi.map((x) => SIGLE[x] || x) : ['guerriero', 'mago', 'chierico', 'ladro']).slice(0, n).map((cl, i) => {
     const h = E.nuovo({ nome: cl, razza: RAZZE[i], classe: cl, base: BASI[cl], aspetto: ASP }, (sb || 90000) + i);
     h.liv = liv; h.xp = E.SOGLIE_XP[liv - 1]; h.hpMax = E.derivati(h).hpMax; h.hp = h.hpMax; const c = A.completa(h); c.scelte = c.scelte || {}; return { eroe: c, dist: 0 }; });
 }
 // livelli in cui una famiglia ha mostri (senza il capo) e il suo capo
 const CAMPO = (fam) => { const p = BE.ID.map((i) => BE.M[i]).filter((m) => m.fam === fam && !m.capo), l = p.map((m) => m.liv); return { da: Math.min(...l), a: Math.max(...l), capo: BE.ID.map((i) => BE.M[i]).find((m) => m.fam === fam && m.capo) || null }; };
 // una cella della tabella: K battaglie con incontri diversi (seme dell'incontro e dell'arena); modo = 'bravo' | 'casuale'
-function cella(fam, liv, n, diff, K, modo) {
+function cella(fam, liv, n, diff, K, modo, classi) {
   let v = 0, perso = 0, giri = 0, max = 0, nm = 0, xp = 0, stalli = 0;
   for (let i = 0; i < K; i++) {
     const inc = C.incontro(fam, liv, n, diff, 1000 * liv + 10 * n + i + 7 * diff.length); nm += inc.nemici.length; xp += inc.xp;
-    const s = C.nuovo(squadra(n, liv, 90000 + 10 * liv + 100 * i), inc.nemici, AR.genera(50 + i, AR.AMBIENTI[(i + liv) % AR.AMBIENTI.length]), { seme: 50 + i, reazioni: { eroi: 'auto', nemici: 'auto' } });
+    const s = C.nuovo(squadra(n, liv, 90000 + 10 * liv + 100 * i, classi), inc.nemici, AR.genera(50 + i, AR.AMBIENTI[(i + liv) % AR.AMBIENTI.length]), { seme: 50 + i, reazioni: { eroi: 'auto', nemici: 'auto' } });
     const x = IA.partita(s, modo === 'casuale' ? { eroi: 'casuale', nemici: 'normale' } : { eroi: 'eroica', nemici: 'normale' });
     if (x.over.esito === 'vittoria') v++; if (x.over.esito === 'stallo') stalli++;
     const e = x.cb.filter((c) => c.lato === 'eroi'); perso += 1 - e.reduce((a, c) => a + Math.max(0, c.hp), 0) / e.reduce((a, c) => a + c.hpMax, 0);
@@ -41,17 +42,17 @@ function celle(fam, diff, o) {
 function tabella(o) {
   o = o || {}; const K = o.k || 8, righe = [];
   for (const diff of o.diff || ['facile', 'medio', 'difficile', 'capo']) for (const fam of o.fam || Object.keys(BE.FAMIGLIE)) for (const [l, n] of celle(fam, diff, o)) {
-    const r = cella(fam, l, n, diff, K, 'bravo'); if (o.casuale && diff === 'medio') r.cas = cella(fam, l, n, diff, K, 'casuale').vit; righe.push(r); if (o.avanza) o.avanza(r); }
+    const r = cella(fam, l, n, diff, K, 'bravo', o.classi); if (o.casuale && diff === 'medio') r.cas = cella(fam, l, n, diff, K, 'casuale', o.classi).vit; righe.push(r); if (o.avanza) o.avanza(r); }
   return righe;
 }
 // media delle celle di una difficoltà
 const media = (righe, campo) => righe.length ? Math.round(righe.reduce((a, r) => a + r[campo], 0) / righe.length) : null;
-module.exports = { squadra, CAMPO, cella, celle, tabella, media };
+module.exports = { SIGLE, squadra, CAMPO, cella, celle, tabella, media };
 
 if (require.main === module) {
   const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i < 0 ? d : (process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : true); };
   const [da, a] = String(arg('liv', '1-10')).split('-').map(Number), o = { k: +arg('k', 8), fam: String(arg('fam', Object.keys(BE.FAMIGLIE).join(','))).split(','), diff: String(arg('diff', 'facile,medio,difficile,capo')).split(','),
-    n: String(arg('n', '1,2,3,4')).split(',').map(Number), da, a, casuale: !!arg('casuale', false) };
+    n: String(arg('n', '1,2,3,4')).split(',').map(Number), da, a, casuale: !!arg('casuale', false), classi: arg('classi', false) ? String(arg('classi')).split(',') : null };
   const json = !!arg('json', false), righe = tabella(Object.assign(o, { avanza: (r) => { if (json) console.log(JSON.stringify(r)); } }));
   if (!json) {
     for (const diff of o.diff) { const rs = righe.filter((r) => r.diff === diff); if (!rs.length) continue;
