@@ -2312,11 +2312,28 @@ JS_PX_SCORRE = """(()=>{const K=Scena3D.K,c={x:K.bbox.cx,z:K.bbox.cz},k=APAL.k()
 JS_PX_CONTORNI = """(()=>{const a=PixelProva.scatta({contorni:false}).basso,b=PixelProva.scatta({contorni:true}).basso,sc=new Set(APAL.NOMI.map((_,i)=>APAL.RGB[i*5].join(',')));
  let n=0,scuri=0;for(let o=0;o<a.px.length;o+=4)if(a.px[o]!==b.px[o]||a.px[o+1]!==b.px[o+1]||a.px[o+2]!==b.px[o+2]){n++;if(sc.has([b.px[o],b.px[o+1],b.px[o+2]].join(',')))scuri++}
  return{n,scuri,tot:a.px.length/4}})()"""
+# contorni su tutte le figure in vista (B2): nel riquadro di ogni miniatura il contorno cambia qualche pixel
+JS_PX_FIGURE = """(()=>{const a=PixelProva.scatta({contorni:false}).basso,b=PixelProva.scatta({contorni:true}).basso,W=a.w,H=a.h,out=[];
+ for(const f of PixelProva.figure()){if(f.x0<0||f.y0<0||f.x1>W||f.y1>H)continue;let n=0;
+  for(let y=f.y0;y<f.y1;y++)for(let x=f.x0;x<f.x1;x++){const o=(y*W+x)*4;if(a.px[o]!==b.px[o]||a.px[o+1]!==b.px[o+1]||a.px[o+2]!==b.px[o+2])n++}out.push({id:f.id,lato:f.lato,n})}
+ return out})()"""
+# filo di luce (B2): i pixel che cambiano accendendolo diventano il tono subito più chiaro della stessa rampa
+JS_PX_FILO = """(()=>{const a=PixelProva.scatta({filo:false}).basso,b=PixelProva.scatta({}).basso,I=new Map(APAL.RGB.map((c,i)=>[c.join(','),i]));let n=0,ok=0;
+ for(let o=0;o<a.px.length;o+=4){if(a.px[o]===b.px[o]&&a.px[o+1]===b.px[o+1]&&a.px[o+2]===b.px[o+2])continue;n++;
+  const i=I.get([a.px[o],a.px[o+1],a.px[o+2]].join(',')),j=I.get([b.px[o],b.px[o+1],b.px[o+2]].join(','));if(i!=null&&j!==i&&j===APAL.chiaro(i))ok++}
+ return{n,ok,tot:a.px.length/4}})()"""
+# retino della nebbia (B2): i pixel che cambiano accendendola prendono tutti il colore della nebbia; il cielo usa solo i suoi tre toni
+JS_PX_NEBBIA = """(()=>{const a=PixelProva.scatta({nebbia:false}).basso,b=PixelProva.scatta({}).basso,L=Scena3D.K.Lp,neb=L.nebbia&&APAL.RGB[APAL.indice(L.nebbia[0])].join(',');
+ let n=0,ok=0;for(let o=0;o<a.px.length;o+=4){if(a.px[o]===b.px[o]&&a.px[o+1]===b.px[o+1]&&a.px[o+2]===b.px[o+2])continue;n++;if([b.px[o],b.px[o+1],b.px[o+2]].join(',')===neb)ok++}
+ return{n,ok,tot:a.px.length/4,momento:L.momento,liv:L.liv}})()"""
 
 async def sc_avv_pixel(b, srv):
-    """Resa pixel (B1), pagina ?prova=pixel: pixel d'arte tutti della stessa misura (telefono ai due zoom, telefono a dpr frazionario, TV 1080p),
-    solo colori della palette, contorni scuri, telecamera agganciata (scorrimento a pixel interi), interruttore con il 3D di oggi, cambio di luogo."""
-    async def apri(vp, dpr):
+    """Resa pixel (B1–B2), pagina ?prova=pixel: pixel d'arte tutti della stessa misura (telefono ai due zoom, telefono a dpr frazionario, TV 1080p),
+    solo colori della palette, contorni scuri su tutte le figure, filo di luce un tono più chiaro, nebbia a retino, telecamera agganciata (scorrimento
+    a pixel interi), interruttore con il 3D di oggi; le tre scene di controllo (foresta di giorno, sotterraneo con torce, notte con perdizione) a 390 pt
+    e a 1080p, con le schermate in SCHERMATE_DIR."""
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    async def apri(vp, dpr, scena='sotterraneo'):
         # tempo fermo e animazioni ridotte: si disegna solo quando serve (il WebGL del browser di prova è software)
         ctx = await b.new_context(viewport=vp, device_scale_factor=dpr, service_workers='block', reduced_motion='reduce')
         await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');")
@@ -2326,14 +2343,23 @@ async def sc_avv_pixel(b, srv):
             if u.startswith(f'http://localhost:{srv.port}'): return await r.continue_()
             await r.abort()
         await ctx.route('**/*', route)
-        pg = await page(ctx, srv.url + '?prova=pixel&t=1.5', wait=500)
-        await pg.wait_for_function("Scena3D.pronta&&Scena3D.on()&&PixelProva.P.ult&&Scena3D.nFig()===7", timeout=40000)
+        pg = await page(ctx, srv.url + f'?prova=pixel&t=1.5&scena={scena}', wait=500)
+        await pg.wait_for_function("Scena3D.pronta&&Scena3D.on()&&PixelProva.P.ult&&Scena3D.nFig()===7&&Scena3D.K.px", timeout=40000)
         return ctx, pg
     async def schermata(pg, f, nome, taglio):
-        png = await pg.screenshot(path=f'/tmp/claude-0/{nome}.png')
+        png = await pg.screenshot(path=os.path.join(SCH, f'{nome}.png'))
         import base64
         return await pg.evaluate(JS_PX_SCHERMATA, [base64.b64encode(png).decode(), f['s'], f['off'][0], f['off'][1], taglio])
-    # telefono verticale 390 pt a dpr 2: ×4 (195 pixel d'arte), zoom vicino ×5 (a dpr 3 sarebbe ×6 e ×8: stessi conti, il test resta leggero)
+    async def scena(pg, id_):
+        await pg.evaluate(f"PixelProva.act('scena:{id_}')")
+        await pg.wait_for_function(f"Scena3D.nFig()===7&&PixelProva.P.scena==='{id_}'&&Scena3D.K.Lp&&PixelProva.P.ult", timeout=20000); await pg.wait_for_timeout(400)
+    async def controlli(pg, nome, f):
+        fi = await pg.evaluate(JS_PX_FIGURE)
+        check(len(fi) >= 3 and all(x['n'] >= 6 for x in fi), f'{nome}: contorni su tutte le figure in vista ({[(x["id"], x["n"]) for x in fi]})')
+        fl = await pg.evaluate(JS_PX_FILO)
+        check(fl['n'] > 20 and fl['ok'] == fl['n'], f'{nome}: filo di luce = un tono più chiaro della stessa rampa ({fl})')
+        check(f['bl']['ok'] and f['fuori'] == 0 and f['fuoriBasso'] == 0, f'{nome}: blocchi interi e solo colori della palette ({f["bl"]}, {f["fuori"]} fuori)')
+    # ---- telefono verticale 390 pt a dpr 2: ×4 (195 pixel d'arte), zoom vicino ×5 (a dpr 3 sarebbe ×6 e ×8: stessi conti, il test resta leggero) ----
     ctx, pg = await apri({'width': 390, 'height': 844}, 2)
     check(await pg.evaluate("!!document.querySelector('.pxp .bt-mappa.s3 > .s3-cv.s3-px')"), 'la prova monta il canvas della scena con la resa pixel')
     f = await pg.evaluate(JS_PX_FOTO)
@@ -2341,42 +2367,67 @@ async def sc_avv_pixel(b, srv):
     check(f['bl']['ok'], f'telefono, zoom lontano: ogni pixel d\'arte è un blocco 4×4 di un solo colore ({f["bl"]})')
     check(f['fuori'] == 0 and f['fuoriBasso'] == 0, f'solo colori della palette ({f["fuori"]} fuori)')
     print('pixel: chiamate', f['chiamate'], 'triangoli', f['tri'])
-    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
-    sc = await schermata(pg, f, 'pixel-telefono-lontano', 70 * 2)
-    check(sc['bl']['ok'] and sc['fuori'] == 0, f'la schermata composta dal browser ha blocchi interi e solo colori della palette ({sc})')
     v = await pg.evaluate(JS_PX_FOTO, {'zoom': 'vicino'})
     check(v['s'] == 5 and v['bl']['ok'] and v['fuori'] == 0, f'telefono, zoom vicino: scala ×5, blocchi interi ({v["art"]}, {v["bl"]})')
     await pg.evaluate("PixelProva.scatta({zoom:'lontano'})")
     sr = await pg.evaluate(JS_PX_SCORRE)
-    check(max(sr['res']) < .002 and sr['sbagliato'] > .05, f'telecamera agganciata: spostandola, la scena scorre di pixel interi senza cambiare forma ({sr})')
+    check(max(sr['res']) < .002 and sr['sbagliato'] > .05, f'telecamera agganciata: spostandola, la scena scorre di pixel interi senza cambiare forma, anche retino e tessere ({sr})')
     ct = await pg.evaluate(JS_PX_CONTORNI)
     check(ct['n'] > ct['tot'] * .004 and ct['scuri'] == ct['n'], f'contorni di 1 pixel nel tono più scuro della rampa ({ct})')
-    # interruttore: il 3D di oggi torna com'era (canvas a misura del contenitore), poi di nuovo pixel
-    await pg.evaluate("PixelProva.act('pann:1')"); await pg.click('[data-a=pxp][data-v="modo:3d"]'); await pg.wait_for_timeout(600)
-    st = await pg.evaluate("({px:Scena3D.K.cv.classList.contains('s3-px'),w:Scena3D.K.cv.style.width,ult:PixelProva.P.ult})")
-    check(not st['px'] and st['w'] == '100%' and st['ult'] is None, f'«3D di oggi» rimette la scena di sempre ({st})')
-    await pg.evaluate("PixelProva.act('modo:pixel');PixelProva.act('luogo:radura')")
-    await pg.wait_for_function("Scena3D.nFig()===7&&Bat.s.arena.ambiente==='bosco'&&PixelProva.P.ult", timeout=20000); await pg.wait_for_timeout(400)
+    st = await pg.evaluate("(()=>{const K=Scena3D.K;return{tema:K.D.tema,muro:K.D.quota.muro,luci:K.luciP.filter(l=>l.parent&&l.intensity>0).length,fonti:(K.fontiP||[]).length,tm:K.ren.toneMapping}})()")
+    check(st['tema'] == 'sotterraneo' and st['muro'] == 40 and st['luci'] == 4 and st['fonti'] > 4 and st['tm'] == 0, f'sotterraneo: tema, muri alti, 4 luci puntiformi fra le torce e i fuochi, niente toni ACES ({st})')
+    # le tre scene di controllo al telefono, con le schermate
+    for id_ in ['foresta', 'sotterraneo', 'notte']:
+        await scena(pg, id_)
+        await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+        f = await pg.evaluate(JS_PX_FOTO)
+        sc = await schermata(pg, f, f'pixel-{id_}-telefono', 70 * 2)
+        check(sc['bl']['ok'] and sc['fuori'] == 0, f'{id_}, telefono: la schermata composta dal browser ha blocchi interi e solo colori della palette ({sc["bl"]})')
+        await controlli(pg, id_ + ', telefono', f)
+        if id_ != 'foresta':
+            nb = await pg.evaluate(JS_PX_NEBBIA)
+            check(nb['n'] > 50 and nb['ok'] == nb['n'], f'{id_}: nebbia a retino, tutta del suo colore ({nb})')
+        await pg.evaluate("PixelProva.act('pann:1')")
+    lp = await pg.evaluate("(()=>{const L=Scena3D.K.Lp;return{momento:L.momento,liv:L.liv,neb:L.nebbia}})()")
+    check(lp['momento'] == 'notte' and lp['liv'] == 3 and lp['neb'][0] == 'fuoco:0', f'notte con perdizione alta: luna, livello 3, nebbia rossa ({lp})')
+    # i sei temi si montano senza errori (tema che gira dal pannello)
+    temi = []
+    for _ in range(6):
+        await pg.click('[data-a=pxp][data-v="tema:+"]')
+        await pg.wait_for_function("Scena3D.nFig()===7&&Scena3D.K.D&&Scena3D.K.D.tema===PixelProva.P.tema&&PixelProva.P.ult", timeout=20000)
+        temi.append(await pg.evaluate("Scena3D.K.D.tema"))
+    check(sorted(set(temi)) == ['foresta', 'fortezza', 'palude', 'rovine', 'sotterraneo', 'torre'], f'i sei temi dei biomi ({temi})')
+    # interruttore: il 3D di oggi torna com'era (canvas a misura del contenitore, luce di sempre), poi di nuovo pixel
+    await pg.click('[data-a=pxp][data-v="modo:3d"]'); await pg.wait_for_timeout(600)
+    st = await pg.evaluate("({px:Scena3D.K.cv.classList.contains('s3-px'),w:Scena3D.K.cv.style.width,ult:PixelProva.P.ult,band:Scena3D.K.U.uBande.value,tm:Scena3D.K.ren.toneMapping,tema:Scena3D.K.D.tema})")
+    check(not st['px'] and st['w'] == '100%' and st['ult'] is None and st['band'] == 0 and st['tm'] != 0 and st['tema'] is None, f'«3D di oggi» rimette la scena di sempre ({st})')
+    await pg.evaluate("PixelProva.act('modo:pixel');PixelProva.act('scena:foresta')")
+    await pg.wait_for_function("Scena3D.nFig()===7&&Bat.s.arena.ambiente==='bosco'&&PixelProva.P.ult&&Scena3D.K.px", timeout=20000); await pg.wait_for_timeout(400)
     r = await pg.evaluate(JS_PX_FOTO)
-    check(r['bl']['ok'] and r['fuori'] == 0, f'radura: stessa resa ({r["bl"]})')
+    check(r['bl']['ok'] and r['fuori'] == 0, f'di nuovo pixel: stessa resa ({r["bl"]})')
     await pg.evaluate("PixelProva.act('cam:segue');PixelProva.ferma(null)"); await pg.wait_for_timeout(1500)
     s = await pg.evaluate("PixelProva.stat()")
     print('pixel: fps nel browser di prova (WebGL software)', s)
     check(s['n'] > 3 and not pg.errs, f'la prova gira con la telecamera che segue, senza errori ({pg.errs[:2]})')
     await ctx.close()
-    # telefono Android a dpr frazionario (2,625): la scala intera vale sui pixel veri del dispositivo
-    ctx, pg = await apri({'width': 360, 'height': 740}, 2.625)
+    # ---- telefono Android a dpr frazionario (2,625): la scala intera vale sui pixel veri del dispositivo ----
+    ctx, pg = await apri({'width': 360, 'height': 740}, 2.625, 'notte')
     f = await pg.evaluate(JS_PX_FOTO)
     await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
     sc = await schermata(pg, f, 'pixel-android', 70 * 3)
     check(f['bl']['ok'] and sc['bl']['ok'] and sc['fuori'] == 0, f'dpr 2,625: ×{f["s"]}, {f["art"]} pixel d\'arte, blocchi interi anche nella schermata ({sc["bl"]})')
     await ctx.close()
-    # TV 1080p: 480×270 pixel d'arte a ×4
-    ctx, pg = await apri({'width': 1920, 'height': 1080}, 1)
-    f = await pg.evaluate(JS_PX_FOTO)
-    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
-    sc = await schermata(pg, f, 'pixel-tv', 70)
-    check(f['s'] == 4 and f['art'] == [480, 270] and f['bl']['ok'] and sc['bl']['ok'] and sc['fuori'] == 0, f'TV 1080p: ×4, 480×270, blocchi interi ({f["bl"]}, {sc["bl"]})')
+    # ---- TV 1080p: 480×270 pixel d'arte a ×4, le tre scene di controllo ----
+    ctx, pg = await apri({'width': 1920, 'height': 1080}, 1, 'foresta')
+    for id_ in ['foresta', 'sotterraneo', 'notte']:
+        if id_ != 'foresta': await scena(pg, id_)
+        await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+        f = await pg.evaluate(JS_PX_FOTO)
+        sc = await schermata(pg, f, f'pixel-{id_}-tv', 70)
+        check(f['s'] == 4 and f['art'] == [480, 270] and sc['bl']['ok'] and sc['fuori'] == 0, f'{id_}, TV 1080p: ×4, 480×270, blocchi interi ({f["bl"]}, {sc["bl"]})')
+        await controlli(pg, id_ + ', TV', f)
+        await pg.evaluate("PixelProva.act('pann:1')")
+    print('pixel: chiamate in TV', f['chiamate'], 'triangoli', f['tri'])
     check(not pg.errs, f'nessun errore ({pg.errs[:2]})')
     await ctx.close()
 
