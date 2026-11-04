@@ -39,9 +39,10 @@
  const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
  // ---- miniature ----
  const cols=(c,asp)=>{asp=asp||{};const pe=(c.razza==='orco'?Eroi.PELLE_ORCO:Eroi.PELLE)[asp.pelle|0]||Eroi.PELLE[0];return{pelle:pe,capelli:Eroi.CAPELLI[asp.capelli|0]||Eroi.CAPELLI[0],mantello:Eroi.MANTELLO[asp.mantello|0]||Eroi.MANTELLO[0]}};
- const firma=c=>c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def;
- function modello(c){if(c.lato==='eroi'){const a=(Bat.aspetti||{})[c.id]||{};return AMIN.eroe(c.razza,c.classe,cols(c,a),a.capelli|0)}
-  const m=typeof BEST!=='undefined'&&BEST.M[c.def];return AMIN.mostro(c.def,!!(m&&m.capo))}
+ const firma=c=>(K.px?'p':'')+(c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def);
+ // nella resa pixel (B2) le miniature hanno le proporzioni «da bambola» di AMIN (arma e scudo più grandi, gambe sottili)
+ function modello(c){const o={bambola:!!K.px};if(c.lato==='eroi'){const a=(Bat.aspetti||{})[c.id]||{};return AMIN.eroe(c.razza,c.classe,cols(c,a),a.capelli|0,o)}
+  const m=typeof BEST!=='undefined'&&BEST.M[c.def];return AMIN.mostro(c.def,!!(m&&m.capo),o)}
  const FS_=1.3;   // le miniature sono un po' più grandi del vero per leggersi su un telefono
  function costruisciFig(c){const m0=modello(c),m=Object.assign({},m0,{parti:AMIN.scala(m0.parti,FS_),alt:m0.alt*FS_,base:Object.assign({},m0.base,{r:m0.base.r*FS_})}),A=S.V(),E=S.V();for(const p of m.parti)S.pezzo(p[10]==='e'?E:A,p,0,0,0,0,1,p[10]==='e'?1:1,p[10]==='e'?0:.55,false);
   const mat=new T.MeshStandardMaterial({vertexColors:true,roughness:.72,metalness:.04,flatShading:true,envMapIntensity:.7});mat.userData.mio=true;
@@ -54,6 +55,9 @@
   ring.position.y=1.3;top.position.y=2.7;ring.castShadow=ring.receiveShadow=true;b.add(ring,top);
   if(m.base.capo){const rr=new T.Mesh(new T.CylinderGeometry(r+3.4,r+3.8,1.6,24),new T.MeshStandardMaterial({color:0xd6aa3c,roughness:.35,metalness:.7,envMapIntensity:1.2}));rr.position.y=.9;b.add(rr)}
   body.position.y=2.9;g.add(b,body);
+  // materiali a bande (luce di contorno calda sugli eroi, fredda sui nemici; maschera delle figure per la rifinitura): contano solo nella resa pixel
+  const rim=c.lato==='eroi'?'eroi':'nemici';S.bande(mat,{maschera:.5,rim});S.tinta(mat.userData.bande.uRim.value,[ASCE.RIM[rim],ASCE.RIM.forza]);
+  b.traverse(o=>{if(o.material)S.bande(o.material,{maschera:.5})});
   return{id:c.id,sig:firma(c),g,body,mat,alt:m.alt+3,r,rot:0,occ:0,dy:0,x:0,y:0,z:0,ph:Math.random()*6.28,ko:false,nasc:false,fiamme:false,veleno:false,stordito:false,lato:c.lato,classe:c.classe,def:c.def,sca:1}}
  const pos3=(s,c)=>{const p=ASCE.pos('bat',c.q,c.r);return{x:p.x,z:p.z,y:AGRI.alt(s.arena,c)?ASCE.QUOTA.rialzo:0}};
  function metti(f){f.g.position.set(f.x,f.y+f.dy,f.z);f.g.rotation.y=f.rot;f.g.scale.setScalar(f.sca)}
@@ -69,6 +73,8 @@
   for(const [id,f] of FG)if(!vivi.has(id)&&f.occ<=0){S_libera(f);FG.delete(id)}}
  S.altFig=id=>{const f=FG.get(id);return f?f.alt:30};
  S.nFig=()=>FG.size;
+ // le miniature in scena (per i controlli della resa pixel): gruppo, altezza, raggio della base, lato
+ S.figure=()=>[...FG.values()].map(f=>({id:f.id,g:f.g,alt:f.alt,r:f.r,lato:f.lato}));
  S.stat=()=>({fa:FA?FA.viva:-1,fs:FS?FS.viva:-1,fe:FE?FE.viva:-1,em:EM.length,fig:FG.size,fuochi:(K.fuochi||[]).length,mat:EM.map(e=>e.k).join(',')});
  // ---- sorgenti d'ambiente (le liste le riempie 24hn): fuochi sul pavimento, torce, camini, falò, corvi ----
  S.sorgenti=function(modo){EM.length=0;while(UCCG&&UCCG.children.length){const c=UCCG.children.pop();c.geometry.dispose();c.material.dispose()}UCC.length=0;
