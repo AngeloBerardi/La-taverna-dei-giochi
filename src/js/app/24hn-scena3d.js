@@ -3,6 +3,7 @@
    La telecamera è obliqua e coincide al pixel con il viewBox dell'SVG (ASCE.proiez): niente picking, niente gesti nuovi. Le viste chiedono `Scena3D.on()` a ogni disegno
    e saltano il terreno se è vero. three.js (r128) si carica su richiesta; senza WebGL, con telefono lento o con «Grafica 3D: no» resta l'SVG di sempre.
    Qui: ciclo di vita, telecamera, terreno e oggetti fissi, luce da ambiente cotto (PMREM da un cielo procedurale), ombre, sonda dei fps, impostazione.
+   `Scena3D.disegna(K)`, se c'è, disegna al posto di `K.ren.render` (la resa pixel di 24hp-pixel.js).
    Miniature, particelle e animazioni: 24ho-scena-fx.js. Forme e quote: motori/28f (ASCE) e 28g (AMIN). Piano: docs/AVVENTURA-A12.md. */
 const Scena3D=(()=>{
  const LS='avv-3d',VEG=new Set(['albero','albero-secco','bosco','albero-solo','canne','ciuffi','fiori']),RUOTA=new Set(['albero','albero-secco','bosco','albero-solo','picco','roccia','masso','canne','ciuffi','sassi','fiori','stalagmite']);
@@ -164,7 +165,7 @@ const Scena3D=(()=>{
   const anim=Scena3D.anima?Scena3D.anima(sec,dt):false,amb=t-K.tAmb>=82&&Scena3D.ambiente&&Scena3D.dinamico();
   if(K.sucio||anim||amb){if(amb){K.tAmb=t;Scena3D.ambiente(sec,dt)}K.uT.value=RM?0:sec;K.uLum.value=RM?1:.9+.1*Math.sin(sec*9)*Math.sin(sec*3.1)+.04*Math.sin(sec*23);
    const m=K.mat.onde;if(m&&!RM){m.offset.x=sec*.012;m.offset.y=sec*.007}
-   K.sucio=false;const p0=performance.now();K.ren.render(K.scn,K.cam);sondaFps(p0)}
+   K.sucio=false;const p0=performance.now();if(Scena3D.disegna)Scena3D.disegna(K);else K.ren.render(K.scn,K.cam);sondaFps(p0)}
   K.raf=requestAnimationFrame(ciclo)}
  // se i primi disegni sono lenti il telefono non regge: si torna all'SVG e si ricorda (impostazione «lento»); con «Sempre» non si controlla
  function sondaFps(p0){if(impo()!=='auto')return;const s=K.sonda||(K.sonda={n:0,t:[],ok:false});if(s.ok)return;const ora=performance.now();s.t.push(ora);K.sucio=true;
@@ -176,7 +177,7 @@ const Scena3D=(()=>{
 <div class="s3-set" role="group" aria-label="Grafica 3D">${['auto','si','no'].map(k=>`<button class="b sm ${v===k||(v==='lento'&&k==='no')?'gold':''}" data-a="s3d" data-v="${k}" aria-pressed="${v===k}">${NOMI[k]}</button>`).join('')}</div>
 ${v==='lento'?'<small class="muted">Il telefono è sembrato lento: la grafica 3D è spenta. Scegli «Automatica» per riprovare.</small>':''}`}
  function imposta(v){if(!['auto','si','no'].includes(v))return;scrivi(v);K.sonda=null;if(v==='no')parcheggia();else if(!K.pronta&&!K.carico)K.fallita=false;if(typeof render==='function')render()}
- const Pub={K,C,GU,V,metti,tessera,mesh,pezzo,matrice,mescola,scuro,esagono,libera,sporca,dopo,vista,on,avvia,impostaH,imposta,impo,sync,
+ const Pub={K,C,GU,V,metti,tessera,mesh,pezzo,matrice,mescola,scuro,esagono,libera,sporca,dopo,vista,dimensiona,on,avvia,impostaH,imposta,impo,sync,
   get T(){return T},get fallita(){return K.fallita},get pronta(){return K.pronta},sonda:()=>K.msMediano,
   // quanto alzare etichette e numeri sopra le miniature quando il 3D è attivo
   sup:()=>on()?14:0,

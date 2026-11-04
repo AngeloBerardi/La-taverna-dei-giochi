@@ -60,6 +60,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
  case'tut':return AvvTut.act(a,v);
  case'avt':return AvvStanza.act(a,v);
  case's3d':return Scena3D.imposta(v);
+ case'pxp':return PixelProva.act(v);
  case'tvfull':case'tvm':case'tvmx':case'tvcopy':case'tvcast':case'tvcastx':case'tvshare':return TV.act(a);
  case'dist':case'distx':case'distnew':case'distjoin':case'distgo':case'distdel':case'distcopy':case'distexit':case'distnot':return Dist.act(a,v);
  case'giaregia':return GIA.prendiRegia();
