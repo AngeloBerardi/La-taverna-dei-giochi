@@ -2294,6 +2294,92 @@ JS_A11Y = """((opz)=>{
   if(rr<soglia){const k=t.slice(0,24)+'|'+rr.toFixed(1);if(!visti.has(k)){visti.add(k);bassi.push(((e.className&&String(e.className).split(' ')[0])||e.tagName.toLowerCase())+' «'+t.slice(0,28)+'» '+rr.toFixed(1)+':1 ('+px+'px)')}}}
  return{piccoli,bassi,largo:document.documentElement.scrollWidth>innerWidth}})"""
 
+JS_PX_FOTO = """(o)=>{const K=Scena3D.K,i=K.ren.info;i.autoReset=false;i.reset();const r=PixelProva.scatta(Object.assign({schermo:true},o||{}));i.autoReset=true;
+ const u=r.ult,S=r.schermo,B=r.basso;return{s:u.s,art:u.art,off:u.off,W:S.w,H:S.h,bl:APAL.blocchi(S.px,S.w,S.h,u.s,u.off[0],u.off[1]),fuori:APAL.fuori(S.px),
+  fuoriBasso:APAL.fuori(B.px),bordo:[S.w,S.h].join('x')===[K.cv.width,K.cv.height].join('x'),css:Math.round(K.cv.getBoundingClientRect().width*devicePixelRatio),chiamate:i.render.calls,tri:i.render.triangles}}"""
+# la schermata vera (composta dal browser): blocchi interi anche dopo il ridimensionamento della pagina, a partire dal basso (off è in coordinate GL)
+JS_PX_SCHERMATA = """async([b64,s,ox,oy,taglio])=>{const im=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=document.createElement('canvas');
+ c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const H=im.height-taglio,d=g.getImageData(0,0,im.width,H).data;
+ return{w:im.width,h:im.height,bl:APAL.blocchi(d,im.width,H,s,ox,im.height-oy),fuori:APAL.fuori(d)}}"""
+# scorrimento: con il tempo fermo, la telecamera spostata di frazioni di unità dà sempre la stessa immagine spostata di pixel interi
+JS_PX_SCORRE = """(()=>{const K=Scena3D.K,c={x:K.bbox.cx,z:K.bbox.cz},k=APAL.k(),px=(x,z)=>{const[a,b]=APAL.piano(x,0,z);return[Math.round(a*k),Math.round(b*k)]};
+ const passi=[[0,0],[7.3,-4.1],[13.9,9.2],[-21.4,3.3],[.31,.12],[2.6,-1.7]],res=[];let a0=null,p0=null,sbagliato=0;
+ for(const[dx,dz]of passi){const x=c.x+dx,z=c.z+dz,r=PixelProva.scatta({cam:[x,z]}),p=px(x,z);if(!a0){a0=r.basso;p0=p;continue}
+  const d=APAL.confronta(a0.px,r.basso.px,a0.w,a0.h,p[0]-p0[0],p[1]-p0[1],2);res.push(+(d.diversi/d.tot).toFixed(5));
+  if(p[0]!==p0[0]){const e=APAL.confronta(a0.px,r.basso.px,a0.w,a0.h,p[0]-p0[0]+1,p[1]-p0[1],2);sbagliato=Math.max(sbagliato,e.diversi/e.tot)}}
+ PixelProva.camera(null);return{res,sbagliato}})()"""
+# contorni: i pixel che cambiano accendendoli sono tutti toni più scuri di una rampa
+JS_PX_CONTORNI = """(()=>{const a=PixelProva.scatta({contorni:false}).basso,b=PixelProva.scatta({contorni:true}).basso,sc=new Set(APAL.NOMI.map((_,i)=>APAL.RGB[i*5].join(',')));
+ let n=0,scuri=0;for(let o=0;o<a.px.length;o+=4)if(a.px[o]!==b.px[o]||a.px[o+1]!==b.px[o+1]||a.px[o+2]!==b.px[o+2]){n++;if(sc.has([b.px[o],b.px[o+1],b.px[o+2]].join(',')))scuri++}
+ return{n,scuri,tot:a.px.length/4}})()"""
+
+async def sc_avv_pixel(b, srv):
+    """Resa pixel (B1), pagina ?prova=pixel: pixel d'arte tutti della stessa misura (telefono ai due zoom, telefono a dpr frazionario, TV 1080p),
+    solo colori della palette, contorni scuri, telecamera agganciata (scorrimento a pixel interi), interruttore con il 3D di oggi, cambio di luogo."""
+    async def apri(vp, dpr):
+        # tempo fermo e animazioni ridotte: si disegna solo quando serve (il WebGL del browser di prova è software)
+        ctx = await b.new_context(viewport=vp, device_scale_factor=dpr, service_workers='block', reduced_motion='reduce')
+        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');")
+        async def route(r):
+            u = r.request.url; m = SDK.match(u)
+            if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
+            if u.startswith(f'http://localhost:{srv.port}'): return await r.continue_()
+            await r.abort()
+        await ctx.route('**/*', route)
+        pg = await page(ctx, srv.url + '?prova=pixel&t=1.5', wait=500)
+        await pg.wait_for_function("Scena3D.pronta&&Scena3D.on()&&PixelProva.P.ult&&Scena3D.nFig()===7", timeout=40000)
+        return ctx, pg
+    async def schermata(pg, f, nome, taglio):
+        png = await pg.screenshot(path=f'/tmp/claude-0/{nome}.png')
+        import base64
+        return await pg.evaluate(JS_PX_SCHERMATA, [base64.b64encode(png).decode(), f['s'], f['off'][0], f['off'][1], taglio])
+    # telefono verticale 390 pt a dpr 2: ×4 (195 pixel d'arte), zoom vicino ×5 (a dpr 3 sarebbe ×6 e ×8: stessi conti, il test resta leggero)
+    ctx, pg = await apri({'width': 390, 'height': 844}, 2)
+    check(await pg.evaluate("!!document.querySelector('.pxp .bt-mappa.s3 > .s3-cv.s3-px')"), 'la prova monta il canvas della scena con la resa pixel')
+    f = await pg.evaluate(JS_PX_FOTO)
+    check(f['s'] == 4 and f['art'] == [195, 422] and f['bordo'] and abs(f['css'] - f['W']) <= 1, f'telefono: scala ×4, 195×422 pixel d\'arte, canvas a pixel veri ({f["W"]}×{f["H"]}, {f["css"]})')
+    check(f['bl']['ok'], f'telefono, zoom lontano: ogni pixel d\'arte è un blocco 4×4 di un solo colore ({f["bl"]})')
+    check(f['fuori'] == 0 and f['fuoriBasso'] == 0, f'solo colori della palette ({f["fuori"]} fuori)')
+    print('pixel: chiamate', f['chiamate'], 'triangoli', f['tri'])
+    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+    sc = await schermata(pg, f, 'pixel-telefono-lontano', 70 * 2)
+    check(sc['bl']['ok'] and sc['fuori'] == 0, f'la schermata composta dal browser ha blocchi interi e solo colori della palette ({sc})')
+    v = await pg.evaluate(JS_PX_FOTO, {'zoom': 'vicino'})
+    check(v['s'] == 5 and v['bl']['ok'] and v['fuori'] == 0, f'telefono, zoom vicino: scala ×5, blocchi interi ({v["art"]}, {v["bl"]})')
+    await pg.evaluate("PixelProva.scatta({zoom:'lontano'})")
+    sr = await pg.evaluate(JS_PX_SCORRE)
+    check(max(sr['res']) < .002 and sr['sbagliato'] > .05, f'telecamera agganciata: spostandola, la scena scorre di pixel interi senza cambiare forma ({sr})')
+    ct = await pg.evaluate(JS_PX_CONTORNI)
+    check(ct['n'] > ct['tot'] * .004 and ct['scuri'] == ct['n'], f'contorni di 1 pixel nel tono più scuro della rampa ({ct})')
+    # interruttore: il 3D di oggi torna com'era (canvas a misura del contenitore), poi di nuovo pixel
+    await pg.evaluate("PixelProva.act('pann:1')"); await pg.click('[data-a=pxp][data-v="modo:3d"]'); await pg.wait_for_timeout(600)
+    st = await pg.evaluate("({px:Scena3D.K.cv.classList.contains('s3-px'),w:Scena3D.K.cv.style.width,ult:PixelProva.P.ult})")
+    check(not st['px'] and st['w'] == '100%' and st['ult'] is None, f'«3D di oggi» rimette la scena di sempre ({st})')
+    await pg.evaluate("PixelProva.act('modo:pixel');PixelProva.act('luogo:radura')")
+    await pg.wait_for_function("Scena3D.nFig()===7&&Bat.s.arena.ambiente==='bosco'&&PixelProva.P.ult", timeout=20000); await pg.wait_for_timeout(400)
+    r = await pg.evaluate(JS_PX_FOTO)
+    check(r['bl']['ok'] and r['fuori'] == 0, f'radura: stessa resa ({r["bl"]})')
+    await pg.evaluate("PixelProva.act('cam:segue');PixelProva.ferma(null)"); await pg.wait_for_timeout(1500)
+    s = await pg.evaluate("PixelProva.stat()")
+    print('pixel: fps nel browser di prova (WebGL software)', s)
+    check(s['n'] > 3 and not pg.errs, f'la prova gira con la telecamera che segue, senza errori ({pg.errs[:2]})')
+    await ctx.close()
+    # telefono Android a dpr frazionario (2,625): la scala intera vale sui pixel veri del dispositivo
+    ctx, pg = await apri({'width': 360, 'height': 740}, 2.625)
+    f = await pg.evaluate(JS_PX_FOTO)
+    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+    sc = await schermata(pg, f, 'pixel-android', 70 * 3)
+    check(f['bl']['ok'] and sc['bl']['ok'] and sc['fuori'] == 0, f'dpr 2,625: ×{f["s"]}, {f["art"]} pixel d\'arte, blocchi interi anche nella schermata ({sc["bl"]})')
+    await ctx.close()
+    # TV 1080p: 480×270 pixel d'arte a ×4
+    ctx, pg = await apri({'width': 1920, 'height': 1080}, 1)
+    f = await pg.evaluate(JS_PX_FOTO)
+    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+    sc = await schermata(pg, f, 'pixel-tv', 70)
+    check(f['s'] == 4 and f['art'] == [480, 270] and f['bl']['ok'] and sc['bl']['ok'] and sc['fuori'] == 0, f'TV 1080p: ×4, 480×270, blocchi interi ({f["bl"]}, {sc["bl"]})')
+    check(not pg.errs, f'nessun errore ({pg.errs[:2]})')
+    await ctx.close()
+
 async def sc_avv_accessibilita(b, srv):
     """Accessibilità (A13), a 390 px: scelta della difficoltà (radio, ricordata, passata alla campagna e mostrata sul posto), poi bersagli da toccare di almeno 40 px, contrasto del testo e assenza di scorrimento
     orizzontale sulle schermate dell'Avventura: pagina e regole, scelta della campagna, dialogo, mappa e fogli, battaglia."""
