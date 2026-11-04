@@ -35,17 +35,43 @@ const t0 = Date.now(), T = APAL.tabella(32), ms = Date.now() - t0;
 assert.strictEqual(T.w, 1024); assert.strictEqual(T.h, 32); assert.strictEqual(T.dati.length, 1024 * 32 * 4);
 assert(ms < 1500, 'tabella troppo lenta: ' + ms + ' ms');
 assert.strictEqual(APAL.fuori(T.dati), 0, 'nella tabella solo colori della palette');
-for (let o = 3; o < T.dati.length; o += 4) assert(T.dati[o] < 8, 'alfa = numero della rampa');
+for (let o = 3; o < T.dati.length; o += 4) assert.deepStrictEqual([...T.dati.slice(o - 3, o)], APAL.RGB[T.dati[o]], 'alfa = numero del colore');
 const cella = (r, g, b) => { const q = v => Math.floor(v / 8), o = (q(g) * 1024 + q(b) * 32 + q(r)) * 4; return [T.dati[o], T.dati[o + 1], T.dati[o + 2], T.dati[o + 3]]; };
 for (let i = 0; i < 40; i++) {
   const [r, g, b] = APAL.RGB[i], c = cella(r, g, b);
   assert.deepStrictEqual(c.slice(0, 3), [r, g, b], 'il cubetto di ' + APAL.COLORI[i] + ' torna a sé');
-  assert.strictEqual(c[3], APAL.rampa(i));
+  assert.strictEqual(c[3], i);
 }
 assert.deepStrictEqual(APAL.tabella(32).dati, T.dati, 'la tabella è sempre la stessa');
 const S = APAL.scuri();
 assert.strictEqual(S.length, 32);
 APAL.NOMI.forEach((n, i) => assert.deepStrictEqual([...S.slice(i * 4, i * 4 + 3)], APAL.RGB[i * 5], 'scuro di ' + n));
+const PL = APAL.paletta();
+assert.strictEqual(PL.length, 160);
+for (let i = 0; i < 40; i++) assert.deepStrictEqual([...PL.slice(i * 4, i * 4 + 3)], APAL.RGB[i]);
+// nomi dei colori, tono più chiaro (filo di luce)
+assert.strictEqual(APAL.indice('notte:2'), 37); assert.strictEqual(APAL.indice('pietra:0'), 0);
+assert.strictEqual(APAL.indice(APAL.COLORI[12]), 12); assert.strictEqual(APAL.indice('cielo:1'), -1); assert.strictEqual(APAL.indice('#123456'), -1);
+assert.strictEqual(APAL.colore('fuoco:4'), APAL.RAMPE.fuoco[4]); assert.strictEqual(APAL.colore('nulla'), null);
+for (let i = 0; i < 40; i++) {
+  const c = APAL.chiaro(i);
+  assert.strictEqual(APAL.rampa(c), APAL.rampa(i), 'il filo di luce resta nella rampa');
+  assert(i % 5 === 4 ? c === i : c === i + 1);
+  assert(APAL.oklab(APAL.COLORI[c])[0] >= APAL.oklab(APAL.COLORI[i])[0]);
+}
+// ---- retino di Bayer 4×4: 16 soglie diverse, k/16, periodico di 4 anche con coordinate negative ----
+const soglie = new Set();
+for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) {
+  const v = APAL.bayer(x, y);
+  assert(v >= 0 && v < 1 && Math.abs(v * 16 - Math.round(v * 16)) < 1e-9, 'soglia in sedicesimi');
+  soglie.add(Math.round(v * 16));
+  for (const [dx, dy] of [[4, 0], [0, 4], [-8, 12], [400, -404]]) assert.strictEqual(APAL.bayer(x + dx, y + dy), v, 'periodo 4');
+}
+assert.strictEqual(soglie.size, 16, 'le 16 soglie del retino');
+// mezzo retino = metà dei pixel accesi, sparsi (mai due vicini in orizzontale)
+let accesi = 0;
+for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) if (APAL.bayer(x, y) < .5) { accesi++; assert(!(APAL.bayer(x + 1, y) < .5), 'retino a scacchiera'); }
+assert.strictEqual(accesi, 8);
 
 // ---- misure: scala intera, larghezza in pixel d'arte come nel piano ----
 const m = (w, h, dpr, o) => APAL.misure(Object.assign({ w, h, dpr }, o || {}));

@@ -1,19 +1,20 @@
-/* ---- Palette e misure della resa pixel di Cantari di Ventura (B1). Motore puro: niente three.js, niente DOM. ----
+/* ---- Palette e misure della resa pixel di Cantari di Ventura (B1–B2). Motore puro: niente three.js, niente DOM. ----
    Palette fissa da 40 colori nostri: 8 rampe da 5 toni, dal più scuro al più chiaro (scuri freddi, chiari caldi). Ogni pixel della scena si porta
    al colore più vicino con una tabella 32×32×32 (confronto in Oklab, che segue l'occhio). Qui anche le misure della catena: scala intera
-   dello schermo, pixel d'arte per unità del mondo, aggancio della telecamera ai pixel, e i controlli usati dai test (blocchi, colori, scorrimento).
-   Palette provvisoria: i colori si ritoccano in RAMPE e basta, il resto segue. Piano: docs/AVVENTURA-B.md (Resa grafica, B1). Test: tests/test_avv_palette.js */
+   dello schermo, pixel d'arte per unità del mondo, aggancio della telecamera ai pixel, il retino (Bayer 4×4) e i controlli usati dai test
+   (blocchi, colori, scorrimento). Palette definitiva (B2), disegnata in OKLCH: ogni rampa scende verso il freddo e sale verso il caldo;
+   i colori si ritoccano in RAMPE e basta, il resto segue. Piano: docs/AVVENTURA-B.md (Resa grafica, B1–B2). Test: tests/test_avv_palette.js */
 const APAL=(()=>{
  const NOMI=['pietra','erba','legno','pelle','metallo','fuoco','magia','notte'];
  const RAMPE={
-  pietra:['#1b303f','#365363','#567786','#7d9da8','#a9c3ca'],
-  erba:['#013726','#086334','#428e39','#84b741','#c8de63'],
-  legno:['#381f11','#5f3c21','#865e34','#aa8352','#caac7a'],
-  pelle:['#7d4740','#a56755','#c98d70','#e7b695','#ffe2c8'],
-  metallo:['#4d3c31','#766454','#a08f7c','#cabdab','#f5eede'],
-  fuoco:['#8d1b17','#b84d02','#db8106','#fbb509','#fff0a6'],
-  magia:['#341d5e','#623b8f','#955dbb','#c986df','#f9b6fc'],
-  notte:['#0b041d','#180f38','#242054','#2f346a','#3d497b']};
+  pietra:['#182233','#2f4154','#4e6778','#76919c','#a8c3c8'],
+  erba:['#01372c','#095c34','#448335','#7da937','#c5d254'],
+  legno:['#361c13','#593523','#805533','#a67d50','#ccac7b'],
+  pelle:['#7f463d','#a86751','#c68c6a','#dfb490','#f7d8b8'],
+  metallo:['#3c342a','#62594d','#8a8275','#b4ada0','#ebeae1'],
+  fuoco:['#90101a','#c44404','#e68101','#f3ba25','#fcf2a2'],
+  magia:['#361e57','#5f3389','#944fb0','#c67bcb','#f4b2e5'],
+  notte:['#0a0919','#14152f','#1e2346','#28345d','#2e4775']};
  const TONI=5,COLORI=NOMI.flatMap(n=>RAMPE[n]);
  const rgb=h=>{const n=parseInt(h.slice(1),16);return[n>>16&255,n>>8&255,n&255]};
  const RGB=COLORI.map(rgb);
@@ -29,12 +30,22 @@ const APAL=(()=>{
  function vicino(r,g,b){const p=oklab(r,g,b);let k=0,m=Infinity;for(let i=0;i<LAB.length;i++){const d=d2(p,LAB[i]);if(d<m){m=d;k=i}}return k}
  const rampa=i=>Math.floor(i/TONI);
  const scuro=i=>rampa(i)*TONI;
- // tabella per lo shader: larga n·n, alta n; il pixel (b·n + r, g) ha il colore della palette del cubetto (r, g, b) e in alfa il numero della rampa
+ // tabella per lo shader: larga n·n, alta n; il pixel (b·n + r, g) ha il colore della palette del cubetto (r, g, b) e in alfa il suo numero (0–39):
+ // dal numero lo shader ricava rampa e tono (contorno = tono più scuro della rampa, filo di luce = un tono più chiaro)
  function tabella(n){n=n||32;const w=n*n,dati=new Uint8Array(w*n*4),c=x=>Math.round((x+.5)*255/n);
-  for(let g=0;g<n;g++)for(let b=0;b<n;b++)for(let r=0;r<n;r++){const k=vicino(c(r),c(g),c(b)),o=(g*w+b*n+r)*4,q=RGB[k];dati[o]=q[0];dati[o+1]=q[1];dati[o+2]=q[2];dati[o+3]=rampa(k)}
+  for(let g=0;g<n;g++)for(let b=0;b<n;b++)for(let r=0;r<n;r++){const k=vicino(c(r),c(g),c(b)),o=(g*w+b*n+r)*4,q=RGB[k];dati[o]=q[0];dati[o+1]=q[1];dati[o+2]=q[2];dati[o+3]=k}
   return{n,w,h:n,dati}}
  // il tono più scuro di ogni rampa (per i contorni), 8 pixel RGBA
  function scuri(){const d=new Uint8Array(NOMI.length*4);NOMI.forEach((_,i)=>{const q=RGB[i*TONI];d.set([q[0],q[1],q[2],255],i*4)});return d}
+ // tutta la palette in fila, 40 pixel RGBA (lo shader legge il colore n alla colonna n)
+ function paletta(){const d=new Uint8Array(COLORI.length*4);RGB.forEach((q,i)=>d.set([q[0],q[1],q[2],255],i*4));return d}
+ // numero di un colore: 'rampa:tono' (es. 'notte:2') o esadecimale della palette; −1 se non c'è
+ function indice(c){if(typeof c!=='string')return-1;const m=/^([a-z]+):([0-4])$/.exec(c);if(m){const r=NOMI.indexOf(m[1]);return r<0?-1:r*TONI+(+m[2])}return COLORI.indexOf(c.toLowerCase())}
+ const colore=c=>{const i=indice(c);return i<0?null:COLORI[i]};
+ // un tono più chiaro nella stessa rampa (il filo di luce); il più chiaro resta sé stesso
+ const chiaro=i=>Math.min(i+1,rampa(i)*TONI+TONI-1);
+ // retino di Bayer 4×4: soglia in [0, 1) per il pixel (x, y), uguale alla formula dello shader (24hp-pixel.js)
+ function bayer(x,y){const b2=(a,c)=>{a=Math.floor(a);c=Math.floor(c);const v=a*.5+c*c*.75;return v-Math.floor(v)};return b2(x/2,y/2)*.25+b2(x,y)}
  // ---- telecamera e misure ----
  const CAMERA={incl:55,cos:.573576,sin:.819152};   // ortografica, inclinata di 55° sul piano, senza rotazione
  const ALTO_EROE=24;                                 // pixel d'arte di un eroe umano in piedi
@@ -65,5 +76,5 @@ const APAL=(()=>{
   for(let y=m;y<H-m;y++){const ya=y+dy;if(ya<m||ya>=H-m)continue;for(let x=m;x<W-m;x++){const xa=x+dx;if(xa<m||xa>=W-m)continue;tot++;
    const o=(y*W+x)*4,p=(ya*W+xa)*4;if(a[p]!==b[o]||a[p+1]!==b[o+1]||a[p+2]!==b[o+2])n++}}
   return{diversi:n,tot}}
- return{NOMI,RAMPE,TONI,COLORI,RGB,CAMERA,ALTO_EROE,ALT_RIF,MIN_ART,oklab,vicino,rampa,scuro,tabella,scuri,misure,k,piano,aggancia,blocchi,fuori,confronta}})();
+ return{NOMI,RAMPE,TONI,COLORI,RGB,CAMERA,ALTO_EROE,ALT_RIF,MIN_ART,oklab,vicino,rampa,scuro,chiaro,tabella,scuri,paletta,indice,colore,bayer,misure,k,piano,aggancia,blocchi,fuori,confronta}})();
 if(typeof module!=='undefined')module.exports=APAL;
