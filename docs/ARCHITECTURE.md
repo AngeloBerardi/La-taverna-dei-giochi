@@ -207,6 +207,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28e-avv-stanza.js` | 15 | AST |
 | `js/motori/28f-avv-scena.js` | 12 | ASCE |
 | `js/motori/28g-avv-mini.js` | 14 | AMIN |
+| `js/motori/28h-avv-palette.js` | 6 | APAL |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -229,7 +230,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07-nucleo.js` | 15 | G, ui, ME, R, ENG, isRG, GAMES |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
-| `js/app/07c-comandi.js` | 8 |  |
+| `js/app/07c-comandi.js` | 9 |  |
 | `js/app/07d-regole.js` | 48 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
@@ -297,6 +298,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
 | `js/app/24hn-scena3d.js` | 22 | Scena3D |
 | `js/app/24ho-scena-fx.js` | 16 |  |
+| `js/app/24hp-pixel.js` | 14 | Pixel, PixelProva |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

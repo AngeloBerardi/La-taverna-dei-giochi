@@ -226,6 +226,17 @@ Tredici step, ognuno pensato per una o più sessioni dedicate: chi prende uno st
 - **Cosa si fa**: bersaglio a bassa risoluzione, ingrandimento intero, telecamera ortografica a 55° agganciata ai pixel, contorno esterno semplice, palette provvisoria. Pagina di prova `?prova=pixel` con interruttore tra 3D di oggi e pixel, e le miniature che camminano in cerchio per vedere lo scorrimento.
 - **File**: nuovo `app/24hp-pixel.js` (catena e ingrandimento), nuovo `motori/28h-avv-palette.js` (palette e tabella dei colori, puro, con test).
 - **Fatto quando**: 3 schermate (telefono verticale ai due livelli di zoom, TV 1080p) senza pixel di misura diversa, scorrimento senza tremolio, fps misurati su un telefono vero. Tu approvi dimensione delle figure e colori.
+- **Stato** (4 novembre 2026, ramo `feat/avv-b1`, sopra B0): **fatto, in attesa del controllo con te**. Catena in `app/24hp-pixel.js` (`Pixel`, agganciata con `Scena3D.disegna`), palette e misure in `motori/28h-avv-palette.js` (`APAL`, + `tests/test_avv_palette.js`), pagina `?prova=pixel` (`PixelProva`; `&t=2` ferma il cammino), scenario `avv_pixel` in `tools/test-browser/`. Controllati in automatico: ogni pixel d'arte è un blocco s×s di un solo colore (telefono ×4/×5/×6/×8, dpr 2,625, TV ×4, anche sulla schermata composta dal browser), nessun colore fuori palette, telecamera spostata di frazioni ⇒ stessa immagine spostata di pixel interi, contorni solo nei toni più scuri. **Manca**: fps su un telefono vero (il WebGL software del browser di prova dà 5 fps a 1170×2532, non dice nulla; il disegno costa ~2 ms di CPU a fotogramma) e la tua approvazione.
+- **Scelte prese** (non scritte nel piano):
+  - Lo zoom cambia solo la scala intera dello schermo, non il mondo: l'eroe resta 24 pixel d'arte, i pixel diventano più grossi. Vicino = max(s+1, ⌊s·4/3⌉): a dpr 3 ×6 (195 px d'arte) e ×8 (147).
+  - Scala del telefono verticale = ⌊larghezza in pixel veri / 192⌋: la larghezza d'arte sta fra 192 e 256 (a 375 pt e dpr 2 viene 250, poco sopra i 240 del piano). Il canvas lavora sui pixel veri del dispositivo, anche con dpr frazionario.
+  - Eroe di 24 pixel d'arte ovunque (anche in TV); pixel per unità del mondo fissi, dall'umano guerriero di riferimento (`APAL.ALT_RIF` = 43 unità).
+  - Confronto in Oklab con la tinta che pesa il doppio della luce: senza, i muri grigi illuminati dalle torce diventavano rosa pelle.
+  - Palette provvisoria generata in OKLCH (scuri freddi, chiari caldi); «metallo» è un grigio caldo (ossa, pietra alle torce), «pietra» un grigio freddo azzurro.
+  - Contorno esterno sul pixel dietro il salto di profondità (fuori dalla figura), soglia 5 unità: le fessure fra le tessere e il pavimento in pendenza non lo prendono, il rialzo sì.
+  - Anche le miniature si posano su pixel interi del piano della vista (spostandole in profondità), così non cambiano forma mentre camminano.
+  - La prova salta l'ingresso nella Taverna (`25-avvio`) e mette la battaglia di prova in `Bat.s` solo in memoria, senza salvarla.
+- **Da sapere per B2**: le fessure fra le tessere esagonali si vedono come una griglia scura (sono vuoti, non contorni); torce sui muri piccole al punto da sembrare figure; luce a bande, filo di luce interno e retino non ci sono ancora; 49 chiamate di disegno per la scena di prova (il piano ne vuole ≤ 30: B11).
 
 ### B2 — Luce, contorni, tessere e temi
 
