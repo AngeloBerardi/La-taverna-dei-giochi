@@ -1,0 +1,358 @@
+# Cantari di Ventura — Piano B: tempo reale, mondo libero, resa pixel
+
+1 novembre 2026
+
+## Decisioni e cosa cambia
+
+Cantari di Ventura passa da gioco da tavolo a turni a gioco di ruolo d'azione leggero: mondo libero sul modello dei giochi di comando di truppe, battaglie in tempo reale con pausa, resa pixel succosa come il riferimento dello screenshot. Le regole di fondo (classi, poteri, stati, bestiario, capitolo scritto) restano.
+
+**Decisioni del 1 novembre 2026**
+
+- **Eroi separati** sulla mappa del mondo, con la possibilità di **unirsi in compagnia** (un solo segnalino, si viaggia insieme) e di **staccarsi** in qualsiasi momento per proseguire da soli.
+- **Battaglia in tempo reale con pausa**: gli eroi agiscono da soli secondo un comportamento, il giocatore dà ordini e usa le abilità, la pausa si mette quando si vuole.
+- **Dadi meno duri**: il movimento non si tira più, né sulla mappa né in battaglia. Il d20 resta dentro ogni colpo e prova, ma non è più il protagonista della scena.
+- **Visuale in terza persona** dall'alto, mai in prima persona; mondo navigabile in continuo, non a caselle.
+- **Resa grafica**: pixel, piena di riscontri (numeri, bottino, livello), leggibile su telefono e su TV.
+
+**Cosa succede al lavoro già fatto (A0–A13)**
+
+| Parte | File | Destino |
+| --- | --- | --- |
+| Dadi nello stato | `27a` ADADI | Resta: serve ancora per il determinismo |
+| Eroi, oggetti, bottino | `27`, `27b`, `27c` | Restano; si aggiunge la velocità d'attacco delle armi |
+| Poteri e stati | `27e` APOT, `27d` ASTA | Restano le regole; i costi a turno diventano ricariche in secondi |
+| Bestiario | `27f` BEST | Resta; ogni mostro riceve velocità, portata e comportamento in tempo reale |
+| Battaglia | `27i` ASCO, `27j` AIA | Si riscrive il cuore (turni → istanti); geometria e arene si tengono |
+| Mappa del mondo | `28` CAMP, `27m`, `27o` | Si tiene la generazione; il movimento diventa continuo, con compagnie |
+| Racconto e capitolo | `27q`, `27r`, `27k` | Restano quasi intatti |
+| Bilanciamento A13 | `27ha` ADIF | Da rifare alla fine: le quattro leve restano, i numeri no |
+| Scena 3D | `24hn`, `24ho`, `28f`, `28g` | Resta la base; si aggiunge la resa pixel e l'animazione continua |
+| Viste SVG | `24hc`, `24he`, `24hg` | Si alleggeriscono: diventano solo HUD sopra il 3D |
+| Stanza TV + telefoni | `24hm`, `28e` | Cambia il protocollo: la TV simula, i telefoni mandano ordini |
+
+## Principi tecnici
+
+Il gioco resta un motore puro e deterministico: cambia solo l'unità di tempo, da "turno" a "istante" di 100 ms. Tutto il resto (grafica fluida, pausa, co-op) si costruisce sopra questa scelta.
+
+**1. Logica a 10 istanti al secondo, grafica a 60 fotogrammi**
+
+- Il motore espone `passo(s, n)` (avanza n istanti) e `ordina(s, ordine)` (registra un ordine valido dall'istante corrente). Nessun orologio dentro il motore: il tempo lo porta chi chiama.
+- La grafica disegna a 60 fps e **interpola** posizioni e barre tra l'istante precedente e quello attuale. Così il movimento è morbido anche se la logica è grossolana.
+- Il dado resta nello stato (`s.rng`, ADADI). Stessi ordini negli stessi istanti ⇒ stessa battaglia: per i test, per riprendere un salvataggio e per la TV.
+- Vietati nei motori: `Math.random`, `Date.now`, `Math.sin/cos/atan2` (danno risultati diversi tra browser). Distanze e direzioni sugli esagoni si fanno con interi, come già fa AGRI.
+
+**2. La pausa è gratis**
+
+Mettere in pausa vuol dire non chiamare `passo`. Durante la pausa si possono dare tutti gli ordini, che partono alla ripresa. Più la **pausa automatica**, ognuna attivabile dalle impostazioni: inizio battaglia, eroe sotto un quarto dei PF, eroe senza bersaglio, nemico nuovo in campo, potere pronto di un capo.
+
+**3. Dai turni ai secondi (conversioni fisse)**
+
+| Prima (A3–A4) | Dopo | Regola |
+| --- | --- | --- |
+| 1 giro | 6 secondi | Durate degli stati e Concentrazione: t giri → 6 t s |
+| Attacco nel turno | Ritmo dell'arma | Leggera 1,2 s, media 1,6 s, pesante 2,2 s tra un colpo e l'altro |
+| Potere "azione" | Lancio + ricarica | Lancio 0,6–1,5 s (interrompibile), ricarica dalla carica |
+| Potere "bonus" | Istantaneo | Ricarica breve, non interrompe l'attacco |
+| Potere "reazione" | Automatico | Scatta da solo alla sua condizione, poi ricarica |
+| Cariche "turno" | Ricarica 6 s | Le cariche scontro/breve/lungo restano identiche |
+| Movimento tirato | Velocità fissa | mov/3 caselle al secondo (mov 6 → 2 caselle/s) |
+| Iniziativa | Ritardo d'ingresso | All'inizio ognuno parte dopo 0–1 s secondo l'iniziativa |
+
+**4. Gli esagoni restano, ma non si vedono**
+
+In battaglia ogni creatura occupa sempre un esagono e passa al successivo alla sua velocità; la grafica la fa scivolare in continuo. Così restano validi linea di vista, copertura, altezza, attacchi di opportunità e ricerca del percorso di AGRI e AARE, già testati. La griglia si mostra solo in pausa o quando si dà un ordine di movimento.
+
+**5. Il d20 dentro ogni colpo**
+
+Quando un colpo parte si tira d20 + attacco contro CA, con vantaggio e svantaggio dalla griglia come oggi. A schermo non si vede il dado: si vede il colpo, il numero o la scritta "Mancato". Il registro della battaglia tiene i tiri per chi li vuole leggere.
+
+**6. Eroi che agiscono da soli (comportamenti)**
+
+Ogni eroe ha un **atteggiamento** scelto dal giocatore: Assalto, Difesa, Supporto, Tieni la posizione. Decide bersaglio, distanza e uso dei poteri a volontà; gli altri poteri li usa solo se il giocatore attiva "Uso automatico" su quel tasto. Il bot di AIA diventa il cervello di questi atteggiamenti e dei nemici.
+
+**7. Ordini sul telefono**
+
+Tocca un eroe per sceglierlo; tocca un nemico per attaccarlo; tocca una casella per andarci; tieni premuto un eroe e trascina per la formazione. In basso, la barra con 4–6 abilità dell'eroe scelto, ognuna con anello di ricarica. Due tasti fissi: Pausa e velocità ×1/×2.
+
+**8. Il mondo scorre solo quando ci si muove**
+
+Come nei giochi di comando di truppe a mondo libero, l'orologio del mondo avanza solo mentre qualcuno cammina o riposa. Un giorno di gioco ≈ 3 minuti di cammino. Perdizione all'alba, notte e luoghi restano come oggi. La logica del mondo usa lo stesso schema: istanti fissi, rng nello stato, grafica interpolata.
+
+**9. Compagnie: unirsi e staccarsi**
+
+- Sulla mappa si muovono **segnalini**: un eroe da solo o una **compagnia** di 2–4 eroi. La compagnia va alla velocità del più lento e si comanda come un segnalino solo.
+- **Unirsi**: due segnalini vicini (entro 1 casella) premono "Unisciti". **Staccarsi**: dalla scheda della compagnia, un eroe prende la sua strada e diventa un segnalino a sé, subito.
+- In solitario si comanda un segnalino alla volta; quelli non scelti stanno fermi o seguono l'ultimo ordine.
+- **Contatto**: chi tocca un gruppo nemico entra in battaglia. Gli altri segnalini entro 4 caselle arrivano come **rinforzi** dopo un ritardo proporzionale alla distanza, dal bordo del campo. È la versione nostra del "chi è vicino entra".
+
+**10. Co-op: la TV fa da arbitro, i telefoni da controller**
+
+- In solitario il telefono simula e disegna tutto.
+- Con la TV, la **TV simula e disegna**; ogni telefono diventa un controller: scheda del proprio eroe, barra abilità, minimappa e Pausa. Il telefono non disegna la battaglia, quindi consuma poco anche se è vecchio.
+- Gli ordini viaggiano come oggi con SYNC (sono pochi: tocchi, non 60 al secondo). La TV pubblica su RTDB un'istantanea leggera 4 volte al secondo: PF, ricariche, posizioni compatte (~1 KB). Con 4 telefoni sono circa 60–70 MB l'ora di gioco, dentro il piano gratuito.
+- Pausa in co-op: la chiede chiunque, riprende chi l'ha chiesta o la TV dopo 20 s.
+
+**11. Test**
+
+Restano le regole di casa: bot bravo vince, bot casuale perde, sui gruppi "medi". Si aggiungono il test di **riproducibilità** (stessi ordini ⇒ stesso hash dello stato dopo 3000 istanti) e il test di **velocità** (una battaglia intera simulata in meno di 200 ms in node).
+
+## Resa grafica
+
+La scelta è il **pixel 3D**: la scena resta in three.js (miniature, terreno e luci che abbiamo già), ma si disegna a bassa risoluzione e si ingrandisce a pixel netti, con palette limitata e contorni. Si ottiene l'aspetto dello screenshot senza disegnare a mano centinaia di sprite, e ogni mostro nuovo nel bestiario ha subito la sua figura. Vale solo per Cantari di Ventura: la lobby 3D della Taverna resta com'è.
+
+### 1. Cosa rende bello il riferimento
+
+Guardando lo screenshot, l'effetto viene da sei cose; sono queste che copiamo, non la grafica.
+
+1. **Pixel grossi e tutti della stessa misura**: nessun pixel a metà, niente sfumature morbide.
+2. **Contrasto freddo/caldo**: pavimento blu pietra, luce arancio di lava e torce. Il caldo guida l'occhio.
+3. **Figure piccole ma leggibili**: proporzioni da bambola (testa grande, arma grande), contorno scuro che le stacca dal fondo.
+4. **Visuale a tre quarti dall'alto**, fissa, senza rotazione.
+5. **Ricompense che si vedono**: numeri che saltano, monete ed EXP che schizzano a terra, "Level up!" grande.
+6. **Pannello in basso caldo**, con slot rotondi a cornice metallica: il gioco "si tocca" lì.
+
+### 2. La catena di disegno (un fotogramma)
+
+1. **Scena 3D a bassa risoluzione** su un bersaglio fuori schermo (`WebGLRenderTarget`, filtro `Nearest`), con colore, profondità e normali.
+2. **Passata unica di rifinitura** alla stessa bassa risoluzione: contorni da profondità e normali, luce a bande, palette, retino solo sulle sfumature.
+3. **Ingrandimento intero** sullo schermo (×3, ×4…) con pixel netti, più uno spostamento di frazioni di pixel per uno scorrimento morbido della telecamera.
+4. **HUD sopra**, a risoluzione piena: numeri, barre, testi, slot, con un carattere pixel e scala intera anche lui.
+
+Una sola passata di rifinitura e una bassa risoluzione: il costo per pixel crolla, quindi il pixel 3D dovrebbe andare **più veloce** del 3D di oggi, non più lento.
+
+### 3. Risoluzione e telecamera
+
+| Schermo | Larghezza in pixel d'arte | Scala | Eroe alto |
+| --- | --- | --- | --- |
+| Telefono in verticale (390 pt) | 192–240 | intera, la più grande che ci sta | 22–26 px |
+| Telefono in orizzontale | 400–480 | intera | 22–26 px |
+| TV 1080p | 480 (× 270) | ×4 | 24–28 px |
+| TV 4K | 480 (× 270) | ×8 | 24–28 px |
+
+- **Telecamera ortografica**, inclinata di **55°** sul piano, senza rotazione: come il riferimento. Due livelli di zoom, entrambi a scala intera (mai zoom continuo: romperebbe i pixel).
+- **Telecamera agganciata ai pixel**: la posizione si arrotonda ai pixel d'arte nello spazio della vista, e il resto (meno di un pixel) si applica nell'ingrandimento. Senza questo i bordi "strisciano" quando la telecamera si muove: è l'errore più comune del pixel 3D.
+- Il contratto di A12 "telecamera obliqua che coincide con il viewBox SVG" si abbandona: l'SVG non disegna più la mappa. I tocchi si traducono proiettando sullo sfondo (piano a terra → esagono), e per le figure si sceglie la più vicina al dito entro 24 pt. Niente raggi di selezione.
+
+### 4. Luce e colore
+
+- **Luce a bande**: 3 livelli (luce, mezzaluce, ombra) più un riflesso freddo dal basso. Niente sfumature continue sulle figure: è ciò che le fa sembrare disegnate.
+- **Palette fissa da 40 colori**, nostra: 8 rampe da 5 toni (pietra fredda, erba, legno, pelle, metallo, fuoco, magia, notte). Ogni pixel si porta al colore più vicino con una tabella 32×32×32 calcolata una volta (confronto in spazio Oklab, che rispetta come l'occhio vede i colori).
+- **Retino** (Bayer 4×4) solo su cielo, nebbia di guerra e aloni; mai su figure e testo.
+- **Freddo sotto, caldo sopra**: luce ambiente blu-violacea, luci puntiformi calde (torce, fuoco, magie). Al massimo 4 luci dinamiche; le altre si cuociono nei colori dei vertici.
+- **Luce di contorno** (rim) sulle figure, calda per gli eroi e fredda per i nemici: si leggono anche su fondo scuro.
+- Per ambiente e momento cambia solo la tabella delle luci: giorno, tramonto, notte (luna blu e finestre accese), sotterraneo (torce), perdizione (viola-rossa alle soglie 25/50/75, come già in A12).
+
+### 5. Contorni
+
+- **Contorno esterno** di 1 pixel d'arte, scuro (il tono più scuro della rampa, non nero), dove la profondità salta: stacca figure e oggetti dal pavimento.
+- **Filo di luce interno** di 1 pixel, più chiaro, dove la normale cambia molto su spigoli convessi: i bordi di pietre, scudi, tetti "brillano" come nel pixel art fatto a mano.
+- Il pavimento non prende contorni (solo i salti di quota), altrimenti la scena diventa rumorosa.
+
+### 6. Figure (eroi e mostri)
+
+- Si parte dalle **miniature di AMIN** (già 23 mostri, 3 capi, eroi da razza e classe), con proporzioni nuove da bambola: testa 35–40% dell'altezza, arma e scudo ×1,4, piedi piccoli. Sono una tabella di misure in `28g`, non un rifacimento.
+- **Animazioni procedurali**, senza fotogrammi disegnati: respiro (su e giù di 1 px), passo (molleggio e dondolio), colpo (anticipo indietro, scatto avanti, ritorno), lancio (braccia alte, bagliore), colpito (lampo bianco per 1 fotogramma e spinta indietro), a terra (si corica e sbiadisce). Bastano rotazioni e spostamenti dei pezzi delle miniature.
+- **Otto direzioni** di sguardo, scattanti (non rotazione continua): il pixel resta pulito.
+- **Base colorata** sotto i piedi: oro per gli eroi, rossa per i nemici, bianca per i compagni guidati dall'IA. Anello che pulsa sotto l'eroe scelto.
+- Se un telefono fatica: le stesse miniature si **cuociono in fogli di sprite** (8 direzioni × pose) all'avvio o in fase di build, e si disegnano come quadrati piatti. Stesso aspetto, costo minimo. È il piano B, non il punto di partenza.
+
+### 7. Terreno e ambienti della battaglia
+
+- **Pavimento a tessere** come nel riferimento: lastre di pietra, erba con ciuffi, terra battuta, assi di legno. Le tessere sono **16×16 pixel generate dal codice** all'avvio (canvas, seme fisso), 4–6 varianti per materiale, montate in un atlante.
+- **Gli esagoni non si vedono** in gioco: il pavimento è libero. Si accendono come contorno sottile solo in pausa o quando si dà un ordine di movimento.
+- **Rialzi** come gradini netti con fianco scuro; muri e colonne alti 2–3 volte un eroe, con la parte che coprirebbe le figure resa trasparente a retino quando ci passa dietro qualcuno.
+- **Un tema per bioma** (già in A12): foresta, rovine, palude, sotterraneo, torre, fortezza della corona. Ogni tema = materiali del pavimento + 6–10 oggetti di scena + tabella delle luci.
+- **Superfici vive** (fuoco, veleno, ghiaccio, acqua) come macchie pixel animate a 8 fotogrammi al secondo, con la loro luce.
+
+### 8. Mappa del mondo
+
+- Stessa catena, telecamera più alta: un pixel d'arte vale più terreno. Il terreno è **continuo** (altezze ricavate dagli esagoni e smussate), con le tessere a lato delle colline, boschi fatti di alberelli pixel, acqua che luccica a retino.
+- **Segnalini da gioco di comando di truppe**: la miniatura dell'eroe (o del capo della compagnia) con uno **stendardo** sopra che porta il numero dei membri. I gruppi nemici hanno il loro stendardo, rosso, con un'icona di famiglia.
+- **Luoghi** come piccoli edifici pixel (città murata, villaggio, santuario, torre, antro), con fumo dai camini e luci la sera.
+- **Nebbia di guerra** a retino scuro; **ombre delle nuvole** che scorrono; **sentiero** tratteggiato quando si dà un ordine di cammino.
+- La telecamera **segue il segnalino scelto**, a tre quarti dall'alto: terza persona, mai prima persona.
+
+### 9. Il "succo": riscontri che fanno sentire ogni colpo
+
+| Evento | Cosa si vede | Durata |
+| --- | --- | --- |
+| Colpo a segno | Numero bianco che salta in arco, lampo bianco sul colpito, spinta 1–2 px | 0,6 s |
+| Critico | Numero oro più grande con contorno, fermo-immagine 60 ms, scossa 2 px | 0,8 s |
+| Mancato | Scritta "Mancato" grigia, piccola | 0,5 s |
+| Cura | Numero verde che sale, scintille | 0,6 s |
+| Stato alterato | Icona pixel sopra la testa + tinta (fiamme, veleno verde, gelo azzurro) | finché dura |
+| Nemico sconfitto | Si sbriciola in pixel, cadono monete ed EXP | 0,7 s |
+| Bottino | Monete e sfere EXP rimbalzano a terra, poi volano al contatore in alto | 1 s |
+| Livello | Colonna di luce sull'eroe, "Livello su!" grande al centro, suono dedicato | 1,5 s |
+| Potere di un capo | Area segnata a terra in rosso che si riempie prima di esplodere | il lancio |
+
+I numeri restano leggibili anche a ×2: al massimo 8 numeri in volo insieme, quelli in più si sommano.
+
+### 10. HUD sul telefono (verticale)
+
+- **In alto** (64 pt): ritratti degli eroi in campo con barra dei PF e stati; a destra oro e perdizione.
+- **Al centro**: il campo, almeno il 60% dell'altezza.
+- **In basso** (180 pt), pannello **legno e ottone** (lo stile già scelto): barra con 4–6 abilità rotonde a cornice metallica e anello di ricarica, poi Pausa, velocità ×1/×2, atteggiamento dell'eroe.
+- Tutti i bersagli toccabili almeno **44 pt** (regola di A13). Spiegazioni solo nelle schede che si aprono al tocco, come per il resto della Taverna.
+- **Niente emoji**: icone pixel nostre, 16×16, disegnate dal codice o a mano nell'atlante.
+- **Carattere pixel** con accenti italiani, con licenza libera (OFL) da registrare in `docs/CREDITS.md`; un solo carattere per tutto l'HUD, usato a scala intera.
+- **Sulla TV**: campo a tutto schermo; in alto i ritratti di tutti i giocatori con il nome del telefono; niente barra abilità (sta sui telefoni).
+
+### 11. Prestazioni e ripiego
+
+- Bersagli: 60 fps su telefono medio, mai sotto 30; al massimo 30 chiamate di disegno e 60 mila triangoli per scena; una sola passata di rifinitura.
+- Il ripiego di oggi resta: senza WebGL, o sotto 18 fps nei primi secondi, si torna alla vista SVG. In tempo reale l'SVG si anima con interpolazione, con le stesse regole di gioco.
+- Prima del ripiego si prova un gradino intermedio: fogli di sprite al posto delle miniature e niente contorni interni.
+
+### 12. Come si controlla che sia fatto bene
+
+Con la skill `verifica-render-3d`, a 390 pt e a 1080p: nessun pixel d'arte di misura diversa (controllo automatico sui blocchi), nessun colore fuori palette, contorni presenti su tutte le figure, telecamera che scorre senza bordi tremolanti, fps registrati. Ogni step grafico consegna 3 schermate: foresta di giorno, sotterraneo con torce, notte con perdizione alta.
+
+## Gli step
+
+Tredici step, ognuno pensato per una o più sessioni dedicate: chi prende uno step legge solo la sua parte, le Decisioni e i Principi. Tre punti di controllo con te: dopo B1 (l'aspetto), dopo B6 (la sensazione della battaglia), dopo B8 (il mondo).
+
+### B0 — Carta di progetto (½ sessione)
+
+- **Scopo**: mettere per iscritto le nuove regole prima del codice, così gli step successivi non si contraddicono.
+- **Perché per primo**: le conversioni turni → secondi e le regole delle compagnie toccano 5–6 file; se si decidono a metà lavoro, si rifà due volte.
+- **Cosa si fa**: `docs/AVVENTURA-B.md` (questo piano), aggiornamento di `docs/rules/avventura.md` (tempo reale, pausa, atteggiamenti, compagnie, rinforzi), glossario nuovo (ritmo, ricarica, lancio, atteggiamento, compagnia, rinforzo).
+- **Fatto quando**: le tabelle di conversione e le regole delle compagnie sono scritte e non ci sono domande aperte sui numeri.
+
+### B1 — Prototipo della catena pixel ★ controllo con te
+
+- **Scopo**: vedere il pixel 3D vero, su un'arena fissa con 3 eroi e 4 scheletri, prima di toccare le regole.
+- **Perché ora**: la grafica è il desiderio principale e il rischio principale. È indipendente dal motore, quindi si può provare subito e buttare senza danni.
+- **Cosa si fa**: bersaglio a bassa risoluzione, ingrandimento intero, telecamera ortografica a 55° agganciata ai pixel, contorno esterno semplice, palette provvisoria. Pagina di prova `?prova=pixel` con interruttore tra 3D di oggi e pixel, e le miniature che camminano in cerchio per vedere lo scorrimento.
+- **File**: nuovo `app/24hp-pixel.js` (catena e ingrandimento), nuovo `motori/28h-avv-palette.js` (palette e tabella dei colori, puro, con test).
+- **Fatto quando**: 3 schermate (telefono verticale ai due livelli di zoom, TV 1080p) senza pixel di misura diversa, scorrimento senza tremolio, fps misurati su un telefono vero. Tu approvi dimensione delle figure e colori.
+
+### B2 — Luce, contorni, tessere e temi
+
+- **Scopo**: portare il prototipo al livello del riferimento.
+- **Cosa si fa**: luce a bande con riflesso freddo, palette definitiva da 40 colori in Oklab, contorni esterni e filo di luce interno, retino su cielo e nebbia, tessere 16×16 generate dal codice per 4 materiali, 6 temi di bioma, luce di contorno sulle figure, proporzioni "da bambola" in `28g`, otto direzioni di sguardo.
+- **Perché separato da B1**: B1 decide *se* lo stile ci piace, B2 lo rifinisce. Rifinire prima del sì è lavoro sprecato.
+- **File**: `24hp-pixel.js`, `24hn-scena3d.js` (materiali a bande), `28f-avv-scena.js` (tessere e temi), `28g-avv-mini.js` (proporzioni).
+- **Fatto quando**: le 3 schermate di controllo (foresta di giorno, sotterraneo con torce, notte con perdizione) passano i controlli della sezione 12.
+
+### B3 — Motore della battaglia a istanti
+
+- **Scopo**: il cuore del tempo reale, puro e testato, senza grafica.
+- **Perché si può fare in parallelo a B1–B2**: non tocca nulla di visivo.
+- **Cosa si fa**: nuovo stato `{ t, rng, cb, ordini, … }` con `passo` e `ordina`; movimento di casella in casella a velocità fissa con percorso di AGRI; ritmo delle armi; poteri con lancio, interruzione e ricarica; reazioni automatiche; durate degli stati in secondi; Concentrazione a tempo; attacchi di opportunità all'uscita dalla portata; ingresso dei rinforzi da un bordo; fine (vittoria, sconfitta, fuga). Il vecchio ASCO resta finché la vista non passa al nuovo.
+- **File**: nuovo `motori/27s-avv-tempo.js` (motore a istanti) + `tests/test_avv_tempo.js`; piccoli adattatori in `27d` (durate) e `27e` (costi → tempi), senza cambiare cosa fanno i poteri.
+- **Test**: riproducibilità (stessi ordini ⇒ stesso hash), velocità (battaglia intera < 200 ms), ogni potere usato almeno una volta senza errori, nessun `Math.random`.
+- **Fatto quando**: due bot si combattono in node dall'inizio alla fine su tutte le arene.
+
+### B4 — Atteggiamenti e IA in tempo reale
+
+- **Scopo**: dare un cervello a eroi e nemici quando il giocatore non tocca nulla.
+- **Cosa si fa**: i 4 atteggiamenti degli eroi (Assalto, Difesa, Supporto, Tieni la posizione); per i nemici, il comportamento di BEST (`ia.mira`, `fuga`, branco…) tradotto in decisioni ogni 0,5 s; i capi con poteri annunciati (area rossa a terra prima del colpo). Bilanciamento grezzo: bot bravo vince, bot casuale perde sui gruppi medi.
+- **File**: `motori/27j-avv-ia.js` esteso (o `27t` nuovo se diventa troppo lungo), test.
+- **Fatto quando**: una battaglia giocata solo con gli atteggiamenti è vinta dal bot bravo almeno nell'85% dei casi "medi".
+
+### B5 — Vista della battaglia in tempo reale
+
+- **Scopo**: giocare davvero una battaglia sul telefono.
+- **Cosa si fa**: ciclo di gioco (10 istanti/s di logica, 60 fps di disegno con interpolazione), tocchi tradotti in ordini, selezione e anello sotto l'eroe, griglia visibile solo in pausa, pausa e pausa automatica, velocità ×1/×2, HUD verticale (ritratti in alto, pannello legno e ottone in basso con 4–6 abilità), animazioni procedurali delle miniature, ripiego SVG animato.
+- **File**: `app/24he-battaglia.js` e `24hc-bat-mappa.js` ridotti a HUD, `24ho-scena-fx.js` (animazioni continue), CSS `39a-avventura.css`.
+- **Fatto quando**: una battaglia del capitolo si gioca dall'inizio alla fine su telefono a 390 pt, con bersagli ≥ 44 pt e nessun blocco.
+
+### B6 — Il succo ★ controllo con te
+
+- **Scopo**: far sentire ogni colpo, come nel riferimento.
+- **Cosa si fa**: tutta la tabella della sezione 9 (numeri, critico con fermo-immagine, mancato, cure, stati sopra la testa, sbriciolamento, bottino che vola al contatore, "Livello su!"), suoni dedicati in `28c-avv-audio.js` / `24hk-audio-avv.js`.
+- **Perché dopo B5**: il succo si tara guardando il gioco che si muove, non a vuoto.
+- **Fatto quando**: tu giochi una battaglia e il ritmo ti convince. Qui si decide se la battaglia è quella giusta prima di passare al mondo.
+
+### B7 — Motore del mondo continuo e compagnie
+
+- **Scopo**: il mondo continuo da gioco di comando di truppe, puro e testato.
+- **Cosa si fa**: stato v4 di CAMP con segnalini (eroe o compagnia), movimento continuo lungo i percorsi sugli esagoni nascosti, orologio che avanza solo col movimento o col riposo; **Unisciti / Staccati**; gruppi nemici che inseguono chi è più debole e scappano da chi è più forte, in tempo; contatto e rinforzi entro 4 caselle; perdizione, notte e luoghi come oggi. `CAMP.migra` porta i salvataggi v3 a v4 (ogni eroe diventa un segnalino a sé).
+- **Attenzione alle regole di Firestore**: il riepilogo del posto salvato deve tenere le stesse chiavi, altrimenti `avventuraOk` rifiuta il salvataggio e serve ripubblicare le regole.
+- **File**: `28-campagna.js`, `27m-avv-mondo.js`, `27o-avv-mostri.js`, `28a-avv-orchestratore.js` (aggancio battaglia e rinforzi) + test.
+- **Fatto quando**: in node, una compagnia si forma, si divide, uno dei due incontra un gruppo e l'altro arriva come rinforzo; un salvataggio v3 si apre in v4.
+
+### B8 — Vista della mappa del mondo ★ controllo con te
+
+- **Scopo**: vedere e girare il mondo.
+- **Cosa si fa**: terreno continuo pixel con tessere ai fianchi delle colline, boschi, acqua a retino, luoghi come edifici pixel, stendardi su segnalini e gruppi nemici, nebbia a retino, ombre delle nuvole, sentiero tratteggiato, telecamera che segue il segnalino scelto, barra in basso con i segnalini, Unisciti/Staccati, Riposa.
+- **File**: `app/24hg-mondo-mappa.js` e `24hh-mondo-pannelli.js` (ridotti a HUD), scena del mondo in `24hn` / `24hp`.
+- **Fatto quando**: fai un giro di mondo dalla città alla prima missione, con un incontro, e il viaggio ti piace.
+
+### B9 — Capitolo 1 e tutorial adattati
+
+- **Scopo**: "La Corona Spezzata" giocabile da capo a fondo nella nuova forma.
+- **Cosa si fa**: scontri scritti a mano rivisti (arene, ondate di rinforzi, capi con poteri annunciati), eventi e dialoghi agganciati ai luoghi della mappa continua, tutorial nuovo (pausa, atteggiamenti, unirsi/staccarsi), regole in-game aggiornate.
+- **File**: `src/avventura/*.json`, `27q-avv-racconto.js`, `27r-avv-eventi.js`, `28d-avv-tutorial.js`, `07d-regole.js`.
+- **Fatto quando**: il capitolo si chiude in solitario con il bot bravo e a mano.
+
+### B10 — Co-op con TV e telefoni
+
+- **Scopo**: giocare in compagnia, ognuno col suo eroe.
+- **Cosa si fa**: la TV simula e disegna; i telefoni diventano controller (scheda dell'eroe, abilità, minimappa, Pausa); istantanee leggere su RTDB 4 volte al secondo; ordini via SYNC; pausa condivisa; chi entra a metà vede subito lo stato; chi esce lascia l'eroe all'IA con l'ultimo atteggiamento. Sulla mappa ognuno muove il suo segnalino e le compagnie si formano tra telefoni.
+- **File**: `motori/28e-avv-stanza.js`, `app/24hm-avv-stanza.js`, `24f-schermo.js` (vista TV orizzontale 480×270).
+- **Fatto quando**: TV + 2 telefoni giocano 30 minuti senza desincronia, consumo RTDB misurato e dentro il piano gratuito.
+
+### B11 — Prestazioni e piano B grafico
+
+- **Scopo**: che giri bene anche su telefoni modesti.
+- **Cosa si fa**: misura su un telefono lento; se serve, miniature cotte in fogli di sprite all'avvio, contorni interni spenti, meno luci; gradini automatici prima del ripiego SVG.
+- **Fatto quando**: 30 fps minimi sul telefono più lento di prova, oppure ripiego pulito e senza perdita di stato.
+
+### B12 — Bilanciamento e rilascio
+
+- **Scopo**: rifare i numeri di A13 per il tempo reale e rilasciare.
+- **Cosa si fa**: le 4 leve di ADIF (gruppi, vite, perdizione, esperienza) ritarate con ~2000 battaglie simulate per difficoltà; durata di un cantare ≈ 1 ora; rifinitura grafica finale; regole in-game; PR di rilascio.
+- **Fatto quando**: Normale vinta dal bot bravo con 1–2 vite perse a capitolo, Eroica sopra le 2, Racconto senza perdite; test e verifica grafica tutti verdi.
+
+## Ordine, stime, rischi e domande
+
+Il lavoro dura circa **25–30 sessioni**; la prima battaglia giocabile e bella arriva a metà strada, dopo B6. Grafica (B1–B2) e regole (B3–B4) non dipendono l'una dall'altra e si possono alternare.
+
+```text
+Grafica e regole in parallelo fino alla prima battaglia
+(★ = controllo con te prima di andare avanti)
+
+              ┌─▶ B1★ Prova pixel ─▶ B2 Luce e temi ─┐
+B0 Carta ─────┤                                      ├─▶ B5 Battaglia ─▶ B6★ Succo ─┐
+              └─▶ B3 Motore tempo ─▶ B4 IA e bot ────┘
+                                                                                    │
+   ┌────────────────────────────────────────────────────────────────────────────────┘
+   ▼
+B7 Motore mondo ─▶ B8★ Vista mondo ─▶ B9 Capitolo 1 ─▶ B10 Co-op TV ─▶ B11 Prestazioni ─▶ B12 Rilascio
+```
+
+B1, B6 e B8 sono i punti in cui ti mostro il risultato e decidi se andare avanti così.
+
+| Step | Sessioni |
+| --- | --- |
+| B0 Carta di progetto | ½ |
+| B1 Prova pixel | 2 |
+| B2 Luce, contorni, temi | 2–3 |
+| B3 Motore a istanti | 3 |
+| B4 IA e atteggiamenti | 2 |
+| B5 Vista battaglia | 3 |
+| B6 Succo | 1–2 |
+| B7 Motore del mondo | 3 |
+| B8 Vista del mondo | 2–3 |
+| B9 Capitolo 1 | 2 |
+| B10 Co-op TV | 3 |
+| B11 Prestazioni | 1–2 |
+| B12 Bilanciamento e rilascio | 2 |
+
+**Rischi**
+
+- **Consumo di Claude Pro**: B1, B2, B5 e B8 sono le sessioni grafiche più pesanti. Conviene farle quando hai margine e chiudere ogni sessione con una PR piccola.
+- **Determinismo**: un solo `Math.sin` o `Math.random` nel motore rompe TV e salvataggi. Il test di riproducibilità di B3 è il guardiano.
+- **Regole di Firestore**: se cambia la forma del riepilogo salvato, `avventuraOk` rifiuta i salvataggi finché non ripubblichi le regole. B7 prova a non toccarle.
+- **Banda RTDB in co-op**: stimata dentro il piano gratuito, ma va misurata in B10 prima di invitare gli amici.
+- **Telefoni lenti**: il pixel a bassa risoluzione aiuta, ma le luci dinamiche no. B11 esiste per questo.
+- **Somiglianza con il vecchio pixel**: per Regicidio X il pixel era stato abbandonato perché sembrava una copia del progetto precedente. Qui la differenza la fanno 3D, luce a bande e contorni; B1 serve anche a verificarlo.
+
+**Decise la sera del 1 novembre 2026**
+
+- Battaglia sul telefono **in verticale**, come il resto della Taverna (la TV resta orizzontale).
+- **Pausa in co-op**: la può mettere chiunque.
+- **Zoom a due livelli**, entrambi a scala intera.
+- **Carattere pixel**: uno libero già pronto, con accenti italiani e licenza OFL.

@@ -4,6 +4,8 @@ Obiettivo: dentro la Taverna, un gioco di ruolo a campagne che unisce il **viagg
 
 Questo documento sostituisce la sezione «Da fare» di `docs/CAMPAGNE.md`. Ogni task (A0…A13) è pensata per una **sessione dedicata**: chi la prende legge solo la sua sezione, le «Decisioni» e i file indicati.
 
+**Dopo A13 — piano B** (battaglie in tempo reale con pausa, mondo libero con compagnie, resa pixel): step B0…B12 in `docs/AVVENTURA-B.md`.
+
 ## Decisioni prese dall'utente (ottobre 2026)
 | Tema | Scelta |
 |---|---|
