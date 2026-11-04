@@ -183,8 +183,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27a-avv-dadi.js` | 3 | ADADI |
 | `js/motori/27b-avv-oggetti.js` | 16 | AOGG |
 | `js/motori/27c-avv-bottino.js` | 6 | ABOT |
-| `js/motori/27d-avv-stati.js` | 9 | ASTA |
-| `js/motori/27e-avv-poteri.js` | 34 | APOT |
+| `js/motori/27d-avv-stati.js` | 10 | ASTA |
+| `js/motori/27e-avv-poteri.js` | 36 | APOT |
 | `js/motori/27f-avv-bestiario.js` | 15 | BEST |
 | `js/motori/27g-avv-griglia.js` | 9 | AGRI |
 | `js/motori/27h-avv-arene.js` | 9 | AARE |
@@ -199,6 +199,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
+| `js/motori/27s-avv-tempo.js` | 27 | ATEM |
 | `js/motori/28-campagna.js` | 38 | CAMP |
 | `js/motori/28a-avv-orchestratore.js` | 23 | AVV |
 | `js/motori/28b-avv-rientro.js` | 4 | ARIE |
