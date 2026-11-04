@@ -109,7 +109,8 @@ const near = (a, b, eps, msg) => assert(Math.abs(a - b) <= (eps || 1e-6), (msg |
 // ---- 5. oggetti: forme valide, dentro la cella (raggio ~25), non troppo alti, nessun NaN ----
 {
   const forme = new Set(['c', 'k', 's', 'b']);
-  const tutti = ['albero', 'albero-secco', 'roccia', 'colonna', 'masso', 'cassa', 'bosco', 'albero-solo', 'ciuffi', 'picco', 'canne', 'citta', 'villaggio', 'santuario', 'campo', 'antro', 'rovina', 'torre', 'tesoro', 'sassi', 'stalagmite', 'fiori'];
+  const tutti = ['albero', 'albero-secco', 'roccia', 'colonna', 'masso', 'cassa', 'bosco', 'albero-solo', 'ciuffi', 'picco', 'canne', 'citta', 'villaggio', 'santuario', 'campo', 'antro', 'rovina', 'torre', 'tesoro', 'sassi', 'stalagmite', 'fiori',
+    'abete', 'ceppo', 'tronco', 'cespuglio', 'funghi', 'colonna-rotta', 'statua', 'sarcofago', 'barile', 'lapide', 'ossa', 'scaffale', 'libri', 'candele', 'braciere', 'stendardo'];
   for (const k of tutti) for (const notte of [false, true]) for (const s of [0, .13, .5, .99]) {
     const L = ASCE.parti(k, s, { notte });
     assert(L.length > 0, k + ' ha dei pezzi');
@@ -167,5 +168,93 @@ const near = (a, b, eps, msg) => assert(Math.abs(a - b) <= (eps || 1e-6), (msg |
   for (const l of [g, n, ASCE.luce('bat', { ambiente: 'palude' }), ASCE.luce('bat', { ambiente: 'bosco' })]) {
     assert(/^#[0-9a-f]{6}$/i.test(l.sole.col) && /^#[0-9a-f]{6}$/i.test(l.fondo) && l.sole.pos.length === 3 && l.esp > .5 && l.esp < 2, 'luce valida');
   }
+}
+// ---- 7. resa pixel (B2): temi dei biomi, tessere 16×16 del pavimento, tabelle delle luci ----
+{
+  const APAL = require('../src/js/motori/28h-avv-palette.js');
+  assert.deepStrictEqual(ASCE.RAMPE, APAL.NOMI, 'le tessere usano le rampe della palette nello stesso ordine');
+  // sei temi, ognuno con 6–10 oggetti di scena che esistono, pavimento da materiali noti, ogni ambiente della battaglia ha il suo tema
+  assert.deepStrictEqual(Object.keys(ASCE.TEMI).sort(), ['foresta', 'fortezza', 'palude', 'rovine', 'sotterraneo', 'torre']);
+  for (const a of ['pianura', 'strada', 'bosco', 'collina', 'palude', 'citta', 'antro', 'torre']) assert(ASCE.TEMI[ASCE.tema(a)], 'tema per ' + a);
+  assert.strictEqual(ASCE.tema('antro'), 'sotterraneo'); assert.strictEqual(ASCE.tema('bosco'), 'foresta'); assert.strictEqual(ASCE.tema('ignoto'), 'foresta');
+  for (const [id, T] of Object.entries(ASCE.TEMI)) {
+    const ogg = new Set([...T.alti, ...T.bassi, ...T.deco.map(d => d[1])]);
+    assert(ogg.size >= 6 && ogg.size <= 10, id + ': ' + ogg.size + ' oggetti di scena');
+    for (const k of ogg) assert(ASCE.parti(k, .37, {}).length > 0, id + ': oggetto sconosciuto ' + k);
+    for (const tipo of ['piano', 'difficile', 'rialzo', 'muro']) { const [m, t] = T.pav[tipo]; assert(ASCE.MATERIALI.includes(m) && Math.abs(t) <= 1, id + ': pavimento ' + tipo); }
+    let lim = 0; for (const [l] of T.deco) { assert(l > lim && l < .4, id + ': soglie crescenti'); lim = l; }
+  }
+  // arena col tema: stessa griglia, muri più alti, oggetti e pavimento dal tema, deterministica; senza tema resta com'era
+  for (const a of ['bosco', 'antro', 'torre', 'citta', 'palude', 'collina']) {
+    const A = AARE.genera(5, a), D = ASCE.arena(A, { temi: true }), D0 = ASCE.arena(A), T = ASCE.TEMI[ASCE.tema(a)];
+    assert.strictEqual(D.tema, ASCE.tema(a)); assert.strictEqual(D0.tema, null);
+    D.tiles.forEach((t, i) => {
+      const t0 = D0.tiles[i];
+      assert.strictEqual(t.tipo, t0.tipo); assert.strictEqual(!!t.oggetto, !!t0.oggetto); assert.strictEqual(t.sup, t0.sup);
+      assert.strictEqual(t.h, t.tipo === 'muro' ? ASCE.QUOTA_PX.muro : t0.h, 'quota col tema');
+      assert.deepStrictEqual(t.pav, T.pav[t.tipo]);
+      if (t.oggetto) assert([...T.alti, ...T.bassi].includes(t.oggetto.k), a + ': oggetto fuori tema ' + t.oggetto.k);
+      if (t.deco) assert(T.deco.some(d => d[1] === t.deco.k), a + ': decorazione fuori tema ' + t.deco.k);
+    });
+    assert.deepStrictEqual(ASCE.arena(A, { temi: true }), D, 'deterministica');
+    assert(ASCE.QUOTA_PX.muro >= 2 * ASCE.QUOTA.muro && D.quota.muro === ASCE.QUOTA_PX.muro);
+  }
+  // sorgenti di luce: fuochi del pavimento, bracieri, torce dove c'è buio (sempre le stesse)
+  {
+    const A = Object.assign(AGRI.arena(['#########', '#..o....#', '#.......#', '#.......#'], ['.........', '.........', '.........', '...f.....']), { ambiente: 'torre' });
+    const D = ASCE.arena(A, { temi: true }), F = ASCE.fonti(D, { torce: true, px: true });
+    assert(F.some(f => f.k === 'fuoco'), 'il fuoco sul pavimento fa luce');
+    assert(F.filter(f => f.k === 'torcia').length === ASCE.torce(D, true).length && ASCE.torce(D, true).length > 0, 'torce sui muri');
+    assert.strictEqual(ASCE.fonti(D, {}).filter(f => f.k === 'torcia').length, 0, 'di giorno all\'aperto niente torce');
+    for (const f of F) { assert(/^#[0-9a-f]{6}$/.test(f.col) && f.forza > 0 && f.forza <= 1 && Number.isFinite(f.x + f.y + f.z)); }
+    for (const t of ASCE.torce(D, true)) { const m = D.tiles.find(c => Math.abs(c.x - t.x) < 1e-9 && c.tipo === 'muro' && t.z > c.z); assert(m && t.y > 0 && t.y < m.h, 'la torcia sta sulla faccia del muro'); }
+    assert.deepStrictEqual(ASCE.torce(D, false).map(t => [t.x, t.z]), ASCE.torce(D, true).map(t => [t.x, t.z - ASCE.GEO.bat.Z - 3 + 13]), 'stesse torce nelle due rese');
+  }
+  // tessere: 16×16, sei varianti per materiale, solo colori della palette, quasi tutte nella rampa del materiale, sempre uguali
+  const RAMPA = { pietra: 'pietra', erba: 'erba', terra: 'legno', assi: 'legno' };
+  for (const m of ASCE.MATERIALI) {
+    const viste = new Set();
+    for (let v = 0; v < ASCE.VARIANTI; v++) {
+      const t = ASCE.tessera16(m, v);
+      assert.strictEqual(t.length, 256); assert.deepStrictEqual(t, ASCE.tessera16(m, v), 'deterministica');
+      let propri = 0; const toni = new Set();
+      for (const c of t) { assert(c < 40, 'colore della palette'); if (APAL.NOMI[APAL.rampa(c)] === RAMPA[m]) propri++; toni.add(c); }
+      assert(propri >= 240, m + '/' + v + ': quasi tutta nella rampa ' + RAMPA[m] + ' (' + propri + ')');
+      assert(toni.size >= 3 && toni.size <= 8, m + '/' + v + ': da 3 a 8 toni (' + toni.size + ')');
+      viste.add(t.join(','));
+    }
+    assert.strictEqual(viste.size, ASCE.VARIANTI, m + ': varianti tutte diverse');
+  }
+  // le lastre e le assi combaciano: fuga scura su tutta l'ultima riga (e colonna, per le lastre)
+  for (let v = 0; v < ASCE.VARIANTI; v++) {
+    const t = ASCE.tessera16('pietra', v), a = ASCE.tessera16('assi', v), s0 = APAL.indice('pietra:1'), l0 = APAL.indice('legno:0');
+    for (let i = 0; i < 16; i++) { assert.strictEqual(t[15 * 16 + i], s0); assert.strictEqual(t[i * 16 + 15], s0); assert.strictEqual(a[15 * 16 + i], l0); }
+  }
+  const AT = ASCE.atlante();
+  assert.strictEqual(AT.w, 16 * ASCE.VARIANTI); assert.strictEqual(AT.h, 16 * ASCE.MATERIALI.length); assert.strictEqual(AT.dati.length, AT.w * AT.h);
+  assert.strictEqual(AT.dati[(2 * 16 + 5) * AT.w + 3 * 16 + 7], ASCE.tessera16('terra', 3)[5 * 16 + 7], 'atlante: materiale in riga, variante in colonna');
+  // luci: ogni momento ha colori validi e toni della palette per cielo e nebbia; interni sempre «sotterraneo»; la perdizione cresce
+  const hexok = c => /^#[0-9a-f]{6}$/.test(c);
+  for (const t of Object.keys(ASCE.TEMI)) for (const f of ['giorno', 'tramonto', 'notte']) for (let liv = 0; liv <= 3; liv++) {
+    const L = ASCE.lucePx(t, f, liv);
+    assert(hexok(L.sole.col) && L.sole.int > 0 && L.sole.int <= 1 && L.sole.pos.length === 3, 'sole');
+    assert(hexok(L.amb[0]) && L.amb[1] > 0 && L.amb[1] < 1 && hexok(L.rifl[0]) && L.rifl[1] > 0, 'ambiente e riflesso');
+    assert(hexok(L.rim.eroi) && hexok(L.rim.nemici) && L.rim.forza > 0, 'luce di contorno');
+    assert(L.fiamme >= 0 && L.fiamme <= 1, 'peso delle fiamme');
+    assert.strictEqual(L.cielo.length, 3); for (const c of L.cielo) assert(APAL.indice(c) >= 0, 'cielo in palette: ' + c);
+    if (L.nebbia) assert(APAL.indice(L.nebbia[0]) >= 0 && L.nebbia[1] > 0 && L.nebbia[1] < 1, 'nebbia in palette');
+    if (ASCE.TEMI[t].interno) assert.strictEqual(L.momento, 'sotterraneo', t + ' è al chiuso');
+    else assert.strictEqual(L.momento, f);
+  }
+  const sot = ASCE.lucePx('sotterraneo', 'giorno', 0), gio = ASCE.lucePx('foresta', 'giorno', 0), nt = ASCE.lucePx('foresta', 'notte', 0);
+  assert(sot.torce && nt.torce && !gio.torce, 'torce al chiuso e di notte');
+  assert(gio.fiamme === 0 && sot.fiamme === 1 && nt.fiamme === 1, 'di giorno il sole copre le fiamme');
+  assert(gio.sole.int > 2 * nt.sole.int && gio.sole.int > 2 * sot.sole.int, 'il sole pesa di giorno; di notte e al chiuso la luce piena viene dalle torce');
+  assert.strictEqual(gio.nebbia, null, 'di giorno niente nebbia');
+  const forza = l => ASCE.lucePx('foresta', 'notte', l).nebbia[1];
+  assert(forza(1) < forza(2) && forza(2) < forza(3), 'la nebbia della perdizione cresce a 25/50/75');
+  assert.strictEqual(APAL.rampa(APAL.indice(ASCE.lucePx('foresta', 'notte', 3).nebbia[0])), APAL.NOMI.indexOf('fuoco'), 'a perdizione alta la nebbia è rossa');
+  assert.notStrictEqual(ASCE.lucePx('foresta', 'notte', 3).amb[0], nt.amb[0], 'la perdizione tinge la luce');
+  assert.strictEqual(ASCE.lucePx('bosco', 'giorno', 0).momento, 'giorno', 'anche dall\'ambiente');
 }
 console.log('test_avv_scena: ok');
