@@ -16,8 +16,23 @@ const AMIN=(()=>{
  // ---- eroi ----
  const RAZZA={umano:1,elfo:1.06,nano:.86,piccolo:.78,orco:1.14};
  const LUNGA={mago:1,chierico:1,bardo:1};
+ // ---- proporzioni «da bambola» della resa pixel (B2): una tabella di misure, non un rifacimento ----
+ // testa: quota dell'altezza da raggiungere (si ingrandisce sopra il collo, mai si rimpicciolisce, al massimo × maxTesta); arma e scudo × arma attorno
+ // alla presa della mano; gambe e piedi più sottili × piedi. Vale per eroi e mostri a due gambe (stesso scheletro: collo a 17, mani a ±6,6 e 8,6).
+ const BAMBOLA={testa:.38,maxTesta:1.2,arma:1.4,piedi:.75,collo:17,mano:6.05,presa:[6.6,8.6]};
+ const sopra=p=>p[0]==='s'?p[3]+p[6]:p[0]==='b'?p[3]+p[6]/2:p[3]+p[7]/2,sotto=p=>p[0]==='s'?p[3]-p[6]:p[0]==='b'?p[3]-p[6]/2:p[3]-p[7]/2;
+ // t testa · a arma, scudo, mani · p gambe · c il resto
+ const ruolo=p=>p[3]>=BAMBOLA.collo?'t':Math.abs(p[2])>=BAMBOLA.mano?'a':p[0]==='c'&&p[3]<=4?'p':'c';
+ function bambola(pt){const B=BAMBOLA,ru=pt.map(ruolo);let y0=1e9,y1=-1e9,alt=0;
+  pt.forEach((p,i)=>{alt=Math.max(alt,sopra(p));if(ru[i]==='t'){y0=Math.min(y0,sotto(p));y1=Math.max(y1,sopra(p))}});
+  const H=y1-y0,ht=H>0&&H/alt<B.testa?Math.min(B.maxTesta,B.testa*y0/(H*(1-B.testa))):1,r3=v=>+v.toFixed(3);
+  return pt.map((p,i)=>{const q=p.slice(),r=ru[i];
+   if(r==='t'&&ht!==1){q[2]*=ht;q[3]=y0+(q[3]-y0)*ht;q[4]*=ht;q[5]*=ht;q[6]*=ht;q[7]*=ht}
+   else if(r==='a'){const px=Math.sign(q[2])*B.presa[0],py=B.presa[1];q[2]=px+(q[2]-px)*B.arma;q[3]=py+(q[3]-py)*B.arma;q[4]*=B.arma;q[5]*=B.arma;q[6]*=B.arma;q[7]*=B.arma}
+   else if(r==='p'){q[5]*=B.piedi;q[6]*=B.piedi}
+   for(const j of[2,3,4,5,6,7])q[j]=r3(q[j]);return q})}
  // cols = { pelle, capelli, mantello } in esadecimale, stile = indice dei capelli (0..6) come nel ritratto
- function eroe(razza,classe,cols,stile){const k=RAZZA[razza]||1,pe=cols.pelle,ca=cols.capelli,ma=cols.mantello,md=scuro(ma,.28),pt=[];
+ function eroe(razza,classe,cols,stile,o){const k=RAZZA[razza]||1,pe=cols.pelle,ca=cols.capelli,ma=cols.mantello,md=scuro(ma,.28),pt=[];
   const lunga=!!LUNGA[classe];
   if(lunga)pt.push(P('c',ma,0,9.5,0,4.4,8,17),P('c',md,0,1.2,0,8.6,8.8,2));else pt.push(P('c','#3a2c20',-2.6,3.5,0,1.9,2.2,7),P('c','#3a2c20',2.6,3.5,0,1.9,2.2,7),P('c',ma,0,12.5,0,4.6,6.4,11),P('c','#4a3320',0,9.6,0,5.5,5.9,1.6));
   pt.push(P('c',md,-6,12.8,0,1.5,1.7,8,0,.18),P('c',md,6,12.8,0,1.5,1.7,8,0,-.18),P('s',pe,-6.6,8.6,0,1.7,1.7,1.7),P('s',pe,6.6,8.6,0,1.7,1.7,1.7));
@@ -42,7 +57,7 @@ const AMIN=(()=>{
      P('b','#6a4a2a',-8.2,14,3,.9,8,.9),P('b','#6a4a2a',-7,19.2,3,.9,5,.9,0,-.5),P('b','#6a4a2a',-7,8.8,3,.9,5,.9,0,.5),P('b','#e8e0d0',-6.1,14,3,.2,17,.2));break;
    case'bardo':pt.push(P('s','#8a2a4a',.6,25.2,0,6.3,2.4,6,0,.12),P('k','#f3d37a',4,28,-1,.9,0,6,0,-.6),P('s','#a8683a',6.6,11,4.4,4,5,2.4,0,-.5),P('b','#6a4a2a',8.6,17,4,.9,9,.8,0,-.5));break;
   }
-  const pp=scala(pt,k);return Object.assign({parti:pp,base:{r:10.5*Math.max(.9,k),col:'#d4a63a'}},ingombro(pp))}
+  const pp=scala(o&&o.bambola?bambola(pt):pt,k);return Object.assign({parti:pp,base:{r:10.5*Math.max(.9,k),col:'#d4a63a'}},ingombro(pp))}
  // ---- archetipi dei mostri ----
  function bipede(o){const s=o.s||1,pe=o.pelle||'#c9a07a',ro=o.robe||'#6a5a4a',pt=[];
   if(!o.lunga)pt.push(P('c',o.gambe||'#3a2c20',-2.6,3.5,0,1.9,2.2,7),P('c',o.gambe||'#3a2c20',2.6,3.5,0,1.9,2.2,7),P('c',ro,0,12.5,0,4.6,6.4,11));else pt.push(P('c',ro,0,10.5,0,4.4,8,19),P('c',scuro(ro,.3),0,1.2,0,8.6,8.8,2));
@@ -72,20 +87,20 @@ const AMIN=(()=>{
   'ragno-tessitore':{fam:'bestie',r:15,f:()=>{const o=[P('s','#2f2a3a',0,8,-3,6.6,5.4,7.6),P('s','#3b3447',0,8.6,6.2,3.8,3.3,3.8),P('s','#c8a02a',0,12.4,-3,2.6,.6,3.4,0,0,'e'),P('s','#e04a3a',-1.2,9.6,9,.7,.7,.5,0,0,'e'),P('s','#e04a3a',1.2,9.6,9,.7,.7,.5,0,0,'e')];
     for(const sx of[-1,1])for(let i=0;i<4;i++)o.push(P('c','#2f2a3a',sx*9,6.4,-6+i*4.6,.6,.9,10,0,sx*(-.95)));return o}},
   'orso-bruno':{fam:'bestie',r:15,s:1.3,f:()=>quadrupede({col:'#6b4a2f',gobba:true})},
-  'brigante':{fam:'banditi',r:11,f:()=>bipede({robe:'#6a4a34',extra:[P('s','#4a3a2c',0,24.4,0,5.6,3.6,5.5),ARMA(7.6,12),P('b','#d6aa3c',7.6,9.6,3.4,4,.9,1)]})},
-  'arciere-bandito':{fam:'banditi',r:11,f:()=>bipede({robe:'#4f5a3a',extra:[P('s','#3a4a2a',0,23.4,-.3,6,5.4,5.9),P('b','#6a4a2a',-8.2,14,3,.9,8,.9),P('b','#6a4a2a',-7,19.2,3,.9,5,.9,0,-.5),P('b','#6a4a2a',-7,8.8,3,.9,5,.9,0,.5),P('b','#e8e0d0',-6.1,14,3,.2,17,.2)]})},
-  'cerusico-di-strada':{fam:'banditi',r:11,f:()=>bipede({robe:'#7a8a5a',lunga:true,extra:[P('s','#6a5a3a',0,24.4,0,5.7,3.4,5.6),P('b','#f4efe0',0,14,4.6,5,4.6,.8),P('b','#c03a2e',0,14,5.1,3.2,.9,.6),P('b','#c03a2e',0,14,5.1,.9,3.2,.6),P('s','#8a5a2a',-7,8,-1,3.4,4,3)]})},
-  'tagliagole':{fam:'banditi',r:11,f:()=>bipede({robe:'#2a2a34',extra:[P('s','#1c1c26',0,23.2,-.3,6,5.6,5.9),P('k','#1c1c26',0,28.6,-2.4,4.4,0,6),P('b','#2a2a34',0,13.2,-4.6,9.4,13.5,1.5),ARMA(7.8,8),ARMA(-7.8,8)]})},
-  'stregone-rinnegato':{fam:'banditi',r:11,f:()=>bipede({robe:'#6a2a3a',lunga:true,extra:[P('c','#4a1a28',0,25.3,0,7.8,7.8,.8),P('k','#6a2a3a',0,32.4,-.8,4.8,0,12),P('c','#3a2a1a',-8,14,2.4,.7,.8,28),P('s','#ff7a4a',-8,28.8,2.4,2.3,2.3,2.3,0,0,'e')]})},
-  'capobanda-corvino':{fam:'banditi',r:15,s:1.3,f:()=>{const o=bipede({robe:'#2a2a34',extra:[P('s','#1c1c26',0,24.4,0,5.6,3.6,5.5),P('s','#d6aa3c',0,21,6.6,1.1,1.1,2.8),P('b','#cfd6dc',8,17,3.4,1.5,17,.6),P('b','#d6aa3c',8,9.4,3.4,4.6,1,1.2)]});
+  'brigante':{bip:1,fam:'banditi',r:11,f:()=>bipede({robe:'#6a4a34',extra:[P('s','#4a3a2c',0,24.4,0,5.6,3.6,5.5),ARMA(7.6,12),P('b','#d6aa3c',7.6,9.6,3.4,4,.9,1)]})},
+  'arciere-bandito':{bip:1,fam:'banditi',r:11,f:()=>bipede({robe:'#4f5a3a',extra:[P('s','#3a4a2a',0,23.4,-.3,6,5.4,5.9),P('b','#6a4a2a',-8.2,14,3,.9,8,.9),P('b','#6a4a2a',-7,19.2,3,.9,5,.9,0,-.5),P('b','#6a4a2a',-7,8.8,3,.9,5,.9,0,.5),P('b','#e8e0d0',-6.1,14,3,.2,17,.2)]})},
+  'cerusico-di-strada':{bip:1,fam:'banditi',r:11,f:()=>bipede({robe:'#7a8a5a',lunga:true,extra:[P('s','#6a5a3a',0,24.4,0,5.7,3.4,5.6),P('b','#f4efe0',0,14,4.6,5,4.6,.8),P('b','#c03a2e',0,14,5.1,3.2,.9,.6),P('b','#c03a2e',0,14,5.1,.9,3.2,.6),P('s','#8a5a2a',-7,8,-1,3.4,4,3)]})},
+  'tagliagole':{bip:1,fam:'banditi',r:11,f:()=>bipede({robe:'#2a2a34',extra:[P('s','#1c1c26',0,23.2,-.3,6,5.6,5.9),P('k','#1c1c26',0,28.6,-2.4,4.4,0,6),P('b','#2a2a34',0,13.2,-4.6,9.4,13.5,1.5),ARMA(7.8,8),ARMA(-7.8,8)]})},
+  'stregone-rinnegato':{bip:1,fam:'banditi',r:11,f:()=>bipede({robe:'#6a2a3a',lunga:true,extra:[P('c','#4a1a28',0,25.3,0,7.8,7.8,.8),P('k','#6a2a3a',0,32.4,-.8,4.8,0,12),P('c','#3a2a1a',-8,14,2.4,.7,.8,28),P('s','#ff7a4a',-8,28.8,2.4,2.3,2.3,2.3,0,0,'e')]})},
+  'capobanda-corvino':{bip:1,fam:'banditi',r:15,s:1.3,f:()=>{const o=bipede({robe:'#2a2a34',extra:[P('s','#1c1c26',0,24.4,0,5.6,3.6,5.5),P('s','#d6aa3c',0,21,6.6,1.1,1.1,2.8),P('b','#cfd6dc',8,17,3.4,1.5,17,.6),P('b','#d6aa3c',8,9.4,3.4,4.6,1,1.2)]});
     for(let i=0;i<6;i++){const a=PI*(.2+i*.12);o.push(P('s','#16161e',Math.cos(a)*-7,15.8-i*1.1,-3.6-i*.3,2.6,4.2,1.1,0,(.5-i*.2)))}return o}},
-  'scheletro-armato':{fam:'nonmorti',r:11,f:()=>scheletro({extra:[ARMA(7.6,12,'#aab2ba'),P('s','#6a5a4a',-8,12,3,4.6,4.6,1.1),P('s','#9aa3ae',0,25.4,0,5.4,3,5.2)]})},
-  'arciere-scheletro':{fam:'nonmorti',r:11,f:()=>scheletro({extra:[P('b','#6a4a2a',-8.2,14,3,.9,8,.9),P('b','#6a4a2a',-7,19.2,3,.9,5,.9,0,-.5),P('b','#6a4a2a',-7,8.8,3,.9,5,.9,0,.5),P('b','#e8e0d0',-6.1,14,3,.2,17,.2)]})},
-  'ghoul-di-tomba':{fam:'nonmorti',r:12,f:()=>{const o=bipede({pelle:'#8a9a7a',robe:'#5a5a48',gambe:'#4a4a3a',extra:[P('c','#8a9a7a',-7,11,2,1.4,1.1,13,0,.35),P('c','#8a9a7a',7,11,2,1.4,1.1,13,0,-.35),P('k','#d8d0b0',-8.6,3.6,3.6,.8,0,3,0,PI),P('k','#d8d0b0',8.6,3.6,3.6,.8,0,3,0,PI)]});
+  'scheletro-armato':{bip:1,fam:'nonmorti',r:11,f:()=>scheletro({extra:[ARMA(7.6,12,'#aab2ba'),P('s','#6a5a4a',-8,12,3,4.6,4.6,1.1),P('s','#9aa3ae',0,25.4,0,5.4,3,5.2)]})},
+  'arciere-scheletro':{bip:1,fam:'nonmorti',r:11,f:()=>scheletro({extra:[P('b','#6a4a2a',-8.2,14,3,.9,8,.9),P('b','#6a4a2a',-7,19.2,3,.9,5,.9,0,-.5),P('b','#6a4a2a',-7,8.8,3,.9,5,.9,0,.5),P('b','#e8e0d0',-6.1,14,3,.2,17,.2)]})},
+  'ghoul-di-tomba':{bip:1,fam:'nonmorti',r:12,f:()=>{const o=bipede({pelle:'#8a9a7a',robe:'#5a5a48',gambe:'#4a4a3a',extra:[P('c','#8a9a7a',-7,11,2,1.4,1.1,13,0,.35),P('c','#8a9a7a',7,11,2,1.4,1.1,13,0,-.35),P('k','#d8d0b0',-8.6,3.6,3.6,.8,0,3,0,PI),P('k','#d8d0b0',8.6,3.6,3.6,.8,0,3,0,PI)]});
     return o}},
-  'anima-in-pena':{fam:'nonmorti',r:12,lum:1,f:()=>spettro({col:'#b9c8e0'})},
-  'officiante-spolpato':{fam:'nonmorti',r:12,f:()=>scheletro({straccio:'#4a2a5a',extra:[P('k','#d6aa3c',0,29.6,0,4.6,0,9),P('s','#d6aa3c',-8,12,3,1.8,1.8,1.8,0,0,'e'),P('c','#d6aa3c',-8,16,3,.3,.3,8)]})},
-  're-senza-corona':{fam:'nonmorti',r:17,s:1.45,f:()=>{const o=scheletro({straccio:'#3a2a4a',extra:[ARMA(7.8,15,'#aab2ba'),P('b','#d6aa3c',7.8,9.2,3.4,5,1,1.2)]});
+  'anima-in-pena':{bip:1,fam:'nonmorti',r:12,lum:1,f:()=>spettro({col:'#b9c8e0'})},
+  'officiante-spolpato':{bip:1,fam:'nonmorti',r:12,f:()=>scheletro({straccio:'#4a2a5a',extra:[P('k','#d6aa3c',0,29.6,0,4.6,0,9),P('s','#d6aa3c',-8,12,3,1.8,1.8,1.8,0,0,'e'),P('c','#d6aa3c',-8,16,3,.3,.3,8)]})},
+  're-senza-corona':{bip:1,fam:'nonmorti',r:17,s:1.45,f:()=>{const o=scheletro({straccio:'#3a2a4a',extra:[ARMA(7.8,15,'#aab2ba'),P('b','#d6aa3c',7.8,9.2,3.4,5,1,1.2)]});
     for(let i=0;i<5;i++){const a=PI*(.15+i*.18);o.push(P('k','#f3c64a',Math.cos(a+PI)*3.6,26.2+(i%2)*.8,Math.sin(a)*3.6+.2,.9,0,3.6,0,0,'e'))}return o}},
   'famiglio-arcano':{fam:'torre',r:11,lum:1,f:()=>[P('s','#6a5a9a',0,15,0,4.2,3.8,6.4),P('s','#6a5a9a',0,17.5,6.6,3.3,3.2,3.2),P('k','#6a5a9a',-2,21,6,1.1,0,3.2),P('k','#6a5a9a',2,21,6,1.1,0,3.2),P('b','#8a7ac0',-8,17.5,0,9,.5,5,0,.5),P('b','#8a7ac0',8,17.5,0,9,.5,5,0,-.5),
     P('s','#9fe0ff',-1.5,17.8,9.4,.8,.8,.5,0,0,'e'),P('s','#9fe0ff',1.5,17.8,9.4,.8,.8,.5,0,0,'e'),P('s','#f3c64a',0,13.4,3,1.5,1.5,1.5,0,0,'e'),P('s','#6a5a9a',0,14.4,-9.4,1.3,1.3,4.6)]},
@@ -93,15 +108,15 @@ const AMIN=(()=>{
     P('b','#7fd8ff',0,15.5,3.9,3,3,.6,0,0,'e'),P('b','#7fd8ff',-1.6,24.4,3.3,1.2,.9,.6,0,0,'e'),P('b','#7fd8ff',1.6,24.4,3.3,1.2,.9,.6,0,0,'e')]},
   'sciame-di-scintille':{fam:'torre',r:11,lum:1,f:()=>{const o=[];for(let i=0;i<7;i++){const a=i*PI*2/7+.4,r=4+(i%3)*3.2;o.push(P('s',i%2?'#7fd8ff':'#ffe27a',Math.cos(a)*r,10+((i*5)%6)*3,Math.sin(a)*r,1.8,1.8,1.8,0,0,'e'))}
     o.push(P('b','#fff6c0',-3,16,1,1,7,.5,0,.5,'e'),P('b','#fff6c0',2,19,0,1,6,.5,0,-.6,'e'));return o}},
-  'ombra-del-corvo':{fam:'torre',r:13,lum:1,f:()=>spettro({col:'#3a3a52',extra:[P('b','#22222e',-9,18,-1,10,.5,5,0,.6),P('b','#22222e',9,18,-1,10,.5,5,0,-.6),P('s','#d6aa3c',0,22.6,5.8,1,1,2.6)]})},
+  'ombra-del-corvo':{bip:1,fam:'torre',r:13,lum:1,f:()=>spettro({col:'#3a3a52',extra:[P('b','#22222e',-9,18,-1,10,.5,5,0,.6),P('b','#22222e',9,18,-1,10,.5,5,0,-.6),P('s','#d6aa3c',0,22.6,5.8,1,1,2.6)]})},
   'custode-fiammeggiante':{fam:'torre',r:14,s:1.15,f:()=>[P('c','#5a5f68',-3,4,0,2.4,2.8,8),P('c','#5a5f68',3,4,0,2.4,2.8,8),P('c','#6a707a',0,13.5,0,6.6,7.6,13),P('s','#6a707a',-8,17,0,3.4,3,3.4),P('s','#6a707a',8,17,0,3.4,3,3.4),P('s','#7a808a',0,23.6,0,5.2,5.2,5),
     P('k','#ff8a2a',0,32,0,3.6,0,10,0,0,'e'),P('k','#ffe27a',0,30.4,0,2,0,6,0,0,'e'),P('b','#1c1c24',0,23.8,4.5,5.4,1.2,.6),P('b','#cfd6dc',9.4,16,3,1.6,18,.6),P('b','#ff8a2a',9.4,16,3.3,.8,15,.5,0,0,'e'),P('s','#8a4a2a',-9.4,13,3,4.8,5.6,1.1)]},
-  'maestro-della-torre':{fam:'torre',r:17,s:1.3,f:()=>bipede({pelle:'#d6b894',robe:'#4a2a6a',lunga:true,extra:[P('c','#2f1a48',0,25.3,0,8.2,8.2,.8),P('k','#4a2a6a',0,34.4,-.8,5,0,15),P('s','#e8e0e8',0,18.8,3.8,3.6,3.8,1.6),P('c','#6a4a2a',-8.6,14,2.4,.7,.8,30),P('s','#c8a2ff',-8.6,30.4,2.4,2.6,2.6,2.6,0,0,'e'),
+  'maestro-della-torre':{bip:1,fam:'torre',r:17,s:1.3,f:()=>bipede({pelle:'#d6b894',robe:'#4a2a6a',lunga:true,extra:[P('c','#2f1a48',0,25.3,0,8.2,8.2,.8),P('k','#4a2a6a',0,34.4,-.8,5,0,15),P('s','#e8e0e8',0,18.8,3.8,3.6,3.8,1.6),P('c','#6a4a2a',-8.6,14,2.4,.7,.8,30),P('s','#c8a2ff',-8.6,30.4,2.4,2.6,2.6,2.6,0,0,'e'),
      P('s','#9fe0ff',-12.4,26.4,-2,1.2,1.2,1.2,0,0,'e'),P('s','#f3c64a',-4.6,33.6,-2,1.2,1.2,1.2,0,0,'e'),P('b','#d6aa3c',0,11,4.6,5,.9,.7)]})}
  };
  // un mostro del bestiario → { parti, base, alt, rag, lum }; sconosciuto → un'ombra generica
- function mostro(def,capo){const m=MOSTRI[def]||{fam:'torre',r:12,lum:1,f:()=>spettro({col:'#555566'})},k=m.s||1,pp=scala(m.f(),k);
+ function mostro(def,capo,o){const m=MOSTRI[def]||{fam:'torre',r:12,lum:1,bip:1,f:()=>spettro({col:'#555566'})},k=m.s||1,pp=scala(o&&o.bambola&&m.bip?bambola(m.f()):m.f(),k);
   return Object.assign({def,parti:pp,lum:m.lum?1:0,base:{r:m.r,col:COL_FAM[m.fam]||'#8a6a34',capo:!!capo,fam:m.fam}},ingombro(pp))}
- return{MOSTRI,COL_FAM,RAZZA,eroe,mostro,ingombro,scuro,scala}
+ return{MOSTRI,COL_FAM,RAZZA,BAMBOLA,eroe,mostro,ingombro,scuro,scala,bambola,ruolo}
 })();
 if(typeof module!=='undefined')module.exports=AMIN;

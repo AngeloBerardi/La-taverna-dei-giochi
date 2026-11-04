@@ -80,4 +80,39 @@ function controlla(nome, m, { maxPezzi = 40, altMin = 18, altMax = 66, ragMax = 
   const a = ASCE.parti('torre', .3, {})[0], b = AMIN.mostro('brigante').parti[0];
   assert.strictEqual(a.length, b.length, 'stesso formato dei pezzi');
 }
+// ---- proporzioni da bambola della resa pixel (B2): stessa grammatica, arma e scudo × 1,4, gambe sottili, testa almeno al 35% ----
+{
+  const cols = { pelle: '#e0ac82', capelli: '#5a3a1e', mantello: '#2f6fb5' }, B = AMIN.BAMBOLA;
+  assert(B.arma === 1.4 && B.piedi < 1 && B.testa >= .35 && B.testa <= .4, 'tabella delle misure come nel piano');
+  const misura = (m, ruolo) => m.parti.reduce((a, p, i) => a + (AMIN.ruolo(p) === ruolo ? p[5] + p[6] + p[7] : 0), 0);
+  for (const razza of Object.keys(E.RAZZE)) for (const classe of Object.keys(E.CLASSI)) {
+    const a = AMIN.eroe(razza, classe, cols, 0), b = AMIN.eroe(razza, classe, cols, 0, { bambola: true });
+    controlla('bambola ' + razza + '/' + classe, b, { altMin: 18, altMax: 52, ragMax: 22 });
+    assert.strictEqual(b.parti.length, a.parti.length, 'stessi pezzi');
+    assert.deepStrictEqual(b, AMIN.eroe(razza, classe, cols, 0, { bambola: true }), 'deterministico');
+    // i pezzi delle mani e delle armi crescono, le gambe si assottigliano
+    const ia = a.parti.map(p => AMIN.ruolo(AMIN.scala([p], 1 / (AMIN.RAZZA[razza] || 1))[0]));
+    a.parti.forEach((p, i) => {
+      const q = b.parti[i];
+      if (ia[i] === 'a') assert(q[5] + q[6] + q[7] > (p[5] + p[6] + p[7]) * 1.35, razza + '/' + classe + ': arma più grande');
+      if (ia[i] === 'p') assert(q[5] < p[5] && q[7] === p[7], razza + '/' + classe + ': gambe più sottili, stessa altezza');
+      if (ia[i] === 'c') assert.deepStrictEqual(q, p, 'il corpo non cambia');
+    });
+    assert(ia.includes('a'), classe + ': ha mani o armi');
+    // la testa (sopra il collo) è almeno il 35% dell'altezza
+    let y0 = 1e9, alt = 0;
+    for (const p of b.parti) { const top = p[0] === 's' ? p[3] + p[6] : p[0] === 'b' ? p[3] + p[6] / 2 : p[3] + p[7] / 2, bot = p[0] === 's' ? p[3] - p[6] : p[0] === 'b' ? p[3] - p[6] / 2 : p[3] - p[7] / 2; alt = Math.max(alt, top); if (p[3] >= B.collo * (AMIN.RAZZA[razza] || 1)) y0 = Math.min(y0, bot); }
+    assert((alt - y0) / alt >= .35, razza + '/' + classe + ': testa al ' + Math.round((alt - y0) / alt * 100) + '%');
+  }
+  // una testa piccola si ingrandisce fino alla quota (mai oltre maxTesta), una già grande resta com'è
+  const piccola = [['c', '#000000', 0, 8, 0, 4, 4, 16, 0, 0, ''], ['s', '#ffffff', 0, 19, 0, 2, 2, 2, 0, 0, '']];
+  const g = AMIN.bambola(piccola), h = g[1][6] / piccola[1][6];
+  assert(h > 1 && h <= B.maxTesta + 1e-9, 'testa piccola ingrandita × ' + h.toFixed(2));
+  assert.deepStrictEqual(AMIN.bambola([piccola[0], ['s', '#ffffff', 0, 22, 0, 6, 6, 6, 0, 0, '']])[1], ['s', '#ffffff', 0, 22, 0, 6, 6, 6, 0, 0, ''], 'testa grande intatta');
+  // mostri a due gambe sì, bestie no
+  const lupo = AMIN.mostro('lupo-grigio', false, { bambola: true }), sch = AMIN.mostro('scheletro-armato', false, { bambola: true });
+  assert.deepStrictEqual(lupo, AMIN.mostro('lupo-grigio'), 'le bestie non cambiano');
+  assert.notDeepStrictEqual(sch.parti, AMIN.mostro('scheletro-armato').parti, 'lo scheletro diventa da bambola');
+  for (const id of Object.keys(BEST.M)) controlla('bambola ' + id, AMIN.mostro(id, !!BEST.M[id].capo, { bambola: true }), { altMin: 10, altMax: 72, ragMax: 32 });
+}
 console.log('test_avv_mini: ok');
