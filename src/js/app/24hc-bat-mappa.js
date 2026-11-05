@@ -46,7 +46,7 @@ const BatMappa={
   return`<ellipse cx="${cx}" cy="${cy+3}" rx="12" ry="7" fill="rgba(0,0,0,.3)"/><path d="M${cx-11},${cy+3}Q${cx-9},${cy-9} ${cx},${cy-9}Q${cx+10},${cy-8} ${cx+11},${cy+3}Z" fill="${P.o}" stroke="rgba(0,0,0,.4)" stroke-width="1"/><path d="M${cx-5},${cy-6}q4-3 8 0" stroke="rgba(255,255,255,.35)" stroke-width="1.6" fill="none"/>`},
  // ---- l'arena intera ----
  svg(s,o){o=o||{};const d3=Scena3D.on(),A=s.arena,P=BatMappa.PAL[A.ambiente]||BatMappa.PAL.pianura,R=BatMappa.riquadro(A),Z=BatMappa.Z,esci=new Set((A.uscite||[]).map(c=>c.q+','+c.r));
-  const cel=new Map(),tag=new Map(),att=ASCO.attore(s);
+  const cel=new Map(),tag=new Map(),att=s.ordine?ASCO.attore(s):null,gr=o.griglia!==false;   // griglia: false = esagoni senza bordo (B5: si vede solo in pausa)
   for(const x of (o.ev&&o.ev.celle)||[]){const k=x.q+','+x.r;if(!cel.has(k))cel.set(k,[]);cel.get(k).push(x)}
   for(const x of (o.ev&&o.ev.creature)||[]){if(!tag.has(x.id))tag.set(x.id,[]);tag.get(x.id).push(x)}
   const inCampo=s.cb.filter(c=>ASCO.inCampo(c)&&c.q!=null&&c.r!=null).sort((a,b)=>a.r-b.r||a.q-b.q);
@@ -55,7 +55,7 @@ const BatMappa={
    for(let col=0;col<A.w;col++){const q=col-Math.floor(r/2),[cx,cy]=BatMappa.xy(q,r),ch=A.righe[r][col],sp=A.sup?A.sup[r][col]:'.',amb=A.ambiente,k=q+','+r;let h='';
     const tipo=(col+r)&1?P.g:P.f,alz=ch==='^'?6:0;
     if(ch==='#'){if(!d3)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="${P.md}"/>`+BatMappa.prisma(cx,cy,Z-1,18,P.m,P.ml,P.md)}
-    else{if(!d3)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="${ch==='^'?P.g:tipo}" stroke="rgba(0,0,0,.28)" stroke-width="1"/>`;
+    else{if(!d3)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="${ch==='^'?P.g:tipo}"${gr?' stroke="rgba(0,0,0,.28)" stroke-width="1"':''}/>`;else if(gr&&o.griglia)h+=`<polygon class="tr-griglia" points="${BatMappa.punti(cx,cy-alz,Z-1)}"/>`;
      if(ch===',')h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="url(#bt-tratti)"/>`;
      if(ch==='^'&&!d3)h+=BatMappa.prisma(cx,cy,Z-1.5,alz,P.r,'rgba(0,0,0,.28)','rgba(0,0,0,.45)');
      if(sp!=='.'&&A.sup){const S=BatMappa.SUP[({f:'fuoco',v:'veleno',g:'ghiaccio',w:'acqua'})[sp]];if(S)h+=(d3?'':`<polygon points="${BatMappa.punti(cx,cy-alz,Z-2)}" fill="${S[0]}"/>`)+glifo(S[1],cx,cy-alz,14,'rgba(255,255,255,'+(d3?.55:.85)+')',1)}
@@ -93,7 +93,7 @@ const BatMappa={
   const pc=tag.find(t=>t.pc!=null),lab=pc?`<g class="bt-pc"><rect x="-17" y="${-r-22-up}" width="34" height="15" rx="3" fill="#2a0d08" stroke="#f3d37a" stroke-width="1.2"/><text y="${-r-11-up}" text-anchor="middle">${Math.round(pc.pc*100)}%</text></g>`:'';
   const nome=ACRO.nome(s,c.id);
   return`<g class="${cl.join(' ')}" data-id="${esc(c.id)}" data-x="${x.toFixed(1)}" data-y="${(y-alz).toFixed(1)}" data-hp="${c.hp}" data-max="${c.hpMax}" transform="translate(${x.toFixed(1)} ${(y-alz).toFixed(1)})" role="img" aria-label="${esc(nome)}, ${c.hp} su ${c.hpMax} PF${giu?', a terra':''}">`
-   +`${d3?'':`<ellipse cy="${r-2}" rx="${r-1}" ry="5" fill="rgba(0,0,0,.4)"/>`}<circle class="bt-anello" r="${r+5}" fill="none"/><circle class="bt-alone" r="${r+3}" fill="none"/>`
+   +`${d3?'':`<ellipse cy="${r-2}" rx="${r-1}" ry="5" fill="rgba(0,0,0,.4)"/>`}<ellipse class="bt-piede" cy="${d3?2:r-1}" rx="${r+7}" ry="${d3?9:8}" fill="none"/><circle class="bt-anello" r="${r+5}" fill="none"/><circle class="bt-alone" r="${r+3}" fill="none"/>`
    +`<g class="bt-corpo">${corpo}</g>${barra}${ico}${lab}</g>`},
  statoIco(id){return!!Sagome.STATO[id]},
  // la posizione di un segnalino nel mondo (per le animazioni)
@@ -120,12 +120,12 @@ const BatMappa={
    if(!BatMappa._pan&&Math.hypot(e.clientX-g.x0,e.clientY-g.y0)<8)return;BatMappa._pan=true;
    const m=g.svg.getScreenCTM();if(!m||(Bat.v.k||1)<=1.001)return;const c=BatMappa.centro();Bat.v.cx=c.x-dx/m.a;Bat.v.cy=c.y-dy/m.d;BatMappa.limita();BatMappa.applica(g.svg)},{passive:true});
   const fine=e=>{const g=BatMappa._g.get(e.pointerId);if(!g)return;BatMappa._g.delete(e.pointerId);
-   if(e.type==='pointerup'&&!BatMappa._pan&&BatMappa._g.size===0&&performance.now()-g.t0<700&&Bat.s){const p=BatMappa.pt(g.svg,e.clientX,e.clientY);if(p)BatMappa.tocco(BatMappa.cellaDa(p.x,p.y))}
+   if(e.type==='pointerup'&&!BatMappa._pan&&BatMappa._g.size===0&&performance.now()-g.t0<700&&Bat.s){const p=BatMappa.pt(g.svg,e.clientX,e.clientY);if(p)BatMappa.tocco(BatMappa.cellaDa(p.x,p.y),p)}
    if(BatMappa._g.size===0)setTimeout(()=>{BatMappa._pan=false},0)};
   document.addEventListener('pointerup',fine,{passive:true});document.addEventListener('pointercancel',fine,{passive:true});
   document.addEventListener('wheel',e=>{const svg=trova(e);if(!svg||!Bat.s)return;e.preventDefault();const p=BatMappa.pt(svg,e.clientX,e.clientY);BatMappa.zoom(svg,e.deltaY<0?1.2:1/1.2,p&&p.x,p&&p.y)},{passive:false})},
  // un tocco su un esagono (il secondo di due tocchi molto ravvicinati è un rimbalzo e non conferma nulla)
- tocco(c){const A=Bat.s.arena,t=performance.now(),u=BatMappa._ultimo;if(!AGRI.dentro(A,c))return Bat.tocca(null);
-  if(u.q===c.q&&u.r===c.r&&t-u.t<320)return;BatMappa._ultimo={t,q:c.q,r:c.r};Bat.tocca(c)}
+ tocco(c,p){const A=Bat.s.arena,t=performance.now(),u=BatMappa._ultimo;if(!AGRI.dentro(A,c))return Bat.tocca(null,p);
+  if(u.q===c.q&&u.r===c.r&&t-u.t<320)return;BatMappa._ultimo={t,q:c.q,r:c.r};Bat.tocca(c,p)}
 };
 BatMappa.avvia();

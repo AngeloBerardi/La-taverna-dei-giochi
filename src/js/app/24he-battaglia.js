@@ -17,8 +17,11 @@ const Bat={
  salvaCfg(){try{localStorage.setItem('batcfg',JSON.stringify(Bat.cfg))}catch(e){ERR.n(e)}},
  salva(){if(inAvv())return;try{if(!Bat.s||(Bat.s.over&&!Bat.mondo))localStorage.removeItem('bat');else localStorage.setItem('bat',JSON.stringify({v:1,s:Bat.s,aspetti:Bat.aspetti,log:Bat.log.slice(-60),mondo:Bat.mondo||null}))}catch(e){ERR.n(e)}},
  riprendi(){try{const j=JSON.parse(localStorage.getItem('bat')||'null');
-  if(j&&j.v===1&&j.s&&j.s.v===1&&j.s.arena&&(!j.s.over||j.mondo)){Bat.s=j.s;Bat.mondo=j.mondo||null;Bat.aspetti=j.aspetti||{};Bat.log=Array.isArray(j.log)?j.log:[];Bat.c=ACOM.nuovo(Bat.s)}}catch(e){ERR.n(e)}},
+  if(j&&j.v===1&&j.s&&j.s.v===1&&j.s.arena&&(!j.s.over||j.mondo)){Bat.s=j.s;Bat.mondo=j.mondo||null;Bat.aspetti=j.aspetti||{};Bat.log=Array.isArray(j.log)?j.log:[];Bat.c=Bat.tempo()?null:ACOM.nuovo(Bat.s)}}catch(e){ERR.n(e)}},
  inCorso(){return!!Bat.s&&!Bat.s.over},
+ // B5: la battaglia è a istanti (ATEM, vista in 24hq-bat-tempo.js) invece che a turni (ASCO); il riepilogo ha la stessa forma per tutte e due
+ tempo(){return!!(Bat.s&&Bat.s.ordini)},
+ riep(s){return s&&s.ordini?ATEM.riepilogo(s):ASCO.riepilogo(s)},
  auto(c){return c.lato==='nemici'||c.hp<=0},
  // ---- avvio ----
  prova(liv){return Bat.PROVA.map(([cl,nome,razza,base,cint],i)=>{const h=EROI.nuovo({nome,razza,classe:cl,base,aspetto:{pelle:i%6,capelli:(i*2+1)%7,mantello:(i+2)%6,viso:i%4}},1000+i);
@@ -39,13 +42,13 @@ const Bat={
   catch(e){ERR.n(e);Bat.msgSetup='Non riesco a preparare la battaglia: riprova.'}
   finally{Bat.avviando=false;render()}},
  // la battaglia della campagna (A6.5): `stato` = CAMP.battaglia(s), `aspetti` = gli aspetti degli eroi che partecipano (nell'ordine di `sfida.quali`), `chiave` = il seme della sfida
- daMondo(stato,aspetti,chiave){Bat.gen++;Bat.s=stato;Bat.c=ACOM.nuovo(stato);Bat.mondo=chiave;Bat.aspetti={};aspetti.forEach((a,k)=>{Bat.aspetti['e'+(k+1)]=a});
+ daMondo(stato,aspetti,chiave){Bat.gen++;Bat.s=stato;Bat.c=stato.ordini?null:ACOM.nuovo(stato);Bat.mondo=chiave;Bat.aspetti={};aspetti.forEach((a,k)=>{Bat.aspetti['e'+(k+1)]=a});
   Bat.v={k:1,cx:null,cy:null};Bat.log=[{testo:`Comincia lo scontro: ${stato.cb.filter(c=>c.lato==='nemici').length} nemici contro ${stato.cb.filter(c=>c.lato==='eroi').length} eroi.`,lato:null,peso:'normale'}];
-  Bat.foglio=null;Bat.pausa=null;Bat.msg='';Bat.anim=false;Bat.salta=false;Bat.vedi=false;Bat.logAperto=false;Bat.salva()},
+  Bat.foglio=null;Bat.pausa=null;Bat.msg='';Bat.anim=false;Bat.salta=false;Bat.vedi=false;Bat.logAperto=false;if(stato.ordini)BatT.prepara(true);Bat.salva()},
  // dopo «Continua»: la battaglia è registrata nella campagna e non serve più
  chiudiMondo(){Bat.gen++;Bat.s=null;Bat.c=null;Bat.mondo=null;Bat.log=[];Bat.pausa=null;Bat.anim=false;Bat.lavoro=false;Bat.foglio=null;Bat.salva();ui.bat=false;ui.camp=true;document.documentElement.classList.remove('bat-on')},
  // ---- tocchi sulla mappa e comandi ----
- tocca(cella){if(inAvv()&&!AvvStanza.puoBat()){if(Bat.s&&!Bat.s.over&&!ui.tv){Bat.msg='Non è il tuo turno.';render()}return}if(!Bat.s||Bat.anim||Bat.lavoro||Bat.pausa||Bat.s.over||Bat.foglio)return;Bat.msg='';
+ tocca(cella,p){if(Bat.tempo())return BatT.tocca(cella,p);if(inAvv()&&!AvvStanza.puoBat()){if(Bat.s&&!Bat.s.over&&!ui.tv){Bat.msg='Non è il tuo turno.';render()}return}if(!Bat.s||Bat.anim||Bat.lavoro||Bat.pausa||Bat.s.over||Bat.foglio)return;Bat.msg='';
   if(!cella){Bat.c=ACOM.annulla(Bat.c,Bat.s);return render()}
   const r=ACOM.tocca(Bat.c,Bat.s,cella);Bat.c=r.c;if(r.azione)return Bat.umano(r.azione);render()},
  // un'azione di un giocatore: se serve una reazione si ferma e aspetta; poi `dopo` fa giocare i nemici
@@ -68,7 +71,7 @@ const Bat={
   finally{Bat.lavoro=false}
   if(g===Bat.gen&&ui.bat){Bat.anim=false;render()}},
  // chiamato da afterRender dopo ogni disegno
- dopo(){const on=!!(ui.bat&&Bat.s);document.documentElement.classList.toggle('bat-on',on);if(!on)return;
+ dopo(){const on=!!(ui.bat&&Bat.s);document.documentElement.classList.toggle('bat-on',on);if(!on)return;if(Bat.tempo())return BatT.dopo();
   const att=ASCO.attore(Bat.s);if(att&&Bat.auto(att)&&!Bat.lavoro&&!Bat.pausa&&!Bat.s.over)setTimeout(()=>Bat.avanza(),60)},
  suTurno(id,s){const c=ASCO.trova(s,id);if(!c)return;for(const e of document.querySelectorAll('.bt-tok.attivo'))e.classList.remove('attivo');
   const el=BatAnima.tok(id);if(el){el.classList.add('attivo');if((Bat.v.k||1)>1.05){const [x,y]=BatAnima.pos(el);Bat.segui(x,y)}}
@@ -77,7 +80,7 @@ const Bat={
  segui(x,y){const svg=document.querySelector('.bt-svg');if(svg&&Bat.s)BatMappa.centra(svg,x,y)},
  logDom(){const el=document.querySelector('.bt-alto');if(el&&Bat.s){el.innerHTML=Bat.altoH(Bat.s);const l=el.querySelector('.bt-log');if(l)l.scrollTop=l.scrollHeight}},
  // ---- disegno ----
- html(){const s=Bat.s;if(!s)return'';Bat.c=ACOM.fresco(Bat.c,s);
+ html(){const s=Bat.s;if(!s)return'';if(Bat.tempo())return BatT.html();Bat.c=ACOM.fresco(Bat.c,s);
   const att=ASCO.attore(s),p=ACOM.pannello(Bat.c,s),e=ACOM.evidenzia(Bat.c,s);
   return`<div class="bt${Bat.anim?' anima':''}${Bat.lavoro?' lavoro':''}" role="dialog" aria-modal="true" aria-label="Battaglia">${Bat.topH(s,att)}
 <div class="bt-mappa">${BatMappa.svg(s,{ev:e,vista:Bat.v,aspetti:Bat.aspetti})}<div class="bt-alto">${Bat.altoH(s)}</div>${Bat.zoomH()}<div class="bt-dado" aria-live="polite"></div><div class="bt-toast" role="status"></div>${Bat.testoH(e)}${AvvTut.html('battaglia')}</div>
@@ -135,11 +138,11 @@ ${Bat.risH(s,p,att)}${Bat.barraH(s,p)}${Bat.foglioH(s,p)}${Bat.pausaH(s)}${Bat.f
   return`<div class="bt-vela"></div><div class="bt-foglio bt-pausa" role="alertdialog" aria-label="${esc(q.titolo)}"><div class="bt-fh"><b>${esc(q.titolo)}</b></div><div class="bt-fl"><p>${esc(q.testo)}</p>
 ${q.opzioni.map(o=>`<button class="bt-riga" data-a="batrea" data-v="${esc(o.id)}"><b>${esc(o.nome)}</b><small>${esc(o.desc)}</small></button>`).join('')}<button class="b" data-a="batrea" data-v="">${esc(q.rifiuta)}</button></div></div>`},
  // fine della battaglia: esito, giri, punti esperienza e stato degli eroi
- fineH(s){if(!s.over)return'';const R=ASCO.riepilogo(s),ok=R.esito==='vittoria';
+ fineH(s){if(!s.over)return'';const R=Bat.riep(s),ok=R.esito==='vittoria',dur=R.secondi!=null?`${Math.floor(R.secondi/60)}:${String(R.secondi%60).padStart(2,'0')}`:`${R.giri} ${R.giri===1?'giro':'giri'}`;
   if(Bat.vedi)return`<div class="bt-barra fine"><button class="b" data-a="batvedi">${esc(ACRO.ESITO[R.esito]||'Fine')}</button><button class="b gold" data-a="${Bat.mondo?'batmondo':'batesci'}">${Bat.mondo?'Continua':'Esci'}</button></div>`;
   const stato={'in-piedi':'in piedi','a-terra':'a terra',fuggito:'fuggito'};
   return`<div class="bt-vela"></div><div class="bt-fine ${ok?'vitt':'sconf'}" role="alertdialog" aria-label="${esc(ACRO.ESITO[R.esito]||'Fine')}"><h2>${esc(ACRO.ESITO[R.esito]||'Fine')}</h2>
-<p class="muted">${R.giri} ${R.giri===1?'giro':'giri'} · ${R.xp} PE${R.xp?` (${R.xpPerEroe} a testa)`:''}</p>
+<p class="muted">${dur} · ${R.xp} PE${R.xp?` (${R.xpPerEroe} a testa)`:''}</p>
 <ul>${R.eroi.map(h=>`<li class="${h.hp<=0?'ko':''}"><span>${Eroi.ritratto(Bat.aspetti[h.id],(ASCO.trova(s,h.id)||{}).razza,(ASCO.trova(s,h.id)||{}).classe,34)}</span><b>${esc(h.nome)}</b><small>${Math.max(0,h.hp)}/${h.hpMax} PF · ${stato[h.stato]||h.stato}</small></li>`).join('')}</ul>
 ${Bat.mondo?`<p class="muted">${R.esito==='vittoria'?'Il bottino e l\'esperienza entrano nella campagna.':'La compagnia si ritira: la campagna ne tiene conto.'}</p>${Bat.msg?`<p class="no" role="status">${esc(Bat.msg)}</p>`:''}
 <button class="b gold" data-a="batmondo">Continua</button><button class="b" data-a="batvedi">Guarda il campo</button></div>`:`<p class="muted">Battaglia di prova: i tuoi eroi non cambiano.</p>
@@ -147,7 +150,7 @@ ${Bat.mondo?`<p class="muted">${R.esito==='vittoria'?'Il bottino e l\'esperienza
  // ---- la sezione nella pagina Avventura: scelte e pulsante «Combatti» ----
  chip(a,v,t,on){return`<button class="chip${on?' on':''}" data-a="${a}" data-v="${v}" aria-pressed="${on}">${t}</button>`},
  setupH(){const c=Bat.cfg||Bat.DEF,s=Bat.inCorso()?Bat.s:null,pers=Avv.online()&&Avv.eroiElenco().length;
-  const cont=s?`<button class="av-card av-cont" data-a="batcont"><span class="av-tx"><b>Battaglia in corso</b><small>Giro ${s.giro} · ${s.cb.filter(x=>x.lato==='eroi'&&x.hp>0).length} eroi in piedi, ${s.cb.filter(x=>x.lato==='nemici'&&ASCO.inCampo(x)).length} nemici</small></span><span class="av-go">Continua</span></button>`:'';
+  const cont=s?`<button class="av-card av-cont" data-a="batcont"><span class="av-tx"><b>Battaglia in corso</b><small>${s.ordini?Math.floor(s.t/ATEM.IST)+' s':'Giro '+s.giro} · ${s.cb.filter(x=>x.lato==='eroi'&&x.hp>0).length} eroi in piedi, ${s.cb.filter(x=>x.lato==='nemici'&&ASCO.inCampo(x)).length} nemici</small></span><span class="av-go">Continua</span></button>`:'';
   const fam=Object.keys(BEST.FAMIGLIE).map(k=>Bat.chip('batcfg','fam:'+k,esc(BEST.FAMIGLIE[k]),c.fam===k)).join('');
   const dif=Bat.DIFF.map(([k,t])=>Bat.chip('batcfg','diff:'+k,t,c.diff===k)).join('');
   return`<div class="sh2">Battaglia di prova ${infoH('Prova le battaglie a esagoni senza avviare una campagna: scegli i nemici, la difficoltà e la compagnia. Nessun premio e nessun rischio: i tuoi eroi non cambiano.')}</div>${cont}
