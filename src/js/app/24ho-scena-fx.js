@@ -69,7 +69,7 @@
   const s=Bat.s;if(!s)return;const vivi=new Set();
   for(const c of s.cb){if(!ASCO.inCampo(c))continue;vivi.add(c.id);let f=FG.get(c.id);if(f&&f.sig!==firma(c)){S_libera(f);FG.delete(c.id);f=null}
    if(!f){f=costruisciFig(c);FG.set(c.id,f);K.g.fig.add(f.g);const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}
-   const giu=c.hp<=0;if(f.occ<=0){const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}if(giu!==f.ko&&f.occ<=0)posa(f,giu);stati(f,c)}
+   const giu=c.hp<=0;if(f.occ<=0&&!segue()){const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}if(giu!==f.ko&&f.occ<=0)posa(f,giu);stati(f,c)}
   for(const [id,f] of FG)if(!vivi.has(id)&&f.occ<=0){S_libera(f);FG.delete(id)}}
  S.altFig=id=>{const f=FG.get(id);return f?f.alt:30};
  S.nFig=()=>FG.size;
@@ -108,7 +108,21 @@
  // ---- animazioni dei passi della battaglia ----
  const fig=id=>FG.get(id);
  const mezzo=f=>({x:f.x,y:f.y+f.dy+f.alt*.55,z:f.z});
- const volto=(f,x,z)=>{const dx=x-f.x,dz=z-f.z;if(Math.abs(dx)+Math.abs(dz)>.5)f.rot=Math.atan2(dx,dz)};
+ // otto direzioni di sguardo, scattanti (B5): il pixel resta pulito e la figura non ruota di continuo
+ const OTTO=Math.PI/4,dir8=(dx,dz)=>Math.round(Math.atan2(dx,dz)/OTTO)*OTTO;
+ const volto=(f,x,z)=>{const dx=x-f.x,dz=z-f.z;if(Math.abs(dx)+Math.abs(dz)>.5)f.rot=dir8(dx,dz)};
+ // ---- tempo reale (B5): la battaglia a istanti porta a ogni fotogramma le posizioni interpolate { id: { q, r, h, mv, la } } (q, r frazionari,
+ // h = quota del rialzo 0..1, mv = sta camminando, la = sta lanciando). Le animazioni procedurali: passo (molleggio e dondolio), lancio (si alza e brilla).
+ // Le figure con un'animazione breve in corso (occ > 0: affondo, caduta…) restano a quella; `sincFigure` non le rimette al centro dell'esagono.
+ let SEG=0;const segue=()=>ora()-SEG<400;
+ S.muovi=function(P,sec){if(!S.on()||K.modo!=='bat')return;SEG=ora();const fermo=typeof RM!=='undefined'&&RM;
+  for(const f of FG.values()){const p=P[f.id];if(!p||f.occ>0)continue;const w=ASCE.pos('bat',p.q,p.r),dx=w.x-f.x,dz=w.z-f.z;
+   if(dx*dx+dz*dz>.02)f.rot=dir8(dx,dz);f.x=w.x;f.z=w.z;f.y=p.h*ASCE.QUOTA.rialzo;
+   const passo=p.mv&&!fermo&&!f.ko,on=p.la&&!fermo&&!f.ko,k=sec*11+f.ph;
+   f.dy=passo?Math.abs(Math.sin(k))*2.4:on?2+Math.sin(sec*7)*1.2:0;if(!f.ko)f.body.rotation.z=passo?Math.sin(k)*.08:0;
+   if(on||f.brilla){const b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0],g=on?.5+.5*Math.sin(sec*9):0;f.brilla=on;f.mat.emissive.setRGB(b[0]+.34*g,b[1]+.26*g,b[2]+.08*g)}
+   metti(f)}
+  S.sporca()};
  const MAGICO=new Set(['mago','chierico','bardo']);
  function sposta(x,s,f_,rid){const f=fig(x.chi);if(!f)return;const A=s.arena,pts=x.passi.map(p=>{const q=ASCE.pos('bat',p.q,p.r);return{x:q.x,z:q.z,y:AGRI.alt(A,p)?ASCE.QUOTA.rialzo:0}});
   if(rid||f_<=0){const u=pts[pts.length-1];volto(f,u.x,u.z);f.x=u.x;f.z=u.z;f.y=u.y;metti(f);S.sporca();return}
