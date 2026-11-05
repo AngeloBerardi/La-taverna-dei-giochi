@@ -3,6 +3,15 @@
    per una vista leggermente inclinata; rialzi, muri e ostacoli hanno uno spessore disegnato. Il tocco si risolve con la matematica dell'esagono. */
 const BatMappa={
  Z:26,SQ:.84,
+ // proiezione (B6.5): di solito righe schiacciate di .84 e quote alzate 1:1 (il 3D di A12 coincide con l'SVG); con la resa pixel della battaglia
+ // in tempo reale la telecamera è ortografica a 55°, quindi SQ = sen 55° e L = cos 55° (quanto si alza sullo schermo un'unità di quota), il viewBox lo
+ // decide la telecamera (BatPx, 24hs) e `g` = unità dell'SVG per pixel CSS, perché barre, icone e scritte restino della stessa misura a ogni zoom.
+ L:1,px:false,g:1,RIALZO:6,
+ proiezione(px,g){BatMappa.px=!!px;BatMappa.SQ=px?APAL.CAMERA.sin:.84;BatMappa.L=px?APAL.CAMERA.cos:1;BatMappa.g=px?g:1},
+ // quanto è alzato sullo schermo chi sta su un rialzo
+ alz(A,c){return AGRI.alt(A,c)?BatMappa.RIALZO*BatMappa.L:0},
+ // altezza della testa di una miniatura sopra i piedi (unità dell'SVG), per barre, icone e numeri nella resa pixel
+ testa(id){return Scena3D.cimaFig(id)*(BatMappa.px?APAL.FIGURA.cos:BatMappa.L)},   // resa pixel: il corpo è inclinato (APAL.FIGURA)
  // colori per ambiente dell'arena: f/g = pavimento a scacchi, r = rialzo, m/ml/md = muro (cima, lato, lato in ombra), o = ostacoli, bg = fuori dall'arena
  PAL:{pianura:{f:'#86a554',g:'#7b9a4b',r:'#a3bb6e',m:'#8c8a86',ml:'#6c6a66',md:'#55534f',o:'#9a8e78',bg:'#1d2614'},
   strada:{f:'#c2a672',g:'#b79b68',r:'#d6bf8a',m:'#8c8a86',ml:'#6c6a66',md:'#55534f',o:'#9a8e78',bg:'#2a2214'},
@@ -45,31 +54,38 @@ const BatMappa={
   if(['citta','antro','torre'].includes(amb))return BatMappa.prisma(cx,cy,BatMappa.Z*.62,9,P.o,'rgba(0,0,0,.35)','rgba(0,0,0,.5)')+`<path d="M${cx-6},${cy-9}L${cx+6},${cy-9}M${cx},${cy-13}L${cx},${cy-5}" stroke="rgba(0,0,0,.3)" stroke-width="1.4"/>`;
   return`<ellipse cx="${cx}" cy="${cy+3}" rx="12" ry="7" fill="rgba(0,0,0,.3)"/><path d="M${cx-11},${cy+3}Q${cx-9},${cy-9} ${cx},${cy-9}Q${cx+10},${cy-8} ${cx+11},${cy+3}Z" fill="${P.o}" stroke="rgba(0,0,0,.4)" stroke-width="1"/><path d="M${cx-5},${cy-6}q4-3 8 0" stroke="rgba(255,255,255,.35)" stroke-width="1.6" fill="none"/>`},
  // ---- l'arena intera ----
- svg(s,o){o=o||{};const d3=Scena3D.on(),A=s.arena,P=BatMappa.PAL[A.ambiente]||BatMappa.PAL.pianura,R=BatMappa.riquadro(A),Z=BatMappa.Z,esci=new Set((A.uscite||[]).map(c=>c.q+','+c.r));
-  const cel=new Map(),tag=new Map(),att=s.ordine?ASCO.attore(s):null,gr=o.griglia!==false;   // griglia: false = esagoni senza bordo (B5: si vede solo in pausa)
+ svg(s,o){o=o||{};if(BatMappa.px&&!(typeof BatPx!=='undefined'&&BatPx.vuole()))BatMappa.proiezione(false);   // battaglie a turni, 3D spento: la proiezione di sempre
+  const d3=Scena3D.on(),A=s.arena,P=BatMappa.PAL[A.ambiente]||BatMappa.PAL.pianura,R=BatMappa.riquadro(A),Z=BatMappa.Z,esci=new Set((A.uscite||[]).map(c=>c.q+','+c.r));
+  const px=BatMappa.px,mac={};   // B6.5: nella resa pixel nessun esagono si vede: niente griglia, evidenze come macchie morbide (BatMappa.macchie)
+  const cel=new Map(),tag=new Map(),att=s.ordine?ASCO.attore(s):null,gr=!px&&o.griglia!==false;   // griglia: false = esagoni senza bordo (B5: si vede solo in pausa)
   for(const x of (o.ev&&o.ev.celle)||[]){const k=x.q+','+x.r;if(!cel.has(k))cel.set(k,[]);cel.get(k).push(x)}
   for(const x of (o.ev&&o.ev.creature)||[]){if(!tag.has(x.id))tag.set(x.id,[]);tag.get(x.id).push(x)}
   const inCampo=s.cb.filter(c=>ASCO.inCampo(c)&&c.q!=null&&c.r!=null).sort((a,b)=>a.r-b.r||a.q-b.q);
   let g='';
   for(let r=0;r<A.h;r++){
    for(let col=0;col<A.w;col++){const q=col-Math.floor(r/2),[cx,cy]=BatMappa.xy(q,r),ch=A.righe[r][col],sp=A.sup?A.sup[r][col]:'.',amb=A.ambiente,k=q+','+r;let h='';
-    const tipo=(col+r)&1?P.g:P.f,alz=ch==='^'?6:0;
+    const tipo=(col+r)&1?P.g:P.f,alz=ch==='^'?BatMappa.RIALZO*BatMappa.L:0;
     if(ch==='#'){if(!d3)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="${P.md}"/>`+BatMappa.prisma(cx,cy,Z-1,18,P.m,P.ml,P.md)}
     else{if(!d3)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="${ch==='^'?P.g:tipo}"${gr?' stroke="rgba(0,0,0,.28)" stroke-width="1"':''}/>`;else if(gr&&o.griglia)h+=`<polygon class="tr-griglia" points="${BatMappa.punti(cx,cy-alz,Z-1)}"/>`;
-     if(ch===',')h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="url(#bt-tratti)"/>`;
+     if(ch===','&&!px)h+=`<polygon points="${BatMappa.punti(cx,cy,Z-1)}" fill="url(#bt-tratti)"/>`;   // resa pixel: il fango lo mostra il terreno
      if(ch==='^'&&!d3)h+=BatMappa.prisma(cx,cy,Z-1.5,alz,P.r,'rgba(0,0,0,.28)','rgba(0,0,0,.45)');
-     if(sp!=='.'&&A.sup){const S=BatMappa.SUP[({f:'fuoco',v:'veleno',g:'ghiaccio',w:'acqua'})[sp]];if(S)h+=(d3?'':`<polygon points="${BatMappa.punti(cx,cy-alz,Z-2)}" fill="${S[0]}"/>`)+glifo(S[1],cx,cy-alz,14,'rgba(255,255,255,'+(d3?.55:.85)+')',1)}
-     if(esci.has(k))h+=`<polygon points="${BatMappa.punti(cx,cy-alz,Z-3)}" fill="none" stroke="#f3d37a" stroke-width="2" stroke-dasharray="4 3"/>`+glifo('freccia',cx,cy-alz,12,'#f3d37a',.9);
-     for(const x of cel.get(k)||[])h+=BatMappa.evidenza(x,cx,cy-alz);
+     if(sp!=='.'&&A.sup&&!px){const S=BatMappa.SUP[({f:'fuoco',v:'veleno',g:'ghiaccio',w:'acqua'})[sp]];if(S)h+=(d3?'':`<polygon points="${BatMappa.punti(cx,cy-alz,Z-2)}" fill="${S[0]}"/>`)+glifo(S[1],cx,cy-alz,14,'rgba(255,255,255,'+(d3?.55:.85)+')',1)}
+     if(esci.has(k))h+=px?`<g class="bt-uscita">${glifo('freccia',cx,cy-alz,14,'#f3d37a',.85)}</g>`:`<polygon points="${BatMappa.punti(cx,cy-alz,Z-3)}" fill="none" stroke="#f3d37a" stroke-width="2" stroke-dasharray="4 3"/>`+glifo('freccia',cx,cy-alz,12,'#f3d37a',.9);
+     for(const x of cel.get(k)||[]){if(px){(mac[x.tipo]=mac[x.tipo]||[]).push([cx,cy-alz]);continue}h+=BatMappa.evidenza(x,cx,cy-alz)}
      if(!d3){if(ch==='T')h+=BatMappa.alto(P,amb,cx,cy);else if(ch==='o')h+=BatMappa.basso(P,amb,cx,cy)}}
     g+=h}
-   for(const c of inCampo)if(c.r===r)g+=BatMappa.segnalino(s,c,o,tag.get(c.id)||[],att,d3)}
+   for(const c of inCampo)if(c.r===r)g+=BatMappa.px?BatMappa.segnalinoPx(s,c,o,tag.get(c.id)||[]):BatMappa.segnalino(s,c,o,tag.get(c.id)||[],att,d3)}
   let extra='';
   if(o.ev&&o.ev.linea){const L=o.ev.linea,[x0,y0]=BatMappa.xy(L.da.q,L.da.r),[x1,y1]=BatMappa.xy(L.a.q,L.a.r),col=L.visibile?(L.cop==='nessuna'?'#f3d37a':'#e8a23a'):'#e0604a';
    extra+=`<line x1="${x0.toFixed(1)}" y1="${(y0-8).toFixed(1)}" x2="${x1.toFixed(1)}" y2="${(y1-8).toFixed(1)}" stroke="${col}" stroke-width="2.4" stroke-dasharray="5 4" pointer-events="none"/>`;
    if(L.cop&&L.cop!=='nessuna'&&L.visibile)extra+=glifo('scudo',(x0+x1)/2,(y0+y1)/2-8,14,'#fff',1)}
-  return`<svg class="bt-svg" viewBox="${BatMappa.viewBox(A,o.vista)}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Campo di battaglia"><defs><pattern id="bt-tratti" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="9" stroke="rgba(0,0,0,.3)" stroke-width="2.2"/></pattern></defs>`
-   +`${d3?'':`<rect x="${R.x-200}" y="${R.y-200}" width="${R.w+400}" height="${R.h+400}" fill="${P.bg}"/>`}<g class="bt-mondo">${g}${extra}</g><g class="bt-fx" pointer-events="none"></g></svg>`},
+  const vb=BatMappa.px&&typeof BatPx!=='undefined'&&BatPx.vb?BatPx.vb:BatMappa.viewBox(A,o.vista);
+  return`<svg class="bt-svg${BatMappa.px?' bt-px':''}" viewBox="${vb}" preserveAspectRatio="${BatMappa.px?'none':'xMidYMid meet'}" role="group" aria-label="Campo di battaglia"><defs><pattern id="bt-tratti" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="9" stroke="rgba(0,0,0,.3)" stroke-width="2.2"/></pattern></defs>`
+   +`${d3?'':`<rect x="${R.x-200}" y="${R.y-200}" width="${R.w+400}" height="${R.h+400}" fill="${P.bg}"/>`}<g class="bt-mondo">${px?BatMappa.macchie(mac):''}${g}${extra}</g><g class="bt-fx" pointer-events="none"></g></svg>`},
+ // ---- resa pixel (B6.5): una cella vista come macchia morbida sul pavimento (un'ellisse: il cerchio a terra visto a 55°) ----
+ macchia(cx,cy,f,cls,k){const Z=BatMappa.Z*f;return`<ellipse${cls?` class="${cls}"`:''}${k?` data-k="${k}"`:''} cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${Z.toFixed(1)}" ry="${(Z*BatMappa.SQ).toFixed(1)}"/>`},
+ // le evidenze delle celle (area di un potere, meta, percorso…) come un'unica forma per tipo: le macchie di un gruppo si fondono (l'opacità è del gruppo)
+ macchie(mac){return Object.entries(mac).map(([t,L])=>`<g class="bt-macchia m-${t}" pointer-events="none">${L.map(([x,y])=>BatMappa.macchia(x,y,1)).join('')}</g>`).join('')},
  // un'evidenziazione su un esagono
  evidenza(x,cx,cy){const T=BatMappa.TINTE[x.tipo];if(!T)return'';const Z=BatMappa.Z,pt=BatMappa.punti(cx,cy,Z-2);
   if(x.tipo==='direzione'){const a=[0,-60,-120,180,120,60][x.dir]||0;return`<g transform="translate(${cx} ${cy}) rotate(${a})"><polygon points="${BatMappa.punti(0,0,Z-4)}" fill="${T[0]}" stroke="${T[1]}" stroke-width="1.6" transform="rotate(${-a})"/><path d="M-7 0H8M2-6l6 6-6 6" fill="none" stroke="#fff1b8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>`}
@@ -95,14 +111,30 @@ const BatMappa={
   return`<g class="${cl.join(' ')}" data-id="${esc(c.id)}" data-x="${x.toFixed(1)}" data-y="${(y-alz).toFixed(1)}" data-hp="${c.hp}" data-max="${c.hpMax}" transform="translate(${x.toFixed(1)} ${(y-alz).toFixed(1)})" role="img" aria-label="${esc(nome)}, ${c.hp} su ${c.hpMax} PF${giu?', a terra':''}">`
    +`${d3?'':`<ellipse cy="${r-2}" rx="${r-1}" ry="5" fill="rgba(0,0,0,.4)"/>`}<ellipse class="bt-piede" cy="${d3?2:r-1}" rx="${r+7}" ry="${d3?9:8}" fill="none"/><circle class="bt-anello" r="${r+5}" fill="none"/><circle class="bt-alone" r="${r+3}" fill="none"/>`
    +`<g class="bt-corpo">${corpo}</g>${barra}${ico}${lab}</g>`},
+ // il segnalino nella resa pixel (B6.5): la miniatura la disegna la catena; qui l'anello ai piedi (della misura della basetta, nel mondo) e,
+ // sopra la testa, barra dei PF, stati e probabilità in un gruppo `bt-hud` scalato di g (misure in pixel CSS: restano uguali a ogni zoom)
+ segnalinoPx(s,c,o,tag){const [x,y]=BatMappa.xy(c.q,c.r),alz=BatMappa.alz(s.arena,c),eroe=c.lato==='eroi',giu=c.hp<=0,pct=Math.max(0,Math.min(1,c.hp/c.hpMax)),SQ=BatMappa.SQ;
+  const nasc=(c.stati||[]).some(z=>z.id==='nascosto'),tipi=tag.map(t=>t.tipo),cl=['bt-tok',eroe?'bt-eroe':'bt-nem'];
+  if(giu)cl.push('ko');if(nasc)cl.push('nasc');for(const t of new Set(tipi))cl.push('t-'+t);
+  // l'anello in due metà: quella davanti piena, quella dietro (che passa sulle gambe della miniatura) smorzata
+  const rb=Scena3D.rFig(c.id)+2,su=(BatMappa.testa(c.id)+2).toFixed(1),el=(k,r)=>{const a=r.toFixed(1),b=(r*SQ).toFixed(1);
+   return`<path class="${k}" d="M-${a} 0A${a} ${b} 0 0 0 ${a} 0" fill="none"/><path class="${k} dietro" d="M-${a} 0A${a} ${b} 0 0 1 ${a} 0" fill="none"/>`};
+  const barra=giu?'':`<rect x="-14" y="-6" width="28" height="6" rx="1" fill="rgba(10,6,4,.78)"/><rect class="bt-hpf" x="-13" y="-5" width="${(26*pct).toFixed(1)}" height="4" fill="${pct>.5?'#5fbf6a':pct>.25?'#e8b43a':'#d9503f'}"/>`;
+  const st=(c.stati||[]).map(z=>z.id).filter(id=>id!=='terra'&&BatMappa.statoIco(id)).slice(0,3);
+  const ico=st.map((id,i)=>{const [n,col]=Sagome.STATO[id],px=(i-(st.length-1)/2)*15;return`<circle cx="${px}" cy="-15" r="6.5" fill="${col}" stroke="#1a1208" stroke-width="1.2"/>`+glifo(n,px,-15,8,'#1a1208',1)}).join('');
+  const pc=tag.find(t=>t.pc!=null),lab=pc?`<g class="bt-pc"><rect x="-17" y="${st.length?-40:-24}" width="34" height="15" rx="3" fill="#2a0d08" stroke="#f3d37a" stroke-width="1.2"/><text y="${st.length?-29:-13}" text-anchor="middle">${Math.round(pc.pc*100)}%</text></g>`:'';
+  const nome=ACRO.nome(s,c.id);
+  return`<g class="${cl.join(' ')}" data-id="${esc(c.id)}" data-x="${x.toFixed(1)}" data-y="${(y-alz).toFixed(1)}" data-hp="${c.hp}" data-max="${c.hpMax}" transform="translate(${x.toFixed(1)} ${(y-alz).toFixed(1)})" role="img" aria-label="${esc(nome)}, ${c.hp} su ${c.hpMax} PF${giu?', a terra':''}">`
+   +`${el('bt-piede',rb)}${el('bt-anello',rb+3)}${el('bt-alone',rb+1.5)}<g class="bt-corpo"></g>`
+   +`<g class="bt-hud" transform="translate(0 -${su}) scale(${BatMappa.g.toFixed(4)})">${barra}${ico}${lab}</g></g>`},
  statoIco(id){return!!Sagome.STATO[id]},
  // la posizione di un segnalino nel mondo (per le animazioni)
- posiz(s,c){const [x,y]=BatMappa.xy(c.q,c.r);return{x,y:y-(AGRI.alt(s.arena,c)?6:0)}},
+ posiz(s,c){const [x,y]=BatMappa.xy(c.q,c.r);return{x,y:y-BatMappa.alz(s.arena,c)}},
  // ---- zoom e scorrimento ----
  // `Bat.v` = { k, cx, cy } (cx, cy = centro nel mondo, null = centro dell'arena). Un solo gruppo di ascoltatori sul documento: la mappa si ridisegna a ogni stato.
  _g:new Map(),_pan:false,_ultimo:{t:0,q:null,r:null},
  pt(svg,x,y){const m=svg.getScreenCTM();if(!m)return null;const p=svg.createSVGPoint();p.x=x;p.y=y;return p.matrixTransform(m.inverse())},
- applica(svg){const A=Bat.s&&Bat.s.arena;if(svg&&A){svg.setAttribute('viewBox',BatMappa.viewBox(A,Bat.v));Scena3D.vista()}},
+ applica(svg){const A=Bat.s&&Bat.s.arena;if(BatMappa.px)return;if(svg&&A){svg.setAttribute('viewBox',BatMappa.viewBox(A,Bat.v));Scena3D.vista()}},
  limita(){const A=Bat.s.arena,R=BatMappa.riquadro(A),v=Bat.v;v.k=Math.max(1,Math.min(3,v.k||1));
   if(v.k<=1.001){v.cx=null;v.cy=null;return}const cx=v.cx!=null?v.cx:R.x+R.w/2,cy=v.cy!=null?v.cy:R.y+R.h/2;v.cx=Math.max(R.x,Math.min(R.x+R.w,cx));v.cy=Math.max(R.y,Math.min(R.y+R.h,cy))},
  centro(){const A=Bat.s.arena,R=BatMappa.riquadro(A),v=Bat.v;return{x:v.cx!=null?v.cx:R.x+R.w/2,y:v.cy!=null?v.cy:R.y+R.h/2}},
@@ -116,14 +148,16 @@ const BatMappa={
    if(BatMappa._g.size===1)BatMappa._pan=false;if(BatMappa._g.size===2){BatMappa._pan=true;const [a,b]=[...BatMappa._g.values()];BatMappa._d0=Math.hypot(a.x-b.x,a.y-b.y)||1;BatMappa._k0=Bat.v.k||1}},{passive:true});
   document.addEventListener('pointermove',e=>{const g=BatMappa._g.get(e.pointerId);if(!g||!Bat.s)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;g.x=e.clientX;g.y=e.clientY;
    if(BatMappa._g.size>=2){const [a,b]=[...BatMappa._g.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,p=BatMappa.pt(g.svg,mx,my);
+    if(BatMappa.px){BatPx.pizzico(d/BatMappa._d0);return}   // resa pixel: il pizzico sceglie uno dei due zoom
     if(p){const f=(BatMappa._k0*d/BatMappa._d0)/(Bat.v.k||1);BatMappa.zoom(g.svg,f,p.x,p.y)}return}
    if(!BatMappa._pan&&Math.hypot(e.clientX-g.x0,e.clientY-g.y0)<8)return;BatMappa._pan=true;
+   if(BatMappa.px){BatPx.trascina(dx,dy);return}   // resa pixel: il dito sposta la telecamera (che smette di seguire l'eroe)
    const m=g.svg.getScreenCTM();if(!m||(Bat.v.k||1)<=1.001)return;const c=BatMappa.centro();Bat.v.cx=c.x-dx/m.a;Bat.v.cy=c.y-dy/m.d;BatMappa.limita();BatMappa.applica(g.svg)},{passive:true});
   const fine=e=>{const g=BatMappa._g.get(e.pointerId);if(!g)return;BatMappa._g.delete(e.pointerId);
    if(e.type==='pointerup'&&!BatMappa._pan&&BatMappa._g.size===0&&performance.now()-g.t0<700&&Bat.s){const p=BatMappa.pt(g.svg,e.clientX,e.clientY);if(p)BatMappa.tocco(BatMappa.cellaDa(p.x,p.y),p)}
    if(BatMappa._g.size===0)setTimeout(()=>{BatMappa._pan=false},0)};
   document.addEventListener('pointerup',fine,{passive:true});document.addEventListener('pointercancel',fine,{passive:true});
-  document.addEventListener('wheel',e=>{const svg=trova(e);if(!svg||!Bat.s)return;e.preventDefault();const p=BatMappa.pt(svg,e.clientX,e.clientY);BatMappa.zoom(svg,e.deltaY<0?1.2:1/1.2,p&&p.x,p&&p.y)},{passive:false})},
+  document.addEventListener('wheel',e=>{const svg=trova(e);if(!svg||!Bat.s)return;e.preventDefault();if(BatMappa.px)return BatPx.rotella(e.deltaY);const p=BatMappa.pt(svg,e.clientX,e.clientY);BatMappa.zoom(svg,e.deltaY<0?1.2:1/1.2,p&&p.x,p&&p.y)},{passive:false})},
  // un tocco su un esagono (il secondo di due tocchi molto ravvicinati è un rimbalzo e non conferma nulla)
  tocco(c,p){const A=Bat.s.arena,t=performance.now(),u=BatMappa._ultimo;if(!AGRI.dentro(A,c))return Bat.tocca(null,p);
   if(u.q===c.q&&u.r===c.r&&t-u.t<320)return;BatMappa._ultimo={t,q:c.q,r:c.r};Bat.tocca(c,p)}

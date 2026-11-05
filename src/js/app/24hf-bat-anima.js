@@ -7,8 +7,12 @@ const BatAnima={
  attesa(ms){return new Promise(ok=>setTimeout(ok,ms))},
  tok(id){return[...document.querySelectorAll('.bt-tok')].find(e=>e.dataset.id===id)||null},
  // un testo dentro lo strato degli effetti della mappa; sparisce da solo dopo `vive` ms
+ // (resa pixel, B6.5: il testo sta in un gruppo scalato di BatMappa.g, così la sua misura è in pixel CSS a ogni zoom)
  testo(cls,x,y,t,vive){const g=document.querySelector('.bt-fx');if(!g)return null;const e=document.createElementNS(BatAnima.NS,'text');
-  e.setAttribute('class',cls);e.setAttribute('x',x.toFixed(1));e.setAttribute('y',y.toFixed(1));e.setAttribute('text-anchor','middle');e.textContent=t;g.appendChild(e);setTimeout(()=>e.remove(),vive);return e},
+  e.setAttribute('class',cls);e.setAttribute('text-anchor','middle');e.textContent=t;let el=e;
+  if(BatMappa.px){el=document.createElementNS(BatAnima.NS,'g');el.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${BatMappa.g.toFixed(4)})`);el.appendChild(e)}
+  else{e.setAttribute('x',x.toFixed(1));e.setAttribute('y',y.toFixed(1))}
+  g.appendChild(el);setTimeout(()=>el.remove(),vive);return e},
  // posizione corrente del segnalino (cambia durante i movimenti)
  pos(el){return[+el.dataset.x,+el.dataset.y]},
  metti(el,x,y,dur){if(!el.style.transform){el.style.transition='none';el.style.transform=`translate(${el.dataset.x}px,${el.dataset.y}px)`;el.getBoundingClientRect()}
@@ -35,7 +39,8 @@ const BatAnima={
  num(x){const el=BatAnima.tok(x.chi);if(!el)return;const [px,py]=BatAnima.pos(el),pos=x.v>0,t=(pos?'+':'−')+Math.abs(x.v);
   BatAnima.testo(`bt-num ${pos?'pos':'neg'} t-${x.tipo||'x'}${x.crit?' crit':''}`,px,py-26-Scena3D.sup(),t,ACRO.VIVE.numero)},
  etic(id,testo,tono){const el=BatAnima.tok(id);if(!el)return;const [px,py]=BatAnima.pos(el),ora=performance.now(),e=BatAnima._et[id]||{t:0,n:0};
-  if(ora-e.t>1100)e.n=0;const k=e.n++;e.t=ora;BatAnima._et[id]=e;BatAnima.testo(`bt-et ${tono||'neutro'}`,px,py-36-Scena3D.sup()-k*14,testo,ACRO.VIVE.etichetta)},
+  if(ora-e.t>1100)e.n=0;const k=e.n++;e.t=ora;BatAnima._et[id]=e;const su=BatMappa.px?BatMappa.testa(id)+(20+k*14)*BatMappa.g:36+Scena3D.sup()+k*14;
+  BatAnima.testo(`bt-et ${tono||'neutro'}`,px,py-su,testo,ACRO.VIVE.etichetta)},
  hp(id,d){const el=BatAnima.tok(id);if(!el)return;const mx=+el.dataset.max,hp=Math.max(0,Math.min(mx,+el.dataset.hp+d));el.dataset.hp=hp;
   const b=el.querySelector('.bt-hpf');if(b){const p=hp/mx;b.setAttribute('width',(26*p).toFixed(1));b.setAttribute('fill',p>.5?'#5fbf6a':p>.25?'#e8b43a':'#d9503f')}},
  toast(t,ms){const el=document.querySelector('.bt-toast');if(!el)return;el.textContent=t;el.classList.add('on');clearTimeout(BatAnima._tt);BatAnima._tt=setTimeout(()=>el.classList.remove('on'),ms)},

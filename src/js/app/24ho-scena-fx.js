@@ -39,26 +39,35 @@
  const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
  // ---- miniature ----
  const cols=(c,asp)=>{asp=asp||{};const pe=(c.razza==='orco'?Eroi.PELLE_ORCO:Eroi.PELLE)[asp.pelle|0]||Eroi.PELLE[0];return{pelle:pe,capelli:Eroi.CAPELLI[asp.capelli|0]||Eroi.CAPELLI[0],mantello:Eroi.MANTELLO[asp.mantello|0]||Eroi.MANTELLO[0]}};
- const firma=c=>(K.px?'p':'')+(c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def);
+ // un compagno della storia (non un eroe dell'account) nella battaglia a istanti della campagna: gli eroi seguono l'ordine di camp.eroi (ATEM.daCampagna)
+ const compagno=c=>{if(c.lato!=='eroi'||c.indice==null||typeof BatT==='undefined'||!Bat.tempo())return false;const C=BatT.camp(),e=C&&C.eroi&&C.eroi[c.indice];return!!(e&&e.compagno)};
+ const firma=c=>(K.px?'p':'')+(c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+(K.px&&compagno(c)?'c|':'')+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def);
+ // B6.5: nella resa pixel la basetta è un disco sottile del colore della fazione (oro gli eroi, rosso i nemici, bianco i compagni) con il bordo un tono
+ // più scuro, e un po' di luce propria perché si legga anche di notte; più piccola del 3D di A12, dove la basetta di legno era larga quanto la figura è alta
+ const BASE_PX={eroi:['#f3ba25','#c44404'],nemici:['#c44404','#90101a'],compagni:['#ebeae1','#8a8275'],R:.78,luce:.32};
  // nella resa pixel (B2) le miniature hanno le proporzioni «da bambola» di AMIN (arma e scudo più grandi, gambe sottili)
  function modello(c){const o={bambola:!!K.px};if(c.lato==='eroi'){const a=(Bat.aspetti||{})[c.id]||{};return AMIN.eroe(c.razza,c.classe,cols(c,a),a.capelli|0,o)}
   const m=typeof BEST!=='undefined'&&BEST.M[c.def];return AMIN.mostro(c.def,!!(m&&m.capo),o)}
  const FS_=1.3;   // le miniature sono un po' più grandi del vero per leggersi su un telefono
- function costruisciFig(c){const m0=modello(c),m=Object.assign({},m0,{parti:AMIN.scala(m0.parti,FS_),alt:m0.alt*FS_,base:Object.assign({},m0.base,{r:m0.base.r*FS_})}),A=S.V(),E=S.V();for(const p of m.parti)S.pezzo(p[10]==='e'?E:A,p,0,0,0,0,1,p[10]==='e'?1:1,p[10]==='e'?0:.55,false);
+ function costruisciFig(c){const m0=modello(c),fs=K.px?APAL.FIGURA.scala:FS_,m=Object.assign({},m0,{parti:AMIN.scala(m0.parti,fs),alt:m0.alt*fs,base:Object.assign({},m0.base,{r:m0.base.r*fs})}),A=S.V(),E=S.V();for(const p of m.parti)S.pezzo(p[10]==='e'?E:A,p,0,0,0,0,1,p[10]==='e'?1:1,p[10]==='e'?0:.55,false);
   const mat=new T.MeshStandardMaterial({vertexColors:true,roughness:.72,metalness:.04,flatShading:true,envMapIntensity:.7});mat.userData.mio=true;
   mat.userData.lum=!!m.lum;if(m.lum){mat.transparent=true;mat.opacity=.8;mat.emissive.setRGB(.125,.19,.25)}
   const g=new T.Group(),body=S.mesh(A,mat);body.castShadow=true;body.receiveShadow=false;
   if(E.pos.length){const l=S.mesh(E,S.K.mat.lum,{cast:false,rec:false});body.add(l)}
-  // base: anello scuro + disco del colore della fazione (oro per gli eroi)
-  const b=new T.Group(),r=m.base.r,cb=new T.Color(m.base.col);cb.convertSRGBToLinear&&!(T.ColorManagement&&T.ColorManagement.enabled)&&cb.convertSRGBToLinear();
-  const ring=new T.Mesh(new T.CylinderGeometry(r+1.4,r+2.4,2.6,20),new T.MeshStandardMaterial({color:0x2a1c10,roughness:.8,flatShading:true})),top=new T.Mesh(new T.CylinderGeometry(r,r+.2,.9,20),new T.MeshStandardMaterial({color:cb,roughness:.45,metalness:.35,envMapIntensity:1}));
-  ring.position.y=1.3;top.position.y=2.7;ring.castShadow=ring.receiveShadow=true;b.add(ring,top);
+  // base: anello scuro + disco del colore della fazione (oro per gli eroi); nella resa pixel un disco sottile, vedi BASE_PX
+  const px=!!K.px,lin=h=>{const q=new T.Color(h);q.convertSRGBToLinear&&!(T.ColorManagement&&T.ColorManagement.enabled)&&q.convertSRGBToLinear();return q};
+  const fz=c.lato!=='eroi'?BASE_PX.nemici:compagno(c)?BASE_PX.compagni:BASE_PX.eroi,b=new T.Group(),r=px?m.base.r*BASE_PX.R:m.base.r,cb=lin(px?fz[0]:m.base.col);
+  const ring=px?new T.Mesh(new T.CylinderGeometry(r+.9,r+1.3,1.6,20),new T.MeshStandardMaterial({color:lin(fz[1]),roughness:.8,flatShading:true,emissive:lin(fz[1]).multiplyScalar(BASE_PX.luce)}))
+   :new T.Mesh(new T.CylinderGeometry(r+1.4,r+2.4,2.6,20),new T.MeshStandardMaterial({color:0x2a1c10,roughness:.8,flatShading:true}));
+  const top=new T.Mesh(new T.CylinderGeometry(r,r+.2,.9,20),new T.MeshStandardMaterial(px?{color:cb,roughness:.8,flatShading:true,emissive:cb.clone().multiplyScalar(BASE_PX.luce)}:{color:cb,roughness:.45,metalness:.35,envMapIntensity:1}));
+  ring.position.y=px?.8:1.3;top.position.y=px?2.05:2.7;ring.castShadow=ring.receiveShadow=true;b.add(ring,top);
   if(m.base.capo){const rr=new T.Mesh(new T.CylinderGeometry(r+3.4,r+3.8,1.6,24),new T.MeshStandardMaterial({color:0xd6aa3c,roughness:.35,metalness:.7,envMapIntensity:1.2}));rr.position.y=.9;b.add(rr)}
   body.position.y=2.9;g.add(b,body);
   // materiali a bande (luce di contorno calda sugli eroi, fredda sui nemici; maschera delle figure per la rifinitura): contano solo nella resa pixel
   const rim=c.lato==='eroi'?'eroi':'nemici';S.bande(mat,{maschera:.5,rim});S.tinta(mat.userData.bande.uRim.value,[ASCE.RIM[rim],ASCE.RIM.forza]);
   b.traverse(o=>{if(o.material)S.bande(o.material,{maschera:.5})});
-  return{id:c.id,sig:firma(c),g,body,mat,alt:m.alt+3,r,rot:0,occ:0,dy:0,x:0,y:0,z:0,ph:Math.random()*6.28,ko:false,nasc:false,fiamme:false,veleno:false,stordito:false,lato:c.lato,classe:c.classe,def:c.def,sca:1}}
+  g.updateMatrixWorld(true);const top3=new T.Box3().setFromObject(g).max.y;   // B6.5: la cima vera (cappello, elmo, arma alzata) per la barra sopra la testa
+  return{id:c.id,sig:firma(c),g,body,mat,alt:m.alt+3,top:isFinite(top3)?top3:m.alt+3,r,rot:0,occ:0,dy:0,x:0,y:0,z:0,ph:Math.random()*6.28,ko:false,nasc:false,fiamme:false,veleno:false,stordito:false,lato:c.lato,classe:c.classe,def:c.def,sca:1}}
  const pos3=(s,c)=>{const p=ASCE.pos('bat',c.q,c.r);return{x:p.x,z:p.z,y:AGRI.alt(s.arena,c)?ASCE.QUOTA.rialzo:0}};
  function metti(f){f.g.position.set(f.x,f.y+f.dy,f.z);f.g.rotation.y=f.rot;f.g.scale.setScalar(f.sca)}
  function posa(f,ko){f.ko=ko;f.body.rotation.z=ko?-1.5:0;f.body.position.y=ko?5:2.9;f.body.position.x=ko?-f.r*.4:0}
@@ -72,6 +81,8 @@
    const giu=c.hp<=0;if(f.occ<=0&&!segue()){const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}if(giu!==f.ko&&f.occ<=0)posa(f,giu);stati(f,c)}
   for(const [id,f] of FG)if(!vivi.has(id)&&f.occ<=0){S_libera(f);FG.delete(id)}}
  S.altFig=id=>{const f=FG.get(id);return f?f.alt:30};
+ S.rFig=id=>{const f=FG.get(id);return f?f.r:11};   // raggio della basetta (B6.5: l'anello ai piedi della resa pixel)
+ S.cimaFig=id=>{const f=FG.get(id);return f?f.top:36};   // altezza della cima della miniatura sopra i piedi, basetta compresa (B6.5)
  S.nFig=()=>FG.size;
  // le miniature in scena (per i controlli della resa pixel): gruppo, altezza, raggio della base, lato
  S.figure=()=>[...FG.values()].map(f=>({id:f.id,g:f.g,alt:f.alt,r:f.r,lato:f.lato}));

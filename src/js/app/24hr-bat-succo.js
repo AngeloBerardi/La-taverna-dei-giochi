@@ -22,7 +22,8 @@ const Succo=(()=>{
    for(const k in vars||{})e.style.setProperty(k,vars[k]);Succo.strato().appendChild(e);e._t=setTimeout(()=>e.remove(),ms+80);return e},
   // il centro del corpo di una creatura sullo schermo, e quanto è ingrandita la mappa (k)
   punto(id){const svg=document.querySelector('.tr-bat .bt-svg'),d=BatT.dis&&BatT.dis[id];if(!svg||!d||!svg.getScreenCTM||!svg.createSVGPoint)return null;const m=svg.getScreenCTM();if(!m)return null;
-   const p=svg.createSVGPoint();p.x=d.x;p.y=d.y-14;const q=p.matrixTransform(m);return{x:q.x,y:q.y,k:m.a||1}},
+   // resa pixel (B6.5): il corpo è a metà della miniatura e le distanze sono in pixel CSS (k = 1), a ogni zoom
+   const p=svg.createSVGPoint();p.x=d.x;p.y=d.y-(BatMappa.px?BatMappa.testa(id)*.55:14);const q=p.matrixTransform(m);return{x:q.x,y:q.y,k:BatMappa.px?1:m.a||1}},
   // ---- numeri ----
   txt:n=>(n.v>0?'+':'−')+Math.abs(n.v),
   clsNum:n=>'su-num '+(n.v>0?'pos':'neg')+(n.crit?' crit':''),
@@ -60,7 +61,10 @@ const Succo=(()=>{
     const e=Succo.el('su-livello',null,innerWidth/2,innerHeight*.32+i*58,{},r.ms);e.innerHTML=`<b>Livello su!</b><small>${esc(r.nome)} · livello ${r.liv|0}</small>`},r.rit||0)},
   // ---- l'area rossa del capo scoppia: le sue caselle si accendono un attimo sulla mappa ----
   esplode(r){const g=document.querySelector('.tr-bat .bt-fx');if(!g||!Bat.s)return;
-   for(const c of r.zona){const [x,y]=BatMappa.xy(c.q,c.r),h=AGRI.alt(Bat.s.arena,c)?6:0,e=document.createElementNS(BatAnima.NS,'polygon');e.setAttribute('points',BatMappa.punti(x,y-h,BatMappa.Z-2));e.setAttribute('class','su-boom');g.appendChild(e);setTimeout(()=>e.remove(),r.ms+60)}},
+   for(const c of r.zona){const [x,y]=BatMappa.xy(c.q,c.r),h=BatMappa.alz(Bat.s.arena,c),px=BatMappa.px,e=document.createElementNS(BatAnima.NS,px?'ellipse':'polygon');
+    if(px){const Z=BatMappa.Z;e.setAttribute('cx',x.toFixed(1));e.setAttribute('cy',(y-h).toFixed(1));e.setAttribute('rx',Z.toFixed(1));e.setAttribute('ry',(Z*BatMappa.SQ).toFixed(1))}   // resa pixel (B6.5): macchie, non esagoni
+    else e.setAttribute('points',BatMappa.punti(x,y-h,BatMappa.Z-2));
+    e.setAttribute('class','su-boom');g.appendChild(e);setTimeout(()=>e.remove(),r.ms+60)}},
   // ---- il dispatcher: ogni riscontro, il suo disegno e il suo suono ----
   gioca(ris,s){const rid=Succo.mq(),d3=Scena3D.on();
    for(const r of ris){try{switch(r.t){
