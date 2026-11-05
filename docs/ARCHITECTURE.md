@@ -141,6 +141,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39f-tutorial.css` | 1 |  |
 | `css/39g-stanza.css` | 4 |  |
 | `css/39h-scena3d.css` | 1 |  |
+| `css/39i-succo.css` | 7 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -204,12 +205,13 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28-campagna.js` | 38 | CAMP |
 | `js/motori/28a-avv-orchestratore.js` | 23 | AVV |
 | `js/motori/28b-avv-rientro.js` | 4 | ARIE |
-| `js/motori/28c-avv-audio.js` | 12 | AAUD |
+| `js/motori/28c-avv-audio.js` | 14 | AAUD |
 | `js/motori/28d-avv-tutorial.js` | 6 | ATUT |
 | `js/motori/28e-avv-stanza.js` | 15 | AST |
 | `js/motori/28f-avv-scena.js` | 24 | ASCE |
 | `js/motori/28g-avv-mini.js` | 15 | AMIN |
 | `js/motori/28h-avv-palette.js` | 7 | APAL |
+| `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -299,9 +301,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
 | `js/app/24hn-scena3d.js` | 31 | Scena3D |
-| `js/app/24ho-scena-fx.js` | 18 |  |
+| `js/app/24ho-scena-fx.js` | 19 |  |
 | `js/app/24hp-pixel.js` | 19 | Pixel, PixelProva |
-| `js/app/24hq-bat-tempo.js` | 25 | BatT |
+| `js/app/24hq-bat-tempo.js` | 27 | BatT |
+| `js/app/24hr-bat-succo.js` | 10 | Succo |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
