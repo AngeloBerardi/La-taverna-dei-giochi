@@ -62,7 +62,7 @@
  const pos3=(s,c)=>{const p=ASCE.pos('bat',c.q,c.r);return{x:p.x,z:p.z,y:AGRI.alt(s.arena,c)?ASCE.QUOTA.rialzo:0}};
  function metti(f){f.g.position.set(f.x,f.y+f.dy,f.z);f.g.rotation.y=f.rot;f.g.scale.setScalar(f.sca)}
  function posa(f,ko){f.ko=ko;f.body.rotation.z=ko?-1.5:0;f.body.position.y=ko?5:2.9;f.body.position.x=ko?-f.r*.4:0}
- function stati(f,c){const st=new Set((c.stati||[]).map(z=>z.id));f.fiamme=st.has('in-fiamme');f.veleno=st.has('avvelenato');f.stordito=st.has('stordito');const n=st.has('nascosto');
+ function stati(f,c){const st=new Set((c.stati||[]).map(z=>z.id));f.fiamme=st.has('in-fiamme');f.veleno=st.has('avvelenato');f.stordito=st.has('stordito');f.gelo=st.has('congelato');const n=st.has('nascosto');
   if(n!==f.nasc){f.nasc=n;f.mat.transparent=n||f.mat.userData.lum;f.mat.opacity=n?.38:1;f.mat.needsUpdate=true}}
  S.sincFigure=function(modo){
   if(modo!=='bat'){for(const f of FG.values())S_libera(f);FG.clear();return}
@@ -102,6 +102,7 @@
   for(const f of FG.values()){f.body.scale.y=f.ko?1:1+.016*Math.sin(sec*2.3+f.ph);
    if(f.fiamme){f.fx=(f.fx||0)+22*d;while(f.fx>=1){f.fx--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.8),f.z+R(-4,4),R(-4,4),R(24,44),0,R(.4,.75),R(6,9),1,[1,.8,.3],[.95,.2,.04],.95,0)}}
    if(f.veleno){f.fv=(f.fv||0)+5*d;while(f.fv>=1){f.fv--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.6),f.z+R(-4,4),0,R(10,18),0,R(.9,1.3),R(4,5),7,[.6,.95,.4],[.2,.5,.1],.7,0)}}
+   if(f.gelo){f.fg=(f.fg||0)+9*d;while(f.fg>=1){f.fg--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.8),f.z+R(-4,4),R(-2,2),R(6,14),0,R(.7,1.2),R(3,4.5),0,[.95,1,1],[.5,.8,1],.9,0)}}   // B6: gelo azzurro
    if(f.stordito){const a=sec*5+f.ph;for(let k=0;k<3;k++){const b=a+k*2.09;emetti(FA,f.x+Math.cos(b)*7,f.y+f.dy+f.alt+4,f.z+Math.sin(b)*5,0,0,0,.18,4,2,[1,.92,.4],[1,.7,.2],.95,0)}}}
   for(const u of UCC){const a=sec*u.w+u.f;u.m.position.set(u.cx+Math.cos(a)*u.r,u.cy+Math.sin(sec*.9+u.ph)*3,u.cz+Math.sin(a)*u.r*.8);u.m.rotation.y=-a+(u.w>0?Math.PI/2:-Math.PI/2);u.m.rotation.z=Math.sin(sec*9+u.ph)*.5}
   if(FA)aggiorna(FA,Math.max(d,.04));if(FS)aggiorna(FS,Math.max(d,.04));K.sucio=true};
@@ -131,6 +132,12 @@
  function colpo(f,tipo,ms){if(!f)return;const c=tipo==='cura'?[.1,.42,.17]:[.55,.1,.06],b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0];
   tween(ms||260,u=>{const k=1-u;f.mat.emissive.setRGB(b[0]+c[0]*k,b[1]+c[1]*k,b[2]+c[2]*k)},()=>f.mat.emissive.setRGB(b[0],b[1],b[2]))}
  function scossa(f){if(!f)return;f.occ++;tween(260,u=>{f.body.position.x=Math.sin(u*Math.PI*6)*(1-u)*2.6+(f.ko?-f.r*.4:0)},()=>{f.body.position.x=f.ko?-f.r*.4:0;f.occ--})}
+ // B6, il succo: lampo bianco sul colpito e spinta di 1–2 «pixel d'arte» dalla parte opposta a chi colpisce; il critico scuote. PX3 = quanto vale un pixel d'arte nel mondo
+ const PX3=1.5;
+ function lampo(f,ms){if(!f)return;const b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0];tween(ms||160,u=>{const k=1-u;f.mat.emissive.setRGB(b[0]+.9*k,b[1]+.9*k,b[2]+.9*k)},()=>f.mat.emissive.setRGB(b[0],b[1],b[2]))}
+ function colpito(x,rid){const f=fig(x.chi);if(!f)return;if(!rid)lampo(f,x.scossa?220:160);const a=x.da!=null?fig(x.da):null;if(rid||!a||!x.px)return;
+  const dx=f.x-a.x,dz=f.z-a.z,d=Math.hypot(dx,dz)||1,ux=dx/d,uz=dz/d,k=x.px*PX3,x0=f.x,z0=f.z;f.occ++;
+  tween(x.scossa?240:150,u=>{const e=x.scossa?Math.sin(u*Math.PI*4)*(1-u)*.9+Math.sin(u*Math.PI)*.6:Math.sin(u*Math.PI);f.x=x0+ux*k*e;f.z=z0+uz*k*e;metti(f)},()=>{f.x=x0;f.z=z0;f.occ--;metti(f)})}
  function affondo(f,b,f_){if(!f||!b)return;const dx=b.x-f.x,dz=b.z-f.z,d=Math.hypot(dx,dz)||1,ux=dx/d,uz=dz/d,x0=f.x,z0=f.z;volto(f,b.x,b.z);f.occ++;
   tween(130*f_,u=>{const k=Math.sin(u*Math.PI*.5)*9;f.x=x0+ux*k;f.z=z0+uz*k;f.dy=Math.sin(u*Math.PI)*2;metti(f)},()=>tween(150*f_,u=>{const k=(1-u)*9;f.x=x0+ux*k;f.z=z0+uz*k;f.dy=0;metti(f)},()=>{f.x=x0;f.z=z0;f.occ--;metti(f)}))}
  function proiettile(a,b,magia,col,ms){const t0=ora(),A=mezzo(a),B=mezzo(b),c0=col[0],c1=col[1];let ult=0;
@@ -145,8 +152,9 @@
     if(d>62){const mag=a.lato==='eroi'?MAGICO.has(a.classe):(BEST.M[a.def]&&BEST.M[a.def].fam==='torre'||/stregone|officiante/.test(a.def||''));
      proiettile(a,b,mag,mag?(a.lato==='eroi'&&a.classe==='chierico'?[[1,.97,.6],[1,.75,.2]]:[[.85,.7,1],[.45,.3,1]]):[[1,.95,.8],[.8,.7,.5]],Math.max(160,Math.min(380,d*2.2))*f_)}
     else affondo(a,b,f_);return}
-   case'numero':{const g=fig(x.chi);if(!g||rid)return;const p=mezzo(g);if(x.v>0){scoppio(p.x,p.y-6,p.z,'cura');colpo(g,'cura',380)}else{scoppio(p.x,p.y,p.z,x.tipo,x.crit);colpo(g)}return}
+   case'numero':{const g=fig(x.chi);if(!g||rid)return;const p=mezzo(g);if(x.v>0){scoppio(p.x,p.y-6,p.z,'cura');colpo(g,'cura',380)}else scoppio(p.x,p.y,p.z,x.tipo,x.crit);return}
    case'scossa':return rid?0:scossa(fig(x.chi));
+   case'colpito':return colpito(x,rid);
    case'cade':{const g=fig(x.chi);if(!g)return;if(rid){posa(g,true);S.sporca();return}g.occ++;tween(380*f_,u=>{g.body.rotation.z=-1.5*ease(u);g.body.position.y=2.9+2.1*u;g.body.position.x=-g.r*.4*u},()=>{g.occ--;g.ko=true});return}
    case'esce':{const g=fig(x.chi);if(!g||rid)return;g.occ++;tween(380*f_,u=>{g.sca=1-ease(u);metti(g)},()=>{g.occ--});return}
    case'turno':{const g=fig(x.chi);if(!g||rid||g.ko)return;g.occ++;tween(320,u=>{g.dy=Math.sin(u*Math.PI)*5;metti(g)},()=>{g.dy=0;g.occ--;metti(g)});return}

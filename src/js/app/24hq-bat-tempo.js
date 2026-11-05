@@ -10,6 +10,7 @@
    Comandi: un solo `data-a="btt"` con `data-v="verbo:arg"` (07c). Stile: css/39a-avventura.css (prefisso tr-). Piano: docs/AVVENTURA-B.md, scheda B5. */
 const BatT={
  sel:null,mira:null,pausa:false,motivo:'',foglio:null,acc:0,raf:0,ult:0,prev:null,cur:null,sDi:null,els:new Map(),dis:{},zSig:'',rifaiA:0,ozio:{},suoni:{},
+ fermoA:0,mem:{},xpShow:0,zP:{},   // B6: fino a quando l'immagine resta ferma (critico), memoria di ASUC fra un istante e l'altro, esperienza mostrata nel contatore
  AP_DEF:{inizio:true,ferito:true,ozio:false,nuovo:true,capo:true},
  AP_NOMI:[['inizio','All\'inizio della battaglia'],['ferito','Un eroe sotto un quarto dei PF'],['ozio','Un eroe senza bersaglio'],['nuovo','Un nemico nuovo in campo'],['capo','Un capo prepara un potere ad area']],
  ap:null,
@@ -17,6 +18,7 @@ const BatT={
  salvaAp(){try{localStorage.setItem('bat-pausa',JSON.stringify(BatT.ap))}catch(e){ERR.n(e)}},
  // una battaglia nuova (o ripresa dopo un ricaricamento: si riparte sempre in pausa)
  prepara(nuova){const s=Bat.s;BatT.sDi=s;BatT.mira=null;BatT.foglio=null;BatT.acc=0;BatT.ozio={};BatT.rifaiA=0;BatT.zSig='';
+  BatT.fermoA=0;BatT.mem={};BatT.xpShow=Succo.daStato(s);Succo.pulisci();
   BatT.cur=BatT.foto(s);BatT.prev=BatT.cur;const h=s.cb.find(c=>c.lato==='eroi'&&ATEM.inPiedi(c));BatT.sel=h?h.id:null;
   BatT.pausa=!s.over&&(!nuova||BatT.ap.inizio);BatT.motivo=s.over?'':nuova?'Dai gli ordini, poi tocca Riprendi.':'Battaglia ripresa.'},
  eroe(s){const c=BatT.sel&&ATEM.trova(s,BatT.sel);return c&&c.lato==='eroi'?c:null},
@@ -32,7 +34,7 @@ const BatT={
  viva(){return!!(ui.bat&&Bat.tempo()&&document.querySelector('.tr-bat'))},
  frame(t){BatT.raf=0;if(!BatT.viva())return;const s=Bat.s;if(BatT.sDi!==s)BatT.prepara(false);
   const dt=Math.min(250,t-(BatT.ult||t));BatT.ult=t;
-  if(!BatT.ferma()){BatT.acc+=dt*(Bat.cfg.vel===2?2:1);let n=0;
+  if(!BatT.ferma()&&t>=BatT.fermoA){BatT.acc+=dt*(Bat.cfg.vel===2?2:1);let n=0;   // B6: un critico ferma l'immagine per 60 ms (il tempo di gioco non passa)
    while(BatT.acc>=100&&n<6){BatT.acc-=100;n++;BatT.istante();if(BatT.ferma())break}if(n>=6)BatT.acc=0}
   if(BatT.rifaiA&&performance.now()>=BatT.rifaiA){BatT.rifaiA=0;render();return}
   BatT.disegna(BatT.ferma()?1:BatT.acc/100,t);BatT.raf=requestAnimationFrame(BatT.frame)},
@@ -62,15 +64,23 @@ const BatT={
    if(e.t==='attacca'||e.t==='lancia')BatT.cls(e.chi,e.t==='lancia'?'':'tr-colpo',260);
    for(const x of ACRO.effetti(e,s)){
     switch(x.t){
-     case'dado':if(d3)Scena3D.passo(x,s,.55,rid);if(!x.salvezza){if(!x.ok)BatAnima.etic(x.bers,'Mancato','neutro');else if(x.crit){BatAnima.etic(x.bers,'Critico!','brutto');Snd.play('avv-critico')}}break;
+     case'dado':if(d3)Scena3D.passo(x,s,.55,rid);break;   // «Mancato», numeri e critico sono riscontri di ASUC, disegnati da Succo (B6)
      case'etichetta':if(!/^(Colpito|Mancato|Critico!)$/.test(x.testo))BatAnima.etic(x.chi,x.testo,x.tono);break;
-     case'numero':BatAnima.num(x);if(d3)Scena3D.passo(x,s,1,rid);BatT.suono(x);break;
-     case'scossa':if(!rid)BatAnima.cls(x.chi,'scossa',320);if(d3)Scena3D.passo(x,s,1,rid);break;
+     case'numero':if(d3)Scena3D.passo(x,s,1,rid);break;   // il numero e il suo suono sono di Succo
+     case'scossa':break;   // lampo e spinta sono il riscontro «colpito»
      case'stato':if(x.ok){BatAnima.etic(x.chi,BatAnima.nomeStato(x.stato),'neutro');BatT.suono(x)}break;
-     case'cade':case'esce':BatAnima.cls(x.chi,x.t,0);if(d3)Scena3D.passo(x,s,1,rid);BatT.suono(x);break;
+     case'cade':case'esce':BatAnima.cls(x.chi,x.t,0);if(d3)Scena3D.passo(x,s,1,rid);if(x.t==='cade')BatT.suono(x);break;   // chi muore si sbriciola (Succo): il tonfo è solo di chi cade
      case'compare':if(d3)Scena3D.passo(x,s,1,rid);break;
      case'fine':BatT.suono(x);break}}}
+  // il succo (B6): i riscontri di questo istante; alla vittoria anche «Livello su!», e la schermata finale aspetta che bottino e livello finiscano
+  const ris=ASUC.da(ev,s,BatT.mem);
+  if(s.over&&ev.some(e=>e.t==='fine'&&e.esito)){const vit=s.over.esito==='vittoria',lv=vit?ASUC.livelli(s,BatT.camp()):[];ris.push(...lv);
+   let ms=700;if(vit){if(!rid&&ris.some(x=>x.t==='bottino'))ms=1400;if(lv.length)ms=Math.max(ms,ASUC.TAB.livello.ms+lv[lv.length-1].rit+250)}
+   BatT.rifaiA=performance.now()+ms}
+  Succo.gioca(ris,s);
   if(log)BatT.logDom()},
+ // la campagna a cui appartiene la battaglia (serve per sapere se un eroe sale di livello)
+ camp(){return(typeof Ses!=='undefined'&&Ses.a&&Ses.a.camp)||(typeof Camp!=='undefined'&&Camp.s)||null},
  // pausa automatica: un motivo alla volta (il primo resta)
  ferma_(motivo){if(BatT.pausa)return;BatT.pausa=true;BatT.motivo=motivo;Bat.salva();BatT.rifaiA=BatT.rifaiA||performance.now()+1},
  controlla(s,hp0){if(s.over)return;
@@ -97,6 +107,7 @@ const BatT={
   const c=BatT.eroe(s);if(c){for(const b of document.querySelectorAll('.tr-ab[data-k]')){const R=BatT.ric(s,c,b.dataset.k,b.dataset.id),g=b.querySelector('.tr-arco');
     if(g)g.setAttribute('stroke-dashoffset',(BatT.CIRC*(1-R.fr)).toFixed(1));b.classList.toggle('off',!R.ok);b.classList.toggle('vivo',!!R.vivo)}
    const pf=document.querySelector('.tr-chi b');if(pf)pf.textContent=`${Math.max(0,c.hp)}/${c.hpMax} PF`}
+  Succo.tinte(s);if(Succo.stati(s)&&!BatT.rifaiA)BatT.rifaiA=performance.now()+40;   // B6: tinta di fiamme, veleno e gelo; le icone di stato si ridisegnano se ne arriva o parte una
   BatT.zone(s)},
  CIRC:2*Math.PI*23,
  // stato di un tasto: fr = parte dell'anello ancora da ricaricare (0 = pronto), ok = si può usare, vivo = in corso
@@ -105,10 +116,16 @@ const BatT={
   const R=ATEM.ricarica(s,c,id);if(!R)return{fr:0,ok:false};const vivo=!!(c.lancio&&c.lancio.id===id)||!!(s.rapidi[c.id]&&s.rapidi[c.id].id===id);
   return{fr:R.tot>0?Math.min(1,R.resta/R.tot):0,ok:R.usi>0,vivo}},
  // le aree rosse dei poteri che i nemici stanno lanciando (si aggiornano se seguono un bersaglio)
- zone(s){const z=[];for(const c of s.cb)if(c.lancio&&c.lato==='nemici'&&ATEM.inPiedi(c)){const cel=ATEM.zonaDi(s,c);if(cel)for(const x of cel)z.push(x.q+','+x.r)}
-  const sig=z.join('|');if(sig===BatT.zSig)return;BatT.zSig=sig;const svg=document.querySelector('.tr-bat .bt-svg');if(!svg)return;
-  let g=svg.querySelector('.tr-zone');if(!g){g=document.createElementNS(BatAnima.NS,'g');g.setAttribute('class','tr-zone');g.setAttribute('pointer-events','none');const fx=svg.querySelector('.bt-fx');svg.insertBefore(g,fx)}
-  g.innerHTML=[...new Set(z)].map(k=>{const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=AGRI.alt(s.arena,{q,r})?6:0;return`<polygon points="${BatMappa.punti(x,y-h,BatMappa.Z-2)}"/>`}).join('')},
+ zone(s){const z=new Map();   // cella → quanto è carico il potere che la minaccia (0..1; se due aree si sovrappongono vale la più carica)
+  for(const c of s.cb)if(c.lancio&&c.lato==='nemici'&&ATEM.inPiedi(c)){const cel=ATEM.zonaDi(s,c),p=ASUC.riempimento(s,c);if(cel)for(const x of cel){const k=x.q+','+x.r;z.set(k,Math.max(z.get(k)||0,p))}}
+  const sig=[...z.keys()].join('|'),svg=document.querySelector('.tr-bat .bt-svg');if(!svg)return;let g=svg.querySelector('.tr-zone');
+  if(sig!==BatT.zSig||(sig&&!g)){BatT.zSig=sig;BatT.zP={};
+   if(!g&&sig){g=document.createElementNS(BatAnima.NS,'g');g.setAttribute('class','tr-zone');g.setAttribute('pointer-events','none');const fx=svg.querySelector('.bt-fx');svg.insertBefore(g,fx)}
+   if(g)g.innerHTML=[...z.keys()].map(k=>{const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=AGRI.alt(s.arena,{q,r})?6:0;return`<polygon class="zb" points="${BatMappa.punti(x,y-h,BatMappa.Z-2)}"/><polygon class="zr" data-k="${k}" points="${BatMappa.punti(x,y-h,0)}"/>`}).join('')}
+  if(!g)return;
+  // B6: l'area rossa si riempie mentre il potere si carica, fino a scoppiare (il poligono interno cresce con la carica)
+  for(const [k,p] of z){if(Math.abs((BatT.zP[k]||0)-p)<.03&&p<1)continue;BatT.zP[k]=p;const po=g.querySelector('.zr[data-k="'+k+'"]');if(!po)continue;
+   const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=AGRI.alt(s.arena,{q,r})?6:0;po.setAttribute('points',BatMappa.punti(x,y-h,(BatMappa.Z-2)*p))}},
  logDom(){const el=document.querySelector('.tr-log');if(el)el.innerHTML=BatT.logH()},
  logH(){return Bat.log.slice(-2).map((r,k,L)=>`<p class="${r.lato?'l-'+r.lato:''} ${r.peso}${k<L.length-1?' vec':''}">${esc(r.testo)}</p>`).join('')},
  avviso(t){BatAnima.toast(t,1600)},
@@ -169,7 +186,7 @@ ${BatT.bandaH(s)}<div class="bt-toast" role="status"></div></div>${s.over?'':Bat
    return`<button class="tr-rit${ok(c.id)?' on':''}${c.hp<=0?' ko':''}${via?' via':''}" data-a="btt" data-v="sel:${esc(c.id)}" aria-pressed="${ok(c.id)}" aria-label="${esc(c.nome)}, ${Math.max(0,c.hp)} su ${c.hpMax} PF${via?', in arrivo':c.hp<=0?', a terra':''}">`
     +`<span class="tr-rf">${Eroi.ritratto(Bat.aspetti[c.id],c.razza,c.classe,40)}</span><span class="tr-pf"><i class="${p>.5?'':p>.25?'m':'b'}" style="width:${(100*p).toFixed(0)}%"></i></span>`
     +(st.length?`<span class="tr-st">${st.map(id=>`<i style="background:${Sagome.STATO[id][1]}"></i>`).join('')}</span>`:'')+`</button>`}).join('');
-  const C=Camp.s,ris=C?`<span>${ic('moneta',14)}<b>${C.oro|0}</b></span><span>${ic('teschio',14)}<b>${C.perdizione|0}</b></span>`:'';
+  const C=Camp.s,ris=`<span class="su-cont" aria-label="Esperienza guadagnata">${ic('scintilla',14)}<b>${BatT.xpShow|0}</b></span>`+(C?`<span class="su-oro">${ic('moneta',14)}<b>${C.oro|0}</b></span><span>${ic('teschio',14)}<b>${C.perdizione|0}</b></span>`:'');
   return`<div class="tr-alto"><div class="tr-ritt" role="group" aria-label="Eroi in campo">${r}</div><div class="tr-ris">${ris}</div></div>`},
  // sul campo: pausa (con il motivo) oppure che cosa toccare per mirare
  bandaH(s){if(s.over)return'';const M=BatT.mira;
