@@ -113,6 +113,7 @@
  "src/js/motori/27q-avv-racconto.js",
  "src/js/motori/27r-avv-eventi.js",
  "src/js/motori/27s-avv-tempo.js",
+ "src/js/motori/27t-avv-ia-tempo.js",
  "src/js/motori/28-campagna.js",
  "src/js/motori/28a-avv-orchestratore.js",
  "src/js/motori/28b-avv-rientro.js",
