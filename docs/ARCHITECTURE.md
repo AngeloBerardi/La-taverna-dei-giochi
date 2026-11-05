@@ -199,7 +199,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
-| `js/motori/27s-avv-tempo.js` | 27 | ATEM |
+| `js/motori/27s-avv-tempo.js` | 29 | ATEM |
+| `js/motori/27t-avv-ia-tempo.js` | 18 | AIAT |
 | `js/motori/28-campagna.js` | 38 | CAMP |
 | `js/motori/28a-avv-orchestratore.js` | 23 | AVV |
 | `js/motori/28b-avv-rientro.js` | 4 | ARIE |
