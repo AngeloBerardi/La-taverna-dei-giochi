@@ -2648,6 +2648,110 @@ async def sc_avv_tempo(b, srv):
     check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'3D: nessun errore {pg.errs[:2]}')
     await ctx.close()
 
+async def sc_avv_succo(b, srv):
+    """Il succo della battaglia (B6), a 390 px: numeri bianchi in arco, critico oro, cura verde, «Mancato», al massimo 8 numeri in volo, lo strato che sopravvive
+    ai render, nemici che si sbriciolano, monete e sfere che volano al contatore dell'esperienza, «Livello su!» alla vittoria, area rossa che si riempie,
+    tinta degli stati, riduci animazioni; una battaglia vera del capitolo (nemici quasi spacciati) dall'inizio alla fine; nessun errore."""
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','mago','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    async def leggi(fino, max=80):
+        for _ in range(max):
+            if await pg.query_selector(fino): return True
+            if not await pg.query_selector('.dl'): return False
+            if await pg.query_selector('.dl-co'): await pg.click('.dl-co')
+            elif await pg.query_selector('.dl-sc:not([disabled]):has-text("Attaccare")'): await pg.click('.dl-sc:not([disabled]):has-text("Attaccare")')
+            elif await pg.query_selector('.dl-sc:not([disabled])'): await pg.click('.dl-sc:not([disabled]) >> nth=0')
+            else: await pg.click('.dl-corpo')
+            await pg.wait_for_timeout(200)
+        return False
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1200)
+    await pg.click('[data-a=ses][data-v="nuova:a1"]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ses][data-v=parti]'); await pg.wait_for_selector('.dl', timeout=10000); await pg.wait_for_timeout(400)
+    await leggi('.mo'); await pg.wait_for_selector('.mo', timeout=8000)
+    # tutti gli eroi a un passo dal livello 2 (100 PE): la prima esperienza guadagnata li fa salire
+    await pg.evaluate("(()=>{const c=Ses.a.camp,l=c.luoghi['casale-salici'];c.eroi.forEach(e=>{e.q=l.q;e.r=l.r;e.xp=99;e.liv=1});Ses.scena('casale-salici')})()"); await pg.wait_for_timeout(800)
+    check(await leggi('[data-a=ses][data-v=combatti]'), 'la scena del casale porta a «All\'armi!»')
+    await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(500)
+    # --- lo strato dei riscontri e il contatore dell'esperienza ---
+    L = await pg.evaluate("""(()=>{const r=s=>document.querySelector(s),a=r('.tr-alto').getBoundingClientRect(),c=r('.tr-ris .su-cont'),o=r('.tr-ris .su-oro');
+      return{alto:a.height,exp:c&&c.textContent.trim(),oro:!!o,scroll:document.documentElement.scrollWidth>innerWidth,cb:c&&c.getBoundingClientRect().height,zi:getComputedStyle(Succo.strato()).zIndex,pe:getComputedStyle(Succo.strato()).pointerEvents}})()""")
+    check((L['exp'] or '').strip() == '0', f'il contatore dell\'esperienza è in alto e parte da zero {L}')
+    check(L['alto'] <= 66 and not L['scroll'] and L['zi'] == '97' and L['pe'] == 'none', f'la barra resta di 64 px, nessuno scorrimento, lo strato è sopra la battaglia e non prende i tocchi {L}')
+    # --- numeri: bianco in arco, critico oro più grande, cura verde che sale, «Mancato»; al massimo 8 in volo ---
+    ids = await pg.evaluate("Bat.s.cb.filter(c=>ATEM.inPiedi(c)).map(c=>c.id)")
+    nem = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici').id")
+    fr = await pg.evaluate("""([n,e])=>{BatT.fermoA=0;Succo.gioca([{t:'numero',chi:n,v:-5,tipo:null,crit:false,ms:600},{t:'numero',chi:n,v:-11,tipo:null,crit:true,ms:800},
+      {t:'numero',chi:e,v:7,tipo:'cura',crit:false,ms:600},{t:'scintille',chi:e,ms:600},{t:'mancato',chi:n,ms:500}],Bat.s);return{fermo:BatT.fermoA-performance.now(),px:document.querySelectorAll('#su-ov .su-px').length}}""", [nem, 'e1'])
+    d = await pg.evaluate("""[...document.querySelectorAll('#su-ov .su-num,#su-ov .su-manc')].map(e=>({c:e.className,t:e.textContent,fs:parseFloat(getComputedStyle(e).fontSize),col:getComputedStyle(e).color,an:getComputedStyle(e).animationName}))""")
+    bianco = [x for x in d if 'neg' in x['c'] and 'crit' not in x['c']]; oro = [x for x in d if 'crit' in x['c']]; verde = [x for x in d if 'pos' in x['c']]
+    check(len(bianco) == 1 and bianco[0]['t'] == '−5' and bianco[0]['col'] == 'rgb(255, 255, 255)' and bianco[0]['an'] == 'su-arco', f'danno: numero bianco che salta in arco {d}')
+    check(len(oro) == 1 and oro[0]['t'] == '−11' and oro[0]['col'] == 'rgb(255, 210, 74)' and oro[0]['fs'] > bianco[0]['fs'], f'critico: numero oro e più grande {d}')
+    check(len(verde) == 1 and verde[0]['t'] == '+7' and verde[0]['an'] == 'su-sale', f'cura: numero verde che sale {d}')
+    check(any(x['t'] == 'Mancato' for x in d), f'«Mancato» piccolo e grigio {d}')
+    check(fr['fermo'] > 0 and fr['fermo'] <= 60 and fr['px'] == 6, f'il critico ferma l\'immagine per un attimo (60 ms); la cura sparge sei scintille {fr}')
+    await pg.wait_for_timeout(1000)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov > *').length") == 0, 'tutto sparisce da solo, niente resta nello strato')
+    await pg.evaluate("""n=>{Succo.gioca(Array.from({length:14},(_,i)=>({t:'numero',chi:n[i%n.length],v:-(i+1),tipo:null,crit:false,ms:600})),Bat.s)}""", ids)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov .su-num').length") == 8, 'al massimo 8 numeri in volo: i successivi si sommano a quelli già in volo')
+    check(await pg.evaluate("[...document.querySelectorAll('#su-ov .su-num.somma')].length") >= 1, 'i numeri in più si sommano (il numero si riaccende)')
+    await pg.evaluate("render()"); await pg.wait_for_timeout(100)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov .su-num').length") == 8, 'lo strato sopravvive al ridisegno della battaglia')
+    await pg.wait_for_timeout(1000); await pg.evaluate("Succo.pulisci()")
+    # --- area rossa: si riempie mentre il capo carica, poi scoppia ---
+    z = await pg.evaluate("""(()=>{const s=Bat.s,c=s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c));c.lancio={id:'m-nube-nera',da:s.t-15,fine:s.t+15,A:{bers:'e1'}};BatT.zSig='';BatT.hud(s);
+      const g=document.querySelector('.tr-zone');if(!g)return null;const a=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));c.lancio.da=s.t-4;BatT.hud(s);const b=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));
+      c.lancio.da=s.t-30;c.lancio.fine=s.t;BatT.hud(s);const f=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));const bs=g.querySelectorAll('.zb').length;c.lancio=null;return{n:a.length,bs,mezza:a[0],poca:b[0],piena:f[0]}})()""")
+    check(z and z['n'] >= 1 and z['bs'] == z['n'] and z['mezza'] != z['poca'] and z['piena'] != z['mezza'], f'area rossa: ogni casella ha il suo riempimento, che cresce con la carica {z}')
+    if z:
+        zz = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici')&&[{q:Bat.s.cb.find(c=>c.id==='e1').q,r:Bat.s.cb.find(c=>c.id==='e1').r}]")
+        await pg.evaluate("z=>Succo.gioca([{t:'esplode',chi:'x',id:'m-nube-nera',zona:z,ms:520}],Bat.s)", zz)
+        check(await pg.evaluate("document.querySelectorAll('.tr-bat .bt-fx .su-boom').length") == 1, 'quando il potere parte l\'area scoppia (casella accesa un attimo)')
+    # --- stati: la tinta sul segnalino ---
+    t = await pg.evaluate("""(()=>{const s=Bat.s,c=s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c)),el=BatT.els.get(c.id),r={};for(const [st,k] of [['in-fiamme','fuoco'],['avvelenato','veleno'],['congelato','gelo']]){
+      c.stati=[{id:st,fine:s.t+50}];BatT.hud(s);r[k]=el.classList.contains('su-t-'+k)}c.stati=[];BatT.hud(s);r.nessuna=!/su-t-/.test(el.getAttribute('class'));return r})()""")
+    check(all(t.values()), f'fiamme, veleno e gelo tingono il segnalino; senza stati torna normale {t}')
+    # --- la battaglia vera: i nemici sono quasi spacciati; si guardano i riscontri che nascono da soli ---
+    await pg.evaluate("""(()=>{window.__su={num:[],px:0,pz:0,max:0,tit:[],boom:0,tOver:0,tFine:0,xp:[]};const o=new MutationObserver(m=>{const ov=document.getElementById('su-ov');if(!ov)return;
+      for(const r of m)for(const n of r.addedNodes){if(n.nodeType!==1)continue;const c=n.getAttribute('class')||'';if(c.includes('su-num'))__su.num.push(c+'|'+n.textContent);if(c.includes('su-px'))__su.px++;if(c.includes('su-pz'))__su.pz++;if(c.includes('su-livello'))__su.tit.push(n.textContent)}
+      __su.max=Math.max(__su.max,ov.querySelectorAll('.su-num').length)});o.observe(document.body,{childList:true,subtree:true});
+      setInterval(()=>{const c=document.querySelector('.tr-ris .su-cont b');if(c)__su.xp.push(+c.textContent);if(Bat.s&&Bat.s.over&&!__su.tOver)__su.tOver=performance.now();if(document.querySelector('.bt-fine')&&!__su.tFine)__su.tFine=performance.now()},50);
+      Bat.s.cb.filter(c=>c.lato==='nemici').forEach(c=>{c.ia={};c.hp=Math.min(c.hp,2)})})()""")
+    pesi = await pg.evaluate("Bat.s.cb.filter(c=>c.lato==='nemici').map(c=>c.xp|0).reduce((a,b)=>a+b,0)")
+    await pg.click('[data-a=btt][data-v=vel]'); await pg.click('[data-a=btt][data-v=pausa]')
+    inizio = time.time()
+    while time.time() - inizio < 120:
+        await pg.wait_for_timeout(400)
+        if await pg.evaluate("!!Bat.s.over"): break
+        if await pg.evaluate("BatT.pausa&&!Bat.s.over"): await pg.click('[data-a=btt][data-v=pausa]')
+    esito = await pg.evaluate("Bat.s.over&&Bat.s.over.esito")
+    await pg.wait_for_selector('.bt-fine', timeout=8000); await pg.wait_for_timeout(300)
+    r = await pg.evaluate("({su:__su,xpShow:BatT.xpShow,morti:Succo.daStato(Bat.s),err:ERR.b.length})")
+    su = r['su']
+    check(esito == 'vittoria', f'la battaglia del casale finisce con la vittoria (esito {esito})')
+    check(len(su['num']) >= 2 and all('neg' in x or 'pos' in x for x in su['num']), f'nella battaglia nascono numeri sopra le creature ({len(su["num"])}) {su["num"][:4]}')
+    check(0 < su['max'] <= 8, f'mai più di 8 numeri insieme (picco {su["max"]})')
+    check(su['px'] >= 16, f'i nemici caduti si sbriciolano in quadratini ({su["px"]})')
+    check(su['pz'] >= 2, f'monete e sfere cadono e volano via ({su["pz"]})')
+    check(r['xpShow'] == pesi == r['morti'] and su['xp'] and su['xp'][-1] == pesi and su['xp'] == sorted(su['xp']), f'il contatore dell\'esperienza sale sfera dopo sfera fino a {pesi} {su["xp"][-3:]}')
+    check(su['tit'] and all('Livello su!' in x and 'livello 2' in x for x in su['tit']) and any(n in ' '.join(su['tit']) for n in ('Aldo', 'Mira', 'Fra Tomaso')), f'alla vittoria «Livello su!» col nome e il livello {su["tit"]}')
+    check(su['tFine'] - su['tOver'] >= 1000, f'la schermata finale aspetta che il bottino e il livello finiscano ({(su["tFine"] - su["tOver"]) / 1000:.1f} s)')
+    await pg.screenshot(path='/tmp/claude-0/succo-fine.png')
+    check(not pg.errs and r['err'] == 0, f'nessun errore JS {pg.errs[:2]}')
+    await pg.click('.bt-fine [data-a=batmondo]'); await pg.wait_for_timeout(600)
+    await ctx.close()
+    # --- riduci animazioni: i numeri si dissolvono sul posto, niente pezzi né voli; il contatore sale subito ---
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.emulate_media(reduced_motion='reduce')
+    await pg.evaluate("""(()=>{const sq=Bat.prova(2).slice(0,3),nem=['brigante','lupo-grigio'],seme=11,s=ATEM.nuovo(sq,nem,AARE.perIncontro(seme,'strada',nem),{seme});
+      ui.avv=false;Bat.daMondo(s,sq.map(m=>m.eroe.aspetto),'prova-succo');ui.bat=true;render()})()""")
+    await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(400)
+    rm = await pg.evaluate("""(()=>{const s=Bat.s,n=s.cb.find(c=>c.lato==='nemici');Succo.gioca([{t:'numero',chi:n.id,v:-4,tipo:null,crit:false,ms:600},{t:'sbriciola',chi:n.id,def:n.def,ms:700},
+      {t:'bottino',chi:n.id,xp:120,monete:3,sfere:3,ms:1000}],s);
+      const e=document.querySelector('#su-ov .su-num');return{an:e&&getComputedStyle(e).animationName,px:document.querySelectorAll('#su-ov .su-px').length,pz:document.querySelectorAll('#su-ov .su-pz').length,xp:BatT.xpShow,txt:document.querySelector('.tr-ris .su-cont b')&&document.querySelector('.tr-ris .su-cont b').textContent}})()""")
+    check(rm['an'] == 'su-dissolvi' and rm['px'] == 0 and rm['pz'] == 0 and rm['xp'] == 120 and rm['txt'] == '120', f'riduci animazioni: numero che si dissolve, niente pezzi né voli, contatore subito a 120 {rm}')
+    check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'riduci animazioni: nessun errore {pg.errs[:2]}')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
