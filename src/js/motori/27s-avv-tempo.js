@@ -15,13 +15,15 @@
    Un combattente è quello di APOT/BEST (come in ASCO) più: via (istante in cui si muove la prima volta), pronto (prossimo colpo), ritmo,
    ric:{ potere: istante pronto }, reaT (reazione pronta), concT / disT (Concentrazione / disimpegno fino a), lancio:{ id, A, da, fine } | null,
    mv:{ da, k, n } | null (passo in corso: occupa già la cella nuova, la grafica scivola da `da` per k/n), sosta (fermo fino a), supT.
-   Il vecchio ASCO (27i) resta finché la vista non passa qui (B5). */
+   Da B5 le battaglie della campagna in solitario passano da qui (`daCampagna` / `riepilogo`, stesse forme di ASCO); il vecchio ASCO (27i) resta per
+   la battaglia di prova della pagina Avventura e per la co-op (A11) finché B10 non porta anche quella al tempo reale. */
 const ATEM=(()=>{
  const DAD=typeof ADADI!=='undefined'?ADADI:require('./27a-avv-dadi.js');
  const ST=typeof ASTA!=='undefined'?ASTA:require('./27d-avv-stati.js');
  const AP=typeof APOT!=='undefined'?APOT:require('./27e-avv-poteri.js');
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const G=typeof AGRI!=='undefined'?AGRI:require('./27g-avv-griglia.js');
+ const AR=typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
  const ERR=err=>({err}),cl=x=>JSON.parse(JSON.stringify(x));
  // IST istanti al secondo; GIRO = 6 s; T_MAX = stallo (6 min); RINFORZO = istanti di ritardo per esagono di distanza; MOV: un esagono costa
  // MOV×costo punti e ogni istante se ne fanno `mov` (mov 6 → 2 caselle al secondo); ATTESA = pausa prima di ricalcolare un percorso chiuso
@@ -270,5 +272,19 @@ const ATEM=(()=>{
   for(const e of X.ev)e.i=s.t;s.ev=X.ev;s.evn++;return{s,ev:X.ev}}
  // per la barra delle abilità: quanto manca alla ricarica di un potere (istanti) e su quanto
  function ricarica(s,c,id){const p=AP.P[id];if(!p)return null;const T=AP.tempi(p),resta=Math.max(0,(id==='attacco'?c.pronto:c.ric[id]||0)-s.t);return{resta,tot:p.id==='attacco'?c.ritmo:T.ricarica,usi:AP.usiRimasti(c,p),lancio:T.lancio}}
- return{IST,GIRO,T_MAX,RINFORZO,MOV,MAX_EROI,nuovo,passo,ordina,trova,inCampo,inPiedi,forma,condizioni,uscite,ricarica,zona,zonaDi}})();
+ // ---- aggancio alla campagna (B5): stessi ingressi e stessa uscita di ASCO.daCampagna / ASCO.riepilogo, così CAMP e AVV registrano l'esito senza sapere
+ // quale battaglia si è giocata (ASCO.aggiorna legge il riepilogo). daCampagna(camp, incontro): incontro = { nemici, seme?, ambiente?, sorpresa?, dist?:{ slot: esagoni } }
+ function daCampagna(camp,inc){inc=inc||{};if(!camp||!Array.isArray(camp.eroi)||!camp.eroi.length)throw new Error('serve una campagna con degli eroi');
+  if(!camp.eroi.some(e=>e.hp>0))throw new Error('nessun eroe in piedi');
+  const cella=camp.party&&camp.celle&&camp.celle[camp.party.q+','+camp.party.r]||{},seme=inc.seme!=null?inc.seme>>>0:((camp.seed|0)*31+(camp.evn|0)*7+(camp.giorno|0))>>>0;
+  const defs=(inc.nemici||[]).map(n=>typeof n==='string'?n:n.def),amb=inc.ambiente||AR.ambienteDa(cella.t,cella.poi);
+  const squad=camp.eroi.map(e=>({eroe:cl(e),dist:(inc.dist&&inc.dist[e.slot])||0}));
+  return nuovo(squad,inc.nemici,AR.perIncontro(seme,amb,defs),{seme,sorpresa:inc.sorpresa,tMax:inc.tMax})}
+ // riepilogo(s): come ASCO.riepilogo; `giri` = periodi di 6 s iniziati, `secondi` = durata della battaglia
+ function riepilogo(s){const sconfitti=s.cb.filter(c=>c.lato==='nemici'&&(c.morto||c.arreso)),xp=sconfitti.reduce((a,c)=>a+(c.xp||0),0),eroi=s.cb.filter(c=>c.lato==='eroi'),part=eroi.filter(c=>!c.fuori);
+  const quota=part.length?Math.floor(xp/part.length):0;
+  return{esito:s.over?s.over.esito:null,giri:Math.max(1,Math.ceil(s.t/GIRO)),secondi:Math.floor(s.t/IST),xp,xpPerEroe:quota,
+   eroi:eroi.map(c=>({id:c.id,indice:c.indice,nome:c.nome,hp:c.hp,hpMax:c.hpMax,conc:c.conc,usi:cl(c.usi),cintura:(c.cintura||[]).slice(),stato:c.fuggito?'fuggito':c.hp<=0?'a-terra':'in-piedi',xp:c.fuori?0:quota})),
+   nemici:s.cb.filter(c=>c.lato==='nemici').map(c=>({id:c.id,def:c.def,esito:c.morto?'sconfitto':c.arreso?'arreso':c.fuggito?'fuggito':'in-campo'}))}}
+ return{IST,GIRO,T_MAX,RINFORZO,MOV,MAX_EROI,nuovo,passo,ordina,trova,inCampo,inPiedi,forma,condizioni,uscite,ricarica,zona,zonaDi,daCampagna,riepilogo}})();
 if(typeof module!=='undefined')module.exports=ATEM;

@@ -128,6 +128,22 @@ let b2 = ok(AVV.act(b1, { t: 'esito', riep: SC.riepilogo(fin) }, prova), 'esito 
 assert.strictEqual(b2.racc.scena.nodo, 'a', 'dal nodo che l\'ha introdotta, con «Continua»');
 assert.strictEqual(fin.over.esito, 'vittoria'); assert.strictEqual(b2.bat, null); assert(b2.camp.eroi[0].xp > xp0, 'esperienza della battaglia');
 assert.strictEqual(b2.vite, VITE, 'una vittoria non costa niente'); b2 = chiudiScena(b2, prova); assert(b2.racc.bandiere['scontro-vinto'], 'dopo la battaglia il racconto va avanti'); assert.strictEqual(b2.camp.oro, oro0 + 5);
+// ---- B5: la stessa battaglia a istanti (ATEM) con { tempo: true }: stessi combattenti e arena; l'esito entra nella sessione come quello di ASCO ----
+{
+  const TE = require('../src/js/motori/27s-avv-tempo.js'), IAT = require('../src/js/motori/27t-avv-ia-tempo.js');
+  const bt = AVV.battaglia(b1, { tempo: true });
+  assert(bt && bt.ordini && bt.t === 0 && !bt.ordine, 'con { tempo: true } la battaglia è di ATEM');
+  assert.deepStrictEqual(bt.cb.map((c) => c.id).sort(), bat.cb.map((c) => c.id).sort(), 'gli stessi combattenti');
+  assert.strictEqual(JSON.stringify(bt.arena), JSON.stringify(bat.arena), 'la stessa arena (stesso seme)');
+  assert.strictEqual(JSON.stringify(AVV.battaglia(b1, { tempo: true })), JSON.stringify(bt), 'partenza ripetibile');
+  const ft = IAT.gioca(bt).s, rt = TE.riepilogo(ft), rs = SC.riepilogo(fin);
+  assert(ft.over && rt.esito === ft.over.esito && rt.secondi > 0 && rt.giri >= 1, 'si gioca fino alla fine: ' + JSON.stringify(ft.over));
+  assert.deepStrictEqual(Object.keys(rt).filter((k) => k !== 'secondi').sort(), Object.keys(rs).sort(), 'il riepilogo ha la forma di quello di ASCO');
+  assert.deepStrictEqual(Object.keys(rt.eroi[0]).sort(), Object.keys(rs.eroi[0]).sort(), 'anche per ogni eroe');
+  assert.deepStrictEqual(rt.eroi.map((e) => e.indice), rs.eroi.map((e) => e.indice), 'gli indici della compagnia tornano');
+  const r = AVV.act(b1, { t: 'esito', riep: rt }, prova); assert(!r.err && r.s.bat === null, 'l\'esito a istanti entra nella sessione: ' + r.err);
+  if (rt.esito === 'vittoria') assert(r.s.camp.eroi[0].xp > xp0, 'con l\'esperienza');
+}
 assert.strictEqual(b2.sessione.battaglie, 1);
 // sconfitta: una vita in meno, ci si sveglia nell'ultima città, metà PF, metà oro, perdizione +10, la scena è interrotta ma si può rifare
 {
@@ -175,6 +191,7 @@ assert.strictEqual(b2.sessione.battaglie, 1);
   const mossa = ok(AVV.act(g, { t: 'camp', a: { t: 'muovi', eroe: 0, q: t.q - 1, r: t.r, tutti: true } }, prova), 'contatto'); g = mossa.s;
   assert(g.camp.sfida && AVV.fase(g) === 'battaglia', 'contatto = battaglia'); assert.strictEqual(mossa.cambio.a, 'battaglia');
   assert.strictEqual(AVV.battaglia(g).cb.length, CtoSC(g).length, 'è la battaglia di CAMP');
+  { const bt = AVV.battaglia(g, { tempo: true }); assert(bt.ordini && bt.cb.length === CtoSC(g).length && JSON.stringify(bt.arena) === JSON.stringify(AVV.battaglia(g).arena), 'anche nel mondo, a istanti con { tempo: true }'); }
   assert(AVV.act(g, { t: 'camp', a: { t: 'tira', tutti: true } }, prova).err, 'prima si combatte');
   const rs = ok(AVV.act(g, { t: 'esito', riep: perdita(AVV.battaglia(g)) }, prova), 'sconfitta nel mondo'); assert.strictEqual(rs.s.vite, VITE - 1); assert.strictEqual(rs.s.camp.sfida, null);
   assert(rs.s.camp.eroi.every((e) => e.hp > 0), 'risvegliati'); assert.strictEqual(rs.s.camp.over, null, 'non è la fine: il mondo continua'); assert.strictEqual(AVV.fase(rs.s), 'citta');

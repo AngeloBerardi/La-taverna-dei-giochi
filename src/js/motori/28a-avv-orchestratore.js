@@ -11,6 +11,7 @@ const AVV=(()=>{
  const CM=typeof ACMP!=='undefined'?ACMP:require('./27p-avv-compagni.js');
  const EV=typeof AEVE!=='undefined'?AEVE:require('./27r-avv-eventi.js');
  const SC=typeof ASCO!=='undefined'?ASCO:require('./27i-avv-scontro.js');
+ const TE=typeof ATEM!=='undefined'?ATEM:require('./27s-avv-tempo.js');
  const DIF=typeof ADIF!=='undefined'?ADIF:require('./27ha-avv-difficolta.js');
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const MOS=typeof AMOS!=='undefined'?AMOS:require('./27o-avv-mostri.js');
@@ -120,8 +121,9 @@ const AVV=(()=>{
   const g=DAD.gen(s),liv=Math.min(8,MOS.livelloMedio(c)),inc=SC.incontro(fam,liv,v.length,f.diff||'medio',seme32(g),DIF.gruppi(c));
   s.bat={k:'racconto',nemici:inc.nemici,ambiente:f.arena||null,seme:seme32(g),sorpresa:f.sorpresa||null,quali:v,dist:{},capo:f.capo||null}}
  // la battaglia pronta da giocare: di CAMP (mostro sulla mappa, stanza di un sotterraneo) o chiesta dal racconto
- function battaglia(s){if(s.camp.sfida)return CP.battaglia(s.camp);const b=s.bat;if(!b)return null;
-  return SC.daCampagna({eroi:b.quali.map(i=>s.camp.eroi[i]),seed:s.camp.seed,evn:s.camp.evn,giorno:s.camp.giorno,party:s.camp.party,celle:s.camp.celle},
+ // battaglia(s, { tempo }): con `tempo` la battaglia a istanti di ATEM (B5) invece di quella a turni di ASCO
+ function battaglia(s,o){if(s.camp.sfida)return CP.battaglia(s.camp,o);const b=s.bat;if(!b)return null;
+  return(o&&o.tempo?TE:SC).daCampagna({eroi:b.quali.map(i=>s.camp.eroi[i]),seed:s.camp.seed,evn:s.camp.evn,giorno:s.camp.giorno,party:s.camp.party,celle:s.camp.celle},
    {nemici:b.nemici,ambiente:b.ambiente||undefined,seme:b.seme,dist:b.dist,sorpresa:b.sorpresa||undefined})}
  // chi combatte (indici in camp.eroi) e i loro ritratti, per la vista
  const quali=s=>s.camp.sfida?s.camp.sfida.quali:s.bat?s.bat.quali:[];

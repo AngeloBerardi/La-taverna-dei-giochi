@@ -14,6 +14,7 @@ const CAMP=(()=>{
  const BE=typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js');
  const AR=typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
  const SC=typeof ASCO!=='undefined'?ASCO:require('./27i-avv-scontro.js');
+ const TE=typeof ATEM!=='undefined'?ATEM:require('./27s-avv-tempo.js');
  const MON=typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js');
  const LU=typeof ALUO!=='undefined'?ALUO:require('./27n-avv-luoghi.js');
  const MOS=typeof AMOS!=='undefined'?AMOS:require('./27o-avv-mostri.js');
@@ -93,8 +94,9 @@ const CAMP=(()=>{
   s.sfida={k:'battaglia',mostro:m.id,luogo:null,stanza:null,nemici:n,ambiente:AR.ambienteDa(c.t,c.poi),seme:seme32(rnd),quali:q.quali,dist:q.dist,sorpresa:o.sorpresa||null,q:m.q,r:m.r};
   L(s,(o.sorpresa==='eroi'?'Un\'imboscata! ':'')+'Un gruppo di '+nomeFam(m.fam).toLowerCase()+' ('+n.length+') vi attacca.')}
  // battaglia pronta per la vista (A5): uno stato di ASCO con gli eroi che partecipano, ciascuno a `dist` esagoni
- function battaglia(s){const f=s.sfida;if(!f)return null;
-  return SC.daCampagna({eroi:f.quali.map(i=>s.eroi[i]),seed:s.seed,evn:s.evn,giorno:s.giorno},{nemici:f.nemici,ambiente:f.ambiente,seme:f.seme,dist:f.dist,sorpresa:f.sorpresa||undefined})}
+ // battaglia(s, { tempo }) → lo stato di ASCO (a turni) o, con `tempo`, di ATEM (a istanti, B5): stessi eroi, nemici, arena e seme
+ function battaglia(s,o){const f=s.sfida;if(!f)return null;
+  return(o&&o.tempo?TE:SC).daCampagna({eroi:f.quali.map(i=>s.eroi[i]),seed:s.seed,evn:s.evn,giorno:s.giorno},{nemici:f.nemici,ambiente:f.ambiente,seme:f.seme,dist:f.dist,sorpresa:f.sorpresa||undefined})}
  function esito(s,a,rnd){const f=s.sfida;if(!f)return{err:'Nessuna battaglia in corso'};const riep=a.riep;if(!riep||riep.esito==null)return{err:'La battaglia non è finita'};
   const r=SC.aggiorna({eroi:f.quali.map(i=>s.eroi[i])},DIF.scalaXp(riep,s));if(r.err)return{err:r.err};
   f.quali.forEach((i,k)=>{s.eroi[i]=r.s.eroi[k]});const m=s.mostri.find(x=>x.id===f.mostro),sott=f.luogo?s.sotterranei[f.luogo]:null,pos={q:f.q,r:f.r};
