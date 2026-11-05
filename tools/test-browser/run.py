@@ -920,20 +920,17 @@ async def sc_avv_mondo(b, srv):
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_timeout(700)
     check(await pg.query_selector('.bt') is not None and await pg.query_selector('.mo') is None and await pg.evaluate("Bat.mondo") is not None, 'si apre la battaglia della campagna')
     check(await pg.evaluate("!!localStorage.getItem('bat')") and await pg.evaluate("JSON.parse(localStorage.getItem('bat')).mondo") == await pg.evaluate("Camp.s.sfida.seme"), 'la battaglia è salvata col suo legame alla campagna')
-    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa (prima i nemici finiscono il loro turno)
-    for _ in range(120):
-        if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')
-        elif not await pg.evaluate('Bat.anim||Bat.lavoro||!!Bat.pausa'): break
-        await pg.wait_for_timeout(250)
-    await pg.click('[data-a=batfoglio][data-v=menu]'); await pg.wait_for_timeout(150)
-    check(await pg.query_selector('[data-a=batabbandona]') is None and await pg.query_selector('[data-a=batesci]') is not None, 'nel menu niente «Abbandona»')
-    await pg.click('[data-a=batesci]'); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("Bat.tempo()") and await pg.query_selector('.tr-bat') is not None, 'dal B5 la battaglia del mondo è in tempo reale')
+    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa
+    await pg.click('[data-a=btt][data-v="foglio:menu"]'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('[data-a=batabbandona]') is None and await pg.query_selector('[data-a=btt][data-v=esci]') is not None, 'nel menu niente «Abbandona»')
+    await pg.click('[data-a=btt][data-v=esci]'); await pg.wait_for_timeout(300)
     check(await pg.query_selector('.mo') is not None and await pg.query_selector('.mo-fg [data-a=mo][data-v=combatti]') is not None, 'uscendo si torna alla mappa e si può riprendere')
     ev = await pg.evaluate("Bat.s.evn")
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_timeout(500)
     check(await pg.evaluate("Bat.s.evn") == ev and await pg.query_selector('.bt') is not None, 'si riprende la stessa battaglia, non una nuova')
-    # il resto della battaglia lo gioca il bot: poi «Continua» riporta alla mappa con il risultato
-    await pg.evaluate("(()=>{Bat.s=AIA.partita(Bat.s,{eroi:'eroica',nemici:'normale'});Bat.c=ACOM.nuovo(Bat.s);Bat.salva();render()})()"); await pg.wait_for_timeout(400)
+    # il resto della battaglia lo gioca l'IA del tempo reale: poi «Continua» riporta alla mappa con il risultato
+    await pg.evaluate("(()=>{AIAT.gioca(Bat.s,{qui:true});Bat.salva();render()})()"); await pg.wait_for_timeout(400)
     check(await pg.query_selector('.bt-fine [data-a=batmondo]') is not None and await pg.query_selector('.bt-fine [data-a=batrigioca]') is None, 'fine battaglia: solo «Continua»')
     await pg.click('[data-a=batmondo]'); await pg.wait_for_timeout(400)
     check(await pg.query_selector('.mo-svg') is not None and await pg.query_selector('.bt') is None and await pg.evaluate("Camp.s.sfida") is None and await pg.evaluate("Bat.mondo") is None and not await pg.evaluate("!!localStorage.getItem('bat')"), 'tornati alla mappa: sfida chiusa, battaglia cancellata')
@@ -1968,12 +1965,9 @@ async def sc_avv_rifinitura(b, srv):
     await pg.wait_for_selector('[data-a=mo][data-v=combatti]', timeout=5000)
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_selector('.bt', timeout=8000); await pg.wait_for_timeout(800)
     q = await pg.evaluate("Snd.quale()"); check(q in ('avv-battaglia', 'avv-capo'), f'in battaglia suona la musica di battaglia ({q})')
-    try:
-        await pg.wait_for_function("document.querySelector('.bt .tut')", timeout=9000)
-        tid = await pg.evaluate("document.querySelector('.bt .tut').dataset.tut")
-        check(tid.startswith('bat-') and await dentro('.bt-mappa > .tut') is True, f'in battaglia la schedina «{tid}» sta nella mappa, dentro lo schermo')
-    except Exception:
-        check(False, 'in battaglia compare la schedina del turno')
+    # B5: la battaglia della campagna è in tempo reale; le schedine sono quelle dei turni e non si mostrano (le adatta B9)
+    await pg.wait_for_timeout(1500)
+    check(await pg.evaluate("Bat.tempo()") and await pg.query_selector('.bt .tut') is None, 'in battaglia (tempo reale) nessuna schedina dei turni')
     await pg.screenshot(path=os.environ['FOTO_RIFINITURA']) if os.environ.get('FOTO_RIFINITURA') else None
     await pg.evaluate("(()=>{const b=Bat.s;b.over={esito:'vittoria',giri:1};render()})()")
     check(await pg.evaluate("Snd.quale()") == 'avv-vittoria', f'vinta: musica di vittoria ({await pg.evaluate("Snd.quale()")})')
@@ -2549,6 +2543,109 @@ async def sc_avv_prestazioni(b, srv):
     dt = await pg.evaluate("performance.now()") - t0
     check(dt < 1500, f'un tocco risponde in meno di 1,5 s con la CPU ×4 ({dt:.0f} ms)')
     check(not pg.errs, f'nessun errore JS {pg.errs[:2]}')
+    await ctx.close()
+
+async def sc_avv_tempo(b, srv):
+    """Battaglia in tempo reale (B5), a 390 px: una battaglia del capitolo (scena del casale) dall'inizio alla fine. Pausa all'inizio con la griglia,
+    HUD verticale (ritratti 64, campo ≥ 60%, pannello ≤ 180), bersagli ≥ 44 px, tocchi che diventano ordini, abilità a bersaglio, ×2, pausa automatica,
+    ripresa dopo un ricarico, fine e «Continua» che riporta il risultato nella sessione; nessun blocco e nessun errore."""
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','mago','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    async def leggi(fino, max=80):
+        for _ in range(max):
+            if await pg.query_selector(fino): return True
+            if not await pg.query_selector('.dl'): return False
+            if await pg.query_selector('.dl-co'): await pg.click('.dl-co')
+            elif await pg.query_selector('.dl-sc:not([disabled]):has-text("Attaccare")'): await pg.click('.dl-sc:not([disabled]):has-text("Attaccare")')   # dal gabelliere: si combatte sempre
+            elif await pg.query_selector('.dl-sc:not([disabled])'): await pg.click('.dl-sc:not([disabled]) >> nth=0')
+            else: await pg.click('.dl-corpo')
+            await pg.wait_for_timeout(200)
+        return False
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1200)
+    await pg.click('[data-a=ses][data-v="nuova:a1"]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ses][data-v=parti]'); await pg.wait_for_selector('.dl', timeout=10000); await pg.wait_for_timeout(400)
+    await leggi('.mo'); await pg.wait_for_selector('.mo', timeout=8000)
+    # la compagnia al casale dei Salici: la scena porta a uno scontro del capitolo
+    await pg.evaluate("(()=>{const c=Ses.a.camp,l=c.luoghi['casale-salici'];c.eroi.forEach(e=>{e.q=l.q;e.r=l.r});Ses.scena('casale-salici')})()"); await pg.wait_for_timeout(800)
+    check(await leggi('[data-a=ses][data-v=combatti]'), 'la scena del casale porta a «All\'armi!»')
+    await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(500)
+    st = await pg.evaluate("({tempo:Bat.tempo(),pausa:BatT.pausa,t:Bat.s.t,mondo:Bat.mondo,seme:Ses.a.bat&&Ses.a.bat.seme,eroi:Bat.s.cb.filter(c=>c.lato==='eroi').length,nem:Bat.s.cb.filter(c=>c.lato==='nemici').length,sel:BatT.sel})")
+    check(st['tempo'] and st['pausa'] and st['t'] == 0 and st['mondo'] == st['seme'] and st['eroi'] == 3 and st['nem'] >= 1 and st['sel'] == 'e1', f'si apre la battaglia a istanti del capitolo, ferma all\'inizio {st}')
+    check('In pausa' in await pg.inner_text('.tr-banda') and await pg.evaluate("[...document.querySelectorAll('.bt-svg polygon[stroke]')].length>20"), 'in pausa: la scritta e la griglia degli esagoni')
+    # --- l'HUD verticale a 390 px ---
+    L = await pg.evaluate("""(()=>{const h=innerHeight,r=s=>document.querySelector(s).getBoundingClientRect();return{h,alto:r('.tr-alto').height,campo:r('.bt-mappa').height,basso:r('.tr-basso').height,
+      scroll:document.documentElement.scrollWidth>innerWidth,ab:document.querySelectorAll('.tr-ab').length,rit:document.querySelectorAll('.tr-rit').length}})()""")
+    check(L['alto'] <= 66 and L['campo'] >= .6 * L['h'] and L['basso'] <= 180 and not L['scroll'], f'ritratti in alto (64), campo ≥ 60%, pannello ≤ 180, nessuno scorrimento {L}')
+    check(4 <= L['ab'] <= 6 and L['rit'] == 3, f'4–6 abilità rotonde e i tre ritratti {L}')
+    async def piccoli():
+        return await pg.evaluate("""[...document.querySelectorAll('.tr-bat button,.tr-bat [data-a]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden'&&(r.width<44||r.height<44)}).map(e=>(e.className||e.tagName)+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))""")
+    check(not await piccoli(), f'ogni bersaglio toccabile è almeno 44 × 44 {await piccoli()}')
+    # --- tocchi → ordini (in pausa partono alla ripresa) ---
+    async def tocca_creatura(id):
+        xy = await pg.evaluate("id=>{const e=document.querySelector(`.bt-tok[data-id=\"${id}\"]`).getBoundingClientRect();return[e.x+e.width/2,e.y+e.height/2]}", id)
+        await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(400)
+    nemico = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c)).id")
+    await tocca_creatura(nemico)
+    o = await pg.evaluate("Bat.s.ordini.e1")
+    check(o and o['t'] == 'attacca' and o['bers'] == nemico and not o.get('ia'), f'tocco su un nemico: l\'eroe scelto lo attacca (ordine del giocatore) {o}')
+    await tocca_creatura('e2'); sel = await pg.evaluate("BatT.sel")
+    check(sel == 'e2' and await pg.query_selector('.tr-rit.on[data-v="sel:e2"]') is not None, 'tocco su un altro eroe: diventa quello scelto (ritratto acceso, anello sotto)')
+    check(await pg.evaluate("document.querySelector('.bt-tok[data-id=\"e2\"]').classList.contains('t-sel')"), 'l\'anello sotto l\'eroe scelto')
+    await pg.screenshot(path='/tmp/claude-0/tempo-pausa.png')
+    id_ab = await pg.evaluate("[...document.querySelectorAll('.tr-ab[data-k=potere]:not(.off)')].map(e=>e.dataset.id).find(id=>APOT.P[id].area==='singolo'&&APOT.P[id].bers==='nemico')")
+    await pg.click(f'.tr-ab[data-id="{id_ab}"]'); await pg.wait_for_timeout(300)
+    await pg.screenshot(path='/tmp/claude-0/tempo-mira.png')
+    mira = await pg.evaluate("BatT.mira&&{id:BatT.mira.id,area:BatT.mira.p.area}")
+    if mira and mira['area'] == 'singolo':
+        await tocca_creatura(nemico); o = await pg.evaluate("Bat.s.ordini.e2||Bat.s.rapidi.e2")
+        check(o and o['id'] == id_ab and await pg.evaluate("!BatT.mira"), f'abilità a bersaglio: tocco sul tasto, poi sul nemico {o}')
+    else: check(mira is None or mira['area'] != 'singolo', f'abilità {id_ab}: {mira}')
+    await pg.evaluate("BatT.mira=null;render()")
+    # --- via: ×2, la battaglia scorre da sola; ogni pausa automatica si riprende ---
+    await pg.click('[data-a=btt][data-v=vel]'); await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(1500)
+    await pg.screenshot(path='/tmp/claude-0/tempo-scorre.png')
+    t1 = await pg.evaluate("Bat.s.t"); pos1 = await pg.evaluate("[...document.querySelectorAll('.bt-tok')].map(e=>e.getAttribute('transform')).join('|')")
+    await pg.wait_for_timeout(700)
+    check(t1 > 0 and await pg.evaluate("Bat.cfg.vel") == 2, f'la battaglia scorre a ×2 (istante {t1})')
+    check(await pg.evaluate("[...document.querySelectorAll('.bt-tok')].map(e=>e.getAttribute('transform')).join('|')") != pos1, 'i segnalini si spostano fra un fotogramma e l\'altro')
+    check(await pg.evaluate("[...document.querySelectorAll('.bt-svg polygon[stroke]:not(.tr-segno)')].filter(p=>!p.closest('.tr-zone')).length") < 10, 'mentre scorre la griglia non si vede')
+    # ripresa dopo un ricarico: si salva in pausa e si riparte da lì, sempre in pausa
+    await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(200); t2 = await pg.evaluate("Bat.s.t")
+    await pg.reload(); await pg.wait_for_timeout(3500); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1000)
+    await pg.click('[data-a=ses][data-v="apri:a1"]'); await pg.wait_for_timeout(1200)
+    if not await pg.query_selector('.tr-bat'):
+        await leggi('[data-a=ses][data-v=combatti]'); await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000)
+    await pg.wait_for_timeout(400)
+    check(await pg.evaluate("Bat.tempo()&&BatT.pausa") and await pg.evaluate("Bat.s.t") == t2, f'dopo il ricarico la stessa battaglia, ferma all\'istante {t2}')
+    pause, inizio = 0, time.time()
+    await pg.click('[data-a=btt][data-v=pausa]')
+    while time.time() - inizio < 150:
+        await pg.wait_for_timeout(500)
+        if await pg.evaluate("!!Bat.s.over"): break
+        if await pg.evaluate("BatT.pausa&&!Bat.s.over"):
+            pause += 1; await pg.click('[data-a=btt][data-v=pausa]')
+    fin = await pg.evaluate("({over:Bat.s.over,t:Bat.s.t,err:ERR.b.slice(-3).map(x=>String(x.m||x.msg||x).slice(0,120))})")
+    check(fin['over'] is not None and fin['over']['esito'] in ('vittoria', 'sconfitta', 'fuga'), f'la battaglia arriva alla fine da sola, senza blocchi ({fin["t"] / 10:.0f} s di gioco, {pause} pause automatiche) {fin}')
+    await pg.wait_for_selector('.bt-fine [data-a=batmondo]', timeout=5000)
+    esito = fin['over']['esito']
+    await pg.screenshot(path='/tmp/claude-0/tempo-fine.png')
+    await pg.click('.bt-fine [data-a=batmondo]'); await pg.wait_for_timeout(1000)
+    dopo = await pg.evaluate("({bat:Ses.a&&Ses.a.bat,fase:Ses.a&&AVV.fase(Ses.a),ui:ui.bat})")
+    check(dopo['bat'] is None and not dopo['ui'] and (dopo['fase'] in ('dialogo', 'citta', 'mappa') or esito != 'vittoria'), f'«Continua» registra l\'esito ({esito}) nella sessione e chiude la battaglia {dopo}')
+    check(not pg.errs and not fin['err'], f'nessun errore JS {pg.errs[:2]} {fin["err"]}')
+    await ctx.close()
+    # --- nel 3D: le miniature seguono le posizioni a ogni fotogramma (passo e otto direzioni), l'SVG resta solo HUD ---
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("""(()=>{const sq=Bat.prova(2).slice(0,3),nem=['brigante','brigante','lupo-grigio'],seme=7,s=ATEM.nuovo(sq,nem,AARE.perIncontro(seme,'strada',nem),{seme});
+      ui.avv=false;Bat.daMondo(s,sq.map(m=>m.eroe.aspetto),'prova-tempo');ui.bat=true;render()})()""")
+    await pg.wait_for_function("Scena3D.on()&&Scena3D.nFig()>=6", timeout=20000)
+    pos = "Scena3D.figure().map(f=>f.id+':'+f.g.position.x.toFixed(1)+','+f.g.position.z.toFixed(1)+':'+f.g.rotation.y.toFixed(3)).join('|')"
+    p0 = await pg.evaluate(pos); await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(1500); p1 = await pg.evaluate(pos)
+    rot = await pg.evaluate("Scena3D.figure().every(f=>Math.abs(f.g.rotation.y/(Math.PI/4)-Math.round(f.g.rotation.y/(Math.PI/4)))<1e-6)")
+    check(p1 != p0 and rot and await pg.evaluate("Bat.s.t") > 0, f'3D: le miniature si muovono in continuo, sguardo in otto direzioni (istante {await pg.evaluate("Bat.s.t")})')
+    check(await pg.evaluate("document.querySelectorAll('.bt-tok .bt-corpo *').length") == 0 and await pg.query_selector('.bt-tok.t-sel .bt-piede') is not None, '3D: i segnalini SVG sono solo barre, stati e anello dell\'eroe scelto')
+    await pg.screenshot(path='/tmp/claude-0/tempo-3d.png')
+    check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'3D: nessun errore {pg.errs[:2]}')
     await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
