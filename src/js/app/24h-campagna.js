@@ -47,10 +47,10 @@ const Camp={
  // ---- battaglia ----
  combatti(){if(inAvv())return AvvStanza.combatti();const s=Camp.s;if(!s||!s.sfida)return;
   if(Bat.mondo===s.sfida.seme&&Bat.s){ui.camp=false;ui.bat=true;Bat.foglio=null;return render()}
-  try{Bat.daMondo(CAMP.battaglia(s),s.sfida.quali.map(i=>s.eroi[i].aspetto),s.sfida.seme)}catch(e){ERR.n(e);Camp.u.msg='Non riesco a preparare la battaglia: riprova.';return render()}
+  try{Bat.daMondo(CAMP.battaglia(s,{tempo:true}),s.sfida.quali.map(i=>s.eroi[i].aspetto),s.sfida.seme)}catch(e){ERR.n(e);Camp.u.msg='Non riesco a preparare la battaglia: riprova.';return render()}
   ui.camp=false;ui.bat=true;render()},
  // il pulsante «Continua» alla fine della battaglia del mondo: il risultato entra nella campagna e si torna alla mappa
- fineBattaglia(){const b=Bat.s,s=Camp.s;if(Ses.a)return b&&b.over?Ses.fineBattaglia(b):undefined;if(!b||!b.over||!s||!s.sfida)return;let r;try{r=CAMP.act(s,{t:'esito',riep:ASCO.riepilogo(b)})}catch(e){ERR.n(e);r={err:'Non riesco a registrare il risultato'}}
+ fineBattaglia(){const b=Bat.s,s=Camp.s;if(Ses.a)return b&&b.over?Ses.fineBattaglia(b):undefined;if(!b||!b.over||!s||!s.sfida)return;let r;try{r=CAMP.act(s,{t:'esito',riep:Bat.riep(b)})}catch(e){ERR.n(e);r={err:'Non riesco a registrare il risultato'}}
   if(r.err){Bat.msg=r.err;return render()}
   Camp.s=r.s;Camp.u.dado=null;Camp.u.msg='';Camp.v.cx=Camp.v.cy=null;Camp.salva();Bat.chiudiMondo();render()},
  // ---- disegno ----

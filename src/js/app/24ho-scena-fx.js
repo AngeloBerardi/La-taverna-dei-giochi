@@ -39,9 +39,10 @@
  const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
  // ---- miniature ----
  const cols=(c,asp)=>{asp=asp||{};const pe=(c.razza==='orco'?Eroi.PELLE_ORCO:Eroi.PELLE)[asp.pelle|0]||Eroi.PELLE[0];return{pelle:pe,capelli:Eroi.CAPELLI[asp.capelli|0]||Eroi.CAPELLI[0],mantello:Eroi.MANTELLO[asp.mantello|0]||Eroi.MANTELLO[0]}};
- const firma=c=>c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def;
- function modello(c){if(c.lato==='eroi'){const a=(Bat.aspetti||{})[c.id]||{};return AMIN.eroe(c.razza,c.classe,cols(c,a),a.capelli|0)}
-  const m=typeof BEST!=='undefined'&&BEST.M[c.def];return AMIN.mostro(c.def,!!(m&&m.capo))}
+ const firma=c=>(K.px?'p':'')+(c.lato==='eroi'?'e|'+c.razza+'|'+c.classe+'|'+JSON.stringify((Bat.aspetti||{})[c.id]||0):'m|'+c.def);
+ // nella resa pixel (B2) le miniature hanno le proporzioni «da bambola» di AMIN (arma e scudo più grandi, gambe sottili)
+ function modello(c){const o={bambola:!!K.px};if(c.lato==='eroi'){const a=(Bat.aspetti||{})[c.id]||{};return AMIN.eroe(c.razza,c.classe,cols(c,a),a.capelli|0,o)}
+  const m=typeof BEST!=='undefined'&&BEST.M[c.def];return AMIN.mostro(c.def,!!(m&&m.capo),o)}
  const FS_=1.3;   // le miniature sono un po' più grandi del vero per leggersi su un telefono
  function costruisciFig(c){const m0=modello(c),m=Object.assign({},m0,{parti:AMIN.scala(m0.parti,FS_),alt:m0.alt*FS_,base:Object.assign({},m0.base,{r:m0.base.r*FS_})}),A=S.V(),E=S.V();for(const p of m.parti)S.pezzo(p[10]==='e'?E:A,p,0,0,0,0,1,p[10]==='e'?1:1,p[10]==='e'?0:.55,false);
   const mat=new T.MeshStandardMaterial({vertexColors:true,roughness:.72,metalness:.04,flatShading:true,envMapIntensity:.7});mat.userData.mio=true;
@@ -54,21 +55,26 @@
   ring.position.y=1.3;top.position.y=2.7;ring.castShadow=ring.receiveShadow=true;b.add(ring,top);
   if(m.base.capo){const rr=new T.Mesh(new T.CylinderGeometry(r+3.4,r+3.8,1.6,24),new T.MeshStandardMaterial({color:0xd6aa3c,roughness:.35,metalness:.7,envMapIntensity:1.2}));rr.position.y=.9;b.add(rr)}
   body.position.y=2.9;g.add(b,body);
+  // materiali a bande (luce di contorno calda sugli eroi, fredda sui nemici; maschera delle figure per la rifinitura): contano solo nella resa pixel
+  const rim=c.lato==='eroi'?'eroi':'nemici';S.bande(mat,{maschera:.5,rim});S.tinta(mat.userData.bande.uRim.value,[ASCE.RIM[rim],ASCE.RIM.forza]);
+  b.traverse(o=>{if(o.material)S.bande(o.material,{maschera:.5})});
   return{id:c.id,sig:firma(c),g,body,mat,alt:m.alt+3,r,rot:0,occ:0,dy:0,x:0,y:0,z:0,ph:Math.random()*6.28,ko:false,nasc:false,fiamme:false,veleno:false,stordito:false,lato:c.lato,classe:c.classe,def:c.def,sca:1}}
  const pos3=(s,c)=>{const p=ASCE.pos('bat',c.q,c.r);return{x:p.x,z:p.z,y:AGRI.alt(s.arena,c)?ASCE.QUOTA.rialzo:0}};
  function metti(f){f.g.position.set(f.x,f.y+f.dy,f.z);f.g.rotation.y=f.rot;f.g.scale.setScalar(f.sca)}
  function posa(f,ko){f.ko=ko;f.body.rotation.z=ko?-1.5:0;f.body.position.y=ko?5:2.9;f.body.position.x=ko?-f.r*.4:0}
- function stati(f,c){const st=new Set((c.stati||[]).map(z=>z.id));f.fiamme=st.has('in-fiamme');f.veleno=st.has('avvelenato');f.stordito=st.has('stordito');const n=st.has('nascosto');
+ function stati(f,c){const st=new Set((c.stati||[]).map(z=>z.id));f.fiamme=st.has('in-fiamme');f.veleno=st.has('avvelenato');f.stordito=st.has('stordito');f.gelo=st.has('congelato');const n=st.has('nascosto');
   if(n!==f.nasc){f.nasc=n;f.mat.transparent=n||f.mat.userData.lum;f.mat.opacity=n?.38:1;f.mat.needsUpdate=true}}
  S.sincFigure=function(modo){
   if(modo!=='bat'){for(const f of FG.values())S_libera(f);FG.clear();return}
   const s=Bat.s;if(!s)return;const vivi=new Set();
   for(const c of s.cb){if(!ASCO.inCampo(c))continue;vivi.add(c.id);let f=FG.get(c.id);if(f&&f.sig!==firma(c)){S_libera(f);FG.delete(c.id);f=null}
    if(!f){f=costruisciFig(c);FG.set(c.id,f);K.g.fig.add(f.g);const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}
-   const giu=c.hp<=0;if(f.occ<=0){const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}if(giu!==f.ko&&f.occ<=0)posa(f,giu);stati(f,c)}
+   const giu=c.hp<=0;if(f.occ<=0&&!segue()){const p=pos3(s,c);f.x=p.x;f.y=p.y;f.z=p.z;metti(f)}if(giu!==f.ko&&f.occ<=0)posa(f,giu);stati(f,c)}
   for(const [id,f] of FG)if(!vivi.has(id)&&f.occ<=0){S_libera(f);FG.delete(id)}}
  S.altFig=id=>{const f=FG.get(id);return f?f.alt:30};
  S.nFig=()=>FG.size;
+ // le miniature in scena (per i controlli della resa pixel): gruppo, altezza, raggio della base, lato
+ S.figure=()=>[...FG.values()].map(f=>({id:f.id,g:f.g,alt:f.alt,r:f.r,lato:f.lato}));
  S.stat=()=>({fa:FA?FA.viva:-1,fs:FS?FS.viva:-1,fe:FE?FE.viva:-1,em:EM.length,fig:FG.size,fuochi:(K.fuochi||[]).length,mat:EM.map(e=>e.k).join(',')});
  // ---- sorgenti d'ambiente (le liste le riempie 24hn): fuochi sul pavimento, torce, camini, falò, corvi ----
  S.sorgenti=function(modo){EM.length=0;while(UCCG&&UCCG.children.length){const c=UCCG.children.pop();c.geometry.dispose();c.material.dispose()}UCC.length=0;
@@ -96,13 +102,28 @@
   for(const f of FG.values()){f.body.scale.y=f.ko?1:1+.016*Math.sin(sec*2.3+f.ph);
    if(f.fiamme){f.fx=(f.fx||0)+22*d;while(f.fx>=1){f.fx--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.8),f.z+R(-4,4),R(-4,4),R(24,44),0,R(.4,.75),R(6,9),1,[1,.8,.3],[.95,.2,.04],.95,0)}}
    if(f.veleno){f.fv=(f.fv||0)+5*d;while(f.fv>=1){f.fv--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.6),f.z+R(-4,4),0,R(10,18),0,R(.9,1.3),R(4,5),7,[.6,.95,.4],[.2,.5,.1],.7,0)}}
+   if(f.gelo){f.fg=(f.fg||0)+9*d;while(f.fg>=1){f.fg--;emetti(FA,f.x+R(-6,6),f.y+f.dy+R(2,f.alt*.8),f.z+R(-4,4),R(-2,2),R(6,14),0,R(.7,1.2),R(3,4.5),0,[.95,1,1],[.5,.8,1],.9,0)}}   // B6: gelo azzurro
    if(f.stordito){const a=sec*5+f.ph;for(let k=0;k<3;k++){const b=a+k*2.09;emetti(FA,f.x+Math.cos(b)*7,f.y+f.dy+f.alt+4,f.z+Math.sin(b)*5,0,0,0,.18,4,2,[1,.92,.4],[1,.7,.2],.95,0)}}}
   for(const u of UCC){const a=sec*u.w+u.f;u.m.position.set(u.cx+Math.cos(a)*u.r,u.cy+Math.sin(sec*.9+u.ph)*3,u.cz+Math.sin(a)*u.r*.8);u.m.rotation.y=-a+(u.w>0?Math.PI/2:-Math.PI/2);u.m.rotation.z=Math.sin(sec*9+u.ph)*.5}
   if(FA)aggiorna(FA,Math.max(d,.04));if(FS)aggiorna(FS,Math.max(d,.04));K.sucio=true};
  // ---- animazioni dei passi della battaglia ----
  const fig=id=>FG.get(id);
  const mezzo=f=>({x:f.x,y:f.y+f.dy+f.alt*.55,z:f.z});
- const volto=(f,x,z)=>{const dx=x-f.x,dz=z-f.z;if(Math.abs(dx)+Math.abs(dz)>.5)f.rot=Math.atan2(dx,dz)};
+ // otto direzioni di sguardo, scattanti (B5): il pixel resta pulito e la figura non ruota di continuo
+ const OTTO=Math.PI/4,dir8=(dx,dz)=>Math.round(Math.atan2(dx,dz)/OTTO)*OTTO;
+ const volto=(f,x,z)=>{const dx=x-f.x,dz=z-f.z;if(Math.abs(dx)+Math.abs(dz)>.5)f.rot=dir8(dx,dz)};
+ // ---- tempo reale (B5): la battaglia a istanti porta a ogni fotogramma le posizioni interpolate { id: { q, r, h, mv, la } } (q, r frazionari,
+ // h = quota del rialzo 0..1, mv = sta camminando, la = sta lanciando). Le animazioni procedurali: passo (molleggio e dondolio), lancio (si alza e brilla).
+ // Le figure con un'animazione breve in corso (occ > 0: affondo, caduta…) restano a quella; `sincFigure` non le rimette al centro dell'esagono.
+ let SEG=0;const segue=()=>ora()-SEG<400;
+ S.muovi=function(P,sec){if(!S.on()||K.modo!=='bat')return;SEG=ora();const fermo=typeof RM!=='undefined'&&RM;
+  for(const f of FG.values()){const p=P[f.id];if(!p||f.occ>0)continue;const w=ASCE.pos('bat',p.q,p.r),dx=w.x-f.x,dz=w.z-f.z;
+   if(dx*dx+dz*dz>.02)f.rot=dir8(dx,dz);f.x=w.x;f.z=w.z;f.y=p.h*ASCE.QUOTA.rialzo;
+   const passo=p.mv&&!fermo&&!f.ko,on=p.la&&!fermo&&!f.ko,k=sec*11+f.ph;
+   f.dy=passo?Math.abs(Math.sin(k))*2.4:on?2+Math.sin(sec*7)*1.2:0;if(!f.ko)f.body.rotation.z=passo?Math.sin(k)*.08:0;
+   if(on||f.brilla){const b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0],g=on?.5+.5*Math.sin(sec*9):0;f.brilla=on;f.mat.emissive.setRGB(b[0]+.34*g,b[1]+.26*g,b[2]+.08*g)}
+   metti(f)}
+  S.sporca()};
  const MAGICO=new Set(['mago','chierico','bardo']);
  function sposta(x,s,f_,rid){const f=fig(x.chi);if(!f)return;const A=s.arena,pts=x.passi.map(p=>{const q=ASCE.pos('bat',p.q,p.r);return{x:q.x,z:q.z,y:AGRI.alt(A,p)?ASCE.QUOTA.rialzo:0}});
   if(rid||f_<=0){const u=pts[pts.length-1];volto(f,u.x,u.z);f.x=u.x;f.z=u.z;f.y=u.y;metti(f);S.sporca();return}
@@ -111,6 +132,12 @@
  function colpo(f,tipo,ms){if(!f)return;const c=tipo==='cura'?[.1,.42,.17]:[.55,.1,.06],b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0];
   tween(ms||260,u=>{const k=1-u;f.mat.emissive.setRGB(b[0]+c[0]*k,b[1]+c[1]*k,b[2]+c[2]*k)},()=>f.mat.emissive.setRGB(b[0],b[1],b[2]))}
  function scossa(f){if(!f)return;f.occ++;tween(260,u=>{f.body.position.x=Math.sin(u*Math.PI*6)*(1-u)*2.6+(f.ko?-f.r*.4:0)},()=>{f.body.position.x=f.ko?-f.r*.4:0;f.occ--})}
+ // B6, il succo: lampo bianco sul colpito e spinta di 1–2 «pixel d'arte» dalla parte opposta a chi colpisce; il critico scuote. PX3 = quanto vale un pixel d'arte nel mondo
+ const PX3=1.5;
+ function lampo(f,ms){if(!f)return;const b=f.mat.userData.lum?[.125,.19,.25]:[0,0,0];tween(ms||160,u=>{const k=1-u;f.mat.emissive.setRGB(b[0]+.9*k,b[1]+.9*k,b[2]+.9*k)},()=>f.mat.emissive.setRGB(b[0],b[1],b[2]))}
+ function colpito(x,rid){const f=fig(x.chi);if(!f)return;if(!rid)lampo(f,x.scossa?220:160);const a=x.da!=null?fig(x.da):null;if(rid||!a||!x.px)return;
+  const dx=f.x-a.x,dz=f.z-a.z,d=Math.hypot(dx,dz)||1,ux=dx/d,uz=dz/d,k=x.px*PX3,x0=f.x,z0=f.z;f.occ++;
+  tween(x.scossa?240:150,u=>{const e=x.scossa?Math.sin(u*Math.PI*4)*(1-u)*.9+Math.sin(u*Math.PI)*.6:Math.sin(u*Math.PI);f.x=x0+ux*k*e;f.z=z0+uz*k*e;metti(f)},()=>{f.x=x0;f.z=z0;f.occ--;metti(f)})}
  function affondo(f,b,f_){if(!f||!b)return;const dx=b.x-f.x,dz=b.z-f.z,d=Math.hypot(dx,dz)||1,ux=dx/d,uz=dz/d,x0=f.x,z0=f.z;volto(f,b.x,b.z);f.occ++;
   tween(130*f_,u=>{const k=Math.sin(u*Math.PI*.5)*9;f.x=x0+ux*k;f.z=z0+uz*k;f.dy=Math.sin(u*Math.PI)*2;metti(f)},()=>tween(150*f_,u=>{const k=(1-u)*9;f.x=x0+ux*k;f.z=z0+uz*k;f.dy=0;metti(f)},()=>{f.x=x0;f.z=z0;f.occ--;metti(f)}))}
  function proiettile(a,b,magia,col,ms){const t0=ora(),A=mezzo(a),B=mezzo(b),c0=col[0],c1=col[1];let ult=0;
@@ -125,8 +152,9 @@
     if(d>62){const mag=a.lato==='eroi'?MAGICO.has(a.classe):(BEST.M[a.def]&&BEST.M[a.def].fam==='torre'||/stregone|officiante/.test(a.def||''));
      proiettile(a,b,mag,mag?(a.lato==='eroi'&&a.classe==='chierico'?[[1,.97,.6],[1,.75,.2]]:[[.85,.7,1],[.45,.3,1]]):[[1,.95,.8],[.8,.7,.5]],Math.max(160,Math.min(380,d*2.2))*f_)}
     else affondo(a,b,f_);return}
-   case'numero':{const g=fig(x.chi);if(!g||rid)return;const p=mezzo(g);if(x.v>0){scoppio(p.x,p.y-6,p.z,'cura');colpo(g,'cura',380)}else{scoppio(p.x,p.y,p.z,x.tipo,x.crit);colpo(g)}return}
+   case'numero':{const g=fig(x.chi);if(!g||rid)return;const p=mezzo(g);if(x.v>0){scoppio(p.x,p.y-6,p.z,'cura');colpo(g,'cura',380)}else scoppio(p.x,p.y,p.z,x.tipo,x.crit);return}
    case'scossa':return rid?0:scossa(fig(x.chi));
+   case'colpito':return colpito(x,rid);
    case'cade':{const g=fig(x.chi);if(!g)return;if(rid){posa(g,true);S.sporca();return}g.occ++;tween(380*f_,u=>{g.body.rotation.z=-1.5*ease(u);g.body.position.y=2.9+2.1*u;g.body.position.x=-g.r*.4*u},()=>{g.occ--;g.ko=true});return}
    case'esce':{const g=fig(x.chi);if(!g||rid)return;g.occ++;tween(380*f_,u=>{g.sca=1-ease(u);metti(g)},()=>{g.occ--});return}
    case'turno':{const g=fig(x.chi);if(!g||rid||g.ko)return;g.occ++;tween(320,u=>{g.dy=Math.sin(u*Math.PI)*5;metti(g)},()=>{g.dy=0;g.occ--;metti(g)});return}

@@ -87,5 +87,16 @@ const ASTA=(()=>{
  function fineTurno(c){const ev=[],extra=((c.hook||{}).breve||0);
   for(const x of c.stati.slice()){if(x.fino==='inizio'||x.t==null)continue;x.t-=1+(D(x).mal?extra:0);if(x.t<=0){togli(c,x.id);ev.push({t:'fine',chi:c.id,stato:x.id})}}
   return ev}
- return{TIPI,FISICI,NOME_TIPO,STATI,ID,aggiungi,togli,rimuovi,ha,trova,mod,caEff,resEff,movEff,puoAgire,attacco,dopoAttacco,salvezza,effettivo,danno,cura,temp,inizioTurno,fineTurno,cade}})();
+ // ---- tempo reale (piano B, docs/AVVENTURA-B.md): un giro = 6 s = 60 istanti da 100 ms; le durate in turni diventano istanti (t turni → 6 t s) ----
+ // `ist` = istanti che restano, `dot` = istanti al prossimo danno nel tempo; `t` resta il numero di turni (arrotondato in su) così `aggiungi`
+ // rinnova uno stato come oggi: se arriva una durata più lunga di quella che resta, `aTempo` riporta gli istanti alla nuova.
+ const GIRO=60;
+ function aTempo(c){for(const x of c.stati){if(x.t==null)continue;if(x.ist==null||x.t!==x.tv){x.ist=Math.max(x.ist||0,x.t*GIRO);x.tv=x.t}if(x.dot==null)x.dot=GIRO}}
+ // un istante sugli stati di `c`: danni nel tempo ogni 6 s, durate che scorrono («Spirito indomito»: i negativi scorrono più in fretta)
+ function scorri(c,rnd){const ev=[];if(!c.stati.length)return ev;aTempo(c);const extra=((c.hook||{}).breve||0);
+  for(const x of c.stati.slice()){if(x.t==null)continue;const S=D(x);
+   if(S.dot&&--x.dot<=0){x.dot=GIRO;if(!c.morto&&c.hp>0){const r=DAD.danno(rnd,S.dot[0]),d=danno(c,r.tot,S.dot[1]);ev.push({t:'dot',chi:c.id,stato:x.id,n:d.n,perso:d.perso,tipo:S.dot[1],a0:d.a0});if(c.morto||!c.stati.includes(x))continue}}
+   x.ist-=1+(S.mal?extra:0);if(x.ist<=0){togli(c,x.id);ev.push({t:'fine',chi:c.id,stato:x.id})}else{x.t=Math.ceil(x.ist/GIRO);x.tv=x.t}}
+  return ev}
+ return{TIPI,FISICI,NOME_TIPO,STATI,ID,GIRO,aggiungi,togli,rimuovi,ha,trova,mod,caEff,resEff,movEff,puoAgire,attacco,dopoAttacco,salvezza,effettivo,danno,cura,temp,inizioTurno,fineTurno,cade,aTempo,scorri}})();
 if(typeof module!=='undefined')module.exports=ASTA;

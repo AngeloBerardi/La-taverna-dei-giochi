@@ -1,0 +1,59 @@
+/* ---- Il succo della battaglia (B6): numeri, colpi, sbriciolamento, bottino, «Livello su!». Prefisso su- (le classi generiche collidono con altri giochi). ----
+   Le durate sono quelle della sezione 9 del piano (docs/AVVENTURA-B.md) e stanno nelle variabili qui sotto: il test (tests/test_avv_succo.js) le confronta con ASUC.TAB,
+   che è ciò che il codice usa per far sparire gli elementi. Strato: #su-ov, fisso nel body sopra la battaglia (z-index 96 di .bt). Pixel d'arte: tutto a quadrati e a scatti. */
+:root{--su-colpo:600ms;--su-critico:800ms;--su-mancato:500ms;--su-cura:600ms;--su-sbriciola:700ms;--su-bottino:1000ms;--su-livello:1500ms;--su-esplode:520ms}
+#su-ov{position:fixed;inset:0;z-index:97;pointer-events:none;overflow:hidden}
+#su-ov>*{position:absolute;pointer-events:none}
+/* numeri: bianco che salta in arco (danno), oro e più grande col contorno (critico), verde che sale (cura) */
+.su-num{font:900 22px/1 var(--f-d);color:#fff;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:-2px 0 #1a0d06,2px 0 #1a0d06,0 -2px #1a0d06,0 2px #1a0d06,-2px -2px #1a0d06,2px 2px #1a0d06,0 3px 0 rgba(0,0,0,.45);animation:su-arco var(--su-colpo) linear forwards}
+.su-num.crit{font-size:32px;color:#ffd24a;animation-duration:var(--su-critico)}
+.su-num.pos{color:#8cf29a;animation-name:su-sale;animation-duration:var(--su-cura)}
+.su-num.somma{animation-duration:var(--su-critico)}
+.su-et{font:800 12px/1 var(--f-b);color:#fff7e0;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:-1.5px 0 #1a0d06,1.5px 0 #1a0d06,0 -1.5px #1a0d06,0 1.5px #1a0d06}
+.su-manc{font-size:11px;color:#b9b2a4;animation:su-manc var(--su-mancato) ease-out forwards}
+@keyframes su-arco{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}
+ 12%{opacity:1;transform:translate(calc(-50% + var(--dx)*.15),calc(-50% - 8px)) scale(1.15);animation-timing-function:ease-out}
+ 45%{transform:translate(calc(-50% + var(--dx)*.55),calc(-50% - 26px)) scale(1);animation-timing-function:ease-in}
+ 80%{opacity:1;transform:translate(calc(-50% + var(--dx)*.95),calc(-50% - 10px))}
+ 100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% - 2px))}}
+@keyframes su-sale{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-190%)}}
+@keyframes su-manc{0%{opacity:0;transform:translate(-50%,-30%)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-110%)}}
+/* il segnalino colpito: lampo bianco e spinta di 1–2 px (--sx, --sy li mette Succo); il critico scuote */
+.bt-tok.su-colpito .bt-corpo{animation:su-colpito .26s steps(4) 1}
+.bt-tok.su-crit .bt-corpo{animation:su-crit .26s steps(6) 1}
+@keyframes su-colpito{0%{filter:brightness(3) saturate(0);transform:translate(0,0)}35%{filter:brightness(3) saturate(0);transform:translate(var(--sx,0),var(--sy,0))}100%{filter:none;transform:translate(0,0)}}
+@keyframes su-crit{0%{filter:brightness(3.4) saturate(0);transform:translate(var(--sx,0),var(--sy,0))}25%{filter:brightness(3.4) saturate(0);transform:translate(calc(var(--sx,0)*-1),calc(var(--sy,0)*-1))}50%{transform:translate(var(--sx,0),var(--sy,0))}75%{transform:translate(calc(var(--sx,0)*-.5),calc(var(--sy,0)*-.5))}100%{filter:none;transform:translate(0,0)}}
+/* tinta degli stati sul segnalino: fiamme, veleno verde, gelo azzurro */
+.bt-tok.su-t-fuoco .bt-corpo{filter:sepia(.55) saturate(2.4) hue-rotate(-14deg) drop-shadow(0 0 3px #ff7a2a)}
+.bt-tok.su-t-veleno .bt-corpo{filter:sepia(.4) saturate(2) hue-rotate(40deg) drop-shadow(0 0 3px #78c83a)}
+.bt-tok.su-t-gelo .bt-corpo{filter:saturate(.6) brightness(1.15) hue-rotate(150deg) drop-shadow(0 0 3px #9ad8ff)}
+/* quadratini: pezzi del nemico che si sbriciola e scintille delle cure (saltano fuori, poi cadono) */
+.su-px{width:5px;height:5px;margin:-2px 0 0 -2px;background:#8a6a34;animation:su-pezzo var(--su-sbriciola) steps(7,end) forwards}
+.su-px.su-sc{width:3px;height:3px;margin:-1px 0 0 -1px;animation:su-scint var(--su-cura) steps(6,end) forwards}
+@keyframes su-pezzo{0%{opacity:1;transform:translate(0,0)}45%{opacity:1;transform:translate(calc(var(--vx)*.8),var(--vy))}100%{opacity:0;transform:translate(var(--vx),var(--fy))}}
+@keyframes su-scint{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(calc(var(--vx)*.3),calc(var(--vy)*2.2))}}
+/* bottino: monete e sfere di esperienza (si muovono con le animazioni di Succo, qui solo l'aspetto) */
+.su-pz{width:7px;height:7px;margin:-3px 0 0 -3px}
+.su-pz.moneta{background:#f3c64a;box-shadow:inset -2px -2px 0 #b8821e,inset 1px 1px 0 #fff3b0}
+.su-pz.sfera{background:#8fd0ff;box-shadow:inset -2px -2px 0 #4a74d8,inset 1px 1px 0 #e6f6ff}
+.tr-ris .su-cont b{color:#a8dcff}
+.tr-ris .su-pop{animation:su-pop .25s steps(3) 1}
+@keyframes su-pop{50%{transform:scale(1.25)}}
+/* livello: colonna di luce sull'eroe e il titolo al centro */
+.su-colonna{width:46px;height:190px;margin:-180px 0 0 -23px;transform-origin:50% 100%;background:linear-gradient(0deg,rgba(255,232,150,.95),rgba(255,226,130,.55) 55%,rgba(255,226,130,0));box-shadow:0 0 18px 4px rgba(255,226,130,.45);animation:su-colonna var(--su-livello) steps(12,end) forwards}
+@keyframes su-colonna{0%{opacity:0;transform:scaleY(0)}18%{opacity:1;transform:scaleY(1)}70%{opacity:1;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1.1)}}
+.su-livello{transform:translate(-50%,-50%);text-align:center;white-space:nowrap;animation:su-titolo var(--su-livello) ease-out forwards}
+.su-livello b{display:block;font:900 38px/1.05 var(--f-d);color:#ffe58a;text-shadow:-3px 0 #3a1c06,3px 0 #3a1c06,0 -3px #3a1c06,0 3px 0 #3a1c06,0 5px 0 rgba(0,0,0,.45)}
+.su-livello small{display:block;margin-top:4px;font:800 14px var(--f-b);color:#fff7e0;text-shadow:-1.5px 0 #1a0d06,1.5px 0 #1a0d06,0 -1.5px #1a0d06,0 1.5px #1a0d06}
+@keyframes su-titolo{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}24%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+/* area rossa del capo: il poligono interno si riempie mentre il potere si carica (lo disegna BatT.zone), poi scoppia */
+.tr-zone .zr{fill:rgba(255,120,80,.55);stroke:none;animation:none}
+.su-boom{fill:#ffe9a0;stroke:#ff6a4a;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:su-boom var(--su-esplode) steps(5,end) forwards;pointer-events:none}
+@keyframes su-boom{0%{opacity:1;transform:scale(.8)}40%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.3)}}
+/* riduci animazioni: i numeri si dissolvono sul posto, niente colpi, pezzi, colonna né voli */
+@media (prefers-reduced-motion:reduce){
+ .su-num,.su-num.crit,.su-num.pos,.su-num.somma{animation-name:su-dissolvi}
+ .su-px,.su-colonna{display:none}
+ .bt-tok.su-colpito .bt-corpo,.bt-tok.su-crit .bt-corpo,.tr-ris .su-pop,.su-boom{animation:none}
+ .su-livello{animation-name:su-dissolvi}}
+@keyframes su-dissolvi{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}

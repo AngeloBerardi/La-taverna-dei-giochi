@@ -280,6 +280,18 @@ const APOT=(()=>{
    else if(e.k==='stato')t.push(ST.STATI[e.id].nome.toLowerCase()+(ST.STATI[e.id].perm?'':' '+e.t+' t'));}
   return t.join(' · ')}
  const registra=pot;
- return{P,TAL,TAL_ID,PASS,RAZZA_POT,LIV_POTERE,LIV_TALENTO,CURABILI,eff:{W,D,C,S,SE,AU,CE,LI},registra,opzioni,offerta,offertaTalenti,tipoLivello,daScegliere,scelteErr,scegli,completa,poteriEroe,talentiEroe,ganci,combattente,
+ // ---- tempo reale (piano B, docs/AVVENTURA-B.md §3): dai costi ai tempi, in istanti da 100 ms. Cosa fa un potere non cambia ----
+ // azione = lancio (0,6–1,5 s, interrompibile) + ricarica 6 s; bonus = istantaneo, ricarica 3 s; reazione = scatta da sola, poi ricarica 6 s.
+ // Il lancio cresce con la carica (a volontà → per riposo lungo) e con le aree a distanza. L'attacco con l'arma va al ritmo dell'arma.
+ const GIRO=ST.GIRO,RITMO={leggera:12,media:16,pesante:22},LANCIO={turno:6,scontro:8,breve:10,lungo:12};
+ function tempi(p){if(!p)return null;if(p.id==='attacco')return{lancio:0,ricarica:0};if(p.costo==='reazione')return{lancio:0,ricarica:GIRO};if(p.costo==='bonus')return{lancio:0,ricarica:GIRO/2};
+  return{lancio:Math.min(15,(LANCIO[p.ric]||LANCIO.scontro)+(['cerchio','cono','linea'].includes(p.area)?3:0)),ricarica:GIRO}}
+ // peso dell'arma: leggera (d4, o d6 accurata), pesante (a due mani da mischia, o due dadi / d10+), media il resto; senz'arma leggera.
+ // Per i mostri decide il loro danno (sciame leggero). `h` = la scheda dell'eroe, se c'è.
+ function pesoArma(c,h){const a=h&&h.equip&&h.equip.arma?AO().OGG[h.equip.arma]:null;
+  if(a){if(a.dado<=4||(a.acc&&a.dado<=6))return'leggera';if((a.due&&!a.gt)||a.n>1||a.dado>=10)return'pesante';return'media'}
+  if(c.tipo==='eroe')return'leggera';const d=(c.dan||{}).n*(c.dan||{}).dado;return c.ruolo==='sciame'||d<=4?'leggera':d>=10?'pesante':'media'}
+ const ritmo=(c,h)=>RITMO[pesoArma(c,h)];
+ return{GIRO,RITMO,tempi,pesoArma,ritmo,P,TAL,TAL_ID,PASS,RAZZA_POT,LIV_POTERE,LIV_TALENTO,CURABILI,eff:{W,D,C,S,SE,AU,CE,LI},registra,opzioni,offerta,offertaTalenti,tipoLivello,daScegliere,scelteErr,scegli,completa,poteriEroe,talentiEroe,ganci,combattente,
   usiMax,usiRimasti,puoUsare,validaBers,applica,oggetto,applicaOggetto,stimaRiduzione,subisci,stima,quanto,espressione,iniziaScontro,inizioTurno,riposo,riga}})();
 if(typeof module!=='undefined')module.exports=APOT;

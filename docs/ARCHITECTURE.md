@@ -133,7 +133,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 6 |  |
 | `css/39-campagna.css` | 10 |  |
-| `css/39a-avventura.css` | 1 |  |
+| `css/39a-avventura.css` | 8 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
@@ -141,6 +141,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39f-tutorial.css` | 1 |  |
 | `css/39g-stanza.css` | 4 |  |
 | `css/39h-scena3d.css` | 1 |  |
+| `css/39i-succo.css` | 7 |  |
 | `css/40-legno-ottone.css` | 14 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -183,8 +184,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27a-avv-dadi.js` | 3 | ADADI |
 | `js/motori/27b-avv-oggetti.js` | 16 | AOGG |
 | `js/motori/27c-avv-bottino.js` | 6 | ABOT |
-| `js/motori/27d-avv-stati.js` | 9 | ASTA |
-| `js/motori/27e-avv-poteri.js` | 34 | APOT |
+| `js/motori/27d-avv-stati.js` | 10 | ASTA |
+| `js/motori/27e-avv-poteri.js` | 36 | APOT |
 | `js/motori/27f-avv-bestiario.js` | 15 | BEST |
 | `js/motori/27g-avv-griglia.js` | 9 | AGRI |
 | `js/motori/27h-avv-arene.js` | 9 | AARE |
@@ -199,14 +200,18 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
+| `js/motori/27s-avv-tempo.js` | 31 | ATEM |
+| `js/motori/27t-avv-ia-tempo.js` | 18 | AIAT |
 | `js/motori/28-campagna.js` | 38 | CAMP |
 | `js/motori/28a-avv-orchestratore.js` | 23 | AVV |
 | `js/motori/28b-avv-rientro.js` | 4 | ARIE |
-| `js/motori/28c-avv-audio.js` | 12 | AAUD |
+| `js/motori/28c-avv-audio.js` | 14 | AAUD |
 | `js/motori/28d-avv-tutorial.js` | 6 | ATUT |
 | `js/motori/28e-avv-stanza.js` | 15 | AST |
-| `js/motori/28f-avv-scena.js` | 12 | ASCE |
-| `js/motori/28g-avv-mini.js` | 14 | AMIN |
+| `js/motori/28f-avv-scena.js` | 24 | ASCE |
+| `js/motori/28g-avv-mini.js` | 15 | AMIN |
+| `js/motori/28h-avv-palette.js` | 7 | APAL |
+| `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -229,7 +234,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07-nucleo.js` | 15 | G, ui, ME, R, ENG, isRG, GAMES |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
-| `js/app/07c-comandi.js` | 8 |  |
+| `js/app/07c-comandi.js` | 9 |  |
 | `js/app/07d-regole.js` | 48 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
@@ -286,7 +291,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 16 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
-| `js/app/24he-battaglia.js` | 25 | Bat |
+| `js/app/24he-battaglia.js` | 26 | Bat |
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
 | `js/app/24hh-mondo-pannelli.js` | 19 | MoPan |
@@ -295,8 +300,11 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hk-audio-avv.js` | 2 | AvvAudio |
 | `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
-| `js/app/24hn-scena3d.js` | 22 | Scena3D |
-| `js/app/24ho-scena-fx.js` | 16 |  |
+| `js/app/24hn-scena3d.js` | 31 | Scena3D |
+| `js/app/24ho-scena-fx.js` | 19 |  |
+| `js/app/24hp-pixel.js` | 19 | Pixel, PixelProva |
+| `js/app/24hq-bat-tempo.js` | 27 | BatT |
+| `js/app/24hr-bat-succo.js` | 10 | Succo |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |

@@ -232,9 +232,10 @@ const RULES={
 <ul><li>Una prova è un <b>d20</b> più l'abilità contro una <b>CD</b>. Un 20 naturale riesce sempre, un 1 fallisce sempre. <b>Vantaggio</b> = due dadi, vale il migliore; <b>svantaggio</b> = vale il peggiore.</li>
 <li>Le scelte con prova mostrano la probabilità: <b>[Persuasione 65%]</b>. Anche i compagni dicono la loro, e si ricordano come li tratti.</li></ul>
 <p><b>Battaglia</b></p>
-<ul><li>Griglia a esagoni. Si gioca a turni nell'ordine di <b>iniziativa</b>. Nel tuo turno: <b>movimento</b> (si tira), <b>1 azione</b>, <b>1 azione bonus</b> e, fuori turno, <b>1 reazione</b>.</li>
+<ul><li>Griglia a esagoni. Le battaglie della campagna <b>scorrono da sole</b>, in tempo reale: ogni eroe agisce secondo il suo <b>atteggiamento</b> (Assalto, Difesa, Supporto, Tieni la posizione) e tu dai gli ordini. Tocca un eroe per sceglierlo, un nemico per attaccarlo, un esagono per andarci, un eroe a terra per rialzarlo; i tasti rotondi in basso usano le abilità (l'anello mostra la ricarica). <b>Pausa</b> quando vuoi (anche automatica), velocità ×1 o ×2. Le aree rosse a terra sono poteri in arrivo: uscine.</li>
+<li>La battaglia di prova e quella in compagnia con la TV restano <b>a turni</b>, nell'ordine di <b>iniziativa</b>: nel tuo turno <b>movimento</b> (si tira), <b>1 azione</b>, <b>1 azione bonus</b> e, fuori turno, <b>1 reazione</b>.</li>
 <li><b>Attacco</b>: d20 più bonus contro la <b>CA</b> del bersaglio; se colpisci tiri il danno, e un 20 naturale lo raddoppia. Ostacoli bassi danno <b>copertura</b>, stare in alto dà vantaggio, tirare con un nemico adiacente svantaggio.</li>
-<li>Nove tipi di danno (taglio, perforante, contundente, fuoco, gelo, fulmine, necrotico, radioso, veleno): alcuni mostri li <b>resistono</b> o ne sono <b>vulnerabili</b>. Toccando un esagono o un bersaglio vedi cosa succederà prima di confermare.</li>
+<li>Nove tipi di danno (taglio, perforante, contundente, fuoco, gelo, fulmine, necrotico, radioso, veleno): alcuni mostri li <b>resistono</b> o ne sono <b>vulnerabili</b>. A turni, toccando un esagono o un bersaglio vedi cosa succederà prima di confermare.</li>
 <li>Chi è a terra non si attacca. Si può fuggire dall'uscita sul bordo; un nemico ferito può arrendersi.</li></ul>
 <p><b>Vite e sessioni</b></p>
 <ul><li>La compagnia ha delle <b>vite</b> in comune (4 a Normale). Se tutti cadono: una vita in meno, ci si risveglia nell'ultima città a metà PF, con metà dell'oro in meno e la perdizione che sale di 10. A zero vite la campagna è persa, ma gli eroi restano e l'esperienza maturata torna comunque.</li>

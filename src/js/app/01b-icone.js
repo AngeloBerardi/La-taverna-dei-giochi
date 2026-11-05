@@ -12,7 +12,7 @@ const ICONE={
  tv:'<rect x="3" y="5" width="18" height="12"/><path d="M8 21h8M12 17v4"/>',cestino:'<path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/>',
  corona:'<path d="M3 18L5 7l5 5 2-7 2 7 5-5 2 11z"/>',teschio:'<path d="M12 3a8 8 0 0 0-8 8c0 3 1.6 5 4 6v3h8v-3c2.4-1 4-3 4-6a8 8 0 0 0-8-8zM9 12h.01M15 12h.01"/>',
  stretta:'<path d="M3 12l5-5 4 3 4-3 5 5-9 8z"/>',medaglia:'<circle cx="12" cy="9" r="6"/><path d="M8 14l-2 7 6-3 6 3-2-7"/>',
- play:'<path d="M7 4L19 12 7 20z" fill="currentColor"/>',casa:'<path d="M3 11l9-7 9 7v9H4z"/>',mappa:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>',
+ play:'<path d="M7 4L19 12 7 20z" fill="currentColor"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',pausa:'<path d="M7 4h3v16H7zM14 4h3v16h-3z" fill="currentColor"/>',casa:'<path d="M3 11l9-7 9 7v9H4z"/>',mappa:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>',
  amici:'<path d="M3 20c0-4 3-6 6-6s6 2 6 6M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M17 6a2.5 2.5 0 0 1 0 5M18 14c2 .5 3 2.5 3 6"/>',spada:'<path d="M5 19L17 7l2-4 2 0-1 3-4 2zM5 19l-2 2M8 16l2 2"/>',
  plus:'<path d="M12 4v16M4 12h16"/>',chiave:'<path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/>',
  pugnale:'<path d="M5 19L15 9M13 7l4 4M15 9l4-4M3 21l2-2"/>',scintilla:'<path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>',croce:'<path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/>',freccia:'<path d="M4 20L20 4M10 4h10v10"/>',

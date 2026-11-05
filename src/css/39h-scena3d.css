@@ -4,3 +4,14 @@
 .s3 .bt-svg{z-index:1}
 .s3 .bt-svg .bt-ev{opacity:.7}
 .s3-set{display:flex;gap:6px;flex-wrap:wrap}
+.s3-cv.s3-px{image-rendering:pixelated;image-rendering:crisp-edges}
+/* pagina di prova della resa pixel (?prova=pixel, B1): la scena a tutto schermo, il pannello in basso */
+.pxp{position:fixed;inset:0;z-index:9000;background:#0e0c0a;overflow:hidden}
+.pxp .bt-mappa{position:absolute;inset:0}
+.pxp .bt-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.pxp-pan{position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2;display:grid;gap:6px;max-width:520px;margin:0 auto;padding:10px 12px;
+ background:rgba(30,20,12,.92);border:2px solid #b8913c;border-radius:10px;color:#f1e4c8;font-size:13px}
+.pxp-riga{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pxp-riga>span{min-width:82px;color:#d9c49a}
+.pxp-info{font:12px/1.35 ui-monospace,monospace;color:#d9c49a;min-height:16px}
+.pxp-mostra{position:absolute;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:2}

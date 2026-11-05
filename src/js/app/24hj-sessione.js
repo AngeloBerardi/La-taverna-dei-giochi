@@ -75,9 +75,9 @@ const Ses={
   if(a.camp.sfida){Ses.dia=false;ui.dia=false;ui.camp=true;return Camp.combatti()}
   if(!a.bat)return;const seme=a.bat.seme;
   if(Bat.mondo===seme&&Bat.s){ui.dia=false;ui.bat=true;Bat.foglio=null;return render()}
-  try{Bat.daMondo(AVV.battaglia(a),AVV.quali(a).map(i=>a.camp.eroi[i].aspetto),seme)}catch(e){ERR.n(e);Dia.msg='Non riesco a preparare la battaglia: riprova.';return render()}
+  try{Bat.daMondo(AVV.battaglia(a,{tempo:true}),AVV.quali(a).map(i=>a.camp.eroi[i].aspetto),seme)}catch(e){ERR.n(e);Dia.msg='Non riesco a preparare la battaglia: riprova.';return render()}
   ui.dia=false;ui.camp=false;ui.bat=true;render()},
- fineBattaglia(b){if(inAvv())return AvvStanza.chiudiLotta();const r=Ses.fai({t:'esito',riep:ASCO.riepilogo(b)});if(r.err){Bat.msg=r.err;return render()}
+ fineBattaglia(b){if(inAvv())return AvvStanza.chiudiLotta();const r=Ses.fai({t:'esito',riep:Bat.riep(b)});if(r.err){Bat.msg=r.err;return render()}
   Bat.chiudiMondo();Camp.u.dado=null;Camp.u.msg='';Camp.v.cx=Camp.v.cy=null;Ses.vai(true);render()},
  premia(){const a=Ses.a;if(!a||!a.fine||!Avv.online())return;const p=ARIE.premio(a);if(p.monete>0){FB.premiaAvventura(p.monete);Ses.a=ARIE.premiato(a);Camp.s=Ses.a.camp;Ses.scriviLocale()}},
  // ---- rientro sull'account: a tappe, aspettando il minuto che le regole chiedono tra un guadagno e l'altro ----

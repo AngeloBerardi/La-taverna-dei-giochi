@@ -920,20 +920,17 @@ async def sc_avv_mondo(b, srv):
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_timeout(700)
     check(await pg.query_selector('.bt') is not None and await pg.query_selector('.mo') is None and await pg.evaluate("Bat.mondo") is not None, 'si apre la battaglia della campagna')
     check(await pg.evaluate("!!localStorage.getItem('bat')") and await pg.evaluate("JSON.parse(localStorage.getItem('bat')).mondo") == await pg.evaluate("Camp.s.sfida.seme"), 'la battaglia è salvata col suo legame alla campagna')
-    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa (prima i nemici finiscono il loro turno)
-    for _ in range(120):
-        if await pg.query_selector('.bt-pausa'): await pg.click('.bt-pausa [data-a=batrea]:last-child')
-        elif not await pg.evaluate('Bat.anim||Bat.lavoro||!!Bat.pausa'): break
-        await pg.wait_for_timeout(250)
-    await pg.click('[data-a=batfoglio][data-v=menu]'); await pg.wait_for_timeout(150)
-    check(await pg.query_selector('[data-a=batabbandona]') is None and await pg.query_selector('[data-a=batesci]') is not None, 'nel menu niente «Abbandona»')
-    await pg.click('[data-a=batesci]'); await pg.wait_for_timeout(300)
+    check(await pg.evaluate("Bat.tempo()") and await pg.query_selector('.tr-bat') is not None, 'dal B5 la battaglia del mondo è in tempo reale')
+    # dal menu non si può abbandonare; si può uscire e riprendere dalla mappa
+    await pg.click('[data-a=btt][data-v="foglio:menu"]'); await pg.wait_for_timeout(150)
+    check(await pg.query_selector('[data-a=batabbandona]') is None and await pg.query_selector('[data-a=btt][data-v=esci]') is not None, 'nel menu niente «Abbandona»')
+    await pg.click('[data-a=btt][data-v=esci]'); await pg.wait_for_timeout(300)
     check(await pg.query_selector('.mo') is not None and await pg.query_selector('.mo-fg [data-a=mo][data-v=combatti]') is not None, 'uscendo si torna alla mappa e si può riprendere')
     ev = await pg.evaluate("Bat.s.evn")
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_timeout(500)
     check(await pg.evaluate("Bat.s.evn") == ev and await pg.query_selector('.bt') is not None, 'si riprende la stessa battaglia, non una nuova')
-    # il resto della battaglia lo gioca il bot: poi «Continua» riporta alla mappa con il risultato
-    await pg.evaluate("(()=>{Bat.s=AIA.partita(Bat.s,{eroi:'eroica',nemici:'normale'});Bat.c=ACOM.nuovo(Bat.s);Bat.salva();render()})()"); await pg.wait_for_timeout(400)
+    # il resto della battaglia lo gioca l'IA del tempo reale: poi «Continua» riporta alla mappa con il risultato
+    await pg.evaluate("(()=>{AIAT.gioca(Bat.s,{qui:true});Bat.salva();render()})()"); await pg.wait_for_timeout(400)
     check(await pg.query_selector('.bt-fine [data-a=batmondo]') is not None and await pg.query_selector('.bt-fine [data-a=batrigioca]') is None, 'fine battaglia: solo «Continua»')
     await pg.click('[data-a=batmondo]'); await pg.wait_for_timeout(400)
     check(await pg.query_selector('.mo-svg') is not None and await pg.query_selector('.bt') is None and await pg.evaluate("Camp.s.sfida") is None and await pg.evaluate("Bat.mondo") is None and not await pg.evaluate("!!localStorage.getItem('bat')"), 'tornati alla mappa: sfida chiusa, battaglia cancellata')
@@ -1968,12 +1965,9 @@ async def sc_avv_rifinitura(b, srv):
     await pg.wait_for_selector('[data-a=mo][data-v=combatti]', timeout=5000)
     await pg.click('[data-a=mo][data-v=combatti]'); await pg.wait_for_selector('.bt', timeout=8000); await pg.wait_for_timeout(800)
     q = await pg.evaluate("Snd.quale()"); check(q in ('avv-battaglia', 'avv-capo'), f'in battaglia suona la musica di battaglia ({q})')
-    try:
-        await pg.wait_for_function("document.querySelector('.bt .tut')", timeout=9000)
-        tid = await pg.evaluate("document.querySelector('.bt .tut').dataset.tut")
-        check(tid.startswith('bat-') and await dentro('.bt-mappa > .tut') is True, f'in battaglia la schedina «{tid}» sta nella mappa, dentro lo schermo')
-    except Exception:
-        check(False, 'in battaglia compare la schedina del turno')
+    # B5: la battaglia della campagna è in tempo reale; le schedine sono quelle dei turni e non si mostrano (le adatta B9)
+    await pg.wait_for_timeout(1500)
+    check(await pg.evaluate("Bat.tempo()") and await pg.query_selector('.bt .tut') is None, 'in battaglia (tempo reale) nessuna schedina dei turni')
     await pg.screenshot(path=os.environ['FOTO_RIFINITURA']) if os.environ.get('FOTO_RIFINITURA') else None
     await pg.evaluate("(()=>{const b=Bat.s;b.over={esito:'vittoria',giri:1};render()})()")
     check(await pg.evaluate("Snd.quale()") == 'avv-vittoria', f'vinta: musica di vittoria ({await pg.evaluate("Snd.quale()")})')
@@ -2294,6 +2288,143 @@ JS_A11Y = """((opz)=>{
   if(rr<soglia){const k=t.slice(0,24)+'|'+rr.toFixed(1);if(!visti.has(k)){visti.add(k);bassi.push(((e.className&&String(e.className).split(' ')[0])||e.tagName.toLowerCase())+' «'+t.slice(0,28)+'» '+rr.toFixed(1)+':1 ('+px+'px)')}}}
  return{piccoli,bassi,largo:document.documentElement.scrollWidth>innerWidth}})"""
 
+JS_PX_FOTO = """(o)=>{const K=Scena3D.K,i=K.ren.info;i.autoReset=false;i.reset();const r=PixelProva.scatta(Object.assign({schermo:true},o||{}));i.autoReset=true;
+ const u=r.ult,S=r.schermo,B=r.basso;return{s:u.s,art:u.art,off:u.off,W:S.w,H:S.h,bl:APAL.blocchi(S.px,S.w,S.h,u.s,u.off[0],u.off[1]),fuori:APAL.fuori(S.px),
+  fuoriBasso:APAL.fuori(B.px),bordo:[S.w,S.h].join('x')===[K.cv.width,K.cv.height].join('x'),css:Math.round(K.cv.getBoundingClientRect().width*devicePixelRatio),chiamate:i.render.calls,tri:i.render.triangles}}"""
+# la schermata vera (composta dal browser): blocchi interi anche dopo il ridimensionamento della pagina, a partire dal basso (off è in coordinate GL)
+JS_PX_SCHERMATA = """async([b64,s,ox,oy,taglio])=>{const im=await createImageBitmap(await (await fetch('data:image/png;base64,'+b64)).blob()),c=document.createElement('canvas');
+ c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);const H=im.height-taglio,d=g.getImageData(0,0,im.width,H).data;
+ return{w:im.width,h:im.height,bl:APAL.blocchi(d,im.width,H,s,ox,im.height-oy),fuori:APAL.fuori(d)}}"""
+# scorrimento: con il tempo fermo, la telecamera spostata di frazioni di unità dà sempre la stessa immagine spostata di pixel interi
+JS_PX_SCORRE = """(()=>{const K=Scena3D.K,c={x:K.bbox.cx,z:K.bbox.cz},k=APAL.k(),px=(x,z)=>{const[a,b]=APAL.piano(x,0,z);return[Math.round(a*k),Math.round(b*k)]};
+ const passi=[[0,0],[7.3,-4.1],[13.9,9.2],[-21.4,3.3],[.31,.12],[2.6,-1.7]],res=[];let a0=null,p0=null,sbagliato=0;
+ for(const[dx,dz]of passi){const x=c.x+dx,z=c.z+dz,r=PixelProva.scatta({cam:[x,z]}),p=px(x,z);if(!a0){a0=r.basso;p0=p;continue}
+  const d=APAL.confronta(a0.px,r.basso.px,a0.w,a0.h,p[0]-p0[0],p[1]-p0[1],2);res.push(+(d.diversi/d.tot).toFixed(5));
+  if(p[0]!==p0[0]){const e=APAL.confronta(a0.px,r.basso.px,a0.w,a0.h,p[0]-p0[0]+1,p[1]-p0[1],2);sbagliato=Math.max(sbagliato,e.diversi/e.tot)}}
+ PixelProva.camera(null);return{res,sbagliato}})()"""
+# contorni: i pixel che cambiano accendendoli sono tutti toni più scuri di una rampa
+JS_PX_CONTORNI = """(()=>{const a=PixelProva.scatta({contorni:false}).basso,b=PixelProva.scatta({contorni:true}).basso,sc=new Set(APAL.NOMI.map((_,i)=>APAL.RGB[i*5].join(',')));
+ let n=0,scuri=0;for(let o=0;o<a.px.length;o+=4)if(a.px[o]!==b.px[o]||a.px[o+1]!==b.px[o+1]||a.px[o+2]!==b.px[o+2]){n++;if(sc.has([b.px[o],b.px[o+1],b.px[o+2]].join(',')))scuri++}
+ return{n,scuri,tot:a.px.length/4}})()"""
+# contorni su tutte le figure in vista (B2): nel riquadro di ogni miniatura il contorno cambia qualche pixel
+JS_PX_FIGURE = """(()=>{const a=PixelProva.scatta({contorni:false}).basso,b=PixelProva.scatta({contorni:true}).basso,W=a.w,H=a.h,out=[];
+ for(const f of PixelProva.figure()){if(f.x0<0||f.y0<0||f.x1>W||f.y1>H)continue;let n=0;
+  for(let y=f.y0;y<f.y1;y++)for(let x=f.x0;x<f.x1;x++){const o=(y*W+x)*4;if(a.px[o]!==b.px[o]||a.px[o+1]!==b.px[o+1]||a.px[o+2]!==b.px[o+2])n++}out.push({id:f.id,lato:f.lato,n})}
+ return out})()"""
+# filo di luce (B2): i pixel che cambiano accendendolo diventano il tono subito più chiaro della stessa rampa
+JS_PX_FILO = """(()=>{const a=PixelProva.scatta({filo:false}).basso,b=PixelProva.scatta({}).basso,I=new Map(APAL.RGB.map((c,i)=>[c.join(','),i]));let n=0,ok=0;
+ for(let o=0;o<a.px.length;o+=4){if(a.px[o]===b.px[o]&&a.px[o+1]===b.px[o+1]&&a.px[o+2]===b.px[o+2])continue;n++;
+  const i=I.get([a.px[o],a.px[o+1],a.px[o+2]].join(',')),j=I.get([b.px[o],b.px[o+1],b.px[o+2]].join(','));if(i!=null&&j!==i&&j===APAL.chiaro(i))ok++}
+ return{n,ok,tot:a.px.length/4}})()"""
+# retino della nebbia (B2): i pixel che cambiano accendendola prendono tutti il colore della nebbia; il cielo usa solo i suoi tre toni
+JS_PX_NEBBIA = """(()=>{const a=PixelProva.scatta({nebbia:false}).basso,b=PixelProva.scatta({}).basso,L=Scena3D.K.Lp,neb=L.nebbia&&APAL.RGB[APAL.indice(L.nebbia[0])].join(',');
+ let n=0,ok=0;for(let o=0;o<a.px.length;o+=4){if(a.px[o]===b.px[o]&&a.px[o+1]===b.px[o+1]&&a.px[o+2]===b.px[o+2])continue;n++;if([b.px[o],b.px[o+1],b.px[o+2]].join(',')===neb)ok++}
+ return{n,ok,tot:a.px.length/4,momento:L.momento,liv:L.liv}})()"""
+
+async def sc_avv_pixel(b, srv):
+    """Resa pixel (B1–B2), pagina ?prova=pixel: pixel d'arte tutti della stessa misura (telefono ai due zoom, telefono a dpr frazionario, TV 1080p),
+    solo colori della palette, contorni scuri su tutte le figure, filo di luce un tono più chiaro, nebbia a retino, telecamera agganciata (scorrimento
+    a pixel interi), interruttore con il 3D di oggi; le tre scene di controllo (foresta di giorno, sotterraneo con torce, notte con perdizione) a 390 pt
+    e a 1080p, con le schermate in SCHERMATE_DIR."""
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    async def apri(vp, dpr, scena='sotterraneo'):
+        # tempo fermo e animazioni ridotte: si disegna solo quando serve (il WebGL del browser di prova è software)
+        ctx = await b.new_context(viewport=vp, device_scale_factor=dpr, service_workers='block', reduced_motion='reduce')
+        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');")
+        async def route(r):
+            u = r.request.url; m = SDK.match(u)
+            if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
+            if u.startswith(f'http://localhost:{srv.port}'): return await r.continue_()
+            await r.abort()
+        await ctx.route('**/*', route)
+        pg = await page(ctx, srv.url + f'?prova=pixel&t=1.5&scena={scena}', wait=500)
+        await pg.wait_for_function("Scena3D.pronta&&Scena3D.on()&&PixelProva.P.ult&&Scena3D.nFig()===7&&Scena3D.K.px", timeout=40000)
+        return ctx, pg
+    async def schermata(pg, f, nome, taglio):
+        png = await pg.screenshot(path=os.path.join(SCH, f'{nome}.png'))
+        import base64
+        return await pg.evaluate(JS_PX_SCHERMATA, [base64.b64encode(png).decode(), f['s'], f['off'][0], f['off'][1], taglio])
+    async def scena(pg, id_):
+        await pg.evaluate(f"PixelProva.act('scena:{id_}')")
+        await pg.wait_for_function(f"Scena3D.nFig()===7&&PixelProva.P.scena==='{id_}'&&Scena3D.K.Lp&&PixelProva.P.ult", timeout=20000); await pg.wait_for_timeout(400)
+    async def controlli(pg, nome, f):
+        fi = await pg.evaluate(JS_PX_FIGURE)
+        check(len(fi) >= 3 and all(x['n'] >= 6 for x in fi), f'{nome}: contorni su tutte le figure in vista ({[(x["id"], x["n"]) for x in fi]})')
+        fl = await pg.evaluate(JS_PX_FILO)
+        check(fl['n'] > 20 and fl['ok'] == fl['n'], f'{nome}: filo di luce = un tono più chiaro della stessa rampa ({fl})')
+        check(f['bl']['ok'] and f['fuori'] == 0 and f['fuoriBasso'] == 0, f'{nome}: blocchi interi e solo colori della palette ({f["bl"]}, {f["fuori"]} fuori)')
+    # ---- telefono verticale 390 pt a dpr 2: ×4 (195 pixel d'arte), zoom vicino ×5 (a dpr 3 sarebbe ×6 e ×8: stessi conti, il test resta leggero) ----
+    ctx, pg = await apri({'width': 390, 'height': 844}, 2)
+    check(await pg.evaluate("!!document.querySelector('.pxp .bt-mappa.s3 > .s3-cv.s3-px')"), 'la prova monta il canvas della scena con la resa pixel')
+    f = await pg.evaluate(JS_PX_FOTO)
+    check(f['s'] == 4 and f['art'] == [195, 422] and f['bordo'] and abs(f['css'] - f['W']) <= 1, f'telefono: scala ×4, 195×422 pixel d\'arte, canvas a pixel veri ({f["W"]}×{f["H"]}, {f["css"]})')
+    check(f['bl']['ok'], f'telefono, zoom lontano: ogni pixel d\'arte è un blocco 4×4 di un solo colore ({f["bl"]})')
+    check(f['fuori'] == 0 and f['fuoriBasso'] == 0, f'solo colori della palette ({f["fuori"]} fuori)')
+    print('pixel: chiamate', f['chiamate'], 'triangoli', f['tri'])
+    v = await pg.evaluate(JS_PX_FOTO, {'zoom': 'vicino'})
+    check(v['s'] == 5 and v['bl']['ok'] and v['fuori'] == 0, f'telefono, zoom vicino: scala ×5, blocchi interi ({v["art"]}, {v["bl"]})')
+    await pg.evaluate("PixelProva.scatta({zoom:'lontano'})")
+    sr = await pg.evaluate(JS_PX_SCORRE)
+    check(max(sr['res']) < .002 and sr['sbagliato'] > .05, f'telecamera agganciata: spostandola, la scena scorre di pixel interi senza cambiare forma, anche retino e tessere ({sr})')
+    ct = await pg.evaluate(JS_PX_CONTORNI)
+    check(ct['n'] > ct['tot'] * .004 and ct['scuri'] == ct['n'], f'contorni di 1 pixel nel tono più scuro della rampa ({ct})')
+    st = await pg.evaluate("(()=>{const K=Scena3D.K;return{tema:K.D.tema,muro:K.D.quota.muro,luci:K.luciP.filter(l=>l.parent&&l.intensity>0).length,fonti:(K.fontiP||[]).length,tm:K.ren.toneMapping}})()")
+    check(st['tema'] == 'sotterraneo' and st['muro'] == 40 and st['luci'] == 4 and st['fonti'] > 4 and st['tm'] == 0, f'sotterraneo: tema, muri alti, 4 luci puntiformi fra le torce e i fuochi, niente toni ACES ({st})')
+    # le tre scene di controllo al telefono, con le schermate
+    for id_ in ['foresta', 'sotterraneo', 'notte']:
+        await scena(pg, id_)
+        await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+        f = await pg.evaluate(JS_PX_FOTO)
+        sc = await schermata(pg, f, f'pixel-{id_}-telefono', 70 * 2)
+        check(sc['bl']['ok'] and sc['fuori'] == 0, f'{id_}, telefono: la schermata composta dal browser ha blocchi interi e solo colori della palette ({sc["bl"]})')
+        await controlli(pg, id_ + ', telefono', f)
+        if id_ != 'foresta':
+            nb = await pg.evaluate(JS_PX_NEBBIA)
+            check(nb['n'] > 50 and nb['ok'] == nb['n'], f'{id_}: nebbia a retino, tutta del suo colore ({nb})')
+        await pg.evaluate("PixelProva.act('pann:1')")
+    lp = await pg.evaluate("(()=>{const L=Scena3D.K.Lp;return{momento:L.momento,liv:L.liv,neb:L.nebbia}})()")
+    check(lp['momento'] == 'notte' and lp['liv'] == 3 and lp['neb'][0] == 'fuoco:0', f'notte con perdizione alta: luna, livello 3, nebbia rossa ({lp})')
+    # i sei temi si montano senza errori (tema che gira dal pannello)
+    temi = []
+    for _ in range(6):
+        await pg.click('[data-a=pxp][data-v="tema:+"]')
+        await pg.wait_for_function("Scena3D.nFig()===7&&Scena3D.K.D&&Scena3D.K.D.tema===PixelProva.P.tema&&PixelProva.P.ult", timeout=20000)
+        temi.append(await pg.evaluate("Scena3D.K.D.tema"))
+    check(sorted(set(temi)) == ['foresta', 'fortezza', 'palude', 'rovine', 'sotterraneo', 'torre'], f'i sei temi dei biomi ({temi})')
+    # interruttore: il 3D di oggi torna com'era (canvas a misura del contenitore, luce di sempre), poi di nuovo pixel
+    await pg.click('[data-a=pxp][data-v="modo:3d"]'); await pg.wait_for_timeout(600)
+    st = await pg.evaluate("({px:Scena3D.K.cv.classList.contains('s3-px'),w:Scena3D.K.cv.style.width,ult:PixelProva.P.ult,band:Scena3D.K.U.uBande.value,tm:Scena3D.K.ren.toneMapping,tema:Scena3D.K.D.tema})")
+    check(not st['px'] and st['w'] == '100%' and st['ult'] is None and st['band'] == 0 and st['tm'] != 0 and st['tema'] is None, f'«3D di oggi» rimette la scena di sempre ({st})')
+    await pg.evaluate("PixelProva.act('modo:pixel');PixelProva.act('scena:foresta')")
+    await pg.wait_for_function("Scena3D.nFig()===7&&Bat.s.arena.ambiente==='bosco'&&PixelProva.P.ult&&Scena3D.K.px", timeout=20000); await pg.wait_for_timeout(400)
+    r = await pg.evaluate(JS_PX_FOTO)
+    check(r['bl']['ok'] and r['fuori'] == 0, f'di nuovo pixel: stessa resa ({r["bl"]})')
+    await pg.evaluate("PixelProva.act('cam:segue');PixelProva.ferma(null)"); await pg.wait_for_timeout(1500)
+    s = await pg.evaluate("PixelProva.stat()")
+    print('pixel: fps nel browser di prova (WebGL software)', s)
+    check(s['n'] > 3 and not pg.errs, f'la prova gira con la telecamera che segue, senza errori ({pg.errs[:2]})')
+    await ctx.close()
+    # ---- telefono Android a dpr frazionario (2,625): la scala intera vale sui pixel veri del dispositivo ----
+    ctx, pg = await apri({'width': 360, 'height': 740}, 2.625, 'notte')
+    f = await pg.evaluate(JS_PX_FOTO)
+    await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+    sc = await schermata(pg, f, 'pixel-android', 70 * 3)
+    check(f['bl']['ok'] and sc['bl']['ok'] and sc['fuori'] == 0, f'dpr 2,625: ×{f["s"]}, {f["art"]} pixel d\'arte, blocchi interi anche nella schermata ({sc["bl"]})')
+    await ctx.close()
+    # ---- TV 1080p: 480×270 pixel d'arte a ×4, le tre scene di controllo ----
+    ctx, pg = await apri({'width': 1920, 'height': 1080}, 1, 'foresta')
+    for id_ in ['foresta', 'sotterraneo', 'notte']:
+        if id_ != 'foresta': await scena(pg, id_)
+        await pg.evaluate("PixelProva.act('pann:0')"); await pg.wait_for_timeout(300)
+        f = await pg.evaluate(JS_PX_FOTO)
+        sc = await schermata(pg, f, f'pixel-{id_}-tv', 70)
+        check(f['s'] == 4 and f['art'] == [480, 270] and sc['bl']['ok'] and sc['fuori'] == 0, f'{id_}, TV 1080p: ×4, 480×270, blocchi interi ({f["bl"]}, {sc["bl"]})')
+        await controlli(pg, id_ + ', TV', f)
+        await pg.evaluate("PixelProva.act('pann:1')")
+    print('pixel: chiamate in TV', f['chiamate'], 'triangoli', f['tri'])
+    check(not pg.errs, f'nessun errore ({pg.errs[:2]})')
+    await ctx.close()
+
 async def sc_avv_accessibilita(b, srv):
     """Accessibilità (A13), a 390 px: scelta della difficoltà (radio, ricordata, passata alla campagna e mostrata sul posto), poi bersagli da toccare di almeno 40 px, contrasto del testo e assenza di scorrimento
     orizzontale sulle schermate dell'Avventura: pagina e regole, scelta della campagna, dialogo, mappa e fogli, battaglia."""
@@ -2412,6 +2543,213 @@ async def sc_avv_prestazioni(b, srv):
     dt = await pg.evaluate("performance.now()") - t0
     check(dt < 1500, f'un tocco risponde in meno di 1,5 s con la CPU ×4 ({dt:.0f} ms)')
     check(not pg.errs, f'nessun errore JS {pg.errs[:2]}')
+    await ctx.close()
+
+async def sc_avv_tempo(b, srv):
+    """Battaglia in tempo reale (B5), a 390 px: una battaglia del capitolo (scena del casale) dall'inizio alla fine. Pausa all'inizio con la griglia,
+    HUD verticale (ritratti 64, campo ≥ 60%, pannello ≤ 180), bersagli ≥ 44 px, tocchi che diventano ordini, abilità a bersaglio, ×2, pausa automatica,
+    ripresa dopo un ricarico, fine e «Continua» che riporta il risultato nella sessione; nessun blocco e nessun errore."""
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','mago','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    async def leggi(fino, max=80):
+        for _ in range(max):
+            if await pg.query_selector(fino): return True
+            if not await pg.query_selector('.dl'): return False
+            if await pg.query_selector('.dl-co'): await pg.click('.dl-co')
+            elif await pg.query_selector('.dl-sc:not([disabled]):has-text("Attaccare")'): await pg.click('.dl-sc:not([disabled]):has-text("Attaccare")')   # dal gabelliere: si combatte sempre
+            elif await pg.query_selector('.dl-sc:not([disabled])'): await pg.click('.dl-sc:not([disabled]) >> nth=0')
+            else: await pg.click('.dl-corpo')
+            await pg.wait_for_timeout(200)
+        return False
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1200)
+    await pg.click('[data-a=ses][data-v="nuova:a1"]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ses][data-v=parti]'); await pg.wait_for_selector('.dl', timeout=10000); await pg.wait_for_timeout(400)
+    await leggi('.mo'); await pg.wait_for_selector('.mo', timeout=8000)
+    # la compagnia al casale dei Salici: la scena porta a uno scontro del capitolo
+    await pg.evaluate("(()=>{const c=Ses.a.camp,l=c.luoghi['casale-salici'];c.eroi.forEach(e=>{e.q=l.q;e.r=l.r});Ses.scena('casale-salici')})()"); await pg.wait_for_timeout(800)
+    check(await leggi('[data-a=ses][data-v=combatti]'), 'la scena del casale porta a «All\'armi!»')
+    await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(500)
+    st = await pg.evaluate("({tempo:Bat.tempo(),pausa:BatT.pausa,t:Bat.s.t,mondo:Bat.mondo,seme:Ses.a.bat&&Ses.a.bat.seme,eroi:Bat.s.cb.filter(c=>c.lato==='eroi').length,nem:Bat.s.cb.filter(c=>c.lato==='nemici').length,sel:BatT.sel})")
+    check(st['tempo'] and st['pausa'] and st['t'] == 0 and st['mondo'] == st['seme'] and st['eroi'] == 3 and st['nem'] >= 1 and st['sel'] == 'e1', f'si apre la battaglia a istanti del capitolo, ferma all\'inizio {st}')
+    check('In pausa' in await pg.inner_text('.tr-banda') and await pg.evaluate("[...document.querySelectorAll('.bt-svg polygon[stroke]')].length>20"), 'in pausa: la scritta e la griglia degli esagoni')
+    # --- l'HUD verticale a 390 px ---
+    L = await pg.evaluate("""(()=>{const h=innerHeight,r=s=>document.querySelector(s).getBoundingClientRect();return{h,alto:r('.tr-alto').height,campo:r('.bt-mappa').height,basso:r('.tr-basso').height,
+      scroll:document.documentElement.scrollWidth>innerWidth,ab:document.querySelectorAll('.tr-ab').length,rit:document.querySelectorAll('.tr-rit').length}})()""")
+    check(L['alto'] <= 66 and L['campo'] >= .6 * L['h'] and L['basso'] <= 180 and not L['scroll'], f'ritratti in alto (64), campo ≥ 60%, pannello ≤ 180, nessuno scorrimento {L}')
+    check(4 <= L['ab'] <= 6 and L['rit'] == 3, f'4–6 abilità rotonde e i tre ritratti {L}')
+    async def piccoli():
+        return await pg.evaluate("""[...document.querySelectorAll('.tr-bat button,.tr-bat [data-a]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden'&&(r.width<44||r.height<44)}).map(e=>(e.className||e.tagName)+':'+Math.round(e.getBoundingClientRect().width)+'x'+Math.round(e.getBoundingClientRect().height))""")
+    check(not await piccoli(), f'ogni bersaglio toccabile è almeno 44 × 44 {await piccoli()}')
+    # --- tocchi → ordini (in pausa partono alla ripresa) ---
+    async def tocca_creatura(id):
+        xy = await pg.evaluate("id=>{const e=document.querySelector(`.bt-tok[data-id=\"${id}\"]`).getBoundingClientRect();return[e.x+e.width/2,e.y+e.height/2]}", id)
+        await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(400)
+    nemico = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c)).id")
+    await tocca_creatura(nemico)
+    o = await pg.evaluate("Bat.s.ordini.e1")
+    check(o and o['t'] == 'attacca' and o['bers'] == nemico and not o.get('ia'), f'tocco su un nemico: l\'eroe scelto lo attacca (ordine del giocatore) {o}')
+    await tocca_creatura('e2'); sel = await pg.evaluate("BatT.sel")
+    check(sel == 'e2' and await pg.query_selector('.tr-rit.on[data-v="sel:e2"]') is not None, 'tocco su un altro eroe: diventa quello scelto (ritratto acceso, anello sotto)')
+    check(await pg.evaluate("document.querySelector('.bt-tok[data-id=\"e2\"]').classList.contains('t-sel')"), 'l\'anello sotto l\'eroe scelto')
+    await pg.screenshot(path='/tmp/claude-0/tempo-pausa.png')
+    id_ab = await pg.evaluate("[...document.querySelectorAll('.tr-ab[data-k=potere]:not(.off)')].map(e=>e.dataset.id).find(id=>APOT.P[id].area==='singolo'&&APOT.P[id].bers==='nemico')")
+    await pg.click(f'.tr-ab[data-id="{id_ab}"]'); await pg.wait_for_timeout(300)
+    await pg.screenshot(path='/tmp/claude-0/tempo-mira.png')
+    mira = await pg.evaluate("BatT.mira&&{id:BatT.mira.id,area:BatT.mira.p.area}")
+    if mira and mira['area'] == 'singolo':
+        await tocca_creatura(nemico); o = await pg.evaluate("Bat.s.ordini.e2||Bat.s.rapidi.e2")
+        check(o and o['id'] == id_ab and await pg.evaluate("!BatT.mira"), f'abilità a bersaglio: tocco sul tasto, poi sul nemico {o}')
+    else: check(mira is None or mira['area'] != 'singolo', f'abilità {id_ab}: {mira}')
+    await pg.evaluate("BatT.mira=null;render()")
+    # --- via: ×2, la battaglia scorre da sola; ogni pausa automatica si riprende ---
+    await pg.click('[data-a=btt][data-v=vel]'); await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(1500)
+    await pg.screenshot(path='/tmp/claude-0/tempo-scorre.png')
+    t1 = await pg.evaluate("Bat.s.t"); pos1 = await pg.evaluate("[...document.querySelectorAll('.bt-tok')].map(e=>e.getAttribute('transform')).join('|')")
+    await pg.wait_for_timeout(700)
+    check(t1 > 0 and await pg.evaluate("Bat.cfg.vel") == 2, f'la battaglia scorre a ×2 (istante {t1})')
+    check(await pg.evaluate("[...document.querySelectorAll('.bt-tok')].map(e=>e.getAttribute('transform')).join('|')") != pos1, 'i segnalini si spostano fra un fotogramma e l\'altro')
+    check(await pg.evaluate("[...document.querySelectorAll('.bt-svg polygon[stroke]:not(.tr-segno)')].filter(p=>!p.closest('.tr-zone')).length") < 10, 'mentre scorre la griglia non si vede')
+    # ripresa dopo un ricarico: si salva in pausa e si riparte da lì, sempre in pausa
+    await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(200); t2 = await pg.evaluate("Bat.s.t")
+    await pg.reload(); await pg.wait_for_timeout(3500); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1000)
+    await pg.click('[data-a=ses][data-v="apri:a1"]'); await pg.wait_for_timeout(1200)
+    if not await pg.query_selector('.tr-bat'):
+        await leggi('[data-a=ses][data-v=combatti]'); await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000)
+    await pg.wait_for_timeout(400)
+    check(await pg.evaluate("Bat.tempo()&&BatT.pausa") and await pg.evaluate("Bat.s.t") == t2, f'dopo il ricarico la stessa battaglia, ferma all\'istante {t2}')
+    pause, inizio = 0, time.time()
+    await pg.click('[data-a=btt][data-v=pausa]')
+    while time.time() - inizio < 150:
+        await pg.wait_for_timeout(500)
+        if await pg.evaluate("!!Bat.s.over"): break
+        if await pg.evaluate("BatT.pausa&&!Bat.s.over"):
+            pause += 1; await pg.click('[data-a=btt][data-v=pausa]')
+    fin = await pg.evaluate("({over:Bat.s.over,t:Bat.s.t,err:ERR.b.slice(-3).map(x=>String(x.m||x.msg||x).slice(0,120))})")
+    check(fin['over'] is not None and fin['over']['esito'] in ('vittoria', 'sconfitta', 'fuga'), f'la battaglia arriva alla fine da sola, senza blocchi ({fin["t"] / 10:.0f} s di gioco, {pause} pause automatiche) {fin}')
+    await pg.wait_for_selector('.bt-fine [data-a=batmondo]', timeout=5000)
+    esito = fin['over']['esito']
+    await pg.screenshot(path='/tmp/claude-0/tempo-fine.png')
+    await pg.click('.bt-fine [data-a=batmondo]'); await pg.wait_for_timeout(1000)
+    dopo = await pg.evaluate("({bat:Ses.a&&Ses.a.bat,fase:Ses.a&&AVV.fase(Ses.a),ui:ui.bat})")
+    check(dopo['bat'] is None and not dopo['ui'] and (dopo['fase'] in ('dialogo', 'citta', 'mappa') or esito != 'vittoria'), f'«Continua» registra l\'esito ({esito}) nella sessione e chiude la battaglia {dopo}')
+    check(not pg.errs and not fin['err'], f'nessun errore JS {pg.errs[:2]} {fin["err"]}')
+    await ctx.close()
+    # --- nel 3D: le miniature seguono le posizioni a ogni fotogramma (passo e otto direzioni), l'SVG resta solo HUD ---
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("""(()=>{const sq=Bat.prova(2).slice(0,3),nem=['brigante','brigante','lupo-grigio'],seme=7,s=ATEM.nuovo(sq,nem,AARE.perIncontro(seme,'strada',nem),{seme});
+      ui.avv=false;Bat.daMondo(s,sq.map(m=>m.eroe.aspetto),'prova-tempo');ui.bat=true;render()})()""")
+    await pg.wait_for_function("Scena3D.on()&&Scena3D.nFig()>=6", timeout=20000)
+    pos = "Scena3D.figure().map(f=>f.id+':'+f.g.position.x.toFixed(1)+','+f.g.position.z.toFixed(1)+':'+f.g.rotation.y.toFixed(3)).join('|')"
+    p0 = await pg.evaluate(pos); await pg.click('[data-a=btt][data-v=pausa]'); await pg.wait_for_timeout(1500); p1 = await pg.evaluate(pos)
+    rot = await pg.evaluate("Scena3D.figure().every(f=>Math.abs(f.g.rotation.y/(Math.PI/4)-Math.round(f.g.rotation.y/(Math.PI/4)))<1e-6)")
+    check(p1 != p0 and rot and await pg.evaluate("Bat.s.t") > 0, f'3D: le miniature si muovono in continuo, sguardo in otto direzioni (istante {await pg.evaluate("Bat.s.t")})')
+    check(await pg.evaluate("document.querySelectorAll('.bt-tok .bt-corpo *').length") == 0 and await pg.query_selector('.bt-tok.t-sel .bt-piede') is not None, '3D: i segnalini SVG sono solo barre, stati e anello dell\'eroe scelto')
+    await pg.screenshot(path='/tmp/claude-0/tempo-3d.png')
+    check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'3D: nessun errore {pg.errs[:2]}')
+    await ctx.close()
+
+async def sc_avv_succo(b, srv):
+    """Il succo della battaglia (B6), a 390 px: numeri bianchi in arco, critico oro, cura verde, «Mancato», al massimo 8 numeri in volo, lo strato che sopravvive
+    ai render, nemici che si sbriciolano, monete e sfere che volano al contatore dell'esperienza, «Livello su!» alla vittoria, area rossa che si riempie,
+    tinta degli stati, riduci animazioni; una battaglia vera del capitolo (nemici quasi spacciati) dall'inizio alla fine; nessun errore."""
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','mago','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
+    async def leggi(fino, max=80):
+        for _ in range(max):
+            if await pg.query_selector(fino): return True
+            if not await pg.query_selector('.dl'): return False
+            if await pg.query_selector('.dl-co'): await pg.click('.dl-co')
+            elif await pg.query_selector('.dl-sc:not([disabled]):has-text("Attaccare")'): await pg.click('.dl-sc:not([disabled]):has-text("Attaccare")')
+            elif await pg.query_selector('.dl-sc:not([disabled])'): await pg.click('.dl-sc:not([disabled]) >> nth=0')
+            else: await pg.click('.dl-corpo')
+            await pg.wait_for_timeout(200)
+        return False
+    await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(1200)
+    await pg.click('[data-a=ses][data-v="nuova:a1"]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ses][data-v=parti]'); await pg.wait_for_selector('.dl', timeout=10000); await pg.wait_for_timeout(400)
+    await leggi('.mo'); await pg.wait_for_selector('.mo', timeout=8000)
+    # tutti gli eroi a un passo dal livello 2 (100 PE): la prima esperienza guadagnata li fa salire
+    await pg.evaluate("(()=>{const c=Ses.a.camp,l=c.luoghi['casale-salici'];c.eroi.forEach(e=>{e.q=l.q;e.r=l.r;e.xp=99;e.liv=1});Ses.scena('casale-salici')})()"); await pg.wait_for_timeout(800)
+    check(await leggi('[data-a=ses][data-v=combatti]'), 'la scena del casale porta a «All\'armi!»')
+    await pg.click('[data-a=ses][data-v=combatti]'); await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(500)
+    # --- lo strato dei riscontri e il contatore dell'esperienza ---
+    L = await pg.evaluate("""(()=>{const r=s=>document.querySelector(s),a=r('.tr-alto').getBoundingClientRect(),c=r('.tr-ris .su-cont'),o=r('.tr-ris .su-oro');
+      return{alto:a.height,exp:c&&c.textContent.trim(),oro:!!o,scroll:document.documentElement.scrollWidth>innerWidth,cb:c&&c.getBoundingClientRect().height,zi:getComputedStyle(Succo.strato()).zIndex,pe:getComputedStyle(Succo.strato()).pointerEvents}})()""")
+    check((L['exp'] or '').strip() == '0', f'il contatore dell\'esperienza è in alto e parte da zero {L}')
+    check(L['alto'] <= 66 and not L['scroll'] and L['zi'] == '97' and L['pe'] == 'none', f'la barra resta di 64 px, nessuno scorrimento, lo strato è sopra la battaglia e non prende i tocchi {L}')
+    # --- numeri: bianco in arco, critico oro più grande, cura verde che sale, «Mancato»; al massimo 8 in volo ---
+    ids = await pg.evaluate("Bat.s.cb.filter(c=>ATEM.inPiedi(c)).map(c=>c.id)")
+    nem = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici').id")
+    fr = await pg.evaluate("""([n,e])=>{BatT.fermoA=0;Succo.gioca([{t:'numero',chi:n,v:-5,tipo:null,crit:false,ms:600},{t:'numero',chi:n,v:-11,tipo:null,crit:true,ms:800},
+      {t:'numero',chi:e,v:7,tipo:'cura',crit:false,ms:600},{t:'scintille',chi:e,ms:600},{t:'mancato',chi:n,ms:500}],Bat.s);return{fermo:BatT.fermoA-performance.now(),px:document.querySelectorAll('#su-ov .su-px').length}}""", [nem, 'e1'])
+    d = await pg.evaluate("""[...document.querySelectorAll('#su-ov .su-num,#su-ov .su-manc')].map(e=>({c:e.className,t:e.textContent,fs:parseFloat(getComputedStyle(e).fontSize),col:getComputedStyle(e).color,an:getComputedStyle(e).animationName}))""")
+    bianco = [x for x in d if 'neg' in x['c'] and 'crit' not in x['c']]; oro = [x for x in d if 'crit' in x['c']]; verde = [x for x in d if 'pos' in x['c']]
+    check(len(bianco) == 1 and bianco[0]['t'] == '−5' and bianco[0]['col'] == 'rgb(255, 255, 255)' and bianco[0]['an'] == 'su-arco', f'danno: numero bianco che salta in arco {d}')
+    check(len(oro) == 1 and oro[0]['t'] == '−11' and oro[0]['col'] == 'rgb(255, 210, 74)' and oro[0]['fs'] > bianco[0]['fs'], f'critico: numero oro e più grande {d}')
+    check(len(verde) == 1 and verde[0]['t'] == '+7' and verde[0]['an'] == 'su-sale', f'cura: numero verde che sale {d}')
+    check(any(x['t'] == 'Mancato' for x in d), f'«Mancato» piccolo e grigio {d}')
+    check(fr['fermo'] > 0 and fr['fermo'] <= 60 and fr['px'] == 6, f'il critico ferma l\'immagine per un attimo (60 ms); la cura sparge sei scintille {fr}')
+    await pg.wait_for_timeout(1000)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov > *').length") == 0, 'tutto sparisce da solo, niente resta nello strato')
+    await pg.evaluate("""n=>{Succo.gioca(Array.from({length:14},(_,i)=>({t:'numero',chi:n[i%n.length],v:-(i+1),tipo:null,crit:false,ms:600})),Bat.s)}""", ids)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov .su-num').length") == 8, 'al massimo 8 numeri in volo: i successivi si sommano a quelli già in volo')
+    check(await pg.evaluate("[...document.querySelectorAll('#su-ov .su-num.somma')].length") >= 1, 'i numeri in più si sommano (il numero si riaccende)')
+    await pg.evaluate("render()"); await pg.wait_for_timeout(100)
+    check(await pg.evaluate("document.querySelectorAll('#su-ov .su-num').length") == 8, 'lo strato sopravvive al ridisegno della battaglia')
+    await pg.wait_for_timeout(1000); await pg.evaluate("Succo.pulisci()")
+    # --- area rossa: si riempie mentre il capo carica, poi scoppia ---
+    z = await pg.evaluate("""(()=>{const s=Bat.s,c=s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c));c.lancio={id:'m-nube-nera',da:s.t-15,fine:s.t+15,A:{bers:'e1'}};BatT.zSig='';BatT.hud(s);
+      const g=document.querySelector('.tr-zone');if(!g)return null;const a=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));c.lancio.da=s.t-4;BatT.hud(s);const b=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));
+      c.lancio.da=s.t-30;c.lancio.fine=s.t;BatT.hud(s);const f=[...g.querySelectorAll('.zr')].map(p=>p.getAttribute('points'));const bs=g.querySelectorAll('.zb').length;c.lancio=null;return{n:a.length,bs,mezza:a[0],poca:b[0],piena:f[0]}})()""")
+    check(z and z['n'] >= 1 and z['bs'] == z['n'] and z['mezza'] != z['poca'] and z['piena'] != z['mezza'], f'area rossa: ogni casella ha il suo riempimento, che cresce con la carica {z}')
+    if z:
+        zz = await pg.evaluate("Bat.s.cb.find(c=>c.lato==='nemici')&&[{q:Bat.s.cb.find(c=>c.id==='e1').q,r:Bat.s.cb.find(c=>c.id==='e1').r}]")
+        await pg.evaluate("z=>Succo.gioca([{t:'esplode',chi:'x',id:'m-nube-nera',zona:z,ms:520}],Bat.s)", zz)
+        check(await pg.evaluate("document.querySelectorAll('.tr-bat .bt-fx .su-boom').length") == 1, 'quando il potere parte l\'area scoppia (casella accesa un attimo)')
+    # --- stati: la tinta sul segnalino ---
+    t = await pg.evaluate("""(()=>{const s=Bat.s,c=s.cb.find(c=>c.lato==='nemici'&&ATEM.inPiedi(c)),el=BatT.els.get(c.id),r={};for(const [st,k] of [['in-fiamme','fuoco'],['avvelenato','veleno'],['congelato','gelo']]){
+      c.stati=[{id:st,fine:s.t+50}];BatT.hud(s);r[k]=el.classList.contains('su-t-'+k)}c.stati=[];BatT.hud(s);r.nessuna=!/su-t-/.test(el.getAttribute('class'));return r})()""")
+    check(all(t.values()), f'fiamme, veleno e gelo tingono il segnalino; senza stati torna normale {t}')
+    # --- la battaglia vera: i nemici sono quasi spacciati; si guardano i riscontri che nascono da soli ---
+    await pg.evaluate("""(()=>{window.__su={num:[],px:0,pz:0,max:0,tit:[],boom:0,tOver:0,tFine:0,xp:[]};const o=new MutationObserver(m=>{const ov=document.getElementById('su-ov');if(!ov)return;
+      for(const r of m)for(const n of r.addedNodes){if(n.nodeType!==1)continue;const c=n.getAttribute('class')||'';if(c.includes('su-num'))__su.num.push(c+'|'+n.textContent);if(c.includes('su-px'))__su.px++;if(c.includes('su-pz'))__su.pz++;if(c.includes('su-livello'))__su.tit.push(n.textContent)}
+      __su.max=Math.max(__su.max,ov.querySelectorAll('.su-num').length)});o.observe(document.body,{childList:true,subtree:true});
+      setInterval(()=>{const c=document.querySelector('.tr-ris .su-cont b');if(c)__su.xp.push(+c.textContent);if(Bat.s&&Bat.s.over&&!__su.tOver)__su.tOver=performance.now();if(document.querySelector('.bt-fine')&&!__su.tFine)__su.tFine=performance.now()},50);
+      Bat.s.cb.filter(c=>c.lato==='nemici').forEach(c=>{c.ia={};c.hp=Math.min(c.hp,2)})})()""")
+    pesi = await pg.evaluate("Bat.s.cb.filter(c=>c.lato==='nemici').map(c=>c.xp|0).reduce((a,b)=>a+b,0)")
+    await pg.click('[data-a=btt][data-v=vel]'); await pg.click('[data-a=btt][data-v=pausa]')
+    inizio = time.time()
+    while time.time() - inizio < 120:
+        await pg.wait_for_timeout(400)
+        if await pg.evaluate("!!Bat.s.over"): break
+        if await pg.evaluate("BatT.pausa&&!Bat.s.over"): await pg.click('[data-a=btt][data-v=pausa]')
+    esito = await pg.evaluate("Bat.s.over&&Bat.s.over.esito")
+    await pg.wait_for_selector('.bt-fine', timeout=8000); await pg.wait_for_timeout(300)
+    r = await pg.evaluate("({su:__su,xpShow:BatT.xpShow,morti:Succo.daStato(Bat.s),err:ERR.b.length})")
+    su = r['su']
+    check(esito == 'vittoria', f'la battaglia del casale finisce con la vittoria (esito {esito})')
+    check(len(su['num']) >= 2 and all('neg' in x or 'pos' in x for x in su['num']), f'nella battaglia nascono numeri sopra le creature ({len(su["num"])}) {su["num"][:4]}')
+    check(0 < su['max'] <= 8, f'mai più di 8 numeri insieme (picco {su["max"]})')
+    check(su['px'] >= 16, f'i nemici caduti si sbriciolano in quadratini ({su["px"]})')
+    check(su['pz'] >= 2, f'monete e sfere cadono e volano via ({su["pz"]})')
+    check(r['xpShow'] == pesi == r['morti'] and su['xp'] and su['xp'][-1] == pesi and su['xp'] == sorted(su['xp']), f'il contatore dell\'esperienza sale sfera dopo sfera fino a {pesi} {su["xp"][-3:]}')
+    check(su['tit'] and all('Livello su!' in x and 'livello 2' in x for x in su['tit']) and any(n in ' '.join(su['tit']) for n in ('Aldo', 'Mira', 'Fra Tomaso')), f'alla vittoria «Livello su!» col nome e il livello {su["tit"]}')
+    check(su['tFine'] - su['tOver'] >= 1000, f'la schermata finale aspetta che il bottino e il livello finiscano ({(su["tFine"] - su["tOver"]) / 1000:.1f} s)')
+    await pg.screenshot(path='/tmp/claude-0/succo-fine.png')
+    check(not pg.errs and r['err'] == 0, f'nessun errore JS {pg.errs[:2]}')
+    await pg.click('.bt-fine [data-a=batmondo]'); await pg.wait_for_timeout(600)
+    await ctx.close()
+    # --- riduci animazioni: i numeri si dissolvono sul posto, niente pezzi né voli; il contatore sale subito ---
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('avv-tut','{\"spento\":true}');"); pg = await page(ctx, srv.url)
+    await pg.emulate_media(reduced_motion='reduce')
+    await pg.evaluate("""(()=>{const sq=Bat.prova(2).slice(0,3),nem=['brigante','lupo-grigio'],seme=11,s=ATEM.nuovo(sq,nem,AARE.perIncontro(seme,'strada',nem),{seme});
+      ui.avv=false;Bat.daMondo(s,sq.map(m=>m.eroe.aspetto),'prova-succo');ui.bat=true;render()})()""")
+    await pg.wait_for_selector('.tr-bat', timeout=8000); await pg.wait_for_timeout(400)
+    rm = await pg.evaluate("""(()=>{const s=Bat.s,n=s.cb.find(c=>c.lato==='nemici');Succo.gioca([{t:'numero',chi:n.id,v:-4,tipo:null,crit:false,ms:600},{t:'sbriciola',chi:n.id,def:n.def,ms:700},
+      {t:'bottino',chi:n.id,xp:120,monete:3,sfere:3,ms:1000}],s);
+      const e=document.querySelector('#su-ov .su-num');return{an:e&&getComputedStyle(e).animationName,px:document.querySelectorAll('#su-ov .su-px').length,pz:document.querySelectorAll('#su-ov .su-pz').length,xp:BatT.xpShow,txt:document.querySelector('.tr-ris .su-cont b')&&document.querySelector('.tr-ris .su-cont b').textContent}})()""")
+    check(rm['an'] == 'su-dissolvi' and rm['px'] == 0 and rm['pz'] == 0 and rm['xp'] == 120 and rm['txt'] == '120', f'riduci animazioni: numero che si dissolve, niente pezzi né voli, contatore subito a 120 {rm}')
+    check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'riduci animazioni: nessun errore {pg.errs[:2]}')
     await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]

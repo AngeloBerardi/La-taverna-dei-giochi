@@ -65,6 +65,26 @@ const ASCE=(()=>{
    case'stalagmite':return[P('k','#7a7268',0,5,0,3.6,0,10),P('k','#8a8278',6,3,3,2.2,0,6)];
    case'fiori':return[P('c','#4f8a45',-5,2.4,3,.4,.4,5),P('s','#f4e27a',-5,5.4,3,1.5,1.5,1.5),P('c','#4f8a45',6,2,-3,.4,.4,4),P('s','#f08aa0',6,4.6,-3,1.4,1.4,1.4),P('c','#4f8a45',1,2,8,.4,.4,4),P('s','#fff6e8',1,4.6,8,1.3,1.3,1.3)];
    case'tesoro':return[P('b','#6a4a24',0,4,0,13,8,9),P('c','#7a5a2c',0,9,0,4.5,4.5,13,0,PI/2),P('b','#f3c64a',0,6,4.6,3,3.4,.8,0,0,'e'),P('s','#f3c64a',0,13,0,3,3,3,0,0,'e')];
+   // ---- oggetti di scena dei temi della resa pixel (B2) ----
+   case'abete':return albero(s,0,0,0,'abete');
+   case'ceppo':return[P('c','#6a4a2a',0,4,0,6,6.8,8),P('c','#c8a070',0,8.1,0,5.6,5.6,.3),P('s','#4f8a45',4.5,2.4,3,3,2,2.6),P('c','#5a3a1c',-6,1.2,-2,1,1.6,2.4,0,1.2)];
+   case'tronco':return[P('c','#6a4a2a',0,5,0,5,5.4,28,s*.6-.3,PI/2),P('s','#4f8a45',3,9.4,1,4,1.6,3),P('c','#5a3a1c',-4,10,-1,1,1.2,6,0,-.4)];
+   case'cespuglio':return[P('s','#3f8a45',0,6,0,10,7,9),P('s','#2f6b34',-6,4,3,6,5,6),P('s','#4f9a50',5,8,-2,6,5,6),P('s','#c03a2e',3,10,6,1.3,1.3,1.3),P('s','#c03a2e',-4,8,6.5,1.2,1.2,1.2)];
+   case'funghi':{const o=[];for(let i=0;i<3;i++){const a=PI*2*(i/3+s),d=5+i*2.5,x=cos(a)*d,z=sin(a)*d*.9,h=2+i;
+     o.push(P('c','#e8e0c8',x,h/2,z,.8,1,h),P('s',i===1?'#d6aa3c':'#c03a2e',x,h+.6,z,2.6-i*.3,1.5,2.6-i*.3))}return o}
+   case'colonna-rotta':return[P('b','#8f8573',0,1.5,0,16,3,16),P('c','#a89e8a',0,7.5,0,6.2,7.2,12),P('k','#a89e8a',1,14.5,0,5.6,0,4,0,.3),P('c','#9a907c',11,3.4,5,5.4,5.8,13,.5,PI/2)];
+   case'statua':return[P('b','#8f8573',0,4,0,16,8,16),P('c','#a8a8a4',0,17,0,4.4,6.4,18),P('s','#a8a8a4',0,29.6,0,4.4,4.8,4.4),P('b','#9a9a98',5.6,21,1,2.6,10,2.6,0,-.5),P('b','#9a9a98',-5.4,19,1,2.6,9,2.6,0,.2),P('s','#4f8a45',-4,8.4,6,3.4,1.4,2)];
+   case'sarcofago':return[P('b','#6e685c',0,5,0,15,10,26),P('b','#8a8478',0,10.6,0,16,2,27),P('s','#9a9488',0,12.4,-8,4,2.2,4),P('b','#9a9488',0,12,2,5,1.4,12)];
+   case'barile':return[P('c','#8a5a30',0,6,0,6,5.2,12),P('c','#45454c',0,2.6,0,5.4,5.5,.9),P('c','#45454c',0,9.4,0,5.9,5.8,.9),P('c','#5f3f22',0,12.1,0,5.6,5.6,.4)];
+   case'lapide':return[P('b','#8a8478',0,6,0,10,12,3),P('s','#8a8478',0,12,0,5,3,1.5),P('b','#6e685c',0,7,1.7,5,1,.4),P('s','#5a4a30',0,.8,6,6,1.6,4.4)];
+   case'ossa':return[P('c','#e8e0c8',0,1,0,.8,.8,9,.6,PI/2),P('c','#e8e0c8',3,1,-3,.7,.7,6,-.8,PI/2),P('s','#e8e0c8',-5,2.4,3,2.4,2.2,2.4),P('s','#2a241c',-5,2.6,5.2,.8,.8,.4)];
+   case'scaffale':return[P('b','#5a3a1c',0,17,0,22,34,6),P('b','#3a2614',0,17,2.6,19,30,1),P('b','#8a2a2a',-5.5,9.5,2,4,6,3),P('b','#2a4a8a',-1,9,2,4,5,3),P('b','#3a6a3a',4,9.5,2,4,6,3),
+     P('b','#d6aa3c',-4,20.5,2,5,5,3),P('b','#6a2a5a',2,21,2,6,6,3),P('b','#8a2a2a',-2,31,2,9,5,3),P('b','#5a3a1c',0,13,2.8,20,1.2,1),P('b','#5a3a1c',0,24.6,2.8,20,1.2,1)];
+   case'libri':return[P('b','#8a2a2a',0,1,0,7,2,5),P('b','#2a4a8a',.5,3,0,6.4,2,4.4,.3),P('b','#d6aa3c',0,5,0,5.6,2,4,-.2),P('b','#f4efe0',6,.6,3,4,1.2,3,.8)];
+   case'candele':{const o=[];for(let i=0;i<3;i++){const x=(i-1)*3.4,z=(i%2)*2.6,h=4+i*1.5;o.push(P('c','#f0e8d0',x,h/2,z,.9,1,h),P('k','#ffcf6a',x,h+1.4,z,.7,0,2.6,0,0,'e'))}return o}
+   case'braciere':return[P('c','#3a3a40',-3,4,0,.6,.8,9,0,.3),P('c','#3a3a40',3,4,0,.6,.8,9,0,-.3),P('c','#4a4a52',0,10,0,7,4,3.4),P('s','#c44404',0,11.6,0,5.4,1.4,5.4,0,0,'e'),
+     P('k','#ff9a3a',0,15.6,0,4,0,8,0,0,'e'),P('k','#fff0a0',0,14.4,0,2,0,5,0,0,'e')];
+   case'stendardo':return[P('b','#8f8573',0,1.5,0,9,3,9),P('c','#5a3a1c',0,19,0,.9,1,36),P('b','#8a1a2a',4.4,27,0,8,15,.6),P('b','#d6aa3c',4.4,19.2,0,8,1.2,.7),P('s','#d6aa3c',0,37.4,0,1.4,1.4,1.4)];
   }return[]}
  // le parti di un oggetto, ruotate di `ry` e spostate in (x, y, z) (per il rendering: un oggetto per cella)
  function parti(k,s,ctx){return ogg3(k,s,ctx)}
@@ -73,13 +93,88 @@ const ASCE=(()=>{
  // dettagli minuti sul pavimento (soglia cumulativa, oggetto): non sono ostacoli, solo decorazione
  const DECO={pianura:[[.2,'ciuffi'],[.27,'fiori']],strada:[[.1,'sassi']],bosco:[[.24,'ciuffi'],[.3,'fiori']],collina:[[.14,'sassi'],[.26,'ciuffi']],palude:[[.2,'canne']],citta:[[.09,'sassi']],antro:[[.1,'sassi'],[.17,'stalagmite']],torre:[[.06,'sassi']]};
  const SUP={f:'fuoco',v:'veleno',g:'ghiaccio',w:'acqua'};
- function arena(A){const g=GEO.bat,amb=A.ambiente||'pianura',tiles=[],uscite=(A.uscite||[]).map(c=>Object.assign({q:c.q,r:c.r},pos('bat',c.q,c.r)));
+ // ---- temi della resa pixel (B2): pavimento a tessere, 6–10 oggetti di scena, momento della luce ----
+ // pav: materiale [nome, spostamento di tono] per tipo di casella; alti/bassi: gli ostacoli «T» e «o»; deco: [soglia cumulativa, oggetto] sul pavimento libero
+ const TEMI={
+  foresta:{nome:'Foresta',pav:{piano:['erba',0],difficile:['terra',0],rialzo:['erba',1],muro:['pietra',0]},alti:['albero','abete','abete','albero'],bassi:['masso','ceppo','cespuglio','tronco'],
+   deco:[[.16,'ciuffi'],[.22,'fiori'],[.26,'funghi'],[.29,'sassi']],interno:false},
+  rovine:{nome:'Rovine',pav:{piano:['terra',0],difficile:['erba',-1],rialzo:['pietra',1],muro:['pietra',0]},alti:['colonna','colonna-rotta','albero-secco'],bassi:['masso','statua','cassa'],
+   deco:[[.12,'sassi'],[.2,'ciuffi'],[.24,'fiori']],interno:false},
+  palude:{nome:'Palude',pav:{piano:['terra',-1],difficile:['erba',-1],rialzo:['terra',0],muro:['pietra',-1]},alti:['albero-secco','albero-secco','abete'],bassi:['ceppo','tronco','masso'],
+   deco:[[.18,'canne'],[.24,'funghi'],[.3,'ciuffi']],interno:false},
+  sotterraneo:{nome:'Sotterraneo',pav:{piano:['pietra',0],difficile:['terra',-1],rialzo:['pietra',1],muro:['pietra',-1]},alti:['colonna','colonna','colonna-rotta'],bassi:['cassa','barile','sarcofago','lapide'],
+   deco:[[.07,'sassi'],[.12,'ossa'],[.16,'stalagmite']],interno:true},
+  torre:{nome:'Torre',pav:{piano:['assi',0],difficile:['pietra',0],rialzo:['assi',1],muro:['pietra',0]},alti:['colonna','scaffale'],bassi:['cassa','barile','braciere'],
+   deco:[[.05,'sassi'],[.09,'libri'],[.12,'candele']],interno:true},
+  fortezza:{nome:'Fortezza della corona',pav:{piano:['pietra',1],difficile:['terra',0],rialzo:['assi',0],muro:['pietra',0]},alti:['colonna','stendardo'],bassi:['cassa','barile','braciere'],
+   deco:[[.08,'sassi'],[.12,'ciuffi']],interno:false}};
+ const TEMA_DI={bosco:'foresta',pianura:'foresta',strada:'rovine',collina:'rovine',palude:'palude',antro:'sotterraneo',torre:'torre',citta:'fortezza'};
+ const tema=amb=>TEMA_DI[amb]||'foresta';
+ // oggetti che fanno luce (torce, bracieri, fuochi): colore e quota della fiamma sopra la casella
+ const LUCI_OGG={braciere:{y:15,col:'#ffa040'},candele:{y:7,col:'#ffcf6a',forza:.6},campo:{y:6,col:'#ff9a3a'},santuario:{y:10,col:'#9fe0ff',forza:.8}};
+ const QUOTA_PX={muro:40};   // nella resa pixel i muri sono alti quasi come un eroe (le quote della battaglia non cambiano)
+ // o = { temi: true } per la resa pixel: oggetti e pavimento dal tema del bioma, muri più alti
+ function arena(A,o){o=o||{};const g=GEO.bat,amb=A.ambiente||'pianura',tiles=[],uscite=(A.uscite||[]).map(c=>Object.assign({q:c.q,r:c.r},pos('bat',c.q,c.r)));
+  const tm=o.temi?TEMI[tema(amb)]:null,scegli=(l,v)=>l[Math.floor(v*l.length)%l.length];
   for(let r=0;r<A.h;r++)for(let col=0;col<A.w;col++){const q=col-Math.floor(r/2),ch=A.righe[r][col],p=pos('bat',q,r),sp=A.sup?SUP[A.sup[r][col]]||null:null;
-   const t={q,r,col,x:p.x,z:p.z,scac:(col+r)&1,tipo:ch==='#'?'muro':ch==='^'?'rialzo':ch===','?'difficile':'piano',h:ch==='#'?QUOTA.muro:ch==='^'?QUOTA.rialzo:0,oggetto:null,sup:sp,s:hash(q,r,1)};
-   if(ch==='T')t.oggetto={k:OGG_ALTO[amb]||'albero',s:t.s};else if(ch==='o')t.oggetto={k:OGG_BASSO[amb]||'masso',s:t.s};
-   else if((ch==='.'||ch===',')&&!sp){const d=hash(q,r,3),k=DECO[amb];if(k)for(const [lim,nome] of k)if(d<lim){t.deco={k:nome,s:hash(q,r,4)};break}}
+   const tipo=ch==='#'?'muro':ch==='^'?'rialzo':ch===','?'difficile':'piano',hm=tm?QUOTA_PX.muro:QUOTA.muro;
+   const t={q,r,col,x:p.x,z:p.z,scac:(col+r)&1,tipo,h:ch==='#'?hm:ch==='^'?QUOTA.rialzo:0,oggetto:null,sup:sp,s:hash(q,r,1)};
+   if(tm)t.pav=tm.pav[tipo];
+   if(ch==='T')t.oggetto={k:tm?scegli(tm.alti,hash(q,r,5)):OGG_ALTO[amb]||'albero',s:t.s};else if(ch==='o')t.oggetto={k:tm?scegli(tm.bassi,hash(q,r,6)):OGG_BASSO[amb]||'masso',s:t.s};
+   else if((ch==='.'||ch===',')&&!sp){const d=hash(q,r,3),k=tm?tm.deco:DECO[amb];if(k)for(const [lim,nome] of k)if(d<lim){t.deco={k:nome,s:hash(q,r,4)};break}}
    tiles.push(t)}
-  return{modo:'bat',SQ:g.SQ,R:g.R,amb,w:A.w,h:A.h,tiles,uscite,quota:QUOTA}}
+  return{modo:'bat',SQ:g.SQ,R:g.R,amb,tema:tm?tema(amb):null,w:A.w,h:A.h,tiles,uscite,quota:tm?Object.assign({},QUOTA,QUOTA_PX):QUOTA}}
+ // torce sui muri (dove c'è buio): una ogni ~5 caselle di muro, sempre le stesse; px = resa pixel (muri alti, torcia sulla faccia davanti)
+ function torce(D,px){const o=[];for(const t of D.tiles)if(t.tipo==='muro'&&hash(t.q,t.r,9)<.22)o.push(px?{x:t.x,y:t.h*.62,z:t.z+GEO.bat.Z+3,k:'torcia'}:{x:t.x,y:t.h+11,z:t.z+13,k:'torcia'});return o}
+ // le sorgenti di luce di un'arena: fuochi sul pavimento, torce, oggetti accesi; { x, y, z, k, col, forza }
+ function fonti(D,o){o=o||{};const f=[];
+  for(const t of D.tiles){if(t.sup==='fuoco')f.push({x:t.x,y:t.h+16,z:t.z,k:'fuoco',col:'#ff8a3a',forza:1});
+   for(const g of[t.oggetto,t.deco]){const l=g&&LUCI_OGG[g.k];if(l)f.push({x:t.x,y:t.h+l.y,z:t.z,k:g.k,col:l.col,forza:l.forza||1})}}
+  if(o.torce)for(const t of torce(D,o.px))f.push(Object.assign(t,{col:'#ffb347',forza:1}));
+  return f}
+ // ---- tessere 16×16 del pavimento (B2): colori della palette come numero rampa·5 + tono, righe dall'alto; seme fisso, sempre uguali ----
+ const RAMPE=['pietra','erba','legno','pelle','metallo','fuoco','magia','notte'];   // stesso ordine di APAL.NOMI (il test lo controlla)
+ const MATERIALI=['pietra','erba','terra','assi'],VARIANTI=6,LATO=16;
+ const I=(r,t)=>RAMPE.indexOf(r)*5+Math.max(0,Math.min(4,t));
+ function tessera16(mat,v){const n=LATO,g=new Uint8Array(n*n),m=MATERIALI.indexOf(mat),h=(a,b,c)=>hash(a+v*97,b+m*31,c||0),set=(x,y,c)=>{if(x>=0&&y>=0&&x<n&&y<n)g[y*n+x]=c};
+  if(m===0){// lastre di pietra: fughe scure, bordo chiaro in alto a sinistra, puntini; fuga sempre sull'ultima riga e colonna (le tessere combaciano)
+   const bande=[[0,6,11],[0,5,10],[0,7,12],[0,4,9,13],[0,6,12],[0,5,11]][v%6].concat(n);
+   for(let b=0;b+1<bande.length;b++){const y0=bande[b],y1=bande[b+1],x0=Math.floor(h(b,1)*5);let xs=[];for(let x=x0;x<x0+n;x+=5+Math.floor(h(b,x,2)*4))xs.push(x%n);xs=[...new Set(xs.concat(0))].sort((a,c)=>a-c);const ok=[0];for(const x of xs)if(x-ok[ok.length-1]>=3&&n-x>=3)ok.push(x);ok.push(n);xs=ok;
+    for(let s=0;s+1<xs.length;s++){const a=xs[s],c=xs[s+1],tono=h(b,s,3)<.18?3:2;
+     for(let y=y0;y<y1;y++)for(let x=a;x<c;x++){const fuga=y===y1-1||x===c-1,bordo=y===y0&&x<c-2;set(x,y,I('pietra',fuga?1:bordo?tono+1:h(x,y,5)<.06?tono-1:tono))}}}}
+  else if(m===1){// erba: chiazze scure e chiare, ciuffi chiari con l'ombra sotto, qualche fiore
+   for(let y=0;y<n;y++)for(let x=0;x<n;x++)set(x,y,I('erba',2));
+   for(let i=0;i<7;i++){const x=Math.floor(h(i,1)*n),y=Math.floor(h(i,2)*n),c=h(i,3)<.6?1:3;set(x,y,I('erba',c));set(x+1,y,I('erba',c));if(h(i,4)<.5)set(x,y+1,I('erba',c))}
+   for(let i=0;i<3;i++){const x=1+Math.floor(h(i,7)*13),y=1+Math.floor(h(i,8)*12);set(x,y,I('erba',4));set(x-1,y+1,I('erba',3));set(x+1,y+1,I('erba',3));set(x,y+1,I('erba',3));set(x,y+2,I('erba',1));set(x-1,y+2,I('erba',1))}
+   if(v%3===1){const x=2+Math.floor(h(9,1)*12),y=2+Math.floor(h(9,2)*12);set(x,y,I(v%2?'magia':'fuoco',4));set(x,y+1,I('erba',1))}}
+  else if(m===2){// terra battuta: grana, sassolini con l'ombra, una crepa
+   for(let y=0;y<n;y++)for(let x=0;x<n;x++){const r=h(x,y,1);set(x,y,I('legno',r<.13?1:r<.18?3:2))}
+   for(let i=0;i<3;i++){const x=Math.floor(h(i,11)*15),y=Math.floor(h(i,12)*15);set(x,y,I('metallo',3));set(x+1,y,I('metallo',2));set(x,y+1,I('legno',0))}
+   if(v%2===0){let x=Math.floor(h(5,13)*10)+2,y=Math.floor(h(5,14)*10)+2;for(let i=0;i<4;i++){set(x,y,I('legno',0));x+=h(i,15)<.5?1:0;y++}}}
+  else{// assi di legno: quattro tavole alte 4, fessura scura sotto, filo chiaro sopra, venature, giunta con due chiodi
+   for(let y=0;y<n;y++){const tv=y>>2,ry=y&3,e=2+Math.floor(h(tv,21)*12);
+    for(let x=0;x<n;x++){let c=ry===3?I('legno',0):ry===0?I('legno',3):h(x>>1,y,22)<.16?I('legno',1):I('legno',2);if(x===e&&ry!==3)c=I('legno',0);if((x===e-1||x===e+1)&&ry===1)c=I('metallo',3);set(x,y,c)}}}
+  return g}
+ // tutte le tessere in un atlante: VARIANTI colonne × 4 materiali (righe), numeri dei colori; per lo shader e per i test
+ function atlante(){const n=LATO,w=n*VARIANTI,hh=n*MATERIALI.length,d=new Uint8Array(w*hh);
+  MATERIALI.forEach((mat,m)=>{for(let v=0;v<VARIANTI;v++){const t=tessera16(mat,v);for(let y=0;y<n;y++)for(let x=0;x<n;x++)d[(m*n+y)*w+v*n+x]=t[y*n+x]}});return{w,h:hh,lato:n,varianti:VARIANTI,materiali:MATERIALI,dati:d}}
+ // ---- luce della resa pixel (B2): a ogni momento la sua tabella; la perdizione aggiunge viola-rosso a 25/50/75 ----
+ // sole: colore, intensità (1 = luce piena), direzione; amb/rifl: [tinta, forza] (luce ambiente blu-viola e riflesso freddo dal basso);
+ // cielo: 3 toni della palette dall'alto (lontano) al basso, a retino; nebbia: [tono, forza] a retino ai bordi dell'arena, mai sulle figure
+ const MOMENTI={
+  giorno:{sole:{col:'#fff2da',int:.95,pos:[-150,175,-105]},amb:['#a0a8ff',.4],rifl:['#7aa8ff',.24],cielo:['pietra:2','pietra:1','notte:3'],nebbia:null,torce:false,finestre:false,fiamme:0},
+  tramonto:{sole:{col:'#ffb47a',int:.9,pos:[-220,95,-30]},amb:['#b09cff',.36],rifl:['#7a8cff',.22],cielo:['fuoco:1','magia:1','notte:2'],nebbia:['magia:0',.22],torce:false,finestre:true,fiamme:.6},
+  notte:{sole:{col:'#a8bcff',int:.34,pos:[110,210,-120]},amb:['#8090ff',.3],rifl:['#5a8cff',.22],cielo:['notte:3','notte:2','notte:1'],nebbia:['notte:1',.28],torce:true,finestre:true,fiamme:1},
+  sotterraneo:{sole:{col:'#ffcf9a',int:.42,pos:[-90,200,-70]},amb:['#a89cff',.32],rifl:['#6a7aff',.16],cielo:['notte:1','notte:0','notte:0'],nebbia:['notte:0',.36],torce:true,finestre:true,fiamme:1}};
+ // fiamme: quanto contano le luci puntiformi (di giorno il sole le copre); la perdizione tinge poco la luce (il colore delle cose resta) e molto cielo e nebbia
+ const PERD=[null,{amb:'#c070ff',mix:.1,nebbia:['magia:0',.3]},{amb:'#d060c0',mix:.16,nebbia:['magia:0',.33],cielo:['magia:0','notte:1','notte:0']},{amb:'#ff5080',mix:.22,nebbia:['fuoco:0',.36],cielo:['magia:0','notte:1','notte:0']}];
+ const RIM={eroi:'#ffc878',nemici:'#7ab4ff',forza:.5};
+ const mixHex=(a,b,k)=>{const x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16),f=s=>Math.round(((x>>s)&255)*(1-k)+((y>>s)&255)*k);return'#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1)};
+ // la tabella per un tema (o un ambiente della battaglia), una fase ('giorno'|'tramonto'|'notte') e un livello di perdizione 0–3
+ function lucePx(t,fase,liv){const tm=TEMI[t]||TEMI[tema(t)],mo=tm&&tm.interno?'sotterraneo':MOMENTI[fase]?fase:'giorno',B=MOMENTI[mo],p=PERD[Math.max(0,Math.min(3,liv|0))];
+  const L={momento:mo,sole:Object.assign({},B.sole),amb:B.amb.slice(),rifl:B.rifl.slice(),rim:Object.assign({},RIM),cielo:B.cielo.slice(),nebbia:B.nebbia&&B.nebbia.slice(),torce:B.torce,finestre:B.finestre,fiamme:B.fiamme,liv:liv|0};
+  if(p){L.amb[0]=mixHex(L.amb[0],p.amb,p.mix);L.sole.col=mixHex(L.sole.col,p.amb,p.mix*.4);if(!L.nebbia||p.nebbia[1]>L.nebbia[1])L.nebbia=p.nebbia.slice();if(p.cielo)L.cielo=p.cielo.slice()}
+  return L}
  // ---- mondo ----
  const dist=(a,b)=>(Math.abs(a.q-b.q)+Math.abs(a.q+a.r-b.q-b.r)+Math.abs(a.r-b.r))/2;
  function mondo(s,o){o=o||{};const g=GEO.mon,vista=o.vista==null?2:o.vista,vivi=(s.eroi||[]).filter(e=>e.hp>0),seme=(s.seme!=null?s.seme:s.seed)|0,tiles=[];
@@ -106,6 +201,7 @@ const ASCE=(()=>{
   return L}
  // ---- nebbia di guerra: quanto smorzare una cella del mondo (1 = piena) ----
  const nebbia=t=>!t.visto?0:t.vicino?1:.62;
- return{GEO,QUOTA,ALT_MON,pos,aOffset,hash,proiez,parti,arena,mondo,luce,livello,nebbia,dist,SUP}
+ return{GEO,QUOTA,QUOTA_PX,ALT_MON,pos,aOffset,hash,proiez,parti,arena,mondo,luce,livello,nebbia,dist,SUP,
+  TEMI,TEMA_DI,tema,LUCI_OGG,torce,fonti,RAMPE,MATERIALI,VARIANTI,LATO,tessera16,atlante,MOMENTI,RIM,lucePx}
 })();
 if(typeof module!=='undefined')module.exports=ASCE;
