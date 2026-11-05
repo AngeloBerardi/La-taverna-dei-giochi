@@ -50,6 +50,12 @@ const AAUD=(()=>{
   'avv-incanto-veleno':[O('sine',220,0,.14,.1,{sl:420}),O('sine',300,.12,.14,.09,{sl:560}),O('sine',180,.26,.16,.1,{sl:360}),N(0,.5,.08,700,'bandpass',300),O('sawtooth',90,0,.45,.05,{lp:400})],
   'avv-stato':[B(84,0,.07),B(91,.08,.06),N(0,.15,.05,6000,'highpass')],
   'avv-cade':[T(60,0,.55),N(0,.25,.22,200,'lowpass'),O('sine',140,0,.3,.12,{sl:50})],
+  // B6, il succo: il nemico che si disfa in pixel, le monete che rimbalzano, la sfera di esperienza che arriva al contatore, l'area rossa del capo che si carica e scoppia
+  'avv-sbriciola':[N(0,.35,.22,1800,'bandpass',300),O('square',220,0,.28,.08,{sl:60,lp:1400}),...[.04,.1,.17,.25,.33].map((t,n)=>N(t,.03,.12-n*.015,3200-n*350,'highpass')),T(70,.02,.4)],
+  'avv-bottino':[B(91,0,.09),B(96,.07,.09),B(98,.15,.08),B(103,.23,.06),N(0,.05,.1,6500,'highpass'),N(.16,.04,.07,7000,'highpass')],
+  'avv-sfera':[B(84,0,.07),B(91,.06,.07),B(96,.12,.06),O('sine',1800,0,.2,.03,{sl:2600})],
+  'avv-area':[O('sawtooth',90,0,1.3,.06,{sl:260,lp:700}),N(0,1.2,.07,500,'bandpass',2600),O('sine',60,0,1.3,.12,{sl:110})],
+  'avv-esplosione':[T(55,0,.85),N(0,.5,.3,900,'lowpass',180),O('sawtooth',170,0,.45,.1,{sl:38,lp:500}),N(.03,.25,.15,3000,'bandpass',500)],
   'avv-porta':[O('sawtooth',130,0,.45,.07,{sl:190,lp:520}),O('sawtooth',185,.2,.4,.06,{sl:120,lp:520}),T(70,.5,.5),N(.5,.2,.18,300,'lowpass')],
   'avv-scrigno':[N(0,.04,.25,3500,'bandpass'),O('square',900,0,.04,.08),O('sawtooth',160,.1,.35,.06,{sl:250,lp:600}),B(79,.5,.1),B(84,.57,.1),B(88,.64,.1),B(91,.71,.1),N(.5,.3,.08,7000,'highpass')],
   'avv-livello':[...[60,64,67,72,76,79,84].map((m,i)=>B(m,i*.08,i<5?.1:i===5?.12:.14)),BR(62,.5,.08,.7),BR(69,.5,.06,.7),PD([60,64,67],0,1.5,.02)],
@@ -78,13 +84,23 @@ const AAUD=(()=>{
   if(!a)return{fase:bat?'battaglia':'mappa',notte:false,luogo:null,dentro:false,capo,esito:be};
   const c=a.camp,e=CP.vivi(c)[0],l=e?CP.luogoDi(c,e):null,fine=a.fine?(a.fine.vinta?'vittoria':'sconfitta'):null;
   return{fase:bat?'battaglia':AV.fase(a),notte:c.fase==='notte',luogo:l?l.tipo:null,dentro:!!c.dentro,capo,esito:fine||be}}
+ // quando cadono a terra le monete del bottino (ms, come ASUC.TAB.bottino.caduta: il test li confronta)
+ const TAB_B={caduta:380};
  // ---- suoni di un passo di battaglia (ACRO.effetti) → [{ n: suono, r: ritardo in ms a velocità 1× }] ----
  function passo(x){const o=[];if(!x)return o;
   switch(x.t){
    case'sposta':{const n=Math.min(4,(x.passi||[]).length||1);for(let i=0;i<n;i++)o.push({n:i%2?'avv-passo2':'avv-passo',r:i*150});break}
    case'dado':o.push({n:'avv-d20',r:0});
     if(x.salvezza){if(x.ok)o.push({n:'avv-parata',r:450})}else if(x.crit&&x.ok)o.push({n:'avv-critico',r:450});else if(!x.ok)o.push({n:'avv-mancato',r:450});break;
-   case'numero':if(x.v>0)o.push({n:x.tipo==='temp'?'avv-parata':'heal',r:0});else if(x.v<0&&TIPO_SUONO[x.tipo])o.push({n:TIPO_SUONO[x.tipo],r:0});break;
+   case'numero':if(x.v>0)o.push({n:x.tipo==='temp'?'avv-parata':'heal',r:0});else if(x.v<0&&TIPO_SUONO[x.tipo])o.push({n:TIPO_SUONO[x.tipo],r:0});
+    if(x.crit&&x.v<0)o.push({n:'avv-critico',r:60});break;   // B6: il critico ha il suo stacco sopra il colpo
+   // B6, i riscontri di ASUC (28i)
+   case'mancato':o.push({n:'avv-mancato',r:0});break;
+   case'sbriciola':o.push({n:'avv-sbriciola',r:0});break;
+   case'bottino':o.push({n:'avv-bottino',r:TAB_B.caduta},{n:'avv-sfera',r:TAB_B.caduta+420});break;   // le monete a terra, poi la sfera che arriva al contatore
+   case'livello':o.push({n:'avv-livello',r:0});break;
+   case'area':o.push({n:'avv-area',r:0});break;
+   case'esplode':o.push({n:'avv-esplosione',r:0});break;
    case'stato':if(x.ok)o.push({n:'avv-stato',r:0});break;
    case'cade':o.push({n:'avv-cade',r:0});break;
    case'esce':if(x.come==='muore')o.push({n:'avv-cade',r:0});break;
@@ -113,5 +129,5 @@ const AAUD=(()=>{
   if(raccoglie&&oggetti(d)>oggetti(p))add('avv-scrigno',600);
   else if(!monete&&d.camp.oro>p.camp.oro&&t!=='compagnia')add('coin',600);
   return o}
- return{TRACCE,SUONI,TIPO_SUONO,ESISTENTI,traccia,contesto,passo,azione}})();
+ return{TRACCE,SUONI,TIPO_SUONO,ESISTENTI,TAB_B,traccia,contesto,passo,azione}})();
 if(typeof module!=='undefined')module.exports=AAUD;
