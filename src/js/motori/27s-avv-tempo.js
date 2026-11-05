@@ -7,7 +7,9 @@
    istantanei, le reazioni scattano da sole (APOT.tempi); stati e Concentrazione durano secondi (ASTA.scorri); attacco di opportunità
    all'uscita dalla portata di mischia; rinforzi che entrano da un bordo dopo un ritardo; fine per vittoria, sconfitta, fuga o stallo.
    Ordini: { chi, t } con t = vai (a:{q,r}) | attacca (bers) | potere (id + bers | cella | dir) | oggetto (id + …) | rialza (bers) | fuggi |
-   conc (Concentrazione: vantaggio per 6 s) | ferma. I poteri bonus già a portata partono subito e lasciano stare l'ordine principale
+   conc (Concentrazione: vantaggio per 6 s) | arrendi (solo mostri con `ia.arrende` sotto il 25% dei PF) | ferma. Un ordine dato con `ia:true` resta marcato (anche dopo un lancio,
+   che lo trasforma in «attacca»): così l'IA (27t) distingue i suoi ordini da quelli a mano del giocatore. L'evento `lancia` porta `zona` (le celle dell'area
+   rossa) per i poteri ad area; `zonaDi(s, c)` la dà per il lancio in corso. I poteri bonus già a portata partono subito e lasciano stare l'ordine principale
    (`rapidi`); fuori portata diventano l'ordine principale. Chi non ha ordini colpisce da solo un nemico a portata (il resto lo decide B4).
    Stato: { v, t, rng, arena, cb, ordini:{ id: ordine }, rapidi:{ id: ordine bonus }, riserva:[{ id, t }], opz:{ tMax, sorpresa }, over, ev, evn }.
    Un combattente è quello di APOT/BEST (come in ASCO) più: via (istante in cui si muove la prima volta), pronto (prossimo colpo), ritmo,
@@ -110,6 +112,12 @@ const ATEM=(()=>{
   if(!bs.length)return ERR('Nessun bersaglio nell\'area');
   const per={};for(const b of bs)if(p.att){const k=condizioni(s,c,b,p,{senzaGittata:true});per[b.id]=k.err?{}:k.per}
   return{bs,per,centro,dir}}
+ // celle toccate da un potere ad area lanciato da `c` con i bersagli `A` (l'area rossa a terra, B4); null se non è un'area
+ function zona(s,c,p,A){if(!p||!['cerchio','aura','cono','linea'].includes(p.area))return null;
+  if(p.area==='cerchio'){const b0=A.bers?trova(s,A.bers):null,ce=A.cella||(b0&&inCampo(b0)?pos(b0):null);return ce&&G.passabile(s.arena,ce)?G.cerchio(s.arena,ce,p.raggio):null}
+  const a=area(s,c,p,A,pos(c));return a.err?null:a.celle}
+ // l'area che sta per colpire il lancio in corso di `c` (si aggiorna se segue un bersaglio che si muove); null se non ce n'è
+ function zonaDi(s,c){const L=c&&c.lancio;if(!L||L.id==='rialza')return null;return zona(s,c,potereDi({t:L.ogg?'oggetto':'potere',id:L.id}),L.A)}
  // spinge `b` di `n` esagoni lontano da `c`: chi viene spinto perde il lancio e il passo che stava facendo
  function spinta(s,c,b,n){const da=pos(b);let passi=0;
   for(let i=0;i<n&&inPiedi(b);i++){const d=G.indietro(s.arena,pos(c),pos(b));if(!G.passabile(s.arena,d)||occupata(s,d,b))break;b.q=d.q;b.r=d.r;passi++}
@@ -160,7 +168,7 @@ const ATEM=(()=>{
   const p=potereDi({t:L.ogg?'oggetto':'potere',id:L.id});if(!p||!pronto(s,c,p)){annulla(X,c,'Non si può più usare');return}
   const R=usaPotere(X,c,p,L.A);if(R.err){X.ev.push({t:'fallito',chi:c.id,id:L.id,motivo:R.err});if(/Cariche|non può|cintura/.test(R.err))annulla(X,c,R.err);return}
   c.pronto=Math.max(c.pronto,s.t+c.ritmo);
-  const b=L.A.bers?trova(s,L.A.bers):null;if(o&&o.id===L.id){if(b&&inPiedi(b)&&nemici(c,b))s.ordini[c.id]={t:'attacca',bers:b.id};else delete s.ordini[c.id]}}
+  const b=L.A.bers?trova(s,L.A.bers):null;if(o&&o.id===L.id){if(b&&inPiedi(b)&&nemici(c,b))s.ordini[c.id]=Object.assign({t:'attacca',bers:b.id},o.ia?{ia:true}:{});else delete s.ordini[c.id]}}
  // ---- movimento: un esagono alla volta, verso la cella più vicina che soddisfa `meta`; occupa subito la cella nuova ----
  // chi ha un attacco di opportunità se `c` passa da `da` a `n`: nemici in piedi con la reazione pronta, da mischia, che lo avevano a portata
  const minacciano=(s,c,da,n)=>s.cb.filter(x=>inPiedi(x)&&nemici(c,x)&&x.reaT<=s.t&&x.via<=s.t&&melee(x)&&ST.puoAgire(x)&&G.dist(x,da)<=x.gitt&&G.dist(x,n)>x.gitt);
@@ -196,7 +204,8 @@ const ATEM=(()=>{
  function lancia(X,c,o){const s=X.s,p=potereDi(o);if(!p||(o.t==='potere'&&AP.usiRimasti(c,p)<=0)||(o.t==='oggetto'&&!pronto(s,c,p)))return annulla(X,c,'Non si può più usare');
   const f=forma(s,c,p,o);
   if(!f.err){if(!pronto(s,c,p))return difendi(X,c);const T=AP.tempi(p),A={bers:o.bers,cella:o.cella,dir:o.dir};
-   c.lancio={id:o.id,A,da:s.t,fine:s.t+T.lancio};if(o.t==='oggetto')c.lancio.ogg=true;X.ev.push({t:'lancia',chi:c.id,id:o.id,fine:c.lancio.fine});if(!T.lancio)rilascia(X,c);return}
+   c.lancio={id:o.id,A,da:s.t,fine:s.t+T.lancio};if(o.t==='oggetto')c.lancio.ogg=true;
+   const z=T.lancio?zona(s,c,p,A):null;X.ev.push(Object.assign({t:'lancia',chi:c.id,id:o.id,fine:c.lancio.fine},z?{zona:z.map(x=>({q:x.q,r:x.r}))}:{}));if(!T.lancio)rilascia(X,c);return}
   const m=metaPotere(s,c,p,o);if(!m)return annulla(X,c,f.err);
   const r=muoviVerso(X,c,m.meta,m.verso);if(r==='qui')return annulla(X,c,f.err);if(r==='attesa')difendi(X,c)}
  function turno(X,c){const s=X.s;
@@ -252,12 +261,14 @@ const ATEM=(()=>{
    case'conc':if(c.conc<1)return'Non hai Concentrazione';s.rapidi[c.id]={t:'conc'};return null;
    case'rialza':{const b=trova(s,a.bers);if(!b||b===c||!inCampo(b)||b.lato!==c.lato||b.hp>0)return'Serve un alleato a terra';metti(X,c,{t:'rialza',bers:b.id});return null}
    case'fuggi':metti(X,c,{t:'fuggi'});return null;
+   case'arrendi':if(c.lato!=='nemici'||!(c.ia&&c.ia.arrende)||c.hp>c.hpMax*.25)return'Non si arrende';esci(X,c,'arreso');return null;   // come in ASCO: solo chi ha `ia.arrende`, sotto il 25% dei PF
    default:return'Ordine sconosciuto'}}
  // ordina(s, ordine | [ordini], { qui }) → { s, ev } | { err }: gli ordini partono dal prossimo istante; un ordine nuovo interrompe il lancio in corso
  function ordina(s0,o,x){x=x||{};if(!s0||!Array.isArray(s0.cb))return ERR('Stato non valido');if(s0.over)return ERR('Battaglia finita');
-  const s=x.qui?s0:cl(s0),X={s,ev:[]};for(const a of Array.isArray(o)?o:[o]){const e=registra(X,a);if(e)return ERR(e)}
+  const s=x.qui?s0:cl(s0),X={s,ev:[]};
+  for(const a of Array.isArray(o)?o:[o]){const prima=a&&s.ordini[a.chi],e=registra(X,a);if(e)return ERR(e);const nuovo=a.ia&&s.ordini[a.chi];if(nuovo&&nuovo!==prima)nuovo.ia=true}   // `ia:true` = l'ordine è dell'IA (B4)
   for(const e of X.ev)e.i=s.t;s.ev=X.ev;s.evn++;return{s,ev:X.ev}}
  // per la barra delle abilità: quanto manca alla ricarica di un potere (istanti) e su quanto
  function ricarica(s,c,id){const p=AP.P[id];if(!p)return null;const T=AP.tempi(p),resta=Math.max(0,(id==='attacco'?c.pronto:c.ric[id]||0)-s.t);return{resta,tot:p.id==='attacco'?c.ritmo:T.ricarica,usi:AP.usiRimasti(c,p),lancio:T.lancio}}
- return{IST,GIRO,T_MAX,RINFORZO,MOV,MAX_EROI,nuovo,passo,ordina,trova,inCampo,inPiedi,forma,condizioni,uscite,ricarica}})();
+ return{IST,GIRO,T_MAX,RINFORZO,MOV,MAX_EROI,nuovo,passo,ordina,trova,inCampo,inPiedi,forma,condizioni,uscite,ricarica,zona,zonaDi}})();
 if(typeof module!=='undefined')module.exports=ATEM;
