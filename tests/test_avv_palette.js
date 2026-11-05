@@ -118,4 +118,51 @@ const C = img(60, 45, 1, 0, 0), D = img(60, 45, 1, 3, -2);
 assert.deepStrictEqual(APAL.confronta(C, D, 60, 45, -3, 2, 0).diversi, 0, 'spostamento intero riconosciuto');
 assert(APAL.confronta(C, D, 60, 45, 0, 0, 0).diversi > 0);
 
+// ---- B6.5: la battaglia vera nella resa pixel ----
+// sguardo: sempre uno degli otto ottavi e sempre nella metà che guarda la telecamera; un bersaglio «dietro» gira la figura di lato dalla sua parte
+{
+  const P4 = Math.PI / 4, f = APAL.fronte;
+  for (let i = -24; i <= 24; i++) {
+    const r = f(i * Math.PI / 12);
+    assert(Math.abs(r) <= Math.PI / 2 + 1e-9, 'mai di schiena: ' + i + ' → ' + r);
+    assert(Math.abs(r / P4 - Math.round(r / P4)) < 1e-9, 'otto direzioni: ' + r);
+  }
+  assert.strictEqual(f(0), 0); assert.strictEqual(f(P4), P4); assert.strictEqual(f(-P4), -P4); assert.strictEqual(f(2 * P4), 2 * P4); assert.strictEqual(f(-2 * P4), -2 * P4);
+  assert.strictEqual(f(3 * P4), P4, 'in alto a destra: tre quarti a destra');
+  assert.strictEqual(f(-3 * P4), -P4, 'in alto a sinistra: tre quarti a sinistra');
+  assert.strictEqual(Math.abs(f(Math.PI)), P4, 'dritto in alto: di tre quarti, non di schiena');
+  assert.strictEqual(f(4 * P4 + 2 * Math.PI), f(4 * P4), 'angoli oltre il giro');
+  assert(APAL.FIGURA.incl > 0 && APAL.FIGURA.incl < APAL.CAMERA.incl, 'le figure si inclinano meno della telecamera');
+  assert(Math.abs(APAL.FIGURA.cos - Math.cos((APAL.CAMERA.incl - APAL.FIGURA.incl) * Math.PI / 180)) < 1e-6, 'FIGURA.cos coerente con le inclinazioni');
+}
+// viewBox: un punto del pavimento cade allo stesso pixel CSS nell'immagine ingrandita (formula di 24hp-pixel.js) e nell'SVG col viewBox di APAL.vista
+{
+  const k = APAL.k(), pari = n => n + (n & 1);
+  for (const [w, h, dpr, zoom, cx, cz] of [[390, 613, 3, 'lontano', 123.4, 200.7], [390, 613, 2.625, 'vicino', -40.2, 88.1], [375, 560, 2, 'lontano', 300, 10], [1920, 1080, 1, 'lontano', 0, 0]]) {
+    const M = APAL.misure({ w, h, dpr, zoom }), s = M.s, aw = pari(M.art[0] + 2), ah = pari(M.art[1] + 2), [px, py] = APAL.piano(cx, 0, cz), ax = APAL.aggancia(px, k), ay = APAL.aggancia(py, k);
+    const off = [Math.round(M.W / 2 - s * (aw / 2 + ax.resto)), Math.round(M.H / 2 - s * (ah / 2 + ay.resto))], cam = [Math.round(ax.v * k), Math.round(ay.v * k)];
+    const vb = APAL.vista(Object.assign({}, M, { k, aw, ah, off, cam, w, h, dpr }));
+    assert(vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0, 'viewBox valido');
+    for (const [X, Z] of [[cx, cz], [cx + 37.5, cz - 61], [cx - 90, cz + 44], [cx + 3.3, cz + 120]]) {
+      const [vx, vy] = APAL.piano(X, 0, Z);
+      const x1 = (off[0] + s * ((vx - cam[0] / k) * k + aw / 2)) / dpr, y1 = (M.H - (off[1] + s * ((vy - cam[1] / k) * k + ah / 2))) / dpr;
+      const x2 = (X - vb[0]) / vb[2] * w, y2 = (-vy - vb[1]) / vb[3] * h;
+      assert(Math.abs(x1 - x2) < 1e-6 && Math.abs(y1 - y2) < 1e-6, `stesso pixel nell'immagine e nell'SVG (${w}×${h}@${dpr}): ${x1},${y1} / ${x2},${y2}`);
+    }
+    // il centro della vista sta a metà schermo (a meno di un pixel vero)
+    const [vx, vy] = APAL.piano(cx, 0, cz);
+    assert(Math.abs((cx - vb[0]) / vb[2] * w - w / 2) <= 1 / dpr + 1e-9 && Math.abs((-vy - vb[1]) / vb[3] * h - h / 2) <= 1 / dpr + 1e-9, 'centro della telecamera a metà');
+  }
+}
+// limiti della telecamera: dentro l'arena resta dov'è, fuori si ferma al bordo (col margine), un'arena più piccola della vista sta al centro
+{
+  const b = { x0: 0, x1: 400, z0: 0, z1: 300 }, v = { w: 200, h: 150 }, zs = 150 / APAL.CAMERA.sin;
+  assert.deepStrictEqual(APAL.limita({ x: 200, z: 150 }, b, v, 10), { x: 200, z: 150 });
+  const c = APAL.limita({ x: -50, z: -50 }, b, v, 10);
+  assert(Math.abs(c.x - (-10 + 100)) < 1e-9 && Math.abs(c.z - (-10 + zs / 2)) < 1e-9, 'si ferma al bordo in alto a sinistra');
+  const d = APAL.limita({ x: 999, z: 999 }, b, v, 10);
+  assert(Math.abs(d.x - (410 - 100)) < 1e-9 && Math.abs(d.z - (310 - zs / 2)) < 1e-9, 'si ferma al bordo in basso a destra');
+  assert.deepStrictEqual(APAL.limita({ x: 5, z: 5 }, { x0: 0, x1: 100, z0: 0, z1: 50 }, v, 10), { x: 50, z: 25 }, 'arena piccola: al centro');
+}
+
 console.log('palette: ok (tabella in ' + ms + ' ms, distanza minima ' + minimo.toFixed(3) + ')');

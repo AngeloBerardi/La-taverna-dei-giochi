@@ -279,7 +279,7 @@ const ATEM=(()=>{
   const cella=camp.party&&camp.celle&&camp.celle[camp.party.q+','+camp.party.r]||{},seme=inc.seme!=null?inc.seme>>>0:((camp.seed|0)*31+(camp.evn|0)*7+(camp.giorno|0))>>>0;
   const defs=(inc.nemici||[]).map(n=>typeof n==='string'?n:n.def),amb=inc.ambiente||AR.ambienteDa(cella.t,cella.poi);
   const squad=camp.eroi.map(e=>({eroe:cl(e),dist:(inc.dist&&inc.dist[e.slot])||0}));
-  return nuovo(squad,inc.nemici,AR.perIncontro(seme,amb,defs),{seme,sorpresa:inc.sorpresa,tMax:inc.tMax})}
+  return nuovo(squad,inc.nemici,AR.conLuce(AR.perIncontro(seme,amb,defs),camp),{seme,sorpresa:inc.sorpresa,tMax:inc.tMax})}   // B6.5: ora e perdizione per la luce
  // riepilogo(s): come ASCO.riepilogo; `giri` = periodi di 6 s iniziati, `secondi` = durata della battaglia
  function riepilogo(s){const sconfitti=s.cb.filter(c=>c.lato==='nemici'&&(c.morto||c.arreso)),xp=sconfitti.reduce((a,c)=>a+(c.xp||0),0),eroi=s.cb.filter(c=>c.lato==='eroi'),part=eroi.filter(c=>!c.fuori);
   const quota=part.length?Math.floor(xp/part.length):0;
