@@ -69,12 +69,13 @@ Misure con il bot (compagnia guerriero+mago+chierico+ladro): Racconto ~90% delle
 - Rientro: ciascuno riscuote **solo il proprio eroe** sul proprio profilo (stesse tappe e limiti di prima); la campagna condivisa si salva sul profilo di chi ospita e si può riprendere in compagnia.
 
 ## Tempo reale (piano B)
-*Stato: regole fissate in B0 (`docs/AVVENTURA-B.md`), non ancora in gioco. Finché gli step B3–B10 non sono consegnati, nell'app valgono le regole a turni delle sezioni qui sopra; quando uno step entra, la sua parte sostituisce la sezione a turni.*
+*Stato: regole fissate in B0 (`docs/AVVENTURA-B.md`). Da B5 le **battaglie della campagna in solitario** (del racconto e del mondo) si giocano così; la battaglia di prova e la co-op con la TV restano a turni fino a B10, la mappa del mondo fino a B8. Quando uno step entra, la sua parte sostituisce la sezione a turni.*
 - La battaglia **scorre da sola**. Il tempo si conta in **istanti** di un decimo di secondo; la grafica li mostra fluidi. Si può **mettere in pausa** quando si vuole.
 - **Il movimento non si tira più**, né in battaglia né sulla mappa: ci si muove a velocità fissa, **mov ÷ 3 caselle al secondo** (mov 6 = 2 caselle al secondo).
 - Il **d20** resta dentro ogni colpo e ogni prova: parte il colpo, si tira d20 più il bonus contro la CA, con vantaggio e svantaggio come oggi. A schermo si vede il colpo o la scritta «Mancato», non il dado; il registro della battaglia conserva i tiri.
 - In battaglia ogni creatura occupa sempre un **esagono** e passa al successivo alla propria velocità; linea di vista, copertura, altezza, attacchi di opportunità e percorsi valgono come prima. La griglia si mostra solo in pausa o quando si dà un ordine di movimento.
 - **Pausa**: si possono dare tutti gli ordini, che partono alla ripresa. Velocità ×1 o ×2.
+- **Ordini sul telefono** (B5): tocca un eroe per sceglierlo (anello sotto i piedi), un nemico per attaccarlo, un esagono per andarci, un eroe a terra per rialzarlo. I tasti rotondi in basso usano le abilità dell'eroe scelto: quelle su di sé partono subito, quelle a bersaglio chiedono il bersaglio, quelle ad area mostrano l'area al primo tocco e partono al secondo. «Tutte» elenca ogni abilità con «Uso automatico». L'atteggiamento si cambia dal tasto con il suo nome. Le **aree rosse** a terra sono poteri nemici in arrivo: chi ne esce prima della fine del lancio non viene colpito.
 - **Pausa automatica**, ognuna attivabile dalle impostazioni: inizio battaglia, eroe sotto un quarto dei PF, eroe senza bersaglio, nemico nuovo in campo, potere pronto di un capo.
 - **Mondo**: l'orologio avanza solo mentre qualcuno cammina o riposa; un giorno di gioco dura circa 3 minuti di cammino. Perdizione all'alba, notte e luoghi restano come prima.
 

@@ -133,7 +133,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 6 |  |
 | `css/39-campagna.css` | 10 |  |
-| `css/39a-avventura.css` | 1 |  |
+| `css/39a-avventura.css` | 8 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
@@ -199,7 +199,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/27p-avv-compagni.js` | 6 | ACMP |
 | `js/motori/27q-avv-racconto.js` | 25 | ARAC |
 | `js/motori/27r-avv-eventi.js` | 29 | AEVE |
-| `js/motori/27s-avv-tempo.js` | 29 | ATEM |
+| `js/motori/27s-avv-tempo.js` | 31 | ATEM |
 | `js/motori/27t-avv-ia-tempo.js` | 18 | AIAT |
 | `js/motori/28-campagna.js` | 38 | CAMP |
 | `js/motori/28a-avv-orchestratore.js` | 23 | AVV |
@@ -289,7 +289,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 16 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
-| `js/app/24he-battaglia.js` | 25 | Bat |
+| `js/app/24he-battaglia.js` | 26 | Bat |
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
 | `js/app/24hg-mondo-mappa.js` | 11 | MoMappa |
 | `js/app/24hh-mondo-pannelli.js` | 19 | MoPan |
@@ -299,8 +299,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
 | `js/app/24hn-scena3d.js` | 31 | Scena3D |
-| `js/app/24ho-scena-fx.js` | 17 |  |
+| `js/app/24ho-scena-fx.js` | 18 |  |
 | `js/app/24hp-pixel.js` | 19 | Pixel, PixelProva |
+| `js/app/24hq-bat-tempo.js` | 25 | BatT |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
