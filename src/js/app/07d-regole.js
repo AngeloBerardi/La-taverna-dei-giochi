@@ -1,5 +1,13 @@
 /* ---- testi delle regole in-game: RULES[id] (una scheda per riga; la fonte è docs/rules/<gioco>.md) ---- */
 const RULES={
+ serata:`<p>Una cena con delitto per tante persone divise in <b>famiglie</b>. Lo <b>schermo comune</b> (il PC collegato alla TV) fa da regia e conosce la soluzione; un <b>narratore</b> guida la serata dal suo telefono; ogni ospite ha sul telefono il dossier del suo personaggio. Trame e testi dei kit sono nostri o di chi organizza.</p>
+<ul><li><b>Prima di cominciare:</b> sulla TV premi <b>Fai da regista</b>, proponi la serata dallo scaffale e scegli il kit. Il narratore tocca «Faccio il narratore», poi la TV assegna i personaggi.</li>
+<li><b>Gli atti:</b> ognuno ha tre momenti. <b>Mattina:</b> arrivano prove e notizie; per parlare a tutti la famiglia usa il suo rappresentante. <b>Pomeriggio:</b> si gira e si parla con chiunque, entro un tempo massimo. <b>Sera:</b> si parla solo dentro la propria famiglia.</li>
+<li><b>Le prove:</b> si mostrano e si copiano, non si portano via. Una copia chiesta la concede chi la possiede. Alcune buste restano chiuse fino a un atto preciso.</li>
+<li><b>La bacheca:</b> la famiglia appoggia le prove su una bacheca comune e prova a collegarle. Un collegamento giusto è un passo avanti: lo vede tutta la sala e può spegnere uno dei sigilli sulla TV.</li>
+<li><b>Il dossier:</b> storia, segreto, la versione che racconti, obiettivi, legami, cosa fare atto per atto e tre battute-guida da dire con parole tue. Puoi mentire su di te, non inventare prove o orari.</li>
+<li><b>Il voto:</b> alla fine ognuno accusa in segreto: chi, perché, quando, l’alibi falso e le due prove più forti. Il rappresentante consegna anche il voto della famiglia.</li>
+<li><b>Pausa tecnica:</b> il narratore può fermare tutto in qualunque momento. Chi vuole uscire dal ruolo lo dice dal suo telefono.</li></ul>`,
  giallo:`<p>Una cena con delitto per 6–10 persone nella stessa stanza. Serve lo <b>schermo comune</b> (TV o PC) che fa da <b>regia</b>: racconta la storia, tiene il tempo e conosce la soluzione. Ognuno gioca dal proprio telefono, niente ospiti sullo stesso telefono. Trame e testi sono nostri.</p>
 <ul><li><b>Prima di cominciare:</b> apri lo schermo comune (Impostazioni → Schermo comune) e sulla TV premi <b>Fai da regista</b>. Poi proponi la cena dallo scaffale e scegli il giallo.</li>
 <li><b>Il tuo personaggio:</b> sul telefono trovi la scheda con storia, segreto, alibi e cosa sai degli altri. Recita la parte: puoi mentire su tutto tranne che sugli indizi.</li>

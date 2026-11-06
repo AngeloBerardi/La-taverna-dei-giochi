@@ -796,8 +796,10 @@ const SERATA = (() => {
         return { s };
       }
       case 'portavoce': {
-        if (famDi(k, pidDi(s, a.per)) !== f) return no('Si vota qualcuno della propria famiglia');
-        F.voti[a.uid] = a.per;
+        // si vota un membro della propria famiglia per personaggio (il telefono non conosce gli uid degli altri)
+        const per = s.di[a.pid];
+        if (!per || famDi(k, a.pid) !== f || s.usc[a.pid]) return no('Si vota qualcuno della propria famiglia');
+        F.voti[a.uid] = per;
         const c = {};
         for (const v of Object.values(F.voti)) c[v] = (c[v] || 0) + 1;
         const m = Math.max(...Object.values(c)),
@@ -952,6 +954,8 @@ const SERATA = (() => {
     switch (a.c) {
       case 'avanti':
         if (s.pausa) return { err: 'Prima togli la pausa' };
+        // la console dice dov'era quando il narratore ha toccato: un tocco partito da una console indietro si ignora
+        if (a.at !== undefined && a.at !== punto(s)) return;
         return avanti(s, k, ora);
       case 'pausa':
         if (a.on && !s.pausa) {
@@ -1007,8 +1011,9 @@ const SERATA = (() => {
         log(s, nomeP(k, s, a.pid) + ' è chiamato altrove');
         return;
       case 'portavoce':
-        if (!s.fam[a.fam] || famDi(k, pidDi(s, a.per)) !== a.fam) return { err: 'Scegli un membro della famiglia' };
-        s.fam[a.fam].pv = a.per;
+        if (!s.fam[a.fam] || !s.di[a.pid] || famDi(k, a.pid) !== a.fam)
+          return { err: 'Scegli un membro della famiglia' };
+        s.fam[a.fam].pv = s.di[a.pid];
         return;
       case 'proposta': {
         const p = s.prop.find(x => x.n === a.n);
@@ -1252,11 +1257,12 @@ const SERATA = (() => {
               regia: r.regia || '',
               chi: r.chi ? nomeP(k, s, r.chi) : '',
               testo: r.testo || '',
-              cue: r.cue || null,
+              cue: r.cue ? etichetta(k, r.cue) : '',
             }))
           : [],
       momento: a && s.mom && a[s.mom] ? { istruzioni: a[s.mom].istruzioni || '', minuti: a[s.mom].minuti || 0 } : null,
       prossimo: prossimo(s, k),
+      pos: punto(s),
       fino: s.fino,
       pausa: s.pausa,
       sigilli: (k.sigilli || []).map(x => ({ id: x.id, nome: x.nome || x.id, on: !!s.sig[x.id] })),
@@ -1299,6 +1305,16 @@ const SERATA = (() => {
       audio: (k.audio || []).map(x => ({ id: x.id, titolo: x.titolo || x.id })),
     };
   }
+  const punto = s => [s.fase, s.atto, s.mom, s.riga, s.fin].join('|');
+  // un comando del copione detto in parole: «Rilascia «Il talloncino»», «Suona «Il saluto inciso»»
+  function etichetta(k, c) {
+    if (c.prova) return 'Rilascia «' + prova(k, c.prova).titolo + '»';
+    if (c.sigillo) return 'Spegni il sigillo ' + c.sigillo;
+    if (c.audio) return 'Suona «' + (((k.audio || []).find(x => x.id === c.audio) || {}).titolo || c.audio) + '»';
+    if (c.mostra) return 'Mostra a tutti «' + prova(k, c.mostra).titolo + '»';
+    if (c.mondo !== undefined) return 'Annuncia: ' + c.mondo;
+    return '';
+  }
   // cosa succede al prossimo «Avanti»: la console lo scrive sul pulsante
   function prossimo(s, k) {
     if (s.fase === 'pronta') return 'Inizia: atto ' + k.atti[0].id;
@@ -1310,14 +1326,7 @@ const SERATA = (() => {
       l = righe(a);
     if (s.mom === 'mattina' && s.riga < l.length) {
       const r = l[s.riga];
-      if (r.cue) {
-        const c = r.cue;
-        if (c.prova) return 'Rilascia ' + prova(k, c.prova).titolo;
-        if (c.sigillo) return 'Spegni ' + c.sigillo;
-        if (c.audio) return 'Suona ' + c.audio;
-        if (c.mostra) return 'Mostra ' + c.mostra;
-        if (c.mondo !== undefined) return 'Annuncia: ' + c.mondo;
-      }
+      if (r.cue) return etichetta(k, r.cue);
       if (r.chi) return 'Tocca a ' + nomeP(k, s, r.chi);
       return 'Riga ' + (s.riga + 1) + ' di ' + l.length;
     }

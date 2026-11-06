@@ -92,7 +92,7 @@ function serata(k, n, opz) {
       // il colpevole confessa troppo presto: la serata deve proseguire lo stesso
       const colp = k.soluzione.colpevole,
         f = famDi(k, colp);
-      s = cmd(s, k, 'portavoce', { fam: f, per: s.di[colp] });
+      s = cmd(s, k, 'portavoce', { fam: f, pid: colp });
       s = fai(s, { t: 'dichiara', uid: s.di[colp], testo: 'Sono stato io.', tipo: 'accusa' }, k);
     }
     if (s.fase === 'gioco' && s.mom === 'mattina' && s.riga === 0) {
@@ -316,6 +316,15 @@ if (k0) {
     s = S.act(s, { t: 'cmd', uid: NARR, c: 'avanti', seq: 5 }, k0, ORA).s;
     ck(prima === 'sera' && s.atto + s.mom === dopo1, 'un comando ripetuto si applica una volta sola');
     ck(!!S.act(s, { t: 'cmd', uid: nora, c: 'avanti' }, k0, ORA).err, 'solo il narratore comanda');
+    // due tocchi partiti dallo stesso punto (rete lenta): il secondo non fa saltare un altro passo
+    const pos = S.mani(s, k0)[NARR].console.pos;
+    const s1 = fai(s, { t: 'cmd', uid: NARR, c: 'avanti', at: pos, seq: 6 }, k0),
+      s2 = fai(s1, { t: 'cmd', uid: NARR, c: 'avanti', at: pos, seq: 7 }, k0);
+    ck(
+      s1.riga + s1.mom + s1.atto !== s.riga + s.mom + s.atto &&
+        s2.riga + s2.mom + s2.atto === s1.riga + s1.mom + s1.atto,
+      'un avanti partito da una console rimasta indietro si ignora'
+    );
     // la console sa cosa succede al prossimo avanti
     const con = S.mani(s, k0)[NARR].console;
     ck(

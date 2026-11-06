@@ -148,6 +148,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/43-tv-lowpoly.css` | 9 |  |
 | `css/44-voto.css` | 2 |  |
 | `css/45-giallo.css` | 16 |  |
+| `css/45a-serata.css` | 10 |  |
 | `css/46-tv-tavoli.css` | 11 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
@@ -221,6 +222,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/35-sync.js` | 4 | SYNC |
 | `js/motori/36-regicide-legacy.js` | 31 | RLEG, RND, clone, shuffle, pick, HL, CL |
 | `js/motori/36-giallo.js` | 19 | GIALLO |
+| `js/motori/36a-serata.js` | 54 | SERATA |
 | `js/motori/37-regicide-x.js` | 24 | RGX, SU, HAND, RND, P, cv, clone |
 | `js/motori/38-accordi.js` | 18 | ACC, RND, clone, COL, NTOK, DIRS, K |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
@@ -231,11 +233,11 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 39 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 15 | G, ui, ME, R, ENG, isRG, GAMES |
+| `js/app/07-nucleo.js` | 16 | G, ui, ME, R, ENG, isRG, GAMES |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 9 |  |
-| `js/app/07d-regole.js` | 48 | RULES |
+| `js/app/07d-regole.js` | 50 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -321,6 +323,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24u-regicide-legacy-tv.js` | 8 | RLTEX, rlTex, rlCard3, rlFace, RLC, RLTV, rlegacyTVH |
 | `js/app/24u-regia.js` | 6 | REGIA |
 | `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
+| `js/app/24va-serata.js` | 46 | SER, serataH, serataClick |
 | `js/app/24w-scena.js` | 30 | SCENA |
 | `js/app/24y-tv-tavoli.js` | 30 | TVT, briscolaTVH, scopaTVH, burracoTVH, machTVH, unoTVH, peruTVH |
 | `js/app/24z-accordi-tv.js` | 7 | AC3, R_, ZR, pix, cells, cellsN, SLX |
