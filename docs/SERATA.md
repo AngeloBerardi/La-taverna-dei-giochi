@@ -30,5 +30,13 @@ Il validatore controlla anche: orari scritti nei testi fuori dalla cronologia ca
 ## Kit privati
 Un kit che non deve stare nel repo pubblico si apre dalla TV: scegli «Kit privato dal computer della TV», poi «Apri il kit dal computer». Il file resta nel browser di quel PC (`localStorage`), non passa dal sito né dal database; i telefoni ricevono solo la loro mano.
 
+## Kit cifrati (segreti, ma nel repo)
+Il repo e il sito sono pubblici: un kit con colpevole e prove (es. «23:17 – L'ultima luce», `ultima-luce`) ci sta solo **cifrato**, in `src/kit-cifrati/<id>.json`. In chiaro restano id, titolo, sottotitolo, numero di giocatori e durata (servono all'elenco); tutto il resto è il kit compresso e cifrato (AES-256-GCM, chiave da PBKDF2-SHA-256 a 600 000 giri, sale e iv casuali, l'id è un dato autenticato). Codice: `src/js/motori/36b-kit-cifrati.js` (`KITC`).
+- **Sulla TV**: nell'elenco delle serate il kit compare come gli altri. Alla prima apertura la TV chiede la frase (maiuscole, spazi e trattini non contano), apre il kit nel browser e ricorda la frase su quel computer (`localStorage`, chiave `serata-frase-<id>`). Frase sbagliata: errore e la richiesta torna. Ai telefoni arriva solo la loro mano, come sempre; il database non vede mai né la frase né il kit.
+- **Dopo un errore** la TV non riprova da sola: tocco su «Riprova» (o sul bottone della frase).
+- **Cifrare o aggiornare un kit**: `node tools/kit/cifrati.js cifra /percorso/kit.json` (senza frase ne inventa una e la stampa; per aggiornare un kit già cifrato si passa la stessa frase come secondo argomento). Il kit in chiaro NON va committato: tienilo fuori dal repo. `apri <busta> <frase> <uscita.json>` lo riscrive in chiaro, utile per il collaudo completo: `KIT_PRIVATO=uscita.json npm test -- serata`.
+- **Test**: `npm test -- kit_cifrati` (giro completo, frase sbagliata, buste alterate o malformate, nessun segreto in chiaro); con `KIT_FRASE=<frase>` apre anche le buste vere del repo e ne valida il contenuto. Il build controlla solo la busta (non ha la frase). Scenario `serata_cifrato` nel browser.
+- **Limite onesto**: chi ha la frase legge il kit; la frase protegge dalla lettura casuale del repo pubblico, non da chi la conosce. La frase non sta da nessuna parte nel repo.
+
 ## Prova con 2-3 telefoni
 TV sul PC + un telefono narratore + 1-2 ospiti, kit `nebbia-scoglio` (35 minuti, timer brevi). Senza narratore la TV si guida dalla tastiera: spazio = avanti, P = pausa.

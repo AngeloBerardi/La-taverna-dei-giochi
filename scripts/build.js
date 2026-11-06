@@ -22,7 +22,7 @@ let html = manifest.map(f => {
 html = html.replace('/*VENDOR*/{}', JSON.stringify(vendor));
 // kit delle cene con delitto (src/kit/*.json): validati, scritti a parte in dist/kit/<id>.<hash>.json e scaricati solo dalla TV
 // regista (REGIA.kit). Nella pagina va solo l'indice senza trame né soluzioni. Formato: docs/GIALLI.md
-const GIALLO = require('../src/js/motori/36-giallo.js'), SERATA = require('../src/js/motori/36a-serata.js'), kitDir = path.join(root, 'src/kit'), kit = {};
+const GIALLO = require('../src/js/motori/36-giallo.js'), SERATA = require('../src/js/motori/36a-serata.js'), KITC = require('../src/js/motori/36b-kit-cifrati.js'), kitDir = path.join(root, 'src/kit'), kit = {};
 // assets/kit/<id>/: ritratti/<personaggio|vittima>.webp, luoghi/<luogo>.webp, oggetti/<indizio>.webp, copertina.webp, titoli.woff2.
 // Un nome che non corrisponde a niente nel kit ferma il build (di solito è un errore di battitura). Formati: docs/GIALLI-SCENA.md
 function mediaKit(k) {
@@ -62,6 +62,18 @@ for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.end
   const file = `${k.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
   fs.writeFileSync(path.join(root, 'dist/kit', file), src);
   kit[k.id] = { copertina: k.media.copertina || '', font: k.media.font || '', titolo: k.titolo, sottotitolo: k.sottotitolo || '', giocatori: k.giocatori, minuti: k.minuti, tono: k.tono || '', formato: k.formato || '', url: '/kit/' + file };
+}
+// kit segreti (src/kit-cifrati/<id>.json, cifrati con tools/kit/cifrati.js): il build non ha la frase, controlla solo la busta;
+// il contenuto lo valida la TV quando lo apre (e tests/test_kit_cifrati.js con KIT_FRASE). Nell'indice compaiono come serate.
+const cifDir = path.join(root, 'src/kit-cifrati');
+for (const n of fs.existsSync(cifDir) ? fs.readdirSync(cifDir).filter(n => n.endsWith('.json')).sort() : []) {
+  const src = fs.readFileSync(path.join(cifDir, n), 'utf8'), b = JSON.parse(src), err = KITC.valida(b);
+  if (err.length) throw new Error(`kit cifrato ${n} non valido: ${err.join('; ')}`);
+  if (b.id + '.json' !== n) throw new Error(`kit cifrato ${n}: il nome del file deve essere uguale all'id (${b.id})`);
+  if (kit[b.id]) throw new Error(`kit cifrato ${n}: l'id ${b.id} esiste già tra i kit in chiaro`);
+  const file = `${b.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
+  fs.writeFileSync(path.join(root, 'dist/kit', file), src);
+  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: 'serata', cifrato: true, url: '/kit/' + file };
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));

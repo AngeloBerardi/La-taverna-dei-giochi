@@ -104,6 +104,8 @@ const SER = {
     un: null,
     q: Promise.resolve(),
     err: '',
+    erroDi: '',
+    frase: '',
     carica: false,
     cueN: 0,
     mostra: null,
@@ -111,7 +113,7 @@ const SER = {
   async avvia() {
     const g = G,
       D = SER.D;
-    if (!g || g.g !== 'serata' || !REGIA.sono() || D.gid === g.gid || D.carica) return;
+    if (!g || g.g !== 'serata' || !REGIA.sono() || D.gid === g.gid || D.carica || D.erroDi === g.gid) return; // dopo un errore si riparte solo da un tocco
     D.carica = true;
     D.err = '';
     try {
@@ -122,7 +124,7 @@ const SER = {
       if (g.kit === 'privato') {
         D.k = SER.privato();
         if (!D.k) throw new Error('Apri il kit privato dal computer della TV');
-      } else D.k = await REGIA.kit(g.kit);
+      } else D.k = await SER.sblocca(await REGIA.kit(g.kit));
       const e = SERATA.valida(D.k);
       if (e.length) throw new Error('Kit non valido: ' + e[0]);
       const salvato = await REGIA.carica(R.code);
@@ -138,11 +140,40 @@ const SER = {
       D.un = REGIA.ascoltaAzioni(R.code, l => SER.richieste(l));
     } catch (e) {
       D.err = String((e && e.message) || e);
+      D.frase = (e && e.frase) || ''; // kit cifrato: la TV chiede la frase
+      D.erroDi = g.gid; // niente nuovi tentativi da soli: ogni disegno della TV riproverebbe e il kit non si leggerebbe mai
       D.gid = '';
     } finally {
       D.carica = false;
       render();
     }
+  },
+  // un kit cifrato (src/kit-cifrati, vedi motori/36b-kit-cifrati.js) si apre con la frase, che il PC della TV ricorda
+  KEY_FRASE: 'serata-frase-',
+  async sblocca(k) {
+    if (!k || k.formato !== 'cifrato') return k;
+    let f = '';
+    try {
+      f = localStorage.getItem(SER.KEY_FRASE + k.id) || '';
+    } catch (e) {}
+    if (!f) throw Object.assign(new Error('Questo kit è segreto: scrivi la frase per aprirlo'), { frase: k.id });
+    try {
+      return await KITC.apri(k, f);
+    } catch (e) {
+      if (!e.sbagliata) throw e;
+      try {
+        localStorage.removeItem(SER.KEY_FRASE + k.id);
+      } catch (x) {}
+      throw Object.assign(new Error('La frase non apre questo kit: riprova'), { frase: k.id });
+    }
+  },
+  riprova() {
+    Object.assign(SER.D, { err: '', frase: '', erroDi: '', gid: '' });
+    return SER.avvia();
+  },
+  fraseH() {
+    const D = SER.D;
+    return `<form class="sr-frase" onsubmit="return false"><input id="sr-frase" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Frase del kit"><button class="b gold" data-a="ser" data-v="frase:${esc(D.frase)}">Apri il kit</button></form>`;
   },
   // dal casting alla serata: chi non è il narratore riceve un personaggio
   async inizia() {
@@ -337,8 +368,7 @@ const SER = {
         if (e.length) return say('Kit non valido: ' + e[0], 6000);
         localStorage.setItem(SER.KEY_PRIV, t);
         say('Kit «' + k.titolo + '» pronto su questo computer', 3000);
-        SER.D.gid = '';
-        SER.avvia();
+        SER.riprova();
       } catch (err) {
         say('File non leggibile: ' + (err.message || err), 4000);
       }
@@ -367,7 +397,7 @@ const SER = {
       .join(';');
     let main = '';
     if (D.err && io) {
-      main = `<div class="sr-c"><p class="err">${esc(D.err)}</p>${g.kit === 'privato' ? '<button class="b gold" data-a="ser" data-v="file">Apri il kit dal computer</button>' : ''}</div>`;
+      main = `<div class="sr-c"><p class="err">${esc(D.err)}</p>${g.kit === 'privato' ? '<button class="b gold" data-a="ser" data-v="file">Apri il kit dal computer</button>' : ''}${D.frase ? SER.fraseH() : g.kit === 'privato' ? '' : '<button class="b gold" data-a="ser" data-v="riprova">Riprova</button>'}</div>`;
     } else if (g.fase === 'casting' || !g.fase) main = SER.tvCasting(g, io);
     else if (D.mostra && k && io) {
       const p = k.prove.find(x => x.id === D.mostra.id);
@@ -852,6 +882,16 @@ ${c.on && p !== m.dossier.id ? `<button class="b sm" data-a="ser" data-v="chiedi
       // TV
       case 'file':
         return SER.apriFile();
+      case 'frase': {
+        const f = val('sr-frase');
+        if (!f.trim()) return say('Scrivi la frase del kit', 2500);
+        try {
+          localStorage.setItem(SER.KEY_FRASE + a1, f);
+        } catch (e) {}
+        return SER.riprova();
+      }
+      case 'riprova':
+        return SER.riprova();
       case 'narr':
         D.narr = a1;
         return SER.salva().then(render);

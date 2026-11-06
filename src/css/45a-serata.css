@@ -61,6 +61,8 @@
 .sr-ttop,.sr-con>header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:6px;background:linear-gradient(180deg,color-mix(in srgb,var(--sr-acc) 45%,transparent),rgba(0,0,0,.75))}
 .sr-ttop small{display:block;color:var(--muted)}
 .sr-tel .sr-timer,.sr-con .sr-timer{font-size:22px}
+.sr-frase{display:flex;gap:16px;justify-content:center;margin-top:28px}
+.sr-frase input{width:min(520px,60vw);min-height:64px;padding:0 20px;border-radius:6px;border:2px solid var(--line);background:rgba(0,0,0,.35);color:inherit;font-size:28px}
 .sr-cerca{display:flex;gap:6px}
 .sr-cerca input{flex:1;min-height:44px;padding:0 10px;border-radius:4px;border:2px solid var(--line);background:rgba(0,0,0,.35);color:inherit}
 .sr-busta{margin:0;padding:10px 12px;border-radius:4px;background:var(--sr-carta);color:var(--sr-ink);border-left:6px solid var(--sr-acc)}

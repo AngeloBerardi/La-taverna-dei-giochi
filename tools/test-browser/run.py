@@ -1544,6 +1544,69 @@ async def sc_serata(b, srv):
     check(not errs, f'nessun errore nelle pagine {errs[:2]}')
     for c in ctxs: await c.close()
 
+async def sc_serata_cifrato(b, srv):
+    """Kit segreto (src/kit-cifrati): la TV chiede la frase, rifiuta quella sbagliata, apre il kit con quella giusta, la ricorda
+    dopo un riavvio, e né il database né i telefoni vedono mai la frase o il contenuto. Il kit di prova è «nebbia-scoglio» cifrato
+    qui con una frase finta in dist/kit (il kit vero, 23:17, si prova con KIT_FRASE nei test del motore)."""
+    FRASE = 'prova-8k2m-frase'
+    kit = json.load(open(os.path.join(ROOT, 'src', 'kit', 'nebbia-scoglio.json')))
+    js = ("const fs=require('fs'),K=require('./src/js/motori/36b-kit-cifrati.js');const k=JSON.parse(fs.readFileSync('src/kit/nebbia-scoglio.json','utf8'));"
+          "k.id='nebbia-cifrata';K.cifra(k,%s,{giri:100000}).then(b=>fs.writeFileSync('dist/kit/nebbia-cifrata.json',JSON.stringify(b)))" % json.dumps(FRASE))
+    subprocess.run(['node', '-e', js], cwd=ROOT, check=True)
+    REG = "REGIA.KIT['nebbia-cifrata']={titolo:'La nebbia sullo Scoglio',sottotitolo:'',giocatori:[1,4],minuti:35,tono:'',formato:'serata',cifrato:true,copertina:'',font:'',url:'/kit/nebbia-cifrata.json'}"
+    try:
+        sh = Shared()
+        ctxA, A = await telefono_rt(b, srv, sh, 'Nara', 51)
+        await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+        code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+        ctxB, B = await telefono_rt(b, srv, sh, 'Bea', 52, '?room=' + code + '&net=rt')
+        await A.wait_for_function("R.members.length===2&&R.members.every(m=>m.uid)", timeout=40000)
+        ctxT, T = await telefono_rt(b, srv, sh, '', 53, '?tv=' + code + '&net=rt')
+        await T.set_viewport_size({'width': 1280, 'height': 720})
+        await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
+        await T.click('[data-a=giaregia]'); await T.wait_for_function('REGIA.sono()', timeout=30000)
+        await A.wait_for_function('!!REGIA.uid', timeout=30000)
+        for p in (A, T): await p.evaluate(REG)
+        await A.evaluate("ui.err='';startGame('serata',null,{kit:'nebbia-cifrata'})")
+        # senza frase la TV si ferma e la chiede
+        await T.wait_for_function("document.querySelector('#sr-frase')", timeout=30000)
+        check('segreto' in await T.inner_text('.sr-main'), 'TV: il kit è segreto, chiede la frase')
+        check(await T.evaluate("SER.D.k===null||SER.D.k===undefined"), 'TV: il kit non è stato aperto')
+        await T.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'serata-tv-frase.png'))
+        # frase sbagliata: errore, niente ricordo, la richiesta torna
+        await T.fill('#sr-frase', 'frase-sbagliata'); await T.click('[data-a=ser][data-v^=frase]')
+        await T.wait_for_function("/non apre/.test(SER.D.err)&&document.querySelector('#sr-frase')", timeout=30000)
+        check(await T.evaluate("localStorage.getItem('serata-frase-nebbia-cifrata')===null"), 'frase sbagliata: non viene ricordata')
+        # frase giusta (maiuscole e spazi non contano)
+        await T.fill('#sr-frase', ' PROVA 8k2m-FRASE '); await T.click('[data-a=ser][data-v^=frase]')
+        await T.wait_for_function("SER.D.k&&SER.D.k.id==='nebbia-cifrata'&&!SER.D.err&&SER.D.gid===G.gid", timeout=30000)
+        await T.wait_for_function("!document.querySelector('#sr-frase')", timeout=30000)
+        check(True, 'frase giusta: il kit si apre e la richiesta sparisce')
+        await T.wait_for_function("document.querySelector('[data-a=ser][data-v=inizia]')||/narrator|narratore/i.test(document.body.innerText)", timeout=30000)
+        # i telefoni non hanno il kit; il database non ha né la frase né il contenuto
+        check(await A.evaluate("!SER.D.k"), 'telefono: nessun kit in mano')
+        tutto = json.dumps(sh.d, ensure_ascii=False)
+        segreti = [x['segreto'][:30] for x in kit['personaggi']] + [x[:30] for x in kit['soluzione']['ricostruzione']]
+        check(FRASE not in tutto and 'PROVA' not in tutto.upper().replace('PROVE', ''), 'database: la frase non compare')
+        check(not any(s in tutto for s in segreti), 'database: nessun segreto del kit prima dell’inizio')
+        # riavvio della TV: la frase è ricordata, nessuna richiesta
+        await T.reload()
+        await T.wait_for_function("ui.tv&&G&&G.g==='serata'&&REGIA.sono()", timeout=40000)
+        await T.evaluate(REG + ";SER.riprova()")  # dopo il riavvio l'indice di questa prova (non quello del build) va rimesso
+        await T.wait_for_function("SER.D.k&&SER.D.k.id==='nebbia-cifrata'&&!SER.D.err", timeout=30000)
+        await T.wait_for_function("SER.D.gid===G.gid", timeout=30000)
+        check(not await T.evaluate("!!document.querySelector('#sr-frase')"), 'riavvio della TV: la frase è ricordata')
+        # con KIT_FRASE anche il kit vero del repo (23:17): scaricato dal sito, aperto dal browser con WebCrypto e validato
+        if os.environ.get('KIT_FRASE'):
+            r = await T.evaluate("(async f=>{const id=Object.keys(REGIA.KIT).find(i=>REGIA.KIT[i].cifrato&&i!=='nebbia-cifrata');if(!id)return null;const b=await REGIA.kit(id),t0=Date.now(),k=await KITC.apri(b,f);return{id,ms:Date.now()-t0,err:SERATA.valida(k).slice(0,2),pers:k.personaggi.length,formato:k.formato}})(" + json.dumps(os.environ['KIT_FRASE']) + ")")
+            check(bool(r) and not r['err'] and r['formato'] == 'serata', f'kit vero nel browser: aperto e valido {r}')
+        errs = [e for p in (A, B, T) for e in p.errs]
+        check(not errs, f'nessun errore nelle pagine {errs[:2]}')
+        for c in (ctxA, ctxB, ctxT): await c.close()
+    finally:
+        try: os.remove(os.path.join(DIST, 'kit', 'nebbia-cifrata.json'))
+        except OSError: pass
+
 async def sc_giallo(b, srv):
     """Cena con delitto: sei telefoni e una TV regista sul database condiviso, dall'avvio al finale (con la TV riavviata a metà)."""
     sh = Shared(); kit = json.load(open(os.path.join(DIST, '..', 'src', 'kit', 'ultima-cena.json')))
@@ -2964,7 +3027,7 @@ async def main():
                 async with sem:
                     out = []; USCITA.set(out)
                     try: await sc(b, srv)
-                    except Exception as e: check(False, f'{sc.__name__}: eccezione {type(e).__name__}: {str(e)[:200]}')
+                    except Exception as e: check(False, f'{sc.__name__}: eccezione {type(e).__name__} (riga {e.__traceback__.tb_next.tb_lineno if e.__traceback__ and e.__traceback__.tb_next else "?"}): {str(e)[:200]}')
                     return sc.__name__[3:], out
             for nome, out in await asyncio.gather(*[uno(sc) for sc in scelti]):
                 print(nome); print('\n'.join(out))
