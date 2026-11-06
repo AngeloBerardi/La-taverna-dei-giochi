@@ -23,6 +23,7 @@ const Scena3D=(()=>{
  const GU={};
  function gu(k){if(GU[k])return GU[k];let g;
   if(k==='k')g=new T.CylinderGeometry(0,1,1,7,1);else if(k==='s')g=new T.SphereGeometry(1,8,6);else if(k==='b')g=new T.BoxGeometry(1,1,1);else if(k==='hex')g=new T.CylinderGeometry(1,1,1,6,1);
+  else if(k==='tondo')g=new T.CylinderGeometry(1,1,1,16,1);   // B6.5: rialzi e muri della resa pixel, arrotondati (gli esagoni non si vedono)
   else{const[a,b]=k.slice(1).split('_').map(Number);g=new T.CylinderGeometry(a/10,b/10,1,8,1)}
   g=g.toNonIndexed();const p=g.attributes.position.array,n=g.attributes.normal.array;let y0=1e9,y1=-1e9;for(let i=1;i<p.length;i+=3){y0=Math.min(y0,p[i]);y1=Math.max(y1,p[i])}
   return GU[k]={p,n,y0,y1,N:p.length/3}}
@@ -32,11 +33,12 @@ const Scena3D=(()=>{
  function metti(A,gk,M,c,ao,sway){const g=gu(gk),nm=metti.nm||(metti.nm=new T.Matrix3()),v=metti.v||(metti.v=new T.Vector3()),n=metti.n||(metti.n=new T.Vector3());nm.getNormalMatrix(M);
   for(let i=0;i<g.N;i++){v.set(g.p[i*3],g.p[i*3+1],g.p[i*3+2]);const u=(v.y-g.y0)/(g.y1-g.y0);v.applyMatrix4(M);A.pos.push(v.x,v.y,v.z);
    n.set(g.n[i*3],g.n[i*3+1],g.n[i*3+2]).applyMatrix3(nm).normalize();A.nor.push(n.x,n.y,n.z);const f=1-ao+ao*u;A.col.push(c[0]*f,c[1]*f,c[2]*f);A.sw.push(sway?Math.min(1,Math.max(0,(v.y-2)/34)):0);tx(A,0,0,-1)}}
- // una tessera esagonale: cima e fianchi di colore diverso, fianchi sfumati verso il basso
- function tessera(A,M,top,side,tex){const g=gu('hex'),nm=tessera.nm||(tessera.nm=new T.Matrix3()),v=tessera.v||(tessera.v=new T.Vector3()),n=tessera.n||(tessera.n=new T.Vector3());nm.getNormalMatrix(M);
+ // una tessera esagonale (o tonda, gk = 'tondo'): cima e fianchi di colore diverso, fianchi sfumati verso il basso.
+ // tex = [materiale, tono, fianco del muro | null, pavimento]: «pavimento» = la cima può prendere il materiale delle celle vicine (bordi mossi, B6.5)
+ function tessera(A,M,top,side,tex,gk){const g=gu(gk||'hex'),nm=tessera.nm||(tessera.nm=new T.Matrix3()),v=tessera.v||(tessera.v=new T.Vector3()),n=tessera.n||(tessera.n=new T.Vector3());nm.getNormalMatrix(M);
   for(let i=0;i<g.N;i++){v.set(g.p[i*3],g.p[i*3+1],g.p[i*3+2]);const u=v.y+.5;v.applyMatrix4(M);A.pos.push(v.x,v.y,v.z);n.set(g.n[i*3],g.n[i*3+1],g.n[i*3+2]).applyMatrix3(nm).normalize();A.nor.push(n.x,n.y,n.z);
    const alto=g.n[i*3+1]>.5,sotto=g.n[i*3+1]<-.5,f=alto?1:sotto?.35:.5+.5*u,c=alto?top:side;A.col.push(c[0]*f,c[1]*f,c[2]*f);A.sw.push(0);
-   if(tex&&alto)tx(A,tex[0],tex[1],0);else if(tex&&tex[2]&&!sotto)tx(A,tex[2][0],tex[2][1],1);else tx(A,0,0,-1)}}
+   if(tex&&alto)tx(A,tex[0],tex[1],tex[3]?0:.3);else if(tex&&tex[2]&&!sotto)tx(A,tex[2][0],tex[2][1],1);else tx(A,0,0,-1)}}
  function mesh(A,mat,o){o=o||{};const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(Float32Array.from(A.pos),3));g.setAttribute('normal',new T.BufferAttribute(Float32Array.from(A.nor),3));
   g.setAttribute('color',new T.BufferAttribute(Float32Array.from(A.col),3));if(o.sway)g.setAttribute('aSw',new T.BufferAttribute(Float32Array.from(A.sw),1));if(A.tex)g.setAttribute('aTex',new T.BufferAttribute(Float32Array.from(A.tex),3));
   const m=new T.Mesh(g,mat);m.frustumCulled=false;m.castShadow=o.cast!==false;m.receiveShadow=o.rec!==false;return m}
@@ -100,16 +102,34 @@ void RE_Direct_Bande(const in IncidentLight dl,const in GeometricContext g,const
  const FINE_B='#include <dithering_fragment>\nif(uBande>.5&&uMaschera>=0.&&gl_FragColor.a>.999)gl_FragColor.a=uMaschera;';
  // tessere: aTex = (materiale, spostamento di tono, faccia: 0 sopra, 1 fianco del muro, −1 niente); coordinate del mondo → texel 1:1 coi pixel d'arte
  const VS_T=['attribute vec3 aTex;varying vec3 vTex;varying vec3 vWp;','vTex=aTex;vWp=(modelMatrix*vec4(transformed,1.)).xyz;'];
- const FS_T=`uniform sampler2D tAtlas,tPal;uniform vec2 uKt;uniform float uKc;varying vec3 vTex;varying vec3 vWp;`;
- const FS_T2=`if(uBande>.5&&vTex.z>-.5){vec2 tx=vTex.z<.5?floor(vec2(vWp.x*uKt.x,vWp.z*uKt.y)):floor(vec2(vWp.x*uKt.x,-vWp.y*uKc));
+ // B6.5, bordi mossi: le cime del pavimento (vTex.z = 0) non prendono il materiale della loro tessera ma quello della cella sotto il punto spostato da un
+ // rumore (tMat: una cella per esagono, r = materiale, g = tono + 8, b = 1 se è pavimento); così fango, terra e prato si mescolano con bordi irregolari
+ // e gli esagoni non si vedono. Il rumore è calcolato sul pixel d'arte (sempre lo stesso per lo stesso punto del mondo): niente tremolio.
+ const FS_T=`uniform sampler2D tAtlas,tPal,tMat;uniform vec2 uKt;uniform float uKc,uMat;uniform vec4 uMatG;varying vec3 vTex;varying vec3 vWp;
+float hsT(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float vnT(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hsT(i),hsT(i+vec2(1.,0.)),f.x),mix(hsT(i+vec2(0.,1.)),hsT(i+vec2(1.,1.)),f.x),f.y);}
+vec3 matT(vec2 tx,vec3 t){if(uMat<.5||t.z>.1)return t;vec2 wp=(tx+.5)/uKt,w=wp/uMatG.x*1.05;
+ wp+=(vec2(vnT(w)+.45*vnT(w*2.6+7.1),vnT(w+19.7)+.45*vnT(w*2.6+3.3))/1.45-.5)*uMatG.w;
+ float q=(.5773503*wp.x-wp.y/3.)/uMatG.x,r=(2./3.*wp.y)/uMatG.x;vec3 c=vec3(q,-q-r,r),rc=floor(c+.5),df=abs(rc-c);
+ if(df.x>df.y&&df.x>df.z)rc.x=-rc.y-rc.z;else if(df.y>df.z)rc.y=-rc.x-rc.z;else rc.z=-rc.x-rc.y;
+ float col=rc.x+floor(rc.z/2.),row=rc.z;if(col<0.||row<0.||col>=uMatG.y||row>=uMatG.z)return t;
+ vec4 m=texture2D(tMat,vec2((col+.5)/uMatG.y,(row+.5)/uMatG.z));return m.b>.5?vec3(floor(m.r*255.+.5),floor(m.g*255.+.5)-8.,0.):t;}`;
+ const FS_T2=`if(uBande>.5&&vTex.z>-.5){vec2 tx=vTex.z<.5?floor(vec2(vWp.x*uKt.x,vWp.z*uKt.y)):floor(vec2(vWp.x*uKt.x,-vWp.y*uKc));vec3 tT=matT(tx,vTex);
  vec2 cel=floor(tx/16.),loc=tx-cel*16.;float v=floor(fract(sin(dot(cel,vec2(12.9898,78.233)))*43758.5453)*6.);
- float i=floor(texture2D(tAtlas,(vec2(v*16.,vTex.x*16.)+loc+.5)/vec2(96.,64.)).r*255.+.5),r=floor(i/5.);i=clamp(i+vTex.y,r*5.,r*5.+4.);
+ float i=floor(texture2D(tAtlas,(vec2(v*16.,tT.x*16.)+loc+.5)/vec2(96.,64.)).r*255.+.5),r=floor(i/5.);i=clamp(i+tT.y,r*5.,r*5.+4.);
  diffuseColor.rgb*=sRGBToLinear(texture2D(tPal,vec2((i+.5)/40.,.5))).rgb;}`;
  function bandeU(){const pal=APAL.paletta(),A=ASCE.atlante(),d=new Uint8Array(A.w*A.h*4);for(let i=0;i<A.dati.length;i++)d[i*4]=A.dati[i];
   const tex=(arr,w,h)=>{const t=new T.DataTexture(arr,w,h,T.RGBAFormat);t.magFilter=t.minFilter=T.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t};
   const k=APAL.k(),C=APAL.CAMERA;
   K.U={uBande:{value:0},uRif:{value:Math.PI},uS1:{value:.6},uS2:{value:.25},uRimS:{value:.62},uAmb:{value:new T.Color(0,0,0)},uRifl:{value:new T.Color(0,0,0)},
-   tAtlas:{value:tex(d,A.w,A.h)},tPal:{value:tex(pal,40,1)},uKt:{value:new T.Vector2(k,k*C.sin)},uKc:{value:k*C.cos}}}
+   tAtlas:{value:tex(d,A.w,A.h)},tPal:{value:tex(pal,40,1)},uKt:{value:new T.Vector2(k,k*C.sin)},uKc:{value:k*C.cos},
+   tMat:{value:tex(new Uint8Array(4),1,1)},uMat:{value:0},uMatG:{value:new T.Vector4(ASCE.GEO.bat.Z,1,1,0)}}}
+ // B6.5: la mappa dei materiali del pavimento (una cella per esagono, righe = r, colonne = col) per i bordi mossi dello shader delle tessere
+ function mappaMat(D){const w=D.w,h=D.h,a=new Uint8Array(w*h*4);
+  for(const t of D.tiles){if(t.r<0||t.r>=h||t.col<0||t.col>=w||!t.pav)continue;const o=(t.r*w+t.col)*4,pav=t.tipo==='piano'||t.tipo==='difficile';
+   a[o]=ASCE.MATERIALI.indexOf(t.pav[0]);a[o+1]=(t.pav[1]|0)+8;a[o+2]=pav?255:0;a[o+3]=255}
+  const U=K.U;if(U.tMat.value)U.tMat.value.dispose();const t=new T.DataTexture(a,w,h,T.RGBAFormat);t.magFilter=t.minFilter=T.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;
+  U.tMat.value=t;U.uMatG.value.set(ASCE.GEO.bat.Z,w,h,ASCE.GEO.bat.Z*.62);U.uMat.value=1}
  // aggiunge le bande a un materiale standard; o = { terr (tessere), rim ('eroi'|'nemici'), maschera (0,5 figure, 1 scena, −1 trasparenti) }
  function bande(mat,o){o=o||{};const prima=mat.onBeforeCompile,proprie={uRim:{value:new T.Color(0,0,0)},uMaschera:{value:o.maschera==null?1:o.maschera}};
   mat.userData.bande=proprie;mat.userData.rim=o.rim||null;
@@ -182,16 +202,20 @@ void RE_Direct_Bande(const in IncidentLight dl,const in GeometricContext g,const
   for(const t of D.tiles){let top,side,h=t.h;
    if(modo==='bat'){const P=d.pal,sc=t.scac?P.g:P.f;if(t.tipo==='muro'){top=P.m;side=P.ml}else if(t.tipo==='rialzo'){top=P.r;side=scuro(P.g,.2)}else if(t.tipo==='difficile'){top=scuro(sc,.1);side=scuro(sc,.34)}else{top=sc;side=scuro(sc,.3)}}
    else{if(!t.visto){top='#15110d';side='#0b0907'}else{let c=MoMappa.COL[t.t]||'#86a554';if(t.t==='acqua')c='#2b5278';c=mescola(c,'#15110d',1-ASCE.nebbia(t));if(tint)c=mescola(c,tint.col,tint.mix);top=c;side=scuro(c,.4)}}
-   const M=matrice(t.x,(h+base)/2,t.z,0,0,R,h-base,R);
-   if(px&&t.pav){const m=ASCE.MATERIALI.indexOf(t.pav[0]),tex=[m,t.pav[1],t.tipo==='muro'?[m,t.pav[1]-1]:null];tessera(A,M,BIANCO,tex[2]?BIANCO:C(side),tex)}else tessera(A,M,C(top),C(side),px?null:undefined);
+   // B6.5, gli esagoni non si vedono: nella resa pixel rialzi e muri sono tondi e un po' più larghi della cella (i vicini si fondono in un'unica
+   // forma), i muri un po' irregolari in larghezza e altezza; acqua, braci e superfici sono chiazze dal bordo mosso; il pavimento ha i bordi mossi (mappaMat)
+   const tondo=px&&(t.tipo==='rialzo'||t.tipo==='muro'),rr=tondo?R*(t.tipo==='muro'?1.04+.1*t.s:1.1):R,hh=px&&t.tipo==='muro'?h+(t.s-.5)*8:h;
+   const M=matrice(t.x,(hh+base)/2,t.z,0,0,rr,hh-base,rr);
+   if(px&&t.pav){const m=ASCE.MATERIALI.indexOf(t.pav[0]),tex=[m,t.pav[1],t.tipo==='muro'?[m,t.pav[1]-1]:null,t.tipo==='piano'||t.tipo==='difficile'];tessera(A,M,BIANCO,tex[2]?BIANCO:C(side),tex,tondo?'tondo':'hex')}else tessera(A,M,C(top),C(side),px?null:undefined);
    x0=Math.min(x0,t.x);x1=Math.max(x1,t.x);z0=Math.min(z0,t.z);z1=Math.max(z1,t.z);
-   const acqua=(modo==='bat'&&t.sup==='acqua')||(modo==='mon'&&t.visto&&t.t==='acqua');
-   if(acqua){const y=h+(modo==='bat'?.9:1.4);K.pozze.push({x:t.x,y,z:t.z});esagono(W,t.x,y,t.z,R-.6,C(modo==='bat'?'#3b78bb':'#3a72ad'))}
-   if(modo==='bat'&&t.sup&&t.sup!=='acqua'){const u={fuoco:['#f0782a','#3c1d0e',5],veleno:['#58b02a','#27441a',4],ghiaccio:['#a2dcf4','#5f93b4',3]}[t.sup];esagono(A,t.x,h+.3,t.z,R-1.2,C(u[1]));
+   const acqua=(modo==='bat'&&t.sup==='acqua')||(modo==='mon'&&t.visto&&t.t==='acqua'),dis=(B,y,r,c,k)=>px?chiazza(B,t,y,r,c,k):esagono(B,t.x,y,t.z,r,c);
+   if(acqua){const y=h+(modo==='bat'?.9:1.4);K.pozze.push({x:t.x,y,z:t.z});dis(W,y,px?R*.98:R-.6,C(modo==='bat'?'#3b78bb':'#3a72ad'),1)}
+   if(modo==='bat'&&t.sup&&t.sup!=='acqua'){const u={fuoco:['#f0782a','#3c1d0e',5],veleno:['#58b02a','#27441a',4],ghiaccio:['#a2dcf4','#5f93b4',3]}[t.sup];dis(A,h+.3,px?R*.92:R-1.2,C(u[1]),2);
     // resa pixel: il fuoco è un letto di braci con fiamme a cono (non un esagono acceso tutto uguale)
-    if(px&&t.sup==='fuoco'){esagono(S.fuoco,t.x,h+.7,t.z,R*.5,C('#c44404'));for(let i=0;i<7;i++){const a=i*2.4+t.q,dd=i?6+(i%3)*4:0,fh=7+((i*5)%4)*2.6;
+    if(px&&t.sup==='fuoco'){dis(S.fuoco,h+.7,R*.5,C('#c44404'),3);for(let i=0;i<7;i++){const a=i*2.4+t.q,dd=i?6+(i%3)*4:0,fh=7+((i*5)%4)*2.6;
       pezzo(S.fuoco,['k',i%2?'#ffcf6a':'#ff8a2a',Math.cos(a)*dd,fh/2,Math.sin(a)*dd,2.6+(i%2),0,fh,0,0,'e'],t.x,h,t.z,0,1,1,0,false)}}
-    else esagono(S[t.sup],t.x,h+.7,t.z,R-u[2],C(u[0]));K.fuochi.push({x:t.x,y:h,z:t.z,k:t.sup})}}
+    else dis(S[t.sup],h+.7,px?R*.8:R-u[2],C(u[0]),4);K.fuochi.push({x:t.x,y:h,z:t.z,k:t.sup})}}
+  if(px&&D.w&&D.h){mappaMat(D);cornice(A,D,R,base,BIANCO)}else K.U.uMat.value=0;
   const mt=mesh(A,K.mat.terr);K.g.terr.add(mt);if(W.pos.length){const m=mesh(W,K.mat.acq,{cast:false});m.renderOrder=2;K.g.acq.add(m)}
   if(S.fuoco.pos.length){const m=mesh(S.fuoco,K.mat.lum,{cast:false,rec:false});K.g.sup.add(m)}
   if(S.veleno.pos.length){K.g.sup.add(mesh(S.veleno,K.mat.ven,{cast:false}))}
@@ -209,6 +233,16 @@ void RE_Direct_Bande(const in IncidentLight dl,const in GeometricContext g,const
   K.luciP.forEach((l,i)=>{const f=F[i];if(!f){l.intensity=0;return}l.position.set(f.x,f.y,f.z);l.color.set(f.col);l.intensity=1.7*f.forza*(K.Lp?K.Lp.fiamme:1);l.distance=110;l.decay=1.4})}
  // un esagono piatto (6 triangoli) a quota y; colore c; uv in coordinate del mondo per far scorrere le onde
  function esagono(A,x,y,z,r,c){for(let i=0;i<6;i++){const a0=Math.PI/3*i,a1=Math.PI/3*(i+1),p=[[x,z],[x+Math.sin(a0)*r,z+Math.cos(a0)*r],[x+Math.sin(a1)*r,z+Math.cos(a1)*r]];
+   for(const[px,pz]of p){A.pos.push(px,y,pz);A.nor.push(0,1,0);A.col.push(c[0],c[1],c[2]);A.sw.push(0);tx(A,0,0,-1)}}}
+ // B6.5: tre giri di pavimento fuori dall'arena (non si gioca lì: niente oggetti, niente bordi mossi), così il bordo a zig-zag delle file di esagoni
+ // non si vede mai, nemmeno con la telecamera al limite; il materiale è quello del pavimento del tema (dei muri al chiuso), stesso tono: nessuna riga di confine
+ function cornice(A,D,R,base,BIANCO){const tm=ASCE.TEMI[D.tema]||{},pv=tm.interno?tm.pav&&tm.pav.muro:tm.pav&&tm.pav.piano;if(!pv)return;
+  const m=ASCE.MATERIALI.indexOf(pv[0]),dentro=new Set(D.tiles.map(t=>t.col+','+t.r)),G=3;
+  for(let r=-G;r<D.h+G;r++)for(let col=-G;col<D.w+G;col++){if(dentro.has(col+','+r))continue;const q=col-Math.floor(r/2),p=ASCE.pos('bat',q,r);
+   tessera(A,matrice(p.x,base/2,p.z,0,0,R,-base,R),BIANCO,BIANCO,[m,pv[1]|0,null,false])}}
+ // B6.5: una chiazza della cella t (acqua, braci, veleno, ghiaccio) nella resa pixel: 14 spicchi con il raggio mosso (±16%, sempre lo stesso per la cella)
+ function chiazza(A,t,y,r,c,k){const N=14,rg=i=>r*(.84+.32*ASCE.hash(t.q*7+(i%N),t.r*13+k,5));
+  for(let i=0;i<N;i++){const a0=Math.PI*2/N*i,a1=Math.PI*2/N*(i+1),r0=rg(i),r1=rg(i+1),p=[[t.x,t.z],[t.x+Math.sin(a0)*r0,t.z+Math.cos(a0)*r0],[t.x+Math.sin(a1)*r1,t.z+Math.cos(a1)*r1]];
    for(const[px,pz]of p){A.pos.push(px,y,pz);A.nor.push(0,1,0);A.col.push(c[0],c[1],c[2]);A.sw.push(0);tx(A,0,0,-1)}}}
  // ---- oggetti fissi (alberi, edifici, rocce, colonne…) ----
  function oggetti(modo,d,L){libera(K.g.ogg);K.g.ogg=new T.Group();K.scn.add(K.g.ogg);const F=V(),G=V(),E=V(),D=d.D,ctx={notte:!!L.finestre};K.torce=[];K.camini=[];K.corvi=[];

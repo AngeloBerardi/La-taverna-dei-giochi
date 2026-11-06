@@ -300,7 +300,7 @@ const ASCO=(()=>{
   const cella=camp.party&&camp.celle&&camp.celle[camp.party.q+','+camp.party.r]||{},seme=inc.seme!=null?inc.seme>>>0:((camp.seed|0)*31+(camp.evn|0)*7+(camp.giorno|0))>>>0;
   const defs=(inc.nemici||[]).map(n=>typeof n==='string'?n:n.def),amb=inc.ambiente||AR.ambienteDa(cella.t,cella.poi);
   const squad=camp.eroi.map(e=>({eroe:cl(e),dist:(inc.dist&&inc.dist[e.slot])||0}));
-  return nuovo(squad,inc.nemici,AR.perIncontro(seme,amb,defs),{seme,sorpresa:inc.sorpresa,difficolta:inc.difficolta,reazioni:inc.reazioni,giriMax:inc.giriMax})}
+  return nuovo(squad,inc.nemici,AR.conLuce(AR.perIncontro(seme,amb,defs),camp),{seme,sorpresa:inc.sorpresa,difficolta:inc.difficolta,reazioni:inc.reazioni,giriMax:inc.giriMax})}   // B6.5: ora e perdizione per la luce
  // aggiorna(camp, riepilogo) → { s } con la campagna aggiornata (PF, cariche, Concentrazione, cintura, PE) o { err }. Equipaggiamento e zaino non cambiano; la campagna passata non cambia.
  function aggiorna(camp,riep){if(!riep||riep.esito==null)return ERR('La battaglia non è finita');if(!camp||!Array.isArray(camp.eroi))return ERR('Campagna non valida');
   for(const r of riep.eroi){const e=camp.eroi[r.indice];if(!e||e.nome!==r.nome)return ERR('La compagnia non corrisponde alla battaglia: '+r.nome)}

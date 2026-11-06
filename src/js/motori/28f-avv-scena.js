@@ -97,7 +97,7 @@ const ASCE=(()=>{
  // pav: materiale [nome, spostamento di tono] per tipo di casella; alti/bassi: gli ostacoli «T» e «o»; deco: [soglia cumulativa, oggetto] sul pavimento libero
  const TEMI={
   foresta:{nome:'Foresta',pav:{piano:['erba',0],difficile:['terra',0],rialzo:['erba',1],muro:['pietra',0]},alti:['albero','abete','abete','albero'],bassi:['masso','ceppo','cespuglio','tronco'],
-   deco:[[.16,'ciuffi'],[.22,'fiori'],[.26,'funghi'],[.29,'sassi']],interno:false},
+   deco:[[.08,'ciuffi'],[.11,'fiori'],[.14,'funghi'],[.17,'sassi']],interno:false},
   rovine:{nome:'Rovine',pav:{piano:['terra',0],difficile:['erba',-1],rialzo:['pietra',1],muro:['pietra',0]},alti:['colonna','colonna-rotta','albero-secco'],bassi:['masso','statua','cassa'],
    deco:[[.12,'sassi'],[.2,'ciuffi'],[.24,'fiori']],interno:false},
   palude:{nome:'Palude',pav:{piano:['terra',-1],difficile:['erba',-1],rialzo:['terra',0],muro:['pietra',-1]},alti:['albero-secco','albero-secco','abete'],bassi:['ceppo','tronco','masso'],
@@ -142,11 +142,11 @@ const ASCE=(()=>{
    for(let b=0;b+1<bande.length;b++){const y0=bande[b],y1=bande[b+1],x0=Math.floor(h(b,1)*5);let xs=[];for(let x=x0;x<x0+n;x+=5+Math.floor(h(b,x,2)*4))xs.push(x%n);xs=[...new Set(xs.concat(0))].sort((a,c)=>a-c);const ok=[0];for(const x of xs)if(x-ok[ok.length-1]>=3&&n-x>=3)ok.push(x);ok.push(n);xs=ok;
     for(let s=0;s+1<xs.length;s++){const a=xs[s],c=xs[s+1],tono=h(b,s,3)<.18?3:2;
      for(let y=y0;y<y1;y++)for(let x=a;x<c;x++){const fuga=y===y1-1||x===c-1,bordo=y===y0&&x<c-2;set(x,y,I('pietra',fuga?1:bordo?tono+1:h(x,y,5)<.06?tono-1:tono))}}}}
-  else if(m===1){// erba: chiazze scure e chiare, ciuffi chiari con l'ombra sotto, qualche fiore
+  else if(m===1){// erba: chiazze scure e chiare, pochi ciuffi chiari con l'ombra sotto, un fiore ogni sei tessere (B6.5: più calma, le figure si leggono meglio)
    for(let y=0;y<n;y++)for(let x=0;x<n;x++)set(x,y,I('erba',2));
-   for(let i=0;i<7;i++){const x=Math.floor(h(i,1)*n),y=Math.floor(h(i,2)*n),c=h(i,3)<.6?1:3;set(x,y,I('erba',c));set(x+1,y,I('erba',c));if(h(i,4)<.5)set(x,y+1,I('erba',c))}
-   for(let i=0;i<3;i++){const x=1+Math.floor(h(i,7)*13),y=1+Math.floor(h(i,8)*12);set(x,y,I('erba',4));set(x-1,y+1,I('erba',3));set(x+1,y+1,I('erba',3));set(x,y+1,I('erba',3));set(x,y+2,I('erba',1));set(x-1,y+2,I('erba',1))}
-   if(v%3===1){const x=2+Math.floor(h(9,1)*12),y=2+Math.floor(h(9,2)*12);set(x,y,I(v%2?'magia':'fuoco',4));set(x,y+1,I('erba',1))}}
+   for(let i=0;i<5;i++){const x=Math.floor(h(i,1)*n),y=Math.floor(h(i,2)*n),c=h(i,3)<.6?1:3;set(x,y,I('erba',c));set(x+1,y,I('erba',c));if(h(i,4)<.5)set(x,y+1,I('erba',c))}
+   for(let i=0;i<[1,2,0,1,1,0][v%6];i++){const x=1+Math.floor(h(i,7)*13),y=1+Math.floor(h(i,8)*12);set(x,y,I('erba',v===0?4:3));set(x-1,y+1,I('erba',3));set(x+1,y+1,I('erba',3));set(x,y+1,I('erba',3));set(x,y+2,I('erba',1));set(x-1,y+2,I('erba',1))}
+   if(v===1){const x=2+Math.floor(h(9,1)*12),y=2+Math.floor(h(9,2)*12);set(x,y,I('fuoco',4));set(x,y+1,I('erba',1))}}
   else if(m===2){// terra battuta: grana, sassolini con l'ombra, una crepa
    for(let y=0;y<n;y++)for(let x=0;x<n;x++){const r=h(x,y,1);set(x,y,I('legno',r<.13?1:r<.18?3:2))}
    for(let i=0;i<3;i++){const x=Math.floor(h(i,11)*15),y=Math.floor(h(i,12)*15);set(x,y,I('metallo',3));set(x+1,y,I('metallo',2));set(x,y+1,I('legno',0))}
@@ -164,10 +164,12 @@ const ASCE=(()=>{
  const MOMENTI={
   giorno:{sole:{col:'#fff2da',int:.95,pos:[-150,175,-105]},amb:['#a0a8ff',.4],rifl:['#7aa8ff',.24],cielo:['pietra:2','pietra:1','notte:3'],nebbia:null,torce:false,finestre:false,fiamme:0},
   tramonto:{sole:{col:'#ffb47a',int:.9,pos:[-220,95,-30]},amb:['#b09cff',.36],rifl:['#7a8cff',.22],cielo:['fuoco:1','magia:1','notte:2'],nebbia:['magia:0',.22],torce:false,finestre:true,fiamme:.6},
-  notte:{sole:{col:'#a8bcff',int:.34,pos:[110,210,-120]},amb:['#8090ff',.3],rifl:['#5a8cff',.22],cielo:['notte:3','notte:2','notte:1'],nebbia:['notte:1',.28],torce:true,finestre:true,fiamme:1},
+  // notte (B6.5): la luna non arriva alla mezzaluce sul pavimento (0,3 × 0,79 < S2), quindi erba e pietra stanno nell'ombra blu e le pozze calde di torce e fuochi risaltano
+  notte:{sole:{col:'#9fb4ff',int:.3,pos:[110,210,-120]},amb:['#6070ff',.36],rifl:['#5a8cff',.24],cielo:['notte:3','notte:2','notte:1'],nebbia:['notte:1',.2],torce:true,finestre:true,fiamme:1},
   sotterraneo:{sole:{col:'#ffcf9a',int:.42,pos:[-90,200,-70]},amb:['#a89cff',.32],rifl:['#6a7aff',.16],cielo:['notte:1','notte:0','notte:0'],nebbia:['notte:0',.36],torce:true,finestre:true,fiamme:1}};
  // fiamme: quanto contano le luci puntiformi (di giorno il sole le copre); la perdizione tinge poco la luce (il colore delle cose resta) e molto cielo e nebbia
- const PERD=[null,{amb:'#c070ff',mix:.1,nebbia:['magia:0',.3]},{amb:'#d060c0',mix:.16,nebbia:['magia:0',.33],cielo:['magia:0','notte:1','notte:0']},{amb:'#ff5080',mix:.22,nebbia:['fuoco:0',.36],cielo:['magia:0','notte:1','notte:0']}];
+ // (B6.5: retino della perdizione più leggero, 22/25/28%, e solo ai margini dell'arena: vedi la rifinitura in 24hp-pixel.js)
+ const PERD=[null,{amb:'#c070ff',mix:.1,nebbia:['magia:0',.22]},{amb:'#d060c0',mix:.16,nebbia:['magia:0',.25],cielo:['magia:0','notte:1','notte:0']},{amb:'#ff5080',mix:.22,nebbia:['fuoco:0',.28],cielo:['magia:0','notte:1','notte:0']}];
  const RIM={eroi:'#ffc878',nemici:'#7ab4ff',forza:.5};
  const mixHex=(a,b,k)=>{const x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16),f=s=>Math.round(((x>>s)&255)*(1-k)+((y>>s)&255)*k);return'#'+((1<<24)|(f(16)<<16)|(f(8)<<8)|f(0)).toString(16).slice(1)};
  // la tabella per un tema (o un ambiente della battaglia), una fase ('giorno'|'tramonto'|'notte') e un livello di perdizione 0–3

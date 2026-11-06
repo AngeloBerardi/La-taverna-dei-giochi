@@ -88,5 +88,7 @@ const AARE=(()=>{
  const capo=def=>{const c=CAPI[def];return c?arenaDa(c.righe,c.sup,c.id,c.ambiente,c.nome):null};
  // l'arena per un incontro: quella del capo se c'è, altrimenti una generata dall'ambiente
  const perIncontro=(seme,ambiente,defs)=>{for(const d of defs||[]){const a=capo(d);if(a)return a}return genera(seme,ambiente)};
- return{W,H,NOMI,RICETTE,AMBIENTI,CAPI,ambienteDa,ingressi,valida,genera,ripiego,capo,perIncontro}})();
+ // B6.5: l'arena porta l'ora e la perdizione della campagna, solo per la luce della scena (3D e resa pixel); le regole della battaglia non le leggono
+ const conLuce=(A,camp)=>Object.assign(A,{fase:camp&&camp.fase==='notte'?'notte':'giorno',perdizione:camp?camp.perdizione|0:0});
+ return{W,H,NOMI,RICETTE,AMBIENTI,CAPI,ambienteDa,ingressi,valida,genera,ripiego,capo,perIncontro,conLuce}})();
 if(typeof module!=='undefined')module.exports=AARE;

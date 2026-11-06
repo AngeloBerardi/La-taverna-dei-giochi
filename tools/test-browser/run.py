@@ -48,8 +48,8 @@ class Shared:
             out = {'rows': [{'id': k.split('/')[-1], 'd': v} for k, v in self.d.items() if k.startswith(c + '/') and len(k.split('/')) == n]}
         await route.fulfill(status=200, content_type='application/json', body=json.dumps(out))
 
-async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None):
-    ctx = await b.new_context(viewport={'width': 390, 'height': 844}, service_workers='allow' if sw else 'block')
+async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None, dpr=1):
+    ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=dpr, service_workers='allow' if sw else 'block')
     init = "localStorage.setItem('rg-lb','iso');if(!localStorage.getItem('avv-3d'))localStorage.setItem('avv-3d','no');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
     if auth_error: init += f"window.__stubAuthError={auth_error!r};"
     if shared: init += 'window.__stubShared=true;'
@@ -2626,7 +2626,10 @@ async def sc_avv_tempo(b, srv):
             pause += 1; await pg.click('[data-a=btt][data-v=pausa]')
     fin = await pg.evaluate("({over:Bat.s.over,t:Bat.s.t,err:ERR.b.slice(-3).map(x=>String(x.m||x.msg||x).slice(0,120))})")
     check(fin['over'] is not None and fin['over']['esito'] in ('vittoria', 'sconfitta', 'fuga'), f'la battaglia arriva alla fine da sola, senza blocchi ({fin["t"] / 10:.0f} s di gioco, {pause} pause automatiche) {fin}')
-    await pg.wait_for_selector('.bt-fine [data-a=batmondo]', timeout=5000)
+    try: await pg.wait_for_selector('.bt-fine [data-a=batmondo]', timeout=6000)
+    except Exception:   # B6.5: se la schermata finale non arriva, dire perché (errori, ciclo fermo, ridisegno in attesa)
+        diag = await pg.evaluate("({raf:BatT.raf,rifaiA:BatT.rifaiA,overA:BatT.overA,vedi:Bat.vedi,fine:!!document.querySelector('.bt-fine'),bat:!!document.querySelector('.tr-bat'),err:ERR.b.slice(-3).map(x=>String(x.m||x.msg||x).slice(0,160))})")
+        check(False, f'la schermata finale con «Continua» compare {diag} {pg.errs[:2]}'); await ctx.close(); return
     esito = fin['over']['esito']
     await pg.screenshot(path='/tmp/claude-0/tempo-fine.png')
     await pg.click('.bt-fine [data-a=batmondo]'); await pg.wait_for_timeout(1000)
@@ -2646,6 +2649,86 @@ async def sc_avv_tempo(b, srv):
     check(await pg.evaluate("document.querySelectorAll('.bt-tok .bt-corpo *').length") == 0 and await pg.query_selector('.bt-tok.t-sel .bt-piede') is not None, '3D: i segnalini SVG sono solo barre, stati e anello dell\'eroe scelto')
     await pg.screenshot(path='/tmp/claude-0/tempo-3d.png')
     check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'3D: nessun errore {pg.errs[:2]}')
+    await ctx.close()
+
+async def sc_avv_tempo_pixel(b, srv):
+    """La battaglia vera nella resa pixel (B6.5), 390 px a dpr 2: con il 3D acceso la battaglia a istanti si disegna con la catena pixel. L'SVG sopra
+    coincide con l'immagine (segnalini sui piedi delle miniature, a meno di un pixel), barre e scritte restano di pixel CSS a ogni zoom, i tocchi
+    diventano ordini, la telecamera segue l'eroe scelto, il dito la sposta, il tasto e il pizzico cambiano zoom (ricordato); basette per fazione;
+    notte e sotterraneo con la loro luce. Schermate pixel-battaglia-*.png in SCHERMATE_DIR."""
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    ctx = await new_context(b, srv.port, dpr=2, extra_init="localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');localStorage.removeItem('bat-zoom');")
+    pg = await page(ctx, srv.url)
+    async def battaglia(amb, fase, perd):
+        await pg.evaluate(f"""(()=>{{const sq=Bat.prova(2).slice(0,3),nem=['brigante','arciere-bandito','lupo-grigio','lupo-grigio'],seme=7,
+          A=AARE.conLuce(AARE.perIncontro(seme,'{amb}',nem),{{fase:'{fase}',perdizione:{perd}}}),s=ATEM.nuovo(sq,nem,A,{{seme}});
+          ui.avv=false;Bat.daMondo(s,sq.map(m=>m.eroe.aspetto),'prova-pixel');ui.bat=true;render()}})()""")
+        await pg.wait_for_function("Scena3D.on()&&Scena3D.nFig()>=7&&BatMappa.px&&BatPx.ult&&BatPx.sDi===Bat.s", timeout=90000); await pg.wait_for_timeout(1500)
+    allinea = """(()=>{const u=BatPx.ult,svg=document.querySelector('.tr-bat .bt-svg'),wr=document.querySelector('.tr-bat .bt-mappa').getBoundingClientRect(),m=svg.getScreenCTM();let peggio=0;
+      for(const f of Scena3D.figure()){const p=f.g.position,[px,py]=APAL.piano(p.x,0,p.z),cx=(u.off[0]+u.s*(px*u.k-u.cam[0]+u.aw/2))/u.dpr,cy=(u.H-(u.off[1]+u.s*(py*u.k-u.cam[1]+u.ah/2)))/u.dpr;
+       const el=document.querySelector(`.bt-tok[data-id="${f.id}"]`);if(!el)continue;const t=el.transform.baseVal.consolidate().matrix,q=svg.createSVGPoint();q.x=t.e;q.y=t.f;const r=q.matrixTransform(m);
+       peggio=Math.max(peggio,Math.hypot(r.x-wr.left-cx,r.y-wr.top-cy))}
+      const barre=[...document.querySelectorAll('.tr-bat .bt-hud rect:first-child')].map(e=>e.getBoundingClientRect().width);
+      return{peggio:+peggio.toFixed(2),barre:[Math.min(...barre),Math.max(...barre)],s:u.s,zoom:BatPx.zoom}})()"""
+    await battaglia('bosco', 'giorno', 0)
+    st = await pg.evaluate("""({px:BatMappa.px,cls:!!document.querySelector('.tr-bat.tr-px .bt-svg.bt-px'),par:document.querySelector('.tr-bat .bt-svg').getAttribute('preserveAspectRatio'),
+      zoom:(r=>[r.width,r.height])(document.querySelector('.tr-zoom').getBoundingClientRect()),corpo:document.querySelectorAll('.bt-tok .bt-corpo *').length,sel:!!document.querySelector('.bt-tok.t-sel .bt-piede')})""")
+    check(st['px'] and st['cls'] and st['par'] == 'none' and min(st['zoom']) >= 44 and st['corpo'] == 0 and st['sel'], f'con il 3D acceso la battaglia a istanti è nella resa pixel: SVG agganciato, tasto dello zoom ≥ 44 px {st}')
+    a = await pg.evaluate(allinea)
+    check(a['peggio'] <= 1 and 27 <= a['barre'][0] and a['barre'][1] <= 29, f'segnalini sui piedi delle miniature (al massimo 1 px) e barre di 28 px CSS {a}')
+    base = await pg.evaluate("""(()=>{const c=f=>{const t=f.g.children[0].children[1];return'#'+t.material.color.clone().convertLinearToSRGB().getHexString()},F=Scena3D.figure(),
+      vicino=(h,x)=>[0,2,4].every(i=>Math.abs(parseInt(h.slice(1+i,3+i),16)-parseInt(x.slice(1+i,3+i),16))<=2);
+      return{eroi:F.filter(f=>f.lato==='eroi').map(c),nemici:F.filter(f=>f.lato!=='eroi').map(c),ok:F.every(f=>vicino(c(f),f.lato==='eroi'?'#f3ba25':'#c44404'))}})()""")
+    check(base['ok'], f'basette per fazione: oro gli eroi, rosse i nemici {base}')
+    await pg.screenshot(path=os.path.join(SCH, 'pixel-battaglia-pausa.png'))
+    # nessun esagono in vista: niente griglia in pausa, e mirando un potere ad area l'area è una macchia
+    esagoni = "[...document.querySelectorAll('.tr-bat .bt-svg polygon')].filter(p=>(p.getAttribute('points')||'').trim().split(/\\s+/).length===6).length"
+    check(await pg.evaluate("BatT.pausa") and await pg.evaluate(esagoni) == 0 and not await pg.query_selector('.tr-griglia'), f'in pausa nessun esagono disegnato ({await pg.evaluate(esagoni)})')
+    mi = await pg.evaluate("""(()=>{const s=Bat.s;for(const c of s.cb.filter(c=>c.lato==='eroi'&&ATEM.inPiedi(c))){const a=BatT.abilita(c).find(a=>a.p&&['cerchio','cono','linea'].includes(a.p.area));
+      if(!a)continue;BatT.sel=c.id;BatT.usa(a.k,a.id);const n=s.cb.find(x=>x.lato==='nemici'&&ATEM.inCampo(x));BatT.miraTocco(s,c,{q:n.q,r:n.r},null);
+      return{id:a.id,mac:document.querySelectorAll('.bt-macchia.m-area ellipse').length,hex:""" + esagoni + """}}return null})()""")
+    check(mi is None or (mi['mac'] > 0 and mi['hex'] == 0), f'mirando un potere ad area: l\'area è una macchia, nessun esagono {mi}')
+    await pg.evaluate("BatT.mira=null;BatT.sel='e1';render()"); await pg.wait_for_timeout(800)
+    # tocchi: un nemico = attaccalo; un altro eroe = sceglilo, e la telecamera lo segue
+    async def centro(id):
+        return await pg.evaluate("id=>{const e=document.querySelector(`.bt-tok[data-id=\"${id}\"]`).getBoundingClientRect();return[e.x+e.width/2,e.y+e.height/2]}", id)
+    xy = await centro('e2'); await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(600)
+    try: await pg.wait_for_function("(()=>{const t=APAL.limita(BatPx.mira(Scena3D.K),BatPx.b,BatPx.v,ASCE.GEO.bat.Z*.5);return Math.hypot(BatPx.cam.x-t.x,BatPx.cam.z-t.z)<2})()", timeout=12000)
+    except Exception: pass   # (il 3D in software può andare a pochi fotogrammi al secondo: si aspetta che la telecamera arrivi)
+    seg = await pg.evaluate("(()=>{const K=Scena3D.K,t=APAL.limita(BatPx.mira(K),BatPx.b,BatPx.v,ASCE.GEO.bat.Z*.5);return{sel:BatT.sel,segui:BatPx.segui,d:Math.hypot(BatPx.cam.x-t.x,BatPx.cam.z-t.z)}})()")
+    check(seg['sel'] == 'e2' and seg['segui'] and seg['d'] < 2, f'tocco su un eroe: diventa quello scelto e la telecamera lo raggiunge {seg}')
+    # (la telecamera va sul nemico, che all'inizio sta in cima all'arena sotto il registro)
+    nem = await pg.evaluate("(()=>{const c=Bat.s.cb.find(c=>c.lato==='nemici'&&ATEM.inCampo(c)),w=ASCE.pos('bat',c.q,c.r);BatPx.segui=false;BatPx.cam={x:w.x,z:w.z+40};Scena3D.sporca();return c.id})()")
+    await pg.wait_for_timeout(700)
+    xy = await centro(nem); await pg.mouse.click(xy[0], xy[1]); await pg.wait_for_timeout(400)
+    o = await pg.evaluate("Bat.s.ordini.e2")
+    check(o and o['t'] == 'attacca' and o['bers'] == nem, f'tocco su un nemico nella resa pixel: l\'eroe scelto lo attacca {o}')
+    # il dito sposta la telecamera (e smette di seguire)
+    vb0 = await pg.evaluate("document.querySelector('.tr-bat .bt-svg').getAttribute('viewBox')")
+    w = await pg.evaluate("(r=>[r.x+r.width/2,r.y+r.height/2])(document.querySelector('.tr-bat .bt-mappa').getBoundingClientRect())")
+    await pg.mouse.move(w[0], w[1]); await pg.mouse.down(); await pg.mouse.move(w[0] + 60, w[1] + 40, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(600)
+    pan = await pg.evaluate("({segui:BatPx.segui,vb:document.querySelector('.tr-bat .bt-svg').getAttribute('viewBox')})")
+    check(not pan['segui'] and pan['vb'] != vb0, f'trascinando, la vista segue il dito e la telecamera non segue più l\'eroe {pan}')
+    # zoom: il tasto passa a «vicino» (ricordato), le barre restano di 28 px, i segnalini sulle miniature; poi torna a «lontano»
+    s0 = a['s']; await pg.click('[data-a=btt][data-v=zoom]', no_wait_after=True); await pg.wait_for_timeout(2000)
+    z = await pg.evaluate(allinea); mem = await pg.evaluate("localStorage.getItem('bat-zoom')")
+    check(z['zoom'] == 'vicino' and z['s'] > s0 and mem == 'vicino' and z['peggio'] <= 1 and 27 <= z['barre'][0] and z['barre'][1] <= 29, f'zoom vicino dal tasto: scala {s0} → {z["s"]}, ricordato, segnalini e barre a posto {z}')
+    await pg.screenshot(path=os.path.join(SCH, 'pixel-battaglia-vicino.png'))
+    await pg.click('[data-a=btt][data-v=zoom]', no_wait_after=True); await pg.wait_for_timeout(800)
+    check(await pg.evaluate("BatPx.zoom") == 'lontano', 'il tasto torna a «lontano»')
+    # via: la battaglia scorre nella resa pixel
+    await pg.click('[data-a=btt][data-v=pausa]', no_wait_after=True); await pg.wait_for_timeout(2500)
+    check(await pg.evaluate("Bat.s.t") > 0 and await pg.evaluate("BatMappa.px"), f'la battaglia scorre nella resa pixel (istante {await pg.evaluate("Bat.s.t")})')
+    await pg.screenshot(path=os.path.join(SCH, 'pixel-battaglia-scorre.png'))
+    # notte con perdizione e sotterraneo: la luce dell'arena viene dall'ora e dalla perdizione della campagna
+    await battaglia('bosco', 'notte', 80)
+    L = await pg.evaluate("({m:Scena3D.K.Lp&&Scena3D.K.Lp.momento,liv:Scena3D.K.Lp&&Scena3D.K.Lp.liv})")
+    check(L['m'] == 'notte' and L['liv'] == 3, f'di notte con perdizione 80 la luce è quella della notte, perdizione 3 {L}')
+    await pg.screenshot(path=os.path.join(SCH, 'pixel-battaglia-notte.png'))
+    await battaglia('antro', 'giorno', 0)
+    check(await pg.evaluate("Scena3D.K.Lp&&Scena3D.K.Lp.momento") == 'sotterraneo', 'nell\'antro la luce del sotterraneo')
+    await pg.screenshot(path=os.path.join(SCH, 'pixel-battaglia-sotterraneo.png'))
+    check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'resa pixel della battaglia: nessun errore {pg.errs[:2]} {await pg.evaluate("ERR.b.slice(-2).map(x=>String(x.m||x.msg||x).slice(0,160))")}')
     await ctx.close()
 
 async def sc_avv_succo(b, srv):

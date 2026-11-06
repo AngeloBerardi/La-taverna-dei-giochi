@@ -17,7 +17,7 @@ const BatT={
  carica(){try{const j=JSON.parse(localStorage.getItem('bat-pausa')||'null');BatT.ap=Object.assign({},BatT.AP_DEF,j&&typeof j==='object'?j:{})}catch(e){BatT.ap=Object.assign({},BatT.AP_DEF)}},
  salvaAp(){try{localStorage.setItem('bat-pausa',JSON.stringify(BatT.ap))}catch(e){ERR.n(e)}},
  // una battaglia nuova (o ripresa dopo un ricaricamento: si riparte sempre in pausa)
- prepara(nuova){const s=Bat.s;BatT.sDi=s;BatT.mira=null;BatT.foglio=null;BatT.acc=0;BatT.ozio={};BatT.rifaiA=0;BatT.zSig='';
+ prepara(nuova){const s=Bat.s;BatT.sDi=s;BatT.mira=null;BatT.foglio=null;BatT.acc=0;BatT.ozio={};BatT.rifaiA=0;BatT.overA=0;BatT.zSig='';
   BatT.fermoA=0;BatT.mem={};BatT.xpShow=Succo.daStato(s);Succo.pulisci();
   BatT.cur=BatT.foto(s);BatT.prev=BatT.cur;const h=s.cb.find(c=>c.lato==='eroi'&&ATEM.inPiedi(c));BatT.sel=h?h.id:null;
   BatT.pausa=!s.over&&(!nuova||BatT.ap.inizio);BatT.motivo=s.over?'':nuova?'Dai gli ordini, poi tocca Riprendi.':'Battaglia ripresa.'},
@@ -32,19 +32,29 @@ const BatT={
  // ---- il ciclo ----
  avvia(){if(!BatT.raf){BatT.ult=0;BatT.raf=requestAnimationFrame(BatT.frame)}},
  viva(){return!!(ui.bat&&Bat.tempo()&&document.querySelector('.tr-bat'))},
+ // (B6.5: il fotogramma si riprogramma sempre, anche se qualcosa va storto; a battaglia finita, se la schermata finale non c'è dopo FINE_MAX ms, si disegna)
+ FINE_MAX:3500,
  frame(t){BatT.raf=0;if(!BatT.viva())return;const s=Bat.s;if(BatT.sDi!==s)BatT.prepara(false);
-  const dt=Math.min(250,t-(BatT.ult||t));BatT.ult=t;
-  if(!BatT.ferma()&&t>=BatT.fermoA){BatT.acc+=dt*(Bat.cfg.vel===2?2:1);let n=0;   // B6: un critico ferma l'immagine per 60 ms (il tempo di gioco non passa)
-   while(BatT.acc>=100&&n<6){BatT.acc-=100;n++;BatT.istante();if(BatT.ferma())break}if(n>=6)BatT.acc=0}
-  if(BatT.rifaiA&&performance.now()>=BatT.rifaiA){BatT.rifaiA=0;render();return}
-  BatT.disegna(BatT.ferma()?1:BatT.acc/100,t);BatT.raf=requestAnimationFrame(BatT.frame)},
+  let rifai=false;
+  try{const dt=Math.min(250,t-(BatT.ult||t));BatT.ult=t;
+   if(!BatT.ferma()&&t>=BatT.fermoA){BatT.acc+=dt*(Bat.cfg.vel===2?2:1);let n=0;   // B6: un critico ferma l'immagine per 60 ms (il tempo di gioco non passa)
+    while(BatT.acc>=100&&n<6){BatT.acc-=100;n++;BatT.istante();if(BatT.ferma())break}if(n>=6)BatT.acc=0}
+   const ora=performance.now();
+   if(s.over){if(!BatT.overA)BatT.overA=ora;else if(!BatT.rifaiA&&ora-BatT.overA>BatT.FINE_MAX&&!Bat.vedi&&!document.querySelector('.tr-bat .bt-fine'))BatT.rifaiA=1}
+   if(BatT.rifaiA&&ora>=BatT.rifaiA){BatT.rifaiA=0;rifai=true}
+   else BatT.disegna(BatT.ferma()?1:BatT.acc/100,t)}
+  catch(e){ERR.n(e,'bat-tempo')}
+  if(rifai)return render();   // render → dopo() → avvia() riprende il ciclo
+  BatT.raf=requestAnimationFrame(BatT.frame)},
  // un istante di gioco: l'IA pensa (ogni mezzo secondo) e la battaglia avanza; poi eventi, pausa automatica, HUD
  istante(){const s=Bat.s,hp0={};for(const c of s.cb)if(c.lato==='eroi')hp0[c.id]=c.hp;
   BatT.prev=BatT.cur||BatT.foto(s);let r;
   try{r=AIAT.avanza(s,1,{qui:true})}catch(e){ERR.n(e,'bat-tempo');BatT.pausa=true;BatT.motivo='Qualcosa è andato storto: la battaglia è salvata.';Bat.salva();render();return}
   if(r.err){BatT.pausa=true;BatT.motivo=r.err;render();return}
-  BatT.cur=BatT.foto(s);BatT.eventi(r.ev,s);BatT.controlla(s,hp0);
-  if(s.t%30===0)Bat.salva();BatT.hud(s)},
+  BatT.cur=BatT.foto(s);
+  // B6.5: un errore nel disegno dei riscontri non deve fermare la battaglia né la sua fine (si registra e si va avanti)
+  try{BatT.eventi(r.ev,s)}catch(e){ERR.n(e,'bat-tempo-eventi');if(s.over)BatT.rifaiA=BatT.rifaiA||performance.now()+700}
+  try{BatT.controlla(s,hp0);if(s.t%30===0)Bat.salva();BatT.hud(s)}catch(e){ERR.n(e,'bat-tempo-hud')}},
  // ---- eventi: registro, numeri e scritte, animazioni, suoni, pausa automatica ----
  RIFAI:new Set(['arriva','cade','muore','fuggito','arreso','fine']),
  riga(e,s){const N=id=>ACRO.nome(s,id),P=id=>{const p=APOT.P[id]||APOT.oggetto(id);return p?p.nome:String(id)};
@@ -95,8 +105,9 @@ const BatT={
  // ---- disegno a ogni fotogramma: segnalini (SVG) e miniature (3D) nelle posizioni interpolate ----
  disegna(al,t){const s=Bat.s,P=BatT.cur||{},Q=BatT.prev||P,mq=BatAnima.mq(),out={};t=t||performance.now();
   for(const id in P){const b=P[id],a=Q[id]||b,p={q:a.q+(b.q-a.q)*al,r:a.r+(b.r-a.r)*al,h:a.h+(b.h-a.h)*al,mv:b.mv,la:b.la};out[id]=p;
-   const [x,y0]=BatMappa.xy(p.q,p.r),y=y0-6*p.h,bob=p.mv&&!mq&&!Scena3D.on()?Math.abs(Math.sin(t/85))*2.2:0;BatT.dis[id]={x,y};
+   const [x,y0]=BatMappa.xy(p.q,p.r),y=y0-BatMappa.RIALZO*BatMappa.L*p.h,bob=p.mv&&!mq&&!Scena3D.on()?Math.abs(Math.sin(t/85))*2.2:0;BatT.dis[id]={x,y};
    const el=BatT.els.get(id);if(el){el.setAttribute('transform',`translate(${x.toFixed(1)} ${(y-bob).toFixed(1)})`);el.dataset.x=x.toFixed(1);el.dataset.y=y.toFixed(1)}}
+  BatT.pos=out;   // B6.5: la telecamera della resa pixel segue l'eroe scelto da qui (posizioni interpolate)
   if(Scena3D.on()&&Scena3D.muovi&&(!BatT.ferma()||t-(BatT.m3||0)>250)){BatT.m3=t;Scena3D.muovi(out,t/1000)}},
  // ---- HUD a ogni istante: PF, ricariche, lanci, aree rosse ----
  hud(s){if(!s)return;
@@ -121,22 +132,29 @@ const BatT={
   const sig=[...z.keys()].join('|'),svg=document.querySelector('.tr-bat .bt-svg');if(!svg)return;let g=svg.querySelector('.tr-zone');
   if(sig!==BatT.zSig||(sig&&!g)){BatT.zSig=sig;BatT.zP={};
    if(!g&&sig){g=document.createElementNS(BatAnima.NS,'g');g.setAttribute('class','tr-zone');g.setAttribute('pointer-events','none');const fx=svg.querySelector('.bt-fx');svg.insertBefore(g,fx)}
-   if(g)g.innerHTML=[...z.keys()].map(k=>{const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=AGRI.alt(s.arena,{q,r})?6:0;return`<polygon class="zb" points="${BatMappa.punti(x,y-h,BatMappa.Z-2)}"/><polygon class="zr" data-k="${k}" points="${BatMappa.punti(x,y-h,0)}"/>`}).join('')}
+   // (resa pixel, B6.5: le caselle sono macchie che si fondono, non esagoni; il riempimento è un'ellisse che cresce)
+   if(g)g.innerHTML=[...z.keys()].map(k=>{const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=BatMappa.alz(s.arena,{q,r});
+    return BatMappa.px?BatMappa.macchia(x,y-h,1,'zb')+BatMappa.macchia(x,y-h,0,'zr',k):`<polygon class="zb" points="${BatMappa.punti(x,y-h,BatMappa.Z-2)}"/><polygon class="zr" data-k="${k}" points="${BatMappa.punti(x,y-h,0)}"/>`}).join('')}
   if(!g)return;
   // B6: l'area rossa si riempie mentre il potere si carica, fino a scoppiare (il poligono interno cresce con la carica)
   for(const [k,p] of z){if(Math.abs((BatT.zP[k]||0)-p)<.03&&p<1)continue;BatT.zP[k]=p;const po=g.querySelector('.zr[data-k="'+k+'"]');if(!po)continue;
-   const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=AGRI.alt(s.arena,{q,r})?6:0;po.setAttribute('points',BatMappa.punti(x,y-h,(BatMappa.Z-2)*p))}},
+   const [q,r]=k.split(',').map(Number),[x,y]=BatMappa.xy(q,r),h=BatMappa.alz(s.arena,{q,r});
+   if(BatMappa.px){const Z=BatMappa.Z*.95*p;po.setAttribute('rx',Z.toFixed(1));po.setAttribute('ry',(Z*BatMappa.SQ).toFixed(1))}else po.setAttribute('points',BatMappa.punti(x,y-h,(BatMappa.Z-2)*p))}},
  logDom(){const el=document.querySelector('.tr-log');if(el)el.innerHTML=BatT.logH()},
  logH(){return Bat.log.slice(-2).map((r,k,L)=>`<p class="${r.lato?'l-'+r.lato:''} ${r.peso}${k<L.length-1?' vec':''}">${esc(r.testo)}</p>`).join('')},
  avviso(t){BatAnima.toast(t,1600)},
  // un segno sull'esagono di arrivo di un ordine
- segno(q,r,tipo){const g=document.querySelector('.tr-bat .bt-fx');if(!g)return;const [x,y]=BatMappa.xy(q,r),h=AGRI.alt(Bat.s.arena,{q,r})?6:0,e=document.createElementNS(BatAnima.NS,'polygon');
-  e.setAttribute('points',BatMappa.punti(x,y-h,BatMappa.Z-3));e.setAttribute('class','tr-segno '+(tipo||''));g.appendChild(e);setTimeout(()=>e.remove(),700)},
+ segno(q,r,tipo){const g=document.querySelector('.tr-bat .bt-fx');if(!g)return;const [x,y]=BatMappa.xy(q,r),h=BatMappa.alz(Bat.s.arena,{q,r}),px=BatMappa.px,e=document.createElementNS(BatAnima.NS,px?'ellipse':'polygon');
+  if(px){const Z=BatMappa.Z*.7;e.setAttribute('cx',x.toFixed(1));e.setAttribute('cy',(y-h).toFixed(1));e.setAttribute('rx',Z.toFixed(1));e.setAttribute('ry',(Z*BatMappa.SQ).toFixed(1))}   // resa pixel: un cerchio a terra
+  else e.setAttribute('points',BatMappa.punti(x,y-h,BatMappa.Z-3));
+  e.setAttribute('class','tr-segno '+(tipo||''));g.appendChild(e);setTimeout(()=>e.remove(),700)},
  // ---- ordini ----
  ordina(o,dove){const s=Bat.s;if(!s||s.over)return false;const r=ATEM.ordina(s,o,{qui:true});if(r.err){BatT.avviso(r.err);return false}
   if(dove)BatT.segno(dove.q,dove.r,o.t==='attacca'?'att':'');Snd.play('sel');BatT.hud(s);return true},
  // la creatura disegnata più vicina al tocco (chi cammina sta fra due esagoni), altrimenti chi occupa l'esagono
- chiA(s,cella,p){let best=null,bd=22*22;if(p)for(const c of s.cb){if(!ATEM.inCampo(c))continue;const d=BatT.dis[c.id];if(!d)continue;const dx=d.x-p.x,dy=d.y-14-p.y,q=dx*dx+dy*dy;if(q<bd){bd=q;best=c}}
+ // (resa pixel: il centro del corpo è a metà della miniatura e il raggio è di 30 pixel CSS, a ogni zoom)
+ chiA(s,cella,p){const px=BatMappa.px,R=px?30*BatMappa.g:22;let best=null,bd=R*R;
+  if(p)for(const c of s.cb){if(!ATEM.inCampo(c))continue;const d=BatT.dis[c.id];if(!d)continue;const dx=d.x-p.x,dy=d.y-(px?BatMappa.testa(c.id)*.5:14)-p.y,q=dx*dx+dy*dy;if(q<bd){bd=q;best=c}}
   return best||(cella?s.cb.find(c=>ATEM.inCampo(c)&&c.q===cella.q&&c.r===cella.r)||null:null)},
  tocca(cella,p){const s=Bat.s;if(!s||s.over||BatT.foglio)return;const c=BatT.eroe(s),chi=BatT.chiA(s,cella,p);
   if(BatT.mira)return BatT.miraTocco(s,c,cella,chi);
@@ -165,6 +183,7 @@ const BatT={
   switch(k){
    case'pausa':if(s.over)return;BatT.pausa=!BatT.pausa;BatT.motivo='';if(BatT.pausa)Bat.salva();Snd.play('sel');return render();
    case'vel':Bat.cfg.vel=Bat.cfg.vel===2?1:2;Bat.salvaCfg();return render();
+   case'zoom':return BatPx.cambia(BatPx.zoom==='vicino'?'lontano':'vicino');
    case'sel':{const c=ATEM.trova(s,x);if(!c||c.lato!=='eroi')return;if(c.hp>0&&ATEM.inCampo(c)){BatT.sel=c.id;BatT.mira=null}else if(c.hp<=0&&ATEM.inCampo(c)){const e=BatT.eroe(s);if(e&&ATEM.inPiedi(e))BatT.ordina({chi:e.id,t:'rialza',bers:c.id},c)}return render()}
    case'ab':{const j=x.indexOf(':');return BatT.usa(j<0?x:x.slice(0,j),j<0?'':x.slice(j+1))}
    case'nomira':BatT.mira=null;return render();
@@ -176,10 +195,11 @@ const BatT={
    case'ap':if(x in BatT.ap){BatT.ap[x]=!BatT.ap[x];BatT.salvaAp()}return render();
    case'esci':BatT.foglio=null;Bat.salva();return Bat.act('batesci')}},
  // ---- disegno dell'intera vista (a ogni render dell'app) ----
- html(){const s=Bat.s,c=BatT.eroe(s),pz=BatT.pausa&&!s.over;
-  return`<div class="bt tr-bat${pz?' tr-pz':''}${BatT.mira?' tr-mi':''}" role="dialog" aria-modal="true" aria-label="Battaglia">${BatT.altoH(s)}
+ html(){const s=Bat.s,c=BatT.eroe(s),pz=BatT.pausa&&!s.over,px=BatPx.proietta();   // B6.5: con il 3D acceso la battaglia si disegna nella resa pixel
+  const zoom=px&&!s.over?`<button class="ib tr-zoom" data-a="btt" data-v="zoom" aria-label="${BatPx.zoom==='vicino'?'Allontana la vista':'Avvicina la vista'}">${ic(BatPx.zoom==='vicino'?'meno':'plus',20)}</button>`:'';
+  return`<div class="bt tr-bat${pz?' tr-pz':''}${BatT.mira?' tr-mi':''}${px?' tr-px':''}" role="dialog" aria-modal="true" aria-label="Battaglia">${BatT.altoH(s)}
 <div class="bt-mappa">${BatMappa.svg(s,{ev:BatT.evid(s,c),vista:Bat.v,aspetti:Bat.aspetti,griglia:pz||!!BatT.mira})}<div class="tr-log" data-a="btt" data-v="foglio:log" role="log" aria-label="Registro">${BatT.logH()}</div>
-${BatT.bandaH(s)}<div class="bt-toast" role="status"></div></div>${s.over?'':BatT.bassoH(s,c)}${BatT.foglioH(s,c)}${Bat.fineH(s)}</div>`},
+${zoom}${BatT.bandaH(s)}<div class="bt-toast" role="status"></div></div>${s.over?'':BatT.bassoH(s,c)}${BatT.foglioH(s,c)}${Bat.fineH(s)}</div>`},
  // in alto: i ritratti degli eroi (PF e stati), a destra oro e perdizione della compagnia
  altoH(s){const ok=id=>BatT.sel===id;
   const r=s.cb.filter(c=>c.lato==='eroi').map(c=>{const p=Math.max(0,Math.min(1,c.hp/c.hpMax)),via=!ATEM.inCampo(c)&&!c.morto,st=(c.stati||[]).map(z=>z.id).filter(id=>id!=='terra'&&Sagome.STATO[id]).slice(0,2);

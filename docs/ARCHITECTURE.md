@@ -133,7 +133,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 6 |  |
 | `css/39-campagna.css` | 10 |  |
-| `css/39a-avventura.css` | 8 |  |
+| `css/39a-avventura.css` | 9 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
@@ -208,9 +208,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28c-avv-audio.js` | 14 | AAUD |
 | `js/motori/28d-avv-tutorial.js` | 6 | ATUT |
 | `js/motori/28e-avv-stanza.js` | 15 | AST |
-| `js/motori/28f-avv-scena.js` | 24 | ASCE |
+| `js/motori/28f-avv-scena.js` | 25 | ASCE |
 | `js/motori/28g-avv-mini.js` | 15 | AMIN |
-| `js/motori/28h-avv-palette.js` | 7 | APAL |
+| `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
@@ -289,7 +289,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24h-campagna.js` | 10 | Camp |
 | `js/app/24ha-avventura.js` | 5 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
-| `js/app/24hc-bat-mappa.js` | 16 | BatMappa |
+| `js/app/24hc-bat-mappa.js` | 21 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
 | `js/app/24he-battaglia.js` | 26 | Bat |
 | `js/app/24hf-bat-anima.js` | 6 | BatAnima |
@@ -300,11 +300,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hk-audio-avv.js` | 2 | AvvAudio |
 | `js/app/24hl-tutorial.js` | 3 | AvvTut |
 | `js/app/24hm-avv-stanza.js` | 22 | AvvStanza |
-| `js/app/24hn-scena3d.js` | 31 | Scena3D |
-| `js/app/24ho-scena-fx.js` | 19 |  |
-| `js/app/24hp-pixel.js` | 19 | Pixel, PixelProva |
-| `js/app/24hq-bat-tempo.js` | 27 | BatT |
+| `js/app/24hn-scena3d.js` | 35 | Scena3D |
+| `js/app/24ho-scena-fx.js` | 21 |  |
+| `js/app/24hp-pixel.js` | 20 | Pixel, PixelProva |
+| `js/app/24hq-bat-tempo.js` | 29 | BatT |
 | `js/app/24hr-bat-succo.js` | 10 | Succo |
+| `js/app/24hs-bat-pixel.js` | 5 | BatPx |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
