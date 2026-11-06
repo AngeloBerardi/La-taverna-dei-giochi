@@ -1430,6 +1430,183 @@ async def sc_mani_a_ventaglio(b, srv):
         await pg.evaluate("(()=>{G=null;ui.screen='room';R.offSeats=null})()")
     check(not pg.errs, f'mani: nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_serata(b, srv):
+    """Cena con delitto in famiglie: un narratore e tre ospiti sui telefoni, la TV regista sul PC; casting, mattina,
+    pomeriggio e sera con le loro regole, bacheca e collegamento, sigillo, TV riavviata a metà, voto e verità."""
+    sh = Shared(); kit = json.load(open(os.path.join(DIST, '..', 'src', 'kit', 'nebbia-scoglio.json')))
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    nomi = ['Nara', 'Bea', 'Ciro', 'Dina']
+    ctxA, A = await telefono_rt(b, srv, sh, nomi[0], 31)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    altri = await asyncio.gather(*[telefono_rt(b, srv, sh, n, 32 + i, '?room=' + code + '&net=rt') for i, n in enumerate(nomi[1:])])
+    P = [A] + [x[1] for x in altri]; ctxs = [ctxA] + [x[0] for x in altri]
+    await A.wait_for_function("R.members.length===4&&R.members.every(m=>m.uid)", timeout=40000)
+    ctxT, T = await telefono_rt(b, srv, sh, '', 40, '?tv=' + code + '&net=rt'); ctxs.append(ctxT)
+    await T.set_viewport_size({'width': 1280, 'height': 720})
+    await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
+    await T.click('[data-a=giaregia]'); await T.wait_for_function('REGIA.sono()', timeout=30000)
+    await A.wait_for_function('!!REGIA.uid', timeout=30000)
+    await A.evaluate("ui.err='';startGame('serata',null,{kit:'nebbia-scoglio'})")
+    for p in P: await p.wait_for_function("G&&G.g==='serata'&&G.fase==='casting'", timeout=40000)
+    check(True, 'serata: la stanza è in casting su tutti i telefoni')
+    # il narratore si propone dal telefono, la TV assegna i personaggi
+    await A.click('[data-a=ser][data-v=narratore]')
+    await T.wait_for_function("SER.D.narr===" + json.dumps(await A.evaluate('RT.uid()')), timeout=30000)
+    await T.wait_for_function("document.querySelector('[data-a=ser][data-v=inizia]:not([disabled])')", timeout=30000)
+    await T.click('[data-a=ser][data-v=inizia]')
+    await A.wait_for_function("SER.mano.console", timeout=40000)
+    for p in P[1:]: await p.wait_for_function("SER.mano.dossier&&SER.mano.fam", timeout=40000)
+    nomiP = [await p.evaluate('SER.mano.dossier.nome') for p in P[1:]]
+    check(len(set(nomiP)) == 3, f'tre personaggi diversi: {nomiP}')
+    check(not await A.evaluate("!!SER.mano.dossier"), 'il narratore non ha un personaggio, ha la console')
+    stanza = sh.d['stanze/' + code + '/d']['j']
+    segreti = [x['segreto'][:40] for x in kit['personaggi']] + [x[:40] for x in kit['soluzione']['ricostruzione']]
+    check(not any(t in stanza for t in segreti), 'il documento della stanza non contiene segreti né soluzione')
+    altrui = [await p.evaluate("Object.values(SER.mano.prove.l).length") for p in P[1:]]
+    check(True, f'prove in mano all’inizio: {altrui}')
+    # il narratore preme «avanti» uno alla volta, aspettando che la console si aggiorni (come farebbe una persona)
+    AVANZA = "(async(stop)=>{for(let i=0;i<90;i++){let c=SER.mano.console;if(new Function('c',stop)(c))return true;const k=c.fase+(c.atto&&c.atto.id)+c.mom+c.riga;await SER.cmd('avanti');for(let j=0;j<60;j++){await new Promise(r=>setTimeout(r,100));const d=SER.mano.console;if(d.fase+(d.atto&&d.atto.id)+d.mom+d.riga!==k)break}}return false})"
+    # console: avanti fino al corpo pubblico (comandi numerati dal telefono del narratore)
+    for _ in range(6):
+        await A.click('[data-a=ser][data-v=avanti]'); await A.wait_for_timeout(700)
+    await T.wait_for_function("(SER.D.s.pub||[]).includes('corpo')", timeout=30000)
+    await T.wait_for_function("document.querySelector('.sr-doc')", timeout=30000)
+    check(kit['prove'][0]['titolo'] in await T.inner_text('.sr-main'), 'TV: la prova pubblica a tutto schermo')
+    await T.screenshot(path=os.path.join(SCH, 'serata-tv-prova.png'))
+    await A.screenshot(path=os.path.join(SCH, 'serata-console.png'))
+    await P[1].wait_for_function("Object.values(SER.mano.prove.l).some(p=>p.st==='pubblica')", timeout=30000)
+    check(True, 'telefono: la prova pubblica arriva tra le prove')
+    # di mattina un ospite non può mostrare a un'altra famiglia
+    fam = {await p.evaluate('SER.mano.dossier.id'): p for p in P[1:]}
+    ids = list(fam)
+    famDi = {x['id']: x['famiglia'] for x in kit['personaggi']}
+    a_id = next(i for i in ids if any(famDi[j] != famDi[i] for j in ids))
+    b_id = next(j for j in ids if famDi[j] != famDi[a_id])
+    pa = fam[a_id]
+    tiene = await pa.evaluate("Object.entries(SER.mano.prove.l).filter(([i,p])=>p.st==='mia').map(([i])=>i)")
+    if tiene:
+        await pa.evaluate("SER.chiedi({t:'mostra',eid:" + json.dumps(tiene[0]) + ",a:" + json.dumps(b_id) + "})")
+        await pa.wait_for_function("SER.mano.avviso&&/rappresentante/.test(SER.mano.avviso.testo)", timeout=30000)
+        check(True, 'mattina: mostrare a un’altra famiglia è riservato al rappresentante')
+    # avanti fino al pomeriggio: si mostra a chiunque
+    await A.evaluate(AVANZA + "(\"return c.mom!=='mattina'\")")
+    for p in P: await p.wait_for_function("G.mom&&G.mom.id==='pomeriggio'", timeout=30000)
+    await T.wait_for_function("!!document.querySelector('.sr-timer.sr-big[data-fino]')", timeout=30000)
+    check(True, 'TV: pomeriggio con il timer grande')
+    if tiene:
+        await pa.evaluate("SER.chiedi({t:'mostra',eid:" + json.dumps(tiene[0]) + ",a:" + json.dumps(b_id) + "})")
+        await fam[b_id].wait_for_function("SER.mano.prove.l[" + json.dumps(tiene[0]) + "]&&SER.mano.prove.l[" + json.dumps(tiene[0]) + "].st==='copia'", timeout=30000)
+        check(True, 'pomeriggio: la prova mostrata arriva come copia all’altra famiglia')
+    # la TV si riavvia a metà: riprende dallo stesso punto
+    await T.reload(); await T.wait_for_function("ui.tv&&G&&G.g==='serata'&&REGIA.sono()&&SER.D.s&&SER.D.s.mom==='pomeriggio'", timeout=40000)
+    check(True, 'TV riavviata: riprende dal pomeriggio')
+    # sera: solo in famiglia
+    await A.evaluate("SER.cmd('avanti')")
+    for p in P: await p.wait_for_function("G.mom&&G.mom.id==='sera'", timeout=30000)
+    if tiene:
+        await pa.evaluate("SER.chiedi({t:'chiedi',a:" + json.dumps(b_id) + "})")
+        await pa.wait_for_function("SER.mano.avviso&&/sera/.test(SER.mano.avviso.testo)", timeout=30000)
+        check(True, 'sera: niente richieste alle altre famiglie')
+    # bacheca e collegamento dal telefono (la famiglia della Locanda ha il corpo pubblico e il tonfo, se c'è Bastiano o la sua riserva)
+    loc = [p for i, p in fam.items() if famDi[i] == 'locanda']
+    if loc:
+        q = loc[0]
+        await q.wait_for_function("Object.keys(SER.mano.prove.l).includes('tonfo')", timeout=30000)
+        await q.evaluate("SER.chiedi({t:'appoggia',eid:'tonfo'})")
+        await q.wait_for_function("SER.mano.fam.bacheca.includes('tonfo')", timeout=30000)
+        await q.evaluate("ui.srtab='fam';ui.srsel=['corpo','tonfo'];render()")
+        await q.click('[data-a=ser][data-v=collega]')
+        await q.wait_for_function("SER.mano.fam.quesito", timeout=30000)
+        await q.screenshot(path=os.path.join(SCH, 'serata-tel-collega.png'))
+        await q.click('[data-a=ser][data-v="risolvi:0"]')
+        await q.wait_for_function("SER.mano.fam.ded.some(d=>d.id==='ora-vera')", timeout=30000)
+        check(True, 'famiglia: collegamento giusto, passo avanti')
+        await A.wait_for_function("SER.mano.console.proposte.length>0", timeout=30000)
+        n = await A.evaluate("SER.mano.console.proposte[0].n")
+        await A.click('[data-a=ser][data-v="prop:%d:1"]' % n)
+        await T.wait_for_function("G.sigilli.find(x=>x.id==='ORA').on===false", timeout=30000)
+        check(await T.evaluate("!!document.querySelector('.sr-sigilli li.off')"), 'TV: il sigillo ORA si spegne')
+    # avanti fino al voto
+    await A.evaluate(AVANZA + "(\"return c.fase==='voto'\")")
+    for p in P: await p.wait_for_function("G.fase==='voto'", timeout=60000)
+    for p in P[1:]:
+        await p.wait_for_function("document.querySelector('[data-a=ser][data-v=vota]')", timeout=30000)
+        await p.select_option('#sr-v-chi', 'ilario'); await p.click('[data-a=ser][data-v=vota]')
+    await T.wait_for_function("G.votati===3", timeout=30000)
+    check(True, 'voto: tre buste sulla TV')
+    await A.evaluate(AVANZA + "(\"return c.fase==='fine'\")")
+    await T.wait_for_function("G.fase==='fine'&&G.finale", timeout=40000)
+    check('Ilario' in await T.inner_text('.sr-main') or kit['personaggi'][1]['nome'] in await T.inner_text('.sr-main'), 'finale: la TV nomina il colpevole')
+    check(await T.evaluate("G.sigilli.every(x=>!x.on)"), 'epilogo: tutti i sigilli spenti')
+    await T.screenshot(path=os.path.join(SCH, 'serata-tv-finale.png'))
+    errs = [e for p in P + [T] for e in p.errs]
+    check(not errs, f'nessun errore nelle pagine {errs[:2]}')
+    for c in ctxs: await c.close()
+
+async def sc_serata_cifrato(b, srv):
+    """Kit segreto (src/kit-cifrati): la TV chiede la frase, rifiuta quella sbagliata, apre il kit con quella giusta, la ricorda
+    dopo un riavvio, e né il database né i telefoni vedono mai la frase o il contenuto. Il kit di prova è «nebbia-scoglio» cifrato
+    qui con una frase finta in dist/kit (il kit vero, 23:17, si prova con KIT_FRASE nei test del motore)."""
+    FRASE = 'prova-8k2m-frase'
+    kit = json.load(open(os.path.join(ROOT, 'src', 'kit', 'nebbia-scoglio.json')))
+    js = ("const fs=require('fs'),K=require('./src/js/motori/36b-kit-cifrati.js');const k=JSON.parse(fs.readFileSync('src/kit/nebbia-scoglio.json','utf8'));"
+          "k.id='nebbia-cifrata';K.cifra(k,%s,{giri:100000}).then(b=>fs.writeFileSync('dist/kit/nebbia-cifrata.json',JSON.stringify(b)))" % json.dumps(FRASE))
+    subprocess.run(['node', '-e', js], cwd=ROOT, check=True)
+    REG = "REGIA.KIT['nebbia-cifrata']={titolo:'La nebbia sullo Scoglio',sottotitolo:'',giocatori:[1,4],minuti:35,tono:'',formato:'serata',cifrato:true,copertina:'',font:'',url:'/kit/nebbia-cifrata.json'}"
+    try:
+        sh = Shared()
+        ctxA, A = await telefono_rt(b, srv, sh, 'Nara', 51)
+        await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+        code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+        ctxB, B = await telefono_rt(b, srv, sh, 'Bea', 52, '?room=' + code + '&net=rt')
+        await A.wait_for_function("R.members.length===2&&R.members.every(m=>m.uid)", timeout=40000)
+        ctxT, T = await telefono_rt(b, srv, sh, '', 53, '?tv=' + code + '&net=rt')
+        await T.set_viewport_size({'width': 1280, 'height': 720})
+        await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
+        await T.click('[data-a=giaregia]'); await T.wait_for_function('REGIA.sono()', timeout=30000)
+        await A.wait_for_function('!!REGIA.uid', timeout=30000)
+        for p in (A, T): await p.evaluate(REG)
+        await A.evaluate("ui.err='';startGame('serata',null,{kit:'nebbia-cifrata'})")
+        # senza frase la TV si ferma e la chiede
+        await T.wait_for_function("document.querySelector('#sr-frase')", timeout=30000)
+        check('segreto' in await T.inner_text('.sr-main'), 'TV: il kit è segreto, chiede la frase')
+        check(await T.evaluate("SER.D.k===null||SER.D.k===undefined"), 'TV: il kit non è stato aperto')
+        await T.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'serata-tv-frase.png'))
+        # frase sbagliata: errore, niente ricordo, la richiesta torna
+        await T.fill('#sr-frase', 'frase-sbagliata'); await T.click('[data-a=ser][data-v^=frase]')
+        await T.wait_for_function("/non apre/.test(SER.D.err)&&document.querySelector('#sr-frase')", timeout=30000)
+        check(await T.evaluate("localStorage.getItem('serata-frase-nebbia-cifrata')===null"), 'frase sbagliata: non viene ricordata')
+        # frase giusta (maiuscole e spazi non contano)
+        await T.fill('#sr-frase', ' PROVA 8k2m-FRASE '); await T.click('[data-a=ser][data-v^=frase]')
+        await T.wait_for_function("SER.D.k&&SER.D.k.id==='nebbia-cifrata'&&!SER.D.err&&SER.D.gid===G.gid", timeout=30000)
+        await T.wait_for_function("!document.querySelector('#sr-frase')", timeout=30000)
+        check(True, 'frase giusta: il kit si apre e la richiesta sparisce')
+        await T.wait_for_function("document.querySelector('[data-a=ser][data-v=inizia]')||/narrator|narratore/i.test(document.body.innerText)", timeout=30000)
+        # i telefoni non hanno il kit; il database non ha né la frase né il contenuto
+        check(await A.evaluate("!SER.D.k"), 'telefono: nessun kit in mano')
+        tutto = json.dumps(sh.d, ensure_ascii=False)
+        segreti = [x['segreto'][:30] for x in kit['personaggi']] + [x[:30] for x in kit['soluzione']['ricostruzione']]
+        check(FRASE not in tutto and 'PROVA' not in tutto.upper().replace('PROVE', ''), 'database: la frase non compare')
+        check(not any(s in tutto for s in segreti), 'database: nessun segreto del kit prima dell’inizio')
+        # riavvio della TV: la frase è ricordata, nessuna richiesta
+        await T.reload()
+        await T.wait_for_function("ui.tv&&G&&G.g==='serata'&&REGIA.sono()", timeout=40000)
+        await T.evaluate(REG + ";SER.riprova()")  # dopo il riavvio l'indice di questa prova (non quello del build) va rimesso
+        await T.wait_for_function("SER.D.k&&SER.D.k.id==='nebbia-cifrata'&&!SER.D.err", timeout=30000)
+        await T.wait_for_function("SER.D.gid===G.gid", timeout=30000)
+        check(not await T.evaluate("!!document.querySelector('#sr-frase')"), 'riavvio della TV: la frase è ricordata')
+        # con KIT_FRASE anche il kit vero del repo (23:17): scaricato dal sito, aperto dal browser con WebCrypto e validato
+        if os.environ.get('KIT_FRASE'):
+            r = await T.evaluate("(async f=>{const id=Object.keys(REGIA.KIT).find(i=>REGIA.KIT[i].cifrato&&i!=='nebbia-cifrata');if(!id)return null;const b=await REGIA.kit(id),t0=Date.now(),k=await KITC.apri(b,f);return{id,ms:Date.now()-t0,err:SERATA.valida(k).slice(0,2),pers:k.personaggi.length,formato:k.formato}})(" + json.dumps(os.environ['KIT_FRASE']) + ")")
+            check(bool(r) and not r['err'] and r['formato'] == 'serata', f'kit vero nel browser: aperto e valido {r}')
+        errs = [e for p in (A, B, T) for e in p.errs]
+        check(not errs, f'nessun errore nelle pagine {errs[:2]}')
+        for c in (ctxA, ctxB, ctxT): await c.close()
+    finally:
+        try: os.remove(os.path.join(DIST, 'kit', 'nebbia-cifrata.json'))
+        except OSError: pass
+
 async def sc_giallo(b, srv):
     """Cena con delitto: sei telefoni e una TV regista sul database condiviso, dall'avvio al finale (con la TV riavviata a metà)."""
     sh = Shared(); kit = json.load(open(os.path.join(DIST, '..', 'src', 'kit', 'ultima-cena.json')))
@@ -2850,7 +3027,7 @@ async def main():
                 async with sem:
                     out = []; USCITA.set(out)
                     try: await sc(b, srv)
-                    except Exception as e: check(False, f'{sc.__name__}: eccezione {type(e).__name__}: {str(e)[:200]}')
+                    except Exception as e: check(False, f'{sc.__name__}: eccezione {type(e).__name__} (riga {e.__traceback__.tb_next.tb_lineno if e.__traceback__ and e.__traceback__.tb_next else "?"}): {str(e)[:200]}')
                     return sc.__name__[3:], out
             for nome, out in await asyncio.gather(*[uno(sc) for sc in scelti]):
                 print(nome); print('\n'.join(out))

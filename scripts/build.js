@@ -22,7 +22,7 @@ let html = manifest.map(f => {
 html = html.replace('/*VENDOR*/{}', JSON.stringify(vendor));
 // kit delle cene con delitto (src/kit/*.json): validati, scritti a parte in dist/kit/<id>.<hash>.json e scaricati solo dalla TV
 // regista (REGIA.kit). Nella pagina va solo l'indice senza trame né soluzioni. Formato: docs/GIALLI.md
-const GIALLO = require('../src/js/motori/36-giallo.js'), kitDir = path.join(root, 'src/kit'), kit = {};
+const GIALLO = require('../src/js/motori/36-giallo.js'), SERATA = require('../src/js/motori/36a-serata.js'), KITC = require('../src/js/motori/36b-kit-cifrati.js'), kitDir = path.join(root, 'src/kit'), kit = {};
 // assets/kit/<id>/: ritratti/<personaggio|vittima>.webp, luoghi/<luogo>.webp, oggetti/<indizio>.webp, copertina.webp, titoli.woff2.
 // Un nome che non corrisponde a niente nel kit ferma il build (di solito è un errore di battitura). Formati: docs/GIALLI-SCENA.md
 function mediaKit(k) {
@@ -31,7 +31,8 @@ function mediaKit(k) {
   const validi = {
     ritratti: new Set(k.personaggi.map(p => p.id).concat('vittima')),
     luoghi: new Set((k.luoghi || []).map(l => l.id)),
-    oggetti: new Set(k.atti.flatMap(a => a.indizi.map(x => x.id))),
+    // serata (formato grande): le immagini degli oggetti sono quelle delle prove
+    oggetti: new Set(k.formato === 'serata' ? k.prove.map(x => x.id) : k.atti.flatMap(a => a.indizi.map(x => x.id))),
   };
   const PESO = { ritratti: 160, luoghi: 400, oggetti: 120 };
   for (const t of Object.keys(validi)) {
@@ -52,7 +53,7 @@ function mediaKit(k) {
 fs.rmSync(path.join(root, 'dist/kit'), { recursive: true, force: true });
 fs.mkdirSync(path.join(root, 'dist/kit'), { recursive: true });
 for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.endsWith('.json')).sort() : []) {
-  const testo = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(testo), err = GIALLO.valida(k);
+  const testo = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(testo), err = (k.formato === 'serata' ? SERATA : GIALLO).valida(k);
   if (err.length) throw new Error(`kit ${n} non valido: ${err.join('; ')}`);
   if (k.id + '.json' !== n) throw new Error(`kit ${n}: il nome del file deve essere uguale all'id (${k.id})`);
   // immagini e font del kit (assets/kit/<id>/, copiati in dist/assets da sotto): nel file del kit va l'elenco di ciò che c'è
@@ -60,7 +61,19 @@ for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.end
   const src = JSON.stringify(k);
   const file = `${k.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
   fs.writeFileSync(path.join(root, 'dist/kit', file), src);
-  kit[k.id] = { copertina: k.media.copertina || '', font: k.media.font || '', titolo: k.titolo, sottotitolo: k.sottotitolo || '', giocatori: k.giocatori, minuti: k.minuti, tono: k.tono || '', url: '/kit/' + file };
+  kit[k.id] = { copertina: k.media.copertina || '', font: k.media.font || '', titolo: k.titolo, sottotitolo: k.sottotitolo || '', giocatori: k.giocatori, minuti: k.minuti, tono: k.tono || '', formato: k.formato || '', url: '/kit/' + file };
+}
+// kit segreti (src/kit-cifrati/<id>.json, cifrati con tools/kit/cifrati.js): il build non ha la frase, controlla solo la busta;
+// il contenuto lo valida la TV quando lo apre (e tests/test_kit_cifrati.js con KIT_FRASE). Nell'indice compaiono come serate.
+const cifDir = path.join(root, 'src/kit-cifrati');
+for (const n of fs.existsSync(cifDir) ? fs.readdirSync(cifDir).filter(n => n.endsWith('.json')).sort() : []) {
+  const src = fs.readFileSync(path.join(cifDir, n), 'utf8'), b = JSON.parse(src), err = KITC.valida(b);
+  if (err.length) throw new Error(`kit cifrato ${n} non valido: ${err.join('; ')}`);
+  if (b.id + '.json' !== n) throw new Error(`kit cifrato ${n}: il nome del file deve essere uguale all'id (${b.id})`);
+  if (kit[b.id]) throw new Error(`kit cifrato ${n}: l'id ${b.id} esiste già tra i kit in chiaro`);
+  const file = `${b.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
+  fs.writeFileSync(path.join(root, 'dist/kit', file), src);
+  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: 'serata', cifrato: true, url: '/kit/' + file };
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));
