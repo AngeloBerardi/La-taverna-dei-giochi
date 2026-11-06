@@ -7,16 +7,18 @@
      narra con la voce del browser, pubblica lo stato della stanza. Se la TV si riavvia riprende da regia/CODICE. */
 const GIA = {
   // ---- registrazione (usata da GAMES in 07-nucleo.js) ----
+  // solo i kit classici: quelli della serata per famiglie (formato «serata») li usa SER in 24va-serata.js
+  elenco: () => Object.entries(REGIA.KIT).filter(([, k]) => !k.formato),
   kits() {
-    const v = Object.entries(REGIA.KIT).map(([id, k]) => [id, k.titolo + ' · ' + k.giocatori.join('–')]);
+    const v = GIA.elenco().map(([id, k]) => [id, k.titolo + ' · ' + k.giocatori.join('–')]);
     return v.length ? v : [['', 'Nessun giallo disponibile']];
   },
   range() {
-    const v = Object.values(REGIA.KIT);
+    const v = GIA.elenco().map(x => x[1]);
     if (!v.length) return '—';
     return Math.min(...v.map(k => k.giocatori[0])) + '–' + Math.max(...v.map(k => k.giocatori[1]));
   },
-  ok: n => Object.values(REGIA.KIT).some(k => n >= k.giocatori[0] && n <= k.giocatori[1]),
+  ok: n => GIA.elenco().some(([, k]) => n >= k.giocatori[0] && n <= k.giocatori[1]),
   // prima dell'avvio: kit e numero, un telefono con profilo a testa, uno schermo regista collegato
   check(S, o) {
     const k = REGIA.KIT[o && o.kit];
