@@ -2,7 +2,7 @@
    Catena di un fotogramma: 1) scena su un bersaglio piccolo (colore + profondità, filtro Nearest, nessun antialias) con una telecamera
    ortografica inclinata di 55° e agganciata ai pixel d'arte; i materiali sono a bande (Scena3D.pixel, 24hn) e in alfa portano la maschera
    delle figure; 2) una passata di rifinitura alla stessa misura: palette (tabella 32³ di APAL), contorno esterno di 1 pixel dove la profondità
-   salta (tono più scuro della rampa di chi sta davanti), filo di luce interno sugli spigoli convessi (un tono più chiaro), retino di Bayer sul
+   salta (tono più scuro della rampa di chi sta davanti; per le figure notte:0, quasi nero, così si staccano anche da un fondo dello stesso colore), filo di luce interno sugli spigoli convessi (un tono più chiaro), retino di Bayer sul
    cielo e sulla nebbia ai bordi dell'arena (mai sulle figure), ancorato al mondo; 3) ingrandimento intero sullo schermo, spostato del resto di
    pixel della telecamera per uno scorrimento morbido. Le miniature si posano su pixel interi e guardano in otto direzioni.
    `PixelProva`: pagina `?prova=pixel` con le tre scene di controllo (foresta di giorno, sotterraneo con torce, notte con perdizione), i sei temi,
@@ -24,13 +24,13 @@ void main(){vec2 p=floor(gl_FragCoord.xy)+.5,w=floor(gl_FragCoord.xy)-floor(res*
  vec4 src=texture2D(tCol,p/res);bool cielo=d>=prof*.99999,fig=!cielo&&src.a<.75;
  for(int i=0;i<4;i++){vec2 o=i==0?vec2(1.,0.):i==1?vec2(-1.,0.):i==2?vec2(0.,1.):vec2(0.,-1.);float e=dep(p+o);if(e<m){m=e;q=p+o;c=true;}}
  vec3 col;
- if(c&&contorni>.5)col=pal(floor(num(lut(texture2D(tCol,q/res).rgb))/5.)*5.);
+ if(c&&contorni>.5){vec4 fq=texture2D(tCol,q/res);col=fq.a<.75?pal(35.):pal(floor(num(lut(fq.rgb))/5.)*5.);}   // figure: notte:0, quasi nero (B6.5); scena: il tono più scuro della sua rampa
  else if(cielo){float t=clamp((uCieloY.x-w.y)/(uCieloY.x-uCieloY.y),0.,1.)*2.,s=min(floor(t),1.),f=t-s;col=bayer(w)<f?(s<.5?uC1:uC2):(s<.5?uC0:uC1);}
  else{vec4 k=lut(src.rgb);float i0=num(k);col=k.rgb;
   if(uFilo>.5){float l=dep(p-vec2(1.,0.)),r=dep(p+vec2(1.,0.)),s=dep(p-vec2(0.,1.)),u=dep(p+vec2(0.,1.));
    bool piano=abs(l-d)<soglia&&abs(r-d)<soglia&&abs(s-d)<soglia&&abs(u-d)<soglia;
    float cv=max((l+r)*.5-d,(s+u)*.5-d);if(piano&&cv>uConv){float rr=floor(i0/5.);col=pal(min(i0+1.,rr*5.+4.));}}}
- if(uNeb>0.&&!fig){vec2 e=(w-uCentro)/uRaggio;float f=uNeb*smoothstep(.72,1.15,length(e));if(bayer(w+vec2(2.,1.))<f)col=uNebCol;}
+ if(uNeb>0.&&!fig){vec2 e=(w-uCentro)/uRaggio;float f=uNeb*smoothstep(.8,1.2,length(e));if(bayer(w+vec2(2.,1.))<f)col=uNebCol;}
  gl_FragColor=vec4(col,1.);}`;
  // ingrandimento intero: ogni pixel dello schermo prende il suo pixel d'arte (off = spostamento in pixel dello schermo, intero)
  const FS_BLIT='uniform sampler2D t;uniform vec2 res,off;uniform float s;void main(){vec2 a=floor((gl_FragCoord.xy-off)/s);gl_FragColor=vec4(texture2D(t,(a+.5)/res).rgb,1.);}';
@@ -43,7 +43,8 @@ void main(){vec2 p=floor(gl_FragCoord.xy)+.5,w=floor(gl_FragCoord.xy)-floor(res*
    vertexShader:VS,fragmentShader:FS_FIN,depthTest:false,depthWrite:false});
   R.blit=new T.ShaderMaterial({uniforms:{t:{value:null},res:{value:new T.Vector2()},off:{value:new T.Vector2()},s:{value:1}},vertexShader:VS,fragmentShader:FS_BLIT,depthTest:false,depthWrite:false});
   R.sFin=new T.Scene();R.sFin.add(quad(R.fin));R.sBlit=new T.Scene();R.sBlit.add(quad(R.blit));R.cam2=new T.OrthographicCamera(-1,1,1,-1,0,1);
-  R.cam=new T.OrthographicCamera(-1,1,1,-1,1,4000);R.cam.rotation.set(-APAL.CAMERA.incl*Math.PI/180,0,0)}
+  R.cam=new T.OrthographicCamera(-1,1,1,-1,1,4000);R.cam.rotation.set(-APAL.CAMERA.incl*Math.PI/180,0,0);
+  R.Y=new T.Vector3(0,1,0);R.qy=new T.Quaternion();R.qx=new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),-APAL.FIGURA.incl*Math.PI/180)}
  // bersagli a bassa risoluzione: si rifanno solo quando cambia la misura
  function bersagli(aw,ah){const T=R.T;if(R.rt&&R.aw===aw&&R.ah===ah)return;if(R.rt){R.rt.depthTexture.dispose();R.rt.dispose();R.rt2.dispose()}
   const o={minFilter:T.NearestFilter,magFilter:T.NearestFilter,format:T.RGBAFormat,generateMipmaps:false,stencilBuffer:false};
@@ -54,7 +55,7 @@ void main(){vec2 p=floor(gl_FragCoord.xy)+.5,w=floor(gl_FragCoord.xy)-floor(res*
  function tela(K,M,dpr){const cv=K.cv;if(cv.width===M.W&&cv.height===M.H&&cv.classList.contains('s3-px'))return;
   K.ren.setPixelRatio(1);K.ren.setSize(M.W,M.H,false);cv.style.width=M.W/dpr+'px';cv.style.height=M.H/dpr+'px';cv.classList.add('s3-px')}
  function lascia(K){Scena3D.pixel(false);if(!K.cv||!K.cv.classList.contains('s3-px'))return;K.cv.classList.remove('s3-px');Scena3D.dimensiona(true)}
- const OTTAVO=Math.PI/4,pari=n=>n+(n&1);
+ const pari=n=>n+(n&1);
  // colore della palette come vettore lineare per lo shader (il bersaglio rifinito è già in sRGB: si passano i valori sRGB 0–1)
  const col3=(v,c)=>{const q=APAL.RGB[APAL.indice(c)];v.set(q[0]/255,q[1]/255,q[2]/255)};
  // o = { x, y, z (centro della vista nel mondo), k (pixel d'arte per unità), zoom, contorni, filo }; restituisce le misure usate
@@ -66,12 +67,15 @@ void main(){vec2 p=floor(gl_FragCoord.xy)+.5,w=floor(gl_FragCoord.xy)-floor(res*
   const C=APAL.CAMERA,[px,py]=APAL.piano(o.x,o.y||0,o.z),ax=APAL.aggancia(px,k),ay=APAL.aggancia(py,k),D=2000,cam=R.cam;
   cam.left=-aw/2/k;cam.right=aw/2/k;cam.top=ah/2/k;cam.bottom=-ah/2/k;cam.updateProjectionMatrix();
   cam.position.set(ax.v,ay.v*C.cos+D*C.sin,-ay.v*C.sin+D*C.cos);cam.updateMatrixWorld();
-  // le miniature si posano su pixel interi (sul piano della vista) e guardano in una delle otto direzioni: niente forme che tremano quando camminano
-  const fig=K.g.fig?K.g.fig.children:[],sv=[];
-  for(const g of fig){const p=g.position,[gx,gy]=APAL.piano(p.x,p.y,p.z);sv.push(p.x,p.z,g.rotation.y);p.x=APAL.aggancia(gx,k).v;p.z-=(APAL.aggancia(gy,k).v-gy)/C.sin;g.rotation.y=Math.round(g.rotation.y/OTTAVO)*OTTAVO}
+  // le miniature si posano su pixel interi (sul piano della vista) e guardano in una delle otto direzioni, sempre di 3/4 verso la telecamera
+  // (B6.5: chi punta un bersaglio più in alto sullo schermo si gira di lato, non di schiena): niente forme che tremano quando camminano
+  // e il corpo (non la basetta) si inclina all'indietro di APAL.FIGURA.incl nel mondo, qualunque sia lo sguardo: q = sguardo⁻¹ · inclinazione · sguardo · q
+  const fig=K.g.fig?K.g.fig.children:[],sv=[],qc=[],qx=R.qx,qy=R.qy;
+  for(const g of fig){const p=g.position,[gx,gy]=APAL.piano(p.x,p.y,p.z);sv.push(p.x,p.z,g.rotation.y);p.x=APAL.aggancia(gx,k).v;p.z-=(APAL.aggancia(gy,k).v-gy)/C.sin;g.rotation.y=APAL.fronte(g.rotation.y);
+   const b=g.children[1];if(b){qc.push(b.quaternion.clone());qy.setFromAxisAngle(R.Y,g.rotation.y);b.quaternion.premultiply(qy).premultiply(qx).premultiply(qy.invert())}else qc.push(null)}
   for(const c of K.g.fx?K.g.fx.children:[]){const u=c.material&&c.material.uniforms;if(u&&u.px)u.px.value=k}
   const ren=K.ren;ren.setRenderTarget(R.rt);ren.render(K.scn,cam);
-  fig.forEach((g,i)=>{g.position.x=sv[i*3];g.position.z=sv[i*3+1];g.rotation.y=sv[i*3+2]});
+  fig.forEach((g,i)=>{g.position.x=sv[i*3];g.position.z=sv[i*3+1];g.rotation.y=sv[i*3+2];if(qc[i])g.children[1].quaternion.copy(qc[i])});
   const f=R.fin.uniforms,Lp=K.Lp,b=K.bbox||{cx:0,cz:0,x0:0,x1:0,z0:0,z1:0};f.tCol.value=R.rt.texture;f.tDep.value=R.rt.depthTexture;f.res.value.set(aw,ah);
   f.prof.value=cam.far-cam.near;f.contorni.value=o.contorni===false?0:1;f.uFilo.value=o.filo===false?0:1;f.uCam.value.set(Math.round(ax.v*k),Math.round(ay.v*k));
   // cielo a retino dall'alto (lontano) al basso, nebbia ai bordi dell'arena: misure in pixel d'arte del piano, dal riquadro dell'arena
@@ -84,7 +88,7 @@ void main(){vec2 p=floor(gl_FragCoord.xy)+.5,w=floor(gl_FragCoord.xy)-floor(res*
   const off=[Math.round(M.W/2-s*(aw/2+ax.resto)),Math.round(M.H/2-s*(ah/2+ay.resto))],bl=R.blit.uniforms;
   bl.t.value=R.rt2.texture;bl.res.value.set(aw,ah);bl.off.value.set(off[0],off[1]);bl.s.value=s;
   ren.setRenderTarget(null);ren.render(R.sBlit,R.cam2);
-  return Object.assign({},M,{k,aw,ah,off,resto:[ax.resto,ay.resto],cam:[Math.round(ax.v*k),Math.round(ay.v*k)]})}
+  return Object.assign({},M,{k,aw,ah,off,w,h,dpr,resto:[ax.resto,ay.resto],cam:[Math.round(ax.v*k),Math.round(ay.v*k)]})}
  // il bersaglio rifinito (pixel d'arte, righe dal basso): per i test
  function leggi(K){const a=new Uint8Array(R.aw*R.ah*4);K.ren.readRenderTargetPixels(R.rt2,0,0,R.aw,R.ah,a);return{w:R.aw,h:R.ah,px:a}}
  // dove cade una miniatura nel bersaglio (pixel d'arte, origine in basso): riquadro dalla base alla testa, per i controlli sui contorni

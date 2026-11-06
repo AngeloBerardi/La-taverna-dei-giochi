@@ -48,6 +48,10 @@ const APAL=(()=>{
  function bayer(x,y){const b2=(a,c)=>{a=Math.floor(a);c=Math.floor(c);const v=a*.5+c*c*.75;return v-Math.floor(v)};return b2(x/2,y/2)*.25+b2(x,y)}
  // ---- telecamera e misure ----
  const CAMERA={incl:55,cos:.573576,sin:.819152};   // ortografica, inclinata di 55° sul piano, senza rotazione
+ // B6.5: le miniature si inclinano all'indietro di 15° (solo il corpo, non la basetta): si vedono da 40° invece che da 55°, quindi viso e petto
+ // si leggono come in uno sprite disegnato di fronte, mentre il pavimento resta a 55°. cos = di quanto si alza sullo schermo un'unità d'altezza della figura;
+ // scala = grandezza delle miniature nella resa pixel (1,3 nel 3D di A12), scelta perché l'eroe di riferimento resti attorno ai 28 pixel d'arte
+ const FIGURA={incl:15,cos:.766044,scala:1.15};
  const ALTO_EROE=24;                                 // pixel d'arte di un eroe umano in piedi
  const ALT_RIF=43;                                   // l'eroe di riferimento nel mondo: umano guerriero di AMIN × 1,3 più la basetta (24ho)
  const MIN_ART={verticale:192,orizzontale:400,tv:480};
@@ -61,6 +65,21 @@ const APAL=(()=>{
  const piano=(x,y,z)=>[x,y*CAMERA.cos-z*CAMERA.sin];
  // aggancio ai pixel: il valore arrotondato al pixel d'arte e il resto (in pixel d'arte, fra −½ e ½) che va applicato nell'ingrandimento
  function aggancia(v,kk){const p=Math.round(v*kk);return{v:p/kk,resto:v*kk-p}}
+ // ---- la battaglia vera in resa pixel (B6.5) ----
+ // sguardo di 3/4 verso la telecamera: rot = angolo attorno all'asse verticale (0 = verso il giocatore, +z). Si scatta a uno degli otto ottavi e
+ // si resta nella metà che guarda la telecamera: chi punta un bersaglio «dietro» (più in alto sullo schermo) si gira di lato dalla sua parte, mai di schiena.
+ const OTT=Math.PI/4;
+ function fronte(rot){let a=Math.atan2(Math.sin(rot),Math.cos(rot));if(Math.abs(a)>Math.PI/2+1e-9){const s=a<0?-1:1;a=s*Math.max(OTT,Math.PI-Math.abs(a))}
+  const r=Math.round(a/OTT)*OTT;return r===0?0:r}
+ // il viewBox dell'SVG che coincide al pixel con l'immagine della catena: u = misure restituite da Pixel.disegna ({ W, H, s, k, aw, ah, off, cam, w, h, dpr }).
+ // Nell'SVG x = x del mondo e y = −(y del piano della vista) = z·sen − quota·cos: le stesse coordinate di BatMappa con SQ = sen e L = cos.
+ // Il canvas è largo W pixel veri = W/dpr pixel CSS e parte dall'angolo in alto a sinistra come l'SVG (w × h pixel CSS): 1 pixel vero = 1/dpr pixel CSS.
+ function vista(u){const S=u.s*u.k,d=u.dpr||1,w=u.w!=null?u.w*d:u.W,h=u.h!=null?u.h*d:u.H;
+  return[(u.cam[0]-u.aw/2-u.off[0]/u.s)/u.k,-((u.H-u.off[1])/u.s-u.ah/2+u.cam[1])/u.k,w/S,h/S]}
+ // il centro della telecamera tenuto dentro l'arena: p = { x, z } (mondo), b = riquadro dell'arena { x0, x1, z0, z1 }, v = { w, h } misure della vista
+ // (w in unità del mondo, h in unità del piano della vista), m = margine oltre il bordo. Se l'arena è più piccola della vista resta al centro.
+ function limita(p,b,v,m){m=m||0;const ax=(lo,hi,span,x)=>hi-lo+2*m<=span?(lo+hi)/2:Math.max(lo-m+span/2,Math.min(hi+m-span/2,x));
+  return{x:ax(b.x0,b.x1,v.w,p.x),z:ax(b.z0,b.z1,v.h/CAMERA.sin,p.z)}}
  // ---- controlli per i test (immagini RGBA, righe di W pixel) ----
  // ogni blocco s×s intero, a partire da (ox, oy), è di un solo colore?
  function blocchi(dati,W,H,s,ox,oy){let diversi=0,n=0;ox=((ox%s)+s)%s;oy=((oy%s)+s)%s;
@@ -76,5 +95,5 @@ const APAL=(()=>{
   for(let y=m;y<H-m;y++){const ya=y+dy;if(ya<m||ya>=H-m)continue;for(let x=m;x<W-m;x++){const xa=x+dx;if(xa<m||xa>=W-m)continue;tot++;
    const o=(y*W+x)*4,p=(ya*W+xa)*4;if(a[p]!==b[o]||a[p+1]!==b[o+1]||a[p+2]!==b[o+2])n++}}
   return{diversi:n,tot}}
- return{NOMI,RAMPE,TONI,COLORI,RGB,CAMERA,ALTO_EROE,ALT_RIF,MIN_ART,oklab,vicino,rampa,scuro,chiaro,tabella,scuri,paletta,indice,colore,bayer,misure,k,piano,aggancia,blocchi,fuori,confronta}})();
+ return{NOMI,RAMPE,TONI,COLORI,RGB,CAMERA,FIGURA,ALTO_EROE,ALT_RIF,MIN_ART,oklab,vicino,rampa,scuro,chiaro,tabella,scuri,paletta,indice,colore,bayer,misure,k,piano,aggancia,fronte,vista,limita,blocchi,fuori,confronta}})();
 if(typeof module!=='undefined')module.exports=APAL;

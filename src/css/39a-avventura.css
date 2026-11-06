@@ -59,9 +59,21 @@
 .tr-segno{fill:rgba(243,211,122,.22);stroke:#f3d37a;stroke-width:2;animation:tr-svanisce .7s ease-out forwards}.tr-segno.att{fill:rgba(239,106,74,.25);stroke:#ef6a4a}
 .bt-tok.tr-lancia .bt-corpo{animation:tr-lancia .5s ease-in-out infinite alternate}
 .bt-tok.tr-colpo .bt-corpo{animation:tr-colpo .26s ease-out}
+/* resa pixel della battaglia (B6.5): la telecamera decide la vista; i tratti restano di pixel CSS a ogni zoom, il tasto dello zoom sotto il registro */
+.tr-px .bt-svg *{vector-effect:non-scaling-stroke}
+.tr-px .tr-griglia{stroke:rgba(255,236,190,.24);stroke-width:1}
+.tr-px .bt-tok.t-sel .bt-piede{stroke-width:2.5;fill:none}
+.tr-px .bt-tok .dietro{opacity:.38}
+.tr-px .bt-tok.t-attaccabile .bt-anello,.tr-px .bt-tok.t-valido .bt-anello{stroke-width:2.5}
+/* nessun esagono in vista: le celle evidenziate sono macchie che si fondono (opacità del gruppo), le aree rosse pure, le uscite solo la freccia */
+.tr-px .bt-macchia{opacity:.4}.tr-px .bt-macchia ellipse{fill:#f3d37a;stroke:none}.tr-px .bt-macchia.m-area ellipse{fill:#ff9a3a}
+.tr-px .tr-zone{opacity:.46;animation:tr-zona-px .7s ease-in-out infinite alternate}.tr-px .tr-zone ellipse{stroke:none;animation:none}
+.tr-px .tr-zone .zb{fill:#d63020}.tr-px .tr-zone .zr{fill:#ff8a5a}
+@keyframes tr-zona-px{to{opacity:.66}}
+.tr-zoom{position:absolute;right:8px;top:58px;z-index:2;width:44px;height:44px;color:#f3d37a;background:rgba(16,11,7,.78);border-color:#cf8f2c}
 @keyframes tr-pulsa{50%{stroke-opacity:.35}}
 @keyframes tr-zona{to{fill:rgba(214,48,32,.42)}}
 @keyframes tr-svanisce{to{opacity:0}}
 @keyframes tr-lancia{to{filter:drop-shadow(0 0 5px #f3d37a) brightness(1.25)}}
 @keyframes tr-colpo{40%{transform:scale(1.14)}}
-@media (prefers-reduced-motion:reduce){.bt-tok.t-sel .bt-piede,.tr-zone polygon,.bt-tok.tr-lancia .bt-corpo,.bt-tok.tr-colpo .bt-corpo{animation:none}.tr-pf i{transition:none}}
+@media (prefers-reduced-motion:reduce){.bt-tok.t-sel .bt-piede,.tr-zone polygon,.tr-px .tr-zone,.bt-tok.tr-lancia .bt-corpo,.bt-tok.tr-colpo .bt-corpo{animation:none}.tr-pf i{transition:none}}
