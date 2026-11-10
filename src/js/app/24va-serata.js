@@ -35,6 +35,74 @@ const SER = {
     const r = Math.max(0, Math.ceil((t - Date.now()) / 1000));
     return Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0');
   },
+  // ---- linguaggio comune di TV e telefono: icone a tratto, momenti, regole di parola, orologio ----
+  ICO: {
+    mattina: '<path d="M7 9a5 5 0 1 1 9 3c-1.5 1.5-2 2-2 4a3 3 0 0 1-6 0"/><path d="M12 9a1.5 1.5 0 0 1 3 0"/>',
+    pomeriggio: '<circle cx="13" cy="4.5" r="1.8"/><path d="M9 21l2-6-2-3 3-3 3 3 3 1M9 12l-3 2"/>',
+    sera: '<path d="M12 3c2 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1.5-3.5C10 9 11 9.5 11 10c1-2 .5-5 1-7z"/><path d="M9 21h6"/>',
+    portavoce: '<path d="M4 10v4h3l6 4V6L7 10z"/><path d="M17 9a4 4 0 0 1 0 6"/>',
+    tutti: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M15 14c3 0 6 1.5 6 4"/>',
+    famiglia: '<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',
+    ora: '<circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>',
+    prove: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+    bacheca: '<rect x="3" y="4" width="7" height="6" rx="1"/><rect x="14" y="14" width="7" height="6" rx="1"/><path d="M10 7c5 0 3 10 4 10"/>',
+    io: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+    cerca: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',
+    avanti: '<path d="M9 5l7 7-7 7"/>',
+    pausa: '<path d="M8 5v14M16 5v14"/>',
+    spunta: '<path d="M5 12l5 5 9-10"/>',
+  },
+  ico(n, sz) {
+    const p = n === 'persone' ? SER.ICO.tutti : SER.ICO[n] || '';
+    return `<svg class="sr-ico" width="${sz || 24}" height="${sz || 24}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  },
+  // i tre momenti: chi può parlare agli altri e che cosa si fa
+  MOM: {
+    mattina: {
+      verbo: 'Ascolta',
+      regola: 'portavoce',
+      testo: 'Ascoltate la regia. Agli altri parla <b>solo il portavoce</b> di ogni famiglia.',
+      tel: 'La regia sta parlando. Agli altri parla solo il portavoce.',
+    },
+    pomeriggio: {
+      verbo: 'Muoviti',
+      regola: 'tutti',
+      testo: 'Tempo libero: <b>potete parlare con chiunque</b> e mostrare le vostre prove.',
+      tel: 'Tempo libero: parla con chiunque, mostra e chiedi prove.',
+    },
+    sera: {
+      verbo: 'In famiglia',
+      regola: 'famiglia',
+      testo: 'Si parla <b>solo dentro la propria famiglia</b>. Niente scambi fino al mattino.',
+      tel: 'Si parla solo dentro la famiglia. Lavorate sulla bacheca.',
+    },
+  },
+  REGOLE: [
+    ['portavoce', 'Portavoce'],
+    ['tutti', 'Tutti'],
+    ['famiglia', 'Famiglia'],
+  ],
+  // le tre regole di parola, sempre uguali; quella in vigore è accesa
+  regoleH: att =>
+    `<div class="sr-chips" aria-label="Chi può parlare adesso">${SER.REGOLE.map(([id, n]) => `<span class="${id === att ? 'on' : ''}">${SER.ico(id, 26)}${n}</span>`).join('')}</div>`,
+  // il tempo che scorre, sempre in alto a destra: alla rovescia se il momento ha un tempo massimo, altrimenti da quanto dura
+  su(da) {
+    const r = Math.max(0, Math.floor((Date.now() - da) / 1000));
+    return Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0');
+  },
+  orologio(g) {
+    if (g.pausa) return '<span class="sr-clock sr-pz">Pausa</span>';
+    if (g.fino) return `<span class="sr-clock" data-fino="${g.fino}">${SER.mmss(g.fino)}</span>`;
+    if (g.da) return `<span class="sr-clock sr-su" data-da="${g.da}" title="da quanto dura">${SER.su(g.da)}</span>`;
+    return '';
+  },
+  // anello del pomeriggio: si svuota col tempo (aggiornato da tick)
+  anelloH(g) {
+    const R0 = 148,
+      C = +(2 * Math.PI * R0).toFixed(1);
+    return `<div class="sr-anello"><svg viewBox="0 0 330 330" aria-hidden="true"><circle cx="165" cy="165" r="${R0}" class="sr-bg"/><circle cx="165" cy="165" r="${R0}" class="sr-arco" data-fino="${g.fino || 0}" data-tot="${g.tot || 0}" data-c="${C}" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90 165 165)"/></svg>
+<div class="sr-anello-t">${g.pausa ? '<span>Pausa</span>' : g.fino ? `<span data-fino="${g.fino}">${SER.mmss(g.fino)}</span>` : ''}<small>poi si cena</small></div></div>`;
+  },
   timerH: (fino, cls) => (fino ? `<span class="${cls}" data-fino="${fino}">${SER.mmss(fino)}</span>` : ''),
   nomeP: (pid, s) => ((s || G).cast || []).find(c => c.id === pid)?.nome || pid,
   nomeF: (f, s) => ((s || G).famiglie || []).find(x => x.id === f)?.nome || f,
@@ -295,6 +363,15 @@ const SER = {
       el.textContent = SER.mmss(+el.dataset.fino);
       el.classList.toggle('sr-ultimo', +el.dataset.fino - Date.now() <= 60000);
     }
+    for (const el of document.querySelectorAll('[data-da]')) el.textContent = SER.su(+el.dataset.da);
+    for (const el of document.querySelectorAll('.sr-arco[data-fino]')) {
+      const tot = +el.dataset.tot,
+        fino = +el.dataset.fino;
+      if (tot > 0 && fino) {
+        const f = Math.max(0, Math.min(1, (fino - Date.now()) / tot));
+        el.style.strokeDashoffset = (+el.dataset.c * (1 - f)).toFixed(1);
+      }
+    }
     const D = SER.D;
     if (!ui.tv || !G || G.g !== 'serata' || !D.s || !REGIA.sono() || D.gid !== G.gid) return;
     const r = SERATA.tick(D.s, D.k, Date.now());
@@ -409,35 +486,52 @@ const SER = {
     else if (g.fase === 'voto')
       main = `<div class="sr-c"><h2>Si vota</h2><p class="sr-buste">${'<i></i>'.repeat(g.votati)}</p><p>${g.votati} voti su ${g.votanti}</p></div>`;
     else if (g.finale) main = SER.tvFinale(g);
-    const sig = (g.sigilli || [])
-      .map(x => `<li class="${x.on ? 'on' : 'off'}"><b>${esc(x.id)}</b><small>${esc(x.nome)}</small></li>`)
+    const mid = g.fase === 'gioco' && g.mom ? g.mom.id : '',
+      M = SER.MOM[mid];
+    const luci = (g.sigilli || [])
+      .map(x => `<li class="${x.on ? 'on' : 'off'}" title="${esc(x.nome)}"><i></i>${esc(x.id)}</li>`)
       .join('');
-    const tasti = io && D.s && !D.s.narr ? '<span class="muted">Spazio: avanti · P: pausa</span>' : '';
-    return `<div class="sr-tv" style="${stile}">
-<header class="sr-top"><div><small>${esc(g.mondo || 'Cena con delitto')}</small><h1>${esc(g.titolo || '')}</h1></div>
-<div class="sr-fase">${g.atto ? 'Atto ' + esc(g.atto.id) + ' · ' + esc(g.atto.titolo) : ''}${g.mom ? '<b>' + esc(g.mom.nome) + '</b>' : ''}</div>
-${SER.timerH(g.fino, 'sr-timer')}</header>
-${sig ? `<ol class="sr-sigilli">${sig}</ol>` : ''}
-<main class="sr-main">${main}</main>
-<footer class="sr-foot">${g.pausa ? '<b class="sr-pausa">PAUSA TECNICA</b>' : ''}${(g.log || [])
-      .slice(-3)
-      .map(l => `<span>${esc(l.testo)}</span>`)
-      .join('')}${tasti}</footer></div>`;
+    const sx = g.atto
+      ? `Atto ${esc(g.atto.id)}${g.atto.titolo ? ' · ' + esc(g.atto.titolo) : ''}`
+      : esc(g.mondo || 'Cena con delitto in famiglie');
+    const pill = g.pausa
+      ? `<div class="sr-pill sr-in-pausa">${SER.ico('pausa', 28)}Pausa tecnica</div>`
+      : M
+        ? `<div class="sr-pill">${SER.ico(mid, 28)}${esc(g.mom.nome)} · ${M.verbo}</div>`
+        : '<div></div>';
+    const dx = g.fase === 'casting' || !g.fase ? `<span class="sr-stanza">Stanza ${esc(R.code || '')}</span>` : SER.orologio(g);
+    const tasti = io && D.s && !D.s.narr ? '<span class="sr-tasti">Spazio: avanti · P: pausa</span>' : '';
+    const regole = M
+      ? `<footer class="sr-regole"><p>${M.testo}</p>${SER.regoleH(M.regola)}${tasti}</footer>`
+      : `<footer class="sr-regole sr-vuoto">${tasti}</footer>`;
+    return `<div class="sr-tv" data-mom="${mid}" style="${stile}">
+<header class="sr-top"><div class="sr-atto">${sx}</div>${pill}<div class="sr-dx">${luci ? `<ol class="sr-sigilli">${luci}</ol>` : ''}${dx}</div></header>
+<main class="sr-main">${main}</main>${regole}</div>`;
   },
   tvCasting(g, io) {
     const D = SER.D,
       S = seatsNow(),
+      k = io ? D.k : null,
       narr = S.find(x => x.uid === D.narr);
-    const lista = S.map(
-      x =>
-        `<li>${esc(x.name)}${x.uid === D.narr ? ' <b>· narratore</b>' : io ? ` <button class="b sm" data-a="ser" data-v="narr:${esc(x.uid)}">Narratore</button>` : ''}</li>`
-    ).join('');
     const n = S.filter(x => x.uid !== D.narr).length,
-      a = g.attesi || (D.k && D.k.giocatori) || [0, 0];
-    return `<div class="sr-c"><h2>Si preparano i personaggi</h2>
-<p>${narr ? 'Narratore: <b>' + esc(narr.name) + '</b>' : 'Il narratore tocca «Faccio il narratore» sul suo telefono (oppure sceglilo qui).'}</p>
-<p class="muted">${n} ospiti · la serata ne vuole da ${a[0]} a ${a[1]}</p><ul class="sr-lista">${lista}</ul>
-${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[1] ? 'disabled' : ''}>Assegna i personaggi e comincia</button>` : ''}</div>`;
+      a = g.attesi || (k && k.giocatori) || [0, 0];
+    const posti = S.map(
+      x =>
+        `<li class="${x.uid === D.narr ? 'nar' : ''}"><span class="sr-vol">${esc((x.name || '?')[0].toUpperCase())}</span><b>${esc(x.name)}</b>${x.uid === D.narr ? '<small>narratore</small>' : io ? `<button class="b sm" data-a="ser" data-v="narr:${esc(x.uid)}">Narratore</button>` : ''}</li>`
+    ).join('');
+    const passi = [
+      'Ognuno riceve un personaggio, segreto compreso.',
+      'Ogni giorno ha tre momenti: si ascolta, si gira, si discute.',
+      'Chi sa qualcosa lo scambia con gli altri: da soli non si risolve.',
+    ]
+      .map((t, i) => `<li><span>${i + 1}</span>${t}</li>`)
+      .join('');
+    return `<div class="sr-acc">
+<section class="sr-tit"><h1>${esc(g.titolo || '')}</h1><p class="sr-sot">${esc((k && (k.sottotitolo || k.mondo)) || g.mondo || '')}</p><ol class="sr-passi3">${passi}</ol></section>
+<aside class="sr-ben"><b>${n}</b><small>${a[1] ? 'ospiti, ne servono da ' + a[0] + ' a ' + a[1] : 'ospiti'}</small>
+<p>${narr ? 'Narratore: <b>' + esc(narr.name) + '</b>' : 'Il narratore tocca «Faccio il narratore» sul suo telefono.'}</p>
+${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[1] ? 'disabled' : ''}>Assegna i personaggi e comincia</button>` : ''}</aside>
+<ul class="sr-posti">${posti}</ul></div>`;
   },
   tvCast(g) {
     const fam = (g.famiglie || [])
@@ -453,35 +547,41 @@ ${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[
   },
   tvGioco(g) {
     const t = g.turno,
-      ult = (g.pubbliche || []).slice(-1)[0];
-    let cuore = '';
-    if (g.mom && g.mom.id === 'mattina') {
+      ult = (g.pubbliche || []).slice(-1)[0],
+      mid = g.mom && g.mom.id;
+    // famiglie: nome, passi avanti già fatti e, la sera, se hanno consegnato
+    const fams = (g.famiglie || [])
+      .map(
+        f =>
+          `<li class="${f.inviato ? 'ok' : ''}"><b>${esc(f.nome)}</b><span>${f.passi.length}<small> passi</small></span></li>`
+      )
+      .join('');
+    if (mid === 'mattina') {
       const d = (g.dich || []).slice(-3).reverse();
-      cuore = t
-        ? `<div class="sr-turno"><small>Ora parla</small><h2>${esc(t.nome)}</h2><p>${esc((g.cast.find(c => c.id === t.pid) || {}).ruolo || '')}</p></div>`
+      return t
+        ? `<div class="sr-fuoco sr-turno"><small>Ora parla</small><h2>${esc(t.nome)}</h2><p>${esc((g.cast.find(c => c.id === t.pid) || {}).ruolo || '')}</p></div>`
         : d.length
           ? `<ul class="sr-dich">${d.map(x => `<li class="${x.tipo}"><b>${esc(x.nomeFam)}</b> ${x.tipo === 'accusa' ? 'accusa' : 'dichiara'}: ${esc(x.testo)}</li>`).join('')}</ul>`
           : ult
-            ? `<article class="sr-doc"><small>Ultima prova pubblica</small><h2>${esc(ult.titolo)}</h2><p>${SER.testo(ult.testo)}</p></article>`
-            : '<p class="muted">Ascoltate il narratore</p>';
-    } else if (g.mom && g.mom.id === 'pomeriggio') {
-      const fra = Object.entries(g.fra || {})
-        .map(([kk, n]) => {
-          const [a, b] = kk.split('-');
-          return `<li>${esc(SER.nomeF(a, g))} ↔ ${esc(SER.nomeF(b, g))} <b>${n}</b></li>`;
-        })
-        .join('');
-      cuore = `<div class="sr-c"><h2>Tempo libero</h2><p>Girate tra le famiglie, mostrate le prove, chiedete copie.</p>${SER.timerH(g.fino, 'sr-timer sr-big')}${fra ? `<ul class="sr-fra">${fra}</ul>` : ''}</div>`;
-    } else {
-      cuore = `<div class="sr-c"><h2>Consiglio di famiglia</h2><p>Si parla solo dentro la propria famiglia.</p>${SER.timerH(g.fino, 'sr-timer sr-big')}</div>`;
+            ? `<div class="sr-fuoco sr-prova"><article class="sr-doc"><span class="sr-bollo">Prova ${esc(ult.id)}</span><small>${esc(ult.tipo || 'documento')}</small><h2>${esc(ult.titolo)}</h2><p>${SER.testo(ult.testo)}</p></article></div>`
+            : '<div class="sr-fuoco"><p class="sr-muto">Ascoltate il narratore</p></div>';
     }
-    const passi = (g.famiglie || [])
+    if (mid === 'pomeriggio') {
+      const fra = Object.values(g.fra || {}).reduce((a, n) => a + n, 0);
+      return `<div class="sr-fuoco sr-giro">${SER.anelloH(g)}<div class="sr-testa"><h2>Girate, parlate,<br>confrontatevi.</h2>
+<div class="sr-cifre"><div><b>${fra}</b><small>prove mostrate tra famiglie</small></div><div><b>${Object.keys(g.fra || {}).length}</b><small>coppie di famiglie in contatto</small></div></div>
+<ul class="sr-famiglie">${fams}</ul></div></div>`;
+    }
+    return `<div class="sr-fuoco sr-consiglio"><h2>Consiglio di famiglia</h2>
+<ul class="sr-tavoli">${(g.famiglie || [])
       .map(
         f =>
-          `<li><b>${esc(f.nome)}</b><span>${f.passi.length}</span><small>${esc(f.passi.slice(-1)[0] || '')}</small></li>`
+          `<li class="${f.inviato ? 'ok' : ''}"><div><b>${esc(f.nome)}</b><span>${f.inviato ? SER.ico('spunta', 20) + 'Ipotesi scritta' : 'Discutono'}</span></div><ul>${(g.cast || [])
+            .filter(c => c.fam === f.id)
+            .map(c => `<li class="${c.on ? '' : 'via'}">${esc(c.nome)}</li>`)
+            .join('')}</ul><small>${f.passi.length} passi avanti</small></li>`
       )
-      .join('');
-    return `<div class="sr-gioco"><div class="sr-cuore">${cuore}</div><aside class="sr-passi"><h3>Passi avanti</h3><ul>${passi}</ul></aside></div>`;
+      .join('')}</ul></div>`;
   },
   tvFinale(g) {
     const f = g.finale,
@@ -498,13 +598,20 @@ ${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Migl
 
   // ======================= CONSOLE DEL NARRATORE =======================
   conH(c) {
-    const fase =
-      c.fase === 'gioco'
-        ? 'Atto ' +
-          c.atto.id +
-          ' · ' +
-          ({ mattina: 'Annunci', pomeriggio: 'Tempo libero', sera: 'Famiglia' }[c.mom] || c.mom)
-        : c.fase;
+    const M = SER.MOM[c.mom],
+      fase = c.fase === 'gioco' ? 'Regia · Atto ' + c.atto.id + ' · ' + ({ mattina: 'Mattina', pomeriggio: 'Pomeriggio', sera: 'Sera' }[c.mom] || c.mom) : 'Regia · ' + c.fase;
+    const tot = c.righe.length,
+      qui = c.righe.find(r => r.i === c.riga),
+      poi = c.righe.find(r => r.i === c.riga + 1);
+    const tipo = r =>
+      r.cue
+        ? ['Comando', 'cue']
+        : r.chi
+          ? ['Leggi ad alta voce · ' + r.chi, 'voce']
+          : ['Regia: fai o di’', 'regia'];
+    const segm = c.righe
+      .map(r => `<span class="${r.i < c.riga ? 'f' : r.i === c.riga ? 'q' : ''}"></span>`)
+      .join('');
     const righe = c.righe
       .map(r => {
         const cls = r.i === c.riga ? 'qui' : r.i < c.riga ? 'fatta' : '';
@@ -524,9 +631,11 @@ ${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Migl
           `<li>${esc(p.testo)} <button class="b sm gold" data-a="ser" data-v="prop:${p.n}:1">Sì</button><button class="b sm" data-a="ser" data-v="prop:${p.n}:0">No</button></li>`
       )
       .join('');
+    const nr = c.proposte.length + c.domande.length;
     const tab = ui.srcon || 'copione';
     const tabs = [
       ['copione', 'Copione'],
+      ['richieste', 'Richieste' + (nr ? ' (' + nr + ')' : '')],
       ['famiglie', 'Famiglie'],
       ['prove', 'Prove'],
       ['persone', 'Persone'],
@@ -535,11 +644,20 @@ ${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Migl
       .map(([id, n]) => `<button class="${tab === id ? 'sel' : ''}" data-a="ser" data-v="ctab:${id}">${n}</button>`)
       .join('');
     let corpo = '';
-    if (tab === 'copione')
+    if (tab === 'copione') {
+      if (c.mom === 'mattina' && qui) {
+        const [lab, cls] = tipo(qui);
+        corpo = `<section class="sr-cue ${cls}"><small>${esc(lab)}</small><p>${esc(qui.regia || qui.testo || '')}</p>${qui.cue ? `<em>${esc(qui.cue)}</em>` : ''}</section>
+${poi ? `<section class="sr-poi"><small>Poi</small><p>${poi.chi ? '<b>' + esc(poi.chi) + '</b> ' : ''}${esc(poi.regia || poi.testo || '')}${poi.cue ? ' <em>' + esc(poi.cue) + '</em>' : ''}</p></section>` : ''}
+<details class="sr-tutto"><summary>Tutto il copione (${tot} passi)</summary><ol class="sr-copione">${righe}</ol></details>`;
+      } else
+        corpo = `<section class="sr-cue regia"><small>${c.fase === 'gioco' ? 'Che cosa fare adesso' : 'Regia'}</small><p>${esc((c.momento && c.momento.istruzioni) || c.atto?.obiettivo || 'Aspetta che gli ospiti lavorino, poi premi avanti.')}</p></section>${(c.atto?.sblocchi || []).map(x => `<p class="muted">Per sbloccare: ${esc(x)}</p>`).join('')}`;
+    }
+    if (tab === 'richieste')
       corpo =
-        c.mom === 'mattina' && righe
-          ? `<ol class="sr-copione">${righe}</ol>`
-          : `<p class="sr-ist">${esc((c.momento && c.momento.istruzioni) || c.atto?.obiettivo || '')}</p>${(c.atto?.sblocchi || []).map(x => `<p class="muted">Per sbloccare: ${esc(x)}</p>`).join('')}`;
+        prop || dom
+          ? `${prop ? `<ul class="sr-prop">${prop}</ul>` : ''}${dom ? `<ul class="sr-prop">${dom}</ul>` : ''}`
+          : '<p class="muted">Nessuna richiesta dalle famiglie.</p>';
     if (tab === 'famiglie')
       corpo = `<ul class="sr-clist">${c.famiglie
         .map(
@@ -570,11 +688,12 @@ ${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Migl
         .reverse()
         .map(a => `<li>${esc(a.testo)}</li>`)
         .join('')}</ul></div>`;
-    return `<div class="sr-con">
-<header><b>${esc(fase)}</b>${SER.timerH(c.fino, 'sr-timer')}<button class="b sm ${c.pausa ? 'gold' : 'sr-rossa'}" data-a="ser" data-v="pausa:${c.pausa ? 0 : 1}">${c.pausa ? 'Riprendi' : 'PAUSA TECNICA'}</button></header>
-${prop ? `<ul class="sr-prop">${prop}</ul>` : ''}${dom ? `<ul class="sr-prop">${dom}</ul>` : ''}
+    return `<div class="sr-con" data-mom="${c.mom || ''}">
+<header><div class="sr-sx"><small>${esc(fase)}</small>${c.mom === 'mattina' && tot ? `<b>Passo ${Math.min(c.riga + 1, tot)} di ${tot}</b>` : `<b>${esc(c.fase === 'voto' ? 'Voti: ' + c.votati + '/' + c.votanti : (M && M.verbo) || '')}</b>`}</div>
+${nr && tab !== 'richieste' ? `<button class="sr-rich" data-a="ser" data-v="ctab:richieste"><i>${nr}</i>Richieste</button>` : ''}${SER.orologio(c)}</header>
+${c.mom === 'mattina' && tot ? `<div class="sr-segm" aria-hidden="true">${segm}</div>` : ''}
 <nav class="sr-tabs">${tabs}</nav><div class="sr-corpo">${corpo}</div>
-<footer><small>${c.fase === 'voto' ? 'Voti: ' + c.votati + '/' + c.votanti : ''}</small><button class="b gold sr-avanti" data-a="ser" data-v="avanti">${esc(c.prossimo || 'Avanti')}</button></footer></div>`;
+<footer><button class="sr-pausa-b ${c.pausa ? 'on' : ''}" data-a="ser" data-v="pausa:${c.pausa ? 0 : 1}" aria-label="${c.pausa ? 'Riprendi' : 'Pausa tecnica'}">${SER.ico('pausa', 28)}<span>${c.pausa ? 'Riprendi' : 'Pausa'}</span></button><button class="sr-avanti" data-a="ser" data-v="avanti"><span>${esc(c.prossimo || 'Avanti')}</span>${SER.ico('avanti', 30)}</button></footer></div>`;
   },
 
   // ======================= TELEFONO DELL'OSPITE =======================
@@ -607,28 +726,68 @@ ${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p><b>Sei il narratore.</b></p>
       return `<div class="sr-tel sr-c sr-turno-tel"><small>Tocca a te</small><h2>${esc(d.nome)}</h2><p>${esc(st.guida || '')}</p><ul>${d.battute.map(b => `<li>«${esc(b)}»</li>`).join('')}</ul><p class="muted">Sono battute-guida: dille con parole tue.</p></div>`;
     if (g.fase === 'voto' && !st.votato) return SER.votoH(st.accusa, m);
     if (g.fase === 'finale' || g.fase === 'fine') return SER.finaleTel(g, st, d);
-    const tab = ui.srtab || 'io';
+    const tab = ui.srtab || 'ora';
     const nav = [
-      ['io', 'Io'],
-      ['fam', 'Famiglia'],
+      ['ora', 'Ora'],
       ['prove', 'Prove'],
+      ['fam', 'Bacheca'],
       ['persone', 'Persone'],
-      ['note', 'Taccuino'],
+      ['io', 'Io'],
     ]
-      .map(([id, n]) => `<button class="${tab === id ? 'sel' : ''}" data-a="ser" data-v="tab:${id}">${n}</button>`)
+      .map(
+        ([id, n]) =>
+          `<button class="${tab === id ? 'sel' : ''}" data-a="ser" data-v="tab:${id}">${SER.ico(id === 'fam' ? 'bacheca' : id, 26)}${n}</button>`
+      )
       .join('');
     const ult = ((m.msg && m.msg.l) || []).slice(-1)[0];
     const busta =
-      ult && ['busta', 'passo', 'regia', 'fuori', 'richiesta'].includes(ult.tipo)
+      ult && tab !== 'ora' && ['busta', 'passo', 'regia', 'fuori', 'richiesta'].includes(ult.tipo)
         ? `<p class="sr-busta ${ult.tipo}">${esc(ult.testo)}</p>`
         : '';
     const q = ui.srq || '';
+    const cerca = ui.srcerca || q;
     const corpo = q
       ? SER.cercaH(q, m)
-      : { io: SER.ioH, fam: SER.famH, prove: SER.proveH, persone: SER.personeH, note: SER.noteH }[tab](m, g);
-    return `<div class="sr-tel"><header class="sr-ttop"><div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${g.mom ? ' · ' + esc(g.mom.nome) : ''}</small></div>${SER.timerH(g.fino, 'sr-timer')}</header>
-<div class="sr-cerca"><input id="sr-q" placeholder="Cerca in prove, persone, appunti" value="${esc(q)}"><button class="b sm" data-a="ser" data-v="cerca">Cerca</button>${q ? '<button class="b sm" data-a="ser" data-v="cerca:">×</button>' : ''}</div>
+      : { ora: SER.oraH, io: SER.ioH, fam: SER.famH, prove: SER.proveH, persone: SER.personeH }[tab](m, g);
+    const mid = g.mom ? g.mom.id : '',
+      M = SER.MOM[mid];
+    return `<div class="sr-tel" data-mom="${mid}"><header class="sr-ttop"><span class="sr-vol">${esc((d.nome || '?')[0])}</span><div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${M ? ' · ' + M.verbo : ''}</small></div>
+<button class="sr-lente" data-a="ser" data-v="lente" aria-label="Cerca">${SER.ico('cerca', 24)}</button>${SER.orologio(g)}</header>
+${cerca ? `<div class="sr-cerca"><input id="sr-q" placeholder="Cerca in prove, persone, appunti" value="${esc(q)}"><button class="b sm" data-a="ser" data-v="cerca">Cerca</button><button class="b sm" data-a="ser" data-v="cerca:">×</button></div>` : ''}
 ${busta}<div class="sr-corpo">${corpo}</div><nav class="sr-nav">${nav}</nav></div>`;
+  },
+  // «Ora»: una sola cosa da fare, la regola di parola del momento, le novità
+  oraH(m, g) {
+    const st = m.stato,
+      d = m.dossier,
+      mid = g.mom && g.mom.id,
+      M = SER.MOM[mid],
+      tocca = st.pv && mid === 'mattina';
+    const cta = tocca
+      ? ''
+      : mid === 'mattina'
+        ? '<button class="sr-cta" data-a="ser" data-v="tab:fam">Vai alla bacheca</button>'
+        : mid === 'pomeriggio'
+          ? '<button class="sr-cta" data-a="ser" data-v="tab:persone">Parla con qualcuno</button>'
+          : '<button class="sr-cta" data-a="ser" data-v="tab:fam">Lavora alla bacheca</button>';
+    const nov = ((m.msg && m.msg.l) || [])
+      .slice(-4)
+      .reverse()
+      .map(x => `<li class="${esc(x.tipo)}">${esc(x.testo)}</li>`)
+      .join('');
+    const mosse = (st.mosse || []).length
+      ? `<section><h3>Prova a chiedere</h3><ul class="sr-mosse">${st.mosse
+          .slice(-3)
+          .reverse()
+          .map(x => `<li><button class="link" data-a="ser" data-v="p:${x.a}">${esc(x.nome)}</button>: ${esc(x.chiedi)}</li>`)
+          .join('')}</ul></section>`
+      : '';
+    return `<section class="sr-ora"><div class="sr-ora-m">${mid ? SER.ico(mid, 26) : ''}<b>${M ? M.verbo : 'Adesso'}</b></div>
+<p class="sr-ora-g">${esc(st.guida || (M && M.tel) || 'Ascolta il narratore.')}</p>${M ? `<p class="sr-ora-r">${M.tel}</p>` : ''}
+${st.rivela.map(r => `<p class="sr-sblocco">${esc(r)}</p>`).join('')}
+${st.fuori ? '<p class="sr-busta fuori">Sei fuori scena per qualche minuto: resta seduto.</p>' : ''}
+${tocca ? `<div class="sr-dichiara"><b>Sei il portavoce: parla tu per la famiglia</b><textarea id="sr-dich" maxlength="400" placeholder="La vostra scoperta o accusa"></textarea><button class="sr-cta" data-a="ser" data-v="dichiara:scoperta">Dichiara</button><button class="b sm sr-rossa" data-a="ser" data-v="dichiara:accusa">Accusa</button></div>` : cta}</section>
+${nov ? `<section class="sr-nov"><h3>Novità</h3><ul>${nov}</ul></section>` : ''}${mosse}`;
   },
   ioH(m, g) {
     const st = m.stato,
@@ -664,27 +823,13 @@ ${busta}<div class="sr-corpo">${corpo}</div><nav class="sr-nav">${nav}</nav></di
             .join('')}</details>`
       )
       .join('');
-    return `<section class="sr-adesso"><h3>Adesso</h3><p>${esc(st.guida || 'Ascolta il narratore.')}</p>${st.rivela.map(r => `<p class="sr-sblocco">${esc(r)}</p>`).join('')}
-${st.fuori ? '<p class="sr-busta fuori">Sei fuori scena per qualche minuto: resta seduto.</p>' : ''}
-${tocca ? `<details class="sr-dichiara"><summary>Dichiara a tutti (sei il rappresentante)</summary><textarea id="sr-dich" maxlength="400" placeholder="La vostra scoperta o accusa"></textarea><button class="b sm" data-a="ser" data-v="dichiara:scoperta">Scoperta</button><button class="b sm sr-rossa" data-a="ser" data-v="dichiara:accusa">Accusa</button></details>` : ''}</section>
-${
-  st.mosse.length
-    ? `<section><h3>Prossime mosse</h3><ul class="sr-mosse">${st.mosse
-        .slice(-3)
-        .reverse()
-        .map(
-          x => `<li><button class="link" data-a="ser" data-v="p:${x.a}">${esc(x.nome)}</button>: ${esc(x.chiedi)}</li>`
-        )
-        .join('')}</ul></section>`
-    : ''
-}
-<section class="sr-segreto"><details><summary>Il tuo segreto (non mostrarlo)</summary><p>${esc(d.segreto)}</p>${d.confessione ? `<p class="muted">Se ti scoprono, nel finale: «${esc(d.confessione)}»</p>` : ''}</details></section>
+    return `<section class="sr-segreto"><details><summary>Il tuo segreto (non mostrarlo)</summary><p>${esc(d.segreto)}</p>${d.confessione ? `<p class="muted">Se ti scoprono, nel finale: «${esc(d.confessione)}»</p>` : ''}</details></section>
 <section><h3>Obiettivi</h3><ul class="sr-ob">${ob}</ul></section>
 <section><h3>Battute-guida</h3><ul>${d.battute.map(b => `<li>«${esc(b)}»</li>`).join('')}</ul></section>
 <section><h3>Atto per atto</h3><ul>${Object.entries(d.atti)
       .map(([a, t]) => `<li class="${g.atto && g.atto.id === a ? 'qui' : ''}"><b>${esc(a)}</b> ${esc(t)}</li>`)
       .join('')}</ul></section>
-${sez}<p><button class="link" data-a="ser" data-v="esco">Esco dal ruolo…</button></p>`;
+${sez}<section><h3>Taccuino</h3>${SER.noteH(m)}</section><p><button class="link" data-a="ser" data-v="esco">Esco dal ruolo…</button></p>`;
   },
   famH(m, g) {
     const f = m.fam,
@@ -938,8 +1083,13 @@ ${c.on && p !== m.dossier.id ? `<button class="b sm" data-a="ser" data-v="chiedi
         ui.srq = '';
         ui.srp = '';
         return render();
+      case 'lente':
+        ui.srcerca = !ui.srcerca;
+        if (!ui.srcerca) ui.srq = '';
+        return render();
       case 'cerca':
         ui.srq = a1 === undefined ? val('sr-q') : '';
+        if (a1 !== undefined) ui.srcerca = false;
         return render();
       case 'p':
         ui.srp = a1 || '';

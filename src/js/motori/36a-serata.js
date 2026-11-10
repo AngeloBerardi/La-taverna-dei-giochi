@@ -321,6 +321,7 @@ const SERATA = (() => {
       mom: '',
       riga: 0,
       fino: 0,
+      da: 0,
       resto: 0,
       pausa: false,
       n: 0,
@@ -473,6 +474,7 @@ const SERATA = (() => {
     s.mom = m;
     s.turno = null;
     s.fino = a[m].minuti ? ora + a[m].minuti * 60000 : 0;
+    s.da = ora; // da quando dura il momento: l'orologio in alto a destra conta in avanti se non c'è un tempo massimo
     s.resto = 0;
     log(s, nomeMom(k, m));
     for (const p of k.prove) {
@@ -1082,6 +1084,9 @@ const SERATA = (() => {
       atto: a ? { i: s.atto, id: a.id, titolo: a.titolo || '', ora: a.ora || null, n: k.atti.length } : null,
       mom: s.mom ? { id: s.mom, nome: nomeMom(k, s.mom) } : null,
       fino: s.pausa ? 0 : s.fino,
+      da: s.da || 0,
+      tot: a && s.mom && a[s.mom] ? (a[s.mom].minuti || 0) * 60000 : 0,
+      istr: a && s.mom && a[s.mom] ? a[s.mom].istruzioni || '' : '',
       resto: s.resto,
       mondo: s.mondo,
       sigilli: (k.sigilli || []).map(x => ({
@@ -1095,6 +1100,7 @@ const SERATA = (() => {
         nome: f.nome,
         pv: s.fam[f.id].pv ? pidDi(s, s.fam[f.id].pv) : '',
         passi: s.fam[f.id].ded.map(c => coll(k, c).passo),
+        inviato: s.atto >= 0 && !!s.fam[f.id].mod[s.atto],
       })),
       cast,
       pubbliche: s.pub.map(eid => {
@@ -1264,6 +1270,8 @@ const SERATA = (() => {
       prossimo: prossimo(s, k),
       pos: punto(s),
       fino: s.fino,
+      da: s.da || 0,
+      tot: a && s.mom && a[s.mom] ? (a[s.mom].minuti || 0) * 60000 : 0,
       pausa: s.pausa,
       sigilli: (k.sigilli || []).map(x => ({ id: x.id, nome: x.nome || x.id, on: !!s.sig[x.id] })),
       prove: k.prove.map(p => ({

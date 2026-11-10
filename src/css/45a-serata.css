@@ -118,5 +118,127 @@
 .sr-clist .b{margin:4px 4px 0 0}
 .sr-alt .b.off{opacity:.5}
 .sr-ist{font-size:16px}
+/* ---- Riprogettazione (docs/SERATA-UX.md): un fuoco per volta, il momento dà colore, l'orologio sempre in alto a destra ---- */
+.sr-tv,.sr-tel,.sr-con{--m:#aab4c6}
+[data-mom="mattina"]{--m:#8fc1e8}
+[data-mom="pomeriggio"]{--m:#f0a548}
+[data-mom="sera"]{--m:#d696d6}
+.sr-ico{flex:none}
+.sr-clock{font:900 34px var(--f-d);font-variant-numeric:tabular-nums;padding:2px 16px;border-radius:24px;background:rgba(0,0,0,.4);border:2px solid var(--m);color:#fff;white-space:nowrap}
+.sr-clock.sr-ultimo{color:#ff6a55;border-color:#ff6a55;animation:srpulsa 1s ease-in-out infinite}
+.sr-clock.sr-pz{color:#e98a80;border-color:#b8433a}
+.sr-tv{grid-template-rows:auto 1fr auto;gap:20px}
+.sr-top{align-items:center;border-bottom:3px solid var(--m)}
+.sr-atto{font:400 32px var(--f-d);color:var(--sr-acc)}
+.sr-pill{display:flex;align-items:center;gap:12px;padding:8px 22px;border-radius:40px;background:var(--m);color:#14100a;font:900 30px var(--f-d);letter-spacing:.06em;text-transform:uppercase}
+.sr-pill.sr-in-pausa{background:#b8433a;color:#fff}
+.sr-dx{display:flex;align-items:center;gap:20px}
+.sr-stanza{font:800 26px var(--f-d);letter-spacing:.1em;opacity:.85}
+.sr-sigilli{gap:10px}
+.sr-sigilli li{min-width:0;display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 20px var(--f-d);border-radius:20px;animation:none}
+.sr-sigilli li i{width:14px;height:14px;border-radius:7px;background:var(--sr-acc)}
+.sr-sigilli li.off i{background:transparent;border:2px solid var(--sr-acc)}
+.sr-regole{display:flex;align-items:center;gap:32px;padding:14px 24px;border-radius:16px;background:rgba(0,0,0,.4);border-top:3px solid var(--m)}
+.sr-regole p{flex:1;margin:0;font-size:30px;line-height:1.25}
+.sr-regole.sr-vuoto{background:none;border:0;justify-content:flex-end}
+.sr-tasti{font-size:20px;opacity:.6}
+.sr-chips{display:flex;gap:10px}
+.sr-chips span{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:120px;padding:8px 14px;border-radius:14px;border:2px solid #3a4a68;color:#6f7b92;font:800 20px var(--f-d);letter-spacing:.06em;text-transform:uppercase}
+.sr-chips span.on{background:var(--m);border-color:var(--m);color:#14100a}
+.sr-acc{display:grid;grid-template-columns:1.4fr 1fr;grid-template-areas:"t b" "p p";gap:28px;width:100%;align-content:center}
+.sr-tit{grid-area:t}
+.sr-tit h1{margin:0;font:400 76px/1.05 var(--f-d);color:var(--sr-acc)}
+.sr-sot{font-size:30px;opacity:.85}
+.sr-passi3{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px;font-size:28px}
+.sr-passi3 li{display:flex;gap:16px;align-items:center}
+.sr-passi3 span{flex:none;width:44px;height:44px;border-radius:22px;background:var(--sr-acc);color:#14100a;display:grid;place-items:center;font:900 26px var(--f-d)}
+.sr-ben{grid-area:b;align-self:start;padding:24px;border-radius:16px;background:rgba(0,0,0,.4);border:2px solid var(--sr-acc);text-align:center;font-size:26px}
+.sr-ben b{display:block;font:900 110px/1 var(--f-d);color:var(--sr-acc)}
+.sr-ben small{display:block;font-size:24px;opacity:.8}
+.sr-posti{grid-area:p;list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:12px}
+.sr-posti li{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 6px;border-radius:30px;background:rgba(0,0,0,.4);font-size:24px}
+.sr-posti li.nar{border:2px solid var(--sr-acc)}
+.sr-posti small{opacity:.7}
+.sr-vol{flex:none;width:44px;height:44px;border-radius:22px;background:var(--sr-acc);color:#14100a;display:grid;place-items:center;font:900 24px var(--f-d)}
+.sr-fuoco{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+.sr-fuoco h2{margin:0;font:400 84px/1.05 var(--f-d);color:var(--m)}
+.sr-muto{font-size:44px;opacity:.7}
+.sr-prova{perspective:1200px}
+.sr-prova .sr-doc{position:relative;max-width:1100px;font-size:32px}
+.sr-prova .sr-doc h2{font-size:52px;color:var(--sr-rosso)}
+.sr-bollo{position:absolute;top:-14px;right:24px;padding:4px 18px;border-radius:6px;background:var(--sr-rosso);color:#fff;font:900 22px var(--f-d);letter-spacing:.1em;text-transform:uppercase}
+.sr-giro{flex-direction:row;gap:56px}
+.sr-anello{position:relative;width:min(46vh,420px);aspect-ratio:1}
+.sr-anello svg{width:100%;height:100%}
+.sr-anello circle{fill:none;stroke-width:14}
+.sr-bg{stroke:rgba(255,255,255,.12)}
+.sr-arco{stroke:var(--m);stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.sr-anello-t{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.sr-anello-t span{font:900 84px var(--f-d);font-variant-numeric:tabular-nums}
+.sr-anello-t small{font-size:26px;opacity:.7}
+.sr-testa{text-align:left;display:flex;flex-direction:column;gap:18px}
+.sr-testa h2{font-size:64px}
+.sr-cifre{display:flex;gap:36px}
+.sr-cifre b{display:block;font:900 64px/1 var(--f-d);color:var(--m)}
+.sr-cifre small{font-size:22px;opacity:.75;display:block;max-width:200px}
+.sr-famiglie,.sr-tavoli ul{list-style:none;margin:0;padding:0}
+.sr-famiglie{display:flex;flex-wrap:wrap;gap:10px}
+.sr-famiglie li{display:flex;gap:12px;align-items:baseline;padding:6px 16px;border-radius:12px;background:rgba(0,0,0,.4);font-size:24px}
+.sr-famiglie li.ok{border:2px solid var(--m)}
+.sr-famiglie span{font:900 28px var(--f-d);color:var(--m)}
+.sr-consiglio{gap:24px}
+.sr-tavoli{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.sr-tavoli>li{min-width:300px;padding:22px 28px;border-radius:50% / 22%;background:rgba(0,0,0,.4);border:3px solid #3a4a68;font-size:24px;display:flex;flex-direction:column;gap:8px}
+.sr-tavoli>li.ok{border-color:var(--m)}
+.sr-tavoli>li div{display:flex;flex-direction:column}
+.sr-tavoli b{font:400 34px var(--f-d)}
+.sr-tavoli span{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--m)}
+.sr-tavoli ul{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;font-size:22px}
+.sr-tavoli small{opacity:.7}
+/* telefono */
+.sr-tel{padding:0 12px 96px}
+.sr-ttop{border-radius:0 0 14px 14px;border-width:0 0 3px;border-bottom:3px solid var(--m);gap:10px;justify-content:flex-start}
+.sr-ttop>div{flex:1;min-width:0}
+.sr-ttop b{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-ttop small{color:var(--m);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.sr-ttop .sr-vol{width:40px;height:40px;border-radius:20px}
+.sr-ttop .sr-clock,.sr-con>header .sr-clock{font-size:22px;padding:2px 12px}
+.sr-lente{flex:none;width:44px;height:44px;border-radius:22px;border:2px solid var(--line);background:transparent;color:inherit;display:grid;place-items:center}
+.sr-nav button{flex-direction:column;display:flex;align-items:center;justify-content:center;gap:2px;font-size:12px;min-height:56px}
+.sr-nav button.sel{background:none;border-color:transparent;color:var(--m);box-shadow:inset 0 3px 0 var(--m)}
+.sr-ora{border:2px solid var(--m)!important;border-radius:14px!important;padding:16px!important;display:flex;flex-direction:column;gap:10px}
+.sr-ora-m{display:flex;align-items:center;gap:10px;color:var(--m);font:900 20px var(--f-d);letter-spacing:.08em;text-transform:uppercase}
+.sr-ora-g{margin:0;font-size:24px;line-height:1.3;font-weight:700}
+.sr-ora-r{margin:0;font-size:16px;opacity:.8}
+.sr-cta{min-height:60px;border:0;border-radius:12px;background:var(--m);color:#14100a;font:900 20px var(--f-d);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.sr-dichiara{display:flex;flex-direction:column;gap:6px}
+.sr-nov ul{list-style:none;padding:0!important}
+.sr-nov li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+/* console del narratore */
+.sr-con{padding:0 14px 110px}
+.sr-con>header{border-radius:0;border-width:0 0 3px;border-bottom:3px solid var(--m);justify-content:flex-start}
+.sr-sx{flex:1;line-height:1.15}
+.sr-sx small{display:block;color:var(--m);font:800 13px var(--f-d);letter-spacing:.1em;text-transform:uppercase}
+.sr-sx b{font-size:19px;color:var(--muted)}
+.sr-rich{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:22px;border:2px solid var(--gold,#e9c46a);background:rgba(0,0,0,.4);color:var(--gold,#e9c46a);font:800 13px var(--f-d);letter-spacing:.06em;text-transform:uppercase}
+.sr-rich i{display:grid;place-items:center;width:22px;height:22px;border-radius:11px;background:var(--sr-rosso);color:#fff;font-style:normal;font-size:13px}
+.sr-segm{display:flex;gap:4px}
+.sr-segm span{flex:1;height:6px;border-radius:3px;background:#2c3a55}
+.sr-segm span.f{background:var(--m)}
+.sr-segm span.q{background:var(--gold,#e9c46a)}
+.sr-cue{background:#efe6d0;color:#1c1710;border-radius:14px;padding:18px 18px 20px;display:flex;flex-direction:column;gap:10px;min-height:42vh}
+.sr-cue small{font:800 14px var(--f-d);letter-spacing:.12em;text-transform:uppercase;color:#7a2d27}
+.sr-cue p{margin:0;font-size:28px;line-height:1.3;font-weight:700}
+.sr-cue em{margin-top:auto;padding-top:10px;border-top:1px solid #c9b99a;font-style:normal;font-size:16px;color:#5a4d38}
+.sr-cue.regia p{font-weight:400;font-size:24px}
+.sr-poi{display:flex;gap:12px;align-items:center;margin-top:10px;padding:10px 14px;border-radius:12px;background:#172236;border:1px solid #2c3a55}
+.sr-poi small{flex:none;font:800 12px var(--f-d);letter-spacing:.1em;color:var(--muted)}
+.sr-poi p{margin:0;font-size:17px}
+.sr-tutto{margin-top:10px}
+.sr-con footer{gap:12px;padding:12px 14px 18px}
+.sr-pausa-b{flex:none;width:76px;height:76px;border-radius:14px;border:2px solid #b8433a;background:transparent;color:#e98a80;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 12px var(--f-d);letter-spacing:.06em;text-transform:uppercase}
+.sr-pausa-b.on{background:#b8433a;color:#fff}
+.sr-avanti{display:flex;align-items:center;justify-content:center;gap:10px;min-height:76px;border:0;border-radius:14px;background:linear-gradient(180deg,#f0c56a,#d29a35);color:#2a1c06;font:900 26px var(--f-d);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 0 #8a621a}
+
 /* lo schermo comune spegne i pulsanti (37-schermo.css): la regia della serata riaccende i suoi, si usano col mouse del PC */
 html[data-tv] #app .sr-tv [data-a]{pointer-events:auto;cursor:pointer}
