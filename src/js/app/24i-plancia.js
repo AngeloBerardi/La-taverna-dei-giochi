@@ -28,7 +28,7 @@ const Plancia={
    off=!R.on&&(()=>{try{const g=JSON.parse(ST('rg-off')||'null')?.game;return g&&g.G?g:null}catch(e){return null}})(),N=members().length,tv=R.on&&R.code,coins=FB.st==='ok'&&FB.p?FB.p.coins:null;
   const net=R.on?'<span class="hm-st on">Online</span>':R.net==='prova'?'<span class="hm-st prova">Connessione…</span>':'<button class="hm-st off" data-a="retrynet" aria-label="Offline: tocca per riprovare a collegarti">Offline · riprova</button>';
   const chi=R.on?(N>1?`<b>${N-1}</b> ${N-1===1?'persona è':'persone sono'} ${N-1===1?'seduta':'sedute'} in taverna`:'Sei solo in taverna: invita qualcuno'):R.net==='prova'?'Mi collego alla taverna…':'Giochi su questo telefono, senza stanza online';
-  const tile=(i,t,sub,a,v,dis)=>`<button class="hm-c" data-a="${a}"${v?` data-v="${v}"`:''}${dis?' disabled':''}><span class="ic0">${ic(i,26)}</span><b>${t}</b><small>${sub}</small></button>`;
+  const tile=(i,t,sub,a,v,dis)=>`<button class="hm-c" data-a="${a}"${v?` data-v="${v}"`:''}${dis?' disabled':''}><span class="ic0">${ic(i,24)}</span><span class="g"><b>${t}</b><small>${sub}</small></span>${ic('play',16)}</button>`;
   const rs=[];if(tc)rs.push(['Partite a distanza',`Tocca a te (${tc})`,'dist',1]);
   if(off){const g=GAMES.find(x=>x.id===(off.G&&off.G.g));rs.push([g?g.name:'Partita',g?'Riprendi la partita sul telefono':'Riprendi',  'resume',0])}
   const resume=rs.map(([t,sub,a,hot])=>`<button class="rw3${hot?' hot':''}" data-a="${a}"><span class="g"><b>${t}</b><small>${sub}</small></span>${ic('play',20)}</button>`).join('');
