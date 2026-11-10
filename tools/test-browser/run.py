@@ -1492,8 +1492,8 @@ async def sc_serata(b, srv):
     # avanti fino al pomeriggio: si mostra a chiunque
     await A.evaluate(AVANZA + "(\"return c.mom!=='mattina'\")")
     for p in P: await p.wait_for_function("G.mom&&G.mom.id==='pomeriggio'", timeout=30000)
-    await T.wait_for_function("!!document.querySelector('.sr-timer.sr-big[data-fino]')", timeout=30000)
-    check(True, 'TV: pomeriggio con il timer grande')
+    await T.wait_for_function("!!document.querySelector('.sr-anello-t [data-fino]')&&!!document.querySelector('.sr-dx .sr-clock[data-fino]')", timeout=30000)
+    check(True, 'TV: pomeriggio con l’anello e l’orologio in alto a destra')
     if tiene:
         await pa.evaluate("SER.chiedi({t:'mostra',eid:" + json.dumps(tiene[0]) + ",a:" + json.dumps(b_id) + "})")
         await fam[b_id].wait_for_function("SER.mano.prove.l[" + json.dumps(tiene[0]) + "]&&SER.mano.prove.l[" + json.dumps(tiene[0]) + "].st==='copia'", timeout=30000)
@@ -1524,6 +1524,7 @@ async def sc_serata(b, srv):
         check(True, 'famiglia: collegamento giusto, passo avanti')
         await A.wait_for_function("SER.mano.console.proposte.length>0", timeout=30000)
         n = await A.evaluate("SER.mano.console.proposte[0].n")
+        await A.click('[data-a=ser][data-v="ctab:richieste"]')
         await A.click('[data-a=ser][data-v="prop:%d:1"]' % n)
         await T.wait_for_function("G.sigilli.find(x=>x.id==='ORA').on===false", timeout=30000)
         check(await T.evaluate("!!document.querySelector('.sr-sigilli li.off')"), 'TV: il sigillo ORA si spegne')

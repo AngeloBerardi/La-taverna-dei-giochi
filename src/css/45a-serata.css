@@ -240,5 +240,10 @@
 .sr-pausa-b.on{background:#b8433a;color:#fff}
 .sr-avanti{display:flex;align-items:center;justify-content:center;gap:10px;min-height:76px;border:0;border-radius:14px;background:linear-gradient(180deg,#f0c56a,#d29a35);color:#2a1c06;font:900 26px var(--f-d);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 0 #8a621a}
 
+.sr-con,.sr-tel{box-sizing:border-box;width:100%;min-width:0}
+.sr-con>*{min-width:0;max-width:100%}
+.sr-tabs button{flex:0 0 auto;padding:0 12px}
+.sr-corpo section.sr-cue{background:#efe6d0;border:0;padding:18px 18px 20px}
+.sr-corpo section.sr-poi{background:#172236;border:1px solid #2c3a55}
 /* lo schermo comune spegne i pulsanti (37-schermo.css): la regia della serata riaccende i suoi, si usano col mouse del PC */
 html[data-tv] #app .sr-tv [data-a]{pointer-events:auto;cursor:pointer}
