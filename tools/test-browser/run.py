@@ -1417,6 +1417,28 @@ async def sc_regicide_legacy_due_telefoni(b, srv):
     for p_ in (A, B): check(not p_.errs, f'RL online: nessun errore JS {p_.errs[:1]}')
     for c in (ctxA, ctxB): await c.close()
 
+async def sc_hud_comune(b, srv):
+    # scheletro unico (app/22ga-hud.js): stesse fasce, niente scorrimento, un solo ottone, niente emoji, bersagli comodi
+    for w, h in ((390, 844), (360, 640)):
+        ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500); await pg.set_viewport_size({'width': w, 'height': h})
+        for gid, n in (('briscola', 4), ('briscola', 2), ('island', 1)):
+            r = await pg.evaluate("""async(a)=>{const[gid,n]=a;const S=[{dev:ME.dev,k:'m',name:'Tester'},...Array.from({length:n-1},(_,i)=>({dev:'altro'+i,k:'m',name:'Giocatore'+i}))];
+              await startGame(gid,S);await Q;await new Promise(r=>setTimeout(r,400));ui.anim=false;if(gid==='briscola')ui.sel=[G.hands[0][0]];render();
+              const d=document.documentElement,q=x=>document.querySelector('.h2 '+x),R=x=>x.getBoundingClientRect(),az=q('.h2-az'),tab=q('.h2-tab'),st=q('.h2-st'),sel=q('.slot.sel .card'),btn=q('.h2-az .b.play');
+              return{fasce:['.h2-top','.h2-tav','.h2-st','.h2-az','.h2-tab'].every(x=>q(x)),scroll:d.scrollWidth<=innerWidth&&d.scrollHeight<=innerHeight,
+                ottone:document.querySelectorAll('.h2 .b.play,.h2 .b.gold').length,emoji:/\\p{Extended_Pictographic}/u.test(document.querySelector('.h2').innerText),
+                ordine:R(st).bottom<=R(az).top+1&&R(az).bottom<=R(tab).top+1,dentro:[...az.children].every(x=>R(x).left>=0&&R(x).right<=innerWidth+1),
+                tocco:[...document.querySelectorAll('.h2-tab button,.h2 .hud .ib,.h2-az button')].every(x=>R(x).height>=40),
+                libero:!sel||!btn||R(sel).top>=R(btn).bottom-6}}""", [gid, n])
+            check(r['fasce'] and r['ordine'], f'{gid} {n}g {w}x{h}: le fasce ci sono e sono in ordine ({r})')
+            check(r['scroll'] and r['dentro'], f'{gid} {n}g {w}x{h}: niente scorrimento, comandi dentro lo schermo')
+            check(r['ottone'] <= 1 and not r['emoji'] and r['tocco'], f'{gid} {n}g {w}x{h}: al più un ottone, niente emoji, bersagli comodi ({r})')
+            check(r['libero'], f'{gid} {n}g {w}x{h}: la carta scelta non copre il pulsante')
+            await pg.evaluate("(()=>{G=null;ui.sel=[];ui.screen='room';R.offSeats=null;render()})()")
+        r = await pg.evaluate("(()=>{const d=document.documentElement;return{righe:document.querySelectorAll('.hm-grid .hm-c').length,ottone:document.querySelectorAll('.hm .b.play').length,scroll:d.scrollWidth<=innerWidth}})()")
+        check(r['righe'] == 4 and r['ottone'] == 1 and r['scroll'], f'home {w}x{h}: un solo ottone, quattro righe, niente scorrimento laterale ({r})')
+        check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
 async def sc_mani_a_ventaglio(b, srv):
     # fanH (mano a ventaglio con le carte disegnate) non deve essere coperta da fanRowsH del layout fisso
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url, 2500)
