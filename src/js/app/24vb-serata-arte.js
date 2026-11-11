@@ -1,10 +1,11 @@
-/* ================= CENA CON DELITTO: la messa in scena («il fascicolo») =================
-   Pezzi di disegno usati dalle viste di 24va-serata.js: sigilli di ceralacca, arco del giorno, anello del tempo, volti,
-   colori delle famiglie. Solo markup e SVG: nessuna regola del gioco passa di qui. Stile in css/45a-serata.css,
-   direzione artistica in docs/SERATA-STILE.md. */
+/* ================= CENA CON DELITTO: la messa in scena («il tascabile giallo») =================
+   Pezzi di disegno usati dalle viste di 24va-serata.js: il tondo (la vignetta viva della copertina, con l'anello del tempo),
+   le domande del caso col loro bollo, i volti, i colori delle famiglie. Solo markup e SVG: nessuna regola del gioco passa di qui.
+   Stile in css/45a-serata.css, direzione artistica in docs/SERATA-STILE.md. */
 const SRA = {
   // un colore per famiglia (in ordine di kit): serve a riconoscerle a colpo d'occhio su TV e telefono
-  COL: ['#f2c12e', '#5fb3a8', '#e07a5f', '#9b8bd0', '#8fbf6a', '#6fa3d8', '#d98bb0', '#c9a46a'],
+  // colori pieni: devono leggersi sia sul giallo della copertina sia sulla carta della pagina (il rosso è riservato al tondo)
+  COL: ['#1f3c88', '#1e6b4a', '#6b2d6b', '#9a4a14', '#0f5c6b', '#a01f5b', '#3d4a1a', '#4a3a6b'],
   fam(g, fid) {
     const i = (g.famiglie || []).findIndex(f => f.id === fid);
     return SRA.COL[(i < 0 ? 0 : i) % SRA.COL.length];
@@ -12,7 +13,7 @@ const SRA = {
   // la palette del kit (tema.palette) sopra i colori di riserva del CSS, più la classe del momento del giorno
   stile(g) {
     const pal = (g.tema && g.tema.palette) || {};
-    return Object.entries({ fondo: '--sr-fondo', carta: '--sr-carta', inchiostro: '--sr-ink', accento: '--sr-acc', sangue: '--sr-rosso' })
+    return Object.entries({ fondo: '--sr-notte', carta: '--sr-carta', inchiostro: '--sr-ink', accento: '--sr-giallo', sangue: '--sr-rosso' })
       .filter(([c]) => pal[c])
       .map(([c, v]) => v + ':' + pal[c])
       .join(';');
@@ -20,7 +21,7 @@ const SRA = {
   aria: g => ' sr-m-' + ((g.mom && g.mom.id) || 'attesa') + ' sr-f-' + (g.fase || 'casting'),
   volto(nome, col, cls) {
     const i = (String(nome || '?').trim()[0] || '?').toUpperCase();
-    return `<span class="sr-volto ${cls || ''}" style="--fc:${col || 'var(--sr-acc)'}" aria-hidden="true">${esc(i)}</span>`;
+    return `<span class="sr-volto ${cls || ''}" style="--fc:${col || 'var(--sr-ink)'}" aria-hidden="true">${esc(i)}</span>`;
   },
   // ---- sigilli: ceralacca con il simbolo del kit; risolto = spezzato in due ----
   SIMB: {
@@ -47,45 +48,38 @@ const SRA = {
     return d + 'Z';
   },
   sigillo(x) {
-    const s = SRA.SIMB[x.simbolo] || SRA.SIMB.lucchetto,
-      svg = c =>
-        `<svg class="${c}" viewBox="0 0 60 60"><path d="${SRA.CERA}" class="sr-ce"/><circle cx="30" cy="30" r="19" class="sr-ce2"/>` +
-        `<g transform="translate(15 15) scale(1.25)" class="sr-ce3">${s}</g></svg>`;
-    return `<li class="${x.on ? 'on' : 'off'}"><span class="sr-cera" aria-hidden="true">${svg('sx')}${svg('dx')}</span><b>${esc(x.id)}</b><small>${x.on ? esc(x.nome) : 'risolto'}</small></li>`;
+    const simb = SRA.SIMB[x.simbolo] || SRA.SIMB.lucchetto;
+    return `<li class="${x.on ? 'on' : 'off'}"><span class="sr-cera" aria-hidden="true"><svg viewBox="0 0 60 60"><path d="${SRA.CERA}" class="sr-ce"/>`
+      + `<g transform="translate(15 15) scale(1.25)" class="sr-ce3">${x.on ? simb : '<path d="M5 12.5l4.5 4.5L19 7.5"/>'}</g></svg></span>`
+      + `<span><b>${esc(x.domanda || x.nome || x.id)}</b><small>${x.on ? esc(x.domanda ? x.nome : 'da scoprire') : 'risolto'}</small></span></li>`;
   },
-  // ---- arco del giorno: alba, mezzodì, notte; l'astro sta sul momento in corso ----
-  arco(g) {
-    const m = g.mom && g.mom.id,
-      P = { mattina: [24, 37], pomeriggio: [100, 11], sera: [176, 37] },
-      ord = ['mattina', 'pomeriggio', 'sera'],
-      qui = ord.indexOf(m);
-    const nodi = ord
-      .map((id, i) => (i === qui ? '' : `<circle cx="${P[id][0]}" cy="${P[id][1]}" r="${i < qui ? 3.4 : 3}" class="${i < qui ? 'fatto' : 'poi'}"/>`))
-      .join('');
-    let astro = '';
-    if (qui >= 0) {
-      const [x, y] = P[m];
-      astro =
-        m === 'sera'
-          ? `<path d="M${x + 5} ${y - 9}a9.5 9.5 0 1 0 5 16a8 8 0 0 1 -5 -16z" class="luna"/>`
-          : `<g class="sole"><circle cx="${x}" cy="${y}" r="7"/>${[0, 45, 90, 135, 180, 225, 270, 315]
-              .map(a => `<path d="M${x} ${y - 10}v-4" transform="rotate(${a} ${x} ${y})"/>`)
-              .join('')}</g>`;
-    }
-    return `<svg class="sr-arco" viewBox="0 0 200 64" aria-hidden="true"><path d="M8 60A92 54 0 0 1 192 60" class="via"/><path d="M0 60h200" class="terra"/>${nodi}${astro}</svg>`;
-  },
-  // ---- anello del tempo: si svuota come un orologio; la durata piena viene dal kit (sulla TV) o dal primo sguardo ----
+  // ---- il tondo: la vignetta viva della copertina. Uno scoglio col faro: il cielo dice il momento del giorno, di notte il faro gira,
+  // l'anello rosso attorno si consuma col tempo (pieno = nessun conto alla rovescia). `dentro` è ciò che sta scritto sopra la scena.
   TOT: {},
-  anello(fino, extra) {
-    if (!fino) return '';
-    const D = SER.D,
-      a = D && D.k && G.atto && D.k.atti[G.atto.i],
-      min = a && G.mom && a[G.mom.id] && a[G.mom.id].minuti,
-      resta = Math.max(1000, fino - Date.now());
-    SRA.TOT[fino] = Math.max(SRA.TOT[fino] || 0, min ? min * 60000 : 0, resta);
-    return `<div class="sr-anello" data-giro="${fino}" style="--p:${Math.min(1, resta / SRA.TOT[fino]).toFixed(3)}"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" class="b"/>`
-      + `<circle cx="60" cy="60" r="46" class="t" pathLength="120" stroke-dasharray="0.7 9.3"/><circle cx="60" cy="60" r="54" class="p" pathLength="100" transform="rotate(-90 60 60)"/></svg>`
-      + `<div>${SER.timerH(fino, 'sr-timer sr-big')}${extra || ''}</div></div>`;
+  SCENA:
+    '<rect width="200" height="200" class="sr-cielo"/><ellipse cx="100" cy="132" rx="150" ry="46" class="sr-alone"/>'
+    + '<g class="sr-stelle"><circle cx="34" cy="38" r="1.3"/><circle cx="70" cy="22" r="1"/><circle cx="96" cy="46" r="1.2"/><circle cx="168" cy="34" r="1.2"/><circle cx="182" cy="74" r="1"/><circle cx="22" cy="80" r="1"/></g>'
+    + '<circle r="15" class="sr-astro"/><path d="M0 0L-190 -38L-190 22Z" class="sr-fascio" transform="translate(121 62)"/>'
+    + '<rect y="132" width="200" height="70" class="sr-mare"/><path d="M14 146q7-4 14 0t14 0M150 152q7-4 14 0t14 0M40 172q7-4 14 0t14 0M118 182q7-4 14 0t14 0" class="sr-onde"/>'
+    + '<path d="M44 150C52 134 70 126 88 122L102 114L138 112C152 118 166 132 174 150C140 158 80 158 44 150Z" class="sr-nero"/>'
+    + '<path d="M113 114L116.500 66h9L129 114Z" class="sr-torre"/><path d="M114.800 92h12.400l.4 7h-13.200zM115.900 74h10.200l.3 6h-10.800z" class="sr-nero"/>'
+    + '<path d="M114 66h14v-9h-14zM112 57L121 46L130 57Z" class="sr-nero"/><rect x="117" y="59" width="8" height="5.500" class="sr-lume"/>'
+    + '<path d="M82 122V108l8-6.500 8 6.500v12Z" class="sr-nero"/><rect x="87.500" y="110" width="4.600" height="5" class="sr-lume"/>'
+    + '<g class="sr-nebbia"><ellipse cx="60" cy="140" rx="70" ry="7"/><ellipse cx="150" cy="126" rx="60" ry="6"/></g>',
+  tondo(fino, dentro, cls) {
+    let p = 1;
+    if (fino) {
+      const D = SER.D,
+        a = D && D.k && G.atto && D.k.atti[G.atto.i],
+        min = a && G.mom && a[G.mom.id] && a[G.mom.id].minuti,
+        resta = Math.max(1000, fino - Date.now());
+      SRA.TOT[fino] = Math.max(SRA.TOT[fino] || 0, min ? min * 60000 : 0, resta);
+      p = Math.min(1, resta / SRA.TOT[fino]);
+    }
+    const id = 'srt' + (cls || 'tv');
+    return `<div class="sr-tondo ${cls || ''}"${fino ? ` data-giro="${fino}"` : ''} style="--p:${p.toFixed(3)}"><svg viewBox="0 0 200 200" aria-hidden="true"><clipPath id="${id}"><circle cx="100" cy="100" r="93"/></clipPath>`
+      + `<g clip-path="url(#${id})">${SRA.SCENA}</g><circle cx="100" cy="100" r="95" class="sr-giro0"/><circle cx="100" cy="100" r="95" class="sr-giro" pathLength="100" transform="rotate(-90 100 100)"/></svg>`
+      + `${dentro ? `<div>${dentro}</div>` : ''}</div>`;
   },
   tick() {
     for (const el of document.querySelectorAll('[data-giro]')) {
@@ -102,7 +96,5 @@ const SRA = {
       t = SRA.VISTI[chiave] || (SRA.VISTI[chiave] = ora);
     return ora - t < 1500 ? ' sr-nuovo' : '';
   },
-  // strati d'atmosfera della TV: nebbia che scorre, grana, vignetta
-  fumo: '<div class="sr-aria" aria-hidden="true"><i></i><i></i><b></b></div>',
 };
 SRA.CERA = SRA.cera();

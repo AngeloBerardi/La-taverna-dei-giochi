@@ -7,7 +7,7 @@ Serata per 2-40 persone divise in famiglie. La **TV regista** (il PC collegato a
 | Motore puro | `src/js/motori/36a-serata.js` (`SERATA`) + `tests/test_serata.js` |
 | Collaudo di un kit privato | `tests/serata_collaudo.js` (generico): `KIT_PRIVATO=/percorso/kit.json npm test -- serata`; prove proprie del kit con `KIT_PRIVATO_PROVE=/percorso/prove.js` |
 | TV, console, telefono | `src/js/app/24va-serata.js` (`SER`, un solo comando `data-a="ser" data-v="verbo:arg"`) + `src/css/45a-serata.css` (prefisso `sr-`) |
-| Aspetto («il fascicolo») | `src/js/app/24vb-serata-arte.js` (`SRA`) + regole in `docs/SERATA-STILE.md` |
+| Aspetto («il tascabile giallo») | `src/js/app/24vb-serata-arte.js` (`SRA`) + regole in `docs/SERATA-STILE.md` |
 | Kit pubblici | `src/kit/<id>.json` con `"formato": "serata"` (validati nel build con `SERATA.valida`). Kit di prova: `nebbia-scoglio` (1-4 ospiti) |
 | Prova nel browser | `python3 tools/test-browser/run.py serata` (TV, narratore e tre ospiti; TV riavviata a metà) |
 

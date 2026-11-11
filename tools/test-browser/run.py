@@ -1490,8 +1490,9 @@ async def sc_serata(b, srv):
     # il narratore preme «avanti» uno alla volta, aspettando che la console si aggiorni (come farebbe una persona)
     AVANZA = "(async(stop)=>{for(let i=0;i<90;i++){let c=SER.mano.console;if(new Function('c',stop)(c))return true;const k=c.fase+(c.atto&&c.atto.id)+c.mom+c.riga;await SER.cmd('avanti');for(let j=0;j<60;j++){await new Promise(r=>setTimeout(r,100));const d=SER.mano.console;if(d.fase+(d.atto&&d.atto.id)+d.mom+d.riga!==k)break}}return false})"
     # console: avanti fino al corpo pubblico (comandi numerati dal telefono del narratore)
-    for _ in range(6):
-        await A.click('[data-a=ser][data-v=avanti]'); await A.wait_for_timeout(700)
+    for _ in range(12):  # un «avanti» alla volta, finché la prova è pubblica (su una macchina lenta 6 tocchi a tempo fisso non bastavano)
+        if await T.evaluate("(SER.D.s.pub||[]).includes('corpo')"): break
+        await A.click('[data-a=ser][data-v=avanti]'); await A.wait_for_timeout(1200)
     await T.wait_for_function("(SER.D.s.pub||[]).includes('corpo')", timeout=30000)
     await T.wait_for_function("document.querySelector('.sr-doc')", timeout=30000)
     check(kit['prove'][0]['titolo'] in await T.inner_text('.sr-main'), 'TV: la prova pubblica a tutto schermo')

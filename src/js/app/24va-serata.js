@@ -401,11 +401,15 @@ const SER = {
     const sig = (g.sigilli || []).map(SRA.sigillo).join('');
     const tasti = io && D.s && !D.s.narr ? '<span class="muted">Spazio: avanti · P: pausa</span>' : '';
     const log = (g.log || []).slice(-3);
-    return `<div class="sr-tv${SRA.aria(g)}" style="${stile}"${g.atto && g.fase === 'gioco' ? ` data-atto="${esc(g.atto.id)}"` : ''}>${SRA.fumo}
-<header class="sr-top"><div class="sr-fasc"><small>Fascicolo riservato</small><h1>${esc(g.titolo || '')}</h1>${g.mondo ? `<p class="sr-mondo">${esc(g.mondo)}</p>` : ''}</div>
-<div class="sr-giorno">${g.atto ? `${SRA.arco(g)}<div class="sr-fase"><span>Atto <i>${esc(g.atto.id)}</i>${g.atto.n ? ' di ' + g.atto.n : ''}</span>${g.mom ? '<b>' + esc(g.mom.nome) + '</b>' : ''}<small>${esc(g.atto.titolo)}</small></div>` : ''}</div>
-${g.mom && g.mom.id === 'mattina' ? SER.timerH(g.fino, 'sr-timer') : ''}</header>
+    // il tondo occupa l'angolo in basso a sinistra; cast, prova mostrata ed errori vogliono tutta la larghezza
+    const largo = (D.err && io) || (D.mostra && k && io) || g.fase === 'pronta';
+    const dentro = g.fase === 'voto' ? `<b class="sr-conto">${g.votati}<i>/${g.votanti}</i></b>` : g.fino && g.fase === 'gioco' ? SER.timerH(g.fino, 'sr-timer sr-big') : '';
+    return `<div class="sr-tv${SRA.aria(g)}${largo ? ' sr-largo' : ''}" style="${stile}">
+<div class="sr-collana"><span>I gialli della Taverna</span><span>${g.atto ? 'Atto ' + esc(g.atto.id) + (g.atto.n ? ' di ' + g.atto.n : '') : 'Una serata con delitto'}</span></div>
+<header class="sr-top"><div class="sr-fasc"><h1>${esc(g.titolo || '')}</h1>${g.mondo ? `<p class="sr-mondo">${esc(g.mondo)}</p>` : ''}</div>
+${g.atto ? `<div class="sr-fase">${g.mom ? '<b>' + esc(g.mom.nome) + '</b>' : ''}<small>${esc(g.atto.titolo)}</small></div>` : ''}</header>
 ${sig ? `<ol class="sr-sigilli">${sig}</ol>` : ''}
+${SRA.tondo(g.fase === 'gioco' ? g.fino : 0, dentro)}
 <main class="sr-main">${main}</main>
 <footer class="sr-foot">${log.map((l, i) => `<span class="${i === log.length - 1 ? 'ult' : ''}">${esc(l.testo)}</span>`).join('')}${tasti}</footer>
 ${g.pausa ? '<div class="sr-pausa"><b>Pausa tecnica</b><small>Siamo fuori dalla finzione. Si riprende tra poco.</small></div>' : ''}</div>`;
@@ -462,9 +466,9 @@ ${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[
           return `<li><span style="--fc:${SRA.fam(g, a)}">${esc(SER.nomeF(a, g))}</span><i><b>${n}</b></i><span style="--fc:${SRA.fam(g, b)}">${esc(SER.nomeF(b, g))}</span></li>`;
         })
         .join('');
-      cuore = `<div class="sr-c sr-tempo">${SRA.anello(g.fino)}<div><small class="sr-eti">Tutti con tutti</small><h2>Tempo libero</h2><p>Girate tra le famiglie, mostrate le prove, chiedete copie.</p>${fra ? `<ul class="sr-fra">${fra}</ul>` : ''}</div></div>`;
+      cuore = `<div class="sr-c sr-tempo"><div><small class="sr-eti">Tutti con tutti</small><h2>Tempo libero</h2><p>Girate tra le famiglie, mostrate le prove, chiedete copie.</p>${fra ? `<ul class="sr-fra">${fra}</ul>` : ''}</div></div>`;
     } else {
-      cuore = `<div class="sr-c sr-tempo">${SRA.anello(g.fino)}<div><small class="sr-eti">A porte chiuse</small><h2>Consiglio di famiglia</h2><p>Si parla solo dentro la propria famiglia.</p></div></div>`;
+      cuore = `<div class="sr-c sr-tempo"><div><small class="sr-eti">A porte chiuse</small><h2>Consiglio di famiglia</h2><p>Si parla solo dentro la propria famiglia.</p></div></div>`;
     }
     const passi = (g.famiglie || [])
       .map(
@@ -591,7 +595,7 @@ ${prop ? `<ul class="sr-prop">${prop}</ul>` : ''}${dom ? `<ul class="sr-prop">${
     if (m.console) return SER.conH(m.console);
     const stile = SRA.stile(g);
     if (g.fase === 'casting' || !m.dossier)
-      return `<div class="sr-tel sr-c sr-invito" style="${stile}"><small class="sr-eti">Sei invitato a</small><h2>${esc(g.titolo || 'Serata')}</h2><p>La regia prepara i personaggi. Guarda la TV.</p>
+      return `<div class="sr-tel sr-c sr-invito sr-m-sera" style="${stile}"><small class="sr-eti">Sei invitato a</small><h2>${esc(g.titolo || 'Serata')}</h2>${SRA.tondo(0, '', 'tel')}<p>La regia prepara i personaggi. Guarda la TV.</p>
 ${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p class="sr-busta regia">Sei il narratore: avrai la console, non un personaggio.</p><button class="b" data-a="ser" data-v="nonarr">Non faccio più il narratore</button>' : g.narr ? '' : '<button class="b gold" data-a="ser" data-v="narratore">Faccio il narratore</button>') : ''}</div>`;
     const st = m.stato || {},
       d = m.dossier,
@@ -621,7 +625,7 @@ ${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p class="sr-busta regia">Sei i
     const corpo = q
       ? SER.cercaH(q, m)
       : { io: SER.ioH, fam: SER.famH, prove: SER.proveH, persone: SER.personeH, note: SER.noteH }[tab](m, g);
-    return `<div class="sr-tel${SRA.aria(g)}" style="${stile}"><header class="sr-ttop">${SRA.volto(d.nome, col)}<div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${g.mom ? ' · ' + esc(g.mom.nome) : ''}</small></div>${SER.timerH(g.fino, 'sr-timer')}</header>
+    return `<div class="sr-tel${SRA.aria(g)}" style="${stile}"><header class="sr-ttop">${SRA.volto(d.nome, col)}<div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${g.mom ? ', ' + esc(g.mom.nome).toLowerCase() : ''}</small></div>${SER.timerH(g.fino, 'sr-timer')}${SRA.tondo(g.fino, '', 'mini')}</header>
 <div class="sr-cerca"><input id="sr-q" placeholder="Cerca in prove, persone, appunti" value="${esc(q)}"><button class="b sm" data-a="ser" data-v="cerca" aria-label="Cerca">${ic('mirino', 18)}</button>${q ? `<button class="b sm" data-a="ser" data-v="cerca:" aria-label="Chiudi la ricerca">${ic('x', 18)}</button>` : ''}</div>
 ${busta}<div class="sr-corpo sr-t-${q ? 'cerca' : tab}">${corpo}</div><nav class="sr-nav">${nav}</nav></div>`;
   },
