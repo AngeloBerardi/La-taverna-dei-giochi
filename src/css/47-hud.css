@@ -45,7 +45,8 @@ html:has(.h2,.hm) .embers{display:none}
 .h2 .felt.brisc .deckbox{position:absolute;left:12px;top:12px}.h2 .felt.brisc .trick{flex:none;min-height:124px;gap:10px}.h2 .felt.brisc .tc .card{--cw:72px}
 /* Isola: la griglia sta nello spazio che c'è; sotto, una riga con l'animale scelto */
 .h2 .isl{margin:0;padding:6px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:1;min-height:0}
-.h2 .igrid{--cz:min((min(100vw,560px) - 54px)/6,(100dvh - 366px)/7.5 - 3px)}
+.h2 .igrid{--cz:min((min(100vw,560px) - 62px)/6,(100dvh - 368px)/8.28)}
+@media (min-height:780px){.h2 .igrid{--cz:min((min(100vw,560px) - 62px)/6,(100dvh - 436px)/8.28)}}
 .isk{flex:none;display:flex;align-items:center;gap:10px;height:76px;margin:6px 12px 0;padding:0 10px;background:#1d1510;border-left:3px solid #cf8f2c}
 .isk-0{flex:1;text-align:center;font:600 13px var(--f-b);color:#b8a68d}
 .isk-a{flex:none;width:56px;height:60px;border:2px solid #2a1a10;border-radius:6px;background:linear-gradient(160deg,var(--a),var(--b));overflow:hidden}.isk-a .iart{display:block;width:100%;height:100%}
