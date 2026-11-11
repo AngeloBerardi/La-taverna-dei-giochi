@@ -14,3 +14,10 @@ Un potere che non si può applicare si salta. Le caselle fuori dalla griglia ini
 `tests/test_isola.js`: partite con 0, 1 e 2 animali d'acqua sempre concluse; una ricerca in profondità vince la maggior parte delle partite, il casuale quasi mai.
 ## Fonti
 Food Chain Island, Button Shy Games: https://buttonshygames.com
+
+## Riferimento visivo
+Fonti (link, non copie): [scheda dell'editore](https://buttonshygames.com/products/food-chain-island), [anteprima con foto](https://whatsericplaying.com/2020/05/25/food-chain-island/), [recensione con foto](https://geekmom.com/2023/06/geekdad-eat-your-way-to-the-top-of-the-food-chain-island/amp).
+- **Componenti**: 18 carte verticali 63×87 mm (16 animali di terra numerati 0–15, 2 di mare), niente tabellone: le carte stanno sul tavolo in una griglia 4×4 e possono uscirne.
+- **Carte**: ogni carta mostra l'animale mentre mangia quello sotto di lui nella catena, con il numero, le prede e il testo del potere. Illustrazioni «carine», grafica moderna sui toni del blu e del verde acqua.
+- **Non verificato**: posizione esatta di numero, prede e testo; palette delle singole carte. Dalle pagine si leggono solo le descrizioni, non le foto: prima di rifinire il resto delle carte conviene che l'utente mandi una foto del gioco.
+- **Da noi** (campione di novembre 2026, `app/17a-isola-scene.js`): carta verticale 1:1,38 con bordo crema, numero in una linguetta in alto a sinistra, scena piatta senza contorni a figura intera con il suo ambiente (Formica, Volpe, Orso polare; gli altri hanno ancora il muso di `17-isola-arte.js`). Il tavolo è un'isola vista dall'alto (sabbia, schiuma, palme) in mezzo al mare; Squalo e Balena nuotano intorno. Disegni nostri: niente figure copiate.
