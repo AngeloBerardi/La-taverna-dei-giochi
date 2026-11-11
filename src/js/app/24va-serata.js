@@ -291,6 +291,7 @@ const SER = {
   },
   // ogni secondo: orologi, riserve a tempo, fine del pomeriggio
   tick() {
+    SRA.tick();
     for (const el of document.querySelectorAll('[data-fino]')) {
       el.textContent = SER.mmss(+el.dataset.fino);
       el.classList.toggle('sr-ultimo', +el.dataset.fino - Date.now() <= 60000);
@@ -384,45 +385,38 @@ const SER = {
     if (io) SER.avvia();
     const s = io && D.gid === g.gid ? D.s : null,
       k = io ? D.k : null;
-    const pal = (g.tema && g.tema.palette) || {};
-    const stile = Object.entries({
-      fondo: '--sr-fondo',
-      carta: '--sr-carta',
-      inchiostro: '--sr-ink',
-      accento: '--sr-acc',
-      sangue: '--sr-rosso',
-    })
-      .filter(([c]) => pal[c])
-      .map(([c, v]) => v + ':' + pal[c])
-      .join(';');
+    const stile = SRA.stile(g);
     let main = '';
     if (D.err && io) {
       main = `<div class="sr-c"><p class="err">${esc(D.err)}</p>${g.kit === 'privato' ? '<button class="b gold" data-a="ser" data-v="file">Apri il kit dal computer</button>' : ''}${D.frase ? SER.fraseH() : g.kit === 'privato' ? '' : '<button class="b gold" data-a="ser" data-v="riprova">Riprova</button>'}</div>`;
     } else if (g.fase === 'casting' || !g.fase) main = SER.tvCasting(g, io);
     else if (D.mostra && k && io) {
       const p = k.prove.find(x => x.id === D.mostra.id);
-      main = p
-        ? `<article class="sr-doc sr-grande"><small>${esc(p.id)}</small><h2>${esc(p.titolo)}</h2><p>${SER.testo(p.testo)}</p></article>`
-        : '';
+      main = p ? SER.docH(p, 'sr-grande' + SRA.nuovo('doc:' + p.id)) : '';
     } else if (g.fase === 'pronta') main = SER.tvCast(g);
     else if (g.fase === 'gioco') main = SER.tvGioco(g);
     else if (g.fase === 'voto')
-      main = `<div class="sr-c"><h2>Si vota</h2><p class="sr-buste">${'<i></i>'.repeat(g.votati)}</p><p>${g.votati} voti su ${g.votanti}</p></div>`;
+      main = `<div class="sr-c sr-urna"><small class="sr-eti">Il verdetto</small><h2>Si vota</h2><p class="sr-buste${SRA.nuovo('voti:' + g.votati)}">${'<i></i>'.repeat(g.votati)}${'<u></u>'.repeat(Math.max(0, g.votanti - g.votati))}</p><p><b>${g.votati}</b> buste su ${g.votanti}</p></div>`;
     else if (g.finale) main = SER.tvFinale(g);
-    const sig = (g.sigilli || [])
-      .map(x => `<li class="${x.on ? 'on' : 'off'}"><b>${esc(x.id)}</b><small>${esc(x.nome)}</small></li>`)
-      .join('');
+    const sig = (g.sigilli || []).map(SRA.sigillo).join('');
     const tasti = io && D.s && !D.s.narr ? '<span class="muted">Spazio: avanti · P: pausa</span>' : '';
-    return `<div class="sr-tv" style="${stile}">
-<header class="sr-top"><div><small>${esc(g.mondo || 'Cena con delitto')}</small><h1>${esc(g.titolo || '')}</h1></div>
-<div class="sr-fase">${g.atto ? 'Atto ' + esc(g.atto.id) + ' · ' + esc(g.atto.titolo) : ''}${g.mom ? '<b>' + esc(g.mom.nome) + '</b>' : ''}</div>
-${SER.timerH(g.fino, 'sr-timer')}</header>
+    const log = (g.log || []).slice(-3);
+    // il tondo occupa l'angolo in basso a sinistra; cast, prova mostrata ed errori vogliono tutta la larghezza
+    const largo = (D.err && io) || (D.mostra && k && io) || g.fase === 'pronta';
+    const dentro = g.fase === 'voto' ? `<b class="sr-conto">${g.votati}<i>/${g.votanti}</i></b>` : g.fino && g.fase === 'gioco' ? SER.timerH(g.fino, 'sr-timer sr-big') : '';
+    return `<div class="sr-tv${SRA.aria(g)}${largo ? ' sr-largo' : ''}" style="${stile}">
+<div class="sr-collana"><span>I gialli della Taverna</span><span>${g.atto ? 'Atto ' + esc(g.atto.id) + (g.atto.n ? ' di ' + g.atto.n : '') : 'Una serata con delitto'}</span></div>
+<header class="sr-top"><div class="sr-fasc"><h1>${esc(g.titolo || '')}</h1>${g.mondo ? `<p class="sr-mondo">${esc(g.mondo)}</p>` : ''}</div>
+${g.atto ? `<div class="sr-fase">${g.mom ? '<b>' + esc(g.mom.nome) + '</b>' : ''}<small>${esc(g.atto.titolo)}</small></div>` : ''}</header>
 ${sig ? `<ol class="sr-sigilli">${sig}</ol>` : ''}
+${SRA.tondo(g.fase === 'gioco' ? g.fino : 0, dentro)}
 <main class="sr-main">${main}</main>
-<footer class="sr-foot">${g.pausa ? '<b class="sr-pausa">PAUSA TECNICA</b>' : ''}${(g.log || [])
-      .slice(-3)
-      .map(l => `<span>${esc(l.testo)}</span>`)
-      .join('')}${tasti}</footer></div>`;
+<footer class="sr-foot">${log.map((l, i) => `<span class="${i === log.length - 1 ? 'ult' : ''}">${esc(l.testo)}</span>`).join('')}${tasti}</footer>
+${g.pausa ? '<div class="sr-pausa"><b>Pausa tecnica</b><small>Siamo fuori dalla finzione. Si riprende tra poco.</small></div>' : ''}</div>`;
+  },
+  // un documento di prova: foglio battuto a macchina, fermato col nastro
+  docH(p, cls, sopra) {
+    return `<article class="sr-doc ${cls || ''}"><small>${esc(sopra || 'Prova · ' + p.id)}${p.tipo ? ' · ' + esc(p.tipo) : ''}</small><h2>${esc(p.titolo)}</h2><p>${SER.testo(p.testo)}</p></article>`;
   },
   tvCasting(g, io) {
     const D = SER.D,
@@ -430,26 +424,26 @@ ${sig ? `<ol class="sr-sigilli">${sig}</ol>` : ''}
       narr = S.find(x => x.uid === D.narr);
     const lista = S.map(
       x =>
-        `<li>${esc(x.name)}${x.uid === D.narr ? ' <b>· narratore</b>' : io ? ` <button class="b sm" data-a="ser" data-v="narr:${esc(x.uid)}">Narratore</button>` : ''}</li>`
+        `<li class="${x.uid === D.narr ? 'narr' : ''}"><b>${esc(x.name)}</b>${x.uid === D.narr ? '<small>narratore</small>' : io ? `<button class="b sm" data-a="ser" data-v="narr:${esc(x.uid)}">Narratore</button>` : '<small>ospite</small>'}</li>`
     ).join('');
     const n = S.filter(x => x.uid !== D.narr).length,
       a = g.attesi || (D.k && D.k.giocatori) || [0, 0];
-    return `<div class="sr-c"><h2>Si preparano i personaggi</h2>
+    return `<div class="sr-c sr-tavola"><small class="sr-eti">La tavola è apparecchiata</small><h2>Si preparano i personaggi</h2>
 <p>${narr ? 'Narratore: <b>' + esc(narr.name) + '</b>' : 'Il narratore tocca «Faccio il narratore» sul suo telefono (oppure sceglilo qui).'}</p>
-<p class="muted">${n} ospiti · la serata ne vuole da ${a[0]} a ${a[1]}</p><ul class="sr-lista">${lista}</ul>
+<ul class="sr-lista">${lista}</ul><p class="muted">${n} ${n === 1 ? 'ospite' : 'ospiti'} · la serata ne vuole da ${a[0]} a ${a[1]}</p>
 ${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[1] ? 'disabled' : ''}>Assegna i personaggi e comincia</button>` : ''}</div>`;
   },
   tvCast(g) {
     const fam = (g.famiglie || [])
       .map(
         f =>
-          `<section class="sr-fam"><h3>${esc(f.nome)}</h3><ul>${(g.cast || [])
+          `<section class="sr-fam" style="--fc:${SRA.fam(g, f.id)}"><h3>${esc(f.nome)}</h3><ul>${(g.cast || [])
             .filter(c => c.fam === f.id)
-            .map(c => `<li class="${c.on ? '' : 'via'}"><b>${esc(c.nome)}</b><small>${esc(c.ruolo)}</small></li>`)
+            .map(c => `<li class="${c.on ? '' : 'via'}">${SRA.volto(c.nome, SRA.fam(g, f.id))}<span><b>${esc(c.nome)}</b><small>${esc(c.ruolo)}</small></span></li>`)
             .join('')}</ul></section>`
       )
       .join('');
-    return `<div class="sr-cast">${fam}</div>`;
+    return `<div class="sr-cast${SRA.nuovo('cast')}">${fam}</div>`;
   },
   tvGioco(g) {
     const t = g.turno,
@@ -457,43 +451,46 @@ ${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[
     let cuore = '';
     if (g.mom && g.mom.id === 'mattina') {
       const d = (g.dich || []).slice(-3).reverse();
+      const tc = t && (g.cast.find(c => c.id === t.pid) || {});
       cuore = t
-        ? `<div class="sr-turno"><small>Ora parla</small><h2>${esc(t.nome)}</h2><p>${esc((g.cast.find(c => c.id === t.pid) || {}).ruolo || '')}</p></div>`
+        ? `<div class="sr-turno${SRA.nuovo('turno:' + t.pid + ':' + t.n)}" style="--fc:${SRA.fam(g, tc.fam)}"><small>Ora parla</small>${SRA.volto(t.nome, SRA.fam(g, tc.fam), 'grande')}<h2>${esc(t.nome)}</h2><p>${esc(tc.ruolo || '')}</p></div>`
         : d.length
-          ? `<ul class="sr-dich">${d.map(x => `<li class="${x.tipo}"><b>${esc(x.nomeFam)}</b> ${x.tipo === 'accusa' ? 'accusa' : 'dichiara'}: ${esc(x.testo)}</li>`).join('')}</ul>`
+          ? `<ul class="sr-dich${SRA.nuovo('dich:' + (g.dich || []).length)}">${d.map(x => `<li class="${x.tipo}"><small>${esc(x.nomeFam)} ${x.tipo === 'accusa' ? 'accusa' : 'dichiara'}</small>${esc(x.testo)}</li>`).join('')}</ul>`
           : ult
-            ? `<article class="sr-doc"><small>Ultima prova pubblica</small><h2>${esc(ult.titolo)}</h2><p>${SER.testo(ult.testo)}</p></article>`
-            : '<p class="muted">Ascoltate il narratore</p>';
+            ? SER.docH(ult, '', 'Ultima prova pubblica')
+            : `<div class="sr-attesa"><small class="sr-eti">Atto ${esc(g.atto.id)}${g.atto.n ? ' di ' + g.atto.n : ''}</small><h2>${esc(g.atto.titolo || g.titolo)}</h2><p>Ascoltate il narratore<span class="dots"></span></p></div>`;
     } else if (g.mom && g.mom.id === 'pomeriggio') {
       const fra = Object.entries(g.fra || {})
         .map(([kk, n]) => {
           const [a, b] = kk.split('-');
-          return `<li>${esc(SER.nomeF(a, g))} ↔ ${esc(SER.nomeF(b, g))} <b>${n}</b></li>`;
+          return `<li><span style="--fc:${SRA.fam(g, a)}">${esc(SER.nomeF(a, g))}</span><i><b>${n}</b></i><span style="--fc:${SRA.fam(g, b)}">${esc(SER.nomeF(b, g))}</span></li>`;
         })
         .join('');
-      cuore = `<div class="sr-c"><h2>Tempo libero</h2><p>Girate tra le famiglie, mostrate le prove, chiedete copie.</p>${SER.timerH(g.fino, 'sr-timer sr-big')}${fra ? `<ul class="sr-fra">${fra}</ul>` : ''}</div>`;
+      cuore = `<div class="sr-c sr-tempo"><div><small class="sr-eti">Tutti con tutti</small><h2>Tempo libero</h2><p>Girate tra le famiglie, mostrate le prove, chiedete copie.</p>${fra ? `<ul class="sr-fra">${fra}</ul>` : ''}</div></div>`;
     } else {
-      cuore = `<div class="sr-c"><h2>Consiglio di famiglia</h2><p>Si parla solo dentro la propria famiglia.</p>${SER.timerH(g.fino, 'sr-timer sr-big')}</div>`;
+      cuore = `<div class="sr-c sr-tempo"><div><small class="sr-eti">A porte chiuse</small><h2>Consiglio di famiglia</h2><p>Si parla solo dentro la propria famiglia.</p></div></div>`;
     }
     const passi = (g.famiglie || [])
       .map(
         f =>
-          `<li><b>${esc(f.nome)}</b><span>${f.passi.length}</span><small>${esc(f.passi.slice(-1)[0] || '')}</small></li>`
+          `<li style="--fc:${SRA.fam(g, f.id)}"><b>${esc(f.nome)}</b><span>${f.passi.length}</span><em>${'<i></i>'.repeat(Math.min(12, f.passi.length))}</em><small>${esc(f.passi.slice(-1)[0] || 'ancora nessun passo')}</small></li>`
       )
       .join('');
-    return `<div class="sr-gioco"><div class="sr-cuore">${cuore}</div><aside class="sr-passi"><h3>Passi avanti</h3><ul>${passi}</ul></aside></div>`;
+    return `<div class="sr-gioco"><div class="sr-cuore">${cuore}</div><aside class="sr-passi"><h3>L’indagine</h3><ul>${passi}</ul></aside></div>`;
   },
   tvFinale(g) {
     const f = g.finale,
       r = f.ris || {};
-    const ric = f.ricostruzione.map(t => `<p>${esc(t)}</p>`).join('');
+    const ric = f.ricostruzione.map((t, i) => `<li class="${i === f.ricostruzione.length - 1 && !f.epilogo.length ? 'ult' : ''}">${esc(t)}</li>`).join('');
     const famTop = (r.famiglia || []).map(x => esc(SER.nomeF(x, g))).join(', ');
     const det = (r.detective || []).map(u => esc(SER.nomeP((r.ind[u] || {}).pid, g))).join(', ');
     const gen = (r.generoso || []).map(p => esc(SER.nomeP(p, g))).join(', ');
-    return `<div class="sr-c sr-fin"><h2>${f.passo ? esc(f.nome) : 'La verità'}</h2>${ric}
-${f.epilogo.length ? f.epilogo.map(t => `<p class="sr-epi">${esc(t)}</p>`).join('') : ''}
-<ul class="sr-premi"><li>Hanno preso il colpevole: <b>${r.presi}/${r.votanti}</b>${r.franca ? ' · l’ha fatta franca' : ''}</li>
-${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Miglior detective: <b>${det}</b></li>` : ''}${gen ? `<li>Più generoso: <b>${gen}</b></li>` : ''}</ul></div>`;
+    const premi = f.epilogo.length
+      ? `<ul class="sr-premi"><li><small>Hanno preso il colpevole</small><b>${r.presi}/${r.votanti}</b>${r.franca ? '<em>l’ha fatta franca</em>' : ''}</li>
+${famTop ? `<li><small>Famiglia migliore</small><b>${famTop}</b></li>` : ''}${det ? `<li><small>Miglior detective</small><b>${det}</b></li>` : ''}${gen ? `<li><small>Più generoso</small><b>${gen}</b></li>` : ''}</ul>`
+      : '';
+    return `<div class="sr-c sr-fin${f.passo ? ' sr-svelato' : ''}${SRA.nuovo('fin:' + f.passo + ':' + f.epilogo.length)}${f.passo === 1 ? SRA.nuovo('colpevole').replace('sr-nuovo', 'sr-timbra') : ''}"><div class="sr-nome"><small class="sr-eti">${f.passo ? 'Il colpevole' : 'Il momento è arrivato'}</small><h2>${f.passo ? esc(f.nome) : 'La verità'}</h2>${f.passo ? '<b class="sr-timbro">Colpevole</b>' : ''}</div>
+<ol class="sr-ric">${ric}</ol>${f.epilogo.map(t => `<p class="sr-epi">${esc(t)}</p>`).join('')}${premi}</div>`;
   },
 
   // ======================= CONSOLE DEL NARRATORE =======================
@@ -570,8 +567,8 @@ ${famTop ? `<li>Famiglia migliore: <b>${famTop}</b></li>` : ''}${det ? `<li>Migl
         .reverse()
         .map(a => `<li>${esc(a.testo)}</li>`)
         .join('')}</ul></div>`;
-    return `<div class="sr-con">
-<header><b>${esc(fase)}</b>${SER.timerH(c.fino, 'sr-timer')}<button class="b sm ${c.pausa ? 'gold' : 'sr-rossa'}" data-a="ser" data-v="pausa:${c.pausa ? 0 : 1}">${c.pausa ? 'Riprendi' : 'PAUSA TECNICA'}</button></header>
+    return `<div class="sr-con" style="${SRA.stile(G)}">
+<header><div><small>Console del narratore</small><b>${esc(fase)}</b></div>${SER.timerH(c.fino, 'sr-timer')}<button class="b sm ${c.pausa ? 'gold' : 'sr-rossa'}" data-a="ser" data-v="pausa:${c.pausa ? 0 : 1}">${c.pausa ? 'Riprendi' : 'PAUSA TECNICA'}</button></header>
 ${prop ? `<ul class="sr-prop">${prop}</ul>` : ''}${dom ? `<ul class="sr-prop">${dom}</ul>` : ''}
 <nav class="sr-tabs">${tabs}</nav><div class="sr-corpo">${corpo}</div>
 <footer><small>${c.fase === 'voto' ? 'Voti: ' + c.votati + '/' + c.votanti : ''}</small><button class="b gold sr-avanti" data-a="ser" data-v="avanti">${esc(c.prossimo || 'Avanti')}</button></footer></div>`;
@@ -596,26 +593,28 @@ ${prop ? `<ul class="sr-prop">${prop}</ul>` : ''}${dom ? `<ul class="sr-prop">${
     const g = G,
       m = SER.mano;
     if (m.console) return SER.conH(m.console);
+    const stile = SRA.stile(g);
     if (g.fase === 'casting' || !m.dossier)
-      return `<div class="sr-tel sr-c"><h2>${esc(g.titolo || 'Serata')}</h2><p>La regia prepara i personaggi. Guarda la TV.</p>
-${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p><b>Sei il narratore.</b></p><button class="b" data-a="ser" data-v="nonarr">Non faccio più il narratore</button>' : g.narr ? '' : '<button class="b gold" data-a="ser" data-v="narratore">Faccio il narratore</button>') : ''}</div>`;
+      return `<div class="sr-tel sr-c sr-invito sr-m-sera" style="${stile}"><small class="sr-eti">Sei invitato a</small><h2>${esc(g.titolo || 'Serata')}</h2>${SRA.tondo(0, '', 'tel')}<p>La regia prepara i personaggi. Guarda la TV.</p>
+${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p class="sr-busta regia">Sei il narratore: avrai la console, non un personaggio.</p><button class="b" data-a="ser" data-v="nonarr">Non faccio più il narratore</button>' : g.narr ? '' : '<button class="b gold" data-a="ser" data-v="narratore">Faccio il narratore</button>') : ''}</div>`;
     const st = m.stato || {},
-      d = m.dossier;
+      d = m.dossier,
+      col = SRA.fam(g, (m.fam && m.fam.id) || ((g.cast || []).find(c => c.id === d.id) || {}).fam);
     if (g.pausa)
-      return '<div class="sr-tel sr-c sr-pausa"><h2>Pausa tecnica</h2><p>Siamo fuori dalla finzione. Si riprende tra poco.</p></div>';
+      return `<div class="sr-tel sr-c sr-pausa-tel" style="${stile}"><small class="sr-eti">Fuori dalla finzione</small><h2>Pausa tecnica</h2><p>Si riprende tra poco.</p></div>`;
     if (st.turno)
-      return `<div class="sr-tel sr-c sr-turno-tel"><small>Tocca a te</small><h2>${esc(d.nome)}</h2><p>${esc(st.guida || '')}</p><ul>${d.battute.map(b => `<li>«${esc(b)}»</li>`).join('')}</ul><p class="muted">Sono battute-guida: dille con parole tue.</p></div>`;
+      return `<div class="sr-tel sr-c sr-turno-tel" style="${stile}"><small class="sr-eti">Tocca a te</small>${SRA.volto(d.nome, col, 'grande')}<h2>${esc(d.nome)}</h2><p>${esc(st.guida || '')}</p><ul>${d.battute.map(b => `<li>«${esc(b)}»</li>`).join('')}</ul><p class="muted">Sono battute-guida: dille con parole tue.</p></div>`;
     if (g.fase === 'voto' && !st.votato) return SER.votoH(st.accusa, m);
     if (g.fase === 'finale' || g.fase === 'fine') return SER.finaleTel(g, st, d);
     const tab = ui.srtab || 'io';
     const nav = [
-      ['io', 'Io'],
-      ['fam', 'Famiglia'],
-      ['prove', 'Prove'],
-      ['persone', 'Persone'],
-      ['note', 'Taccuino'],
+      ['io', 'Io', 'utente'],
+      ['fam', 'Famiglia', 'amici'],
+      ['prove', 'Prove', 'diario'],
+      ['persone', 'Persone', 'globo'],
+      ['note', 'Taccuino', 'libro'],
     ]
-      .map(([id, n]) => `<button class="${tab === id ? 'sel' : ''}" data-a="ser" data-v="tab:${id}">${n}</button>`)
+      .map(([id, n, i]) => `<button class="${tab === id ? 'sel' : ''}" data-a="ser" data-v="tab:${id}">${ic(i, 20)}<span>${n}</span></button>`)
       .join('');
     const ult = ((m.msg && m.msg.l) || []).slice(-1)[0];
     const busta =
@@ -626,9 +625,9 @@ ${g.fase === 'casting' ? (g.narr === RT.uid() ? '<p><b>Sei il narratore.</b></p>
     const corpo = q
       ? SER.cercaH(q, m)
       : { io: SER.ioH, fam: SER.famH, prove: SER.proveH, persone: SER.personeH, note: SER.noteH }[tab](m, g);
-    return `<div class="sr-tel"><header class="sr-ttop"><div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${g.mom ? ' · ' + esc(g.mom.nome) : ''}</small></div>${SER.timerH(g.fino, 'sr-timer')}</header>
-<div class="sr-cerca"><input id="sr-q" placeholder="Cerca in prove, persone, appunti" value="${esc(q)}"><button class="b sm" data-a="ser" data-v="cerca">Cerca</button>${q ? '<button class="b sm" data-a="ser" data-v="cerca:">×</button>' : ''}</div>
-${busta}<div class="sr-corpo">${corpo}</div><nav class="sr-nav">${nav}</nav></div>`;
+    return `<div class="sr-tel${SRA.aria(g)}" style="${stile}"><header class="sr-ttop">${SRA.volto(d.nome, col)}<div><b>${esc(d.nome)}</b><small>${g.atto ? 'Atto ' + esc(g.atto.id) : ''}${g.mom ? ', ' + esc(g.mom.nome).toLowerCase() : ''}</small></div>${SER.timerH(g.fino, 'sr-timer')}${SRA.tondo(g.fino, '', 'mini')}</header>
+<div class="sr-cerca"><input id="sr-q" placeholder="Cerca in prove, persone, appunti" value="${esc(q)}"><button class="b sm" data-a="ser" data-v="cerca" aria-label="Cerca">${ic('mirino', 18)}</button>${q ? `<button class="b sm" data-a="ser" data-v="cerca:" aria-label="Chiudi la ricerca">${ic('x', 18)}</button>` : ''}</div>
+${busta}<div class="sr-corpo sr-t-${q ? 'cerca' : tab}">${corpo}</div><nav class="sr-nav">${nav}</nav></div>`;
   },
   ioH(m, g) {
     const st = m.stato,
@@ -637,7 +636,7 @@ ${busta}<div class="sr-corpo">${corpo}</div><nav class="sr-nav">${nav}</nav></di
     const ob = d.obiettivi
       .map(
         (o, i) =>
-          `<li><button class="b sm ${st.ob[i] ? 'gold' : ''}" data-a="ser" data-v="ob:${i}:${st.ob[i] ? 0 : 1}">${st.ob[i] ? 'Fatto' : 'Da fare'}</button> ${esc(o)}</li>`
+          `<li class="${st.ob[i] ? 'fatto' : ''}"><button class="sr-chk" data-a="ser" data-v="ob:${i}:${st.ob[i] ? 0 : 1}" aria-pressed="${!!st.ob[i]}" aria-label="${st.ob[i] ? 'Fatto' : 'Da fare'}">${st.ob[i] ? ic('spunta', 16) : ''}</button><span>${esc(o)}</span></li>`
       )
       .join('');
     const sez = [
@@ -678,7 +677,7 @@ ${
         .join('')}</ul></section>`
     : ''
 }
-<section class="sr-segreto"><details><summary>Il tuo segreto (non mostrarlo)</summary><p>${esc(d.segreto)}</p>${d.confessione ? `<p class="muted">Se ti scoprono, nel finale: «${esc(d.confessione)}»</p>` : ''}</details></section>
+<section class="sr-segreto"><details><summary><b>Riservato</b>Il tuo segreto (non mostrarlo)</summary><p>${esc(d.segreto)}</p>${d.confessione ? `<p class="muted">Se ti scoprono, nel finale: «${esc(d.confessione)}»</p>` : ''}</details></section>
 <section><h3>Obiettivi</h3><ul class="sr-ob">${ob}</ul></section>
 <section><h3>Battute-guida</h3><ul>${d.battute.map(b => `<li>«${esc(b)}»</li>`).join('')}</ul></section>
 <section><h3>Atto per atto</h3><ul>${Object.entries(d.atti)
@@ -716,7 +715,7 @@ ${sez}<p><button class="link" data-a="ser" data-v="esco">Esco dal ruolo…</butt
     const membri = f.membri
       .map(
         x =>
-          `<li class="${x.on ? '' : 'via'}">${esc(x.nome)}${x.pv ? ' <b>· rappresentante</b>' : `<button class="b sm" data-a="ser" data-v="pv:${x.pid}">Voto lui</button>`}</li>`
+          `<li class="${x.on ? '' : 'via'}">${SRA.volto(x.nome, SRA.fam(g, f.id))}<span>${esc(x.nome)}</span>${x.pv ? '<b>rappresentante</b>' : `<button class="b sm" data-a="ser" data-v="pv:${x.pid}">Voto lui</button>`}</li>`
       )
       .join('');
     const dom = f.domanda
@@ -774,7 +773,7 @@ ${c.on && p !== m.dossier.id ? `<button class="b sm" data-a="ser" data-v="chiedi
             .filter(c => c.fam === f.id)
             .map(
               c =>
-                `<li class="${c.on ? '' : 'via'}"><button class="link" data-a="ser" data-v="p:${c.id}"><b>${esc(c.nome)}</b> <small>${esc(c.ruolo)}${(n.p || {})[c.id] ? ' · appunti' : ''}</small></button></li>`
+                `<li class="${c.on ? '' : 'via'}"><button class="link" data-a="ser" data-v="p:${c.id}">${SRA.volto(c.nome, SRA.fam(g, f.id))}<b>${esc(c.nome)}</b> <small>${esc(c.ruolo)}${(n.p || {})[c.id] ? ' · appunti' : ''}</small></button></li>`
             )
             .join('')}</ul></section>`
       )
@@ -863,11 +862,11 @@ ${c.on && p !== m.dossier.id ? `<button class="b sm" data-a="ser" data-v="chiedi
       .filter(x => x.id !== m.dossier.id)
       .map(x => `<option value="${x.id}">${esc(x.nome)}</option>`)
       .join('')}</select></fieldset>`;
-    return `<div class="sr-tel sr-voto"><h2>L’accusa</h2><p class="muted">Vota secondo gli indizi che hai davvero raccolto.</p>${campi}${gen}<button class="b gold" data-a="ser" data-v="vota">Consegna il voto</button>${m.stato.pv && !m.fam.votato ? '<button class="b" data-a="ser" data-v="vota:fam">Consegna anche come voto della famiglia</button>' : ''}</div>`;
+    return `<div class="sr-tel sr-voto" style="${SRA.stile(G)}"><small class="sr-eti">Verbale</small><h2>L’accusa</h2><p class="muted">Vota secondo gli indizi che hai davvero raccolto.</p>${campi}${gen}<button class="b gold" data-a="ser" data-v="vota">Consegna il voto</button>${m.stato.pv && !m.fam.votato ? '<button class="b" data-a="ser" data-v="vota:fam">Consegna anche come voto della famiglia</button>' : ''}</div>`;
   },
   finaleTel(g, st, d) {
     const r = st.ris;
-    return `<div class="sr-tel sr-c"><h2>La verità</h2>${g.finale ? g.finale.ricostruzione.map(t => `<p>${esc(t)}</p>`).join('') : ''}${r ? `<p>I tuoi punti: <b>${r.tot}</b> (accusa ${r.voto}, interpretazione ${r.interp})</p><p>La tua famiglia: <b>${r.fam ? r.fam.tot : 0}</b></p>` : '<p>Guarda la TV.</p>'}<details><summary>Il tuo dossier</summary><p>${esc(d.segreto)}</p></details></div>`;
+    return `<div class="sr-tel sr-c sr-fin-tel" style="${SRA.stile(g)}"><small class="sr-eti">Caso chiuso</small><h2>La verità</h2>${g.finale && g.finale.passo ? `<p class="sr-nome-tel">${esc(g.finale.nome)}<b class="sr-timbro">Colpevole</b></p>` : ''}${g.finale ? '<ol class="sr-ric">' + g.finale.ricostruzione.map(t => `<li>${esc(t)}</li>`).join('') + '</ol>' : ''}${r ? `<p>I tuoi punti: <b>${r.tot}</b> (accusa ${r.voto}, interpretazione ${r.interp})</p><p>La tua famiglia: <b>${r.fam ? r.fam.tot : 0}</b></p>` : '<p>Guarda la TV.</p>'}<details><summary>Il tuo dossier</summary><p>${esc(d.segreto)}</p></details></div>`;
   },
 
   // ======================= un solo comando: data-a="ser" =======================

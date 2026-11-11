@@ -1088,6 +1088,7 @@ const SERATA = (() => {
         id: x.id,
         nome: x.nome || x.id,
         simbolo: x.simbolo || '',
+        domanda: x.domanda || '',
         on: !!s.sig[x.id],
       })),
       famiglie: k.famiglie.map(f => ({
