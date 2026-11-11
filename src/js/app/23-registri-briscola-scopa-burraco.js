@@ -17,10 +17,14 @@ const deckH=(n,extra='')=>`<div class="pile ${n?'':'empty'}" id="deck"><div clas
 function briscolaH(){const s=G,v=viewer(),cover=needCover(),mine=myTurn(),tr=(ui.view&&ui.view.trick)||s.trick,w=ui.view?ui.view.w:-1,ts=IT.P(s.trump).s;
  const trick=`<div class="trick" id="trick">${tr.map(x=>`<div class="tc ${x.p===w?'win':''}">${icardH(x.c,{attrs:`data-v="${x.c}"`,cls:'pop'})}<span>${esc(s.names[x.p])}</span></div>`).join('')||'<span class="muted">Il tavolo è vuoto</span>'}</div>`;
  const felt=`<div class="felt brisc"><div class="deckbox">${deckH(s.deck.length)}${s.deck.length?`<div class="trumpc" title="Briscola">${icardH(s.trump)}</div>`:''}</div>${trick}</div>`;
- const info=`<div class="tinfo"><span class="chip sh">Briscola: ${IT.SN[ts]} <svg class="isv i${ts}" viewBox="0 0 24 24">${ISU[ts]}</svg></span>${s.n===4?'<span class="chip">Coppie: '+[0,1].map(t=>esc(IT.teamName(s,t))).join(' vs ')+'</span>':''}</div>`;
- const sel=ui.sel[0];const ctl=mine?`<button class="b play" data-a="play" ${sel?'':'disabled'}>Gioca${sel?' '+esc(IT.fmt(sel)):''}</button>`:'';
- const hand=cover?coverH(s.cur):v>=0?fanH(s.hands[v],icardH,{mine}):'';
- return`${hudH('Briscola')}${info}${playersH(s,{teams:s.n===4})}${felt}${bubbleH(s,'Tocca una carta e premi Gioca (o toccala due volte).',null)}<div class="ctl">${ctl}</div><div class="err" role="alert">${esc(ui.err)}</div><div class="handbox">${hand}</div>${endH()}${rulesH()}${cfgH()}`}
+ const sel=ui.sel[0],coppie=s.n===4,io=v>=0?v:0,seme=`<svg class="isv i${ts}" viewBox="0 0 24 24">${ISU[ts]}</svg>`;
+ const fatti=[`Briscola <b>${IT.SN[ts]}</b> ${seme}`,`Mazzo <b>${s.deck.length}</b>`];if(coppie)fatti.push(`In coppia con <b>${esc(s.names[(io+2)%4])}</b>`);
+ const carte=i=>s.hands[i].length+(s.hands[i].length===1?' carta':' carte');
+ const giocatori=s.names.map((n,i)=>`<div class="h2-r"><span class="h2-av${coppie?' t'+(i%2):''}">${esc((n[0]||'?').toUpperCase())}</span><span class="g"><b>${esc(n)}${seatTag(i)}</b><small>${coppie?esc(IT.teamName(s,i%2))+' · ':''}${carte(i)} in mano · ${s.taken[i].length+(coppie?s.taken[(i+2)%4].length:0)} carte prese</small></span></div>`).join('');
+ return HUD.html({titolo:GN('briscola'),fatti,posti:HUD.posti(s,i=>({sotto:carte(i),t:coppie?i%2:null})),tavolo:felt,
+  stato:HUD.stato(s,'Tocca una carta e premi Gioca (o toccala due volte).'),
+  azioni:mine?`<button class="b play" data-a="play" ${sel?'':'disabled'}>${sel?'Gioca '+esc(IT.fmt(sel)):'Scegli una carta'}</button>`:'',
+  mano:cover?coverH(s.cur):v>=0?fanH(s.hands[v],icardH,{mine}):'',giocatori,fine:endH()})}
 function brisClick(a,v){if(a==='sel'){if(!myTurn())return;if(ui.sel[0]===v){return dispatch({t:'play',c:v})}ui.sel=[v];Snd.play('sel');return render()}
  if(a==='play'&&ui.sel[0])return dispatch({t:'play',c:ui.sel[0]})}
 const BRFX={async pre(prev,ns,own){const pl=ns.ev.find(e=>e.t==='play'),tr=ns.ev.find(e=>e.t==='trick');

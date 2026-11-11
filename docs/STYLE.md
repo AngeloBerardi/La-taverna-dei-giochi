@@ -10,3 +10,12 @@ Aggiornata dal `game-hud-designer`. Decisioni già prese dall'utente:
 - Telefono, 390 px di larghezza, bersagli tocco ≥ 44 px, pollice in basso (comandi e mano in basso).
 - `prefers-reduced-motion` sempre rispettato; peso asset contenuto (SVG/WebP).
 - Riferimenti per l'HUD (non da copiare): Hearthstone, Slay the Spire, Balatro, Diablo, Valheim.
+
+## HUD comune delle partite (novembre 2026)
+Scheletro unico in `app/22ga-hud.js` (`HUD.html`) e `css/47-hud.css` (prefisso `h2-`). Oggi lo usano Briscola e L'isola dei predatori (`HUD2`); gli altri giochi passano qui uno alla volta.
+- **Fasce fisse, senza scorrimento**: titolo e icone · una riga di fatti (testo, non chip) · posti · tavolo (prende lo spazio che resta) · una riga di stato · comandi · mano · barra dei fogli (Giocatori, Registro, Regole).
+- **Tre livelli di pulsante**: un solo ottone per schermata (`.b.play`), legno per i secondari (`.b`), testo sottolineato per il resto (`.h2-txt`).
+- **Niente cornici**: l'ottone segna solo chi è di turno e l'azione principale. Un solo sfondo caldo e fermo (niente gradiente che gira, niente lucciole).
+- Il messaggio di turno sta sempre nella riga di stato, sopra i comandi; le spiegazioni lunghe vanno nell'infobox (`infoH`).
+- Niente emoji: icone di `ic()`. Bersagli di tocco ≥ 44 px. Verificato a 390×844 e 360×640 (scenario `hud_comune`).
+- La home della Taverna segue le stesse regole: «Gioca ora» è l'unico ottone, gli altri modi di giocare sono righe di un elenco.

@@ -25,19 +25,25 @@ function islandH(){const s=G,mine=myTurn(),it=s.pend[0],wm=ui.wm,sel=ui.isel;
   const act=h||p||(!it&&mine&&st&&!s.over);
   cells+=`<div class="icell ${st?'full':''} ${h?'hot':''} ${p?'pk':''} ${isS?'sel':''} ${x>=0&&x<=3&&y>=0&&y<=3?'in':''}" id="ic${x}_${y}" ${(h||p||(st&&!s.over&&mine))?`data-a="icell" data-v="${k}" role="button" tabindex="0"`:''}>${st?isleCard(itop(st),{n:st.length}):''}</div>`}
  const view=ui.iinfo!=null?ui.iinfo:(sel&&s.cells[sK]?itop(s.cells[sK]):null);
- const wbar=s.water.map(w=>`<button class="b sm ${wm===w?'gold':'disc'}" data-a="iwater" data-v="${w}" ${mine&&!it&&!s.over?'':'disabled'}>${w==='shark'?'🦈 Squalo':'🐋 Balena'}</button>`).join('');
- let hint='';if(mine){if(it){hint=({mv:sel?'<span class="chip hl">Tocca la casella vuota di destinazione</span>':'<span class="chip hl">Potere: scegli l’animale da spostare</span>',rm:'<span class="chip hl">Potere: tocca un animale non impilato da eliminare</span>',sw:ui.isw?'<span class="chip hl">Tocca la seconda carta</span>':'<span class="chip hl">Potere: tocca la prima carta da scambiare</span>'})[it.k]}
-  else if(wm==='whale')hint=sel?'<span class="chip hl">Balena: tocca la casella vuota</span>':'<span class="chip hl">Balena: scegli l’animale da spostare</span>';
-  else hint=sel?'<span class="chip">Tocca l’animale da mangiare (casella illuminata)</span>':wm==='shark'?'<span class="chip hl">Squalo: scegli l’animale che mangia</span>':'<span class="muted">Tocca un animale, poi quello da mangiare</span>'}
- const mods=(s.mods||[]).map(m=>({fox:'🦊 Prossima mossa: diagonale di 1',lynx:'🐆 Prossima mossa: salto su 1 carta',tiger:'🐯 Prossima mossa: due caselle',lion:'🦁 Prossima mossa: solo 1 in meno',polar:'🐻‍❄️ L’Orso polare non può mangiare',raccoon:'🦝 Se mangi 1 in meno: elimini un animale'})[m.k]).filter(Boolean).map(t=>`<span class="chip sh">${t}</span>`).join('');
+ const wbar=s.water.map(w=>`<button class="b sm${wm===w?' gold':''}" data-a="iwater" data-v="${w}" aria-pressed="${wm===w}" ${mine&&!it&&!s.over?'':'disabled'}>${w==='shark'?'Squalo':'Balena'}</button>`).join('');
+ let hint='';if(mine){if(it)hint=({mv:sel?'Tocca la casella vuota di destinazione':'Potere: scegli l’animale da spostare',rm:'Potere: tocca un animale non impilato da eliminare',sw:ui.isw?'Tocca la seconda carta':'Potere: tocca la prima carta da scambiare'})[it.k];
+  else if(wm==='whale')hint=sel?'Balena: tocca la casella vuota':'Balena: scegli l’animale da spostare';
+  else hint=sel?'Tocca l’animale da mangiare':wm==='shark'?'Squalo: scegli l’animale che mangia':'Scegli un animale, poi la sua preda'}
+ const mods=(s.mods||[]).map(m=>({fox:'Prossima mossa: diagonale di 1',lynx:'Prossima mossa: salto su 1 carta',tiger:'Prossima mossa: due caselle',lion:'Prossima mossa: solo 1 in meno',polar:'L’Orso polare non può mangiare',raccoon:'Se mangi 1 in meno: elimini un animale'})[m.k]).filter(Boolean).map(t=>`<b class="h2-mod">${t}</b>`);
  const left=Object.keys(s.cells).length;
  const sum=s.over&&!ui.anim?islSummary(s):'';
- return`${hudH('Isola')}<div class="tinfo"><span class="chip">Animali ${left}</span><span class="chip">Turno ${s.turn}</span>${mods}</div><div class="isl"><div class="igrid" id="igrid">${cells}</div></div>
- ${bubbleH(s,'Mangia in ordine di catena alimentare: ne deve restare uno solo!',null)}<div class="prev">${hint}</div><div class="ctl">${wbar}${wm?'<button class="b sm disc" data-a="iwater" data-v="">Annulla</button>':''}</div><div class="err" role="alert">${esc(ui.err)}</div>
- ${view!=null?`<div class="ibw">${isleBig(view)}</div>`:'<p class="muted" style="text-align:center">Tocca una carta per leggerne il potere</p>'}
- <div class="ctl"><button class="b sm gold" data-a="iundo" ${(ui.ih||[]).length&&!ui.busy&&!ui.anim?'':'disabled'}>↶ Annulla mossa</button><button class="b sm disc" data-a="iinfo">Carte e poteri</button><button class="b sm disc" data-a="iend" ${mine&&!it?'':'disabled'}>Concludi la partita</button></div>${ui.iall?islAll():''}${sum}${rulesH()}${cfgH()}`}
+ const scheda=`<div class="isk">${view!=null?isleRiga(view):'<span class="isk-0">Tocca un animale per leggerne il potere</span>'}</div>`;
+ const puo=(ui.ih||[]).length&&!ui.busy&&!ui.anim;
+ return HUD.html({titolo:GN('island'),fatti:[`Animali <b>${left}</b>`,`Turno <b>${s.turn}</b>`,...mods],tavolo:`<div class="isl"><div class="igrid" id="igrid">${cells}</div></div>`,scheda,
+  stato:s.over||ui.anim?HUD.riga('&nbsp;',esc(s.log[s.log.length-1]||'')):HUD.riga((hint||'Attendi…')+infoH('Mangia in ordine di catena alimentare: ne deve restare uno solo!'),esc(s.log[s.log.length-1]||''),mine),
+  azioni:`${wbar}${wm?'<button class="h2-txt" data-a="iwater" data-v="">Annulla</button>':''}<button class="b sm" data-a="iundo" aria-label="Annulla mossa" ${puo?'':'disabled'}>${ic('indietro',18)} Annulla</button><button class="h2-txt" data-a="iend" ${mine&&!it?'':'disabled'}>Concludi</button>`,
+  schede:[['iinfo','','p_bestia','Animali'],['fxsheet','log','diario','Registro'],['rules','island','libro','Regole']],fine:(ui.iall?islAll():'')+sum})}
+/* scheda compatta dell'animale scelto: una riga sotto l'isola (la carta grande resta in «Animali») */
+function isleRiga(id){const w=typeof id==='string',bg=(w?IBGW[id]:IBG[id]).split(','),nm=w?{shark:'Squalo',whale:'Balena'}[id]:ISLE.NAMES[id];
+ const pw=w?{shark:'Sposta un animale di 1 casella per mangiare, ma può mangiare qualsiasi animale di valore minore.',whale:'Sposta un animale in una qualsiasi casella vuota.'}[id]:ISLE.POW[id];
+ return`<span class="isk-a" style="--a:${bg[0]};--b:${bg[1]}"><svg viewBox="0 0 100 100" class="iart">${ISD}${azArt(id)}</svg></span><span class="isk-t"><b>${w?'':id+' · '}${nm}</b><small>${w?'Carta acquatica':'Mangia '+EATS(id)}</small><span>${pw}</span></span>`}
 function islAll(){return`<div class="modal"><div class="box" style="max-width:520px"><h2>Tutti gli animali</h2><div class="iall">${[...Array(16).keys(),'shark','whale'].map(id=>isleBig(id)).join('')}</div><button class="b gold" data-a="iall">Chiudi</button></div></div>`}
-function islSummary(s){const o=s.over;return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${o.win?'win':'lose'}"><div class="crown">${o.win?'🏝️':'🦴'}</div><h2>${esc(o.txt)}</h2><p>${o.left} ${o.left===1?'animale rimasto':'animali rimasti'} sull’isola.</p><div class="col"><button class="b gold" data-a="iundo" ${(ui.ih||[]).length?'':'disabled'}>↶ Annulla ultima mossa</button><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
+function islSummary(s){const o=s.over;return`<div class="modal late" style="--late:${(.6*SP).toFixed(2)}s"><div class="box endbox ${o.win?'win':'lose'}"><div class="crown">${ic(o.win?'corona':'teschio',44)}</div><h2>${esc(o.txt)}</h2><p>${o.left} ${o.left===1?'animale rimasto':'animali rimasti'} sull’isola.</p><div class="col"><button class="b gold" data-a="iundo" ${(ui.ih||[]).length?'':'disabled'}>Annulla ultima mossa</button><button class="b play" data-a="rematch">Rivincita</button><button class="b disc" data-a="tolobby">Torna alla stanza</button></div></div></div>`}
 async function islUndo(){if(!ui.ih||!ui.ih.length||ui.busy||ui.anim)return;const prev=JSON.parse(ui.ih.pop());ui.isel=null;ui.wm=null;ui.isw=null;ui.iinfo=null;ui.err='';fxDone=prev.evn;
  if(!R.on){pushState(prev,true);saveOff(prev);return}
  const base=R.grev!=null?R.grev:R.rev,gid=G.gid;R.rev=Math.max(R.rev,base+1);
@@ -66,5 +72,5 @@ const ISFX={async pre(){return{}},
   else if(e.t==='move'){Snd.play('whoosh');await W(120)}
   else if(e.t==='rm'){const c=ctr('#ic'+e.at[0]+'_'+e.at[1]);Snd.play('rock');burst(c.x,c.y,['#6b5240','#999'],24,{v:4,sq:true})}
   else if(e.t==='swap'){Snd.play('deal')}
-  else if(e.t==='whale'){Snd.play('heal');banner('🐋','La balena sposta un animale')}
+  else if(e.t==='whale'){Snd.play('heal');banner('Balena','Sposta un animale')}
   else if(e.t==='win'){Snd.play('win');confetti()}else if(e.t==='lose'){Snd.play('lose')}}}};

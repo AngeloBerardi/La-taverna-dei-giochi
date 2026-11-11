@@ -1,0 +1,54 @@
+/* ---- HUD COMUNE (scheletro unico delle partite, prefisso h2-): vedi app/22ga-hud.js e docs/STYLE.md ----
+   Un solo sfondo caldo e fermo, fasce fisse, niente cornici: l'ottone segna soltanto chi è di turno e l'azione principale. */
+html:has(.h2,.hm) body::before{left:0;top:0;width:100%;height:100%;animation:none;background:radial-gradient(120% 60% at 50% 0,#2b1e14,#15100d 72%)}
+html:has(.h2,.hm) .embers{display:none}
+.wrap.fixed:has(.h2){padding:0;gap:0;max-width:560px}
+.h2{display:flex;flex-direction:column;flex:1;min-height:0;color:#f3e3cf}
+.h2-top{flex:none;padding:4px 6px 0 14px}
+.h2 .hud{min-height:44px;gap:0}.h2 .hud .logo{font:800 22px/1 var(--f-d);color:#f0d9ae;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h2 .hud .ib{width:44px;height:44px;background:none;clip-path:none;color:#b8a68d}.h2 .hud .ib.off{opacity:.45}
+.h2-fatti{display:flex;flex-wrap:wrap;gap:2px 16px;padding:0 8px 8px 0;font:600 13px/1.3 var(--f-b);color:#b8a68d}
+.h2-fatti b{font-weight:800;color:#f3e3cf}.h2-fatti .isv{width:15px;height:15px;vertical-align:-3px}.h2-fatti .h2-mod{color:#f0c166}
+/* posti: celle uguali su una riga, la cella di turno ha il filo d'ottone */
+.h2-posti{flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:#1d1510;border-top:1px solid rgba(245,205,150,.16);border-bottom:1px solid rgba(245,205,150,.16)}
+.h2-p{display:flex;align-items:center;gap:7px;min-width:0;height:52px;padding:0 8px;border:0;border-right:1px solid rgba(0,0,0,.4);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.h2-p:last-child{border-right:0}.h2-p.act{background:rgba(240,193,102,.12);box-shadow:inset 0 -3px 0 #f0c166}
+.h2-av{flex:none;width:30px;height:30px;display:grid;place-items:center;background:#3a2d22;border:2px solid #cf8f2c;color:#f0c166;font:800 15px/1 var(--f-d)}
+.h2-p.t1 .h2-av,.h2-av.t1{border-color:#6f9bd6;color:#bcd6f5}
+.h2-n{display:flex;flex-direction:column;min-width:0}.h2-n b{font:800 13px/1.2 var(--f-b);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.h2-n small{font:600 11px/1.2 var(--f-b);color:#b8a68d;white-space:nowrap}
+.h2-p.act .h2-n b{color:#f0c166}
+/* tavolo: prende lo spazio che resta */
+.h2-tav{flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:10px 12px 4px;overflow:hidden}
+.h2-tav>.felt{flex:1;min-height:0;margin:0;border-width:5px;border-radius:10px}
+/* stato: una frase, sempre qui */
+.h2-st{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:52px;padding:4px 14px;text-align:center}
+.h2-st>b{font:800 18px/1.25 var(--f-b);color:#f3e3cf}.h2-st.me>b{color:#f0c166}
+.h2-nar{max-width:100%;font:600 12px/1.3 var(--f-b);color:#b8a68d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h2 .err{flex:none;text-align:center;padding:0 12px}.h2 .err:empty{display:none}
+/* comandi: un solo ottone (.b.play), legno per i secondari (.b), testo per il resto (.h2-txt) */
+.h2-az{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;padding:0 10px}.h2-az .b.sm{padding:8px 11px}
+.h2-az:empty{min-height:8px}.h2-az .b.play{flex:1;max-width:340px}.h2-az .b{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.h2-txt{min-height:44px;padding:0 8px;border:0;background:none;color:#b8a68d;font:700 14px var(--f-b);text-decoration:underline;text-underline-offset:3px;cursor:pointer}.h2-txt[disabled]{opacity:.4;cursor:default}
+.h2 .h2-mano{position:static;flex:none;margin:0;padding:0;background:none}.h2 .hand{min-height:0;padding:24px 4px 12px}.h2 .slot.sel{transform:translateY(-18px) rotate(0) scale(1.06)}
+/* barra dei fogli: stesso legno della plancia della Taverna */
+.h2-tab{flex:none;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);height:calc(54px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.25) 6px 7px,transparent 7px 15px),#2a1b0f;border-top:3px solid #cf8f2c}
+.h2-tab button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-right:1px solid rgba(0,0,0,.35);background:none;color:#d9bf92;font:700 11px var(--f-b);cursor:pointer}
+.h2-tab button:last-child{border-right:0}.h2-tab button.on{color:#f0c166;background:rgba(240,193,102,.1)}
+/* fogli (Giocatori, Registro) */
+.h2-fg{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
+.h2-fc{position:relative;width:100%;max-width:560px;max-height:70dvh;overflow-y:auto;background:#1d1510;border-top:3px solid #cf8f2c;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));color:#f3e3cf}
+.h2-fc h3{margin:0 0 8px;font:800 22px var(--f-d);color:#f0d9ae}.h2-x{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;background:none;color:#b8a68d;cursor:pointer}
+.h2-r{display:flex;align-items:center;gap:12px;min-height:54px;border-bottom:1px solid rgba(245,205,150,.12)}.h2-r .g{display:flex;flex-direction:column;min-width:0}.h2-r b{font:800 15px var(--f-b)}.h2-r small{font:600 12px var(--f-b);color:#b8a68d}
+.h2-log{display:flex;flex-direction:column;font:600 13px/1.35 var(--f-b);color:#d9c8ad}.h2-log div{padding:6px 0;border-bottom:1px solid rgba(245,205,150,.1)}
+/* Briscola: mazzo e briscola in alto, la presa al centro */
+.h2 .felt.brisc{flex-direction:column;flex-wrap:nowrap;justify-content:center;gap:14px}
+.h2 .felt.brisc .deckbox{position:absolute;left:12px;top:12px}.h2 .felt.brisc .trick{flex:none;min-height:124px;gap:10px}.h2 .felt.brisc .tc .card{--cw:72px}
+/* Isola: la griglia sta nello spazio che c'è; sotto, una riga con l'animale scelto */
+.h2 .isl{margin:0;padding:6px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:1;min-height:0}
+.h2 .igrid{--cz:min((min(100vw,560px) - 54px)/6,(100dvh - 366px)/7.5 - 3px)}
+.isk{flex:none;display:flex;align-items:center;gap:10px;height:76px;margin:6px 12px 0;padding:0 10px;background:#1d1510;border-left:3px solid #cf8f2c}
+.isk-0{flex:1;text-align:center;font:600 13px var(--f-b);color:#b8a68d}
+.isk-a{flex:none;width:56px;height:60px;border:2px solid #2a1a10;border-radius:6px;background:linear-gradient(160deg,var(--a),var(--b));overflow:hidden}.isk-a .iart{display:block;width:100%;height:100%}
+.isk-t{display:flex;flex-direction:column;min-width:0;font:600 12px/1.25 var(--f-b);color:#d9c8ad}.isk-t b{font:800 15px var(--f-b);color:#f3e3cf}.isk-t small{font:700 11px var(--f-b);color:#f0c166}
+.isk-t>span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-height:700px){.h2-p{height:46px}.h2-st{min-height:44px}.h2-st>b{font-size:16px}.h2-az{min-height:50px}.isk{height:64px}.h2 .hand{padding-top:22px}}

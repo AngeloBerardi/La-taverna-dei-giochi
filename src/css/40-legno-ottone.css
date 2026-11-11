@@ -78,12 +78,11 @@
 .x2{width:40px;height:40px;border:0;background:none;color:var(--mu,#b8a68d);cursor:pointer}
 /* Taverna (lobby personale) */
 .hm{padding:18px 16px 0}.hm-top{display:flex;align-items:center;gap:12px}.hm-top>div{flex:1}.hm-top small{font-size:12px;color:var(--mu,#b8a68d)}.hm-top h1{margin:0;font:800 30px var(--f-d)}
-.hm-st{font:800 11px var(--f-b);padding:5px 8px;background:#3a2d22;color:var(--mu,#b8a68d)}.hm-st.on{background:#2f5a43;color:#bfe9d0}
-.hm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
-.hm-c{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:14px;min-height:130px;border:1px solid rgba(245,205,150,.18);background:#231913;color:inherit;cursor:pointer;font:inherit}
-.hm-c .ic0{color:#f0c166;margin-bottom:auto}.hm-c b{font:800 18px var(--f-d)}.hm-c small{font-size:12px;color:var(--mu,#b8a68d);line-height:1.3}
-.hm-c.big{grid-column:span 2;min-height:120px;background:linear-gradient(120deg,#f0c166,#cf8f2c);border-color:#cf8f2c;color:#4a2a08}.hm-c.big .ic0{color:#4a2a08}.hm-c.big small{color:#5a3a10}
-.hm-c[disabled]{opacity:.45;cursor:default}
+.hm-st{font:700 12px var(--f-b);color:var(--mu,#b8a68d);display:inline-flex;align-items:center;gap:6px}.hm-st::before{content:'';width:8px;height:8px;border-radius:50%;background:#8a7558}.hm-st.on{color:#bfe9d0}.hm-st.on::before{background:#5fbf8a}
+.hm-grid{display:flex;flex-direction:column}
+.hm-c{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:6px 4px;border:0;border-bottom:1px solid rgba(245,205,150,.14);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.hm-c .ic0{flex:none;width:40px;height:40px;display:grid;place-items:center;background:#231913;color:#f0c166}.hm-c .g{flex:1;min-width:0}.hm-c b{display:block;font:800 16px/1.2 var(--f-b)}.hm-c small{display:block;font-size:12px;color:var(--mu,#b8a68d);line-height:1.3}
+.hm-c>.ico:last-child{color:#8a7558}.hm-c[disabled]{opacity:.4;cursor:default}
 .rw3{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:0 14px;border:0;border-bottom:1px solid rgba(245,205,150,.16);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
 .rw3 .g{flex:1}.rw3 b{display:block;font:800 17px var(--f-d)}.rw3 small{font-size:12px;color:var(--mu,#b8a68d)}.rw3.hot{background:rgba(244,169,59,.1);box-shadow:inset 4px 0 0 #f0c166}
 .hm .sh2,.hm .rw3{margin-left:-0px}
@@ -105,7 +104,7 @@
 .gl-sheet .tvdet .sel{background:#1d1510;color:#f0d9ae;border:1px solid rgba(245,205,150,.2);border-radius:0;font:700 14px var(--f-b)}
 /* stato della rete nella Taverna: in prova (pulsa), offline (tocca per riprovare) */
 .hm-st.prova{animation:hmpr 1.2s ease-in-out infinite}
-button.hm-st.off{border:0;cursor:pointer;min-height:32px;background:#5c3a1e;color:#f0d9ae;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+button.hm-st.off{border:0;cursor:pointer;min-height:44px;padding:0 4px;background:none;color:#f0d9ae;text-decoration:underline;text-underline-offset:3px}button.hm-st.off::before{background:#d9705a}
 @keyframes hmpr{50%{opacity:.45}}
 @media(prefers-reduced-motion:reduce){.hm-st.prova{animation:none}}
 /* Taverna: intestazione personale, scena notturna, «Gioca ora» e stanza */
@@ -116,8 +115,7 @@ button.hm-st.off{border:0;cursor:pointer;min-height:32px;background:#5c3a1e;colo
 .hm-win{animation:hmfl 3.2s ease-in-out infinite}.hm-stars{animation:hmtw 4s ease-in-out infinite}
 @keyframes hmfl{50%{opacity:.78}}@keyframes hmtw{50%{opacity:.5}}
 .hm-go{width:100%;margin-top:16px;min-height:60px;font-size:21px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-.hm-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.hm-duo .b{min-height:52px}
-.hm-c small{display:block}.hm-c{min-height:104px}
+.hm-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.hm-duo .b{min-height:52px}.hm-duo .b[disabled]{filter:none;opacity:.45}.hm-bar .ib{background:none;clip-path:none;color:#b8a68d;width:44px;height:44px}
 .rw3 .g small{display:block;font-size:12px;color:var(--mu,#b8a68d)}
 @media(prefers-reduced-motion:reduce){.hm-win,.hm-stars{animation:none}}
 .gl-cr{margin:10px 14px 90px;font-size:11px;color:var(--mu,#b8a68d);text-align:center}.gl-cr a{color:inherit}
