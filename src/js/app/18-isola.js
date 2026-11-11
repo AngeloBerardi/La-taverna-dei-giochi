@@ -66,9 +66,15 @@ function islClick(a,v){const s=G;
  if(sel&&st&&!(sel[0]===p[0]&&sel[1]===p[1])){const sh=ui.wm==='shark';const ok=ISLE.eatOpts(s,sh).some(o=>o.from[0]===sel[0]&&o.from[1]===sel[1]&&o.to[0]===p[0]&&o.to[1]===p[1]);if(ok){ui.isel=null;ui.wm=null;return dispatch({t:'eat',from:sel,to:p,shark:sh})}}
  if(st){ui.isel=sel&&sel[0]===p[0]&&sel[1]===p[1]?null:p;Snd.play('sel');return render()}
  ui.isel=null;render()}
+/* il predatore salta dalla sua casella sulla preda (la carta è già nella casella d'arrivo: parte spostata e atterra) */
+async function isleSalto(q,da,a){const cella=document.querySelector(q),el=cella&&cella.querySelector('.ic');
+ if(!el||!el.animate||!da||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ const r=cella.getBoundingClientRect(),dx=(da[0]-a[0])*(r.width+3),dy=(da[1]-a[1])*(r.height+3);cella.style.zIndex=5;Snd.play('whoosh');
+ try{await el.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:`translate(${dx*.45}px,${dy*.45-r.height*.35}px) scale(1.18)`,offset:.6},{transform:'none'}],{duration:320*SP,easing:'ease-in'}).finished}catch(e){}
+ cella.style.zIndex=''}
 const ISFX={async pre(){return{}},
  async run(prev,ns){ui.isel=null;for(const e of ns.ev){
-  if(e.t==='eat'){const q='#ic'+e.to[0]+'_'+e.to[1];const c=ctr(q);Snd.play('impact');shake(6);burst(c.x,c.y,['#ffd34d','#ff7a5a','#fff'],26,{v:5,sq:true});flt(q,'GNAM!','gold');await W(300)}
+  if(e.t==='eat'){const q='#ic'+e.to[0]+'_'+e.to[1];await isleSalto(q,e.from,e.to);const c=ctr(q);Snd.play('impact');shake(6);burst(c.x,c.y,['#ffd34d','#ff7a5a','#fff'],26,{v:5,sq:true});flt(q,'GNAM!','gold');await W(300)}
   else if(e.t==='move'){Snd.play('whoosh');await W(120)}
   else if(e.t==='rm'){const c=ctr('#ic'+e.at[0]+'_'+e.at[1]);Snd.play('rock');burst(c.x,c.y,['#6b5240','#999'],24,{v:4,sq:true})}
   else if(e.t==='swap'){Snd.play('deal')}

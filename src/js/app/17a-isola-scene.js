@@ -1,5 +1,5 @@
 /* ===== L'ISOLA: scene a figura intera (illustrazione piatta, senza contorni) e sfondo dell'isola =====
-   Campione: Formica (1), Volpe (9), Orso polare (15). Gli altri animali usano ancora azArt (17) finché non hanno la loro scena.
+   Formica (1), Volpe (9), Orso polare (15); le altre scene sono in 17b. azArt (17) resta solo come ripiego per una carta senza scena.
    Ogni scena è una carta verticale 100×138: ambiente, animale intero nella sua posa, ombra a terra. Riferimento: docs/rules/isola-dei-predatori.md. */
 const IP=(d,f,x='')=>`<path d="${d}" fill="${f}" ${x}/>`,IE=(cx,cy,rx,ry,f,x='')=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${f}" ${x}/>`;
 const IL=(d,c,w)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
