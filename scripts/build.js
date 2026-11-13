@@ -50,6 +50,17 @@ function mediaKit(k) {
   if (fs.existsSync(path.join(dir, 'titoli.woff2'))) m.font = url('titoli.woff2');
   return m;
 }
+// kit cifrati: il build non legge il contenuto, quindi elenca le immagini così come sono nella cartella (nomi = id del kit)
+function elencoMedia(id) {
+  const dir = path.join(root, 'assets/kit', id), m = { ritratti: {}, luoghi: {}, oggetti: {} };
+  if (!fs.existsSync(dir)) return m;
+  for (const t of Object.keys(m)) {
+    const d = path.join(dir, t);
+    if (fs.existsSync(d)) for (const f of fs.readdirSync(d)) if (f.endsWith('.webp')) m[t][f.slice(0, -5)] = '/assets/kit/' + [id, t, f].join('/');
+  }
+  if (fs.existsSync(path.join(dir, 'copertina.webp'))) m.copertina = '/assets/kit/' + id + '/copertina.webp';
+  return m;
+}
 fs.rmSync(path.join(root, 'dist/kit'), { recursive: true, force: true });
 fs.mkdirSync(path.join(root, 'dist/kit'), { recursive: true });
 for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.endsWith('.json')).sort() : []) {
@@ -73,7 +84,7 @@ for (const n of fs.existsSync(cifDir) ? fs.readdirSync(cifDir).filter(n => n.end
   if (kit[b.id]) throw new Error(`kit cifrato ${n}: l'id ${b.id} esiste già tra i kit in chiaro`);
   const file = `${b.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
   fs.writeFileSync(path.join(root, 'dist/kit', file), src);
-  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: b.tipo === 'fascicolo' ? 'fascicolo' : 'serata', cifrato: true, url: '/kit/' + file };
+  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: b.tipo === 'fascicolo' ? 'fascicolo' : 'serata', cifrato: true, url: '/kit/' + file, media: elencoMedia(b.id) };
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));

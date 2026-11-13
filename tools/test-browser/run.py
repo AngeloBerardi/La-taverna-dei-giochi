@@ -3131,8 +3131,12 @@ async def sc_fascicolo(b, srv):
         if f == 'accusa':
             await capo.evaluate("FAS.chiedi({t:'proponi',dom:'chi',val:'pietro'})"); await capo.wait_for_timeout(300)
             await capo.evaluate("FAS.chiedi({t:'consegna',dom:'chi'})"); await capo.wait_for_timeout(300)
+        # il caposquadra cambia a ogni capitolo: se la mano non è ancora aggiornata, il giro dopo lo ritrova
+        prima = await T.evaluate("JSON.stringify([G.fase,G.cap&&G.cap.i,G.riga,(G.ricostruzione||[]).length])")
         await capo.evaluate("FAS.chiedi({t:'avanti'})")
-        await T.wait_for_function("G.fase!==" + json.dumps(f) + "||G.riga||G.ricostruzione", timeout=20000); await T.wait_for_timeout(250)
+        try: await T.wait_for_function("JSON.stringify([G.fase,G.cap&&G.cap.i,G.riga,(G.ricostruzione||[]).length])!==" + json.dumps(prima), timeout=8000)
+        except Exception: pass
+        await T.wait_for_timeout(250)
     await T.wait_for_function("G.fase==='fine'&&document.querySelector('.fs-grado')", timeout=30000)
     check(True, 'fine: la TV mostra grado e ricostruzione')
     await T.wait_for_timeout(900); await T.screenshot(path=os.path.join(SCH, 'fascicolo-tv-fine.png'))

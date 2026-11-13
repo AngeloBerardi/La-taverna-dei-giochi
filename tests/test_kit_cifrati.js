@@ -4,7 +4,8 @@
 const fs = require('fs'),
   path = require('path');
 const KITC = require('../src/js/motori/36b-kit-cifrati.js'),
-  SERATA = require('../src/js/motori/36a-serata.js');
+  SERATA = require('../src/js/motori/36a-serata.js'),
+  FASCICOLO = require('../src/js/motori/36c-fascicolo.js');
 let fails = 0;
 const ck = (c, m) => {
   if (!c) {
@@ -118,16 +119,18 @@ const apre = async (b, f) => {
       const x = await apre(bv, process.env.KIT_FRASE);
       ck(!!x.k, n + ': si apre con KIT_FRASE ' + (x.e ? x.e.message : ''));
       if (x.k) {
-        const err = SERATA.valida(x.k);
+        // dentro una busta c'è una serata o un fascicolo (la busta lo dice in chiaro in «tipo», le vecchie sono serate)
+        const M = x.k.formato === 'fascicolo' ? FASCICOLO : SERATA,
+          err = M.valida(x.k);
         ck(
-          err.length === 0 && x.k.formato === 'serata',
-          n + ': il kit aperto è una serata valida ' + JSON.stringify(err.slice(0, 3))
+          err.length === 0 && x.k.formato === (bv.tipo || 'serata'),
+          n + ': il kit aperto è valido e del tipo dichiarato ' + JSON.stringify(err.slice(0, 3))
         );
         ck(
           x.k.titolo === bv.titolo && x.k.giocatori.join() === bv.giocatori.join(),
           n + ': titolo e giocatori in chiaro coincidono con il kit'
         );
-        console.log('     avvisi del kit:', SERATA.avvisi(x.k).length);
+        console.log('     avvisi del kit:', M.avvisi(x.k).length);
       }
     }
   }
