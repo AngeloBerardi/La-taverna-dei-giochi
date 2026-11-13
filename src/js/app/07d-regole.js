@@ -13,6 +13,10 @@ const RULES={
 <li><b>Il tuo personaggio:</b> sul telefono trovi la scheda con storia, segreto, alibi e cosa sai degli altri. Recita la parte: puoi mentire su tutto tranne che sugli indizi.</li>
 <li><b>Gli atti:</b> di solito tre, a tempo. A ogni atto ricevi obiettivi e indizi nuovi. Alcuni indizi sono pubblici e li mostra la TV.</li>
 <li><b>Mostrare un indizio:</b> dal telefono puoi farlo vedere a un altro giocatore. Lui ne riceve una copia, tu lo tieni.</li>
+<li><b>Le domande del caso:</b> sono sulla TV dall’inizio. Per la famiglia risponde il rappresentante, gli altri gli danno un parere dal telefono. La TV mostra quali famiglie hanno risposto, non che cosa: la verità esce quando il narratore spegne il sigillo.</li>
+<li><b>Prove spezzate:</b> alcune prove arrivano a metà, una per famiglia. Di pomeriggio chi ha le due metà tocca «Unisci» entro un minuto e tutti e due leggono la prova intera.</li>
+<li><b>Interrogatorio:</b> di pomeriggio il rappresentante può convocare in sala interrogatori una persona di un’altra famiglia (una volta per atto). Novanta secondi, domande da tutta la sala; poi si giudica convincente o evasivo.</li>
+<li><b>Poteri:</b> ognuno ha un potere da usare una volta sola (Non rifiuto, Sbircio, Indizio, Silenzio). La TV annuncia chi lo usa.</li>
 <li><b>L’accusa:</b> alla fine ognuno vota in segreto chi, come e perché, e il miglior attore della serata.</li>
 <li><b>Punti:</b> 3 per il colpevole giusto, 1 per ogni altra risposta giusta, 1 per ogni obiettivo raggiunto, 2 al miglior attore. Se la maggioranza non lo scopre, l’assassino la fa franca e prende 3 punti.</li></ul>`,
  discesa:`<p>Solitario a dadi: scendi <b>12 livelli</b> e sconfiggi tutti i mostri di ognuno. Parti con Velocità 1, Attacco 1, Difesa 1, Gittata 2 e 6 di salute.</p>

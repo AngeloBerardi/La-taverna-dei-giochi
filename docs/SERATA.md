@@ -27,6 +27,13 @@ Ogni atto ha fino a tre momenti, rinominabili nel kit (`momenti.mattina.nome`…
 
 Il validatore controlla anche: orari scritti nei testi fuori dalla cronologia canonica, prove del copione nell'atto sbagliato, dipendenze tra prove, ogni risposta dell'accusa provata da almeno due prove di famiglie diverse. `avvisi(k)` segnala i collegamenti tutti dentro una famiglia.
 
+## Domande del caso, prove spezzate, interrogatorio, poteri
+Lo scopo della serata è sempre sulla TV: le **domande del caso** (test: `tests/test_serata_novita.js`).
+- **Domande del caso**: un sigillo con `domanda`, `tipo` (`scelta` con `scelte` o `personaggio`), `giusta` e `punti` (2 se manca) è una domanda a cui ogni famiglia risponde. Risponde solo il rappresentante (`risposta {sig, val}`), gli altri mandano un `parere` che lui vede contato. La TV mostra quali famiglie hanno risposto, mai che cosa. Quando il sigillo si spegne (narratore, collegamento, epilogo) la TV rivela la risposta vera e chi ci ha preso; la famiglia guadagna i punti.
+- **Prove spezzate**: `spezzata: {a: [dest1, dest2], parti: [testo1, testo2]}` su una prova, con destinatari di due famiglie diverse. Ognuno legge la sua metà; non si appoggia, non si mostra, non si copia. Chi ha le due metà tocca «Unisci» entro un minuto (tra famiglie solo di pomeriggio) e tutti e due ricevono la prova intera; la TV lo annuncia.
+- **Interrogatorio**: di pomeriggio il rappresentante convoca una persona di un'altra famiglia (`convoca`, una per famiglia e atto, nessuno due volte nello stesso atto). Il narratore approva dalla console; la TV mostra la sala interrogatori con 90 secondi; chi ha convocato giudica «convincente» o «evasivo» e il giudizio va sulla TV.
+- **Poteri**: uno a testa, a uso singolo, a giro dalla lista `poteri` del kit (se manca: tutti e quattro). «Non rifiuto» prende una copia senza permesso, «Sbircio» mostra i titoli delle prove di una persona, «Indizio» dà alla famiglia un aiuto su ciò che manca, «Silenzio» annulla una convocazione. Ogni uso è annunciato sulla TV.
+
 ## Kit privati
 Un kit che non deve stare nel repo pubblico si apre dalla TV: scegli «Kit privato dal computer della TV», poi «Apri il kit dal computer». Il file resta nel browser di quel PC (`localStorage`), non passa dal sito né dal database; i telefoni ricevono solo la loro mano.
 

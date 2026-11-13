@@ -120,3 +120,16 @@
 .sr-ist{font-size:16px}
 /* lo schermo comune spegne i pulsanti (37-schermo.css): la regia della serata riaccende i suoi, si usano col mouse del PC */
 html[data-tv] #app .sr-tv [data-a]{pointer-events:auto;cursor:pointer}
+/* novità: domande del caso sulla TV e sul telefono, interrogatorio, potere */
+.sr-sigilli li em{display:block;font-style:normal;font-size:15px;margin-top:4px}
+.sr-sigilli li em i{display:inline-block;margin:2px 3px;padding:1px 6px;border-radius:3px;font-style:normal;background:color-mix(in srgb,var(--sr-acc) 35%,transparent)}
+.sr-sigilli li em.vera{font-weight:800}
+.sr-sigilli li em i.ok{background:#3f6b35}.sr-sigilli li em i.no{background:#6b2e28;text-decoration:line-through}
+.sr-interr h2{font-size:72px}
+.sr-casi{list-style:none;padding:0;margin:0}
+.sr-caso{margin:0 0 10px;padding:8px;border:1px solid color-mix(in srgb,var(--sr-acc) 40%,transparent);border-radius:4px}
+.sr-caso.chiuso{opacity:.75}
+.sr-ok{color:#8fd07a;font-weight:800}.sr-no{color:#ff9a86;font-weight:800}
+.sr-riga{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.sr-riga select,.sr-riga input{flex:1;min-width:0;min-height:44px;font-size:16px}
+.sr-potere{margin:10px 0;padding:8px;border:1px dashed var(--sr-acc);border-radius:4px}

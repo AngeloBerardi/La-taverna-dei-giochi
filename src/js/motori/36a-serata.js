@@ -239,7 +239,50 @@ const SERATA = (() => {
       const q = (acc.domande || []).find(x => x.id === r.domanda);
       if (!q) no('punteggio: domanda «' + r.domanda + '» sconosciuta');
     }
+    validaNuovi(k, no);
     return e;
+  }
+  // domande del caso (sigilli con risposta), prove spezzate, poteri: docs/SERATA.md
+  const POTERI = {
+    nonrifiuto: 'Non rifiuto',
+    sbircio: 'Sbircio',
+    indizio: 'Indizio',
+    silenzio: 'Silenzio',
+  };
+  const DOM_TIPI = ['scelta', 'personaggio'];
+  function validaNuovi(k, no) {
+    for (const x of k.sigilli || []) {
+      if (x.scelte === undefined && x.tipo === undefined) continue;
+      const d = 'sigillo ' + x.id;
+      if (!DOM_TIPI.includes(x.tipo || 'scelta')) no(d + ': tipo della domanda');
+      if (!testo(x.domanda)) no(d + ': domanda');
+      if (
+        (x.tipo || 'scelta') === 'scelta' &&
+        (!Array.isArray(x.scelte) || !(x.giusta >= 0 && x.giusta < x.scelte.length))
+      )
+        no(d + ': scelte e giusta');
+      if (x.tipo === 'personaggio' && !pers(k, x.giusta)) no(d + ': la risposta deve essere un personaggio');
+    }
+    for (const p of k.prove) {
+      if (!p.spezzata) continue;
+      const d = 'prova ' + p.id,
+        z = p.spezzata;
+      if (
+        !Array.isArray(z.a) ||
+        z.a.length !== 2 ||
+        !Array.isArray(z.parti) ||
+        z.parti.length !== 2 ||
+        !z.parti.every(testo)
+      )
+        no(d + ': spezzata vuole a e parti, due ciascuno');
+      else {
+        z.a.forEach((x, i) => validaDest(k, x, no, d + ' metà ' + (i + 1)));
+        const fa = destin(z.a[0]).map(x => x.fam || (x.p && famDi(k, x.p)) || x.portavoce),
+          fb = destin(z.a[1]).map(x => x.fam || (x.p && famDi(k, x.p)) || x.portavoce);
+        if (fa.some(x => fb.includes(x))) no(d + ': le due metà vanno a famiglie diverse');
+      }
+    }
+    for (const x of k.poteri || []) if (!POTERI[x]) no('potere sconosciuto «' + x + '»');
   }
   function avvisi(k) {
     const out = [];
@@ -356,7 +399,18 @@ const SERATA = (() => {
       log: [],
       ris: null,
       fin: 0,
+      risp: {},
+      pareri: {},
+      esitiSig: {},
+      unisci: {},
+      conv: {},
+      interr: null,
+      giudizi: [],
+      poteri: {},
     };
+    // un potere a uso singolo a testa, a giro nell'ordine del kit
+    const pot = k.poteri || Object.keys(POTERI);
+    giocatori.forEach((g, i) => (s.poteri[gioc[g.uid].pid] = { id: pot[i % pot.length], usato: false }));
     for (const p of k.personaggi) s.mie[p.id] = {};
     for (const x of k.sigilli || []) s.sig[x.id] = 1;
     return { s };
@@ -483,8 +537,34 @@ const SERATA = (() => {
     }
   }
   // rilascio secondo il kit; se dipende da altre prove non ancora uscite aspetta in coda
+  // una prova spezzata: ogni metà al suo destinatario; chi le ha tutte e due la riceve intera
+  function rilasciaMeta(s, k, p, ora) {
+    s.rel[p.id] = 1;
+    const chi = d => {
+      const out = [];
+      for (const x of destin(d)) {
+        if (x.fam !== undefined) out.push(...membri(k, x.fam).filter(pid => attivo(s, pid)));
+        else if (x.portavoce !== undefined) {
+          const u = ilPortavoce(s, x.portavoce);
+          if (u) out.push(pidDi(s, u));
+        } else if (x.p !== undefined && attivo(s, x.p)) out.push(x.p);
+        else if (x.p !== undefined) {
+          const r = pers(k, x.p).riserva;
+          if (r && attivo(s, r)) out.push(r);
+        }
+      }
+      return out;
+    };
+    const [a, b] = p.spezzata.a.map(chi);
+    for (const pid of new Set([...a, ...b])) {
+      const m = a.includes(pid) && b.includes(pid) ? undefined : a.includes(pid) ? 0 : 1;
+      s.mie[pid][p.id] = { da: 'regia', ver: 'i', ora, ...(m === undefined ? {} : { meta: m }) };
+      scrivi(s, s.di[pid], (m === undefined ? 'Nuova prova: ' : 'Mezza prova: ') + p.titolo, 'busta');
+    }
+  }
   function rilascia(s, k, eid, ora, dest) {
     const p = prova(k, eid);
+    if (p.spezzata && !dest) return rilasciaMeta(s, k, p, ora);
     if ((p.dopo || []).some(x => !s.rel[x])) {
       if (!s.att.some(x => x.eid === eid && x.dopo))
         s.att.push({ eid, a: dest || p.rilascio.a, dopo: true, quando: 0 });
@@ -577,7 +657,15 @@ const SERATA = (() => {
     s.prop = s.prop.filter(x => x.id !== id);
     const x = (k.sigilli || []).find(z => z.id === id) || {};
     log(s, 'Si spegne ' + (x.nome || id));
-    s.cue = { tipo: 'sigillo', id, n: ++s.n };
+    // domanda del caso: le risposte delle famiglie si rivelano adesso, una famiglia che ci ha preso guadagna punti
+    if (x.giusta !== undefined) {
+      const es = (s.esitiSig[id] = {});
+      for (const [f, v] of Object.entries(s.risp[id] || {})) {
+        es[f] = v === x.giusta;
+        if (es[f]) s.fam[f].punti += x.punti || 2;
+      }
+    }
+    s.cue = { tipo: 'sigillo', id, n: ++s.n, esiti: s.esitiSig[id] || null };
   }
 
   // ---- avanzamento ----
@@ -653,6 +741,16 @@ const SERATA = (() => {
       if (ora >= fino) {
         delete s.fuori[pid];
         scrivi(s, s.di[pid], 'Puoi tornare in scena', 'info');
+        cambia = true;
+      }
+    if (s.interr && ora >= s.interr.fino) {
+      s.interr = null;
+      cambia = true;
+    }
+    for (const [eid, u] of Object.entries(s.unisci))
+      if (ora - u.at > 60000) {
+        delete s.unisci[eid];
+        scrivi(s, s.di[u.pid], 'Nessuno ha unito l’altra metà in tempo: riprovate insieme', 'info');
         cambia = true;
       }
     // il pomeriggio ha un tempo massimo: allo scadere si passa alla sera
@@ -817,12 +915,14 @@ const SERATA = (() => {
         if (s.pausa) return no(NO.pausa);
         if (a.t === 'appoggia') {
           if (!s.mie[pid][a.eid]) return no('Puoi appoggiare solo le prove che hai');
+          if (s.mie[pid][a.eid].meta !== undefined) return no('È solo una metà: prima unitela');
           if (!F.bacheca.includes(a.eid)) F.bacheca.push(a.eid);
         } else F.bacheca = F.bacheca.filter(x => x !== a.eid);
         return { s };
       }
       case 'mostra': {
         if (!s.mie[pid][a.eid]) return no('Non hai questa prova');
+        if (s.mie[pid][a.eid].meta !== undefined) return no('È solo una metà: unitela insieme');
         if (!pers(k, a.a) || !attivo(s, a.a)) return no('Persona non in gioco');
         const m = motivoNo(s, k, pid, a.a);
         if (m) return no(m);
@@ -851,6 +951,7 @@ const SERATA = (() => {
         if (a.t === 'concedi') {
           const eid = r.eid || a.eid;
           if (!eid || !s.mie[pid][eid]) return no('Scegli una prova che hai');
+          if (s.mie[pid][eid].meta !== undefined) return no('È solo una metà: unitela insieme');
           const m = motivoNo(s, k, pid, r.da);
           if (m) return no(m);
           if (dai(s, k, r.da, eid, pid, versione(s, pid, eid), ora)) conta(s, k, pid, r.da);
@@ -913,6 +1014,133 @@ const SERATA = (() => {
         if (ilPortavoce(s, f) !== a.uid) return no('Lo invia il rappresentante');
         F.mod[s.atto] = a.risposte || {};
         avvisaRegia(s, ((k.famiglie.find(x => x.id === f) || {}).nome || f) + ' ha consegnato le risposte della sera');
+        return { s };
+      }
+      case 'unisci': {
+        const m = s.mie[pid][a.eid];
+        if (!m || m.meta === undefined) return no('Non hai una metà di questa prova');
+        if (s.pausa) return no(NO.pausa);
+        const u = s.unisci[a.eid];
+        if (u && u.pid !== pid && u.parte !== m.meta && ora - u.at <= 60000) {
+          const mm = motivoNo(s, k, pid, u.pid);
+          if (mm) return no(mm);
+          delete s.mie[pid][a.eid].meta;
+          delete s.mie[u.pid][a.eid].meta;
+          delete s.unisci[a.eid];
+          conta(s, k, pid, u.pid);
+          const t = prova(k, a.eid).titolo;
+          log(s, nomeP(k, s, u.pid) + ' e ' + nomeP(k, s, pid) + ' hanno unito «' + t + '»');
+          s.cue = { tipo: 'unito', id: a.eid, chi: [nomeP(k, s, u.pid), nomeP(k, s, pid)], n: ++s.n };
+          [pid, u.pid].forEach(x => scrivi(s, s.di[x], 'Prova ricomposta: ' + t, 'busta'));
+          return { s };
+        }
+        s.unisci[a.eid] = { pid, parte: m.meta, at: ora };
+        s.cue = { tipo: 'unisci', id: a.eid, da: nomeP(k, s, pid), n: ++s.n };
+        scrivi(s, a.uid, 'Chi ha l’altra metà deve toccare «Unisci» entro un minuto', 'info');
+        return { s };
+      }
+      case 'risposta': {
+        const x = (k.sigilli || []).find(z => z.id === a.sig);
+        if (!x || x.domanda === undefined || (x.scelte === undefined && x.tipo === undefined))
+          return no('Domanda sconosciuta');
+        if (!s.sig[x.id]) return no('Questa domanda è già chiusa');
+        if (s.fase !== 'gioco') return no('Ora non si risponde');
+        if (ilPortavoce(s, f) !== a.uid) return no('Risponde per la famiglia solo il rappresentante');
+        const v =
+          (x.tipo || 'scelta') === 'scelta'
+            ? Number.isInteger(+a.val) && x.scelte[+a.val] !== undefined
+              ? +a.val
+              : null
+            : pers(k, a.val)
+              ? a.val
+              : null;
+        if (v === null) return no('Risposta non valida');
+        const nuova = !(s.risp[x.id] && s.risp[x.id][f]);
+        (s.risp[x.id] = s.risp[x.id] || {})[f] = v;
+        const nf = (k.famiglie.find(z => z.id === f) || {}).nome || f;
+        if (nuova) log(s, nf + ' ha risposto: ' + (x.nome || x.id));
+        s.cue = { tipo: 'risposta', fam: f, sig: x.id, n: ++s.n };
+        return { s };
+      }
+      case 'parere': {
+        const x = (k.sigilli || []).find(z => z.id === a.sig);
+        if (!x || !s.sig[x.id]) return no('Domanda chiusa');
+        const P = ((s.pareri[x.id] = s.pareri[x.id] || {})[f] = s.pareri[x.id][f] || {});
+        P[pid] = a.val;
+        return { s };
+      }
+      case 'convoca': {
+        if (s.pausa) return no(NO.pausa);
+        if (!puoFuori(s)) return no('Si convoca qualcuno di pomeriggio');
+        if (ilPortavoce(s, f) !== a.uid) return no('Convoca il rappresentante della famiglia');
+        if (!attivo(s, a.pid) || famDi(k, a.pid) === f) return no('Convoca qualcuno di un’altra famiglia');
+        const c = (s.conv[s.atto] = s.conv[s.atto] || { fam: {}, chi: {} });
+        if (c.fam[f]) return no('La vostra famiglia ha già convocato in questo atto');
+        if (c.chi[a.pid]) return no('È già stato convocato in questo atto');
+        if (s.interr || s.prop.some(p => p.tipo === 'convoca'))
+          return no('C’è già un interrogatorio in corso o in attesa');
+        c.fam[f] = 1;
+        s.prop.push({ n: ++s.n, tipo: 'convoca', id: a.pid, fam: f });
+        avvisaRegia(
+          s,
+          ((k.famiglie.find(z => z.id === f) || {}).nome || f) + ' vuole interrogare ' + nomeP(k, s, a.pid)
+        );
+        return { s };
+      }
+      case 'giudica': {
+        const it = s.interr;
+        if (!it || it.fam !== f || ilPortavoce(s, f) !== a.uid) return no('Giudica chi ha convocato');
+        const g = a.esito === 'convincente' ? 'convincente' : 'evasivo';
+        s.giudizi.push({ pid: it.pid, fam: f, esito: g, atto: s.atto });
+        log(s, nomeP(k, s, it.pid) + ': ' + g);
+        s.interr = null;
+        s.cue = { tipo: 'giudizio', pid: it.pid, esito: g, n: ++s.n };
+        return { s };
+      }
+      case 'potere': {
+        const P = s.poteri[pid];
+        if (!P || P.usato) return no('Non hai poteri da usare');
+        if (s.pausa) return no(NO.pausa);
+        if (s.fase !== 'gioco') return no('I poteri si usano durante gli atti');
+        if (P.id === 'nonrifiuto') {
+          if (!pers(k, a.a) || !attivo(s, a.a) || a.a === pid) return no('Scegli una persona in gioco');
+          const m = s.mie[a.a][a.eid];
+          if (!m || m.meta !== undefined) return no('Non ha quella prova intera');
+          const mm = motivoNo(s, k, pid, a.a);
+          if (mm) return no(mm);
+          dai(s, k, pid, a.eid, a.a, versione(s, a.a, a.eid), ora);
+          scrivi(
+            s,
+            s.di[a.a],
+            nomeP(k, s, pid) + ' ha usato «Non rifiuto»: ha avuto la tua «' + prova(k, a.eid).titolo + '»',
+            'richiesta'
+          );
+        } else if (P.id === 'sbircio') {
+          if (!pers(k, a.a) || !attivo(s, a.a) || a.a === pid) return no('Scegli una persona in gioco');
+          const l = Object.keys(s.mie[a.a]).map(e => prova(k, e).titolo);
+          scrivi(s, a.uid, nomeP(k, s, a.a) + ' ha: ' + (l.join(', ') || 'niente'), 'regia');
+        } else if (P.id === 'indizio') {
+          const m = mancanti(s, k, f)[0],
+            c = (k.collegamenti || []).find(
+              c => !F.ded.includes(c.id) && c.aiuto && c.servono.some(x => vedeFam(s, k, f, x))
+            );
+          const t = m
+            ? 'Vi manca un pezzo: chiedete a ' + m.dove.join(', ') + ' (con ' + m.con.join(', ') + ')'
+            : c
+              ? c.aiuto
+              : '';
+          if (!t) return no('Per ora non c’è un indizio utile: tenetelo per dopo');
+          for (const x of membri(k, f)) if (attivo(s, x)) scrivi(s, s.di[x], 'Indizio: ' + t, 'regia');
+        } else if (P.id === 'silenzio') {
+          const prima = s.prop.length;
+          s.prop = s.prop.filter(x => !(x.tipo === 'convoca' && x.id === pid));
+          const era = s.interr && s.interr.pid === pid;
+          if (era) s.interr = null;
+          if (prima === s.prop.length && !era) return no('Nessuno ti sta convocando');
+        }
+        P.usato = true;
+        log(s, nomeP(k, s, pid) + ' usa «' + POTERI[P.id] + '»');
+        s.cue = { tipo: 'potere', pid, potere: P.id, nome: POTERI[P.id], n: ++s.n };
         return { s };
       }
       case 'voto':
@@ -1020,6 +1248,18 @@ const SERATA = (() => {
         if (!p) return { err: 'Proposta non trovata' };
         s.prop = s.prop.filter(x => x !== p);
         if (a.ok && p.tipo === 'sigillo') spegni(s, k, p.id);
+        if (p.tipo === 'convoca') {
+          if (!a.ok) {
+            scrivi(s, ilPortavoce(s, p.fam), 'Il narratore rimanda l’interrogatorio', 'info');
+            s.conv[s.atto].fam[p.fam] = 0;
+          } else {
+            s.conv[s.atto].chi[p.id] = 1;
+            s.interr = { pid: p.id, fam: p.fam, fino: ora + 90000, n: ++s.n };
+            scrivi(s, s.di[p.id], 'Sei convocato in sala interrogatori: rispondi a voce, la TV ti guarda', 'turno');
+            log(s, 'Interrogatorio: ' + nomeP(k, s, p.id));
+            s.cue = { tipo: 'interrogatorio', pid: p.id, fam: p.fam, n: ++s.n };
+          }
+        }
         if (a.ok && p.tipo === 'pubblica') {
           consegna(s, k, p.id, 'tutti', 'i', ora, p.da);
           s.cue = { tipo: 'mostra', id: p.id, n: ++s.n };
@@ -1089,7 +1329,21 @@ const SERATA = (() => {
         nome: x.nome || x.id,
         simbolo: x.simbolo || '',
         on: !!s.sig[x.id],
+        domanda: x.giusta !== undefined ? x.domanda || '' : '',
+        // chi ha già risposto (mai che cosa, finché la domanda è aperta)
+        risposte: Object.keys(s.risp[x.id] || {}),
+        esiti: !s.sig[x.id] && s.esitiSig[x.id] ? s.esitiSig[x.id] : null,
+        vera:
+          !s.sig[x.id] && x.giusta !== undefined
+            ? (x.tipo || 'scelta') === 'scelta'
+              ? x.scelte[x.giusta]
+              : nomeP(k, s, x.giusta)
+            : '',
       })),
+      interr: s.interr
+        ? { pid: s.interr.pid, nome: nomeP(k, s, s.interr.pid), fam: s.interr.fam, fino: s.interr.fino }
+        : null,
+      giudizi: s.giudizi.slice(-6).map(g => ({ ...g, nome: nomeP(k, s, g.pid) })),
       famiglie: k.famiglie.map(f => ({
         id: f.id,
         nome: f.nome,
@@ -1160,10 +1414,12 @@ const SERATA = (() => {
     const prove = {};
     const metti = (eid, st, da) => {
       const q = prova(k, eid);
+      const meta = s.mie[pid][eid] && s.mie[pid][eid].meta;
       prove[eid] = {
         t: q.tipo || 'documento',
         titolo: q.titolo,
-        testo: testoProva(q, versione(s, pid, eid)),
+        testo: meta !== undefined && q.spezzata ? q.spezzata.parti[meta] : testoProva(q, versione(s, pid, eid)),
+        ...(meta !== undefined ? { meta, attesa: !!(s.unisci[eid] && s.unisci[eid].pid === pid) } : {}),
         st,
         da: da || '',
         img: q.img || '',
@@ -1208,6 +1464,37 @@ const SERATA = (() => {
       modulo: a && a.sera && a.sera.modulo ? a.sera.modulo : null,
       inviato: s.atto >= 0 && !!F.mod[s.atto],
       votato: !!s.votiFam[f],
+      // domande del caso: le apre il kit (sigilli con risposta); risponde il rappresentante, gli altri danno un parere
+      casi: (k.sigilli || [])
+        .filter(x => x.giusta !== undefined)
+        .map(x => {
+          const tipo = x.tipo || 'scelta',
+            scelte =
+              tipo === 'scelta'
+                ? x.scelte.map((t, i) => ({ v: i, t }))
+                : k.personaggi.map(q => ({ v: q.id, t: nomeP(k, s, q.id) }));
+          const nome = v => (scelte.find(c => c.v === v) || {}).t || '';
+          const par = (s.pareri[x.id] || {})[f] || {},
+            conta = {};
+          for (const v of Object.values(par)) conta[nome(v)] = (conta[nome(v)] || 0) + 1;
+          const mia = (s.risp[x.id] || {})[f];
+          return {
+            id: x.id,
+            nome: x.nome || x.id,
+            domanda: x.domanda,
+            scelte,
+            aperta: !!s.sig[x.id],
+            risposta: mia === undefined ? '' : nome(mia),
+            pareri: conta,
+            mioParere: par[pid] === undefined ? '' : nome(par[pid]),
+            esito: !s.sig[x.id] && s.esitiSig[x.id] ? !!s.esitiSig[x.id][f] : null,
+          };
+        }),
+      convocato: !!(s.conv[s.atto] && s.conv[s.atto].fam[f]),
+      interr:
+        s.interr && s.interr.fam === f
+          ? { pid: s.interr.pid, nome: nomeP(k, s, s.interr.pid), fino: s.interr.fino }
+          : null,
     };
     return {
       dossier: dossier(k, s, pid),
@@ -1222,6 +1509,10 @@ const SERATA = (() => {
         votato: !!s.voti[uid],
         ob: s.ob[pid] || {},
         accusa: s.fase === 'voto' ? k.accusa : null,
+        potere: s.poteri[pid]
+          ? { id: s.poteri[pid].id, nome: POTERI[s.poteri[pid].id], usato: s.poteri[pid].usato }
+          : null,
+        interrogato: !!(s.interr && s.interr.pid === pid),
         ris: s.ris ? { ...s.ris.ind[uid], fam: s.ris.fam[f] } : null,
       },
       prove: { t: 'prove', l: prove },
@@ -1288,7 +1579,9 @@ const SERATA = (() => {
         testo:
           p.tipo === 'sigillo'
             ? 'Spegni ' + p.id + ' (' + nomeFam(p.fam) + ')'
-            : 'Mostra a tutti «' + prova(k, p.id).titolo + '»',
+            : p.tipo === 'convoca'
+              ? nomeFam(p.fam) + ' vuole interrogare ' + nomeP(k, s, p.id)
+              : 'Mostra a tutti «' + prova(k, p.id).titolo + '»',
       })),
       avvisi: s.rav.slice(-12),
       persone: k.personaggi.map(p => ({
