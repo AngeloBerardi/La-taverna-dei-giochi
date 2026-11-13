@@ -22,17 +22,17 @@ let html = manifest.map(f => {
 html = html.replace('/*VENDOR*/{}', JSON.stringify(vendor));
 // kit delle cene con delitto (src/kit/*.json): validati, scritti a parte in dist/kit/<id>.<hash>.json e scaricati solo dalla TV
 // regista (REGIA.kit). Nella pagina va solo l'indice senza trame né soluzioni. Formato: docs/GIALLI.md
-const GIALLO = require('../src/js/motori/36-giallo.js'), SERATA = require('../src/js/motori/36a-serata.js'), KITC = require('../src/js/motori/36b-kit-cifrati.js'), kitDir = path.join(root, 'src/kit'), kit = {};
+const GIALLO = require('../src/js/motori/36-giallo.js'), SERATA = require('../src/js/motori/36a-serata.js'), KITC = require('../src/js/motori/36b-kit-cifrati.js'), FASCICOLO = require('../src/js/motori/36c-fascicolo.js'), kitDir = path.join(root, 'src/kit'), kit = {};
 // assets/kit/<id>/: ritratti/<personaggio|vittima>.webp, luoghi/<luogo>.webp, oggetti/<indizio>.webp, copertina.webp, titoli.woff2.
 // Un nome che non corrisponde a niente nel kit ferma il build (di solito è un errore di battitura). Formati: docs/GIALLI-SCENA.md
 function mediaKit(k) {
   const dir = path.join(root, 'assets/kit', k.id), url = (...p) => '/assets/kit/' + [k.id, ...p].join('/'), m = { ritratti: {}, luoghi: {}, oggetti: {} };
   if (!fs.existsSync(dir)) return m;
   const validi = {
-    ritratti: new Set(k.personaggi.map(p => p.id).concat('vittima')),
+    ritratti: new Set((k.formato === 'fascicolo' ? k.persone : k.personaggi).map(p => p.id).concat('vittima')),
     luoghi: new Set((k.luoghi || []).map(l => l.id)),
-    // serata (formato grande): le immagini degli oggetti sono quelle delle prove
-    oggetti: new Set(k.formato === 'serata' ? k.prove.map(x => x.id) : k.atti.flatMap(a => a.indizi.map(x => x.id))),
+    // serata (formato grande): le immagini degli oggetti sono quelle delle prove; fascicolo: quelle dei reperti
+    oggetti: new Set(k.formato === 'serata' ? k.prove.map(x => x.id) : k.formato === 'fascicolo' ? k.reperti.map(x => x.id) : k.atti.flatMap(a => a.indizi.map(x => x.id))),
   };
   const PESO = { ritratti: 160, luoghi: 400, oggetti: 120 };
   for (const t of Object.keys(validi)) {
@@ -53,7 +53,7 @@ function mediaKit(k) {
 fs.rmSync(path.join(root, 'dist/kit'), { recursive: true, force: true });
 fs.mkdirSync(path.join(root, 'dist/kit'), { recursive: true });
 for (const n of fs.existsSync(kitDir) ? fs.readdirSync(kitDir).filter(n => n.endsWith('.json')).sort() : []) {
-  const testo = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(testo), err = (k.formato === 'serata' ? SERATA : GIALLO).valida(k);
+  const testo = fs.readFileSync(path.join(kitDir, n), 'utf8'), k = JSON.parse(testo), err = ({ serata: SERATA, fascicolo: FASCICOLO }[k.formato] || GIALLO).valida(k);
   if (err.length) throw new Error(`kit ${n} non valido: ${err.join('; ')}`);
   if (k.id + '.json' !== n) throw new Error(`kit ${n}: il nome del file deve essere uguale all'id (${k.id})`);
   // immagini e font del kit (assets/kit/<id>/, copiati in dist/assets da sotto): nel file del kit va l'elenco di ciò che c'è
@@ -73,7 +73,7 @@ for (const n of fs.existsSync(cifDir) ? fs.readdirSync(cifDir).filter(n => n.end
   if (kit[b.id]) throw new Error(`kit cifrato ${n}: l'id ${b.id} esiste già tra i kit in chiaro`);
   const file = `${b.id}.${require('crypto').createHash('sha1').update(src).digest('hex').slice(0, 10)}.json`;
   fs.writeFileSync(path.join(root, 'dist/kit', file), src);
-  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: 'serata', cifrato: true, url: '/kit/' + file };
+  kit[b.id] = { copertina: '', font: '', titolo: b.titolo, sottotitolo: b.sottotitolo || '', giocatori: b.giocatori, minuti: b.minuti || 0, tono: b.tono || '', formato: b.tipo === 'fascicolo' ? 'fascicolo' : 'serata', cifrato: true, url: '/kit/' + file };
 }
 if (!/\/\*KIT\*\/\s*\{\}/.test(html)) throw new Error('segnaposto /*KIT*/{} non trovato (app/24u-regia.js)');
 html = html.replace(/\/\*KIT\*\/\s*\{\}/, JSON.stringify(kit));

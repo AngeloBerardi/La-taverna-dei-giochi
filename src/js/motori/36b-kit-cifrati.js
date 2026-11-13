@@ -91,6 +91,8 @@ const KITC = (() => {
       giocatori: kit.giocatori,
       minuti: kit.minuti || 0,
       tono: kit.tono || '',
+      // che tipo di serata c'è dentro (solo per l'elenco della TV; le buste vecchie sono serate)
+      tipo: kit.formato === 'fascicolo' ? 'fascicolo' : 'serata',
       giri,
       sale: aTesto(sale),
       iv: aTesto(iv),

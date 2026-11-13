@@ -16,7 +16,7 @@ const DIR = path.join(__dirname, '../src/kit'),
     .readdirSync(DIR)
     .filter(f => f.endsWith('.json'))
     .map(f => JSON.parse(fs.readFileSync(path.join(DIR, f), 'utf8')))
-    .filter(k => k.formato !== 'serata'); // i kit della serata per famiglie li prova test_serata.js
+    .filter(k => !k.formato); // serate e fascicoli li provano test_serata.js e test_fascicolo.js
 const clone = o => JSON.parse(JSON.stringify(o));
 const gioc = n => Array.from({ length: n }, (_, i) => ({ uid: 'u' + i, nome: 'G' + i }));
 const avanti = (s, k, ora) => {
