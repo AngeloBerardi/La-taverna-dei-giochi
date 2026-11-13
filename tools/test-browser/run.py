@@ -3067,9 +3067,12 @@ async def sc_fascicolo(b, srv):
             c = await capo.evaluate("FAS.mano.stato.fase")
             if c == fino: return True
             # il tocco può arrivare mentre il telefono ridisegna: se entro 10 secondi non succede niente si riprova
+            # si aspetta che la regia abbia davvero contato il tocco (fase, capitolo o riga cambiati), altrimenti il
+            # giro dopo leggerebbe uno stato vecchio e toccherebbe due volte, saltando l'indagine
+            prima = await capo.evaluate("JSON.stringify([G.fase,G.cap&&G.cap.i,G.riga])")
             try:
                 await capo.click('[data-a=fas][data-v=avanti]', timeout=10000)
-                await capo.wait_for_function("FAS.mano.stato.fase!==" + json.dumps(c) + "||G.riga", timeout=10000)
+                await capo.wait_for_function("JSON.stringify([G.fase,G.cap&&G.cap.i,G.riga])!==" + json.dumps(prima) + "&&FAS.mano.stato.fase===G.fase", timeout=10000)
             except Exception: pass
             await capo.wait_for_timeout(400)
         return False

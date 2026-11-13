@@ -98,6 +98,7 @@ const FSFIDA = (() => {
     if (a.t === 'avanti') {
       if (a.uid !== sub.capo) return { err: 'Va avanti il caposquadra' };
       if (sub.pausa) return { err: 'Siete in pausa' };
+      if (a.at !== undefined && a.at !== [sub.fase, sub.cap, sub.riga, sub.fin].join(':')) return { s: s0 };
       // indagine, consegna e accusa: si passa avanti quando sono pronte tutte e due le squadre (o scade il tempo)
       if (['indagine', 'consegna', 'accusa'].includes(sub.fase)) {
         // un secondo tocco ritira la squadra (un «pronti» dato per sbaglio non resta appeso)

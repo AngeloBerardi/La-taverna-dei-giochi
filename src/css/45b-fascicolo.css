@@ -160,3 +160,4 @@ html[data-tv] #app .fs-tv [data-a]{pointer-events:auto;cursor:pointer}
 .fs-vince{box-shadow:0 0 40px var(--sq)}
 .fs-ann-A h2{color:#e07a68}.fs-ann-B h2{color:#7fa7e0}
 .fs-attesa{flex:1;align-self:center;font-weight:800;color:var(--fs-acc)}
+.fs-volto svg{width:100%;height:100%;display:block}

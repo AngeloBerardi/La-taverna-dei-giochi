@@ -594,7 +594,10 @@ const FAS = {
       if (m.tipo === 'interrogatorio') {
         const p = k.persone.find(x => x.id === m.persona),
           t = p.temi.find(x => x.id === m.tema);
-        const volto = p.img ? `<img src="${esc(p.img)}" alt="">` : `<span>${esc(p.nome.slice(0, 1))}</span>`;
+        // senza immagine del kit, il ritratto disegnato delle cene con delitto (stesso viso per la stessa persona)
+        const volto = p.img
+          ? `<img src="${esc(p.img)}" alt="">`
+          : SCENA.ritratto(p.aspetto, k.id + ':' + p.id, (k.scena && k.scena.palette) || {});
         return `<div class="fs-interr${E}"><div class="fs-volto">${volto}</div><div><small>Interrogatorio · ${esc(p.ruolo)}</small><h2>${esc(p.nome)}</h2><p class="fs-dom-t">${esc(t.domanda)}</p><blockquote>${esc(t.risposta)}</blockquote></div></div>`;
       }
       if (m.tipo === 'zona') return FAS.luogoTV(g, k, m.luogo, m.zona);
@@ -890,7 +893,7 @@ const FAS = {
       case 'avanti':
       case 'pausa':
         if (ui.tv) return FAS.comanda(verbo);
-        return FAS.chiedi({ t: verbo });
+        return FAS.chiedi(verbo === 'avanti' ? { t: verbo, at: (FAS.mano.stato || {}).punto } : { t: verbo });
       case 'proietta':
         return FAS.chiedi({ t: 'proietta', rep: a1 }, 'Sulla TV');
       case 'unisci':

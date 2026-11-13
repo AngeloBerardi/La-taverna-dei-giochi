@@ -656,6 +656,7 @@ const FASCICOLO = (() => {
     return s ? { s } : null;
   }
 
+  const punto = s => s.fase + ':' + s.cap + ':' + s.riga + ':' + s.fin;
   // ---- azioni ----
   function valore(k, d, v) {
     if (d.tipo === 'scelta') return Number.isInteger(+v) && +v >= 0 && +v < d.scelte.length ? +v : null;
@@ -690,6 +691,8 @@ const FASCICOLO = (() => {
     if (a.seq !== undefined && !regia) s.seq[uid] = a.seq;
     if (a.t === 'avanti') {
       if (!regia && uid !== s.capo) return no('Va avanti il caposquadra');
+      // il telefono dice dov'era quando ha toccato: un doppio tocco partito da uno schermo vecchio non salta una fase
+      if (a.at !== undefined && a.at !== punto(s0)) return { s: s0 };
       if (s.pausa) return no('Siete in pausa');
       if (s.fase === 'fine') return no("L'indagine è chiusa");
       avanti(s, k, ora);
@@ -1091,6 +1094,7 @@ const FASCICOLO = (() => {
         fino: s.pausa ? 0 : s.fino,
         pausa: s.pausa,
         cap: s.cap,
+        punto: punto(s),
         ris: s.ris,
       },
       reperti: { t: 'reperti', l: mie, tv: [...s.pub, ...s.muro].map(id => vistaRep(k, s, id)) },

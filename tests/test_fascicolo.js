@@ -399,6 +399,17 @@ if (k0) {
   const pq = F.pubblico(s, k).domande.find(d => d.id === 'quando');
   ck(pq.stato === 'consegnata' && pq.risposta === undefined, 'la TV mostra che la squadra ha risposto, non che cosa');
 }
+// doppio tocco dell'avanti: il secondo, partito dallo stesso punto, non salta l'indagine
+{
+  let s = F.nuova(k0, gioc(2), {}).s;
+  s = avanti(s, k0);
+  while (s.riga < k0.capitoli[0].apertura.length) s = avanti(s, k0);
+  const at = F.mani(s, k0)[s.capo].stato.punto;
+  s = fai(s, { t: 'avanti', uid: s.capo, at }, k0);
+  ck(s.fase === 'indagine', 'l’ultimo tocco dell’apertura apre l’indagine');
+  s = fai(s, { t: 'avanti', uid: s.capo, at }, k0);
+  ck(s.fase === 'indagine', 'il secondo tocco dallo stesso schermo viene ignorato');
+}
 // doppio tocco
 {
   const k = k0;
