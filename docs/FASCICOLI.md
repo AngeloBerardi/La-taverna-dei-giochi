@@ -1,7 +1,7 @@
 # Fascicoli: i gialli classici come indagine di una serata (TV + telefoni)
 
 Documento di progetto e piano di lavoro. Ogni passo in fondo ha un prompt pronto da dare a una sessione nuova.
-Stato: **da costruire**. Nessuna soluzione di nessun caso sta in questo file (il repo è pubblico).
+Stato: **F1–F3 fatti** (motore, kit di prova, regia, telefono, TV, regole in-game, scenario nel browser). Nessuna soluzione di nessun caso sta in questo file (il repo è pubblico).
 
 ## 1. L'idea in una riga
 Un caso d'archivio da riaprire in squadra, come le scatole d'indagine da tavolo e le stanze di fuga, ma dentro la Taverna:
@@ -110,7 +110,7 @@ analisi, serrature, ricerche); domande senza almeno due strade di prova indipend
 tutti dentro una specialità (con almeno 2 telefoni); serrature senza indizi raggiungibili prima; cammino più economico
 verso tutte le risposte giuste che costa più del 60% delle ore disponibili; false piste (`falsa`) senza un reperto che le
 smentisce; orari nei testi fuori dalla cronologia (stessa regola di `SERATA`); più o meno di un colpevole; capitoli con
-meno di 2 o più di 4 domande; coordinate delle zone fuori da 0-1; riferimenti a id inesistenti.
+meno di 1 o più di 4 domande; coordinate delle zone fuori da 0-1; riferimenti a id inesistenti.
 
 ## 6. Motore (`src/js/motori/36c-fascicolo.js`, costante `FASCICOLO`)
 Puro, senza rete né DOM, stato clonabile in JSON, mai `Date` né `Math.random` (ora e caso arrivano da fuori): stesso

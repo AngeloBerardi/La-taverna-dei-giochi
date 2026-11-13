@@ -1,5 +1,13 @@
 /* ---- testi delle regole in-game: RULES[id] (una scheda per riga; la fonte è docs/rules/<gioco>.md) ---- */
 const RULES={
+ fascicolo:`<p>Un caso d’archivio da riaprire in squadra. Lo <b>schermo comune</b> (il PC collegato alla TV) fa da regia: conosce la soluzione e mostra a tutti le <b>domande del caso</b>, i reperti proiettati e la linea del tempo. Ogni telefono è un investigatore con una <b>specialità</b>: nessuno ha tutto il fascicolo.</p>
+<ul><li><b>Specialità:</b> l’<b>Archivio</b> cerca per parola, la <b>Scientifica</b> manda reperti in laboratorio (l’esito torna dopo qualche minuto vero), i <b>Testimoni</b> interrogano (la risposta la sente tutta la stanza), i <b>Luoghi</b> esaminano le zone della pianta. Con pochi telefoni se ne ha più di una.</li>
+<li><b>Ore d’indagine:</b> interrogatori, analisi e sopralluoghi costano ore, e non bastano per fare tutto. Una risposta sbagliata ne toglie; quelle avanzate valgono stelle alla fine.</li>
+<li><b>Reperti spezzati:</b> due metà su due telefoni. Chi le ha tocca «Unisci» entro un minuto e tutti e due leggono il reperto intero.</li>
+<li><b>Proiettare e collegare:</b> un reperto si proietta sulla TV (al massimo tre alla volta). Si collegano due o tre reperti tuoi o sulla TV: la conclusione giusta diventa una deduzione sulla linea del tempo.</li>
+<li><b>Serrature:</b> codici e parole che aprono reperti nuovi; gli indizi stanno sparsi tra i telefoni.</li>
+<li><b>Capitoli:</b> apertura raccontata dalla TV, indagine a tempo, poi le risposte. Chiunque propone una risposta e tutti dicono se sono d’accordo; solo il <b>caposquadra</b> (cambia a ogni capitolo) la consegna. La TV mostra quando una risposta è consegnata, non quale.</li>
+<li><b>Accusa e verità:</b> alla fine chi, come, perché e le prove che lo reggono. La TV ricostruisce il caso e dà il grado della squadra.</li></ul>`,
  serata:`<p>Una cena con delitto per tante persone divise in <b>famiglie</b>. Lo <b>schermo comune</b> (il PC collegato alla TV) fa da regia e conosce la soluzione; un <b>narratore</b> guida la serata dal suo telefono; ogni ospite ha sul telefono il dossier del suo personaggio. Trame e testi dei kit sono nostri o di chi organizza.</p>
 <ul><li><b>Prima di cominciare:</b> sulla TV premi <b>Fai da regista</b>, proponi la serata dallo scaffale e scegli il kit. Il narratore tocca «Faccio il narratore», poi la TV assegna i personaggi.</li>
 <li><b>Gli atti:</b> ognuno ha tre momenti. <b>Mattina:</b> arrivano prove e notizie; per parlare a tutti la famiglia usa il suo rappresentante. <b>Pomeriggio:</b> si gira e si parla con chiunque, entro un tempo massimo. <b>Sera:</b> si parla solo dentro la propria famiglia.</li>
