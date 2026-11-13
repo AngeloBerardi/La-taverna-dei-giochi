@@ -32,8 +32,19 @@ ck(
   'anche la squadra piccola copre le quattro specialità'
 );
 ck(X.nuova(k, gioc(1), {}).err, 'con un solo telefono la sfida non parte');
+{
+  let t = fai(s, { t: 'squadra', uid: 'u0' });
+  ck(
+    t.sq.B.ordine.includes('u0') && t.sq.A.ordine.length === 2 && t.sq.B.ordine.length === 3,
+    'prima di aprire il caso si cambia squadra'
+  );
+  t = fai(t, { t: 'squadra', uid: 'u2' });
+  ck(t.sq.A.ordine.join() === 'u4', 'la rossa resta con un telefono solo');
+  ck(prova(t, { t: 'squadra', uid: 'u4' }).err, 'una squadra non resta vuota');
+}
 while (s.sq.A.fase !== 'indagine') s = regia(s, 'avanti');
 ck(s.sq.B.fase === 'indagine' && s.sq.A.fino === s.sq.B.fino, 'le due partite vanno avanti insieme, stesso timer');
+ck(prova(s, { t: 'squadra', uid: 'u0' }).err, 'a caso aperto le squadre non si cambiano più');
 // la squadra rossa esamina una zona e interroga: la blu non vede niente, la TV solo un annuncio
 const luoA = s.sq.A.ordine.find(u => s.sq.A.gioc[u].spec.includes('luoghi')),
   tesA = s.sq.A.ordine.find(u => s.sq.A.gioc[u].spec.includes('testimoni'));

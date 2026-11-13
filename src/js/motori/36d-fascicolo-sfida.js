@@ -72,6 +72,22 @@ const FSFIDA = (() => {
     const t = quale(s, a.uid);
     if (!t) return { err: 'Non sei in questa sfida' };
     const sub = s.sq[t];
+    // prima di aprire il caso ci si può spostare nell'altra squadra: le due partite si rifanno da capo
+    if (a.t === 'squadra') {
+      if (sub.fase !== 'pronta') return { err: 'Le squadre si cambiano solo prima di aprire il caso' };
+      const tutti = [...s.sq.A.ordine, ...s.sq.B.ordine].map(u => ({
+        uid: u,
+        nome: (s.sq.A.gioc[u] || s.sq.B.gioc[u]).nome,
+      }));
+      const dove = {};
+      for (const x of tutti) dove[x.uid] = quale(s, x.uid);
+      dove[a.uid] = t === 'A' ? 'B' : 'A';
+      const r = nuova(k, tutti, { squadre: dove });
+      if (r.err) return r;
+      r.s.n = s.n;
+      r.s.cue = { tipo: 'cambio', squadra: dove[a.uid], n: ++r.s.n };
+      return { s: r.s };
+    }
     if (a.t === 'proietta')
       return { err: 'Nella sfida la TV la vedono anche gli avversari: mostrate i reperti a voce, tra voi' };
     if (a.t === 'pausa') {

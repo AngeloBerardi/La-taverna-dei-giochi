@@ -3066,8 +3066,12 @@ async def sc_fascicolo(b, srv):
         for _ in range(20):
             c = await capo.evaluate("FAS.mano.stato.fase")
             if c == fino: return True
-            await capo.click('[data-a=fas][data-v=avanti]')
-            await capo.wait_for_function("FAS.mano.stato.fase!==" + json.dumps(c) + "||G.riga", timeout=20000); await capo.wait_for_timeout(400)
+            # il tocco può arrivare mentre il telefono ridisegna: se entro 10 secondi non succede niente si riprova
+            try:
+                await capo.click('[data-a=fas][data-v=avanti]', timeout=10000)
+                await capo.wait_for_function("FAS.mano.stato.fase!==" + json.dumps(c) + "||G.riga", timeout=10000)
+            except Exception: pass
+            await capo.wait_for_timeout(400)
         return False
     check(await capo_avanti('indagine'), 'il caposquadra apre il caso e arriva all’indagine')
     await T.wait_for_function("G.fase==='indagine'&&document.querySelector('.fs-timer[data-fsfino]')", timeout=30000)
@@ -3164,6 +3168,15 @@ async def sc_fascicolo_sfida(b, srv):
     for p in P: await p.wait_for_function("FAS.mano.stato&&FAS.mano.stato.squadra", timeout=40000)
     sq = [await p.evaluate("FAS.mano.stato.squadra.id") for p in P]
     check(sorted(sq) == ['A', 'A', 'B', 'B'], f'sfida: due squadre da due {sq}')
+    # cambio di squadra dal telefono prima di aprire il caso, poi si torna indietro
+    prima = sq[1]
+    await P[1].click('[data-a=fas][data-v=squadra]')
+    await P[1].wait_for_function("FAS.mano.stato&&FAS.mano.stato.squadra&&FAS.mano.stato.squadra.id!==" + json.dumps(prima), timeout=30000)
+    await P[1].screenshot(path=os.path.join(SCH, 'fascicolo-sfida-squadra.png'))
+    await P[1].click('[data-a=fas][data-v=squadra]')
+    await P[1].wait_for_function("FAS.mano.stato&&FAS.mano.stato.squadra&&FAS.mano.stato.squadra.id===" + json.dumps(prima), timeout=30000)
+    check(True, 'dal telefono si cambia squadra prima di aprire il caso')
+    sq = [await p.evaluate("FAS.mano.stato.squadra.id") for p in P]
     await T.wait_for_function("document.querySelector('.fs-tv-sfida .fs-sq-A')&&document.querySelector('.fs-tv-sfida .fs-sq-B')", timeout=30000)
     check(True, 'TV: una colonna per squadra')
     async def capi_avanti(fino):
@@ -3190,7 +3203,9 @@ async def sc_fascicolo_sfida(b, srv):
     capoA = None
     for p in rossi:
         if await p.evaluate("FAS.mano.stato.capo"): capoA = p
-    await capoA.evaluate("FAS.chiedi({t:'avanti'})")
+    # se un tocco dell'apertura ha già reso pronta la rossa, un altro la ritirerebbe: si tocca solo se serve
+    await capoA.wait_for_timeout(1500)
+    if not await capoA.evaluate("FAS.mano.stato.squadra.pronta"): await capoA.evaluate("FAS.chiedi({t:'avanti'})")
     await capoA.wait_for_function("FAS.mano.stato.squadra.pronta", timeout=30000)
     check(await T.evaluate("G.fase") == 'indagine', 'una squadra pronta: si aspetta l’altra')
     for p in blu:

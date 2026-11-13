@@ -672,7 +672,11 @@ const FAS = {
       return `<div class="fs-tel fs-c"><h2>${esc(g.titolo || 'Fascicolo')}</h2><p>La regia apre il fascicolo. Guarda la TV.</p></div>`;
     const spec = (st.squadra ? esc(st.squadra.nome) + ' · ' : '') + st.spec.map(x => esc(x.nome)).join(' · ');
     const top = `<header class="fs-ttop"><div><b>${spec}</b><small>${esc(FAS.FASI[st.fase] || '')}${g.cap ? ' · Cap. ' + (g.cap.i + 1) : ''}${st.capo ? ' · <em>caposquadra</em>' : ''}</small></div><div class="fs-tdx">${FAS.timerH(st.fino, 'fs-timer')}<span class="fs-ore">${FAS.ore(st.ore)}</span></div></header>`;
-    const capo = st.capo ? FAS.capoH(st) : '';
+    const capo =
+      (st.capo ? FAS.capoH(st) : '') +
+      (st.squadra && st.fase === 'pronta'
+        ? `<div class="fs-capo"><span class="fs-attesa">Sei nella ${esc(st.squadra.nome)}</span><button class="b sm" data-a="fas" data-v="squadra">Passa nella ${esc(st.squadra.avversari)}</button></div>`
+        : '');
     if (st.pausa) return `<div class="fs-tel">${top}${capo}<div class="fs-c"><h2>Pausa</h2></div></div>`;
     if (st.fase === 'finale' || st.fase === 'fine') return `<div class="fs-tel">${top}${FAS.fineTel(g)}</div>`;
     const q = m.squadra && m.squadra.quesito;
@@ -881,6 +885,8 @@ const FAS = {
       case 'tab':
         ui.fstab = a1;
         return render();
+      case 'squadra':
+        return FAS.chiedi({ t: 'squadra' }, 'Cambio squadra');
       case 'avanti':
       case 'pausa':
         if (ui.tv) return FAS.comanda(verbo);

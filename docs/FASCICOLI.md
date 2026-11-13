@@ -209,12 +209,13 @@ Un passo = una sessione = un ramo = una richiesta di unione. Prima di ogni commi
 
 ## 10b. Sfida tra due squadre (fatto)
 Ogni fascicolo si può proporre anche «in sfida» (nello scaffale: «… · sfida tra due squadre», id del kit con `@sfida`).
-Motore `motori/36d-fascicolo-sfida.js` (`FSFIDA`, + `tests/test_fascicolo_sfida.js`, scenario `fascicolo_sfida`): due partite
+Musica propria dei fascicoli: traccia `fascicolo` in `app/03-audio.js`. Motore `motori/36d-fascicolo-sfida.js` (`FSFIDA`, + `tests/test_fascicolo_sfida.js`, scenario `fascicolo_sfida`): due partite
 `FASCICOLO` complete, una per squadra (Rossa e Blu, 4-16 telefoni divisi a giro), che vanno avanti insieme.
 - Ogni squadra ha reperti, ore, deduzioni, serrature e risposte proprie; il caposquadra di ognuna consegna per la sua.
 - La TV mostra solo i progressi: ore, numero di deduzioni e serrature, quali domande hanno risposta, annunci come
   «Squadra Rossa esamina un luogo». Mai reperti, testimonianze, sopralluoghi o risposte prima della rivelazione.
 - Nella sfida non si proietta sulla TV (la vedrebbero gli avversari).
+- Prima di aprire il caso ognuno può passare nell'altra squadra dal telefono (nessuna squadra resta vuota).
 - In indagine, consegna e accusa si va avanti quando sono pronte tutte e due (un secondo tocco ritira la squadra) o allo
   scadere del tempo. Alla rivelazione ognuna vede il proprio esito; vince chi ha più stelle (pari: tutte e due).
 
