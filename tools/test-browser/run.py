@@ -3144,6 +3144,63 @@ async def sc_fascicolo(b, srv):
     check(not errs, f'nessun errore nelle pagine {errs[:2]}')
     for c in ctxs: await c.close()
 
+async def sc_fascicolo_sfida(b, srv):
+    """Fascicolo in sfida: quattro telefoni in due squadre e la TV regista; la TV annuncia senza svelare, ogni squadra
+    vede solo ciò che trova, si va avanti quando sono pronte tutte e due."""
+    sh = Shared(); SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    nomi = ['Ada', 'Bruno', 'Carla', 'Dario']
+    ctxA, A = await telefono_rt(b, srv, sh, nomi[0], 71)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    altri = await asyncio.gather(*[telefono_rt(b, srv, sh, n, 72 + i, '?room=' + code + '&net=rt') for i, n in enumerate(nomi[1:])])
+    P = [A] + [x[1] for x in altri]; ctxs = [ctxA] + [x[0] for x in altri]
+    await A.wait_for_function("R.members.length===4&&R.members.every(m=>m.uid)", timeout=40000)
+    ctxT, T = await telefono_rt(b, srv, sh, '', 80, '?tv=' + code + '&net=rt'); ctxs.append(ctxT)
+    await T.set_viewport_size({'width': 1920, 'height': 1080})
+    await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
+    await T.click('[data-a=giaregia]'); await T.wait_for_function('REGIA.sono()', timeout=30000)
+    await A.wait_for_function('!!REGIA.uid', timeout=30000)
+    await A.evaluate("ui.err='';startGame('fascicolo',null,{kit:'il-gatto-del-notaio@sfida'})")
+    for p in P: await p.wait_for_function("FAS.mano.stato&&FAS.mano.stato.squadra", timeout=40000)
+    sq = [await p.evaluate("FAS.mano.stato.squadra.id") for p in P]
+    check(sorted(sq) == ['A', 'A', 'B', 'B'], f'sfida: due squadre da due {sq}')
+    await T.wait_for_function("document.querySelector('.fs-tv-sfida .fs-sq-A')&&document.querySelector('.fs-tv-sfida .fs-sq-B')", timeout=30000)
+    check(True, 'TV: una colonna per squadra')
+    async def capi_avanti(fino):
+        for _ in range(20):
+            if await T.evaluate("G.fase") == fino: return True
+            # un solo caposquadra per giro: nell'apertura basta uno, così non si salta l'indagine
+            for p in P:
+                if await p.evaluate("FAS.mano.stato.capo"):
+                    await p.evaluate("FAS.chiedi({t:'avanti'})"); break
+            await T.wait_for_timeout(1500)
+        return await T.evaluate("G.fase") == fino
+    check(await capi_avanti('indagine'), 'i capisquadra aprono il caso e arrivano all’indagine')
+    rossi = [p for p, x in zip(P, sq) if x == 'A']; blu = [p for p, x in zip(P, sq) if x == 'B']
+    luo = None
+    for p in rossi:
+        if await p.evaluate("FAS.mano.stato.spec.some(x=>x.id==='luoghi')"): luo = p
+    await luo.evaluate("ui.fstab='azione';render()"); await luo.click('[data-a=fas][data-v="esplora:cesta"]')
+    await luo.wait_for_function("FAS.mano.reperti.l.some(r=>r.id==='foglio')", timeout=30000)
+    await T.wait_for_function("document.querySelector('.fs-ann-A')", timeout=30000)
+    testo_tv = await T.inner_text('.fs-tv-sfida')
+    check('Squadra Rossa esamina un luogo' in testo_tv and 'carta bollata' not in testo_tv, 'TV: annuncia la squadra rossa senza dire cosa ha trovato')
+    check(not any([await p.evaluate("FAS.mano.reperti.l.some(r=>r.id==='foglio')") for p in blu]), 'la squadra blu non riceve il reperto della rossa')
+    await T.wait_for_timeout(800); await T.screenshot(path=os.path.join(SCH, 'fascicolo-sfida-tv.png')); await luo.screenshot(path=os.path.join(SCH, 'fascicolo-sfida-tel.png'))
+    capoA = None
+    for p in rossi:
+        if await p.evaluate("FAS.mano.stato.capo"): capoA = p
+    await capoA.evaluate("FAS.chiedi({t:'avanti'})")
+    await capoA.wait_for_function("FAS.mano.stato.squadra.pronta", timeout=30000)
+    check(await T.evaluate("G.fase") == 'indagine', 'una squadra pronta: si aspetta l’altra')
+    for p in blu:
+        if await p.evaluate("FAS.mano.stato.capo"): await p.evaluate("FAS.chiedi({t:'avanti'})")
+    await T.wait_for_function("G.fase==='consegna'", timeout=30000)
+    check(True, 'pronte tutte e due: si passa alla consegna')
+    errs = [e for p in P + [T] for e in p.errs]
+    check(not errs, f'nessun errore nelle pagine {errs[:2]}')
+    for c in ctxs: await c.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
