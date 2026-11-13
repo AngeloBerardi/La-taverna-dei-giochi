@@ -3034,6 +3034,112 @@ async def sc_avv_succo(b, srv):
     check(not pg.errs and not await pg.evaluate("ERR.b.length"), f'riduci animazioni: nessun errore {pg.errs[:2]}')
     await ctx.close()
 
+async def sc_fascicolo(b, srv):
+    """Fascicolo (indagine di squadra): tre telefoni e la TV regista sul kit di prova; specialità, metà da unire,
+    sopralluogo e interrogatorio sulla TV, TV riavviata a metà, collegamento, risposta del caposquadra, accusa e verità."""
+    sh = Shared(); kit = json.load(open(os.path.join(DIST, '..', 'src', 'kit', 'il-gatto-del-notaio.json')))
+    SCH = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    nomi = ['Ada', 'Bruno', 'Carla']
+    ctxA, A = await telefono_rt(b, srv, sh, nomi[0], 51)
+    await A.wait_for_function("R.mode==='rt'&&R.code==='PIAZZA'", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    altri = await asyncio.gather(*[telefono_rt(b, srv, sh, n, 52 + i, '?room=' + code + '&net=rt') for i, n in enumerate(nomi[1:])])
+    P = [A] + [x[1] for x in altri]; ctxs = [ctxA] + [x[0] for x in altri]
+    await A.wait_for_function("R.members.length===3&&R.members.every(m=>m.uid)", timeout=40000)
+    ctxT, T = await telefono_rt(b, srv, sh, '', 60, '?tv=' + code + '&net=rt'); ctxs.append(ctxT)
+    await T.set_viewport_size({'width': 1920, 'height': 1080})
+    await T.wait_for_function("ui.tv&&R.doc&&document.querySelector('[data-a=giaregia]')", timeout=30000)
+    await T.click('[data-a=giaregia]'); await T.wait_for_function('REGIA.sono()', timeout=30000)
+    await A.wait_for_function('!!REGIA.uid', timeout=30000)
+    await A.evaluate("ui.err='';startGame('fascicolo',null,{kit:'il-gatto-del-notaio'})")
+    for p in P: await p.wait_for_function("G&&G.g==='fascicolo'&&FAS.mano.stato&&FAS.mano.stato.fase==='pronta'", timeout=40000)
+    spec = [await p.evaluate("FAS.mano.stato.spec.map(x=>x.id).join(',')") for p in P]
+    check(sorted(','.join(spec).split(',')) == sorted(['archivio', 'scientifica', 'testimoni', 'luoghi']), f'fascicolo: le quattro specialità divise tra tre telefoni {spec}')
+    stanza = sh.d['stanze/' + code + '/d']['j']
+    segreti = [x[:40] for x in kit['soluzione']['ricostruzione']] + ['"colpevole"']
+    check(not any(t in stanza for t in segreti), 'il documento della stanza non contiene la soluzione')
+    async def primo(js):
+        for p in P:
+            if await p.evaluate(js): return p
+    capo = await primo("FAS.mano.stato.capo")
+    async def capo_avanti(fino):
+        for _ in range(20):
+            c = await capo.evaluate("FAS.mano.stato.fase")
+            if c == fino: return True
+            await capo.click('[data-a=fas][data-v=avanti]')
+            await capo.wait_for_function("FAS.mano.stato.fase!==" + json.dumps(c) + "||G.riga", timeout=20000); await capo.wait_for_timeout(400)
+        return False
+    check(await capo_avanti('indagine'), 'il caposquadra apre il caso e arriva all’indagine')
+    await T.wait_for_function("G.fase==='indagine'&&document.querySelector('.fs-timer[data-fsfino]')", timeout=30000)
+    await T.screenshot(path=os.path.join(SCH, 'fascicolo-tv-indagine.png'))
+    # metà del pendolo su due telefoni diversi: ognuno legge la sua, poi «Unisci»
+    meta = [(p, await p.evaluate("(FAS.mano.reperti.l.find(r=>r.id==='pendolo')||{}).meta")) for p in P]
+    due = [p for p, m in meta if m in (0, 1)]
+    if len(due) == 2:
+        for p in due:
+            await p.evaluate("ui.fstab='fascicolo';render()"); await p.click('[data-a=fas][data-v="unisci:pendolo"]'); await p.wait_for_timeout(500)
+        for p in due: await p.wait_for_function("FAS.mano.reperti.l.find(r=>r.id==='pendolo').meta===undefined", timeout=30000)
+        check(True, 'pendolo: le due metà unite, tutti e due leggono il reperto intero')
+        await T.wait_for_function("document.querySelector('.fs-unito')", timeout=30000)
+        check(True, 'TV: il reperto ricomposto a tutto schermo')
+    else: check(True, 'pendolo: un solo telefono ha le due specialità, arriva già intero')
+    # sopralluogo dai Luoghi: la zona compare sulla TV
+    luo = next(p for p, s in zip(P, spec) if 'luoghi' in s)
+    await luo.evaluate("ui.fstab='azione';render()")
+    await luo.screenshot(path=os.path.join(SCH, 'fascicolo-tel-luoghi.png'))
+    await luo.click('[data-a=fas][data-v="esplora:cesta"]')
+    await T.wait_for_function("document.querySelector('.fs-pianta i.on')", timeout=30000)
+    check('cesta' in (await T.inner_text('.fs-scena')).lower(), 'TV: la zona esaminata sulla pianta')
+    await luo.wait_for_function("FAS.mano.reperti.l.some(r=>r.id==='foglio')", timeout=30000)
+    # interrogatorio dai Testimoni: la risposta va sulla TV
+    tes = next(p for p, s in zip(P, spec) if 'testimoni' in s)
+    await tes.evaluate("ui.fstab='azione';render()")
+    await tes.click('[data-a=fas][data-v="chiedi:t-cena"]')
+    await T.wait_for_function("document.querySelector('.fs-interr')", timeout=30000)
+    check('22:50' in await T.inner_text('.fs-interr'), 'TV: interrogatorio con la risposta del testimone')
+    await T.wait_for_timeout(900); await T.screenshot(path=os.path.join(SCH, 'fascicolo-tv-interrogatorio.png'))
+    # la TV si riavvia a metà e riprende
+    await T.reload(); await T.wait_for_function("ui.tv&&G&&G.g==='fascicolo'&&REGIA.sono()&&FAS.D.s&&FAS.D.s.fase==='indagine'&&FAS.D.s.visti.cesta", timeout=40000)
+    check(True, 'TV riavviata: riprende dall’indagine con il sopralluogo fatto')
+    # collegamento: pendolo + racconto di Ilde (il testimone proietta il suo, chi ha il pendolo collega)
+    await tes.evaluate("ui.fstab='fascicolo';render()")
+    await tes.click('[data-a=fas][data-v="proietta:ilde-cena"]')
+    chi = await primo("FAS.mano.reperti.l.some(r=>r.id==='pendolo'&&r.meta===undefined)")
+    await chi.wait_for_function("FAS.mano.reperti.tv.some(r=>r.id==='ilde-cena')||FAS.mano.reperti.l.some(r=>r.id==='ilde-cena')", timeout=30000)
+    await chi.evaluate("ui.fstab='fascicolo';ui.fssel=['pendolo','ilde-cena'];render()")
+    await chi.click('[data-a=fas][data-v=collega]')
+    await chi.wait_for_function("FAS.mano.squadra.quesito", timeout=30000)
+    await chi.screenshot(path=os.path.join(SCH, 'fascicolo-tel-collega.png'))
+    await chi.click('[data-a=fas][data-v="risolvi:0"]')
+    await T.wait_for_function("(G.ded||[]).some(d=>d.id==='ora-vera')", timeout=30000)
+    check('22:40' in await T.inner_text('.fs-linea'), 'TV: la deduzione sulla linea del tempo')
+    # risposta: proposta di uno, consegna del caposquadra; la TV dice che c'è, non quale
+    altro = next(p for p in P if p is not capo)
+    await altro.evaluate("ui.fstab='squadra';render()")
+    await altro.fill('#fs-v-quando', '22:40'); await altro.click('[data-a=fas][data-v="proponi:quando"]')
+    await capo.wait_for_function("FAS.mano.squadra.domande.find(d=>d.id==='quando').proposta", timeout=30000)
+    await capo.evaluate("ui.fstab='squadra';render()")
+    await capo.click('[data-a=fas][data-v="consegna:quando"]')
+    await T.wait_for_function("G.domande.find(d=>d.id==='quando').stato==='consegnata'", timeout=30000)
+    check('22:40' not in await T.inner_text('.fs-dom'), 'TV: risposta consegnata senza mostrarla')
+    await T.screenshot(path=os.path.join(SCH, 'fascicolo-tv-consegna.png'))
+    # fino alla fine: il caposquadra di turno va avanti
+    for _ in range(60):
+        f = await T.evaluate("G.fase")
+        if f == 'fine': break
+        capo = await primo("FAS.mano.stato.capo")
+        if f == 'accusa':
+            await capo.evaluate("FAS.chiedi({t:'proponi',dom:'chi',val:'pietro'})"); await capo.wait_for_timeout(300)
+            await capo.evaluate("FAS.chiedi({t:'consegna',dom:'chi'})"); await capo.wait_for_timeout(300)
+        await capo.evaluate("FAS.chiedi({t:'avanti'})")
+        await T.wait_for_function("G.fase!==" + json.dumps(f) + "||G.riga||G.ricostruzione", timeout=20000); await T.wait_for_timeout(250)
+    await T.wait_for_function("G.fase==='fine'&&document.querySelector('.fs-grado')", timeout=30000)
+    check(True, 'fine: la TV mostra grado e ricostruzione')
+    await T.wait_for_timeout(900); await T.screenshot(path=os.path.join(SCH, 'fascicolo-tv-fine.png'))
+    errs = [e for p in P + [T] for e in p.errs]
+    check(not errs, f'nessun errore nelle pagine {errs[:2]}')
+    for c in ctxs: await c.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

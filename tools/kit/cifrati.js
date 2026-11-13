@@ -15,7 +15,7 @@ const fs = require('fs'),
   if (cmd === 'frase') return console.log(KITC.frase());
   if (cmd === 'cifra' && a) {
     const kit = JSON.parse(fs.readFileSync(a, 'utf8')),
-      err = (kit.formato === 'serata' ? SERATA : require('../../src/js/motori/36-giallo.js')).valida(kit);
+      err = (kit.formato === 'serata' ? SERATA : kit.formato === 'fascicolo' ? require('../../src/js/motori/36c-fascicolo.js') : require('../../src/js/motori/36-giallo.js')).valida(kit);
     if (err.length) throw new Error('Il kit non è valido: ' + err.join('; '));
     const frase = b || KITC.frase(),
       busta = await KITC.cifra(kit, frase);

@@ -1,0 +1,302 @@
+{
+  "id": "il-gatto-del-notaio",
+  "formato": "fascicolo",
+  "titolo": "Il gatto del notaio",
+  "sottotitolo": "Villa Ruggeri, Lago d'Orta, 13 marzo 1952",
+  "giocatori": [2, 4],
+  "minuti": 25,
+  "tono": "giallo leggero, fascicolo di prova",
+  "fonte": { "opera": "caso originale di prova", "autore": "La Taverna dei Giochi", "anno": 2026 },
+  "specialita": [
+    { "id": "archivio", "nome": "Archivio" },
+    { "id": "scientifica", "nome": "Scientifica" },
+    { "id": "testimoni", "nome": "Testimoni" },
+    { "id": "luoghi", "nome": "Luoghi" }
+  ],
+  "ore": { "inizio": 8, "capitolo": 4, "errore": 1, "aiuto": [1, 1, 2], "cerca": 0 },
+  "consegna": 2,
+  "reperti": [
+    {
+      "id": "denuncia",
+      "titolo": "La denuncia del notaio",
+      "tipo": "documento",
+      "a": "tutti",
+      "capitolo": "I",
+      "testo": "Alle 07:30 del 13 marzo il notaio Ruggeri trova la cassaforte dello studio aperta e vuota. Dentro c'era il testamento della contessa Adele, firmato il mese scorso."
+    },
+    {
+      "id": "agenda",
+      "titolo": "L'agenda del notaio",
+      "tipo": "documento",
+      "a": "archivio",
+      "capitolo": "I",
+      "testo": "12 marzo: cena alle 22:15 in sala con il nipote Corrado e la governante Ilde. Pietro resta in studio a copiare atti. Nota a margine: «Cassetto di Pietro: come ogni anno, la combinazione è l'anno in corso.»"
+    },
+    {
+      "id": "pendolo",
+      "titolo": "Il pendolo fermo",
+      "tipo": "testimonianza",
+      "a": { "meta": ["scientifica", "testimoni"], "parti": [
+        "Il pendolo dello studio si è fermato quando qualcuno ha urtato il mobile. Le lancette segnano le dieci e...",
+        "...quaranta. Ilde ricorda di aver sentito un colpo sordo dallo studio mentre serviva il dolce."
+      ] },
+      "capitolo": "I",
+      "testo": "Il pendolo dello studio si è fermato quando qualcuno ha urtato il mobile: segna le 22:40. Ilde ricorda di aver sentito un colpo sordo dallo studio mentre serviva il dolce."
+    },
+    {
+      "id": "pianta",
+      "titolo": "La pianta della villa",
+      "tipo": "mappa",
+      "a": "luoghi",
+      "capitolo": "I",
+      "testo": "Lo studio ha una finestra sul giardino e una porta sul corridoio. La rimessa con la vecchia automobile sta in fondo al giardino. La cesta del gatto Mirtillo è sotto la scrivania."
+    },
+    {
+      "id": "fango",
+      "titolo": "Fango sul davanzale",
+      "tipo": "foto",
+      "da": { "zona": "finestra" },
+      "falsa": true,
+      "smentita": "finestra-falsa",
+      "testo": "Fango sul davanzale e impronte di scarpe da uomo verso l'interno. Sembra che il ladro sia entrato dalla finestra."
+    },
+    {
+      "id": "cassaforte",
+      "titolo": "La cassaforte",
+      "tipo": "oggetto",
+      "da": { "zona": "forziere" },
+      "testo": "Nessun segno di scasso: la cassaforte è stata aperta con la combinazione."
+    },
+    {
+      "id": "foglio",
+      "titolo": "Il foglio nella cesta",
+      "tipo": "oggetto",
+      "da": { "zona": "cesta" },
+      "testo": "Nella cesta del gatto, sotto la coperta, un angolo di carta bollata strappato. Porta il timbro dello studio Ruggeri."
+    },
+    {
+      "id": "ilde-cena",
+      "titolo": "Ilde e la cena",
+      "tipo": "testimonianza",
+      "da": { "tema": "t-cena" },
+      "testo": "Ilde: Pietro è venuto a tavola tardi, alle 22:50, con le mani sporche d'inchiostro e il fiato corto."
+    },
+    {
+      "id": "ilde-gatto",
+      "titolo": "Ilde e il gatto",
+      "tipo": "testimonianza",
+      "da": { "tema": "t-gatto" },
+      "testo": "Ilde: alle 23:00 ho sentito Mirtillo miagolare in fondo al giardino. Era chiuso nella rimessa, e lui in rimessa non ci va mai da solo."
+    },
+    {
+      "id": "corrado",
+      "titolo": "La notte di Corrado",
+      "tipo": "testimonianza",
+      "da": { "tema": "t-notte" },
+      "testo": "Corrado: sono tornato alle 23:30 a supplicare lo zio di cambiare idea. Ho bussato alla finestra dello studio, nessuno ha aperto. Pioveva forte."
+    },
+    {
+      "id": "pietro-combinazione",
+      "titolo": "Pietro e la combinazione",
+      "tipo": "testimonianza",
+      "da": { "tema": "t-combinazione" },
+      "testo": "Pietro: la combinazione la conosciamo in due, io e il notaio. Ma io ero in studio a copiare, non ho visto niente."
+    },
+    {
+      "id": "notaio-copia",
+      "titolo": "Il notaio e la copia",
+      "tipo": "testimonianza",
+      "da": { "tema": "t-copia" },
+      "testo": "Notaio Ruggeri: la contessa ha rifatto il testamento a febbraio. La copia l'ha battuta a macchina Pietro, parola per parola."
+    },
+    {
+      "id": "pioggia",
+      "titolo": "Analisi del fango",
+      "tipo": "documento",
+      "da": { "analisi": "a-fango" },
+      "testo": "Il fango è fresco e impastato d'acqua piovana. La pioggia è cominciata alle 23:15: chi è passato dalla finestra lo ha fatto dopo."
+    },
+    {
+      "id": "lascito",
+      "titolo": "Il testamento vecchio",
+      "tipo": "documento",
+      "capitolo": "II",
+      "da": { "cerca": ["lascito", "legato", "testamento"] },
+      "testo": "Copia del testamento vecchio della contessa: un lascito di ventimila lire al segretario Pietro. Nel testamento nuovo quel lascito non c'è più."
+    },
+    {
+      "id": "biglietto",
+      "titolo": "Il biglietto nel cassetto",
+      "tipo": "documento",
+      "da": { "serratura": "cassetto" },
+      "testo": "Un biglietto con la grafia di Pietro: «Rimessa, sotto il telo dell'automobile. Domani all'alba lo porto via.»"
+    }
+  ],
+  "luoghi": [
+    {
+      "id": "studio",
+      "nome": "Lo studio",
+      "capitolo": "I",
+      "zone": [
+        { "id": "finestra", "nome": "La finestra", "x": 0.05, "y": 0.15, "w": 0.25, "h": 0.4, "ore": 1, "testo": "Il davanzale è sporco di fango. La finestra si apre solo da dentro." },
+        { "id": "forziere", "nome": "La cassaforte", "x": 0.6, "y": 0.3, "w": 0.25, "h": 0.35, "ore": 1, "testo": "La porta della cassaforte è socchiusa, la serratura intatta." },
+        { "id": "cesta", "nome": "La cesta del gatto", "x": 0.35, "y": 0.7, "w": 0.2, "h": 0.25, "ore": 1, "testo": "Una cesta di vimini con una coperta a quadri. Qualcosa fruscia sotto." }
+      ]
+    },
+    { "id": "sala", "nome": "La sala da pranzo", "capitolo": "I", "zone": [] },
+    {
+      "id": "rimessa",
+      "nome": "La rimessa",
+      "capitolo": "II",
+      "zone": [
+        { "id": "telo", "nome": "Il telo dell'automobile", "x": 0.3, "y": 0.4, "w": 0.4, "h": 0.4, "ore": 1, "testo": "Sotto il telo c'è un'impronta rettangolare nella polvere: qualcosa è stato appoggiato lì e portato via." }
+      ]
+    },
+    { "id": "giardino", "nome": "Il giardino", "capitolo": "I", "zone": [] }
+  ],
+  "persone": [
+    {
+      "id": "ilde",
+      "nome": "Ilde Moro",
+      "ruolo": "governante della villa",
+      "temi": [
+        { "id": "t-cena", "domanda": "Chi c'era a cena?", "risposta": "Il notaio, il signor Corrado e io a servire. Pietro è arrivato tardi, alle 22:50, con le mani sporche d'inchiostro.", "ore": 1, "capitolo": "I" },
+        { "id": "t-gatto", "domanda": "Mostrale il foglio trovato nella cesta: dov'era il gatto stanotte?", "risposta": "Mirtillo? Alle 23:00 miagolava chiuso nella rimessa. Lì non ci va mai da solo.", "ore": 1, "richiede": ["foglio"], "capitolo": "I" }
+      ]
+    },
+    {
+      "id": "corrado",
+      "nome": "Corrado Ruggeri",
+      "ruolo": "nipote della contessa, escluso dal testamento nuovo",
+      "temi": [
+        { "id": "t-notte", "domanda": "Dov'era dopo cena?", "risposta": "Sono tornato alle 23:30 a supplicare lo zio. Ho bussato alla finestra, nessuno ha aperto. Pioveva forte.", "ore": 1, "capitolo": "I" }
+      ]
+    },
+    {
+      "id": "pietro",
+      "nome": "Pietro Sala",
+      "ruolo": "segretario del notaio",
+      "colpevole": true,
+      "temi": [
+        { "id": "t-combinazione", "domanda": "Mostragli la cassaforte: chi conosce la combinazione?", "risposta": "Io e il notaio. Ma ero in studio a copiare, non ho visto niente.", "ore": 1, "richiede": ["cassaforte"], "capitolo": "II" }
+      ]
+    },
+    {
+      "id": "ruggeri",
+      "nome": "Notaio Ruggeri",
+      "ruolo": "notaio, custode del testamento",
+      "temi": [
+        { "id": "t-copia", "domanda": "Chi ha preparato il testamento nuovo?", "risposta": "La contessa l'ha rifatto a febbraio. La copia l'ha battuta Pietro, parola per parola.", "ore": 1, "capitolo": "II" }
+      ]
+    }
+  ],
+  "analisi": [{ "id": "a-fango", "su": "fango", "minuti": 2, "ore": 1 }],
+  "serrature": [
+    {
+      "id": "cassetto",
+      "titolo": "Il cassetto di Pietro",
+      "testo": "Un lucchetto a quattro cifre sul cassetto della scrivania del segretario.",
+      "tipo": "codice",
+      "soluzione": "1952",
+      "richiede": ["agenda"],
+      "capitolo": "II",
+      "aiuti": ["Cercate nell'agenda una nota sul cassetto", "La combinazione è un anno", "L'anno è scritto in cima a questo fascicolo"]
+    }
+  ],
+  "collegamenti": [
+    {
+      "id": "ora-vera",
+      "servono": ["pendolo", "ilde-cena"],
+      "domanda": "Che cosa dicono insieme il pendolo e il racconto di Ilde?",
+      "scelte": ["La cassaforte è stata aperta alle 22:40, mentre gli altri erano a cena", "Il furto è avvenuto dopo che ha cominciato a piovere", "Il pendolo l'ha fermato Corrado per confondere le idee"],
+      "giusta": 0,
+      "deduzione": "La cassaforte è stata aperta alle 22:40, mentre gli altri erano a cena",
+      "quando": "22:40",
+      "aiuti": ["Guardate a che ora Pietro arriva a tavola"]
+    },
+    {
+      "id": "finestra-falsa",
+      "servono": ["fango", "pioggia"],
+      "domanda": "Il fango sul davanzale c'entra con il furto?",
+      "scelte": ["No: è di dopo le 23:15, quando il furto era già fatto", "Sì: il ladro è entrato dalla finestra", "Non si può dire"],
+      "giusta": 0,
+      "deduzione": "Il fango sulla finestra è di dopo le 23:15: non c'entra con il furto",
+      "quando": "23:15"
+    },
+    {
+      "id": "combinazione",
+      "servono": ["cassaforte", "pietro-combinazione"],
+      "domanda": "Chi poteva aprire la cassaforte senza forzarla?",
+      "scelte": ["Solo Pietro e il notaio", "Chiunque fosse in casa", "Solo Corrado"],
+      "giusta": 0,
+      "deduzione": "Solo Pietro e il notaio sapevano aprire la cassaforte"
+    },
+    {
+      "id": "nascondiglio",
+      "servono": ["foglio", "ilde-gatto"],
+      "domanda": "Che strada ha fatto il testamento?",
+      "scelte": ["Dalla cassaforte alla cesta del gatto, poi in rimessa insieme a Mirtillo", "Dalla finestra al giardino", "È rimasto nello studio"],
+      "giusta": 0,
+      "deduzione": "Il testamento è passato dalla cesta del gatto alla rimessa"
+    }
+  ],
+  "capitoli": [
+    {
+      "id": "I",
+      "titolo": "La cassaforte vuota",
+      "minuti": 12,
+      "apertura": [
+        { "testo": "Villa Ruggeri, la mattina del 13 marzo 1952. Il notaio ha chiamato la questura: il testamento della contessa Adele è sparito." },
+        { "cue": { "reperto": "denuncia", "luogo": "studio" } },
+        { "testo": "Ognuno di voi ha una parte del fascicolo. Nessuno ha tutto: parlate, mostrate, unite." }
+      ],
+      "domande": ["quando", "dove"],
+      "chiusura": [{ "testo": "Il testamento non è uscito dalla finestra. Qualcuno in casa sapeva dove nasconderlo." }]
+    },
+    {
+      "id": "II",
+      "titolo": "Il segretario",
+      "minuti": 10,
+      "apertura": [{ "testo": "Il notaio vi lascia frugare nell'archivio dello studio e nella rimessa. Pietro chiede di poter tornare a casa." }],
+      "domande": ["ora"],
+      "chiusura": [{ "testo": "È il momento di dire chi è stato." }]
+    }
+  ],
+  "domande": [
+    { "id": "quando", "testo": "A che ora è stata aperta la cassaforte?", "tipo": "orario", "giusta": "22:40", "prove": ["ora-vera", "pendolo"], "stelle": 2, "rivelazione": "Il pendolo urtato e il ritardo a cena dicono la stessa ora.", "aiuti": ["Unite le due metà del pendolo"] },
+    { "id": "dove", "testo": "Dove è stato nascosto per primo il testamento?", "tipo": "scelta", "scelte": ["Fuori dalla finestra", "Nella cesta del gatto", "In sala da pranzo"], "giusta": 1, "prove": ["foglio", "nascondiglio"], "rivelazione": "Un angolo di carta bollata nella cesta di Mirtillo.", "aiuti": ["Esaminate tutte le zone dello studio"] },
+    { "id": "ora", "testo": "Dove si trova adesso il testamento?", "tipo": "luogo", "giusta": "rimessa", "prove": ["ilde-gatto", "biglietto"], "rivelazione": "Sotto il telo dell'automobile, in rimessa: Pietro voleva portarlo via all'alba.", "aiuti": ["Aprite il cassetto di Pietro"] },
+    { "id": "chi", "testo": "Chi ha preso il testamento?", "tipo": "personaggio", "giusta": "pietro", "prove": ["combinazione", "biglietto", "ilde-cena"], "stelle": 3 },
+    { "id": "come", "testo": "Come è stata aperta la cassaforte?", "tipo": "scelta", "scelte": ["Forzata con un attrezzo", "Con la combinazione", "Con una chiave rubata"], "giusta": 1, "prove": ["cassaforte", "combinazione"] },
+    { "id": "perche", "testo": "Perché?", "tipo": "scelta", "scelte": ["Per farsi pagare da Corrado", "Perché il testamento nuovo gli toglieva un lascito", "Per vendicarsi del notaio"], "giusta": 1, "prove": ["lascito", "notaio-copia"] }
+  ],
+  "accusa": { "domande": ["chi", "come", "perche"], "sostegno": 2 },
+  "soluzione": {
+    "cronologia": [
+      { "ora": "22:15", "testo": "Cena in sala: il notaio, Corrado, Ilde. Pietro resta in studio." },
+      { "ora": "22:40", "testo": "Pietro apre la cassaforte con la combinazione, urta il pendolo, nasconde il testamento nella cesta." },
+      { "ora": "22:50", "testo": "Pietro arriva a cena con le mani sporche d'inchiostro." },
+      { "ora": "23:00", "testo": "Pietro porta la cesta in rimessa, il gatto resta chiuso dentro." },
+      { "ora": "23:15", "testo": "Comincia a piovere." },
+      { "ora": "23:30", "testo": "Corrado bussa alla finestra dello studio e lascia il fango." },
+      { "ora": "07:30", "testo": "Il notaio trova la cassaforte vuota." }
+    ],
+    "ricostruzione": [
+      "Il testamento nuovo toglieva a Pietro il lascito che la contessa gli aveva promesso. L'aveva battuto a macchina lui stesso.",
+      "Mentre gli altri cenavano, Pietro ha aperto la cassaforte con la combinazione che conosceva. Nella fretta ha urtato il pendolo.",
+      "Ha nascosto il testamento nella cesta del gatto, poi l'ha portato in rimessa sotto il telo dell'automobile.",
+      "Il fango sulla finestra era di Corrado, venuto più tardi a chiedere pietà: la pioggia lo dimostra."
+    ],
+    "epilogo": {
+      "pieno": "Il testamento torna nella cassaforte e Pietro nella questura di Omegna. Il notaio vi offre il caffè.",
+      "parziale": "Pietro confessa, ma il fascicolo ha dei buchi: il giudice ve lo farà notare.",
+      "fallito": "All'alba un'automobile parte dalla rimessa. Il testamento non si troverà più."
+    }
+  },
+  "gradi": [
+    { "da": 0, "nome": "Piantone" },
+    { "da": 6, "nome": "Brigadiere" },
+    { "da": 10, "nome": "Ispettore" },
+    { "da": 13, "nome": "Commissario" }
+  ]
+}
