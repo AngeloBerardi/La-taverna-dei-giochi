@@ -143,3 +143,5 @@
 .fs-quesito h2{font:400 26px var(--f-d);color:var(--fs-acc)}
 .fs-quesito .b{display:block;width:100%;margin:10px 0;text-align:left;min-height:52px}
 .fs-lab-t{font-size:14px}
+/* sulla TV i bottoni sono spenti (37-schermo.css): qui si riaccendono quelli del fascicolo (frase del kit, riprova) */
+html[data-tv] #app .fs-tv [data-a]{pointer-events:auto;cursor:pointer}
