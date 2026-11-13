@@ -150,3 +150,14 @@ html[data-tv] #app .fs-tv [data-a]{pointer-events:auto;cursor:pointer}
 .fs-scena{position:relative}
 .fs-cop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;border-radius:6px}
 .fs-scena>.fs-c{position:relative}
+/* sfida tra due squadre: una colonna per squadra, rossa a sinistra e blu a destra */
+.fs-sq{padding:12px 14px;border:3px solid var(--sq);border-radius:6px;background:color-mix(in srgb,var(--sq) 14%,transparent)}
+.fs-sq-A{--sq:#c0503f}.fs-sq-B{--sq:#4f7fc0}
+.fs-sq h2{margin:0;font:400 34px var(--f-d)!important;letter-spacing:0!important;text-transform:none!important;opacity:1!important;color:var(--sq)}
+.fs-sq-m{margin:2px 0 6px;font-size:16px;opacity:.8}.fs-sq-n{margin:0 0 10px;font-size:19px}.fs-sq-n em{color:#8fd07a;font-style:normal;font-weight:800}
+.fs-sq ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.fs-sq .fs-d h3{font-size:19px}
+.fs-vince{box-shadow:0 0 40px var(--sq)}
+.fs-ann-A h2{color:#e07a68}.fs-ann-B h2{color:#7fa7e0}
+.fs-attesa{flex:1;align-self:center;font-weight:800;color:var(--fs-acc)}
+.fs-volto svg{width:100%;height:100%;display:block}

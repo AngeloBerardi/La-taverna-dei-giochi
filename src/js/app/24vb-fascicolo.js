@@ -6,16 +6,26 @@
 const FAS = {
   // ---- registrazione (GAMES in 07-nucleo.js) ----
   elenco: () => Object.entries(REGIA.KIT).filter(([, k]) => k.formato === 'fascicolo'),
-  kits: () => FAS.elenco().map(([id, k]) => [id, k.titolo + ' · ' + k.giocatori.join('–') + ' · ' + k.minuti + ' min']),
-  range: () => '2–8',
-  ok: n => n >= 2 && n <= 8,
+  // ogni fascicolo si gioca in squadra (id) o in sfida tra due squadre (id@sfida, motori/36d-fascicolo-sfida.js)
+  kits: () =>
+    FAS.elenco().flatMap(([id, k]) => [
+      [id, k.titolo + ' · ' + k.giocatori.join('–') + ' · ' + k.minuti + ' min'],
+      [id + '@sfida', k.titolo + ' · sfida tra due squadre · 4–16'],
+    ]),
+  idKit: id => String(id || '').split('@')[0],
+  sfida: () => !!(G && /@sfida$/.test(G.kit || '')),
+  M: () => (FAS.sfida() ? FSFIDA : FASCICOLO),
+  range: () => '2–16',
+  ok: n => n >= 2 && n <= 16,
   check(S, o) {
     if (!o || !o.kit) return 'Scegli il fascicolo';
     if (!R.on || R.mode !== 'rt') return 'Il fascicolo si gioca solo in una stanza online';
     if (S.some(x => x.k !== 'm')) return 'Serve un telefono a testa: togli gli ospiti';
     if (S.some(x => !x.uid)) return 'Qualcuno non ha ancora il profilo online: aspettate qualche secondo';
     if (!REGIA.uid) return 'Prima collega lo schermo comune e premi «Fai da regista» sulla TV';
-    const k = REGIA.KIT[o.kit];
+    const k = REGIA.KIT[FAS.idKit(o.kit)];
+    if (/@sfida$/.test(o.kit))
+      return S.length < 4 || S.length > 16 ? 'La sfida si gioca da 4 a 16 telefoni, divisi in due squadre' : '';
     if (k && (S.length < k.giocatori[0] || S.length > k.giocatori[1]))
       return 'Questo fascicolo si gioca da ' + k.giocatori.join(' a ') + ' telefoni';
     return '';
@@ -115,8 +125,8 @@ const FAS = {
       if (D.un) D.un();
       D.un = null;
       D.s = null;
-      D.k = await SER.sblocca(await REGIA.kit(g.kit));
-      FAS.conMedia(D.k, D.k.media || (REGIA.KIT[g.kit] || {}).media);
+      D.k = await SER.sblocca(await REGIA.kit(FAS.idKit(g.kit)));
+      FAS.conMedia(D.k, D.k.media || (REGIA.KIT[FAS.idKit(g.kit)] || {}).media);
       const e = FASCICOLO.valida(D.k);
       if (e.length) throw new Error('Kit non valido: ' + e[0]);
       const salvato = await REGIA.carica(R.code);
@@ -126,7 +136,7 @@ const FAS = {
       } else {
         await REGIA.pulisci(R.code);
         const S = seatsNow().filter(x => x.uid);
-        const r = FASCICOLO.nuova(
+        const r = FAS.M().nuova(
           D.k,
           S.map(x => ({ uid: x.uid, nome: x.name })),
           {}
@@ -171,7 +181,7 @@ const FAS = {
           giri = [];
         await REGIA.salva(code, { gid: D.gid, s });
         if (s) {
-          const m = FASCICOLO.mani(s, D.k);
+          const m = FAS.M().mani(s, D.k);
           for (const u of Object.keys(m))
             for (const [key, o] of Object.entries(m[u])) {
               const j = JSON.stringify(o),
@@ -191,15 +201,24 @@ const FAS = {
     const D = FAS.D,
       s = D.s;
     if (!s) return;
-    const pub = FASCICOLO.pubblico(s, D.k);
+    const pub = FAS.M().pubblico(s, D.k);
     pub.titolo = D.k.titolo;
     pub.sottotitolo = D.k.sottotitolo || '';
     pub.tema = (D.k.scena && D.k.scena.palette) || null;
     const S = seatsNow();
+    // in sfida vince la squadra con più stelle; ogni posto prende le stelle della sua squadra
+    const sq = u => (s.sq && s.sq.A.ordine.includes(u) ? 'A' : 'B');
     const over =
-      s.fase === 'fine' && s.ris
-        ? { scores: S.map(() => s.ris.stelle), winners: s.ris.finale === 'fallito' ? [] : S.map((_, i) => i) }
-        : null;
+      s.modo === 'sfida'
+        ? s.sq.A.fase === 'fine' && s.ris
+          ? {
+              scores: S.map(x => s.ris[sq(x.uid)].stelle),
+              winners: S.map((x, i) => (s.ris.vince.includes(sq(x.uid)) ? i : -1)).filter(i => i >= 0),
+            }
+          : null
+        : s.fase === 'fine' && s.ris
+          ? { scores: S.map(() => s.ris.stelle), winners: s.ris.finale === 'fallito' ? [] : S.map((_, i) => i) }
+          : null;
     await RT.transactRoom(R.code, cur => {
       if (!cur || cur.phase !== 'play' || !cur.s || cur.s.gid !== D.gid) return;
       const o = cur.s;
@@ -235,7 +254,7 @@ const FAS = {
           let err = '';
           if (!D.s) err = 'L’indagine non è ancora pronta';
           else {
-            const r = FASCICOLO.act(D.s, { ...x.a, uid: x.uid, regia: false }, D.k, Date.now());
+            const r = FAS.M().act(D.s, { ...x.a, uid: x.uid, regia: false }, D.k, Date.now());
             if (r.err) err = r.err;
             else D.s = r.s;
           }
@@ -250,7 +269,7 @@ const FAS = {
   comanda(t, x) {
     const D = FAS.D;
     if (!D.s) return;
-    const r = FASCICOLO.act(D.s, { t, uid: '__tv', regia: true, ...(x || {}) }, D.k, Date.now());
+    const r = FAS.M().act(D.s, { t, uid: '__tv', regia: true, ...(x || {}) }, D.k, Date.now());
     if (r.err) return say(r.err, 2500);
     D.s = r.s;
     FAS.salva();
@@ -267,7 +286,7 @@ const FAS = {
       if (ui.screen === 'game') render();
     }
     if (!ui.tv || !G || G.g !== 'fascicolo' || !D.s || !REGIA.sono() || D.gid !== G.gid) return;
-    const r = FASCICOLO.tick(D.s, D.k, Date.now());
+    const r = FAS.M().tick(D.s, D.k, Date.now());
     if (r) {
       D.s = r.s;
       FAS.salva();
@@ -284,6 +303,7 @@ const FAS = {
       s = D.s,
       k = D.k;
     if (!s || !REGIA.sono()) return;
+    if (s.modo === 'sfida') return FAS.dopoSfida();
     // la voce legge la riga nuova del copione e i passi della ricostruzione
     const g = G;
     const chiave = s.fase + s.cap + ':' + s.riga + ':' + s.fin;
@@ -391,6 +411,91 @@ const FAS = {
     setTimeout(render, 30);
   },
 
+  // la TV della sfida: legge la narrazione comune, annuncia chi fa cosa senza dire che cosa ha trovato
+  dopoSfida() {
+    const D = FAS.D,
+      s = D.s,
+      k = D.k,
+      g = G,
+      a = s.sq.A;
+    const chiave = a.fase + a.cap + ':' + a.riga + ':' + a.fin;
+    if (chiave !== D.detto) {
+      D.detto = chiave;
+      if (g.riga && g.riga.testo) SCENA.dici(g.riga.testo);
+      if (g.riga && g.riga.riv) {
+        const d = (g.domande || []).find(x => x.id === g.riga.riv);
+        if (d) SCENA.dici('La risposta era: ' + d.vera + '. ' + (d.rivelazione || ''));
+      }
+      if (a.fase === 'finale' && a.fin > 0) SCENA.dici(k.soluzione.ricostruzione[a.fin - 1]);
+    }
+    const c = g.cue,
+      b = g.cueBase;
+    if (c && c.n > (D.cueS || 0)) {
+      D.cueS = c.n;
+      const nome = FSFIDA.NOMI[c.squadra];
+      if (c.tipo === 'annuncio') {
+        Snd.play('gcarta');
+        D.mom = {
+          cue: { tipo: 'annuncio', squadra: c.squadra, testo: nome + ' ' + c.testo },
+          da: Date.now(),
+          fino: Date.now() + 6000,
+        };
+      }
+      if (c.tipo === 'pronta') {
+        Snd.play('gbusta');
+        SCENA.dici(nome + ' ha finito e aspetta gli avversari.');
+      }
+    }
+    if (b && b.n > (D.cueN || 0)) {
+      D.cueN = b.n;
+      if (b.tipo === 'capitolo') {
+        Snd.play('gstacco');
+        SCENA.dici('Capitolo ' + k.capitoli[b.i].id + '. ' + k.capitoli[b.i].titolo);
+      }
+      if (b.tipo === 'indagine') SCENA.dici('Si indaga. Che vinca la squadra migliore.');
+      if (b.tipo === 'consegna-apre') SCENA.dici('Il tempo è finito. I capisquadra consegnino le risposte.');
+      if (b.tipo === 'rivela') Snd.play('grullo');
+      if (b.tipo === 'fine') Snd.play('gapplauso');
+    }
+    setTimeout(render, 30);
+  },
+  sfidaTV(g, stile) {
+    const cap = g.cap ? 'Capitolo ' + (g.cap.i + 1) + ' di ' + g.cap.di + ' · ' + esc(g.cap.titolo) : '';
+    const col = q => {
+      const dom = q.domande
+        .map(d => {
+          const es = d.stato === 'rivelata' ? (d.giusta ? 'fs-giusta' : 'fs-errata') : '';
+          return `<li class="fs-d ${d.stato} ${es}"><h3>${esc(d.testo)}</h3><p class="fs-stato">${d.stato === 'rivelata' ? (d.giusta ? 'Giusto' : 'Sbagliato') : FAS.STATI[d.stato]}</p></li>`;
+        })
+        .join('');
+      const ris = q.ris ? `<p class="fs-grado"><b>${esc(q.ris.grado)}</b><span>${q.ris.stelle} stelle</span></p>` : '';
+      return `<section class="fs-sq fs-sq-${q.id} ${(g.vince || []).includes(q.id) ? 'fs-vince' : ''}"><h2>${esc(q.nome)}</h2><p class="fs-sq-m">${q.membri.map(esc).join(', ')}</p><p class="fs-sq-n"><b>${FAS.ore(q.ore)}</b> · ${q.ded} deduzioni · ${q.aperte} serrature${q.pronta ? ' · <em>pronta</em>' : ''}</p>${ris}<ol>${dom}</ol></section>`;
+    };
+    const m = FAS.D.mom && FAS.D.mom.cue;
+    const E = FAS.D.mom && Date.now() - FAS.D.mom.da < 700 ? ' fs-entra' : '';
+    let centro = '';
+    if (m && m.tipo === 'annuncio') centro = `<div class="fs-c fs-ann-${m.squadra}${E}"><h2>${esc(m.testo)}</h2></div>`;
+    else if (g.riga && g.riga.testo) centro = `<div class="fs-c fs-racconto"><p>${esc(g.riga.testo)}</p></div>`;
+    else if (g.riga && g.riga.riv) {
+      const d = (g.domande || []).find(x => x.id === g.riga.riv);
+      centro = d
+        ? `<div class="fs-c"><small>${esc(d.testo)}</small><p class="fs-grande">${esc(d.vera || '')}</p><p>${esc(d.rivelazione || '')}</p></div>`
+        : '';
+    } else if (g.fase === 'finale' || g.fase === 'fine') {
+      const vince = (g.vince || []).map(x => g.squadre.find(q => q.id === x).nome).join(' e ');
+      centro = `<div class="fs-c fs-finale">${vince ? `<small>${g.vince.length > 1 ? 'Pareggio' : 'Vince'}</small><h2>${esc(vince)}</h2>` : ''}<ol class="fs-ricos">${(g.ricostruzione || []).map(p => `<li>${esc(p)}</li>`).join('')}</ol></div>`;
+    } else if (g.fase === 'pronta')
+      centro =
+        '<div class="fs-c"><small>Sfida</small><h2>Due squadre, un solo caso</h2><p>I capisquadra toccano «Apri il caso» quando sono pronti.</p></div>';
+    else
+      centro = `<div class="fs-c"><h2>${g.fase === 'accusa' ? 'L’accusa' : 'Indagate'}</h2>${FAS.timerH(g.fino, 'fs-timer fs-big')}<p>La TV non mostra cosa trovate: parlate sottovoce.</p></div>`;
+    return `<div class="fs-tv fs-tv-sfida" style="${stile}">
+<header class="fs-top"><div><small>${esc(g.sottotitolo || '')}</small><h1>${esc(g.titolo || '')}</h1></div>
+<div class="fs-fase"><b>${esc(FAS.FASI[g.fase] || '')}</b>${cap}</div><div class="fs-orolo">${FAS.timerH(g.fino, 'fs-timer')}</div></header>
+<aside class="fs-dom">${col(g.squadre[0])}</aside><main class="fs-scena">${centro}</main><aside class="fs-muro">${col(g.squadre[1])}</aside>
+<footer class="fs-foot">${g.pausa ? '<b class="fs-pausa">PAUSA</b>' : ''}<span>Capisquadra: <b>${esc(g.capo || '')}</b></span></footer></div>`;
+  },
+
   // ---- TV ----
   tvH() {
     const g = G,
@@ -408,6 +513,7 @@ const FAS = {
       .filter(([c]) => pal[c])
       .map(([c, v]) => v + ':' + pal[c])
       .join(';');
+    if (g.sfida && !(D.err && io)) return FAS.sfidaTV(g, stile);
     if (D.err && io)
       return `<div class="fs-tv" style="${stile}"><div class="fs-c"><p class="err">${esc(D.err)}</p>${D.frase ? FAS.fraseH() : '<button class="b gold" data-a="fas" data-v="riprova">Riprova</button>'}</div></div>`;
     if (!g.fase || g.fase === 'attesa' || (!g.cap && g.fase !== 'pronta'))
@@ -488,7 +594,10 @@ const FAS = {
       if (m.tipo === 'interrogatorio') {
         const p = k.persone.find(x => x.id === m.persona),
           t = p.temi.find(x => x.id === m.tema);
-        const volto = p.img ? `<img src="${esc(p.img)}" alt="">` : `<span>${esc(p.nome.slice(0, 1))}</span>`;
+        // senza immagine del kit, il ritratto disegnato delle cene con delitto (stesso viso per la stessa persona)
+        const volto = p.img
+          ? `<img src="${esc(p.img)}" alt="">`
+          : SCENA.ritratto(p.aspetto, k.id + ':' + p.id, (k.scena && k.scena.palette) || {});
         return `<div class="fs-interr${E}"><div class="fs-volto">${volto}</div><div><small>Interrogatorio · ${esc(p.ruolo)}</small><h2>${esc(p.nome)}</h2><p class="fs-dom-t">${esc(t.domanda)}</p><blockquote>${esc(t.risposta)}</blockquote></div></div>`;
       }
       if (m.tipo === 'zona') return FAS.luogoTV(g, k, m.luogo, m.zona);
@@ -564,9 +673,13 @@ const FAS = {
       st = m.stato;
     if (!st)
       return `<div class="fs-tel fs-c"><h2>${esc(g.titolo || 'Fascicolo')}</h2><p>La regia apre il fascicolo. Guarda la TV.</p></div>`;
-    const spec = st.spec.map(x => esc(x.nome)).join(' · ');
+    const spec = (st.squadra ? esc(st.squadra.nome) + ' · ' : '') + st.spec.map(x => esc(x.nome)).join(' · ');
     const top = `<header class="fs-ttop"><div><b>${spec}</b><small>${esc(FAS.FASI[st.fase] || '')}${g.cap ? ' · Cap. ' + (g.cap.i + 1) : ''}${st.capo ? ' · <em>caposquadra</em>' : ''}</small></div><div class="fs-tdx">${FAS.timerH(st.fino, 'fs-timer')}<span class="fs-ore">${FAS.ore(st.ore)}</span></div></header>`;
-    const capo = st.capo ? FAS.capoH(st) : '';
+    const capo =
+      (st.capo ? FAS.capoH(st) : '') +
+      (st.squadra && st.fase === 'pronta'
+        ? `<div class="fs-capo"><span class="fs-attesa">Sei nella ${esc(st.squadra.nome)}</span><button class="b sm" data-a="fas" data-v="squadra">Passa nella ${esc(st.squadra.avversari)}</button></div>`
+        : '');
     if (st.pausa) return `<div class="fs-tel">${top}${capo}<div class="fs-c"><h2>Pausa</h2></div></div>`;
     if (st.fase === 'finale' || st.fase === 'fine') return `<div class="fs-tel">${top}${FAS.fineTel(g)}</div>`;
     const q = m.squadra && m.squadra.quesito;
@@ -599,6 +712,12 @@ const FAS = {
     else if (st.fase === 'indagine') x = b('avanti', 'Abbiamo finito: alle risposte');
     else if (st.fase === 'consegna') x = b('avanti', 'Chiudi e rivela', 'gold');
     else if (st.fase === 'accusa') x = b('avanti', 'Accusa consegnata: la verità', 'gold');
+    if (st.squadra && st.squadra.pronta && ['indagine', 'consegna', 'accusa'].includes(st.fase))
+      x =
+        '<span class="fs-attesa">Pronti: si aspetta ' +
+        esc(st.squadra.avversari) +
+        '</span>' +
+        b('avanti', 'Non ancora');
     return `<div class="fs-capo">${x}${b('pausa', st.pausa ? 'Riprendi' : 'Pausa')}</div>`;
   },
   // i miei reperti e quelli sulla TV; si scelgono per collegarli
@@ -747,7 +866,7 @@ const FAS = {
     return out.join('') || '<p class="fs-vuoto">Le domande arrivano con il capitolo.</p>';
   },
   fineTel(g) {
-    const r = g.ris;
+    const r = g.ris || (FAS.mano.stato && FAS.mano.stato.ris);
     if (!r) return '<div class="fs-c"><h2>La verità</h2><p>Guardate la TV.</p></div>';
     return `<div class="fs-c"><small>Grado della squadra</small><h2>${esc(r.grado)}</h2><p>${r.stelle} stelle</p>${g.epilogo ? `<p>${esc(g.epilogo)}</p>` : '<p>Guardate la TV.</p>'}</div>`;
   },
@@ -769,10 +888,12 @@ const FAS = {
       case 'tab':
         ui.fstab = a1;
         return render();
+      case 'squadra':
+        return FAS.chiedi({ t: 'squadra' }, 'Cambio squadra');
       case 'avanti':
       case 'pausa':
         if (ui.tv) return FAS.comanda(verbo);
-        return FAS.chiedi({ t: verbo });
+        return FAS.chiedi(verbo === 'avanti' ? { t: verbo, at: (FAS.mano.stato || {}).punto } : { t: verbo });
       case 'proietta':
         return FAS.chiedi({ t: 'proietta', rep: a1 }, 'Sulla TV');
       case 'unisci':
@@ -831,7 +952,7 @@ ENG.fascicolo = {
     g: 'fascicolo',
     fase: 'attesa',
     kit: o.kit,
-    titolo: (REGIA.KIT[o.kit] || {}).titolo || '',
+    titolo: (REGIA.KIT[FAS.idKit(o.kit)] || {}).titolo || '',
     n,
     names,
     cur: 0,

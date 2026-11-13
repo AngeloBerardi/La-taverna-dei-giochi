@@ -140,6 +140,7 @@
   "src/js/motori/36a-serata.js",
   "src/js/motori/36b-kit-cifrati.js",
   "src/js/motori/36c-fascicolo.js",
+  "src/js/motori/36d-fascicolo-sfida.js",
  "src/js/motori/37-regicide-x.js",  "src/js/motori/38-accordi.js",
  "src/js/app/01-base.js",
  "src/js/app/01a-vendor.js",

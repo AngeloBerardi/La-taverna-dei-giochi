@@ -25,3 +25,6 @@ Fonte del testo `RULES.fascicolo` in `src/js/app/07d-regole.js`.
 
 ## Test del motore
 `tests/test_fascicolo.js`: kit validi e quattordici kit rotti; da min a max giocatori la squadra brava raggiunge il grado più alto e quella a caso fa peggio; nessun segreto nel pubblico né nella mano sbagliata; metà, laboratorio, pausa, consegna, doppio tocco.
+
+## Variante: sfida tra due squadre
+- Rossa contro Blu sullo stesso caso (4-16 telefoni). Ognuna ha la sua indagine; la TV mostra solo i progressi e gli annunci, mai il contenuto. Niente proiezioni. Si avanza quando sono pronte tutte e due; vince chi ha più stelle.

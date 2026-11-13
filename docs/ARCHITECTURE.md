@@ -149,7 +149,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/44-voto.css` | 2 |  |
 | `css/45-giallo.css` | 16 |  |
 | `css/45a-serata.css` | 10 |  |
-| `css/45b-fascicolo.css` | 12 |  |
+| `css/45b-fascicolo.css` | 13 |  |
 | `css/46-tv-tavoli.css` | 11 |  |
 | `css/47-hud.css` | 7 |  |
 | `css/90-lobby-3d.css` | 20 |  |
@@ -227,6 +227,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/36a-serata.js` | 54 | SERATA |
 | `js/motori/36b-kit-cifrati.js` | 6 | KITC |
 | `js/motori/36c-fascicolo.js` | 48 | FASCICOLO |
+| `js/motori/36d-fascicolo-sfida.js` | 7 | FSFIDA |
 | `js/motori/37-regicide-x.js` | 24 | RGX, SU, HAND, RND, P, cv, clone |
 | `js/motori/38-accordi.js` | 18 | ACC, RND, clone, COL, NTOK, DIRS, K |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
@@ -331,7 +332,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24u-regia.js` | 6 | REGIA |
 | `js/app/24v-giallo.js` | 24 | GIA, gialloH, giaSchedaH, giaIndiziH, giaObiettiviH, giaAccusaH, giaFinaleH |
 | `js/app/24va-serata.js` | 47 | SER, serataH, serataClick |
-| `js/app/24vb-fascicolo.js` | 36 | FAS, fascicoloH, fascicoloClick |
+| `js/app/24vb-fascicolo.js` | 43 | FAS, fascicoloH, fascicoloClick |
 | `js/app/24w-scena.js` | 30 | SCENA |
 | `js/app/24y-tv-tavoli.js` | 30 | TVT, briscolaTVH, scopaTVH, burracoTVH, machTVH, unoTVH, peruTVH |
 | `js/app/24z-accordi-tv.js` | 7 | AC3, R_, ZR, pix, cells, cellsN, SLX |
