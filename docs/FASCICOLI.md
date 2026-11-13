@@ -1,7 +1,7 @@
 # Fascicoli: i gialli classici come indagine di una serata (TV + telefoni)
 
 Documento di progetto e piano di lavoro. Ogni passo in fondo ha un prompt pronto da dare a una sessione nuova.
-Stato: **F1–F4 fatti** (motore, kit di prova, regia, telefono, TV, regole in-game, scenario nel browser; fascicolo 1 «La camera gialla» cifrato in `src/kit-cifrati/camera-gialla.json`, 2-8 telefoni, 170 minuti). Nessuna soluzione di nessun caso sta in questo file (il repo è pubblico).
+Stato: **F1–F4 fatti** (motore, kit di prova, regia, telefono, TV, regole in-game, scenario nel browser; fascicolo 1 «La camera gialla» cifrato in `src/kit-cifrati/camera-gialla.json`, 2-8 telefoni, 170 minuti; F7–F10 fatti: «Le voci di via dell'Obitorio», «La pietra di luna», «Il cane della brughiera», «L'impronta scarlatta», cifrati, 2-8 telefoni, circa due ore ciascuno; prompt delle immagini in `docs/kit/<id>.md`). Nessuna soluzione di nessun caso sta in questo file (il repo è pubblico).
 
 ## 1. L'idea in una riga
 Un caso d'archivio da riaprire in squadra, come le scatole d'indagine da tavolo e le stanze di fuga, ma dentro la Taverna:
