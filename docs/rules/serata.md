@@ -7,3 +7,7 @@ Fonte del testo `RULES.serata` in `src/js/app/07d-regole.js`. Meccaniche: `docs/
 - Prove: si mostrano e si copiano, non si sottraggono; buste chiuse fino all'atto indicato.
 - Bacheca di famiglia: collegare le prove giuste = passo avanti, visibile sulla TV, può spegnere un sigillo.
 - Voto finale individuale e di famiglia; pausa tecnica sempre disponibile; si può uscire dal ruolo.
+- Domande del caso sulla TV: risponde il rappresentante per la famiglia, gli altri danno un parere; la TV mostra chi ha risposto, non cosa; la verità esce quando si spegne il sigillo.
+- Prove spezzate tra due famiglie: si uniscono di pomeriggio con «Unisci» entro un minuto.
+- Di pomeriggio una convocazione in sala interrogatori per famiglia e atto, approvata dal narratore.
+- Un potere a testa, a uso singolo, annunciato sulla TV.

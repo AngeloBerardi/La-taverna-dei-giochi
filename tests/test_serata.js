@@ -104,10 +104,21 @@ function serata(k, n, opz) {
       }
     }
     if (s.fase === 'gioco' && s.mom === 'pomeriggio') {
+      // prove spezzate: chi ha una metà la unisce con chi ha l'altra (anche di un'altra famiglia, di pomeriggio)
+      for (const p of k.prove.filter(p => p.spezzata && s.rel[p.id])) {
+        const ha = i => Object.entries(s.gioc).find(([, g]) => !s.usc[g.pid] && s.mie[g.pid][p.id] && s.mie[g.pid][p.id].meta === i);
+        const a = ha(0),
+          b = ha(1);
+        if (a && b) {
+          s = fai(s, { t: 'unisci', uid: a[0], eid: p.id }, k);
+          s = fai(s, { t: 'unisci', uid: b[0], eid: p.id }, k);
+        }
+      }
       // tempo libero: ognuno mostra le sue prove a tutti e le appoggia in bacheca
       for (const [uid, g] of Object.entries(s.gioc)) {
         if (s.usc[g.pid] || (opz.muti || []).includes(famDi(k, g.pid))) continue;
         for (const eid of Object.keys(s.mie[g.pid])) {
+          if (s.mie[g.pid][eid].meta !== undefined) continue;
           s = fai(s, { t: 'appoggia', uid, eid }, k);
           for (const [u2, g2] of Object.entries(s.gioc))
             if (u2 !== uid && !s.usc[g2.pid] && !s.mie[g2.pid][eid])
@@ -119,7 +130,7 @@ function serata(k, n, opz) {
     if (s.fase === 'gioco' && s.mom === 'sera') {
       for (const [uid, g] of Object.entries(s.gioc)) {
         if (s.usc[g.pid]) continue;
-        for (const eid of Object.keys(s.mie[g.pid])) s = fai(s, { t: 'appoggia', uid, eid }, k);
+        for (const eid of Object.keys(s.mie[g.pid])) if (s.mie[g.pid][eid].meta === undefined) s = fai(s, { t: 'appoggia', uid, eid }, k);
       }
       for (const f of k.famiglie) {
         const pv = s.fam[f.id].pv;

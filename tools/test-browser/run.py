@@ -1523,6 +1523,15 @@ async def sc_serata(b, srv):
     # la TV si riavvia a metà: riprende dallo stesso punto
     await T.reload(); await T.wait_for_function("ui.tv&&G&&G.g==='serata'&&REGIA.sono()&&SER.D.s&&SER.D.s.mom==='pomeriggio'", timeout=40000)
     check(True, 'TV riavviata: riprende dal pomeriggio')
+    # domanda del caso: risponde il rappresentante dal telefono, la TV mostra chi ha risposto e non che cosa
+    pvs = [p for p in P[1:] if await p.evaluate("!!(SER.mano.stato&&SER.mano.stato.pv)")]
+    if pvs:
+        r = pvs[0]; fid = await r.evaluate("SER.mano.fam.id")
+        await r.evaluate("ui.srtab='fam';render()")
+        await r.select_option('#sr-c-ORA', '1'); await r.click('[data-a=ser][data-v="risp:ORA"]')
+        await T.wait_for_function("G.sigilli.find(x=>x.id==='ORA').risposte.includes(" + json.dumps(fid) + ")", timeout=30000)
+        check('23:40' not in await T.inner_text('.sr-sigilli'), 'TV: la famiglia ha risposto alla domanda del caso, senza mostrare la risposta')
+        await T.screenshot(path=os.path.join(SCH, 'serata-tv-domande.png')); await r.screenshot(path=os.path.join(SCH, 'serata-tel-domande.png'))
     # sera: solo in famiglia
     await A.evaluate("SER.cmd('avanti')")
     for p in P: await p.wait_for_function("G.mom&&G.mom.id==='sera'", timeout=30000)

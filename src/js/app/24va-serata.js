@@ -324,6 +324,10 @@ const SER = {
     if (c.tipo === 'mostra') D.mostra = { id: c.id, fino: Date.now() + 15000, mom: D.s.atto + D.s.mom };
     if (c.tipo === 'sigillo') Snd.play('gbattito');
     if (c.tipo === 'passo') Snd.play('gbattito');
+    if (c.tipo === 'risposta') Snd.play('gbusta');
+    if (c.tipo === 'unito') Snd.play('gbattito');
+    if (c.tipo === 'interrogatorio') Snd.play('gstacco');
+    if (c.tipo === 'potere') Snd.play('gcampana');
     setTimeout(render, 30);
   },
   // l'audio del kit: il file registrato, sempre dallo stesso buffer (la seconda volta è identico); senza file, la voce
@@ -409,8 +413,23 @@ const SER = {
     else if (g.fase === 'voto')
       main = `<div class="sr-c"><h2>Si vota</h2><p class="sr-buste">${'<i></i>'.repeat(g.votati)}</p><p>${g.votati} voti su ${g.votanti}</p></div>`;
     else if (g.finale) main = SER.tvFinale(g);
+    const nf = f => SER.nomeF(f, g);
     const sig = (g.sigilli || [])
-      .map(x => `<li class="${x.on ? 'on' : 'off'}"><b>${esc(x.id)}</b><small>${esc(x.nome)}</small></li>`)
+      .map(x => {
+        const ris = x.domanda
+          ? x.on
+            ? `<em>${x.risposte.length ? x.risposte.map(f => `<i>${esc(nf(f))}</i>`).join('') : 'nessuna risposta'}</em>`
+            : `<em class="vera">${esc(x.vera)}${
+                x.esiti
+                  ? ' · ' +
+                    Object.entries(x.esiti)
+                      .map(([f, ok]) => `<i class="${ok ? 'ok' : 'no'}">${esc(nf(f))}</i>`)
+                      .join('')
+                  : ''
+              }</em>`
+          : '';
+        return `<li class="${x.on ? 'on' : 'off'}"><b>${esc(x.id)}</b><small>${esc(x.domanda || x.nome)}</small>${ris}</li>`;
+      })
       .join('');
     const tasti = io && D.s && !D.s.narr ? '<span class="muted">Spazio: avanti · P: pausa</span>' : '';
     return `<div class="sr-tv" style="${stile}">
@@ -455,7 +474,10 @@ ${io ? `<button class="b gold" data-a="ser" data-v="inizia" ${n < a[0] || n > a[
     const t = g.turno,
       ult = (g.pubbliche || []).slice(-1)[0];
     let cuore = '';
-    if (g.mom && g.mom.id === 'mattina') {
+    if (g.interr) {
+      const c = (g.cast || []).find(x => x.id === g.interr.pid) || {};
+      cuore = `<div class="sr-c sr-interr"><small>Sala interrogatori · convocato da ${esc(SER.nomeF(g.interr.fam, g))}</small><h2>${esc(g.interr.nome)}</h2><p>${esc(c.ruolo || '')}</p>${SER.timerH(g.interr.fino, 'sr-timer sr-big')}<p>Domande da tutta la sala, risposte a voce.</p></div>`;
+    } else if (g.mom && g.mom.id === 'mattina') {
       const d = (g.dich || []).slice(-3).reverse();
       cuore = t
         ? `<div class="sr-turno"><small>Ora parla</small><h2>${esc(t.nome)}</h2><p>${esc((g.cast.find(c => c.id === t.pid) || {}).ruolo || '')}</p></div>`
@@ -666,6 +688,8 @@ ${busta}<div class="sr-corpo">${corpo}</div><nav class="sr-nav">${nav}</nav></di
       .join('');
     return `<section class="sr-adesso"><h3>Adesso</h3><p>${esc(st.guida || 'Ascolta il narratore.')}</p>${st.rivela.map(r => `<p class="sr-sblocco">${esc(r)}</p>`).join('')}
 ${st.fuori ? '<p class="sr-busta fuori">Sei fuori scena per qualche minuto: resta seduto.</p>' : ''}
+${st.interrogato ? '<p class="sr-busta turno">Sei in sala interrogatori: rispondi a voce, la TV ti guarda.</p>' : ''}
+${SER.potereH(st, m, g)}
 ${tocca ? `<details class="sr-dichiara"><summary>Dichiara a tutti (sei il rappresentante)</summary><textarea id="sr-dich" maxlength="400" placeholder="La vostra scoperta o accusa"></textarea><button class="b sm" data-a="ser" data-v="dichiara:scoperta">Scoperta</button><button class="b sm sr-rossa" data-a="ser" data-v="dichiara:accusa">Accusa</button></details>` : ''}</section>
 ${
   st.mosse.length
@@ -685,6 +709,26 @@ ${
       .map(([a, t]) => `<li class="${g.atto && g.atto.id === a ? 'qui' : ''}"><b>${esc(a)}</b> ${esc(t)}</li>`)
       .join('')}</ul></section>
 ${sez}<p><button class="link" data-a="ser" data-v="esco">Esco dal ruolo…</button></p>`;
+  },
+  // il potere a uso singolo: chi ne ha bisogno sceglie una persona (e una prova per «Non rifiuto»)
+  potereH(st, m, g) {
+    const P = st.potere;
+    if (!P) return '';
+    if (P.usato) return `<p class="muted">Potere usato: ${esc(P.nome)}</p>`;
+    const SPIEGA = {
+      nonrifiuto: 'Prendi una copia di una prova di qualcuno, senza chiedere il permesso.',
+      sbircio: 'Vedi i titoli delle prove che ha in mano una persona.',
+      indizio: 'La tua famiglia riceve un indizio su ciò che vi manca.',
+      silenzio: 'Annulli una convocazione in sala interrogatori che ti riguarda.',
+    };
+    const chi = ['nonrifiuto', 'sbircio'].includes(P.id)
+      ? `<select id="sr-pot-a"><option value="">Su chi?</option>${(g.cast || [])
+          .filter(c => c.on && c.id !== m.dossier.id)
+          .map(c => `<option value="${c.id}">${esc(c.nome)}</option>`)
+          .join('')}</select>`
+      : '';
+    const cosa = P.id === 'nonrifiuto' ? '<input id="sr-pot-e" placeholder="Codice della prova (es. E07)">' : '';
+    return `<details class="sr-potere"><summary>Il tuo potere: ${esc(P.nome)} (una volta sola)</summary><p>${SPIEGA[P.id] || ''}</p><div class="sr-riga">${chi}${cosa}<button class="b sm gold" data-a="ser" data-v="potere">Usalo</button></div></details>`;
   },
   famH(m, g) {
     const f = m.fam,
@@ -722,7 +766,25 @@ ${sez}<p><button class="link" data-a="ser" data-v="esco">Esco dal ruolo…</butt
     const dom = f.domanda
       ? `<p class="muted">Domanda alla regia: ${esc(f.domanda.testo)}${f.domanda.risp ? ' — <b>' + esc(f.domanda.risp) + '</b>' : ' (in attesa)'}</p>`
       : `<details><summary>Una domanda alla regia (una per atto)</summary><textarea id="sr-dom" maxlength="300"></textarea><button class="b sm" data-a="ser" data-v="domanda">Invia</button></details>`;
-    return `${quesito}<section><h3>${esc(f.nome)}</h3><ul class="sr-membri">${membri}</ul></section>
+    const casi = (f.casi || [])
+      .map(c => {
+        if (!c.aperta)
+          return `<li class="sr-caso chiuso"><b>${esc(c.domanda)}</b>${c.esito === null ? '' : c.esito ? ' <span class="sr-ok">Ci avete preso</span>' : ' <span class="sr-no">Risposta sbagliata</span>'}</li>`;
+        const opz = c.scelte.map(x => `<option value="${esc(String(x.v))}">${esc(x.t)}</option>`).join('');
+        const par = Object.entries(c.pareri)
+          .map(([t, n]) => `${esc(t)} ${n}`)
+          .join(' · ');
+        return `<li class="sr-caso"><b>${esc(c.domanda)}</b>${c.risposta ? `<p>Risposta della famiglia: <b>${esc(c.risposta)}</b></p>` : ''}${pv && par ? `<p class="muted">Pareri: ${par}</p>` : ''}<div class="sr-riga"><select id="sr-c-${c.id}"><option value="">Scegli…</option>${opz}</select>${pv ? `<button class="b sm gold" data-a="ser" data-v="risp:${c.id}">Rispondi per la famiglia</button>` : `<button class="b sm" data-a="ser" data-v="parere:${c.id}">Dai il tuo parere</button>`}</div>${!pv && c.mioParere ? `<p class="muted">Il tuo parere: ${esc(c.mioParere)}</p>` : ''}</li>`;
+      })
+      .join('');
+    const pom = g.mom && g.mom.id === 'pomeriggio',
+      altri = (g.cast || []).filter(c => c.on && c.fam !== f.id);
+    const conv = f.interr
+      ? `<section class="sr-interr-t"><h3>In sala interrogatori: ${esc(f.interr.nome)}</h3>${SER.timerH(f.interr.fino, 'sr-timer')}${pv ? '<div class="sr-riga"><button class="b sm gold" data-a="ser" data-v="giudica:convincente">Convincente</button><button class="b sm sr-rossa" data-a="ser" data-v="giudica:evasivo">Evasivo</button></div>' : ''}</section>`
+      : pv && pom && !f.convocato
+        ? `<section><h3>Interrogatorio (uno per atto)</h3><div class="sr-riga"><select id="sr-conv"><option value="">Chi convocate?</option>${altri.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select><button class="b sm" data-a="ser" data-v="convoca">Convoca</button></div></section>`
+        : '';
+    return `${quesito}${casi ? `<section><h3>Le domande del caso</h3><p class="muted">${pv ? 'Rispondi tu per la famiglia: la TV mostra solo che avete risposto.' : 'Risponde il rappresentante: dagli il tuo parere.'}</p><ul class="sr-casi">${casi}</ul></section>` : ''}${conv}<section><h3>${esc(f.nome)}</h3><ul class="sr-membri">${membri}</ul></section>
 <section><h3>La bacheca</h3><p class="muted">Scegli due o più carte e collegale.</p><div class="sr-carte">${bacheca || '<p class="muted">Vuota: appoggia le tue prove dalla scheda Prove.</p>'}${ded}${pub}</div>
 ${sel.length >= 2 ? '<button class="b gold" data-a="ser" data-v="collega">Collega le carte scelte</button>' : ''}${sel.length ? '<button class="b sm" data-a="ser" data-v="sel:">Deseleziona</button>' : ''}</section>
 ${manc ? `<section><h3>Pezzi mancanti</h3><ul>${manc}</ul></section>` : ''}${modulo}<section>${dom}</section>`;
@@ -741,9 +803,11 @@ ${manc ? `<section><h3>Pezzi mancanti</h3><ul>${manc}</ul></section>` : ''}${mod
     const voce = ([id, p]) => {
       const aperta = apri === id;
       const az =
-        aperta && (p.st === 'mia' || p.st === 'copia')
-          ? `<div class="sr-az"><button class="b sm" data-a="ser" data-v="appoggia:${id}">In bacheca</button><button class="b sm" data-a="ser" data-v="mostra:${id}">Mostra a…</button>${p.st === 'mia' ? `<button class="b sm" data-a="ser" data-v="consegna:${id}">Alla regia, per tutti</button>` : ''}</div>`
-          : '';
+        p.meta !== undefined
+          ? `<div class="sr-az"><button class="b sm gold" data-a="ser" data-v="unisci:${id}">${p.attesa ? 'In attesa dell’altra metà…' : 'Unisci con l’altra metà'}</button></div>`
+          : aperta && (p.st === 'mia' || p.st === 'copia')
+            ? `<div class="sr-az"><button class="b sm" data-a="ser" data-v="appoggia:${id}">In bacheca</button><button class="b sm" data-a="ser" data-v="mostra:${id}">Mostra a…</button>${p.st === 'mia' ? `<button class="b sm" data-a="ser" data-v="consegna:${id}">Alla regia, per tutti</button>` : ''}</div>`
+            : '';
       const chi =
         ui.srmostra === id
           ? `<div class="sr-chi">${(g.cast || [])
@@ -751,7 +815,7 @@ ${manc ? `<section><h3>Pezzi mancanti</h3><ul>${manc}</ul></section>` : ''}${mod
               .map(c => `<button class="b sm" data-a="ser" data-v="mostraa:${id}:${c.id}">${esc(c.nome)}</button>`)
               .join('')}</div>`
           : '';
-      return `<li class="sr-pr ${p.st}"><button class="link" data-a="ser" data-v="prova:${aperta ? '' : id}"><b>${esc(p.titolo)}</b> <small>${{ mia: 'tua', copia: 'da ' + esc(p.da), famiglia: 'in bacheca', pubblica: 'pubblica', annunciata: 'busta chiusa, si apre all’atto ' + esc(p.apre || '') }[p.st]}</small></button>${aperta && p.testo ? `<p class="sr-doc-tel">${SER.testo(p.testo)}</p>` : ''}${az}${chi}</li>`;
+      return `<li class="sr-pr ${p.st}"><button class="link" data-a="ser" data-v="prova:${aperta ? '' : id}"><b>${esc(p.titolo)}</b> <small>${p.meta !== undefined ? 'metà ' + (p.meta + 1) + ' di 2 · ' : ''}${{ mia: 'tua', copia: 'da ' + esc(p.da), famiglia: 'in bacheca', pubblica: 'pubblica', annunciata: 'busta chiusa, si apre all’atto ' + esc(p.apre || '') }[p.st]}</small></button>${(aperta || p.meta !== undefined) && p.testo ? `<p class="sr-doc-tel">${SER.testo(p.testo)}</p>` : ''}${az}${chi}</li>`;
     };
     return `${r ? `<section><h3>Richieste</h3><ul>${r}</ul></section>` : ''}<ul class="sr-prove">${Object.entries(l).map(voce).join('') || '<li class="muted">Nessuna prova per ora.</li>'}</ul>`;
   },
@@ -966,6 +1030,27 @@ ${c.on && p !== m.dossier.id ? `<button class="b sm" data-a="ser" data-v="chiedi
         return SER.chiedi({ t: 'risolvi', scelta: +a1 });
       case 'appoggia':
         return SER.chiedi({ t: 'appoggia', eid: a1 }, 'In bacheca');
+      // novità: metà da unire, domande del caso, interrogatorio, potere
+      case 'unisci':
+        return SER.chiedi({ t: 'unisci', eid: a1 }, 'Chi ha l’altra metà tocchi «Unisci»');
+      case 'risp':
+      case 'parere': {
+        const x = val('sr-c-' + a1);
+        if (x === '') return say('Scegli una risposta', 2000);
+        return SER.chiedi(
+          { t: verbo === 'risp' ? 'risposta' : 'parere', sig: a1, val: /^\d+$/.test(x) ? +x : x },
+          verbo === 'risp' ? 'Risposta consegnata' : 'Parere inviato'
+        );
+      }
+      case 'convoca': {
+        const x = val('sr-conv');
+        if (!x) return say('Scegli chi convocare', 2000);
+        return SER.chiedi({ t: 'convoca', pid: x }, 'Richiesta al narratore');
+      }
+      case 'giudica':
+        return SER.chiedi({ t: 'giudica', esito: a1 });
+      case 'potere':
+        return SER.chiedi({ t: 'potere', a: val('sr-pot-a'), eid: val('sr-pot-e') });
       case 'mostra':
         ui.srmostra = ui.srmostra === a1 ? '' : a1;
         return render();

@@ -3,25 +3,44 @@
   "formato": "serata",
   "titolo": "La nebbia sullo Scoglio",
   "sottotitolo": "Tre giorni, una locanda, una lanterna spenta",
-  "giocatori": [1, 4],
+  "giocatori": [
+    1,
+    4
+  ],
   "minuti": 35,
   "tono": "giallo leggero, kit di prova per 1-4 telefoni",
   "mondo": "Nebbia fitta sull'isolotto: la barca per Genova non parte",
   "momenti": {
-    "mattina": { "nome": "Mattina" },
-    "pomeriggio": { "nome": "Pomeriggio" },
-    "sera": { "nome": "Sera" }
+    "mattina": {
+      "nome": "Mattina"
+    },
+    "pomeriggio": {
+      "nome": "Pomeriggio"
+    },
+    "sera": {
+      "nome": "Sera"
+    }
   },
   "mancanti": "famiglia",
   "famiglie": [
-    { "id": "locanda", "nome": "La Locanda" },
-    { "id": "forestieri", "nome": "I Forestieri" }
+    {
+      "id": "locanda",
+      "nome": "La Locanda"
+    },
+    {
+      "id": "forestieri",
+      "nome": "I Forestieri"
+    }
   ],
   "personaggi": [
     {
       "id": "nora",
       "nome": "Nora Fanti",
-      "varianti": { "m": { "nome": "Nereo Fanti" } },
+      "varianti": {
+        "m": {
+          "nome": "Nereo Fanti"
+        }
+      },
       "eta": "34 anni",
       "ruolo": "locandiera, nipote del guardiano",
       "famiglia": "locanda",
@@ -33,10 +52,19 @@
       "passato": "Lo zio ti ha cresciuta. Da qualche mese era nervoso e scriveva lettere alla Capitaneria di Genova.",
       "segreto": "Alle 21:40 lo zio ti ha mostrato uno stoppino nero e friabile e ha detto che qualcuno aveva firmato il falso. Non hai detto niente a nessuno perché lui ti aveva chiesto di tacere fino alla barca.",
       "comodo": "Racconti di essere andata a dormire presto e di non sapere nulla degli affari del faro.",
-      "obiettivi": ["Scoprire chi ha spento la lanterna", "Proteggere tuo fratello Bastiano dai sospetti"],
+      "obiettivi": [
+        "Scoprire chi ha spento la lanterna",
+        "Proteggere tuo fratello Bastiano dai sospetti"
+      ],
       "legami": [
-        { "con": "bastiano", "perche": "tuo fratello, litiga con tutti per soldi" },
-        { "con": "ilario", "perche": "il perito arrivato per un controllo, troppo gentile" }
+        {
+          "con": "bastiano",
+          "perche": "tuo fratello, litiga con tutti per soldi"
+        },
+        {
+          "con": "ilario",
+          "perche": "il perito arrivato per un controllo, troppo gentile"
+        }
       ],
       "atti": {
         "I": "Racconta come hai trovato lo zio all'alba. Non parlare ancora dello stoppino.",
@@ -52,15 +80,31 @@
       "vincolo": "Puoi tacere e minimizzare, non inventare orari o prove.",
       "tono": "seria ma calda",
       "mosse": [
-        { "atto": "I", "a": "bastiano", "chiedi": "Dov'eri quando la lanterna si è spenta?" },
-        { "atto": "II", "a": "clotilde", "chiedi": "Cosa hai fotografato quella notte?" },
-        { "atto": "II", "a": "ilario", "chiedi": "Perché sei venuto proprio adesso a controllare gli stoppini?" }
+        {
+          "atto": "I",
+          "a": "bastiano",
+          "chiedi": "Dov'eri quando la lanterna si è spenta?"
+        },
+        {
+          "atto": "II",
+          "a": "clotilde",
+          "chiedi": "Cosa hai fotografato quella notte?"
+        },
+        {
+          "atto": "II",
+          "a": "ilario",
+          "chiedi": "Perché sei venuto proprio adesso a controllare gli stoppini?"
+        }
       ]
     },
     {
       "id": "ilario",
       "nome": "Ilario Monti",
-      "varianti": { "f": { "nome": "Ilaria Monti" } },
+      "varianti": {
+        "f": {
+          "nome": "Ilaria Monti"
+        }
+      },
       "eta": "47 anni",
       "ruolo": "perito delle lanterne della Capitaneria",
       "famiglia": "forestieri",
@@ -74,10 +118,19 @@
       "passato": "Da anni approvi forniture per la Capitaneria. La Ditta Brasca ti ha pagato per chiudere un occhio su una partita di stoppini difettosi.",
       "segreto": "SEI IL COLPEVOLE. Alle 23:15 hai preso la chiave del faro e sei salito per riprenderti lo stoppino e la ricevuta. Gaspare ti ha scoperto; alle 23:40, nella lite, è caduto dalla scala. Hai spento la lanterna, sei sceso e hai bruciato il biglietto della ditta nella stufa. La ricevuta però è rimasta nella sua giacca.",
       "comodo": "Dici di aver dormito tutta la notte e di aver sentito parlare di un litigio tra Bastiano e Gaspare.",
-      "obiettivi": ["Non farti scoprire fino al voto", "Spostare i sospetti su Bastiano"],
+      "obiettivi": [
+        "Non farti scoprire fino al voto",
+        "Spostare i sospetti su Bastiano"
+      ],
       "legami": [
-        { "con": "bastiano", "perche": "a cena ha litigato con Gaspare: ti fa comodo" },
-        { "con": "clotilde", "perche": "fotografa tutto, è pericolosa" }
+        {
+          "con": "bastiano",
+          "perche": "a cena ha litigato con Gaspare: ti fa comodo"
+        },
+        {
+          "con": "clotilde",
+          "perche": "fotografa tutto, è pericolosa"
+        }
       ],
       "atti": {
         "I": "Mostrati collaborativo. Ricorda a tutti il litigio di Bastiano.",
@@ -94,14 +147,26 @@
       "tono": "cortese e scivoloso",
       "confessione": "Volevo solo riprendermi quel foglio. Lui ha afferrato la valigetta, la scala era bagnata. Poi ho spento la luce, perché nessuno guardasse.",
       "mosse": [
-        { "atto": "I", "a": "bastiano", "chiedi": "Di cosa parlavate tu e Gaspare a cena?" },
-        { "atto": "II", "a": "nora", "chiedi": "Lo zio ti parlava del suo lavoro?" }
+        {
+          "atto": "I",
+          "a": "bastiano",
+          "chiedi": "Di cosa parlavate tu e Gaspare a cena?"
+        },
+        {
+          "atto": "II",
+          "a": "nora",
+          "chiedi": "Lo zio ti parlava del suo lavoro?"
+        }
       ]
     },
     {
       "id": "clotilde",
       "nome": "Clotilde Ravera",
-      "varianti": { "m": { "nome": "Clemente Ravera" } },
+      "varianti": {
+        "m": {
+          "nome": "Clemente Ravera"
+        }
+      },
       "eta": "29 anni",
       "ruolo": "fotografa di passaggio",
       "famiglia": "forestieri",
@@ -114,10 +179,19 @@
       "passato": "Soffri d'insonnia e di notte giri per la locanda con la macchina fotografica.",
       "segreto": "Alle 23:15 hai fatto una lastra dell'atrio: la chiave del faro mancava dal chiodo. Non l'hai detto perché non dovevi girare di notte.",
       "comodo": "Dici di essere rimasta in camera a sviluppare le lastre.",
-      "obiettivi": ["Capire cosa mostra davvero la tua lastra", "Arrivare al voto con almeno due prove"],
+      "obiettivi": [
+        "Capire cosa mostra davvero la tua lastra",
+        "Arrivare al voto con almeno due prove"
+      ],
       "legami": [
-        { "con": "ilario", "perche": "un forestiero come te, molto curioso dei tuoi orari" },
-        { "con": "nora", "perche": "ti ha dato la stanza migliore" }
+        {
+          "con": "ilario",
+          "perche": "un forestiero come te, molto curioso dei tuoi orari"
+        },
+        {
+          "con": "nora",
+          "perche": "ti ha dato la stanza migliore"
+        }
       ],
       "atti": {
         "I": "Fai domande sulla notte senza dire che eri sveglia.",
@@ -133,14 +207,26 @@
       "vincolo": "Non inventare ciò che non c'è nelle tue lastre.",
       "tono": "curiosa, un po' ironica",
       "mosse": [
-        { "atto": "II", "a": "nora", "chiedi": "A che ora si è spenta la lanterna?" },
-        { "atto": "II", "a": "bastiano", "chiedi": "Hai sentito qualcuno salire al faro?" }
+        {
+          "atto": "II",
+          "a": "nora",
+          "chiedi": "A che ora si è spenta la lanterna?"
+        },
+        {
+          "atto": "II",
+          "a": "bastiano",
+          "chiedi": "Hai sentito qualcuno salire al faro?"
+        }
       ]
     },
     {
       "id": "bastiano",
       "nome": "Bastiano Fanti",
-      "varianti": { "f": { "nome": "Bastiana Fanti" } },
+      "varianti": {
+        "f": {
+          "nome": "Bastiana Fanti"
+        }
+      },
       "eta": "31 anni",
       "ruolo": "cuoco della locanda",
       "famiglia": "locanda",
@@ -153,10 +239,19 @@
       "passato": "Hai chiesto allo zio un prestito per la barca e lui ha detto di no, davanti a tutti, a cena.",
       "segreto": "Alle 23:40, chiudendo la cucina, hai sentito un tonfo dalla scala del faro e poi visto una lanterna a mano scendere verso l'ala degli ospiti. Hai taciuto per paura che pensassero a te.",
       "comodo": "Dici di essere andato a letto subito dopo cena.",
-      "obiettivi": ["Liberarti dei sospetti per il litigio", "Scoprire chi portava la lanterna a mano"],
+      "obiettivi": [
+        "Liberarti dei sospetti per il litigio",
+        "Scoprire chi portava la lanterna a mano"
+      ],
       "legami": [
-        { "con": "nora", "perche": "tua sorella, l'unica che ti crede" },
-        { "con": "ilario", "perche": "ti guarda sempre come se sapesse qualcosa" }
+        {
+          "con": "nora",
+          "perche": "tua sorella, l'unica che ti crede"
+        },
+        {
+          "con": "ilario",
+          "perche": "ti guarda sempre come se sapesse qualcosa"
+        }
       ],
       "atti": {
         "I": "Ammetti il litigio per i soldi, nega tutto il resto.",
@@ -171,7 +266,13 @@
       "motore": "Ti senti sempre il sospettato perfetto.",
       "vincolo": "Non inventare orari o testimoni.",
       "tono": "brusco ma onesto",
-      "mosse": [{ "atto": "II", "a": "clotilde", "chiedi": "Eri sveglia anche tu quella notte?" }]
+      "mosse": [
+        {
+          "atto": "II",
+          "a": "clotilde",
+          "chiedi": "Eri sveglia anche tu quella notte?"
+        }
+      ]
     }
   ],
   "prove": [
@@ -180,68 +281,173 @@
       "titolo": "Il guardiano ai piedi della scala",
       "tipo": "documento",
       "testo": "All'alba, alle 06:10, Nora trova lo zio Gaspare ai piedi della scala del faro. L'orologio da taschino è fermo alle 23:40, con il vetro incrinato. In cima, la lanterna è spenta.",
-      "rilascio": { "atto": "I", "a": "tutti" }
+      "rilascio": {
+        "atto": "I",
+        "a": "tutti"
+      }
     },
     {
       "id": "stoppino",
       "titolo": "Lo stoppino nero",
       "tipo": "testimonianza",
       "testo": "Alle 21:40 lo zio ti ha mostrato uno stoppino nero e friabile: «Domani parte per Genova con la ricevuta. Qualcuno ha firmato il falso.»",
-      "rilascio": { "atto": "I", "a": { "p": "nora" } }
+      "rilascio": {
+        "atto": "I",
+        "a": {
+          "p": "nora"
+        }
+      }
     },
     {
       "id": "lite",
       "titolo": "La lite a cena",
       "tipo": "testimonianza",
       "testo": "A cena hai visto Bastiano chiedere soldi a Gaspare per una barca. Gaspare ha detto di no, a voce alta.",
-      "rilascio": { "atto": "I", "a": { "p": "ilario" } },
-      "riserva": { "a": "tutti" }
+      "rilascio": {
+        "atto": "I",
+        "a": {
+          "p": "ilario"
+        }
+      },
+      "riserva": {
+        "a": "tutti"
+      }
     },
     {
       "id": "tonfo",
       "titolo": "Il tonfo sulla scala",
       "tipo": "testimonianza",
       "testo": "Alle 23:40, chiudendo la cucina, hai sentito un tonfo dalla scala del faro. Poco dopo una lanterna a mano è scesa verso l'ala degli ospiti.",
-      "rilascio": { "atto": "I", "momento": "sera", "a": { "p": "bastiano" } }
+      "rilascio": {
+        "atto": "I",
+        "momento": "sera",
+        "a": {
+          "p": "bastiano"
+        }
+      }
     },
     {
       "id": "lastra",
       "titolo": "La lastra delle 23:15",
       "tipo": "foto",
       "testo": "La tua lastra delle 23:15 mostra l'atrio della locanda: la chiave del faro manca dal suo chiodo e sul tavolo c'è un cappello da perito.",
-      "rilascio": { "atto": "II", "a": { "p": "clotilde" } }
+      "rilascio": {
+        "atto": "II",
+        "a": {
+          "p": "clotilde"
+        }
+      }
     },
     {
       "id": "ricevuta",
       "titolo": "La ricevuta nella giacca",
       "tipo": "documento",
       "testo": "Nella giacca di Gaspare: «Ditta Brasca, quaranta stoppini, collaudo approvato: I. Monti». A margine, con la grafia di Gaspare: «difettosi, avvisare Genova».",
-      "rilascio": { "atto": "II", "momento": "pomeriggio", "a": { "fam": "locanda" } }
+      "rilascio": {
+        "atto": "II",
+        "momento": "pomeriggio",
+        "a": {
+          "fam": "locanda"
+        }
+      }
     },
     {
       "id": "impronte",
       "titolo": "Le impronte di salsedine",
       "tipo": "foto",
       "testo": "All'alba, sulle scale dell'ala ospiti, impronte bagnate di salsedine portano fino alla camera del perito.",
-      "rilascio": { "atto": "II", "momento": "pomeriggio", "a": { "p": "clotilde" } }
+      "rilascio": {
+        "atto": "II",
+        "momento": "pomeriggio",
+        "a": {
+          "p": "clotilde"
+        }
+      }
+    },
+    {
+      "id": "registro",
+      "titolo": "Il registro del faro",
+      "tipo": "documento",
+      "testo": "Registro del faro, ultima pagina: «Collaudo stoppini: falso. Firmato dal perito, pagato da Genova. Domani lo dico alla Capitaneria.» La grafia è di Gaspare.",
+      "rilascio": {
+        "atto": "II",
+        "momento": "pomeriggio",
+        "a": {
+          "fam": "locanda"
+        }
+      },
+      "spezzata": {
+        "a": [
+          {
+            "fam": "locanda"
+          },
+          {
+            "fam": "forestieri"
+          }
+        ],
+        "parti": [
+          "Registro del faro, ultima pagina: «Collaudo stoppini: falso. Firmato dal perito...",
+          "...pagato da Genova. Domani lo dico alla Capitaneria.» La grafia è di Gaspare."
+        ]
+      }
     },
     {
       "id": "biglietto",
       "titolo": "Il biglietto nella stufa",
       "tipo": "documento",
       "testo": "Nella stufa della camera del perito, mezzo bruciato: «…grati per la Sua comprensione al collaudo… Ditta Brasca».",
-      "rilascio": { "atto": "III", "a": "tutti" }
+      "rilascio": {
+        "atto": "III",
+        "a": "tutti"
+      }
     }
   ],
   "sigilli": [
-    { "id": "ORA", "nome": "L'ora", "simbolo": "orologio", "domanda": "Quando è caduto Gaspare?" },
-    { "id": "LUCE", "nome": "La luce", "simbolo": "lanterna", "domanda": "Perché si è spenta la lanterna?" },
-    { "id": "NOME", "nome": "Il nome", "simbolo": "chiave", "domanda": "Chi è salito al faro?" }
+    {
+      "id": "ORA",
+      "nome": "L'ora",
+      "simbolo": "orologio",
+      "domanda": "Quando è caduto Gaspare?",
+      "tipo": "scelta",
+      "scelte": [
+        "Alle 23:15",
+        "Alle 23:40",
+        "Alle 06:10"
+      ],
+      "giusta": 1,
+      "punti": 2
+    },
+    {
+      "id": "LUCE",
+      "nome": "La luce",
+      "simbolo": "lanterna",
+      "domanda": "Perché si è spenta la lanterna?",
+      "tipo": "scelta",
+      "scelte": [
+        "Per nascondere un collaudo falso",
+        "Per i soldi della barca",
+        "Per ereditare la locanda"
+      ],
+      "giusta": 0,
+      "punti": 2
+    },
+    {
+      "id": "NOME",
+      "nome": "Il nome",
+      "simbolo": "chiave",
+      "domanda": "Chi è salito al faro?",
+      "tipo": "personaggio",
+      "giusta": "ilario",
+      "punti": 3
+    }
   ],
   "collegamenti": [
     {
       "id": "ora-vera",
-      "servono": ["corpo", "tonfo"],
+      "servono": [
+        "corpo",
+        "tonfo"
+      ],
       "domanda": "Che cosa dicono insieme l'orologio e il tonfo?",
       "scelte": [
         "Gaspare è caduto verso le 23:40, non all'alba",
@@ -256,7 +462,10 @@
     },
     {
       "id": "stoppini",
-      "servono": ["stoppino", "ricevuta"],
+      "servono": [
+        "stoppino",
+        "ricevuta"
+      ],
       "domanda": "Che cosa voleva fare Gaspare?",
       "scelte": [
         "Denunciare a Genova un collaudo falso firmato dal perito",
@@ -270,22 +479,42 @@
     },
     {
       "id": "chiave",
-      "servono": ["lastra", "impronte"],
+      "servono": [
+        "lastra",
+        "impronte"
+      ],
       "domanda": "Chi è uscito dalla locanda quella notte?",
-      "scelte": ["Il perito ha preso la chiave del faro ed è rientrato bagnato", "Bastiano è salito al faro dalla cucina", "Nessuno: la chiave era già sparita"],
+      "scelte": [
+        "Il perito ha preso la chiave del faro ed è rientrato bagnato",
+        "Bastiano è salito al faro dalla cucina",
+        "Nessuno: la chiave era già sparita"
+      ],
       "giusta": 0,
       "passo": "Il perito è salito al faro quella notte"
     },
     {
       "id": "movente",
-      "servono": ["@stoppini", "biglietto"],
+      "servono": [
+        "@stoppini",
+        "biglietto"
+      ],
       "domanda": "Perché il perito aveva paura di Gaspare?",
-      "scelte": ["La ditta lo pagava: la denuncia lo avrebbe rovinato", "Gaspare gli doveva dei soldi", "Voleva comprare la locanda"],
+      "scelte": [
+        "La ditta lo pagava: la denuncia lo avrebbe rovinato",
+        "Gaspare gli doveva dei soldi",
+        "Voleva comprare la locanda"
+      ],
       "giusta": 0,
       "passo": "Il perito era pagato dalla Ditta Brasca"
     }
   ],
-  "audio": [{ "id": "campana", "titolo": "La campana del faro", "testo": "Tre rintocchi lenti nella nebbia." }],
+  "audio": [
+    {
+      "id": "campana",
+      "titolo": "La campana del faro",
+      "testo": "Tre rintocchi lenti nella nebbia."
+    }
+  ],
   "atti": [
     {
       "id": "I",
@@ -296,25 +525,61 @@
           {
             "titolo": "L'alba",
             "righe": [
-              { "regia": "Saluta gli ospiti fuori dalla storia: è una finzione, chiunque può fermarsi quando vuole. La parola PAUSA TECNICA ferma tutto." },
-              { "cue": { "mondo": "Nebbia fitta sull'isolotto: la barca per Genova non parte" } },
-              { "regia": "Leggi: «Sullo Scoglio la nebbia non si alza da due giorni. Stamattina la lanterna del faro è spenta.»" },
-              { "cue": { "audio": "campana" } },
-              { "cue": { "prova": "corpo" } },
-              { "chi": "nora", "testo": "Lo zio non saliva mai di notte senza un motivo." },
-              { "chi": "ilario", "testo": "Che disgrazia. Con questa nebbia la scala sarà stata bagnata." },
-              { "regia": "Chiedi a ogni famiglia di scegliere il suo rappresentante sul telefono." }
+              {
+                "regia": "Saluta gli ospiti fuori dalla storia: è una finzione, chiunque può fermarsi quando vuole. La parola PAUSA TECNICA ferma tutto."
+              },
+              {
+                "cue": {
+                  "mondo": "Nebbia fitta sull'isolotto: la barca per Genova non parte"
+                }
+              },
+              {
+                "regia": "Leggi: «Sullo Scoglio la nebbia non si alza da due giorni. Stamattina la lanterna del faro è spenta.»"
+              },
+              {
+                "cue": {
+                  "audio": "campana"
+                }
+              },
+              {
+                "cue": {
+                  "prova": "corpo"
+                }
+              },
+              {
+                "chi": "nora",
+                "testo": "Lo zio non saliva mai di notte senza un motivo."
+              },
+              {
+                "chi": "ilario",
+                "testo": "Che disgrazia. Con questa nebbia la scala sarà stata bagnata."
+              },
+              {
+                "regia": "Chiedi a ogni famiglia di scegliere il suo rappresentante sul telefono."
+              }
             ]
           }
         ]
       },
-      "pomeriggio": { "minuti": 4, "istruzioni": "Girate e parlate con tutti. Fatevi raccontare la cena di ieri sera." },
+      "pomeriggio": {
+        "minuti": 4,
+        "istruzioni": "Girate e parlate con tutti. Fatevi raccontare la cena di ieri sera."
+      },
       "sera": {
         "minuti": 3,
         "istruzioni": "Solo dentro la famiglia: mettete sulla bacheca ciò che sapete.",
-        "modulo": [{ "id": "ipotesi", "testo": "La vostra prima ipotesi", "tipo": "testo" }]
+        "modulo": [
+          {
+            "id": "ipotesi",
+            "testo": "La vostra prima ipotesi",
+            "tipo": "testo"
+          }
+        ]
       },
-      "sblocchi": ["A che ora si è fermato l'orologio?", "Chi era sveglio dopo cena?"]
+      "sblocchi": [
+        "A che ora si è fermato l'orologio?",
+        "Chi era sveglio dopo cena?"
+      ]
     },
     {
       "id": "II",
@@ -325,20 +590,39 @@
           {
             "titolo": "Le carte del guardiano",
             "righe": [
-              { "regia": "Leggi: «Nella notte la nebbia è diventata pioggia. Stamattina qualcuno ha riordinato la camera del guardiano.»" },
-              { "chi": "clotilde", "testo": "Di notte questa locanda non dorme mai." },
-              { "regia": "Invita i rappresentanti a dichiarare le scoperte della sera." }
+              {
+                "regia": "Leggi: «Nella notte la nebbia è diventata pioggia. Stamattina qualcuno ha riordinato la camera del guardiano.»"
+              },
+              {
+                "chi": "clotilde",
+                "testo": "Di notte questa locanda non dorme mai."
+              },
+              {
+                "regia": "Invita i rappresentanti a dichiarare le scoperte della sera."
+              }
             ]
           }
         ]
       },
-      "pomeriggio": { "minuti": 5, "istruzioni": "Tempo libero: chiedete copie, mostrate le prove, cercate i pezzi mancanti." },
+      "pomeriggio": {
+        "minuti": 5,
+        "istruzioni": "Tempo libero: chiedete copie, mostrate le prove, cercate i pezzi mancanti."
+      },
       "sera": {
         "minuti": 3,
         "istruzioni": "Solo in famiglia: collegate le carte sulla bacheca.",
-        "modulo": [{ "id": "chi", "testo": "Chi è salito al faro?", "tipo": "personaggio" }]
+        "modulo": [
+          {
+            "id": "chi",
+            "testo": "Chi è salito al faro?",
+            "tipo": "personaggio"
+          }
+        ]
       },
-      "sblocchi": ["Chi ha firmato il collaudo?", "Dove portano le impronte?"]
+      "sblocchi": [
+        "Chi ha firmato il collaudo?",
+        "Dove portano le impronte?"
+      ]
     },
     {
       "id": "III",
@@ -349,42 +633,144 @@
           {
             "titolo": "La stufa",
             "righe": [
-              { "regia": "Leggi: «La nebbia si dirada. Nella camera del perito la stufa è ancora tiepida.»" },
-              { "cue": { "prova": "biglietto" } },
-              { "chi": "ilario", "testo": "Quel biglietto non prova nulla." },
-              { "regia": "I rappresentanti possono fare un'accusa pubblica, una famiglia alla volta." }
+              {
+                "regia": "Leggi: «La nebbia si dirada. Nella camera del perito la stufa è ancora tiepida.»"
+              },
+              {
+                "cue": {
+                  "prova": "biglietto"
+                }
+              },
+              {
+                "chi": "ilario",
+                "testo": "Quel biglietto non prova nulla."
+              },
+              {
+                "regia": "I rappresentanti possono fare un'accusa pubblica, una famiglia alla volta."
+              }
             ]
           }
         ]
       },
-      "pomeriggio": { "minuti": 3, "istruzioni": "Ultimo giro: confrontate le prove prima del voto." },
-      "sera": { "minuti": 2, "istruzioni": "Ultimo consiglio di famiglia, poi si vota." },
-      "sblocchi": ["La conclusione regge senza la lastra?"]
+      "pomeriggio": {
+        "minuti": 3,
+        "istruzioni": "Ultimo giro: confrontate le prove prima del voto."
+      },
+      "sera": {
+        "minuti": 2,
+        "istruzioni": "Ultimo consiglio di famiglia, poi si vota."
+      },
+      "sblocchi": [
+        "La conclusione regge senza la lastra?"
+      ]
     }
   ],
   "accusa": {
     "domande": [
-      { "id": "chi", "testo": "Chi ha causato la morte di Gaspare?", "tipo": "personaggio" },
-      { "id": "movente", "testo": "Perché?", "tipo": "scelta", "scelte": ["Per nascondere un collaudo falso", "Per i soldi della barca", "Per ereditare la locanda"] },
-      { "id": "quando", "testo": "Quando è caduto Gaspare?", "tipo": "scelta", "scelte": ["Alle 23:15", "Alle 23:40", "Alle 06:10"] },
-      { "id": "prove", "testo": "Le due prove più forti", "tipo": "prove", "quante": 2 }
+      {
+        "id": "chi",
+        "testo": "Chi ha causato la morte di Gaspare?",
+        "tipo": "personaggio"
+      },
+      {
+        "id": "movente",
+        "testo": "Perché?",
+        "tipo": "scelta",
+        "scelte": [
+          "Per nascondere un collaudo falso",
+          "Per i soldi della barca",
+          "Per ereditare la locanda"
+        ]
+      },
+      {
+        "id": "quando",
+        "testo": "Quando è caduto Gaspare?",
+        "tipo": "scelta",
+        "scelte": [
+          "Alle 23:15",
+          "Alle 23:40",
+          "Alle 06:10"
+        ]
+      },
+      {
+        "id": "prove",
+        "testo": "Le due prove più forti",
+        "tipo": "prove",
+        "quante": 2
+      }
     ]
   },
   "punteggio": [
-    { "domanda": "chi", "giusta": "ilario", "punti": 5 },
-    { "domanda": "movente", "giusta": 0, "punti": 2 },
-    { "domanda": "quando", "giusta": 1, "punti": 2 },
-    { "domanda": "prove", "gruppi": { "lastra": "chiave", "impronte": "chiave", "ricevuta": "denaro", "biglietto": "denaro", "corpo": "ora", "tonfo": "ora" }, "minimo": 2, "punti": 3 }
+    {
+      "domanda": "chi",
+      "giusta": "ilario",
+      "punti": 5
+    },
+    {
+      "domanda": "movente",
+      "giusta": 0,
+      "punti": 2
+    },
+    {
+      "domanda": "quando",
+      "giusta": 1,
+      "punti": 2
+    },
+    {
+      "domanda": "prove",
+      "gruppi": {
+        "lastra": "chiave",
+        "impronte": "chiave",
+        "ricevuta": "denaro",
+        "biglietto": "denaro",
+        "corpo": "ora",
+        "tonfo": "ora"
+      },
+      "minimo": 2,
+      "punti": 3
+    }
   ],
   "soluzione": {
     "colpevole": "ilario",
-    "orari": ["06:10", "21:40", "23:15", "23:40"],
-    "prove": { "chi": ["lastra", "impronte", "biglietto"], "movente": ["stoppino", "ricevuta", "biglietto"], "quando": ["corpo", "tonfo"] },
+    "orari": [
+      "06:10",
+      "21:40",
+      "23:15",
+      "23:40"
+    ],
+    "prove": {
+      "chi": [
+        "lastra",
+        "impronte",
+        "biglietto"
+      ],
+      "movente": [
+        "stoppino",
+        "ricevuta",
+        "biglietto"
+      ],
+      "quando": [
+        "corpo",
+        "tonfo"
+      ]
+    },
     "cronologia": [
-      { "ora": "21:40", "vero": "Gaspare mostra a Nora lo stoppino difettoso" },
-      { "ora": "23:15", "vero": "Il perito prende la chiave del faro" },
-      { "ora": "23:40", "vero": "Lite sulla scala: Gaspare cade, la lanterna si spegne" },
-      { "ora": "06:10", "vero": "Nora trova lo zio" }
+      {
+        "ora": "21:40",
+        "vero": "Gaspare mostra a Nora lo stoppino difettoso"
+      },
+      {
+        "ora": "23:15",
+        "vero": "Il perito prende la chiave del faro"
+      },
+      {
+        "ora": "23:40",
+        "vero": "Lite sulla scala: Gaspare cade, la lanterna si spegne"
+      },
+      {
+        "ora": "06:10",
+        "vero": "Nora trova lo zio"
+      }
     ],
     "ricostruzione": [
       "Gaspare aveva scoperto che gli stoppini erano difettosi e che il collaudo era firmato dal perito.",
@@ -392,6 +778,8 @@
       "Alle 23:40, nella lite per la ricevuta, Gaspare cade dalla scala. L'orologio si ferma, Bastiano sente il tonfo.",
       "Il perito spegne la lanterna, rientra bagnato di salsedine e brucia il biglietto della ditta."
     ],
-    "epilogo": ["La nebbia si alza. La barca per Genova porterà la ricevuta, come voleva Gaspare."]
+    "epilogo": [
+      "La nebbia si alza. La barca per Genova porterà la ricevuta, come voleva Gaspare."
+    ]
   }
 }
