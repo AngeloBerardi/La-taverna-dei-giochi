@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prepara le immagini generate per un kit giallo: ritaglio, misura e WebP nel peso giusto (docs/GIALLI-SCENA.md).
 
-Uso: python3 tools/kit/prepara-immagini.py <cartella-sorgente> <id-kit>
+Uso: python3 tools/kit/prepara-immagini.py <cartella-sorgente> <id-kit> [kit-in-chiaro.json per i kit cifrati]
 La cartella sorgente ha la stessa forma della destinazione, con qualsiasi formato d'immagine:
   ritratti/tobia.png  luoghi/cantina.jpg  oggetti/fiala.png  copertina.png
 Scrive in assets/kit/<id-kit>/ e avvisa se un nome non corrisponde a niente nel kit (src/kit/<id-kit>.json).
@@ -34,14 +34,16 @@ def salva(im, dst, kb):
 
 def validi(kit):
     return {
-        'ritratti': {p['id'] for p in kit['personaggi']} | {'vittima'},
+        'ritratti': {p['id'] for p in kit.get('personaggi') or kit.get('persone', [])} | {'vittima'},
         'luoghi': {l['id'] for l in kit.get('luoghi', [])},
-        'oggetti': {x['id'] for a in kit['atti'] for x in a['indizi']},
+        # giallo: indizi degli atti; serata: prove; fascicolo: reperti
+        'oggetti': {x['id'] for x in kit.get('prove') or kit.get('reperti') or [i for a in kit.get('atti', []) for i in a.get('indizi', [])]},
     }
 
 
 def main(src, kid):
-    kit = json.load(open(os.path.join(ROOT, 'src', 'kit', kid + '.json'), encoding='utf8'))
+    # un kit cifrato si controlla sul suo file in chiaro, fuori dal repo: terzo argomento
+    kit = json.load(open(sys.argv[3] if len(sys.argv) > 3 else os.path.join(ROOT, 'src', 'kit', kid + '.json'), encoding='utf8'))
     ok, dst_root, fatti = validi(kit), os.path.join(ROOT, 'assets', 'kit', kid), 0
     lavori = []
     for f in os.listdir(src):

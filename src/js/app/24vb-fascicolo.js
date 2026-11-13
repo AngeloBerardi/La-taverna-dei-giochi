@@ -116,6 +116,7 @@ const FAS = {
       D.un = null;
       D.s = null;
       D.k = await SER.sblocca(await REGIA.kit(g.kit));
+      FAS.conMedia(D.k, D.k.media || (REGIA.KIT[g.kit] || {}).media);
       const e = FASCICOLO.valida(D.k);
       if (e.length) throw new Error('Kit non valido: ' + e[0]);
       const salvato = await REGIA.carica(R.code);
@@ -148,6 +149,14 @@ const FAS = {
       D.carica = false;
       render();
     }
+  },
+  // le immagini della cartella assets/kit/<id>/ entrano nei campi img del kit, così il motore le passa anche ai telefoni
+  conMedia(k, m) {
+    if (!m) return;
+    k.copertina = k.copertina || m.copertina || '';
+    for (const p of k.persone || []) p.img = p.img || (m.ritratti || {})[p.id] || '';
+    for (const l of k.luoghi || []) l.img = l.img || (m.luoghi || {})[l.id] || '';
+    for (const r of k.reperti || []) r.img = r.img || (m.oggetti || {})[r.id] || '';
   },
   riprova() {
     Object.assign(FAS.D, { err: '', frase: '', erroDi: '', gid: '' });
@@ -464,7 +473,7 @@ const FAS = {
       const rep = id => k.reperti.find(r => r.id === id) || {};
       if (m.tipo === 'reperto' || m.tipo === 'proietta') {
         const r = rep(m.id || m.rep);
-        return `<article class="fs-doc${E}"><small>${m.da ? 'Proiettato da ' + esc(m.da) : 'Nuovo reperto'}</small><h2>${esc(r.titolo)}</h2><p>${FAS.testo(r.testo)}</p></article>`;
+        return `<article class="fs-doc${E}"><small>${m.da ? 'Proiettato da ' + esc(m.da) : 'Nuovo reperto'}</small><h2>${esc(r.titolo)}</h2>${r.img ? `<img class="fs-img" src="${esc(r.img)}" alt="">` : ''}<p>${FAS.testo(r.testo)}</p></article>`;
       }
       if (m.tipo === 'unisci')
         return `<div class="fs-c${E}"><small>Reperto spezzato</small><h2>${esc(m.da)} cerca l’altra metà</h2><p class="fs-grande">«${esc(rep(m.rep).titolo)}»</p><p>Chi ha l’altra metà tocchi «Unisci» entro un minuto.</p></div>`;
@@ -504,7 +513,8 @@ const FAS = {
             `<li><b>${esc(x.nome)}</b><small>${x.spec.map(esc).join(' · ')}</small>${x.capo ? '<em>caposquadra</em>' : ''}</li>`
         )
         .join('');
-      return `<div class="fs-c"><small>La squadra</small><h2>Ognuno ha una parte del fascicolo</h2><ul class="fs-squadra">${sq}</ul><p>Il caposquadra tocca «Avanti» sul telefono per aprire il caso.</p></div>`;
+      const cop = k && k.copertina ? `<img class="fs-cop" src="${esc(k.copertina)}" alt="">` : '';
+      return `${cop}<div class="fs-c"><small>La squadra</small><h2>Ognuno ha una parte del fascicolo</h2><ul class="fs-squadra">${sq}</ul><p>Il caposquadra tocca «Avanti» sul telefono per aprire il caso.</p></div>`;
     }
     if (g.fase === 'apertura' || (g.fase === 'rivelazione' && g.riga && g.riga.testo))
       return `<div class="fs-c fs-racconto"><p>${g.riga ? esc(g.riga.testo) : ''}</p></div>`;
@@ -607,7 +617,7 @@ const FAS = {
         r.meta !== undefined
           ? ''
           : `<button class="b sm ${s ? 'sel' : ''}" data-a="fas" data-v="scegli:${esc(r.id)}">${s ? 'Scelto' : 'Scegli'}</button>`;
-      return `<article class="fs-rep fs-${esc(r.tipo)} ${s ? 'fs-scelto' : ''} ${r.meta !== undefined ? 'fs-meta' : ''}"><small>${esc(r.tipo)}${r.meta !== undefined ? ' · metà ' + (r.meta + 1) + ' di 2' : ''}</small><h3>${esc(r.titolo)}</h3><p>${FAS.testo(r.testo)}</p><div class="fs-az">${az}${scegli}</div></article>`;
+      return `<article class="fs-rep fs-${esc(r.tipo)} ${s ? 'fs-scelto' : ''} ${r.meta !== undefined ? 'fs-meta' : ''}"><small>${esc(r.tipo)}${r.meta !== undefined ? ' · metà ' + (r.meta + 1) + ' di 2' : ''}</small><h3>${esc(r.titolo)}</h3>${r.img ? `<img class="fs-img" src="${esc(r.img)}" alt="">` : ''}<p>${FAS.testo(r.testo)}</p><div class="fs-az">${az}${scegli}</div></article>`;
     };
     const mie = ((m.reperti && m.reperti.l) || []).slice().reverse();
     const tv = ((m.reperti && m.reperti.tv) || []).filter(r => !mie.some(x => x.id === r.id));
