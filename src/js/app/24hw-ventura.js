@@ -32,7 +32,11 @@ ${cont}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro re
   if(!VenArte.A.pronta){if(!VenArte.A.fallita)VenArte.avvia().then(()=>{if(ui.ven)render()});return}
   const host=document.querySelector('.vn-scena');if(!host)return;VenArte.monta(host);if(!V.gesti)gesti();
   if(V.modo==='mondo')VenMappa.apri(V.s);if(!V.raf){V.ult=0;V.raf=requestAnimationFrame(giro)}}
- function giro(ora){V.raf=requestAnimationFrame(giro);if(!ui.ven||!V.s){ferma();return}const dt=Math.min(.1,V.ult?(ora-V.ult)/1000:.016);V.ult=ora;
+ // contesto grafico perso (schermo bianco): si rifà tutto da capo, al massimo una volta ogni due secondi; alla terza di fila ci si arrende
+ function ripara(ora){if(ora-(V.riparato||0)<2000)return false;V.riparato=ora;V.rip=(ora-(V.ripUlt||0)<20000?(V.rip||0):0)+1;V.ripUlt=ora;
+  if(V.rip>3){VenArte.A.fallita=true;VenArte.A.pronta=false;ferma();render();return false}
+  if(!VenArte.rifai()){ferma();render();return false}V.gesti=false;gesti();VenMappa.K.scene=null;VenMappa.K.seme=-1;if(V.modo==='campo')VenCampo.scena();else VenMappa.apri(V.s);return true}
+ function giro(ora){V.raf=requestAnimationFrame(giro);if(!ui.ven||!V.s){ferma();return}if(VenArte.persa()&&!ripara(ora))return;const dt=Math.min(.1,V.ult?(ora-V.ult)/1000:.016);V.ult=ora;
   try{if(V.modo==='campo'){VenCampo.passo(dt);const k=VenCampo.K;if(k.finita&&!V.fine){V.fine=ora}if(V.fine&&ora-V.fine>1400&&V.pan!=='fine'){V.pan='fine';render()}}
    else{mondo(dt);VenMappa.passo(dt,V.s)}
    if(ora-V.hud>250){V.hud=ora;hudVivo()}

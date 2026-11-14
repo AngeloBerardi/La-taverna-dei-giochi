@@ -12,7 +12,12 @@ const VenArte=(()=>{
  const ELEV=52*Math.PI/180,SE=Math.sin(ELEV),CE=Math.cos(ELEV);
  function avvia(){if(A.pronta||A.fallita)return Promise.resolve(A.pronta);if(A.attesa)return A.attesa;
   A.attesa=VENDOR.load('three').then(()=>{try{T=THREE;costruisci();A.pronta=true}catch(e){A.fallita=true;ERR.n(e,'ventura-3d')}return A.pronta},()=>{A.fallita=true;return false});return A.attesa}
- function costruisci(){cv=document.createElement('canvas');cv.className='vn-cv';
+ // Il telefono può togliere il contesto grafico (memoria, scheda in secondo piano): il canvas resta bianco.
+ // Si segna la perdita e `rifai` ricostruisce canvas, renderer e materiali; le scene le rifà chi le possiede (Ven.ripara).
+ const persa=()=>!!(A.pronta&&(A.persa||(ren&&ren.getContext().isContextLost())));
+ function rifai(){const vecchio=cv;try{if(rt){rt.depthTexture.dispose();rt.dispose()}ren.dispose()}catch(e){}rt=null;A.persa=false;A.W=0;A.t=0;A.nfps=0;A.rinascite=(A.rinascite||0)+1;
+  try{costruisci();if(vecchio&&vecchio.parentNode){const h=vecchio.parentNode;h.removeChild(vecchio);A.host=null;monta(h)}return true}catch(e){A.fallita=true;A.pronta=false;ERR.n(e,'ventura-3d');return false}}
+ function costruisci(){cv=document.createElement('canvas');cv.className='vn-cv';cv.addEventListener('webglcontextlost',e=>{e.preventDefault();A.persa=true});
   ren=new T.WebGLRenderer({canvas:cv,antialias:false,alpha:false,powerPreference:'high-performance'});ren.setPixelRatio(1);// colori scritti come si vedono: nessuna conversione di spazio colore
   
   ren.shadowMap.enabled=true;ren.shadowMap.type=T.PCFShadowMap;ren.autoClear=true;
@@ -134,5 +139,5 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const r=raggio||30;sole.position.set(fuoco.x+ex*60,fuoco.y+ey*70+10,fuoco.z+38);sole.target.position.set(fuoco.x,fuoco.y,fuoco.z);sole.target.updateMatrixWorld();
     const sc=sole.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=1;sc.far=260;sc.updateProjectionMatrix();
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
- return{A,avvia,monta,smonta,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
+ return{A,avvia,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
   get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get grad(){return grad},SE,CE}})();
