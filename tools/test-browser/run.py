@@ -3066,6 +3066,14 @@ async def sc_ventura(b, srv):
     check(st['barra'] == 'none' or await pg.locator('#plancia').count() == 0, 'la barra della Taverna sparisce nel mondo')
     px = await pg.evaluate("(()=>{const c=VenArte.cv,g=document.createElement('canvas');g.width=g.height=24;const x=g.getContext('2d');VenMappa.passo(.016,Ven.V.s);x.drawImage(c,0,0,24,24);const d=x.getImageData(0,0,24,24).data;const s=new Set();for(let i=0;i<d.length;i+=4)s.add((d[i]>>4)+','+(d[i+1]>>4)+','+(d[i+2]>>4));return s.size})()")
     check(px >= 6, f'la scena ha colori diversi (non è nera): {px}')
+    # pochi contesti WebGL sul telefono: aprire la Ventura chiude quelli di home e mappa; se la creazione fallisce, «Riprova» rimedia
+    lib = await pg.evaluate("({cro:Crocevia.K.pronta,sce:Scena3D.K.pronta,err:VenArte.A.errore||''})")
+    check(not lib['cro'] and not lib['sce'] and lib['err'] == '', f'la Ventura libera i contesti di home e Scena3D: {lib}')
+    await pg.evaluate("(()=>{const O=THREE.WebGLRenderer;window.__R=O;THREE.WebGLRenderer=class extends O{constructor(){throw new Error('Error creating WebGL context')}};VenArte.A.pronta=false;VenArte.A.attesa=null;VenArte.avvia().then(()=>render())})()"); await pg.wait_for_timeout(600)
+    guasto = await pg.evaluate("({f:VenArte.A.fallita,e:VenArte.A.errore,velo:!!document.querySelector('.vn-vela [data-v=riprova]')})")
+    check(guasto['f'] and 'WebGL' in guasto['e'] and guasto['velo'], f'creazione fallita: velo con motivo e «Riprova»: {guasto}')
+    await pg.evaluate("(()=>{THREE.WebGLRenderer=window.__R;return 1})()"); await pg.click('.vn-vela [data-v=riprova]'); await pg.wait_for_function("VenArte.A.pronta", timeout=15000); await pg.wait_for_timeout(800)
+    check(await pg.evaluate("VenArte.A.pronta&&!VenArte.A.fallita&&!!document.querySelector('.vn-scena canvas')"), 'Riprova: la scena si riaccende')
     # contesto grafico perso (sul telefono: schermo bianco): la scena si ricostruisce da sola, la partita non si tocca
     await pg.evaluate("(()=>{const g=VenArte.cv.getContext('webgl2')||VenArte.cv.getContext('webgl');window.__cv0=VenArte.cv;g.getExtension('WEBGL_lose_context').loseContext()})()"); await pg.wait_for_timeout(2600)
     rip = await pg.evaluate("({nuovo:VenArte.cv!==window.__cv0,inPagina:!!document.querySelector('.vn-scena canvas')&&document.querySelectorAll('.vn-scena canvas').length===1,persa:VenArte.persa(),uom:VEN.uomini(VEN.TU(Ven.V.s))})")

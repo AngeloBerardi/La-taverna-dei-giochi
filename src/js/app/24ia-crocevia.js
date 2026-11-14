@@ -136,5 +136,7 @@ const Crocevia=(()=>{
   if(!K.pronta||!K.host||K.fallita||RM||!K.raf)return false;if(Date.now()<K.quando)return true;
   const a=t.dataset.a,v=t.dataset.v;verso(+t.dataset.cv||0);K.quando=Date.now()+ATTESA;
   setTimeout(()=>{K.quando=0;const b=document.querySelector(`.hm [data-cv][data-a="${a}"]${v?`[data-v="${v}"]`:''}`);if(!b||b.disabled)return;K.passa=true;b.click();K.passa=false},ATTESA);return true}
- return{dopo,parte,st,K};
+ // il telefono ha pochi contesti WebGL: chi ne ha bisogno altrove (Compagnia di ventura) fa chiudere questo; `dopo()` lo ricostruisce alla prossima apertura della home
+ function rilascia(){parcheggia();if(!K.pronta)return;try{ren.dispose();ren.forceContextLoss()}catch(e){}K.pronta=false;K.carica=false;K.fallita=false;ren=null;cv=null}
+ return{dopo,parte,st,K,rilascia};
 })();
