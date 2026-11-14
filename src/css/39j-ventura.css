@@ -1,0 +1,74 @@
+/* ---- Compagnia di ventura (piano C): mondo libero e battaglia campale. Prefisso `vn-`. Vista: app/24hw-ventura.js. ----
+   La scena 3D (canvas `.vn-cv`) sta sotto; sopra, fasce di legno e ottone in alto e in basso, pannelli che salgono dal fondo. */
+html.vn-on #plancia,html.vn-on #dock{display:none!important}
+.vn{position:fixed;inset:0;z-index:88;background:#14202c;color:#f3e6c8;overflow:hidden;user-select:none;-webkit-user-select:none;font:500 15px/1.3 var(--f-b)}
+.vn-scena{position:absolute;inset:0;overflow:hidden;display:grid;place-items:center}
+.vn-cv{display:block;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+.vn-etc{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.vn-et{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;white-space:nowrap;font:800 12px var(--f-d);letter-spacing:.03em;color:#fff7e0;text-shadow:0 1px 0 #000,0 0 4px rgba(0,0,0,.9);will-change:transform}
+.vn-et b{min-width:18px;padding:1px 5px;text-align:center;font:800 11px var(--f-b);color:#fff;background:var(--fz,#555);border:1px solid rgba(0,0,0,.7);box-shadow:0 1px 0 rgba(255,255,255,.25) inset}
+.vn-et.nem span{color:#ffb0a0}.vn-et.tu b{background:#d98a1f;color:#2a1d03;font-size:12px}
+.vn-et.luogo{padding:2px 8px 2px 6px;font-size:13px;background:linear-gradient(180deg,rgba(40,26,14,.92),rgba(24,15,8,.92));border:1px solid #b88a3c;border-left:5px solid var(--fz,#888);box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.vn-et.luogo.villaggio{font-size:11px;padding:1px 6px 1px 4px;border-color:rgba(184,138,60,.6)}.vn-et.luogo.citta{font-size:15px}
+.vn-et.luogo.ass{border-color:#ff7a4a;color:#ffd0b8}.vn-et.luogo.mio{border-color:#ffd75a}
+.vn-et.scontro{padding:2px 7px;background:#7a1f1f;border:1px solid #ffb0a0;font-size:11px;text-transform:uppercase}
+.vn-num{position:absolute;transform:translate(-50%,-50%);font:900 20px var(--f-d);color:#fff;text-shadow:0 2px 0 #000,0 0 5px #000;font-style:normal}
+.vn-num.crit{color:#ffe27a;font-size:27px}.vn-num.male{color:#ff7a6a}
+/* fasce */
+.vn-alto{position:absolute;left:0;right:0;top:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:calc(6px + env(safe-area-inset-top,0px)) 8px 6px;
+ background:linear-gradient(180deg,#3a2616,#2a1a0e);border-bottom:2px solid #b88a3c;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+.vn-tempo{display:flex;align-items:center;gap:6px;flex:1;font:800 15px var(--f-d);color:#f0c166}.vn-tempo span{display:inline-flex}
+.vn-ris{display:flex;justify-content:space-between;gap:4px;width:100%}.vn-ris span{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;background:rgba(0,0,0,.35);border:1px solid rgba(184,138,60,.45);color:#e8c98a}
+.vn-ris b{color:#fff7e0;font:800 14px var(--f-b)}
+.vn-ib{display:inline-grid;place-items:center;min-width:44px;min-height:44px;padding:0 8px;color:#f3e6c8;font:800 15px var(--f-d);background:linear-gradient(180deg,#5a3c22,#3c2614);border:1px solid #b88a3c;cursor:pointer}
+.vn-ib.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#3a2206}
+.vn-basso{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,#2a1a0e,#3a2616);border-top:2px solid #b88a3c;box-shadow:0 -3px 10px rgba(0,0,0,.5)}
+.vn-bt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:4px 2px;color:#f3e6c8;background:linear-gradient(180deg,#5a3c22,#3c2614);border:1px solid #b88a3c;cursor:pointer;font:inherit}
+.vn-bt small{font:800 11px var(--f-d);letter-spacing:.02em}.vn-bt:active,.vn-ib:active{filter:brightness(1.25)}
+.vn-punto{position:absolute;right:5px;top:5px;width:9px;height:9px;background:#ffd75a;border:1px solid #000;transform:rotate(45deg)}
+/* avvisi */
+.vn-avv{position:absolute;left:10px;right:10px;top:calc(104px + env(safe-area-inset-top,0px));display:grid;gap:4px;justify-items:center;pointer-events:none}
+.vn-av{max-width:100%;padding:5px 12px;font:700 13px var(--f-b);background:rgba(24,15,8,.9);border:1px solid #b88a3c;box-shadow:0 2px 8px rgba(0,0,0,.5);animation:vn-su .25s ease-out both}
+.vn-av.male{border-color:#ff7a6a;color:#ffd0c4}.vn-av.bene{border-color:#9fd36a;color:#e2f6c4}.vn-av.guerra{border-color:#c9d3dc;color:#e8eef4}
+@keyframes vn-su{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* carta di una compagnia toccata */
+.vn-carta{position:absolute;left:8px;right:8px;bottom:calc(74px + env(safe-area-inset-bottom,0px));display:grid;gap:5px;padding:10px 12px;background:linear-gradient(180deg,#3a2616,#24160c);border:2px solid #b88a3c;box-shadow:0 6px 18px rgba(0,0,0,.6);animation:vn-su .2s ease-out both}
+.vn-ct{display:flex;align-items:center;gap:8px}.vn-ct b{flex:1;font:800 18px var(--f-d);color:#f0c166}
+.vn-fz{display:inline-block;padding:1px 8px;font:800 12px var(--f-d);color:#fff;background:var(--fz,#666);border:1px solid rgba(0,0,0,.6)}
+/* pannelli */
+.vn-pan{position:absolute;left:0;right:0;bottom:0;max-height:74%;display:flex;flex-direction:column;background:linear-gradient(180deg,#34220f,#1f140a);border-top:3px solid #b88a3c;box-shadow:0 -8px 28px rgba(0,0,0,.65);animation:vn-su .22s ease-out both;padding-bottom:env(safe-area-inset-bottom,0px)}
+.vn-pan.vn-inc{max-height:82%}
+.vn-pt{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-bottom:1px solid rgba(184,138,60,.5)}.vn-pt h3{flex:1;margin:0;font:800 21px var(--f-d);color:#f0c166}
+.vn-pc{overflow:auto;padding:8px 12px 12px;display:grid;gap:7px;-webkit-overflow-scrolling:touch}
+.vn-pc .sh2{margin:6px 0 0;font:800 14px var(--f-d);color:#f0c166;text-transform:uppercase;letter-spacing:.06em}
+.vn-p{margin:0;color:#e6d6b4}.vn-msg{margin:0;padding:8px 12px;background:#5a1c16;color:#ffd0c4;font-weight:700}
+.vn-r{display:flex;align-items:center;gap:8px;padding:7px 9px;background:rgba(0,0,0,.26);border:1px solid rgba(184,138,60,.3)}
+.vn-rs{flex:1;min-width:0}.vn-rs b{font:800 16px var(--f-d);color:#fff3d6}.vn-rs small{display:block;color:#cdbb96;font-size:13px}
+.vn-rd{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;flex:none;max-width:56%}
+.vn-pan .b.sm{min-height:44px;border-radius:0;font-size:13px;padding:6px 11px}
+.vn-lt{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:6px 9px;border-left:6px solid var(--fz,#888);background:rgba(0,0,0,.3)}.vn-lt small{color:#cdbb96}
+.vn-pip{display:inline-flex;gap:2px;vertical-align:1px}.vn-pip b{width:7px;height:7px;background:#f0c166;transform:rotate(45deg);border:1px solid #5a3a10}
+.vn-tag{font:700 10px var(--f-b);font-style:normal;padding:1px 5px;background:#3f5d2a;color:#dff0c4;text-transform:uppercase}
+.vn-bene{color:#b6e07e}.vn-male{color:#ff9a8a}
+.vn-qta{display:flex;align-items:center;gap:6px}.vn-qta small{flex:1;color:#cdbb96}
+.vn-ch{min-height:44px;min-width:44px;padding:4px 11px;font:800 13px var(--f-d);color:#f3e6c8;background:#3c2614;border:1px solid #b88a3c;cursor:pointer}.vn-ch.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#3a2206}.vn-ch b{font:800 12px var(--f-b)}
+.vn-forze{height:12px;flex:1;background:#8a2a22;border:1px solid #000;box-shadow:0 0 0 1px #b88a3c}.vn-forze i{display:block;height:100%;background:linear-gradient(180deg,#f0c166,#cf8f2c);transition:width .4s}
+.vn-fl{display:flex;justify-content:space-between;color:#cdbb96}
+.vn-es{display:grid;place-items:center;padding:6px;color:#f0c166}.vn-es.s{color:#c9d3dc}
+.vn-griglia{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.vn-griglia span{display:grid;justify-items:center;padding:7px 4px;background:rgba(0,0,0,.3);border:1px solid rgba(184,138,60,.3);color:#cdbb96;font-size:12px}.vn-griglia b{font:800 20px var(--f-d);color:#fff3d6}
+.vn-tr{margin:0;padding:0;list-style:none;display:grid;gap:4px;color:#cdbb96}.vn-tr li{display:flex;gap:6px;align-items:center}.vn-tr li.ok{color:#b6e07e}
+.vn-log{display:grid;gap:3px}.vn-log p{margin:0;color:#d8c8a4;font-size:13px}.vn-log i{color:#8f7d5a;font-style:normal;margin-right:4px}.vn-log .male{color:#ff9a8a}.vn-log .bene{color:#b6e07e}.vn-log .guerra{color:#c9d3dc}
+.vn-vela{position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:rgba(8,6,4,.72);text-align:center}.vn-vela.chiaro{background:rgba(8,6,4,.38);place-items:end center;padding-bottom:120px}
+.vn-vela>div{display:grid;gap:10px;justify-items:center;max-width:320px;padding:18px;background:linear-gradient(180deg,#3a2616,#24160c);border:2px solid #b88a3c}.vn-vela h3{margin:0;font:800 24px var(--f-d);color:#f0c166}.vn-vela p{margin:0}
+/* battaglia */
+.vn-ca{gap:5px}.vn-barra{display:flex;align-items:center;gap:8px;width:100%}.vn-barra b{min-width:30px;text-align:center;font:800 17px var(--f-d)}
+.vn-capo{display:flex;align-items:center;gap:6px;width:100%;color:#ff8a7a}.vn-pfb{flex:1;height:9px;background:#3a1612;border:1px solid #000}.vn-pfb i{display:block;height:100%;background:linear-gradient(180deg,#ff8a6a,#c9402e);transition:width .2s}
+.vn-cb{grid-template-columns:1fr;gap:5px}.vn-gr{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.vn-or{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.vn-grido{--r:0;border-color:#ffd75a}.vn-grido.no{opacity:.55}.vn-grido::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:calc((1 - var(--r))*100%);background:#ffd75a}
+.vn-via{position:absolute;left:14px;right:14px;top:36%;display:grid;gap:10px;justify-items:center;padding:14px;text-align:center;background:rgba(24,15,8,.9);border:2px solid #b88a3c}.vn-via p{margin:0}
+/* pagina Avventura */
+.vn-stemma{display:grid;place-items:center;width:46px;height:46px;flex:none;color:#3a2206;background:linear-gradient(180deg,#f0c166,#cf8f2c);clip-path:polygon(0 0,100% 0,100% 62%,50% 100%,0 62%)}
+.vn-nuova{display:grid;gap:7px}.vn-regni{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.vn-regno{display:grid;gap:3px;padding:8px 6px;text-align:center;color:inherit;font:inherit;cursor:pointer;background:rgba(0,0,0,.25);border:2px solid rgba(184,138,60,.4);border-top:6px solid var(--fz)}
+.vn-regno b{font:800 15px var(--f-d)}.vn-regno small{font-size:11px;opacity:.8;line-height:1.2}.vn-regno.on{border-color:#f0c166;background:rgba(240,193,102,.14)}
+@media (prefers-reduced-motion:reduce){.vn-pan,.vn-av,.vn-carta{animation:none}}

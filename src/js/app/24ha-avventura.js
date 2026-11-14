@@ -20,7 +20,8 @@ const Avv={
 <small class="muted">${lista.map(h=>esc(h.nome)+' · '+esc(EROI.CLASSI[h.classe].nome)+' '+h.liv).join(' — ')}</small>${pend.length?`<small class="muted"><b>Scelte di livello in attesa:</b> ${pend.map(h=>esc(h.nome)).join(', ')}. Falle da «Gestisci gli eroi».</small>`:''}`:'<p class="muted" style="margin:0">Nessun eroe: creane uno per partire.</p>'):
    '<p class="muted" style="margin:0">Per creare e salvare gli eroi serve il profilo online.</p>';
   return`<div class="modal"><div class="box col av"><h2>Cantari di Ventura ${infoH('Una campagna a capitoli: ogni sessione è un «cantare». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
-<p class="muted" style="margin:0">Una compagnia, una mappa a esagoni e la perdizione che avanza.</p>
+<p class="muted" style="margin:0">Due modi di andare alla ventura: il mondo libero del capitano di compagnia e la campagna a capitoli.</p>
+${Ven.sezioneH()}
 ${Ses.sezioneH()}
 ${AvvStanza.sezioneH()}
 <div class="sh2">Campagna libera ${infoH('Solo la mappa del mondo, senza la storia: i premi restano nella campagna e non tornano agli eroi.')}</div>
