@@ -30,7 +30,7 @@ const VCAM=(()=>{
    s.ord[l]={f:{t:'tieni',x:C.W/2,y:ya},t:{t:'tieni',x:C.W/2,y:ya+ver*7},c:{t:'tieni',x:C.W/2+(l==='a'?17:-17),y:ya+ver*2}};
    if(s.muro&&l==='b'){s.ord.b.t={t:'tieni',x:C.W/2,y:s.muro-2.5};s.ord.b.c={t:'tieni',x:C.W/2,y:s.muro-12}}
    const perG={f:[],t:[],c:[]};for(const x of campo)for(let k=0;k<x.n;k++)perG[D.TR[x.t].c].push(x);
-   for(const g of GR){const L=perG[g],o2=s.ord[l][g];L.forEach((x,k)=>{const pt=posto(k,L.length,g==='c'?2.4:1.7,s.muro&&l==='b'&&g==='t'?26:14);unita(s,l,x,stretto(o2.x+pt[0],2,C.W-2),o2.y+ver*pt[1])})}
+   for(const g of GR){const L=perG[g],o2=s.ord[l][g];L.forEach((x,k)=>{const pt=posto(k,L.length,g==="c"?2.4:1.7,s.muro&&l==="b"&&g==="t"?26:10);unita(s,l,x,stretto(o2.x+pt[0],2,C.W-2),o2.y+ver*pt[1])})}
    if(l==='a'&&scheda.cap){const c=scheda.cap,u=unita(s,'a',{p:0,t:scheda.a[0]?scheda.a[0].t:'val_f1'},C.W/2,ya+2);
     Object.assign(u,{cap:true,c:'k',pf:c.pf,pfm:c.pf,att:c.att,dif:c.dif,dan:c.dan,git:0,vel:c.vel,cav:!!c.cavallo,liv:5,nome:c.nome,vx:u.x,vy:u.y,ob:-1});s.cap=u.id}}
   s.mor={a:scheda.morale==null?55:scheda.morale,b:55};
@@ -110,7 +110,7 @@ const VCAM=(()=>{
     if(b&&(u.ob>=0||s.autoA||db<7)){if(db<=C.MISCHIA+.3){if(u.cd<=0)mischia(s,u,b)}else{const st=muovi(s,u,b.x,b.y);u.ca=u.cav?Math.min(1,u.ca+st*.12):0}}continue}
    const ver=u.l==='a'?1:-1;
    if(o.t==='segui'&&cap&&u.l==='a'){const pt=posto(idx[u.id],conta[u.l][u.c],u.c==='c'?2.4:1.7,12);ax=cap.x+pt[0]+(u.c==='c'?9:0);ay=cap.y+(3+pt[1]+(u.c==='t'?5:0))*ver}
-   else if(o.t==='tieni'||o.t==='segui'){const pt=posto(idx[u.id],conta[u.l][u.c],u.c==='c'?2.4:1.7,s.muro&&u.l==='b'&&u.c==='t'?26:14);ax=stretto(o.x+pt[0],1.5,C.W-1.5);ay=o.y+pt[1]*ver}
+   else if(o.t==='tieni'||o.t==='segui'){const pt=posto(idx[u.id],conta[u.l][u.c],u.c==='c'?2.4:1.7,s.muro&&u.l==="b"&&u.c==="t"?26:10);ax=stretto(o.x+pt[0],1.5,C.W-1.5);ay=o.y+pt[1]*ver}
    const libero=o.t==='carica',db=b?u.bd=d2(u,b):1e9;
    if(b&&u.git&&db<=u.git&&db>3){// tiratore a tiro: fermo e scocca (chi tiene la posizione non la lascia)
     if(!libero){const da=rad((ax-u.x)*(ax-u.x)+(ay-u.y)*(ay-u.y));if(da>1.2){muovi(s,u,ax,ay);continue}}

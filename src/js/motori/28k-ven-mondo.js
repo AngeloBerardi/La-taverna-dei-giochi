@@ -126,7 +126,7 @@ const VEN=(()=>{
   const r=rnd(s);
   // la tua compagnia parte accanto a un villaggio del regno scelto (o a caso)
   const f0=D.REGNI.includes(o.regno)?o.regno:D.REGNI[Math.floor(r()*3)],vil=M.luoghi.filter(l=>l.faz===f0&&l.tipo==='villaggio')[0]||M.luoghi[0];
-  const v0=vicinoOk(M,vil.x+1,vil.y+1);
+  const v0=vicinoOk(M,vil.x+2.6,vil.y+2.2);
   const tu=nuovaP(s,'tu','tu',s.nome,v0[0],v0[1],[{t:f0+'_f1',n:5,f:0,xp:0},{t:f0+'_f2',n:2,f:0,xp:0}],{oro:P.ORO0,merci:{grano:6,carne:2}});tu.ia=null;
   // luoghi
   for(const b of M.luoghi){const prod=D.PRODUCE[b.faz],l={id:b.id,nome:b.nome,tipo:b.tipo,faz:b.faz,x:b.x,y:b.y,capo:b.capo,sig:-1,prosp:45+Math.floor(r()*30),rel:0,g:[],rec:0,sacc:0,ass:null,scorte:{},merc:[],inc:null};
