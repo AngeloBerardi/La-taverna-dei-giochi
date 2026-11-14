@@ -1,7 +1,7 @@
 
 /* ================= pagina del gioco: tipo di partita, opzioni reali dell'app, regole ================= */
 var PSEL={},PENDSEL='',PAGE=-1,COVERS=[];
-function cover(i){if(!COVERS[i])COVERS[i]=boxTex(i).image.toDataURL();return COVERS[i]}
+function cover(i){if(!COVERS[i])COVERS[i]=copUrl(i)||boxTex(i).image.toDataURL();return COVERS[i]}
 function okG(i,N){return GAMES[i].g.ok(N==null?curN():N)}
 function optOf(i){var g=GAMES[i].g;if(!g.opts)return null;var u=A.ui();return (u.opts&&u.opts[g.id])||g.opts.vals[0][0]}
 function selSummary(i){var G=GAMES[i],N=curN(),out=[G.g.ok(N)?G.g.mode(N):(G.r+' giocatori')];var o=G.g.opts,v=optOf(i);if(o)o.vals.forEach(function(x){if(x[0]===v)out.push(x[1])});return out.join(' · ')}

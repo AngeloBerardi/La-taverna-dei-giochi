@@ -14,6 +14,7 @@ const R={on:false,db:null,tried:false,code:'',ref:null,doc:null,members:[],pos:{
 const ENG={regicide:RG,briscola:IT.BRIS,scopa:IT.SCOPA,burraco:BURR,gang:GANG,saboteur:SAB,azul:AZUL,island:ISLE,machiavelli:MACH,mind:MIND,mindx:MIND,harvest:HARV,scoundrel:SCOUN,trono:THRONE,uno:UNO,fantasma:FANTASMA,zucca:ZUCCA,quiz:QUIZ,spie:SPIE,pets:PETS,catan:CATAN,kittens:KITT,perudo:PERU,valle:VALLE,accordi:ACC,discesa:DISC,rlegacy:RLEG,regix:RGX,avventura:{newGame:(n,names,o)=>AvvStanza.nuova(n,names,o),act:(s,a)=>AST.act(s,a,Ses.cap)}};
 /* Regicidio e la sua variante con classi e tratti condividono vista, effetti e schermo comune */
 const isRG=g=>g==='regicide'||g==='regix';
+const COPIMG=/*COPIMG*/[]; // id dei giochi che hanno la copertina in assets/copertine/<id>.webp (lo riempie il build)
 const GAMES=[
  {id:'regicide',name:'Regicidio',desc:'Cooperativo: insieme contro i sovrani corrotti del castello.',range:'1–4',ok:n=>n>=1&&n<=4,mode:n=>n===1?'Solitario con 2 Jolly':n+' eroi in cooperazione'},
  {id:'briscola',name:'Briscola',desc:'Carte napoletane: vince chi supera i 60 punti.',range:'2–4',ok:n=>n>=2&&n<=4,mode:n=>n===4?'A coppie, 2 contro 2':n===3?'Tutti contro tutti (senza il 2 di Coppe)':'Testa a testa'},
