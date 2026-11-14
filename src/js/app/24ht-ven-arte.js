@@ -81,15 +81,15 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
   const pezzo=(S,ombra)=>{const me=new T.InstancedMesh(S.geo(),matInst,max);me.castShadow=ombra!==false;me.receiveShadow=false;me.count=0;me.frustumCulled=false;me.instanceMatrix.setUsage(T.DynamicDrawUsage);
    me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);me.instanceColor.setUsage(T.DynamicDrawUsage);scene.add(me);return me};
   const P={};
-  P.corpo=pezzo(Solidi().box(.2,.62,.24,-.15,0,0,'#6e665f').box(.2,.62,.24,.15,0,0,'#6e665f').box(.62,.62,.36,0,.6,0,'#ffffff',{c2:'#f2f2f2'}).box(.17,.5,.2,-.4,.66,0,'#d9d9d9').box(.17,.5,.2,.4,.66,0,'#d9d9d9').box(.66,.12,.4,0,.56,0,'#4a3a2c'));
-  P.testa=pezzo(Solidi().box(.36,.34,.34,0,1.22,0,'#f0c9a0').box(.42,.2,.4,0,1.42,0,'#ffffff').box(.44,.06,.44,0,1.4,0,'#d0d0d0'));
+  P.corpo=pezzo(Solidi().box(.2,.62,.24,-.15,0,0,'#6e665f').box(.2,.62,.24,.15,0,0,'#6e665f').box(.66,.62,.4,0,.6,0,'#ffffff',{c2:'#f2f2f2'}).box(.2,.5,.24,-.43,.7,0,'#e4e4e4').box(.2,.5,.24,.43,.7,0,'#e4e4e4').box(.66,.12,.4,0,.56,0,'#4a3a2c'));
+  P.testa=pezzo(Solidi().box(.34,.32,.32,0,1.22,0,'#ffe2c0').box(.38,.16,.36,0,1.44,0,'#ffffff').box(.4,.05,.4,0,1.42,0,'#d0d0d0'));
   P.spada=pezzo(Solidi().box(.07,.8,.07,.46,.86,.22,'#dfe6ee',{rx:.5}).box(.2,.06,.08,.46,.88,.12,'#8a6a2c'),false);
   P.lancia=pezzo(Solidi().box(.06,2.1,.06,.46,.1,.16,'#8b6b43').box(.1,.28,.1,.46,2.2,.16,'#e6edf4'),false);
   P.arco=pezzo(Solidi().box(.05,.5,.05,-.44,.95,.32,'#7a5230',{rx:.35}).box(.05,.5,.05,-.44,.5,.32,'#7a5230',{rx:-.35}).box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
   P.scudo=pezzo(Solidi().box(.1,.62,.5,-.52,.62,.1,'#ffffff').box(.12,.2,.16,-.54,.82,.1,'#d8d8d8'),false);
   P.cavallo=pezzo(Solidi().box(.56,.6,1.5,0,.72,0,'#ffffff').box(.34,.66,.36,0,1.1,.74,'#f4f4f4',{rx:-.5}).box(.3,.3,.56,0,1.54,1.06,'#ececec').box(.16,.74,.18,-.19,0,.58,'#d8d8d8').box(.16,.74,.18,.19,0,.58,'#d8d8d8')
    .box(.16,.74,.18,-.19,0,-.58,'#d8d8d8').box(.16,.74,.18,.19,0,-.58,'#d8d8d8').box(.12,.6,.12,0,.6,-.82,'#5a5a5a',{rx:.4}).box(.6,.14,.7,0,1.3,-.05,'#b0b0b0'));
-  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#d8d2c6','#6e4a2e'],ELMI=['#e6d3b4','#e6d3b4','#f1f4f8','#f4f6fa','#ffe9a0','#ffd866'];
+  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#d8d2c6','#6e4a2e'],ELMI=['#c9a678','#c9a678','#9aa6b4','#b9c5d3','#e6c35a','#ffd866'];
   const metti=(me,k,r,g,b)=>{me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,r,g,b)};
   return{P,
    inizio(){for(const k of ord)n[k]=0},
@@ -125,7 +125,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     me.count=k;me.instanceMatrix.needsUpdate=true;me.instanceColor.needsUpdate=true},via(){scene.remove(me)}}}
  // sole, cielo e ombre per un'ora del giorno (0..24): restituisce tinta e quanta notte c'è
  function luce(scene){const sole=new T.DirectionalLight(0xffffff,1),amb=new T.HemisphereLight(0xbfd6ff,0x6b5a44,.55);sole.castShadow=true;sole.shadow.mapSize.set(1024,1024);sole.shadow.bias=-.0025;sole.shadow.normalBias=.04;
-  scene.add(sole);scene.add(sole.target);scene.add(amb);const K=[[0,'#7088d8',.5,'#44589c'],[5,'#7890dc',.52,'#4a5ea0'],[6.5,'#ffb07a',.82,'#9a8fb0'],[9,'#fff1d6',1.02,'#bcd2ff'],[16,'#fff4dc',1.04,'#bcd2ff'],[19,'#ff9c5c',.86,'#b09ab8'],[20.5,'#8078cc',.56,'#565c9c'],[24,'#7088d8',.5,'#44589c']];
+  scene.add(sole);scene.add(sole.target);scene.add(amb);const K=[[0,'#7088d8',.5,'#44589c'],[5,'#7890dc',.52,'#4a5ea0'],[6.5,'#ffb07a',.82,'#9a8fb0'],[9,'#fff1d6',1.02,'#bcd2ff'],[16,'#fff4dc',1.04,'#bcd2ff'],[19,'#ffb884',.9,'#b4a2bc'],[20.5,'#8078cc',.56,'#565c9c'],[24,'#7088d8',.5,'#44589c']];
   const a=new T.Color(),b=new T.Color(),giorno0=h=>h>=6&&h<=20;
   return{sole,amb,
    ora(h,fuoco,raggio){let i=0;while(i<K.length-2&&h>=K[i+1][0])i++;const k0=K[i],k1=K[i+1],t=Math.max(0,Math.min(1,(h-k0[0])/(k1[0]-k0[0])));

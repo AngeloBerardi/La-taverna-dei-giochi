@@ -9,7 +9,7 @@ const VenCampo=(()=>{
  function apri(scheda,o){const T=VenArte.T,A=VenArte,C=VCAM.C;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;
   if(K.scene)K.scene.traverse(q=>{if(q.geometry)q.geometry.dispose()});
   const semeT=(scheda.seme|0)&255,sc=K.scene=new T.Scene(),bio=scheda.bioma||0,bosco=scheda.terreno===2,s=K.s;K.cam=A.camera();K.luce=A.luce(sc);
-  const PAL=bio===1?['#eef3f6','#dfe9ef','#cddbe4']:bio===2?['#d2bf62','#c6b25a','#bcb65c']:['#78ad49','#6fa445','#83b750'];sc.background=new T.Color(bio===1?'#b9c8d4':bio===2?'#a89a58':'#4f8240');
+  const PAL=bio===1?['#eef3f6','#dfe9ef','#cddbe4']:bio===2?['#c4ae5a','#b8a252','#ad9c4c']:['#6fa446','#679b41','#7aae4a'];sc.background=new T.Color(bio===1?'#b9c8d4':bio===2?'#a89a58':'#4f8240');
   // ---- terreno: prato a chiazze dentro il campo, dossi fuori ----
   const pos=[],col=[],N=72,x0=-40,z0=-40,pw=(C.W+80)/N,ph=(C.H+80)/N,alto=(x,z)=>{const fx=Math.max(0,-x,x-C.W),fz=Math.max(0,-z,z-C.H),f=Math.min(1,Math.max(fx,fz)/14);return f*f*(1.5+hh(x/6,z/6,3)*5)+(hh(x*2,z*2,9)-.5)*.06};
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const P=(a,b)=>{const x=x0+(i+a)*pw,z=z0+(j+b)*ph;return[x,alto(x,z),z]},a=P(0,0),b=P(1,0),c=P(0,1),d=P(1,1);
