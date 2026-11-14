@@ -79,10 +79,16 @@
 /* Taverna (lobby personale) */
 .hm{padding:18px 16px 0}.hm-top{display:flex;align-items:center;gap:12px}.hm-top>div{flex:1}.hm-top small{font-size:12px;color:var(--mu,#b8a68d)}.hm-top h1{margin:0;font:800 30px var(--f-d)}
 .hm-st{font:700 12px var(--f-b);color:var(--mu,#b8a68d);display:inline-flex;align-items:center;gap:6px}.hm-st::before{content:'';width:8px;height:8px;border-radius:50%;background:#8a7558}.hm-st.on{color:#bfe9d0}.hm-st.on::before{background:#5fbf8a}
-.hm-grid{display:flex;flex-direction:column}
-.hm-c{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;padding:6px 4px;border:0;border-bottom:1px solid rgba(245,205,150,.14);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
-.hm-c .ic0{flex:none;width:40px;height:40px;display:grid;place-items:center;background:#231913;color:#f0c166}.hm-c .g{flex:1;min-width:0}.hm-c b{display:block;font:800 16px/1.2 var(--f-b)}.hm-c small{display:block;font-size:12px;color:var(--mu,#b8a68d);line-height:1.3}
-.hm-c>.ico:last-child{color:#8a7558}.hm-c[disabled]{opacity:.4;cursor:default}
+/* Home: il palo del crocevia con le insegne a freccia (una per via); l'ottone resta solo «Gioca ora» */
+.hm-cro{position:relative;display:flex;flex-direction:column;gap:8px;margin-top:-26px;padding-bottom:14px}
+.hm-post{position:absolute;left:50%;top:20px;bottom:0;width:14px;margin-left:-7px;background:#3e2714;box-shadow:inset 3px 0 0 #5c3b20,inset -3px 0 0 #24150a}
+.hm-grid,.hm-duo{display:flex;flex-direction:column;gap:8px}
+.hm-sg{position:relative;display:flex;align-items:center;gap:10px;width:86%;min-height:46px;border:0;cursor:pointer;text-align:left;color:#f3e6c8;background:#5c3b20;box-shadow:inset 0 2px 0 #77502e,inset 0 -3px 0 #402814;font:700 17px var(--f-b)}
+.hm-sg b{font:inherit}.hm-sg .ico{flex:none;color:#f0c166}
+.hm-sg.r{align-self:flex-end;padding:0 30px 0 16px;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%);transform:rotate(-.8deg)}
+.hm-sg.l{align-self:flex-start;padding:0 16px 0 36px;clip-path:polygon(22px 0,100% 0,100% 100%,22px 100%,0 50%);transform:rotate(.8deg)}
+.hm-sg.a{background:#7a5230;box-shadow:inset 0 2px 0 #96683e,inset 0 -3px 0 #543418;color:#fbeec9;font:800 18px var(--f-d);letter-spacing:.02em}
+.hm-sg:active{filter:brightness(1.25)}.hm-sg[disabled]{opacity:.45;cursor:default}
 .rw3{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;padding:0 14px;border:0;border-bottom:1px solid rgba(245,205,150,.16);background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
 .rw3 .g{flex:1}.rw3 b{display:block;font:800 17px var(--f-d)}.rw3 small{font-size:12px;color:var(--mu,#b8a68d)}.rw3.hot{background:rgba(244,169,59,.1);box-shadow:inset 4px 0 0 #f0c166}
 .hm .sh2,.hm .rw3{margin-left:-0px}
@@ -109,13 +115,15 @@ button.hm-st.off{border:0;cursor:pointer;min-height:44px;padding:0 4px;backgroun
 @media(prefers-reduced-motion:reduce){.hm-st.prova{animation:none}}
 /* Taverna: intestazione personale, scena notturna, «Gioca ora» e stanza */
 .hm-bar{display:flex;align-items:center;gap:10px}.hm-who{flex:1;min-width:0;display:flex;flex-direction:column}.hm-who b{font:800 16px var(--f-d);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hm-who small{font-size:12px;color:var(--mu,#b8a68d);display:flex;align-items:center;gap:4px}
-.hm-hero{position:relative;margin:14px calc(50% - 50vw) 0;width:100vw;height:190px;overflow:hidden;border-bottom:3px solid #cf8f2c}
+.hm-hero{position:relative;margin:14px calc(50% - 50vw) 0;width:100vw;height:clamp(230px,78vw,340px);overflow:hidden;background:#0a1220}
+.hm-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(rgba(21,16,12,0),var(--bg,#15100c));pointer-events:none}
+.hm-cv{position:absolute;inset:0;width:100%;height:100%;display:block}.hm-hero.cv-on .hm-sc{display:none}
 .hm-sc{position:absolute;inset:0;width:100%;height:100%;display:block}
-.hm-hi{position:absolute;left:16px;right:16px;bottom:14px}.hm-hi small{display:block;font:700 15px var(--f-b);color:#f0d9ae}.hm-hi h1{margin:0;font:800 34px/1.05 var(--f-d);color:#fff3c4;text-shadow:0 2px 0 rgba(0,0,0,.5)}.hm-hi p{margin:6px 0 0;font-size:14px;color:#f3e3cf;text-shadow:0 1px 0 rgba(0,0,0,.6)}.hm-hi p b{color:#f0c166}
+.hm-hi{position:absolute;left:16px;right:16px;top:12px;z-index:1}.hm-hi small{display:block;font:700 15px var(--f-b);color:#f0d9ae}.hm-hi h1{margin:0;font:800 34px/1.05 var(--f-d);color:#fff3c4;text-shadow:0 2px 0 rgba(0,0,0,.5)}.hm-hi p{margin:6px 0 0;font-size:14px;color:#f3e3cf;text-shadow:0 1px 0 rgba(0,0,0,.6)}.hm-hi p b{color:#f0c166}
 .hm-win{animation:hmfl 3.2s ease-in-out infinite}.hm-stars{animation:hmtw 4s ease-in-out infinite}
 @keyframes hmfl{50%{opacity:.78}}@keyframes hmtw{50%{opacity:.5}}
-.hm-go{width:100%;margin-top:16px;min-height:60px;font-size:21px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-.hm-duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.hm-duo .b{min-height:52px}.hm-duo .b[disabled]{filter:none;opacity:.45}.hm-bar .ib{background:none;clip-path:none;color:#b8a68d;width:44px;height:44px}
+.hm-go{position:relative;width:100%;margin-top:0;min-height:60px;font-size:21px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.hm-bar .ib{background:none;clip-path:none;color:#b8a68d;width:44px;height:44px}
 .rw3 .g small{display:block;font-size:12px;color:var(--mu,#b8a68d)}
 @media(prefers-reduced-motion:reduce){.hm-win,.hm-stars{animation:none}}
 .gl-cr{margin:10px 14px 90px;font-size:11px;color:var(--mu,#b8a68d);text-align:center}.gl-cr a{color:inherit}

@@ -102,7 +102,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/13-saboteur-la-miniera.css` | 4 |  |
 | `css/14-azul.css` | 3 |  |
 | `css/15-piacentine.css` | 1 |  |
-| `css/16-isola.css` | 2 |  |
+| `css/16-isola.css` | 4 |  |
 | `css/17-machiavelli.css` | 1 |  |
 | `css/18-lobby-falo.css` | 8 |  |
 | `css/19-lobby-iso.css` | 1 |  |
@@ -142,7 +142,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39g-stanza.css` | 4 |  |
 | `css/39h-scena3d.css` | 1 |  |
 | `css/39i-succo.css` | 7 |  |
-| `css/40-legno-ottone.css` | 14 |  |
+| `css/40-legno-ottone.css` | 15 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
@@ -150,6 +150,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/45-giallo.css` | 16 |  |
 | `css/45a-serata.css` | 10 |  |
 | `css/46-tv-tavoli.css` | 11 |  |
+| `css/47-hud.css` | 7 |  |
 | `css/90-lobby-3d.css` | 20 |  |
 | `html/mid.html` | 1 |  |
 | `js/motori/01-regicide.js` | 8 | RG, SU, HAND, RND, P, cv, clone |
@@ -254,7 +255,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/15-saboteur.js` | 12 | SEP, tileSVG, SAI, SAN, sabCardH, sabTargets, sabotH |
 | `js/app/16-azul.js` | 8 | AZC, azT, azFirst, azBoard, azulH, azSummary, azClick |
 | `js/app/17-isola-arte.js` | 10 | ISD, OLN, SH, EL, PA, LN, EY |
-| `js/app/18-isola.js` | 9 | itop, KK, iEye, IBG, IBGW, IVAL, isleCard |
+| `js/app/17a-isola-scene.js` | 8 | IP, IL, ISCENA, isleArt, ISOLA_D, isleSfondo, isleNuota |
+| `js/app/17b-isola-scene2.js` | 16 | IC, IOM, ISPEC |
+| `js/app/18-isola.js` | 10 | itop, KK, iEye, IBG, IBGW, IVAL, isleCard |
 | `js/app/19-machiavelli.js` | 6 | mWork, mOrig, mRemove, mCompact, mCardH, machH, machSummary |
 | `js/app/20-the-mind.js` | 6 | MCOL, mcardH, mindH, mindClick, MIFX |
 | `js/app/21-harvest-valley.js` | 5 | HPC, hcardH, harvH, harvEnd, harvClick, HVFX |
@@ -269,6 +272,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22f4-catan-tavolo.js` | 26 | CTV, SEA_Y, T, TEX, mul, hex2, shade |
 | `js/app/22f5-catan-tv.js` | 4 | CTVP, catanTVstato, catanTVH |
 | `js/app/22g-fisso.js` | 4 | FIXED, fxOn, stripH, fxSheetH, fixH, fanRowsH, fanFit |
+| `js/app/22ga-hud.js` | 3 | HUD2, HUD |
 | `js/app/22h-pets.js` | 8 | PPI, PTX, pcardH, petsH, petsClick, PTFX |
 | `js/app/22i-uno.js` | 10 | UCOL, USVG, USYM, UORD, ucardH, ubackH, uSort |
 | `js/app/22j-trono.js` | 9 | TCI, TTX, tcH, tcBack, thH, thClick, THFX |
@@ -280,7 +284,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/22p-regicide-legacy.js` | 20 | RLV, rlegacyH, rlPrepH, rlEndH, rlClick, RLFX |
 | `js/app/22q-regicide-x.js` | 12 | RX, titolo, motto |
 | `js/app/22r-accordi.js` | 29 | ACOL, APC, ANEED, acMotif, acMix, acDisc, acStack |
-| `js/app/23-registri-briscola-scopa-burraco.js` | 18 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
+| `js/app/23-registri-briscola-scopa-burraco.js` | 19 | ISU, IFIG, icardH, bcardH, deckH, briscolaH, brisClick |
 | `js/app/24-pwa.js` | 2 | PWA |
 | `js/app/24a-firebase.js` | 13 | FB |
 | `js/app/24b-bottega.js` | 2 | Shop |
@@ -310,6 +314,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hr-bat-succo.js` | 10 | Succo |
 | `js/app/24hs-bat-pixel.js` | 5 | BatPx |
 | `js/app/24i-plancia.js` | 13 | Plancia |
+| `js/app/24ia-crocevia.js` | 16 | Crocevia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
 | `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |

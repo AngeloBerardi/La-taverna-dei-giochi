@@ -1,5 +1,5 @@
 /* ---- comandi ---- */
-document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
+document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;if(t.dataset.cv!=null&&Crocevia.parte(t))return;
  if(a!=='sel'&&a!=='tsel')Snd.play('ok');
  switch(a){
  case'setname':{const n=($('#myname')?.value||'').trim().slice(0,14);if(!n){ui.err='Scrivi il tuo nome';return render()}ME.name=n;ST('rg-name',n);R.mine.name=n;if(R.on&&R.code){await saveMine();ui.screen=G?'game':'room';return render()}return enterHub()}
