@@ -18,4 +18,4 @@ Scheletro unico in `app/22ga-hud.js` (`HUD.html`) e `css/47-hud.css` (prefisso `
 - **Niente cornici**: l'ottone segna solo chi è di turno e l'azione principale. Un solo sfondo caldo e fermo (niente gradiente che gira, niente lucciole).
 - Il messaggio di turno sta sempre nella riga di stato, sopra i comandi; le spiegazioni lunghe vanno nell'infobox (`infoH`).
 - Niente emoji: icone di `ic()`. Bersagli di tocco ≥ 44 px. Verificato a 390×844 e 360×640 (scenario `hud_comune`).
-- La home della Taverna segue le stesse regole: «Gioca ora» è l'unico ottone, gli altri modi di giocare sono righe di un elenco.
+- La home della Taverna segue le stesse regole: «Gioca ora» è l'unico ottone; le altre azioni sono insegne di legno a freccia appese al palo del crocevia (`.hm-sg`), senza sottotitoli (la spiegazione sta nell'`aria-label`). Sopra, la scena del crocevia: 3D con luce calda di torcia quando la lobby è la Taverna 3D (`Crocevia`), disegnata altrimenti. Niente casette piatte né cieli viola.

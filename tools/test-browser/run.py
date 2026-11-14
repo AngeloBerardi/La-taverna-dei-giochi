@@ -304,6 +304,26 @@ async def sc_taverna_dock(b, srv):
     await pg.evaluate("(()=>{ui.unread=3;ui.screen='game';render()})()")
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_home_crocevia(b, srv):
+    """Home: palo con le insegne; con la lobby 3D la scena del crocevia è un canvas e l'omino parte prima dell'azione."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    check(await pg.query_selector('.hm-cro .hm-post') is not None and len(await pg.query_selector_all('.hm-cro .hm-sg')) == 6, 'home: palo e sei insegne')
+    check(await pg.query_selector('.hm-cv') is None and not await pg.evaluate('!!window.THREE'), 'falò: nessun canvas, three non scaricato')
+    await pg.click('.hm-sg[data-v=solo]'); await pg.wait_for_timeout(150)
+    check(await pg.evaluate('ui.solo===true'), 'senza 3D l\'insegna agisce subito')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+    ctx = await new_context(b, srv.port, extra_init="localStorage.setItem('rg-lb','3d');localStorage.setItem('cv-3d','si');"); pg = await page(ctx, srv.url, 6000)
+    if not await pg.evaluate('VENDOR.gl()'): print('  --   WebGL assente: crocevia 3D non verificabile'); await ctx.close(); return
+    await pg.evaluate("(()=>{ui.inroom=false;ui.glist=false;ui.tab='room';render()})()"); await pg.wait_for_timeout(1500)
+    check(await pg.query_selector('.hm-hero.cv-on canvas.hm-cv') is not None, 'lobby 3D: il canvas del crocevia è nella scena')
+    check(await pg.evaluate("['cammino','idle'].includes(Crocevia.st.mode)"), 'l\'omino arriva al crocevia')
+    if os.environ.get('SCATTA'): await pg.wait_for_function("Crocevia.st.mode==='idle'", timeout=60000); await pg.screenshot(path=os.environ['SCATTA'], timeout=120000)
+    await pg.click('.hm-sg[data-v=solo]'); await pg.wait_for_timeout(100)
+    check(await pg.evaluate("Crocevia.st.fine==='via'&&!ui.solo"), 'tocco: prima parte l\'omino')
+    await pg.wait_for_function('ui.solo===true', timeout=20000)
+    check(await pg.query_selector('.hm-cv') is None, 'cambiata pagina: canvas parcheggiato')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 ELO_PARTITA = """async([gioco,seats,over])=>{await startGame(gioco,seats);await Q;
  const ns=JSON.parse(JSON.stringify(G));ns.over=over;pushState(ns);await Q;await new Promise(r=>setTimeout(r,900))}"""
 RIVALE = "localStorage.setItem('__stub',JSON.stringify({'players/u-2':{name:'Rivale',coins:5,played:3,wins:1,owned:{},equipped:{},elo:{uno:1200}}}));"
