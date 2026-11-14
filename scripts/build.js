@@ -96,6 +96,11 @@ html = html.replace(/\/\*CAPITOLI\*\/\s*\{\}/, JSON.stringify(capitoli));
 const cardsDir = path.join(root, 'assets/cards');
 const imgs = fs.existsSync(cardsDir) ? fs.readdirSync(cardsDir).filter(n => /^[JQKX][HDCS]?\.webp$/.test(n)).map(n => n.replace('.webp', '')) : [];
 html = html.replace('/*FZIMG*/[]', JSON.stringify(imgs));
+// copertine dei giochi in assets/copertine/<id>.webp (480x640): scatole 3D della locanda e pagina Giochi; senza file resta il disegno a codice
+const copDir = path.join(root, 'assets/copertine');
+const cops = fs.existsSync(copDir) ? fs.readdirSync(copDir).filter(n => /^[a-z0-9]+\.webp$/.test(n)).map(n => n.replace('.webp', '')) : [];
+if (!html.includes('/*COPIMG*/[]')) throw new Error('segnaposto /*COPIMG*/[] non trovato (app/07-nucleo.js)');
+html = html.replace('/*COPIMG*/[]', JSON.stringify(cops));
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(root, 'dist/index.html'), html);
 // asset statici (immagini, audio) copiati così come sono
