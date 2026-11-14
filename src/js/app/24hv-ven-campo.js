@@ -6,7 +6,10 @@
 const VenCampo=(()=>{
  const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti'};
  const hh=(x,y,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
- function apri(scheda,o){const T=VenArte.T,A=VenArte,C=VCAM.C;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;
+ function apri(scheda,o){K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;scena();
+  const c=VCAM.capU(K.s);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=scheda.notte?22.5:10+hh((scheda.seme|0)&1023,1,2)*6;return K.s}
+ // la scena si può rifare a battaglia in corso (contesto grafico perso): lo stato della battaglia non si tocca
+ function scena(){const T=VenArte.T,A=VenArte,C=VCAM.C,scheda=K.scheda;K.frecce=[];
   if(K.scene)K.scene.traverse(q=>{if(q.geometry)q.geometry.dispose()});
   const semeT=(scheda.seme|0)&255,sc=K.scene=new T.Scene(),bio=scheda.bioma||0,bosco=scheda.terreno===2,s=K.s;K.cam=A.camera();K.luce=A.luce(sc);
   const PAL=bio===1?['#eef3f6','#dfe9ef','#cddbe4']:bio===2?['#c4ae5a','#b8a252','#ad9c4c']:['#6fa446','#679b41','#7aae4a'];sc.background=new T.Color(bio===1?'#b9c8d4':bio===2?'#a89a58':'#4f8240');
@@ -39,7 +42,7 @@ const VenCampo=(()=>{
   K.fre=new T.InstancedMesh(new T.BoxGeometry(.07,.07,1.1),new T.MeshBasicMaterial({color:'#f4ecd8'}),90);K.fre.count=0;K.fre.frustumCulled=false;sc.add(K.fre);
   const anello=(c,r)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.16,22),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.95,depthTest:false}));m.rotation.x=-Math.PI/2;m.renderOrder=5;m.visible=false;sc.add(m);return m};
   K.anCap=anello('#ffd75a',.8);K.anMeta=anello('#fff2b0',.5);K.anBers=anello('#ff5a4a',.85);
-  const c=VCAM.capU(s);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=scheda.notte?22.5:10+hh(semeD,1,2)*6;return s}
+}
  const FAZ=(l)=>VDAT.FAZ[l==='a'?(K.scheda.faza||'tu'):K.scheda.fazb]||VDAT.FAZ.pre;
  function eventi(ev){const s=K.s;for(const e of ev){
    if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(b&&e.dan>0){b.lampo=K.t;if(ub){for(let k=0;k<(e.crit?5:2);k++)K.par.emetti(ub.x,1+Math.random()*.5,ub.y,{vx:(Math.random()-.5)*3,vy:2+Math.random()*2,vz:(Math.random()-.5)*3,g:9,s:.13,dur:.5,col:e.crit?'#ffe27a':'#ffffff'})}}
@@ -92,4 +95,4 @@ const VenCampo=(()=>{
   for(const u of s.u){if(u.l!=='b'||u.st!=='vivo')continue;const c=A.aSchermo(K.cam,u.x,.9,u.y),d=Math.hypot(c.x-(px-r.left),c.y-(py-r.top));if(d<md){md=d;m=u}}
   if(m)return VCAM.capitano(s,{b:m.id});const g=A.aTerra(K.cam,px,py,0);return VCAM.capitano(s,{x:g.x,y:g.z})}
  const centra=()=>{K.segue=true};
- return{K,apri,passo,trascina,pizzico,tocco,centra}})();
+ return{K,apri,scena,passo,trascina,pizzico,tocco,centra}})();
