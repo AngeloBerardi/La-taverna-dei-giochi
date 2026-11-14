@@ -130,3 +130,14 @@ button.hm-st.off{border:0;cursor:pointer;min-height:44px;padding:0 4px;backgroun
 
 /* pulsante «Scarica l'app per Android» (un link, non un button) */
 a.b.apkdl{display:flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
+/* Giochi: scatole con copertina illustrata (assets/copertine) */
+.gl-t.bx{padding:12px 12px 6px}
+.gl-t.bx .cv{height:auto;aspect-ratio:3/4;padding:7px;background:#1b120c;border-radius:2px;box-shadow:0 8px 16px rgba(0,0,0,.55),0 1px 0 rgba(255,236,190,.35) inset;transition:transform .16s ease}
+.gl-t.bx .cv .art.ph{object-fit:cover}
+.gl-t.bx .cv::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8%;background:linear-gradient(90deg,rgba(0,0,0,.45),rgba(0,0,0,0));z-index:1;pointer-events:none}
+.gl-t.bx .cv::after{content:"";position:absolute;left:0;right:0;top:0;height:5%;border-bottom:1px solid rgba(255,236,190,.4);background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.18));z-index:1;pointer-events:none}
+.gl-t.bx .cv i{margin-top:5%}
+.gl-t.bx:hover .cv,.gl-t.bx:focus-visible .cv{transform:translateY(-3px) rotate(-.6deg)}
+.gl-t.bx:active .cv{transform:translateY(1px)}
+.gl-t.bx .tx{padding:8px 2px 6px}
+.gl-feat.bx{background:linear-gradient(90deg,#15100d 42%,rgba(21,16,13,.1) 100%),var(--cv) right center/cover no-repeat}

@@ -8,7 +8,7 @@ var GAMES=A.games().map(function(g){var I=A.info(g),b=A.box(g.id);var c=b?b.c[0]
   return{id:g.id,g:g,t:g.name,l:I[1].length>13?I[1].slice(0,13):I[1],s:g.desc,r:g.range,k:CATN[C3D[I[0]]||I[0]]||I[0],ck:C3D[I[0]]||I[0],c:c,v:0,m:ICON[g.id]!=null?ICON[g.id]:(g.id.length%16)}});
 var CATS=[];['classici','strategia','squadra'].concat(GAMES.map(function(G){return G.ck}).filter(function(k,i,a){return!CATN[k]&&a.indexOf(k)===i})).forEach(function(k){
   if(GAMES.some(function(G){return G.ck===k}))CATS.push({k:CATN[k]||k,c:(A.cat(k)||{f:'#e8b83a'}).f})});
-function boxTex(i){
+function boxTex0(i){
   var c=mk(256,256),g=c.getContext('2d'),G=GAMES[i];i=G.m;
   g.fillStyle=G.c;g.fillRect(0,0,256,256);
   var gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(255,255,255,.18)');gr.addColorStop(1,'rgba(0,0,0,.35)');g.fillStyle=gr;g.fillRect(0,0,256,256);
@@ -36,3 +36,44 @@ function boxTex(i){
   g.fillStyle='#f6e8c4';g.textAlign='center';g.font='700 38px "Alegreya SC",Georgia,serif';g.shadowColor='rgba(0,0,0,.7)';g.shadowBlur=5;g.fillText((G.l||G.t).toUpperCase(),128,206,200);
   return tex(c,1,1);
 }
+
+/* ---- copertine illustrate (assets/copertine/<id>.webp): texture della scatola con cornice, targa in ottone e riflesso; senza immagine resta il disegno a codice ---- */
+var COPS=typeof COPIMG!=='undefined'?COPIMG:[],BX=[],BXW=384,BXH=512;
+function copUrl(i){return COPS.indexOf(GAMES[i].id)>=0?'/assets/copertine/'+GAMES[i].id+'.webp':''}
+function paintBox(i,g,img){
+  var G=GAMES[i],W=BXW,H=BXH,gr;
+  g.save();g.fillStyle=G.c;g.fillRect(0,0,W,H);
+  if(img.width===img.height){g.drawImage(img,0,(H-W)/2,W,W)}else g.drawImage(img,0,0,W,H);
+  if(copUrl(i)){
+    gr=g.createRadialGradient(W/2,H*.42,H*.25,W/2,H*.5,H*.72);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(10,5,0,.5)');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    gr=g.createLinearGradient(0,H*.62,0,H);gr.addColorStop(0,'rgba(10,5,0,0)');gr.addColorStop(1,'rgba(10,5,0,.78)');g.fillStyle=gr;g.fillRect(0,H*.62,W,H*.38);
+    // targa col titolo: legno scuro, filo d'ottone
+    var px=26,py=H-112,pw=W-52,ph=82;
+    g.shadowColor='rgba(0,0,0,.65)';g.shadowBlur=14;g.shadowOffsetY=4;g.fillStyle='#2a1a0f';g.fillRect(px,py,pw,ph);g.shadowColor='transparent';
+    var wg=g.createLinearGradient(0,py,0,py+ph);wg.addColorStop(0,'#4a2f1a');wg.addColorStop(1,'#25160c');g.fillStyle=wg;g.fillRect(px,py,pw,ph);
+    g.strokeStyle='#d8b062';g.lineWidth=3;g.strokeRect(px+1.5,py+1.5,pw-3,ph-3);g.lineWidth=1;g.strokeRect(px+7,py+7,pw-14,ph-14);
+    [[px+7,py+7],[px+pw-7,py+7],[px+7,py+ph-7],[px+pw-7,py+ph-7]].forEach(function(q){g.fillStyle='#e9c878';g.beginPath();g.arc(q[0],q[1],3.2,0,7);g.fill()});
+    g.fillStyle='#f6e8c4';g.textAlign='center';g.textBaseline='middle';g.shadowColor='rgba(0,0,0,.8)';g.shadowBlur=4;
+    var t=G.t.toUpperCase(),fs=40;g.font='700 '+fs+'px "Alegreya SC",Georgia,serif';while(g.measureText(t).width>pw-44&&fs>18){fs-=2;g.font='700 '+fs+'px "Alegreya SC",Georgia,serif'}
+    g.fillText(t,W/2,py+ph/2-6);g.shadowBlur=0;g.font='700 15px "Alegreya SC",Georgia,serif';g.fillStyle='#d8b062';g.fillText(G.r+(G.r==='1'?' giocatore':' giocatori'),W/2,py+ph-18);
+  }
+  // bordo del coperchio e riflesso sul cartone
+  g.strokeStyle='rgba(255,236,190,.55)';g.lineWidth=5;g.strokeRect(2.5,2.5,W-5,H-5);g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=2;g.strokeRect(8,8,W-16,H-16);
+  gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,'rgba(255,255,255,.2)');gr.addColorStop(.38,'rgba(255,255,255,0)');gr.addColorStop(1,'rgba(0,0,0,.12)');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.restore();
+}
+function boxTex(i){
+  if(BX[i])return BX[i];
+  var t0=boxTex0(i),c=mk(BXW,BXH),g=c.getContext('2d'),t=tex(c,1,1);BX[i]=t;
+  paintBox(i,g,t0.image);
+  var u=copUrl(i);
+  if(u){var im=new Image();im.onload=function(){paintBox(i,g,im);t.needsUpdate=true;GREYUP(i)};im.src=u}
+  return t;
+}
+function boxSide(i){var G=GAMES[i];if(G._sd)return G._sd;
+  var c=mk(96,512),g=c.getContext('2d'),gr=g.createLinearGradient(0,0,96,0);gr.addColorStop(0,G.c);gr.addColorStop(1,G.c);g.fillStyle=G.c;g.fillRect(0,0,96,512);
+  gr=g.createLinearGradient(0,0,96,0);gr.addColorStop(0,'rgba(255,255,255,.18)');gr.addColorStop(.5,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.3)');g.fillStyle=gr;g.fillRect(0,0,96,512);
+  grain(g,96,512,26);
+  g.fillStyle='rgba(0,0,0,.28)';g.fillRect(0,0,96,70);g.fillStyle='rgba(255,236,190,.55)';g.fillRect(0,70,96,3);g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,73,96,3);
+  g.fillStyle='#d8b062';g.fillRect(0,498,96,3);
+  G._sd=tex(c,1,1);return G._sd}
