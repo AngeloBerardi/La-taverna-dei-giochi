@@ -34,7 +34,8 @@ Costruzione della mappa 0,3 s; circa 330 mila triangoli a fotogramma contro 1,16
 ## Il ciclo di gioco
 Mappa libera → reclute nei villaggi → predoni, carovane e signori → bottino, prigionieri, commercio → fama e amicizie coi regni →
 contratto da mercenario → vassallo con feudo, oppure fortezze proprie → assedi → regni che cadono. I regni vivono da soli:
-i signori pattugliano, inseguono, fuggono, razziano, assediano, soccorrono; guerre e paci cambiano ogni pochi giorni.
+i signori pattugliano, inseguono, fuggono, razziano, assediano, soccorrono; guerre, paci e alleanze cambiano ogni pochi giorni
+(V3: `s.alleanza`, un alleato per regno, minimo 20 giorni, preavviso 3; da vassallo si propongono pace, alleanza e guerra al proprio re con un conto in chiaro, `VEN.proposta`).
 
 ## Regole di progetto
 - Motori puri e ripetibili: niente `Math.random`, `Date.now`, trigonometria (solo + − × ÷ e radice). Lo controlla `test_ven_campo.js`.

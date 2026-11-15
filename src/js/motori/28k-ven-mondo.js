@@ -118,6 +118,10 @@ const VEN=(()=>{
  // ---------- guerra, pace, amicizie ----------
  const chiave=(a,b)=>a<b?a+'|'+b:b+'|'+a;
  const inGuerra=(s,a,b)=>!!s.guerra[chiave(a,b)];
+ // alleanze (V3): s.alleanza[chiave] = {da: giorno di firma, rompe: giorno in cui finisce (0 = nessun preavviso)}; un regno ha al massimo un alleato.
+ // Assente (salvataggi più vecchi) = nessuna. Guerra e alleanza non convivono mai.
+ const alleate=(s,a,b)=>!!(s.alleanza&&s.alleanza[chiave(a,b)]);
+ function alleatoDi(s,f){for(const k in s.alleanza||{}){const x=k.split('|');if(x[0]===f)return x[1];if(x[1]===f)return x[0]}return null}
  // la fazione vista da fuori: chi serve un regno ne porta i colori
  const lato=s=>s.servizio?s.servizio.faz:'tu';
  function nemiche(s,fa,fb){if(fa===fb)return false;if(fa==='pre'||fb==='pre')return true;if(fa==='mer'||fb==='mer')return false;
@@ -125,6 +129,44 @@ const VEN=(()=>{
   return inGuerra(s,fa,fb)}
  const ostile=(s,a,b)=>nemiche(s,a.faz,b.faz);
  function relaz(s,f,d){if(!(f in s.rel))return;s.rel[f]=Math.max(-100,Math.min(100,s.rel[f]+d))}
+ // ---------- diplomazia (V3) ----------
+ // forza di un regno: guarnigioni (con le mura) e compagnie dei suoi signori; il dominante è chi tiene troppo (quota di luoghi dei regni o di forza)
+ const forzaRegno=(s,f)=>s.l.filter(l=>l.faz===f).reduce((x,l)=>x+forzaTr(l.g)*(MURA[l.tipo]?P.MURA:1),0)+s.p.filter(p=>p.k==='sig'&&p.faz===f).reduce((x,p)=>x+forza(p),0);
+ function dominante(s){const vivi=D.REGNI.filter(f=>!s.cadute[f]);if(vivi.length<3)return null;const nl=vivi.map(f=>s.l.filter(l=>l.faz===f).length),fr=vivi.map(f=>forzaRegno(s,f)),tl=nl.reduce((a,b)=>a+b,0),tf=fr.reduce((a,b)=>a+b,0);let m=null,mq=0;
+  vivi.forEach((f,i)=>{const q=Math.max(tl?nl[i]/tl:0,tf?fr[i]/tf:0);if(q>mq){mq=q;m=f}});return mq>=D.DIPL.QUOTA_DOM?{f:m,quota:mq}:null}
+ const guerreDi=(s,f)=>D.REGNI.filter(x=>x!==f&&!s.cadute[x]&&inGuerra(s,f,x)).length;
+ // la proposta di chi gioca al re `a` riguardo al regno `b` ('pace' | 'alleanza' | 'guerra' | 'rompi'): un conto con i fattori in chiaro, lo stesso che usa `fai`.
+ // Ritorna {tipo,a,b,f:[{n,v}],tot,ok} oppure {err}. Non tira dadi e non tocca lo stato.
+ function proposta(s,tipo,a,b){const X=D.DIPL,srv=s.servizio;
+  if(!srv)return{err:'Un capitano senza bandiera non ha voce presso i re'};
+  if(!X.BASE.hasOwnProperty(tipo)&&tipo!=='rompi')return{err:'Proposta sconosciuta'};
+  if(!D.REGNI.includes(a)||!D.REGNI.includes(b)||a===b)return{err:'Regno sconosciuto'};
+  if(srv.faz!==a)return{err:'Parli per chi servi: qui non hai voce'};
+  if(srv.tipo==='mer'&&tipo!=='pace')return{err:'Un mercenario a contratto può chiedere solo la pace'};
+  if(s.cadute[a]||s.cadute[b])return{err:'Quel regno è caduto'};
+  const guerra=inGuerra(s,a,b),al=alleate(s,a,b);
+  if(tipo==='pace'&&!guerra)return{err:'Non siete in guerra con '+D.FAZ[b].breve};
+  if(tipo==='alleanza'){if(guerra)return{err:'Prima la pace: con '+D.FAZ[b].breve+' siete in guerra'};if(al)return{err:'Siete già alleati'};if(alleatoDi(s,a)||alleatoDi(s,b))return{err:'Uno dei due ha già un alleato'}}
+  if(tipo==='guerra'){if(guerra)return{err:'Siete già in guerra'};if(al)return{err:'Sono vostri alleati: rompete prima l\'alleanza'}}
+  if(tipo==='rompi'){if(!al)return{err:'Non siete alleati'};if(s.alleanza[chiave(a,b)].rompe)return{err:'La rottura è già annunciata'};return{tipo,a,b,f:[],tot:0,ok:true}}
+  const peso=X.PESO[srv.tipo],f=[],aggiungi=(n,v)=>{v=Math.round(v*10)/10;if(v)f.push({n,v})},re=s.sig.find(x=>x.faz===a&&x.re),tr=D.TRATTI[re&&re.tratto];
+  aggiungi(tipo==='pace'?'Il re non ha nulla da perdere':'Diffidenza del re',X.BASE[tipo]);
+  aggiungi('Amicizia col regno',peso*s.rel[a]/X.AMICIZIA);
+  aggiungi('Fama della compagnia',peso*Math.min(s.fama,X.FAMA_MAX)/X.FAMA);
+  aggiungi('Opinione di '+D.FAZ[b].breve+' su di te',(tipo==='guerra'?-1:1)*peso*s.rel[b]/(2*X.AMICIZIA));
+  if(tr&&tr.dipl)aggiungi('Indole del re ('+tr.nome+')',tr.dipl[tipo]);
+  const fa=forzaRegno(s,a),fb=forzaRegno(s,b),rel=fa+fb>0?(fb-fa)/(fa+fb):0;
+  aggiungi(tipo==='guerra'?'Forza relativa: '+(rel<0?'sei più forte':'sei più debole'):'Forza relativa',(tipo==='guerra'?-1:1)*X.FORZA*rel);
+  aggiungi(tipo==='pace'?'Stanchezza di guerra':tipo==='guerra'?'Guerre già in corso':'Nemici da fronteggiare',X.GUERRE[tipo]*guerreDi(s,a));
+  const dom=dominante(s);
+  if(tipo==='alleanza'){const c=D.REGNI.filter(x=>x!==a&&x!==b&&!s.cadute[x]&&inGuerra(s,a,x)&&inGuerra(s,b,x)).length;aggiungi('Nemico in comune',X.COMUNE*c);if(dom&&dom.f!==a&&dom.f!==b)aggiungi(D.FAZ[dom.f].breve+' vince troppo',X.DOMINANTE)}
+  if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(D.FAZ[b].breve+' vince troppo',X.DOMINANTE);
+  const tot=Math.round(f.reduce((x,y)=>x+y.v,0)*10)/10;return{tipo,a,b,f,tot,ok:tot>=0}}
+ // firmata un'alleanza, le mischie in corso tra i due regni si sciolgono: nessuno resta schierato contro il suo alleato
+ function scioglieScontri(s,a,b){const fz=ids=>ids.map(id=>part(s,id)).filter(Boolean).map(p=>p.faz);
+  for(const sc of s.scontri.slice()){const A=fz(sc.a),B=fz(sc.b);if((A.includes(a)&&B.includes(b))||(A.includes(b)&&B.includes(a))){for(const p of s.p)if(p.sc===sc.id){p.sc=0;p.via=[]}s.scontri.splice(s.scontri.indexOf(sc),1)}}}
+ // chiude le guerre tra due regni: gli assedi dell'uno contro l'altro cadono
+ function faiPace(s,a,b){delete s.guerra[chiave(a,b)];for(const l of s.l)if(l.ass&&(l.ass.faz===a||l.ass.faz===b))l.ass=null}
  // ---------- nuovo mondo ----------
  const nuovoCap=nome=>({nome:String(nome).slice(0,20),liv:1,xp:0,punti:1,ab:{prodezza:0,comando:0,addestra:0,medicina:0,commercio:0,esplora:0},eq:{arma:'spada',scudo:null,armatura:'giaco',elmo:null,cavallo:'ronzino',cimeli:[null,null]}});
  // i capitani: il primo guida la compagnia, i soci (partite in compagnia) gli stanno a fianco. posto 0 = s.cap
@@ -142,7 +184,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    asp:{elmo:el?el.asp:'nuda',arma:arma.asp||'spada',scudo:sc?sc.asp:null,cor:ar.cor||0,mant:1,barda:cav&&cav.barda?1:0,manto:cav?cav.manto||0:0}}}
  function prezzoOgg(s,o,verso){const c=abil(s,'commercio'),b=Math.max(20,o.prezzo);return Math.round(verso>0?b*(1.1-c*.02):b*.4*(1+c*.03))}
  function nuovo(seme,o){o=o||{};seme=ADADI.u32(seme||1);const M=mappa(seme);
-  const s={v:2,seme,rng:ADADI.semina(seme),t:8*60,uid:0,nome:o.compagnia||'Compagnia della Ventura',p:[],l:[],sig:[],guerra:{},rel:{},servizio:null,incontro:null,
+  const s={v:2,seme,rng:ADADI.semina(seme),t:8*60,uid:0,nome:o.compagnia||'Compagnia della Ventura',p:[],l:[],sig:[],guerra:{},alleanza:{},rel:{},servizio:null,incontro:null,
    dentro:-1,davanti:-1,assedio:null,scontri:[],prig:[],incarichi:[],log:[],ev:[],fama:0,slancio:0,stat:{vinte:0,perse:0,uccisi:0,covi:0,rovine:0},prigioniero:null,rotta:0,tregua:0,cadute:{},over:null,meteo:'sereno',
    cap:nuovoCap(o.nome||'Capitano'),soci:(o.soci||[]).slice(0,3).map(x=>nuovoCap(x&&x.nome||'Capitano'))};
   for(const f of D.REGNI)s.rel[f]=0;
@@ -285,7 +327,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(ia.st==='soccorso'){const l=s.l[ia.a];if(!l||!l.ass){ia.st='giro';return}if(!p.via.length)vai(s,p,l.x,l.y,M);return}
   if(p.via.length)return;
   // scelta nuova
-  const ass=s.l.find(l=>l.faz===p.faz&&l.ass&&dist(l,p)<22);if(ass&&r()<.7){ia.st='soccorso';ia.a=ass.id;vai(s,p,ass.x,ass.y,M);return}
+  const ass=s.l.find(l=>(l.faz===p.faz||alleate(s,l.faz,p.faz))&&l.ass&&dist(l,p)<22);if(ass&&r()<.7){ia.st='soccorso';ia.a=ass.id;vai(s,p,ass.x,ass.y,M);return}
   const nem=s.l.filter(l=>l.faz!=='tu'?nemiche(s,p.faz,l.faz):nemiche(s,p.faz,'tu'));
   if(nem.length&&r()<.6){const x=r();if(x<.45){const bers=nem.filter(l=>MURA[l.tipo]).sort((a,b)=>dist(a,p)-dist(b,p))[0];
      if(bers&&(mia>forzaTr(bers.g)*P.MURA*.75||bers.ass&&bers.ass.faz===p.faz)&&dist(bers,p)<34){ia.st='assedio';ia.a=bers.id;vai(s,p,bers.x,bers.y,M);return}}
@@ -296,7 +338,9 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  function oraNuova(s){const r=rnd(s),M=mappa(s.seme);
   // scontri tra compagnie che non sei tu
   for(const a of s.p){if(a.id===0||a.dentro>=0||a.sc)continue;for(const b of s.p){if(b.id<=a.id||b.dentro>=0||b.sc||!ostile(s,a,b)||dist(a,b)>P.CONTATTO)continue;
-    const sc={id:s.uid++,x:(a.x+b.x)/2,y:(a.y+b.y)/2,a:[a.id],b:[b.id],fa:forza(a),fb:forza(b)};a.sc=b.sc=sc.id;a.via=[];b.via=[];s.scontri.push(sc);break}}
+    const sc={id:s.uid++,x:(a.x+b.x)/2,y:(a.y+b.y)/2,a:[a.id],b:[b.id],fa:forza(a),fb:forza(b)};a.sc=b.sc=sc.id;a.via=[];b.via=[];
+    for(const c of s.p){if(c.id===0||c.dentro>=0||c.sc||c.k!=='sig'||dist(c,sc)>P.CONTATTO*4)continue;const pa=alleate(s,c.faz,a.faz)&&ostile(s,c,b),pb=alleate(s,c.faz,b.faz)&&ostile(s,c,a);if(pa||pb){(pa?sc.a:sc.b).push(c.id);c.sc=sc.id;c.via=[]}}
+    sc.fa=sc.a.reduce((x,id)=>x+forza(part(s,id)),0);sc.fb=sc.b.reduce((x,id)=>x+forza(part(s,id)),0);s.scontri.push(sc);break}}
   for(const sc of s.scontri.slice())giraScontro(s,sc,r);
   // assedi degli altri
   for(const l of s.l){const a=l.ass;if(!a)continue;a.pid=a.pid.filter(id=>{const p=part(s,id);return p&&!p.sc&&p.dentro<0&&dist(p,l)<1.6});
@@ -366,9 +410,18 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   {const x=r();s.meteo=x<.62?'sereno':x<.87?'pioggia':'nebbia'}
   if(g%7===0){const rv=s.p.find(p=>p.k==='riv');if(rv&&forza(rv)<420)for(const e of leva('mer',26,r))aggiungi(rv.tr,e.t,e.n)}
   // diplomazia: ogni tanto una guerra finisce o comincia
-  if(g%4===0){const vivi=D.REGNI.filter(f=>!s.cadute[f]);for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]);
-    if(s.guerra[k]){if(r()<.16){delete s.guerra[k];L(s,D.FAZ[vivi[i]].breve+' e '+D.FAZ[vivi[j]].breve+' firmano la pace.','guerra');for(const l of s.l)if(l.ass&&(l.ass.faz===vivi[i]||l.ass.faz===vivi[j]))l.ass=null}}
-    else if(r()<.14){s.guerra[k]=true;L(s,D.FAZ[vivi[i]].breve+' dichiara guerra a '+D.FAZ[vivi[j]].breve+'.','guerra')}}}
+  // alleanze (V3): finiscono solo dopo il preavviso e non prima del minimo; se un regno cade finiscono subito
+  for(const k of Object.keys(s.alleanza||{})){const al=s.alleanza[k],x=k.split('|');
+   if(s.cadute[x[0]]||s.cadute[x[1]])delete s.alleanza[k];
+   else if(al.rompe&&g>=al.rompe&&g>=al.da+D.DIPL.MIN){delete s.alleanza[k];L(s,D.FAZ[x[0]].breve+' e '+D.FAZ[x[1]].breve+' non sono più alleati.','guerra')}}
+  if(g%4===0){const vivi=D.REGNI.filter(f=>!s.cadute[f]),dom=dominante(s),X=D.DIPL.IA;for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]);
+    if(s.guerra[k]){if(r()<.16){faiPace(s,vivi[i],vivi[j]);L(s,D.FAZ[vivi[i]].breve+' e '+D.FAZ[vivi[j]].breve+' firmano la pace.','guerra')}}
+    else if(r()<(dom&&(dom.f===vivi[i]||dom.f===vivi[j])?X.GUERRA_DOM:.14)&&!s.alleanza[k]){s.guerra[k]=true;L(s,D.FAZ[vivi[i]].breve+' dichiara guerra a '+D.FAZ[vivi[j]].breve+'.','guerra')}}
+   // ogni tanto due regni liberi si alleano contro chi vince troppo; ogni tanto un'alleanza matura si scioglie, con preavviso
+   for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const a=vivi[i],b=vivi[j];if(alleatoDi(s,a)||alleatoDi(s,b)||inGuerra(s,a,b))continue;
+     const contro=dom&&a!==dom.f&&b!==dom.f?dom.f:vivi.find(c=>c!==a&&c!==b&&inGuerra(s,a,c)&&inGuerra(s,b,c));
+     if(contro&&r()<(dom&&contro===dom.f?X.ALLEANZA:X.FRONTE)){s.alleanza[chiave(a,b)]={da:g,rompe:0};scioglieScontri(s,a,b);L(s,D.FAZ[a].breve+' e '+D.FAZ[b].breve+' si alleano contro '+D.FAZ[contro].breve+'.','guerra')}}
+   for(const k of Object.keys(s.alleanza)){const al=s.alleanza[k];if(!al.rompe&&g>=al.da+D.DIPL.MIN&&r()<X.ROTTURA){const x=k.split('|');al.rompe=g+D.DIPL.PREAVVISO;L(s,D.FAZ[x[0]].breve+' e '+D.FAZ[x[1]].breve+' annunciano la fine dell\'alleanza.','guerra')}}}
   for(const f of D.REGNI)if(s.rel[f]<0&&g%3===0&&!(s.servizio&&inGuerra(s,s.servizio.faz,f)))s.rel[f]++;
   // incarichi scaduti
   for(const q of s.incarichi)if(!q.fatto&&!q.fallito&&g>q.scad){q.fallito=true;const l=s.l[q.da];l.inc=null;l.rel-=3;L(s,'Incarico scaduto: '+titoloInc(s,q)+'.','male')}
@@ -554,6 +607,14 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(z.a==='giura'){if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi riceve giuramenti'};if(s.servizio&&s.servizio.tipo==='vas')return{err:'Hai già un sovrano'};if(s.fama<P.FAMA_VASSALLO)return{err:'Serve fama '+P.FAMA_VASSALLO};if(s.rel[l.faz]<10)return{err:'Serve più amicizia col regno'};
    if(s.l.some(x=>x.faz==='tu'))return{err:'Chi ha terre proprie non giura'};s.servizio={faz:l.faz,tipo:'vas'};const v=s.l.filter(x=>x.faz===l.faz&&x.tipo==='villaggio'&&x.sig!==-2).sort((a,b)=>a.prosp-b.prosp)[0];if(v){v.sig=-2;L(s,'Giuri fedeltà a '+D.FAZ[l.faz].re+': ti è dato in feudo '+v.nome+'.','bene')}return{s}}
   if(z.a==='lascia'){if(!s.servizio)return{err:'Non servi nessuno'};const f=s.servizio.faz;relaz(s,f,s.servizio.tipo==='vas'?-30:-8);for(const x of s.l)if(x.sig===-2&&x.faz===f)x.sig=x.capo>=0?s.l[x.capo].sig:-1;s.servizio=null;L(s,'Sciogli il tuo legame con '+D.FAZ[f].breve+'.');return{s}}
+  if(z.a==='proponi'){const a=l.faz;if(!D.REGNI.includes(a)||l.tipo!=='citta')return{err:'Solo il re, nella sua capitale'};if(!dentro)return{err:'Devi essere dentro le mura'};
+   const b=z.f,p=proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=D.FAZ[b].breve;
+   if(!p.ok)return{err:D.FAZ[a].re+' rifiuta: il conto dà '+p.tot+' (serve 0)'};
+   if(z.tipo==='pace'){faiPace(s,a,b);relaz(s,a,3);L(s,'Per le tue parole '+A+' e '+B+' firmano la pace.','bene')}
+   else if(z.tipo==='alleanza'){s.alleanza=s.alleanza||{};s.alleanza[k]={da:g,rompe:0};scioglieScontri(s,a,b);relaz(s,a,2);L(s,A+' e '+B+' stringono un\'alleanza, per le tue parole.','bene')}
+   else if(z.tipo==='guerra'){s.guerra[k]=true;relaz(s,b,-10);L(s,A+' dichiara guerra a '+B+', su tua richiesta.','guerra')}
+   else{const al=s.alleanza[k];al.rompe=Math.max(g+D.DIPL.PREAVVISO,al.da+D.DIPL.MIN);L(s,A+' annuncia la rottura dell\'alleanza con '+B+': finirà il giorno '+al.rompe+'.','guerra')}
+   return{s}}
   if(z.a==='pace'){const f=l.faz;if(!D.REGNI.includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||s.rel[con]>-25)return{err:'Non siete in guerra'};const oro=400+Math.round(-s.rel[con]*6);if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=-5;L(s,'Paghi un tributo di '+oro+' monete: pace con '+D.FAZ[con].breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
@@ -563,7 +624,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   ['Venti uomini sotto lo stendardo',uomini(TU(s))>=20],['Fama 25: un contratto di ventura',s.fama>=25],['Cinque battaglie vinte',s.stat.vinte>=5],
   ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Un covo di predoni stanato',s.stat.covi>0],['Un cimelio unico',capi(s).some(c=>indossa(c).some(o=>o.q===4))||TU(s).zaino.some(id=>D.OGG[id]&&D.OGG[id].q===4)],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>MURA[l.tipo])],['Un regno caduto',Object.keys(s.cadute).length>0]]}
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
- function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;s.ev=[];mappa(s.seme);return s}catch(e){return null}}
+ function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};s.ev=[];mappa(s.seme);return s}catch(e){return null}}
  return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,prezzoOgg,migra,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,torneoOggi,tornei,quando,premioTorneo,avversariTorneo,statArena,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
-  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap}})();
+  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

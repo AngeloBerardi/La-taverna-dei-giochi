@@ -216,7 +216,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/28j-ven-dati.js` | 26 | VDAT |
-| `js/motori/28k-ven-mondo.js` | 71 | VEN, capi |
+| `js/motori/28k-ven-mondo.js` | 78 | VEN, capi |
 | `js/motori/28l-ven-campo.js` | 18 | VCAM |
 | `js/motori/28m-ven-stanza.js` | 5 | VST |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
@@ -321,7 +321,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
 | `js/app/24hv-ven-campo.js` | 24 | VenCampo |
-| `js/app/24hw-ventura.js` | 47 | Ven |
+| `js/app/24hw-ventura.js` | 50 | Ven |
 | `js/app/24hx-ven-stanza.js` | 8 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |
