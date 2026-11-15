@@ -15,18 +15,20 @@ const VenArte=(()=>{
  // Sul telefono i contesti WebGL sono pochi: la home e la mappa dell'Avventura ne tengono uno ciascuna, quindi si chiudono prima di aprire questo.
  // Se la creazione fallisce lo stesso si riprova una volta, poi si ricorda il motivo (si legge nel velo) e «Riprova» ricomincia da capo.
  function accendi(){for(const f of[()=>Crocevia.rilascia(),()=>Scena3D.rilascia()]){try{f()}catch(e){}}
-  for(let i=0;i<2;i++){try{costruisci();A.errore='';return true}catch(e){A.errore=String((e&&e.message)||e).slice(0,120);ERR.n(e,'ventura-3d');try{ren&&ren.dispose&&ren.dispose()}catch(x){}ren=null;rt=null}}
+  for(let i=0;i<2;i++){try{costruisci();A.errore='';return true}catch(e){A.errore=String((e&&e.message)||e).slice(0,120);ERR.n(e,'ventura-3d');scarta()}}
   A.fallita=true;return false}
- function riprova(){A.fallita=false;A.pronta=false;A.attesa=null;A.errore='';A.persa=false;return avvia()}
+ function riprova(){scarta();A.fallita=false;A.pronta=false;A.attesa=null;A.errore='';A.persa=false;A.W=0;A.host=null;A.t=0;A.nfps=0;return avvia()}
  // Il telefono può togliere il contesto grafico (memoria, scheda in secondo piano): il canvas resta bianco.
  // Si segna la perdita e `rifai` ricostruisce canvas, renderer e materiali; le scene le rifà chi le possiede (Ven.ripara).
  const persa=()=>!!(A.pronta&&(A.persa||(ren&&ren.getContext().isContextLost())));
- function rifai(){const vecchio=cv;try{if(rt){rt.depthTexture.dispose();rt.dispose()}ren.dispose()}catch(e){}rt=null;A.persa=false;A.W=0;A.t=0;A.nfps=0;A.rinascite=(A.rinascite||0)+1;
+ // dispose() non chiude il contesto: lo si chiude a mano, altrimenti i contesti persi restano vivi e il telefono smette di darne di nuovi
+ function scarta(){try{if(rt){rt.depthTexture.dispose();rt.dispose()}}catch(e){}try{if(ren){ren.dispose();ren.forceContextLoss()}}catch(e){}if(cv){cv.width=cv.height=1}ren=null;rt=null}
+ function rifai(){const vecchio=cv;scarta();A.persa=false;A.W=0;A.t=0;A.nfps=0;A.rinascite=(A.rinascite||0)+1;if(A.rinascite>=1&&A.lento<2)A.lento++;// a ogni perdita pixel d'arte più grossi: meno memoria
   try{costruisci();if(vecchio&&vecchio.parentNode){const h=vecchio.parentNode;h.removeChild(vecchio);A.host=null;monta(h)}return true}catch(e){A.fallita=true;A.pronta=false;ERR.n(e,'ventura-3d');return false}}
- function costruisci(){cv=document.createElement('canvas');cv.className='vn-cv';cv.addEventListener('webglcontextlost',e=>{e.preventDefault();A.persa=true});
+ function costruisci(){cv=document.createElement('canvas');cv.className='vn-cv';const mio=cv;cv.addEventListener('webglcontextlost',e=>{e.preventDefault();if(mio===cv)A.persa=true});// un canvas scartato (forceContextLoss) non deve far credere che la scena nuova sia persa
   ren=new T.WebGLRenderer({canvas:cv,antialias:false,alpha:false,powerPreference:'high-performance'});ren.setPixelRatio(1);// colori scritti come si vedono: nessuna conversione di spazio colore
   
-  ren.shadowMap.enabled=true;ren.shadowMap.type=T.PCFShadowMap;ren.autoClear=true;
+  ren.shadowMap.enabled=(A.rinascite||0)<2;ren.shadowMap.type=T.PCFShadowMap;ren.autoClear=true;
   const g=new Uint8Array([70,70,70,255,138,138,138,255,205,205,205,255,255,255,255,255]);grad=new T.DataTexture(g,4,1,T.RGBAFormat);grad.minFilter=grad.magFilter=T.NearestFilter;grad.needsUpdate=true;
   matToon=new T.MeshToonMaterial({vertexColors:true,gradientMap:grad});matInst=new T.MeshToonMaterial({vertexColors:true,gradientMap:grad});// r128: un materiale non può servire insieme maglie semplici e a istanze colorate
   postCam=new T.OrthographicCamera(-1,1,1,-1,0,1);postScene=new T.Scene();
