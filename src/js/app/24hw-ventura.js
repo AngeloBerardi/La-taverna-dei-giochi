@@ -41,7 +41,7 @@ ${cont}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro re
   if(!VenArte.A.pronta){if(!VenArte.A.fallita)VenArte.avvia().then(()=>{if(ui.ven)render()});return}
   const host=document.querySelector('.vn-scena');if(!host)return;VenArte.monta(host);if(!V.gesti)gesti();
   if(V.modo==='mondo')VenMappa.apri(V.s);{const cc=document.querySelector('.vn-carta-cv');if(cc&&V.s)VenMappa.carta(cc,V.s)}
-  if(!V.orecchio){V.orecchio=true;document.addEventListener('click',e=>{V.ultimoClick=e},true)}if(!V.raf){V.ult=0;V.raf=requestAnimationFrame(giro)}}
+  if(!V.orecchio){V.orecchio=true;document.addEventListener('click',e=>{V.ultimoClick=e},true)}hudVivo();if(!V.raf){V.ult=0;V.raf=requestAnimationFrame(giro)}}
  // «Riprova» dopo la resa: il canvas è nuovo, quindi gesti, scene e contatori si rifanno come dopo una perdita normale
  function riprova(){ferma();V.rip=0;V.riparato=0;V.ripUlt=0;V.gesti=false;V.pt={};V.pin=0;VenMappa.K.scene=null;VenMappa.K.seme=-1;
   VenArte.riprova().then(()=>{if(ui.ven&&V.modo==='campo'&&VenArte.A.pronta)VenCampo.scena();if(ui.ven)render()});render()}
