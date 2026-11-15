@@ -3156,6 +3156,40 @@ async def sc_ventura_torneo(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_diplomazia(b, srv):
+    """Ventura, diplomazia (V3): nella sala del re i fattori a favore e contro e il totale, pace/alleanza/guerra, rottura con preavviso, mercenario solo pace, 390 px."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # vassallo del regno di Selvamara, nella sua capitale; guerra in corso con un vicino, pace con gli altri
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s),l=s.l.find(l=>l.tipo==='citta'&&l.faz==='sel');s.guerra={};s.alleanza={};s.guerra['sel|val']=true;s.servizio={faz:'sel',tipo:'vas'};s.fama=300;s.rel.sel=80;
+      s.sig.find(x=>x.faz==='sel'&&x.re).tratto='onorevole';tu.x=l.x;tu.y=l.y;s.dentro=l.id;s.davanti=-1;tu.ord=null;tu.via=[];Ven.act('pan:luogo');Ven.act('sub:sala')})()""")
+    await pg.wait_for_selector('[data-v="fai:proponi:pace:val"]', timeout=10000)
+    t = await pg.inner_text('.vn-pan')
+    check('diplomazia' in t.lower() and 'A favore' in t and 'Contro' in t and 'Totale' in t and 'Proponi alleanza con' in t and 'Chiedi guerra a' in t, 'sala del re: fattori a favore e contro, totale, tre proposte')
+    uguale = await pg.evaluate("""(()=>{const s=Ven.V.s,p=VEN.proposta(s,'pace','sel','val');const tx=document.querySelector('[data-v="fai:proponi:pace:val"]').closest('.vn-r').innerText;return p.f.every(x=>tx.includes(x.n))&&tx.includes(String(Math.abs(p.tot)).replace('.',','))})()""")
+    check(uguale, 'il pannello elenca gli stessi fattori usati dal conto')
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    await pg.screenshot(path='/tmp/diplomazia-390.png')
+    await pg.click('[data-v="fai:proponi:pace:val"]'); await pg.wait_for_timeout(300)
+    st = await pg.evaluate("({g:VEN.inGuerra(Ven.V.s,'sel','val'),a:VEN.alleate(Ven.V.s,'sel','val')})")
+    check(not st['g'], f"la pace è firmata: {st}")
+    await pg.click('[data-v="fai:proponi:alleanza:val"]'); await pg.wait_for_timeout(300)
+    st = await pg.evaluate("({a:VEN.alleate(Ven.V.s,'sel','val'),al:Ven.V.s.alleanza['sel|val']})")
+    check(st['a'] and st['al']['rompe'] == 0 and 'Rompi' in await pg.inner_text('.vn-pan'), f"alleanza firmata, con «Rompi» in sala: {st}")
+    await pg.click('[data-v="fai:proponi:rompi:val"]'); await pg.wait_for_timeout(300)
+    al = await pg.evaluate("Ven.V.s.alleanza['sel|val']")
+    check(al['rompe'] >= al['da'] + 20 and 'finisce il giorno' in await pg.inner_text('.vn-pan'), f"preavviso annunciato, non prima di 20 giorni: {al}")
+    # il mercenario può chiedere solo la pace
+    await pg.evaluate("(()=>{const s=Ven.V.s;s.alleanza={};s.guerra['sel|val']=true;s.servizio={faz:'sel',tipo:'mer',fino:99};Ven.act('sub:home');Ven.act('sub:sala')})()")
+    await pg.wait_for_selector('[data-v="fai:proponi:pace:val"]', timeout=5000)
+    t2 = await pg.inner_text('.vn-pan')
+    check('Chiedi guerra a' not in t2 and 'Proponi alleanza con' not in t2, 'mercenario a contratto: solo la proposta di pace')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_riprova(b, srv):
     """Ventura: il contesto grafico si perde più volte di fila (telefono sotto pressione), la scena si arrende; «Riprova» la deve riaccendere davvero."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)

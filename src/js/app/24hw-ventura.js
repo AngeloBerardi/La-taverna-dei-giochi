@@ -134,6 +134,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
     if(!srv)h+=riga(`<b>Contratto di ventura</b><small>Quattro settimane di soldo; i loro nemici diventano i vostri. Fama ${VEN.P.FAMA_CONTRATTO}.</small>`,bt('Firma','fai:contratto',{cls:'gold'}));
     if(!srv||srv.tipo==='mer')h+=riga(`<b>Giuramento</b><small>Vassallo del regno, con un villaggio in feudo. Fama ${VEN.P.FAMA_VASSALLO}, amicizia 10.</small>`,bt('Giura','fai:giura'));
     if(srv&&srv.faz===f)h+=riga(`<b>Sciogli il legame</b><small>Servi ${esc(D.FAZ[f].breve)} come ${srv.tipo==='vas'?'vassallo':'mercenario'}.</small>`,bt('Lascia','fai:lascia'))}
+   if(R&&l.tipo==='citta'&&srv&&srv.faz===f)h+=diploH(f,srv);
    for(const k of D.REGNI)if(s.rel[k]<=-25)h+=riga(`<b>Pace con ${esc(D.FAZ[k].breve)}</b><small>Un tributo mette fine all'inimicizia (${s.rel[k]}).</small>`,bt('Tratta','fai:pace:'+k));
    h+=riga(`<b>Riscatti</b><small>${prig?prig+' prigionieri da cedere':'Nessun prigioniero'}</small>`,bt('Incassa','fai:riscatta',{cls:'gold',no:!prig}));return pannello('Sala del signore',h,{chiudi:'sub:home'})}
   if(V.sub==='guarn'){return pannello('Guarnigione',`<div class="sh2">Dentro le mura</div>${l.g.map(e=>truppaH(e,bt('Riprendi','fai:guarnigione:'+e.t+':-1'))).join('')||'<p class="vn-p">Nessuno.</p>'}<div class="sh2">Con te</div>${t.tr.filter(e=>!D.TR[e.t].compagno).map(e=>truppaH(e,bt('Lascia','fai:guarnigione:'+e.t+':1'))).join('')}`,{chiudi:'sub:home'})}
@@ -154,6 +155,16 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(q&&!q.preso)h+=riga(`<b>Incarico</b><small>${q.tipo==='predoni'?'Una banda infesta i dintorni: disperdetela.':q.tipo==='consegna'?'Portate '+q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome+'.':q.tipo==='reliquia'?'«Tra quelle pietre riposa qualcosa di sacro. Liberatele da chi le profana.» ('+esc(s.l[q.a].nome)+')':q.tipo==='taglia'?'C\'è una taglia su '+esc(s.l[q.a].nome)+': stanateli.':'Servono '+q.n+' soldati addestrati per la guarnigione.'} ${q.premio} monete, ${q.giorni} giorni.</small>`,bt('Accetta','fai:incarico'));
   if(!(l.tipo==='villaggio'&&!mio))h+=riga(`<b>Riposo</b><small>Otto ore: metà dei feriti torna in piedi.${mio?'':' '+Math.ceil(VEN.uomini(t)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5))+' monete.'}</small>`,bt('Riposa','fai:riposa'));
   h+=riga('',bt('Riparti','fai:esci',{cls:'gold'}));return pannello(esc(l.nome),h,{chiudi:'fai:esci'})}
+ // la parola presso il re (V3): per ogni regno la proposta possibile, con i fattori a favore e contro e il totale che decide (serve ≥ 0)
+ function diploH(f,srv){const s=V.s,g=VEN.giorno(s),vas=srv.tipo==='vas',num=v=>(v>0?'+':'−')+Math.abs(v).toFixed(1).replace('.',','),h=[];
+  const conto=p=>{const pro=p.f.filter(x=>x.v>0),con=p.f.filter(x=>x.v<0),el=l=>l.map(x=>esc(x.n)+' '+num(x.v)).join(', ')||'nessuno';
+   return`<small class="vn-bene">A favore: ${el(pro)}</small><small class="vn-male">Contro: ${el(con)}</small><small>Totale ${num(p.tot)}: il re accetta da 0 in su${p.ok?'. Accetterebbe.':'. Rifiuterebbe.'}</small>`};
+  const riga1=(titolo,nota,tipo,k,lab,cls)=>{const p=VEN.proposta(s,tipo,f,k);return p.err?'':riga(`<b>${titolo}</b><small>${nota}</small>${tipo==='rompi'?'':conto(p)}`,bt(lab,'fai:proponi:'+tipo+':'+k,cls?{cls}:null))};
+  for(const k of D.REGNI){if(k===f||s.cadute[k])continue;const nome=esc(D.FAZ[k].breve);
+   if(VEN.inGuerra(s,f,k))h.push(riga1('Proponi pace con '+nome,'In guerra con '+nome+'. '+(vas?'Parli da vassallo.':'Da mercenario puoi chiedere solo la pace.'),'pace',k,'Proponi','gold'));
+   else if(VEN.alleate(s,f,k)){const al=s.alleanza[[f,k].sort().join('|')];h.push(vas?riga(`<b>Alleati di ${nome}</b><small>${al.rompe?'Rottura annunciata: finisce il giorno '+al.rompe+'.':'Dal giorno '+al.da+'; dura almeno '+D.DIPL.MIN+' giorni e si rompe con '+D.DIPL.PREAVVISO+' di preavviso.'}</small>`,al.rompe?'':bt('Rompi','fai:proponi:rompi:'+k)):riga(`<b>Alleati di ${nome}</b><small>Dal giorno ${al.da}.</small>`))}
+   else if(vas){h.push(riga1('Proponi alleanza con '+nome,'Si combatte insieme e ci si soccorre negli assedi. Un solo alleato per regno.','alleanza',k,'Proponi','gold'));h.push(riga1('Chiedi guerra a '+nome,'Il re muoverà le sue bandiere; '+nome+' non lo dimenticherà.','guerra',k,'Chiedi'))}}
+  return`<div class="sh2">Diplomazia</div>`+(h.join('')||'<p class="vn-p">Nessuna trattativa possibile, per ora.</p>')}
  // il torneo della città: iscrizione, turno, avversari col loro corredo, premio maturato
  function torneoH(l){const s=V.s,t=s.torneo,T=D.TORNEO,g=VEN.giorno(s),capi=VEN.capi(s),posta=capi.reduce((a,c)=>a+T.posta*c.liv,0);
   if(t&&t.lid===l.id){const av=VEN.avversariTorneo(s,t.lid,t.giorno,t.turno,capi.length),mat=VEN.premioTorneo(t),fin=T.mol[2]*t.posta;
@@ -263,8 +274,9 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='fai'){const a=p[1];let z={a};
    if(a==='recluta')z.n=+p[2]||1;else if(a==='compra'||a==='vendi'){z.m=p[2];z.n=a==='vendi'?Math.min(V.qta,tu().merci[p[2]]||0):Math.min(V.qta,s.l[s.dentro].scorte[p[2]]||0)}
    else if(a==='assolda'){z.t=p[2];z.n=1}else if(a==='compagno'||a==='compraogg')z.id=p[2];else if(a==='abilita')z.k=p[2];else if(a==='vendiogg'||a==='equipa')z.i=+p[2];else if(a==='togli'){z.slot=p[2];z.k=+p[3]||0}else if(a==='imbarca')z.lid=+p[2];else if(a==='promuovi'){z.t=p[2];z.su=p[3];z.n=1}else if(a==='congeda'){z.t=p[2];z.n=1}
-   else if(a==='pace')z.f=p[2];else if(a==='guarnigione'){z.t=p[2];z.verso=+p[3];z.n=1}
+   else if(a==='pace')z.f=p[2];else if(a==='proponi'){z.tipo=p[2];z.f=p[3]}else if(a==='guarnigione'){z.t=p[2];z.verso=+p[3];z.n=1}
    const r=inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r.err){V.msg=r.err;Snd.play('err');return render()}
+   if(a==='proponi'){V.msg='';avviso(s.log[s.log.length-1].tx,'bene')}
    if(a==='esci'){V.pan=null;V.sub='home'}else if(a==='riposa'||a==='assedia'||a==='imbarca'){V.pan='attesa';V.sub='home'}else if(a==='razzia'){V.pan=null}else if(a==='assalta'||a==='lizza'){V.pan='incontro'}else if(a==='ritira'){V.pan='luogo'}else if(a==='voci'&&r.lid!=null){avviso('Segnato sulla carta: '+s.l[r.lid].nome,'bene')}
    if(a==='recluta'||a==='assolda'||a==='compagno')Snd.play('avv-compagno');else if(a==='compra'||a==='vendi'||a==='riscatta'||a==='consegna'||a==='compraogg'||a==='vendiogg'||a==='equipa')Snd.play('avv-bottino');else if(a==='promuovi'||a==='abilita')Snd.play('avv-livello');
    salva();return render()}
