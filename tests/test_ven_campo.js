@@ -109,7 +109,10 @@ for (const f of ['28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js']) {
   // forte vince, debole perde; con più capitani si vince o si perde come squadra
   let forti = 0, deboli = 0; for (let i = 1; i <= 20; i++) { if (C.risolvi(Object.assign(duello(1, 200, { dan: 20, att: 24 }), { seme: i })).vince === 'a') forti++; if (C.risolvi(Object.assign(duello(1, 25, { dan: 3, att: 8 }), { seme: i })).vince === 'b') deboli++; }
   assert(forti >= 19 && deboli >= 19, 'forte batte debole: ' + forti + ' ' + deboli);
-  { const d = duello(3, 90); const x = C.risolvi(d); assert.strictEqual(x.ko.length, 3); assert(x.vince === 'a' ? !x.capKo : true); }
+  { const x = C.risolvi(duello(3, 90)); assert.strictEqual(x.ko.length, 3);
+    const mista = duello(2, 100000); mista.capi[0] = Object.assign({}, mista.capi[0], { pf: 1, att: 1, dif: 0, dan: 1 }); let sq = 0; for (let i = 1; i <= 10; i++) { const r = C.risolvi(Object.assign({}, mista, { seme: i })); if (r.vince === 'a') sq++; }
+    assert(sq >= 9, 'un capitano a terra e l\'altro vince: vince la squadra (' + sq + '/10)');
+    const deboli = duello(2, 20, { att: 1, dan: 1, dif: 0 }); for (let i = 1; i <= 5; i++) { const r = C.risolvi(Object.assign({}, deboli, { seme: i })); assert(r.vince === 'b' && r.capKo, 'tutti a terra: perde la squadra'); } }
   // il tempo massimo decide per vita rimasta, mai una battaglia senza fine
   { const q2 = C.nuovo(duello(1, 100000, { dan: 0 }), { autoA: true }); q2.u.find(u => u.l === 'b').dan = 0; C.passo(q2, C.C.TMAX + 10); assert(q2.fine, 'a tempo scaduto c\'è un vincitore'); }
   // i battaglioni normali restano come prima: la rotta e gli ordini funzionano ancora

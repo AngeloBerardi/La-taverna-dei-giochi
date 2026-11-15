@@ -104,13 +104,17 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   for (const c of V.capi(w)) { c.liv = 6; c.ab.prodezza = 4; Object.assign(c.eq, { arma: 'bastarda', scudo: 'mandorla', armatura: 'brigantina', elmo: 'bacinetto' }); }
   const oro0 = V.TU(w).oro; t = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'torneo' } })); assert.strictEqual(oro0 - V.TU(t.w).oro, 40 * 12, 'iscrizione pagata per ciascun capitano');
   assert(S.act(t, { t: 'fai', seat: 0, z: { a: 'torneo' } }).err, 'già iscritti'); t = ok(S.act(t, { t: 'fai', seat: 0, z: { a: 'lizza' } })); assert.strictEqual(t.w.incontro.tipo, 'arena'); assert(!S.scorre(t), 'durante il duello il tempo del mondo sta fermo');
-  const prima = J(t); assert(S.act(t, { t: 'fai', seat: 1, z: { a: 'esci' } }).err); assert.strictEqual(J(t), prima);
+  const prima = J(t); assert(S.act(t, { t: 'fai', seat: 1, z: { a: 'esci' } }).err); assert.strictEqual(J(t), prima); const t0 = S.copia(t);
   t = ok(S.act(t, { t: 'scegli', seat: 0, v: 'attacca' })); assert(t.b && t.b.c.tipo === 'arena' && t.b.c.capi.length === 2 && t.b.c.u.filter(u => u.l === 'b').length === 2);
   assert(S.act(t, { t: 'b-ord', seat: 0, o: { t: 'carica' } }).err && S.act(t, { t: 'b-cap', seat: 1, o: { grido: true } }).err, 'nessun ordine, niente grido');
   t = ok(S.act(t, { t: 'b-via', seat: 0 })); let g = 0; while (!t.b.c.fine && g++ < 400) t = ok(S.act(t, { t: 'tempo', seat: 0, fino: t.b.c.t + 100 }));
   assert(t.b.c.fine, 'il duello finisce'); const vince = t.b.c.fine.vince; assert(S.act(t, { t: 'b-fine', seat: 1 }).s); t = ok(S.act(t, { t: 'b-fine', seat: 1 })); assert.strictEqual(t.b, null); assert.strictEqual(t.w.incontro, null);
   const o = t.w.ult; assert.strictEqual(o.vince, vince); assert.strictEqual(!!o.torneo.vinto, vince === 'a'); if (vince === 'a') assert.strictEqual(t.w.torneo.turno, 1); else assert.strictEqual(t.w.torneo, null);
-  assert(vince === 'b' || S.salvabile(t).w.torneo.turno === 1, 'il torneo si salva con il mondo');
-  if (vince === 'a') { t = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'ritira' } })); assert.strictEqual(t.w.torneo, null); assert(V.TU(t.w).oro >= oro0 - 40 * 12 + 40 * 12 * 2 - 50, 'il premio maturato arriva alla cassa comune'); }
+  assert.strictEqual(vince, 'a', 'due capitani di livello 6 ben armati battono lo sfidante'); assert.strictEqual(S.salvabile(t).w.torneo.turno, 1, 'il torneo si salva con il mondo');
+  { const o2 = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'lizza' } })); const b2 = ok(S.act(o2, { t: 'scegli', seat: 0, v: 'attacca' })); const e = S.act(b2, { t: 'fai', seat: 1, z: { a: 'ritira' } }); assert(e.err, 'a duello aperto non ci si ritira'); }
+  const oroPrima = V.TU(t.w).oro; t = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'ritira' } })); assert.strictEqual(t.w.torneo, null); assert.strictEqual(V.TU(t.w).oro, oroPrima + 40 * 12 * 2, 'il premio maturato arriva alla cassa comune');
+  // due telefoni che rigiocano le stesse mosse dallo stesso punto restano uguali, anche con «Risolvi» e con il ritiro
+  const gioca = g0 => { let x = ok(S.act(S.copia(g0), { t: 'scegli', seat: 1, v: 'auto' })); const ult = J(x.w.ult); if (x.w.torneo) x = ok(S.act(x, { t: 'fai', seat: 0, z: { a: 'ritira' } })); return J(x) + ult; };
+  assert.strictEqual(gioca(t0), gioca(t0), 'stesse mosse, stessa stanza'); assert(ok(S.act(S.copia(t0), { t: 'scegli', seat: 1, v: 'auto' })).w.ult.torneo, 'Risolvi in compagnia chiude il duello con un esito del torneo');
 }
 console.log('ven_stanza ok');

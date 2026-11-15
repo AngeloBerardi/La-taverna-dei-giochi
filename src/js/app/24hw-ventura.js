@@ -160,7 +160,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    return riga(`<b>Torneo · ${esc(T.turni[t.turno])}</b><small>Duello ${t.turno+1} di 3, a piedi e senza arco: conta l'arma che porti. ${av.map(x=>esc(x.nome)+' ('+esc(x.corredo)+')').join(' · ')}</small>
 <small class="vn-bene">${mat?'Premio maturato '+mat+' monete.':'Nessun premio ancora.'} Vincere tutti e tre: ${fin} monete, ${T.fama[2]} fama e un oggetto di pregio.</small>`,
     bt(ic('spada',16)+' In lizza','fai:lizza',{cls:'gold',no:t.giorno!==g})+(mat?bt('Ritirati · '+mat,'fai:ritira'):bt('Ritirati','fai:ritira')))}
-  if(VEN.torneoOggi(s,l)){const usato=s.torneoUsato&&s.torneoUsato.lid===l.id&&s.torneoUsato.giorno===g;
+  if(VEN.torneoOggi(s,l)){const usato=!!s.torneoUsato&&s.torneoUsato[l.id]===g;
    return riga(`<b>Torneo di oggi</b><small>Tre duelli: sfidante, campione, gran campione. ${capi.length>1?'Scendete in lizza tutti insieme. ':''}Iscrizione ${posta} monete; i premi sono ${T.mol.map(m=>m+'×').join(', ')} l'iscrizione.</small>${usato?'<small class="vn-male">Hai già partecipato oggi.</small>':''}`,
     bt('Iscriviti · '+posta,'fai:torneo',{cls:'gold',no:usato||VEN.TU(s).oro<posta}))}
   const n=(7-(g+l.id)%7)%7;return riga(`<b>Torneo</b><small>Il prossimo si tiene qui ${esc(VEN.quando(n))}.</small>`,'')}

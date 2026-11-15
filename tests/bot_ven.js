@@ -20,6 +20,8 @@ module.exports = function (VEN, VDAT) {
     if (!bravo) { // a caso
       const az = [{ a: 'recluta', n: 1 }, { a: 'compra', m: 'spezie', n: 1 }, { a: 'vendi', m: 'grano', n: 2 }, { a: 'incarico' }, { a: 'riposa' }, { a: 'compra', m: 'velluto', n: 1 }];
       for (let k = 0; k < 3; k++) fai(az[Math.floor(r() * az.length)]);
+      // a caso si iscrive al torneo se c'è e le monete bastano, poi duella o si ritira come capita
+      if (VEN.torneoOggi(s, l) && !s.torneo && r() < .7 && !fai({ a: 'torneo' }).err) { while (s.torneo) { if (r() < .3 || fai({ a: 'lizza' }).err) { fai({ a: 'ritira' }); break; } VEN.auto(s); } }
       return fai({ a: 'esci' });
     }
     fai({ a: 'consegna' }); fai({ a: 'riscatta' });
@@ -58,6 +60,7 @@ module.exports = function (VEN, VDAT) {
   function viaggia(s, bravo, r, mem) {
     const tu = TU(s), mia = VEN.forza(tu);
     if (!bravo) {
+      const tn = VEN.tornei(s)[0]; if (tn.giorni <= 1 && r() < .8 && !VEN.nemiche(s, 'tu', s.l[tn.lid].faz)) return VEN.ordina(s, { t: 'entra', lid: tn.lid });
       const vis = VEN.visibili(s);
       if (vis.length && r() < .6) return VEN.ordina(s, { t: 'segui', pid: vis[Math.floor(r() * vis.length)].id });
       return VEN.ordina(s, { t: 'entra', lid: Math.floor(r() * s.l.length) });

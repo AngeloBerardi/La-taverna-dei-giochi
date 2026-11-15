@@ -49,7 +49,7 @@ Battaglie giocate: 30–90 secondi di scontro a ×1 più l'avvicinamento.
 
 **Tornei (V2)** — numeri in `VDAT.TORNEO` (`base` per turno: pf/att/dif/dan, più il corredo dell'avversario). Taratura: capitano di livello 5 con bastarda, mandorla, maglia, bacinetto e Prodezza 2
 vince il torneo circa 1 volta su 2 (55% su 40 prove; i primi due duelli sempre, la finale 55%); con spada e cuoio vince i primi due duelli ma non la finale; a livello 1 senza corazza quasi mai. Il bot accorto
-vince almeno un torneo in 60 giorni nel 65% dei semi (13 su 20), quello a caso mai (prova lunga, lenta: `npm test -- ven_torneo_bot`).
+vince almeno un torneo in 60 giorni nel 65% dei semi (13 su 20), quello a caso (iscritto di tanto in tanto) quasi mai (prova lunga, lenta: `npm test -- ven_torneo_bot`).
 
 ## Multiplayer
 - **C2 fatto**: co-op in stanza live (`R.mode='rt'`). Stato `G={w,b,vel,nb,sim:true}`: `w` è il mondo di VEN, `b.c` la battaglia di VCAM. Chiunque dà la meta e compra; ognuno ha il suo capitano (abilità ed equipaggiamento propri) e in battaglia guida solo quello; gli ordini ai gruppi sono di tutti. La battaglia parte quando qualcuno dà il via, la pausa è comune.

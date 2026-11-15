@@ -202,12 +202,20 @@ for (const seme of [1, 7, 2026]) {
   { const { s } = nuovoT(13); const tu = V.TU(s); ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); const oro1 = tu.oro; const r = ok(V.fai(s, { a: 'ritira' })); assert.strictEqual(r.oro, posta * 2); assert.strictEqual(tu.oro, oro1 + posta * 2); assert.strictEqual(s.torneo, null); }
   { const { s } = nuovoT(14); const tu = V.TU(s); ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); ok(V.fai(s, { a: 'lizza' })); vinci(s); const oro1 = tu.oro; ok(V.fai(s, { a: 'esci' }));
     ok(V.ordina(s, { t: 'aspetta', ore: 20 })); let g = 0; while (s.torneo && g++ < 2000) V.passo(s, 30); assert.strictEqual(s.torneo, null, 'a fine giornata il torneo si chiude'); assert(s.log.some(x => x.tx.includes('incassi ' + posta * 4 + ' monete')), 'pagando il premio maturato'); assert(tu.oro > oro1 + posta * 4 - 200, 'le monete sono arrivate'); }
-  { const { s } = nuovoT(15); const tu = V.TU(s), uomini = V.uomini(tu), tr = JSON.stringify(tu.tr), oro = tu.oro; ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); ok(V.fai(s, { a: 'lizza' })); const pf0 = V.campo(s) && V.statCap(V.capi(s)[0]).pf;
+  { const { s } = nuovoT(15); const tu = V.TU(s), uomini = V.uomini(tu), tr = JSON.stringify(tu.tr), oro = tu.oro; ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); ok(V.fai(s, { a: 'lizza' }));
     const o = perdi(s).out; assert(!o.torneo.vinto && o.torneo.chiuso && o.torneo.premio === 0 && s.torneo === null, 'si perde tutto il premio maturato'); assert.strictEqual(tu.oro, oro - posta);
     assert.strictEqual(V.uomini(tu), uomini); assert.strictEqual(JSON.stringify(tu.tr), tr, 'nessun uomo perso né ferito'); assert.strictEqual(s.prigioniero, null); assert.strictEqual(s.incontro, null); assert.strictEqual(o.morti + o.feriti + o.prig, 0);
     // vita al 50% per il resto del giorno, poi torna piena
     const piena = V.statCap(V.capi(s)[0]).pf; s.incontro = { tipo: 'nemico', pid: [], all: [] }; const p = V.part(s, s.p.find(p => p.k === 'pre').id); s.incontro = { tipo: 'nemico', pid: [p.id], all: [], da: 'tu' };
     assert.strictEqual(V.campo(s).capi[0].pf, Math.round(piena * .5), 'combatte a metà vita'); s.t += 1440; assert.strictEqual(V.campo(s).capi[0].pf, piena, 'il giorno dopo sta bene'); }
+  // un salvataggio di prima dei tornei (senza torneo, torneoUsato, ferito, stat.tornei) si apre e si gioca
+  { const { s } = nuovoT(21); const j = JSON.parse(V.salva(s)); for (const k of ['torneo', 'torneoUsato', 'ferito']) delete j[k]; delete j.stat.tornei; delete j.stat.duelli; const t = V.apri(JSON.stringify(j)); assert(t); assert.strictEqual(V.tornei(t).length, 5);
+    ok(V.fai(t, { a: 'torneo' })); ok(V.fai(t, { a: 'lizza' })); assert.strictEqual(V.campo(t).tipo, 'arena'); ok(V.esito(t, { vince: 'a', cad: [] })); assert.strictEqual(t.stat.duelli, 1); }
+  // mai un doppione, nemmeno di un oggetto portato da un socio fuori campo
+  { const { s } = nuovoT(22, { soci: [{ nome: 'Bea' }] }); const pregio = Object.keys(D.OGG).filter(id => D.OGG[id].q === 3), indosso = 'temprata', lascia = 'alabarda'; assert(pregio.includes(indosso) && pregio.includes(lascia));
+    s.soci[0].eq.arma = indosso; for (const id of pregio) if (id !== indosso && id !== lascia) V.TU(s).zaino.push(id);
+    s.attivi = 1; ok(V.fai(s, { a: 'torneo' })); for (let t = 0; t < 3; t++) { ok(V.fai(s, { a: 'lizza' })); ok(V.esito(s, { vince: 'a', cad: [] })); }
+    assert.strictEqual(s.ult.torneo.oggetto, lascia, 'esce solo l\'unico che non ha nessuno, nemmeno il socio fuori campo'); }
   // le voci della locanda dicono dove sarà il prossimo
   { const s = V.nuovo(17), loc = s.l.find(l => l.tipo === 'locanda'), x = s.l.find(l => l.noto === false && l.g.length); assert(loc && x); s.dentro = loc.id; V.TU(s).oro = 500; ok(V.fai(s, { a: 'voci' })); const ultimo = s.log[s.log.length - 1].tx; assert(/torneo/.test(ultimo) && ultimo.includes(s.l[V.tornei(s)[0].lid].nome), ultimo); }
   // salvare e riaprire a metà torneo dà la stessa partita

@@ -412,15 +412,15 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   return{seme:(s.rng^s.t)|0,tipo:'arena',terreno:1,bioma:0,notte:notte(s),ora:(s.t%P.GIORNO)/60,scena:{meteo:'sereno',strada:false,pend:0,costa:null,vicino:{tipo:'citta',faz:l.faz}},a:[],
    b:av.map((x,k)=>({p:-100-k,t:'pre_f2',n:1,st:x.st})),faza:'tu',fazb:l.faz,noma:s.nome,nomb:D.TORNEO.turni[t.turno]+(av.length>1?'i':'')+' di '+l.nome,cap:cs[0],capi:cs,morale:55}}
  // chiude un duello del torneo: vittoria → turno dopo (o finale: premio, fama e un oggetto di pregio 3); sconfitta → fuori, senza prigionia né perdite
- function esitoArena(s,riep){const t=s.torneo,tu=TU(s),T=D.TORNEO,v=riep.vince==='a',out={vince:riep.vince,morti:0,feriti:0,oro:0,xp:0,prig:0,fama:0,bottino:[],oggetti:[],promo:false,presa:null,livello:false,torneo:null};s.incontro=null;
-  if(!t){return{err:'Nessun torneo in corso'}}
+ function esitoArena(s,riep){const t=s.torneo,tu=TU(s),T=D.TORNEO,v=riep.vince==='a',out={vince:riep.vince,id:s.uid++,morti:0,feriti:0,oro:0,xp:0,prig:0,fama:0,bottino:[],oggetti:[],promo:false,presa:null,livello:false,torneo:null};
+  if(!t){s.incontro=null;return{err:'Nessun torneo in corso'}}s.incontro=null;
   const l=s.l[t.lid],turno=t.turno;
   if(v){s.stat.duelli=(s.stat.duelli||0)+1;out.xp=T.xp[turno];out.fama=T.fama[turno];s.fama+=out.fama;t.turno++;
-   if(t.turno>=3){const prem=t.posta*T.mol[2],r=rnd(s),has=id=>tu.zaino.includes(id)||capi(s).some(c=>Object.values(c.eq).flat().includes(id)),pool=Object.keys(D.OGG).filter(id=>D.OGG[id].q===3&&!has(id)),id=pool.length?pool[Math.floor(r()*pool.length)]:null;
+   if(t.turno>=3){const prem=t.posta*T.mol[2],r=rnd(s),has=id=>tu.zaino.includes(id)||[s.cap].concat(s.soci||[]).some(c=>Object.values(c.eq).flat().includes(id)),pool=Object.keys(D.OGG).filter(id=>D.OGG[id].q===3&&!has(id)),id=pool.length?pool[Math.floor(r()*pool.length)]:null;
     tu.oro+=prem;out.oro=prem;if(id){tu.zaino.push(id);out.oggetti.push(id)}s.torneo=null;s.stat.tornei=(s.stat.tornei||0)+1;out.torneo={vinto:true,turno,premio:prem,oggetto:id,chiuso:true};
     L(s,'Campione del torneo di '+l.nome+'! '+prem+' monete'+(id?' e '+D.OGG[id].nome+'.':'.'),'bene')}
    else{out.torneo={vinto:true,turno,premio:premioTorneo(t),oggetto:null,chiuso:false};L(s,'Vinci il duello contro '+T.turni[turno].toLowerCase()+(out.fama?' (+'+out.fama+' fama)':'')+': in palio ora '+premioTorneo(t)+' monete.','bene')}}
-  else{out.xp=6;s.torneo=null;s.ferito=giorno(s);out.torneo={vinto:false,turno,premio:0,oggetto:null,chiuso:true};tu.mor=Math.max(0,tu.mor-3);L(s,'Cadi in lizza a '+l.nome+' e perdi il torneo: fino a sera combatterai a metà delle forze.','male')}
+  else{s.torneo=null;s.ferito=giorno(s);out.torneo={vinto:false,turno,premio:0,oggetto:null,chiuso:true};L(s,'Cadi in lizza a '+l.nome+' e perdi il torneo: fino a sera combatterai a metà delle forze.','male')}
   cresci(s,out);s.ult=out;s.ev.push({t:'esito',out});return{s,out}}
  // il capitano cresce
  function cresci(s,out){for(const c of capi(s)){c.xp+=out.xp;while(c.xp>=xpLiv(c.liv)){c.xp-=xpLiv(c.liv);c.liv++;c.punti++;out.livello=true;L(s,c.nome+' sale al livello '+c.liv+'.','bene')}}}
@@ -517,8 +517,8 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(z.a==='razzia'){if(!ost||l.tipo!=='villaggio')return{err:'Non si può razziare'};if(l.sacc>giorno(s))return{err:'Non è rimasto nulla da prendere'};const oro=60+Math.round(l.prosp*2.2);tu.oro+=oro;tu.merci.grano=(tu.merci.grano||0)+6;
    l.sacc=giorno(s)+6;l.prosp=Math.max(5,l.prosp-20);l.rec=0;l.rel-=40;relaz(s,l.faz,-6);s.t+=180;L(s,'Mettete a sacco '+l.nome+': '+oro+' monete e sei sacchi di grano.','guerra');return{s}}
   if(!dentro)return{err:'Le porte sono chiuse'};
-  if(z.a==='torneo'){if(!torneoOggi(s,l))return{err:'Oggi non c\'è torneo'};if(s.torneo)return{err:'Sei già iscritto'};if(s.torneoUsato&&s.torneoUsato.lid===l.id&&s.torneoUsato.giorno===giorno(s))return{err:'Hai già partecipato al torneo di oggi'};const posta=capi(s).reduce((a,x)=>a+D.TORNEO.posta*x.liv,0);if(tu.oro<posta)return{err:'Non hai abbastanza monete'};
-   tu.oro-=posta;s.torneo={lid:l.id,turno:0,posta,giorno:giorno(s)};s.torneoUsato={lid:l.id,giorno:giorno(s)};L(s,'Ti iscrivi al torneo di '+l.nome+' per '+posta+' monete.');return{s,oro:-posta}}
+  if(z.a==='torneo'){if(!torneoOggi(s,l))return{err:'Oggi non c\'è torneo'};if(s.torneo)return{err:'Sei già iscritto'};if(s.torneoUsato&&s.torneoUsato[l.id]===giorno(s))return{err:'Hai già partecipato al torneo di oggi'};const posta=capi(s).reduce((a,x)=>a+D.TORNEO.posta*x.liv,0);if(tu.oro<posta)return{err:'Non hai abbastanza monete'};
+   tu.oro-=posta;s.torneo={lid:l.id,turno:0,posta,giorno:giorno(s)};(s.torneoUsato=s.torneoUsato||{})[l.id]=giorno(s);L(s,'Ti iscrivi al torneo di '+l.nome+' per '+posta+' monete.');return{s,oro:-posta}}
   if(z.a==='lizza'){const t=s.torneo;if(!t||t.lid!==l.id)return{err:'Non sei iscritto a un torneo qui'};if(t.giorno!==giorno(s))return{err:'Il torneo è finito'};if(s.incontro)return{err:'Il duello ti aspetta'};s.incontro={tipo:'arena'};s.ev.push({t:'incontro'});return{s}}
   if(z.a==='ritira'){const t=s.torneo;if(!t||t.lid!==l.id)return{err:'Non sei iscritto a un torneo qui'};if(s.incontro&&s.incontro.tipo==='arena')s.incontro=null;const oro=chiudiTorneo(s,'Ti ritiri dal torneo di '+l.nome);return{s,oro}}
   if(z.a==='recluta'){if(l.tipo!=='villaggio')return{err:'Qui non si recluta'};const n=Math.max(1,z.n||1);if(l.rec<n)return{err:'Non ci sono abbastanza volontari'};if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};
