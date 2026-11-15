@@ -1,6 +1,7 @@
 // Compagnia di ventura, diplomazia (V3), prova lunga: 20 semi × 60 giorni di mondo che gira da solo (chi gioca aspetta e fa risolvere gli incontri).
 // Gli alleati non si fanno mai guerra né si schierano uno contro l'altro; un'alleanza non dura meno di 20 giorni (salvo la caduta di un regno);
-// i regni si alleano davvero; nessun regno supera il 60% dei luoghi più spesso di oggi (0 semi su 20, misurato prima di V3).
+// i regni si alleano davvero; nessun regno supera il 60% dei luoghi dei regni più spesso di oggi (0 semi su 20, misurato prima di V3).
+// Nota: il mondo lasciato a sé oggi conquista poco, quindi questa soglia da sola non prova il freno: la prova vera è in test_ven_diplomazia.js.
 // (Test lento: ~2 minuti, escluso da `npm run verifica`; si lancia con `npm test -- ven_diplomazia_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
@@ -17,7 +18,7 @@ for (let i = 1; i <= 20; i++) {
       assert(!V.inGuerra(s, x, y), 'seme ' + i + ': alleati in guerra ' + k);
       for (const sc of s.scontri) { const fa = sc.a.map(id => V.TU(s) && s.p.find(p => p.id === id)).filter(Boolean).map(p => p.faz), fb = sc.b.map(id => s.p.find(p => p.id === id)).filter(Boolean).map(p => p.faz); assert(!((fa.includes(x) && fb.includes(y)) || (fa.includes(y) && fb.includes(x))), 'seme ' + i + ': alleati schierati uno contro l\'altro ' + k) } }
     for (const k of Object.keys(nate)) if (!(k in s.alleanza)) { const [x, y] = k.split('|'); if (!s.cadute[x] && !s.cadute[y]) { assert(V.giorno(s) - nate[k] >= D.DIPL.MIN, 'seme ' + i + ': alleanza ' + k + ' durata ' + (V.giorno(s) - nate[k]) + ' giorni'); sciolte++ } delete nate[k]; }
-    if (h % 24 === 0) { const c = {}; for (const l of s.l) if (D.REGNI.includes(l.faz)) c[l.faz] = (c[l.faz] || 0) + 1; for (const k in c) m = Math.max(m, c[k] / s.l.length) }
+    if (h % 24 === 0) { const c = {}; let t = 0; for (const l of s.l) if (D.REGNI.includes(l.faz)) { c[l.faz] = (c[l.faz] || 0) + 1; t++ } for (const k in c) m = Math.max(m, c[k] / t) } // quota sui luoghi dei regni (rovine, covi, locande non si conquistano)
   }
   if (m > .6) sopra++; if (ebbe) semiConAlleanze++;
 }

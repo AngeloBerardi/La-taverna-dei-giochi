@@ -182,6 +182,9 @@ for (const seme of [1, 7, 2026]) {
     assert.notDeepStrictEqual(V.avversariTorneo(s, l.id, g + 7, 1, 3).map(x => x.nome + x.kit), a.map(x => x.nome + x.kit), 'un altro giorno, altri uomini');
     for (let t = 0; t < 3; t++) for (const x of V.avversariTorneo(s, l.id, g, t, 4)) { assert(x.st.git === 0 && !x.st.cav, 'a piedi e corpo a corpo'); assert(x.st.asp.arma && D.TORNEO.kit.some(k => k.id === x.kit)); assert(x.st.pf >= T.base[t].pf && x.st.dan >= T.base[t].dan); }
     assert(V.avversariTorneo(s, l.id, g, 2, 1)[0].st.pf > V.avversariTorneo(s, l.id, g, 0, 1)[0].st.pf);
+    // i campioni crescono con il livello dei capitani (oltre T.LIV): il premio sale, il rischio resta
+    { const pf0 = V.avversariTorneo(s, l.id, g, 2, 1)[0].st.pf; s.cap.liv = T.LIV - 2; assert.strictEqual(V.avversariTorneo(s, l.id, g, 2, 1)[0].st.pf, pf0, 'sotto la soglia non cambia nulla');
+      s.cap.liv = T.LIV + 4; const alto = V.avversariTorneo(s, l.id, g, 2, 1)[0]; assert.strictEqual(alto.st.pf, pf0 + Math.round(T.cresce.pf * 4)); assert(alto.st.att > T.base[2].att); s.cap.liv = 1; }
     const kits = new Set(); for (let i = 1; i < 40; i++) for (const x of V.avversariTorneo(s, l.id, g + i, i % 3, 4)) kits.add(x.kit); assert.strictEqual(kits.size, 4, 'escono tutti e quattro i corredi'); }
   // la scheda del duello: a piedi, senza arco, solo capitani contro altrettanti avversari
   { const { s } = nuovoT(9, { soci: [{ nome: 'Bea' }] }); const [c0, c1] = V.capi(s); c0.eq.arma = 'arco'; c0.eq.cavallo = 'corsiero'; c1.eq.arma = 'spadone'; c1.eq.scudo = null;
@@ -218,6 +221,9 @@ for (const seme of [1, 7, 2026]) {
     assert.strictEqual(s.ult.torneo.oggetto, lascia, 'esce solo l\'unico che non ha nessuno, nemmeno il socio fuori campo'); }
   // le voci della locanda dicono dove sarà il prossimo
   { const s = V.nuovo(17), loc = s.l.find(l => l.tipo === 'locanda'), x = s.l.find(l => l.noto === false && l.g.length); assert(loc && x); s.dentro = loc.id; V.TU(s).oro = 500; ok(V.fai(s, { a: 'voci' })); const ultimo = s.log[s.log.length - 1].tx; assert(/torneo/.test(ultimo) && ultimo.includes(s.l[V.tornei(s)[0].lid].nome), ultimo); }
+  // quando non resta nessun posto nascosto il torneo si sa lo stesso (e il vino si paga)
+  { const s = V.nuovo(17), loc = s.l.find(l => l.tipo === 'locanda'); for (const l of s.l) l.noto = true; s.dentro = loc.id; V.TU(s).oro = 500; const r = ok(V.fai(s, { a: 'voci' })), ultimo = s.log[s.log.length - 1].tx;
+    assert(r.lid === undefined && V.TU(s).oro === 475 && /torneo/.test(ultimo) && ultimo.includes(s.l[V.tornei(s)[0].lid].nome), ultimo); }
   // salvare e riaprire a metà torneo dà la stessa partita
   { const { s } = nuovoT(19); ok(V.fai(s, { a: 'torneo' })); ok(V.fai(s, { a: 'lizza' })); const t = V.apri(V.salva(s)); assert.strictEqual(V.salva(t), V.salva(s)); assert.strictEqual(JSON.stringify(V.campo(t)), JSON.stringify(V.campo(s))); }
   // risoluzione automatica: capitano forte e ben equipaggiato vince circa una volta su due, un capitano nudo non vince, a caso quasi mai

@@ -25,7 +25,7 @@ module.exports = function (VEN, VDAT) {
       return fai({ a: 'esci' });
     }
     fai({ a: 'consegna' }); fai({ a: 'riscatta' });
-    while (s.cap.punti > 0) { const ab = s.cap.ab, k = ab.comando < 3 ? 'comando' : ab.addestra < 2 ? 'addestra' : ab.medicina < 2 ? 'medicina' : ab.prodezza < 3 ? 'prodezza' : 'comando'; if (fai({ a: 'abilita', k }).err) break; }
+    while (s.cap.punti > 0) { const ab = s.cap.ab, k = ab.comando < 2 ? 'comando' : ab.prodezza < 2 ? 'prodezza' : ab.comando < 3 ? 'comando' : ab.addestra < 2 ? 'addestra' : ab.medicina < 2 ? 'medicina' : ab.prodezza < 4 ? 'prodezza' : 'comando'; if (fai({ a: 'abilita', k }).err) break; }
     for (const e of tu.tr.slice()) { const T = VDAT.TR[e.t]; if (!T.su.length) continue; const su = T.su[(e.n + s.t) % T.su.length]; let g = 0; while (g++ < 30 && !fai({ a: 'promuovi', t: e.t, su, n: 1 }).err); }
     if (VEN.MERCATO[l.tipo]) {
       // vende ciò che qui vale più del prezzo di riferimento, tiene i viveri
@@ -51,6 +51,9 @@ module.exports = function (VEN, VDAT) {
           VEN.auto(s);
         }
       }
+      // il torneo di qui è domani: si resta in città ad aspettarlo (otto ore di riposo alla volta)
+      const qui = VEN.tornei(s).find(t => t.lid === l.id);
+      if (qui && qui.giorni === 1 && s.cap.liv >= 3 && tu.oro >= VDAT.TORNEO.posta * s.cap.liv + 400 && !fai({ a: 'riposa' }).err) return;
     }
     if (l.inc && !l.inc.preso && l.inc.tipo !== 'reliquia' && l.inc.tipo !== 'taglia' && (l.inc.tipo !== 'predoni' || VEN.forza(tu) > 70)) fai({ a: 'incarico' });
     if (l.tipo === 'monastero') fai({ a: 'cura' });
@@ -70,7 +73,7 @@ module.exports = function (VEN, VDAT) {
     const cons = s.incarichi.find(q => !q.fatto && !q.fallito && q.tipo === 'consegna' && (tu.merci[q.bene] || 0) >= q.n);
     if (cons) return VEN.ordina(s, { t: 'entra', lid: cons.a });
     if (!s.torneo && s.cap.liv >= 3 && tu.oro >= VDAT.TORNEO.posta * s.cap.liv + 250) {
-      const t = VEN.tornei(s).find(t => t.giorni <= 1 && !VEN.nemiche(s, 'tu', s.l[t.lid].faz) && VEN.dist(s.l[t.lid], tu) <= 30 + 30 * t.giorni);
+      const t = VEN.tornei(s).find(t => t.giorni <= 2 && !VEN.nemiche(s, 'tu', s.l[t.lid].faz) && VEN.dist(s.l[t.lid], tu) <= 30 + 30 * t.giorni);
       if (t) return VEN.ordina(s, { t: 'entra', lid: t.lid });
     }
     const amici = s.l.filter(l => l.noto !== false && !VEN.SITO[l.tipo] && (l.faz === 'tu' || !VEN.nemiche(s, 'tu', l.faz)));
