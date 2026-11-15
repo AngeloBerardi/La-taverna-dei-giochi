@@ -16,7 +16,11 @@ window.__L3D=(()=>{
   fallback:msg=>{state='fail';ui.lobby='iso';ST('rg-lb','iso');ui.err=msg;hide();render()}
  };
  let E=null,state='idle',wrap=null;
- const hasGL=()=>{try{const c=document.createElement('canvas');return!!(window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl')))}catch(e){return false}};
+ // La sonda crea un contesto vero: va fatta una volta sola e chiusa subito. Ripetuta a ogni ridisegno accumula contesti e il telefono,
+ // superato il suo limite, toglie il più vecchio: dopo un po' era quello della scena in uso.
+ let glOk=null,glT=0;const hasGL=()=>{if(glOk)return true;const ora=Date.now();if(glOk===false&&ora-glT<4000)return false;glT=ora;
+  try{const c=document.createElement('canvas'),x=window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl'));glOk=!!x;
+   if(x){const e=x.getExtension('WEBGL_lose_context');if(e)e.loseContext()}}catch(e){glOk=false}return glOk};
  function boot(){
   if(state!=='idle')return state==='ready';
   if(!window.THREE||!hasGL()){state='fail';return false}
