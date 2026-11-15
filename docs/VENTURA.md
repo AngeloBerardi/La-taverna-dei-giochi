@@ -50,6 +50,7 @@ Battaglie giocate: 30–90 secondi di scontro a ×1 più l'avvicinamento.
 ## Multiplayer
 - **C2 fatto**: co-op in stanza live (`R.mode='rt'`). Stato `G={w,b,vel,nb,sim:true}`: `w` è il mondo di VEN, `b.c` la battaglia di VCAM. Chiunque dà la meta e compra; ognuno ha il suo capitano (abilità ed equipaggiamento propri) e in battaglia guida solo quello; gli ordini ai gruppi sono di tutti. La battaglia parte quando qualcuno dà il via, la pausa è comune.
 - Le mosse passano da `SYNC.mossa` (gioco simultaneo: se la stanza è andata avanti la mossa si rigioca sullo stato nuovo); ogni tanto parte un punto fermo `tempo`.
+- **V1 fatto**: la partita in compagnia si salva e si riprende. Ogni telefono seduto scrive il mondo (`VST.salvabile`, mai una battaglia in corso) in `ven-salv-coop` a ogni alba, all'uscita da un luogo e a fine battaglia; prima di avviare, `VenStanza.chiedi` apre la carta «Riprendi la compagnia / Porta qui la partita in solitario / Nuova». `VST.apri(rip,n,names)`: con più giocatori nascono capitani nuovi in coda a `soci` (al più 4), con meno `w.attivi` tiene in campo solo i primi (gli altri restano in `soci`). Dalla pagina Avventura «Continua da solo» copia il mondo in `ven-salv` (con `attivi:1` se ci sono soci). Salvataggio sull'account, più salvataggi e ripresa a metà battaglia: fuori scopo.
 - C3: **mondo persistente a distanza** su Firestore (partite asincrone). C4: banda contro banda.
 
 ## Da fare

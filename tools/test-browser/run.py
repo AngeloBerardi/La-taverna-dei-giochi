@@ -3212,6 +3212,47 @@ async def sc_ventura_stanza(b, srv):
     check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_ventura_stanza_ripresa(b, srv):
+    """Compagnia di ventura, salvataggio in compagnia (V1): due telefoni giocano fino al giorno 2 e escono; riaprono la stanza e «Riprendi»: stesso giorno, stesse monete, stessi uomini su entrambi."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 41)
+    await A.wait_for_function("R.mode==='rt'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 42, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await A.evaluate("(async()=>{VenStanza.X.seme0=7;Ven.V.regno='val';await startGame('ventura')})()")
+    check(not await A.evaluate("!!ui.venRip"), 'senza salvataggi la partita parte subito, senza carta')
+    for pg in (A, B): await pg.wait_for_function("G&&G.g==='ventura'&&ui.ven&&Ven.V.s&&VenArte.A.pronta", timeout=40000)
+    # la compagnia aspetta: il tempo corre fino al giorno 2 e, all'alba, ogni telefono seduto salva il mondo
+    await B.evaluate("(()=>{VenStanza.manda({t:'vel',v:4});VenStanza.manda({t:'ordina',o:{t:'aspetta',ore:30}})})()")
+    for pg in (A, B): await pg.wait_for_function("(()=>{try{const x=JSON.parse(localStorage.getItem('ven-salv-coop'));return x&&x.v===1&&x.giorno>=2&&x.n===2}catch(e){return false}})()", timeout=120000)
+    check(True, 'all\'alba del giorno 2 tutti e due i telefoni hanno scritto il salvataggio in compagnia')
+    sv = await A.evaluate("(()=>{const x=JSON.parse(localStorage.getItem('ven-salv-coop'));return{g:x.giorno,oro:VEN.TU(x.w).oro,uom:VEN.uomini(VEN.TU(x.w)),nomi:x.nomi,ev:x.w.ev.length}})()")
+    check(sv['nomi'] == ['Ada', 'Bruno'] and sv['ev'] == 0, f'il salvataggio porta i due capitani e nessun evento: {sv}')
+    check(not await A.evaluate("!!localStorage.getItem('ven-salv')"), 'il salvataggio personale non viene toccato')
+    # si esce: tornati al tavolo, la compagnia non c\'è più nella stanza
+    await A.evaluate("toLobby()")
+    for pg in (A, B): await pg.wait_for_function("!G&&!ui.ven&&!document.querySelector('.vn')", timeout=20000)
+    # si riapre: la carta chiede, «Riprendi la compagnia» rimette il mondo com\'era
+    await A.evaluate("startGame('ventura')")
+    await A.wait_for_selector('[data-v="rip:coop"]', timeout=15000)
+    check(await A.locator('[data-v="rip:solo"]').count() == 0, 'senza partita da solo non c\'è la voce per portarla qui')
+    await A.click('[data-v="rip:coop"]')
+    for pg in (A, B): await pg.wait_for_function("G&&G.g==='ventura'&&ui.ven&&Ven.V.s&&VenArte.A.pronta", timeout=40000)
+    r = [await pg.evaluate("VEN.giorno(G.w)+'|'+VEN.TU(G.w).oro+'|'+VEN.uomini(VEN.TU(G.w))+'|'+VEN.capi(G.w).map(c=>c.nome)") for pg in (A, B)]
+    atteso = f"{sv['g']}|{sv['oro']}|{sv['uom']}|Ada,Bruno"
+    check(r[0] == r[1] == atteso, f'stesso giorno, stesse monete e stessi uomini su entrambi i telefoni: {r} (atteso {atteso})')
+    check(not await A.evaluate("!!ui.venRip"), 'la carta si chiude dopo la scelta')
+    # da compagnia a solitario: «Continua da solo» copia il mondo in ven-salv
+    await A.evaluate("toLobby()")
+    for pg in (A, B): await pg.wait_for_function("!G&&!ui.ven&&!document.querySelector('.vn')", timeout=20000)
+    ok_solo = await A.evaluate("VenStanza.perSolo()")
+    solo = await A.evaluate("(()=>{const w=VEN.apri(localStorage.getItem('ven-salv'));return w&&VEN.giorno(w)+'|'+VEN.capi(w).length})()")
+    check(ok_solo and solo and solo.endswith('|1') and int(solo.split('|')[0]) >= sv['g'], f'da solo si continua con il primo capitano: {solo}')
+    check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
+    await ctxA.close(); await ctxB.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
