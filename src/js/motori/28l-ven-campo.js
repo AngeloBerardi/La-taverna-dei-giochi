@@ -12,12 +12,12 @@ const VCAM=(()=>{
  const rad=Math.sqrt,d2=(a,b)=>rad((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
  const stretto=(v,a,b)=>v<a?a:v>b?b:v;
  const GR=['f','t','c'];
- function unita(s,l,riga,x,y){const T=D.TR[riga.t],u={id:s.uid++,l,p:riga.p,t:riga.t,c:T.c,x,y,px:x,py:y,pf:T.pf,pfm:T.pf,att:T.att,dif:T.dif,dan:T.dan,git:T.git,vel:T.vel,cd:Math.floor(s.r()*10),b:-1,st:'vivo',
+ function unita(s,l,riga,x,y){const T=D.TR[riga.t],u={id:s.uid++,l,p:riga.p,t:riga.t,c:T.c,x,y,px:x,py:y,pf:T.pf,pfm:T.pf,att:T.att,dif:T.dif,dan:T.dan,git:s.meteo==='nebbia'?Math.round(T.git*.7):T.git,vel:T.vel,cd:Math.floor(s.r()*10),b:-1,st:'vivo',
    fx:0,fy:l==='a'?-1:1,ca:0,liv:T.t,col:0,buff:0};s.u.push(u);return u}
  // posti di una schiera attorno a un'ancora: righe larghe, i più forti davanti
  function posto(k,n,passo,larg){const perRiga=Math.max(4,Math.min(larg,Math.ceil(rad(n*2.6)))),riga=Math.floor(k/perRiga),col=k%perRiga,inRiga=Math.min(perRiga,n-riga*perRiga);
   return[(col-(inRiga-1)/2)*passo,riga*passo]}
- function nuovo(scheda,o){o=o||{};const s={v:1,t:0,rng:ADADI.semina(scheda.seme||1),seme0:scheda.seme||1,W:C.W,H:C.H,tipo:scheda.tipo||'campo',terreno:scheda.terreno||1,bioma:scheda.bioma||0,notte:!!scheda.notte,u:[],uid:1,
+ function nuovo(scheda,o){o=o||{};const s={v:1,t:0,rng:ADADI.semina(scheda.seme||1),seme0:scheda.seme||1,scena:scheda.scena||null,meteo:(scheda.scena&&scheda.scena.meteo)||'sereno',W:C.W,H:C.H,tipo:scheda.tipo||'campo',terreno:scheda.terreno||1,bioma:scheda.bioma||0,notte:!!scheda.notte,u:[],uid:1,
    ris:{a:[],b:[]},ord:{a:{},b:{}},voli:[],ev:[],fine:null,cad:{},fug:{a:0,b:0},n0:{a:0,b:0},v0:{a:0,b:0},autoA:!!o.autoA,cap:-1,capi:[],ko:[],capKo:false,grido:0,gridi:[],
    faza:scheda.faza,fazb:scheda.fazb,noma:scheda.noma,nomb:scheda.nomb,ia:{a:{f:0},b:{f:0}},muro:scheda.tipo==='assedio'?C.MURO:0,varchi:scheda.tipo==='assedio'?[[14,19],[41,46]]:[]};
   s.r=ADADI.gen(s);
@@ -33,7 +33,7 @@ const VCAM=(()=>{
    for(const g of GR){const L=perG[g],o2=s.ord[l][g];L.forEach((x,k)=>{const pt=posto(k,L.length,g==="c"?2.4:1.7,s.muro&&l==="b"&&g==="t"?26:10);unita(s,l,x,stretto(o2.x+pt[0],2,C.W-2),o2.y+ver*pt[1])})}
    // i capitani: uno per posto (in compagnia ognuno guida il suo)
    capi.forEach((c,i)=>{const u=unita(s,'a',{p:0,t:scheda.a[0]?scheda.a[0].t:'val_f1'},C.W/2+(i-(capi.length-1)/2)*4,ya+2);
-    Object.assign(u,{cap:true,seat:i,c:'k',pf:c.pf,pfm:c.pf,att:c.att,dif:c.dif,dan:c.dan,git:0,vel:c.vel,cav:!!c.cavallo,liv:5,nome:c.nome,vx:u.x,vy:u.y,ob:-1});s.capi.push(u.id);s.ko.push(false);s.gridi.push(0)});
+    Object.assign(u,{cap:true,seat:i,c:'k',pf:c.pf,pfm:c.pf,att:c.att,dif:c.dif,dan:c.dan,git:c.git||0,rit:c.rit||0,perf:c.perf||0,car:c.car||0,gf:c.grido||1,asp:c.asp||null,vel:c.vel,cav:!!c.cavallo,liv:5,nome:c.nome,vx:u.x,vy:u.y,ob:-1});s.capi.push(u.id);s.ko.push(false);s.gridi.push(0)});
    if(l==='a'&&capi.length)s.cap=s.capi[0]}
   s.mor={a:scheda.morale==null?55:scheda.morale,b:55};
   if(s.fazb==='pre'){for(const g of GR)s.ord.b[g].t='carica'}
@@ -51,7 +51,7 @@ const VCAM=(()=>{
    else return{err:'Ordine sconosciuto'}}
   s.ev.push({t:'ordine',l,g:o.g||'tutti',o:o.t});return{s}}
  function capitano(s,o){const seat=o.seat||0,u=capU(s,seat);if(s.fine)return{err:'La battaglia è finita'};if(!u||u.st!=='vivo')return{err:'Il capitano è a terra'};
-  if(o.grido){if(s.t<(s.gridi[seat]||0))return{err:'Non hai ancora fiato'};s.gridi[seat]=s.t+C.GRIDO;s.grido=s.gridi[0];for(const q of s.u)if(q.l==='a'&&d2(q,u)<16){q.buff=s.t+C.GRIDO_DUR;if(q.st==='fuga'){q.st='vivo'}}s.mor.a=Math.min(100,s.mor.a+12);s.ev.push({t:'grido',x:u.x,y:u.y});return{s}}
+  if(o.grido){if(s.t<(s.gridi[seat]||0))return{err:'Non hai ancora fiato'};s.gridi[seat]=s.t+Math.round(C.GRIDO*(u.gf||1));s.grido=s.gridi[0];for(const q of s.u)if(q.l==='a'&&d2(q,u)<16){q.buff=s.t+C.GRIDO_DUR;if(q.st==='fuga'){q.st='vivo'}}s.mor.a=Math.min(100,s.mor.a+12);s.ev.push({t:'grido',x:u.x,y:u.y});return{s}}
   if(o.b!=null){const b=s.u.find(q=>q.id===o.b&&q.l==='b'&&q.st==='vivo');if(!b)return{err:'Bersaglio non valido'};u.ob=b.id;u.vx=null;return{s}}
   if(o.x!=null){u.vx=stretto(o.x,1,C.W-1);u.vy=stretto(o.y,1,C.H-1);u.ob=-1;return{s}}
   return{err:'Ordine sconosciuto'}}
@@ -71,15 +71,15 @@ const VCAM=(()=>{
    s.mor[b.l]-=(b.cap?18:60/Math.max(8,s.n0[b.l]));const o=b.l==='a'?'b':'a';s.mor[o]=Math.min(100,s.mor[o]+20/Math.max(8,s.n0[o]));
    s.ev.push({t:'ko',id:b.id,da:da?da.id:-1,cap:!!b.cap,seat:b.seat});if(b.cap&&b.l==='a'){s.ev.push({t:'cap-ko',seat:b.seat||0,tutti:s.capKo});if(s.capKo)for(const g of GR)if(s.ord.a[g].t==='segui')s.ord.a[g].t='carica'}}}
  function armatura(dan,dif){return Math.max(1,dan*(1-dif/(dif+34)))}
- function mischia(s,u,b){const r=s.r,att=u.att*(u.buff>s.t?1.2:1)*(u.c==='t'?.7:1),p=stretto(.5+(att-b.dif)/40,.15,.93);u.cd=(u.c==='c'||u.cav?C.RITMO+2:C.RITMO)+Math.floor(r()*3);
+ function mischia(s,u,b){const r=s.r,att=u.att*(u.buff>s.t?1.2:1)*(u.c==='t'?.7:1),p=stretto(.5+(att-b.dif)/40,.15,.93);u.cd=(u.rit||(u.c==='c'||u.cav?C.RITMO+2:C.RITMO))+Math.floor(r()*3);
   const dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d;
   if(r()>p){s.ev.push({t:'colpo',da:u.id,a:b.id,dan:0});u.ca=0;return}
-  let dan=u.dan*(.7+r()*.6)*(1+u.ca*.9);const crit=r()<.08+(u.cap?.08:0);if(crit)dan*=1.8;dan=Math.max(1,Math.round(armatura(dan,b.dif)*C.DANNO));
+  let dan=u.dan*(.7+r()*.6)*(1+u.ca*(.9+(u.car||0)));const crit=r()<.08+(u.cap?.08:0);if(crit)dan*=1.8;dan=Math.max(1,Math.round(armatura(dan,b.dif*(1-(u.perf||0)))*C.DANNO));
   if(u.ca>.6){b.cd=Math.max(b.cd,8);b.x=stretto(b.x+u.fx*.9,.5,C.W-.5);b.y=stretto(b.y+u.fy*.9,.5,C.H-.5)}
   s.ev.push({t:'colpo',da:u.id,a:b.id,dan,crit,carica:u.ca>.6});u.ca=0;ferisci(s,b,dan,u)}
- function tiro(s,u,b,d){const r=s.r;u.cd=C.RITMO_T+Math.floor(r()*6);const dx=b.x-u.x,dy=b.y-u.y;u.fx=dx/(d||1);u.fy=dy/(d||1);
-  let p=.42+(u.att-b.dif*.5)/40-d/u.git*.22;if(s.terreno===2)p-=.12;if(s.notte)p-=.1;if(s.muro&&b.y<s.muro&&u.y>s.muro)p-=.2;if(b.c==='c'||b.cav)p-=.06;p=stretto(p,.08,.9);
-  const colpito=r()<p,vt=Math.max(2,Math.round(d*C.VOLO)),dan=colpito?Math.max(1,Math.round(armatura(u.dan*(.75+r()*.5),b.dif*.8)*C.DANNO)):0;
+ function tiro(s,u,b,d){const r=s.r;u.cd=(u.cap&&u.rit?u.rit:C.RITMO_T)+Math.floor(r()*6);const dx=b.x-u.x,dy=b.y-u.y;u.fx=dx/(d||1);u.fy=dy/(d||1);
+  let p=.42+(u.att-b.dif*.5)/40-d/u.git*.22;if(s.terreno===2)p-=.12;if(s.notte)p-=.1;if(s.meteo==='pioggia')p-=.1;if(s.muro&&b.y<s.muro&&u.y>s.muro)p-=.2;if(b.c==='c'||b.cav)p-=.06;p=stretto(p,.08,.9);
+  const colpito=r()<p,vt=Math.max(2,Math.round(d*C.VOLO)),dan=colpito?Math.max(1,Math.round(armatura(u.dan*(.75+r()*.5),b.dif*.8*(1-(u.perf||0)))*C.DANNO)):0;
   s.voli.push({at:s.t+vt,a:b.id,dan,da:u.id});s.ev.push({t:'tiro',da:u.id,a:b.id,x0:u.x,y0:u.y,x1:b.x,y1:b.y,vt,colpito})}
  // ---------- il comandante avversario (e il tuo, nella risoluzione automatica) ----------
  function comanda(s,l){const o=s.ord[l],ia=s.ia[l],me=vivi(s,l),ne=vivi(s,l==='a'?'b':'a');if(!me.length||!ne.length)return;
@@ -110,6 +110,7 @@ const VCAM=(()=>{
     if(u.ob>=0){const q=U.find(x=>x.id===u.ob&&x.st==='vivo');if(q)b=q;else u.ob=-1}
     const db=b?d2(u,b):1e9;
     if(u.vx!=null&&!s.autoA){const dv=rad((u.vx-u.x)*(u.vx-u.x)+(u.vy-u.y)*(u.vy-u.y));if(dv>.4&&!(b&&db<=C.MISCHIA+.2&&u.ob>=0)){const st=muovi(s,u,u.vx,u.vy);u.ca=u.cav?Math.min(1,u.ca+st*.12):0;if(b&&db<=C.MISCHIA+.3&&u.cd<=0)mischia(s,u,b);continue}u.vx=null}
+    if(b&&u.git&&db>3.2&&db<=u.git&&(u.ob>=0||s.autoA||u.vx==null)){if(u.cd<=0)tiro(s,u,b,db);continue}
     if(b&&(u.ob>=0||s.autoA||db<7)){if(db<=C.MISCHIA+.3){if(u.cd<=0)mischia(s,u,b)}else{const st=muovi(s,u,b.x,b.y);u.ca=u.cav?Math.min(1,u.ca+st*.12):0}}continue}
    const ver=u.l==='a'?1:-1;
    const cap=o&&o.seg!=null&&capU(s,o.seg)&&capU(s,o.seg).st==='vivo'?capU(s,o.seg):cap0;
