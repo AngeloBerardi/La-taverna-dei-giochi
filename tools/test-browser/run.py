@@ -3195,6 +3195,53 @@ async def sc_ventura_diplomazia(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_regno(b, srv):
+    """Ventura, regno (V4): fondare dalla sala di una fortezza tua (nome, stendardo), pannello della corona, un signore che giura in cambio di un feudo, vittoria una volta sola e «Continua», 390 px."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # una fortezza tua, fama 200 e 6000 monete, dentro le mura
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s),l=s.l.find(l=>l.tipo==='castello'&&l.faz!=='tu');l.faz='tu';l.sig=-2;for(const v of s.l)if(v.capo===l.id&&!VEN.MURA[v.tipo]){v.faz='tu';v.sig=-2}
+      s.guerra={};s.alleanza={};s.fama=200;tu.oro=6000;tu.x=l.x;tu.y=l.y;s.dentro=l.id;s.davanti=-1;tu.ord=null;tu.via=[];Ven.act('pan:luogo');Ven.act('sub:sala')})()""")
+    await pg.wait_for_selector('#vn-regno-nome', timeout=10000)
+    check('Fonda un regno' in await pg.inner_text('.vn-pan') and await pg.locator('.vn-sd').count() == 8, 'sala della fortezza tua: «Fonda un regno», nome e otto stendardi')
+    await pg.fill('#vn-regno-nome', 'Regno di Prova'); await pg.click('[data-v="stend:3"]'); await pg.wait_for_timeout(200)
+    dbg = await pg.evaluate("({v:document.getElementById('vn-regno-nome')&&document.getElementById('vn-regno-nome').value,on:document.querySelectorAll('.vn-sd.on').length,st:Ven.V.stend,nr:Ven.V.nomeRegno})")
+    check(dbg['v'] == 'Regno di Prova' and dbg['on'] == 1, f'il nome scritto resta dopo aver scelto lo stendardo: {dbg}')
+    await pg.click('[data-v="fai:fonda"]'); await pg.wait_for_selector('.vn-stdr', timeout=5000)
+    st = await pg.evaluate("({c:Ven.V.s.corona,pan:Ven.V.pan,oro:VEN.TU(Ven.V.s).oro})")
+    check(st['c'] and st['c']['nome'] == 'Regno di Prova' and st['c']['stend'] == 3 and st['pan'] == 'corona' and st['oro'] == 1000, f'regno fondato, 5000 monete spese, pannello della corona: {st}')
+    t = (await pg.inner_text('.vn-pan')).lower()
+    check('regno di prova' in t and 'malcontento' in t and 'rapporti coi regni' in t and 'feudi' in t, 'pannello: nome, malcontento, rapporti, feudi')
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    await pg.screenshot(path='/tmp/regno-390.png')
+    # lo stendardo è quello scelto, anche per la mappa
+    col = await pg.evaluate("({a:VEN.colFaz(Ven.V.s,'tu'),b:VDAT.REGNO.STENDARDI[3]})")
+    check(col['a']['col'] == col['b']['col'] and col['a']['col2'] == col['b']['col2'], f'stendardo sulla mappa: {col}')
+    # un signore senza patria giura in cambio di un feudo
+    await pg.evaluate("""(()=>{const s=Ven.V.s,v=s.l.find(l=>l.tipo==='villaggio'&&l.faz!=='tu');v.faz='tu';v.sig=-2;v.capo=-1;window.__v=v.id;const sg=s.sig.find(x=>x.faz==='val'&&!x.re),p=VEN.part(s,sg.pid);sg.tratto='avido';sg.am=12;sg.faz=p.faz='neu';sg.esule='val';sg.esilio=VEN.giorno(s)+20;sg.cult='val';s.fama=300;
+      window.__sg=sg.id;s.dentro=-1;s.davanti=-1;s.incontro={tipo:'parla',pid:[p.id],all:[]};Ven.act('pan:incontro')})()""")
+    await pg.wait_for_selector('[data-v^="scegli:passa:"]', timeout=5000)
+    t = await pg.inner_text('.vn-pan')
+    check('Giuramento' in t and 'A favore' in t and 'Contro' in t and 'Totale' in t, 'incontro: il conto del giuramento con i fattori')
+    await pg.click('[data-v^="scegli:passa:"]'); await pg.wait_for_timeout(300)
+    st = await pg.evaluate("({f:Ven.V.s.sig[window.__sg].faz,inc:!!Ven.V.s.incontro,l:Ven.V.s.l[window.__v].sig,n:VEN.nemiche(Ven.V.s,Ven.V.s.sig[window.__sg].faz,'tu')})")
+    check(st['f'] == 'tu' and not st['inc'] and not st['n'], f"il signore giura: passa con te, l'incontro si chiude, non è più nemico: {st}")
+    # vittoria: tutte le capitali tue, a mezzanotte
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s);for(const l of s.l)if(l.tipo==='citta'){l.faz='tu';l.sig=-2}s.dentro=-1;s.davanti=-1;s.incontro=null;tu.ord=null;s.t=Math.ceil(s.t/1440)*1440-2;VEN.passo(s,5);Ven.act('sub:home')})()""")
+    await pg.wait_for_selector('.vn-vit', timeout=5000)
+    t = (await pg.inner_text('.vn-vit')).lower()
+    check('le terre sono unite' in t and 'regno di prova' in t and 'continua' in t, 'pannello della vittoria con il riassunto')
+    check(await pg.evaluate("Ven.V.s.vinta&&Ven.V.s.vinta.come==='re'"), 'vittoria da re, scritta nello stato')
+    await pg.screenshot(path='/tmp/vittoria-390.png')
+    await pg.click('[data-v=chiudi]'); await pg.wait_for_timeout(300)
+    await pg.evaluate("Ven.act('sub:home')"); await pg.wait_for_timeout(200)
+    check(await pg.locator('.vn-vit').count() == 0 and await pg.evaluate("Ven.V.pan!=='vittoria'"), '«Continua» torna al mondo e il pannello non si riapre')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_riprova(b, srv):
     """Ventura: il contesto grafico si perde più volte di fila (telefono sotto pressione), la scena si arrende; «Riprova» la deve riaccendere davvero."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
