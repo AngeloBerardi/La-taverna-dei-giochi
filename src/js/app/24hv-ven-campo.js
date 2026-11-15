@@ -124,10 +124,10 @@ const VenCampo=(()=>{
   if(K.acqua){K.acqua.uniforms.t.value=K.t}
   K.par.passo(dt);
   K.fuoco.x=Math.max(4,Math.min(C.W-4,K.fuoco.x));K.fuoco.z=Math.max(2,Math.min(C.H-2,K.fuoco.z));
-  const L=K.luce.ora(K.ora,{x:C.W/2,y:0,z:K.fuoco.z},48);if(L.notte>.3){K.luce.amb.intensity+=.3*L.notte;K.luce.sole.intensity+=.22*L.notte}K.lampo=Math.max(0,K.lampo-dt*1.6);K.scossa=Math.max(0,K.scossa-dt);
+  const L=K.luce.ora(K.ora,{x:C.W/2,y:0,z:K.fuoco.z},48);if(L.notte>.3){K.luce.amb.intensity+=.62*L.notte;K.luce.sole.intensity+=.5*L.notte}K.lampo=Math.max(0,K.lampo-dt*1.6);K.scossa=Math.max(0,K.scossa-dt);
   const sx=K.scossa>0?(Math.random()-.5)*K.scossa*2:0;
   if(K.acqua)K.acqua.uniforms.luce.value=1-L.notte*.5;
-  A.disegna(K.scene,K.cam,{x:K.fuoco.x+sx,y:0,z:K.fuoco.z+sx},K.alt,{notte:L.notte,lampo:K.lampo*.5,nebbia:met==='nebbia'?1:met==='pioggia'?.3:0,tinta:met==='pioggia'?[.9,.94,1]:K.ora>17.5&&K.ora<20.5?[1.06,.97,.9]:null});
+  A.disegna(K.scene,K.cam,{x:K.fuoco.x+sx,y:0,z:K.fuoco.z+sx},K.alt,{notte:L.notte,lampo:K.lampo*.5,nebbia:met==='nebbia'?.5:met==='pioggia'?.2:0,tinta:met==='pioggia'?[.9,.94,1]:K.ora>17.5&&K.ora<20.5?[1.06,.97,.9]:null});
   numeri()}
  function numeri(){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte;let h='';K.numeri=K.numeri.filter(n=>K.t-n.t<.8);
   for(const n of K.numeri){const q=(K.t-n.t)/.8,p=A.aSchermo(K.cam,n.x,2.2+q*2.4,n.z);h+='<i class="vn-num '+n.cls+'" style="left:'+Math.round(p.x)+'px;top:'+Math.round(p.y)+'px;opacity:'+(1-q*q).toFixed(2)+'">'+n.v+'</i>'}

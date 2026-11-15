@@ -142,8 +142,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39g-stanza.css` | 4 |  |
 | `css/39h-scena3d.css` | 1 |  |
 | `css/39i-succo.css` | 7 |  |
-| `css/39j-ventura.css` | 10 |  |
-| `css/40-legno-ottone.css` | 15 |  |
+| `css/39j-ventura.css` | 12 |  |
+| `css/40-legno-ottone.css` | 16 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
@@ -215,9 +215,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28g-avv-mini.js` | 15 | AMIN |
 | `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
-| `js/motori/28j-ven-dati.js` | 8 | VDAT |
-| `js/motori/28k-ven-mondo.js` | 52 | VEN |
-| `js/motori/28l-ven-campo.js` | 15 | VCAM |
+| `js/motori/28j-ven-dati.js` | 24 | VDAT |
+| `js/motori/28k-ven-mondo.js` | 65 | VEN |
+| `js/motori/28l-ven-campo.js` | 17 | VCAM |
+| `js/motori/28m-ven-stanza.js` | 4 | VST |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
 | `js/motori/31-quiz.js` | 5 | QUIZ, RND, clone, SQ, sq, L, nm |
@@ -232,18 +233,18 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/37-regicide-x.js` | 24 | RGX, SU, HAND, RND, P, cv, clone |
 | `js/motori/38-accordi.js` | 18 | ACC, RND, clone, COL, NTOK, DIRS, K |
 | `js/app/01-base.js` | 2 | $, ERR, SYM, ST, RM, SP |
-| `js/app/01a-vendor.js` | 1 |  |
+| `js/app/01a-vendor.js` | 2 |  |
 | `js/app/01b-icone.js` | 6 | ICONE, ic, glifo |
 | `js/app/02-narrazione.js` | 2 | TITLES, QUOTES, TAUNT, IMMTXT, ACTS, STORY, pick |
 | `js/app/03-audio.js` | 22 | Snd |
 | `js/app/04-carte-render.js` | 1 | PIPS, ART |
 | `js/app/05-carte-figura-dipinte.js` | 39 | FACE, PAL, GOLD, o, INKC, hatchOf, p |
 | `js/app/06-effetti.js` | 9 | PF, pinit, burst, ptick, ctr, add, say |
-| `js/app/07-nucleo.js` | 16 | G, ui, ME, R, ENG, isRG, GAMES |
+| `js/app/07-nucleo.js` | 16 | G, ui, ME, R, ENG, isRG, COPIMG |
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 9 |  |
-| `js/app/07d-regole.js` | 53 | RULES |
+| `js/app/07d-regole.js` | 54 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -252,7 +253,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
 | `js/app/11-carte-napoletane.js` | 12 | NAP |
 | `js/app/12b-lobby-diorama.js` | 17 | ISO, N, PAL, SPR, FIX, EMO, STUMPS |
-| `js/app/12c-lobby-3d.js` | 172 |  |
+| `js/app/12c-lobby-3d.js` | 176 |  |
 | `js/app/12d-lobby-3d-guscio.js` | 1 | L3D |
 | `js/app/13-regicide.js` | 8 | pileH, regicideH, regClick, regPre |
 | `js/app/14-the-gang.js` | 11 | GCOL, gcardH, chipH, gangH, specPanel, gcardModal, handGuide |
@@ -317,10 +318,11 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hq-bat-tempo.js` | 29 | BatT |
 | `js/app/24hr-bat-succo.js` | 10 | Succo |
 | `js/app/24hs-bat-pixel.js` | 5 | BatPx |
-| `js/app/24ht-ven-arte.js` | 17 | VenArte |
-| `js/app/24hu-ven-mappa.js` | 22 | VenMappa |
-| `js/app/24hv-ven-campo.js` | 13 | VenCampo |
-| `js/app/24hw-ventura.js` | 32 | Ven |
+| `js/app/24ht-ven-arte.js` | 23 | VenArte |
+| `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
+| `js/app/24hv-ven-campo.js` | 22 | VenCampo |
+| `js/app/24hw-ventura.js` | 43 | Ven |
+| `js/app/24hx-ven-stanza.js` | 5 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
