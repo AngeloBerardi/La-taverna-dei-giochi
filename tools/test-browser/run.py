@@ -3110,6 +3110,36 @@ async def sc_ventura(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_riprova(b, srv):
+    """Ventura: il contesto grafico si perde più volte di fila (telefono sotto pressione), la scena si arrende; «Riprova» la deve riaccendere davvero."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(1200)
+    COL = "(()=>{const c=VenArte.cv,g=document.createElement('canvas');g.width=g.height=24;const x=g.getContext('2d');(Ven.V.modo==='campo'?VenCampo.passo(.016):VenMappa.passo(.016,Ven.V.s));x.drawImage(c,0,0,24,24);const d=x.getImageData(0,0,24,24).data;const s=new Set();for(let i=0;i<d.length;i+=4)s.add(d[i]+','+d[i+1]+','+d[i+2]);return s.size})()"
+    for i in range(4):
+        r = await pg.evaluate("(()=>{const g=VenArte.cv.getContext('webgl2')||VenArte.cv.getContext('webgl');const e=g.getExtension('WEBGL_lose_context');if(!e)return{noext:true,lost:g.isContextLost(),ri:VenArte.A.rinascite,rip:Ven.V.rip,f:VenArte.A.fallita};e.loseContext();return{ok:1,ri:VenArte.A.rinascite}})()"); await pg.wait_for_timeout(2300)
+        if r.get('noext'): break
+    st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,velo:!!document.querySelector('.vn-vela [data-v=riprova]')})")
+    check(st['f'] and st['velo'], f'dopo perdite ravvicinate la scena si arrende e offre «Riprova»: {st}')
+    n0 = await pg.evaluate("window.__ctx=(window.__ctx||0)")
+    await pg.click('.vn-vela [data-v=riprova]'); await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=15000); await pg.wait_for_timeout(1500)
+    st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,cv:document.querySelectorAll('.vn-scena canvas').length,persa:VenArte.persa(),raf:!!Ven.V.raf,vela:!!document.querySelector('.vn-vela')})")
+    px = await pg.evaluate(COL)
+    check(st['p'] and not st['f'] and st['cv'] == 1 and not st['vela'] and st['raf'] and px >= 6, f'Riprova riaccende la scena e il ciclo ({px} colori): {st}')
+    await pg.wait_for_timeout(1500); px = await pg.evaluate(COL)
+    check(px >= 6 and not await pg.evaluate("VenArte.persa()"), f'la scena resta viva dopo Riprova ({px} colori)')
+    # i gesti devono funzionare sul canvas nuovo: trascinare muove la telecamera, pizzicare/ruota cambia lo zoom
+    f0 = await pg.evaluate("({x:VenMappa.K.fuoco.x,z:VenMappa.K.fuoco.z,a:VenMappa.K.alt})")
+    cv = await pg.locator('.vn-cv').bounding_box(); cx, cy = cv['x'] + cv['width'] / 2, cv['y'] + cv['height'] / 2
+    await pg.mouse.move(cx, cy); await pg.mouse.down(); await pg.mouse.move(cx + 60, cy + 80, steps=6); await pg.mouse.up(); await pg.wait_for_timeout(200)
+    await pg.mouse.move(cx, cy); await pg.mouse.wheel(0, -300); await pg.wait_for_timeout(300)
+    f1 = await pg.evaluate("({x:VenMappa.K.fuoco.x,z:VenMappa.K.fuoco.z,a:VenMappa.K.alt})")
+    check(abs(f1['x'] - f0['x']) + abs(f1['z'] - f0['z']) > .01 and f1['a'] != f0['a'], f'dopo Riprova trascinare e zoomare funziona: {f0} → {f1}')
+    check(errs == [], f'nessun errore di pagina: {errs}')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
