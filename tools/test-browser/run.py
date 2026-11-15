@@ -3140,6 +3140,24 @@ async def sc_ventura_riprova(b, srv):
     check(errs == [], f'nessun errore di pagina: {errs}')
     await ctx.close()
 
+async def sc_ventura_contesti(b, srv):
+    """Con le impostazioni vere (lobby 3D, grafica Avventura automatica) giocare alla Ventura non accumula contesti WebGL: la sonda «c'è il 3D?» ne apriva uno a ogni ridisegno e il telefono toglieva il più vecchio, cioè quello della scena."""
+    hook = """localStorage.removeItem('rg-lb');localStorage.removeItem('avv-3d');(()=>{window.__cx=[];const g=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(t,o){const c=g.call(this,t,o);if(c&&/webgl/.test(t)&&!window.__cx.some(x=>x.c===c))window.__cx.push({c,cv:this});return c}})();"""
+    ctx = await new_context(b, srv.port, extra_init=hook); pg = await page(ctx, srv.url)
+    errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
+    await pg.wait_for_timeout(1500); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=60000); await pg.wait_for_timeout(1500)
+    n0 = await pg.evaluate("window.__cx.length")
+    for _ in range(80): await pg.evaluate("render()")
+    await pg.wait_for_timeout(500)
+    st = await pg.evaluate("({n:window.__cx.length,vivi:window.__cx.filter(x=>!x.c.isContextLost()).length,pronta:VenArte.A.pronta,persa:VenArte.persa(),ri:VenArte.A.rinascite||0,cv:document.querySelectorAll('.vn-scena canvas').length})")
+    check(st['n'] == n0, f'80 ridisegni non creano contesti nuovi ({n0} → {st["n"]})')
+    check(st['vivi'] <= 3, f'contesti vivi alla fine: {st["vivi"]} (scena, e al più qualcosa di acceso altrove)')
+    check(st['pronta'] and not st['persa'] and st['ri'] == 0 and st['cv'] == 1, f'la scena resta quella: {st}')
+    check(errs == [], f'nessun errore di pagina: {errs}')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
