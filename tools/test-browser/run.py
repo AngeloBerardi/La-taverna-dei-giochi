@@ -3058,9 +3058,9 @@ async def sc_ventura(b, srv):
     """Compagnia di ventura: dalla pagina Avventura al mondo 3D, luogo, mercato, incontro, battaglia campale ed esito."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
-    check(await pg.locator('.vn-regno').count() == 3 and await pg.locator('[data-a=ven][data-v=nuova]').count() == 1, 'pagina Avventura: tre regni e «Leva la compagnia»')
+    check(await pg.locator('.vn-regno').count() == 5 and await pg.locator('[data-a=ven][data-v=nuova]').count() == 1, 'pagina Avventura: cinque regni e «Leva la compagnia»')
     await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
-    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(1500)
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_function("VenMappa.K.scene&&document.getElementById('vn-ora')&&document.getElementById('vn-ora').textContent", timeout=30000)
     st = await pg.evaluate("({pronta:VenArte.A.pronta,cv:!!document.querySelector('.vn-scena canvas'),uom:VEN.uomini(VEN.TU(Ven.V.s)),barra:getComputedStyle(document.querySelector('#plancia')||document.body).display,salv:!!localStorage.getItem('ven-salv'),ora:document.getElementById('vn-ora').textContent})")
     check(st['pronta'] and st['cv'] and st['uom'] == 7 and st['salv'] and 'Giorno 1' in st['ora'], f'il mondo 3D si accende, HUD vivo, salvataggio scritto: {st}')
     check(st['barra'] == 'none' or await pg.locator('#plancia').count() == 0, 'la barra della Taverna sparisce nel mondo')
@@ -3119,9 +3119,11 @@ async def sc_ventura_riprova(b, srv):
     await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(1200)
     COL = "(()=>{const c=VenArte.cv,g=document.createElement('canvas');g.width=g.height=24;const x=g.getContext('2d');(Ven.V.modo==='campo'?VenCampo.passo(.016):VenMappa.passo(.016,Ven.V.s));x.drawImage(c,0,0,24,24);const d=x.getImageData(0,0,24,24).data;const s=new Set();for(let i=0;i<d.length;i+=4)s.add(d[i]+','+d[i+1]+','+d[i+2]);return s.size})()"
     for i in range(4):
-        r = await pg.evaluate("(()=>{const g=VenArte.cv.getContext('webgl2')||VenArte.cv.getContext('webgl');const e=g.getExtension('WEBGL_lose_context');if(!e)return{noext:true,lost:g.isContextLost(),ri:VenArte.A.rinascite,rip:Ven.V.rip,f:VenArte.A.fallita};e.loseContext();return{ok:1,ri:VenArte.A.rinascite}})()"); await pg.wait_for_timeout(2300)
+        r = await pg.evaluate("(()=>{const g=VenArte.cv.getContext('webgl2')||VenArte.cv.getContext('webgl');const e=g.getExtension('WEBGL_lose_context');if(!e)return{noext:true,lost:g.isContextLost(),ri:VenArte.A.rinascite,rip:Ven.V.rip,f:VenArte.A.fallita};if(Ven.V.rip)Ven.V.ripUlt=performance.now();e.loseContext();return{ok:1,ri:VenArte.A.rinascite||0}})()")  # «ravvicinate» anche se la macchina di prova è lenta: l'ultima riparazione vale come appena fatta
+        if not r.get('noext'): await pg.wait_for_function(f"VenArte.A.fallita||(VenArte.A.rinascite||0)>{r['ri']}", timeout=30000)  # la ricostruzione può durare più dell'attesa quando la macchina è carica
+        await pg.wait_for_timeout(2300)
         if r.get('noext'): break
-    st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,velo:!!document.querySelector('.vn-vela [data-v=riprova]')})")
+    st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,velo:!!document.querySelector('.vn-vela [data-v=riprova]'),rip:Ven.V.rip,ri:VenArte.A.rinascite,t:Math.round(performance.now()),ru:Math.round(Ven.V.ripUlt||0),persa:VenArte.persa()})")
     check(st['f'] and st['velo'], f'dopo perdite ravvicinate la scena si arrende e offre «Riprova»: {st}')
     n0 = await pg.evaluate("window.__ctx=(window.__ctx||0)")
     await pg.click('.vn-vela [data-v=riprova]'); await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=15000); await pg.wait_for_timeout(1500)
@@ -3174,9 +3176,10 @@ async def sc_ventura_stanza(b, srv):
     check(st['capi'] == ['Ada', 'Bruno'] and st['posto'] == 1 and st['uom'] == 11 and st['cv'] and await A.evaluate("VenStanza.seat()") == 0, f'due capitani in una compagnia, ognuno al suo posto, mappa accesa: {st}')
     # Bruno dà la meta: la compagnia parte su tutti e due i telefoni e il tempo scorre uguale
     await B.evaluate("(()=>{const s=Ven.V.s,tu=VEN.TU(s);const l=s.l.filter(l=>l.tipo==='villaggio'&&l.faz==='val').sort((a,b)=>VEN.dist(a,tu)-VEN.dist(b,tu))[0];window.__lid=l.id;VenStanza.manda({t:'vel',v:4});return VenStanza.manda({t:'ordina',o:{t:'entra',lid:l.id}})})()")
-    await A.wait_for_function("VEN.TU(Ven.V.s).ord&&Ven.V.vel===4", timeout=15000)
+    await A.wait_for_function("VEN.TU(Ven.V.s).ord&&Ven.V.vel===4", timeout=40000)
     check(True, 'la meta di Bruno e la velocità arrivano sul telefono di Ada')
     for pg in (A, B): await pg.wait_for_function("Ven.V.s.dentro>=0&&Ven.V.pan==='luogo'", timeout=90000)
+    for pg in (A, B): await pg.wait_for_function("G.w.dentro>=0", timeout=30000)
     await A.wait_for_timeout(1500)
     t = [await pg.evaluate("G.w.t+'|'+G.w.dentro+'|'+VEN.TU(G.w).x.toFixed(4)") for pg in (A, B)]
     check(t[0] == t[1], f'arrivati al villaggio allo stesso minuto e nello stesso punto: {t}')

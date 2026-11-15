@@ -72,3 +72,14 @@ html.vn-on #plancia,html.vn-on #dock{display:none!important}
 .vn-regno{display:grid;gap:3px;padding:8px 6px;text-align:center;color:inherit;font:inherit;cursor:pointer;background:rgba(0,0,0,.25);border:2px solid rgba(184,138,60,.4);border-top:6px solid var(--fz)}
 .vn-regno b{font:800 15px var(--f-d)}.vn-regno small{font-size:11px;opacity:.8;line-height:1.2}.vn-regno.on{border-color:#f0c166;background:rgba(240,193,102,.14)}
 @media (prefers-reduced-motion:reduce){.vn-pan,.vn-av,.vn-carta{animation:none}}
+/* approfondimento: cinque regni, oggetti per pregio, carta del mondo, luoghi nuovi */
+.vn-regni.vn-r5{grid-template-columns:repeat(3,1fr)}.vn-r5 .vn-regno small{font-size:10px}
+.vn-q2{color:#9fd36a}.vn-q3{color:#7fc4f0}.vn-q4{color:#ffd75a}.vn-tag.vn-q1{background:#4a4038;color:#e6d6b4}.vn-tag.vn-q2{background:#35501f;color:#dff0c4}.vn-tag.vn-q3{background:#1f4460;color:#d4ecff}.vn-tag.vn-q4{background:#6a4a08;color:#fff0b8}
+.vn-rs small.vn-fl2{font-style:italic;color:#a8987a;font-size:12px}.vn-vuoto{color:#8f7d5a!important}
+.vn-rel{line-height:2}
+.vn-pcarta{max-height:88%}.vn-carta-cv{display:block;width:100%;height:auto;image-rendering:pixelated;border:2px solid #b88a3c;background:#2a688a;cursor:crosshair}
+.vn-leg{display:flex;flex-wrap:wrap;gap:4px 12px;color:#cdbb96;font-size:12px}.vn-leg span{display:inline-flex;align-items:center;gap:5px}.vn-leg i{width:10px;height:10px;border:1px solid #000;border-radius:50%}
+#vn-meteo{font:700 11px var(--f-b);color:#cfe2f6;text-transform:uppercase;letter-spacing:.06em}
+.vn-et.luogo.porto{border-left-style:double}.vn-et.luogo.monastero,.vn-et.luogo.locanda{font-size:11px;padding:1px 6px 1px 4px;border-color:rgba(244,233,200,.7);border-left-color:#f4e9c8}
+.vn-et.luogo.rovine{font-size:11px;padding:1px 6px 1px 4px;border-color:#9fe0c8;border-left-color:#9fe0c8;color:#d6f6ea}.vn-et.luogo.covo{font-size:11px;padding:1px 6px 1px 4px;border-color:#c0392b;border-left-color:#c0392b;color:#ffc4b8}
+.vn-et.luogo.vuoto{opacity:.55}.vn-et.riv span{color:#ffb38a}

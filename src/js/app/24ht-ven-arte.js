@@ -42,7 +42,7 @@ float bayer(vec2 p){vec2 q=floor(mod(p,4.));float i=q.x+q.y*4.;float v=0.;
 void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2D(tD,uv).rgb;float d=texture2D(tZ,uv).x;
  vec2 e=1./res;float dn=min(min(texture2D(tZ,uv+vec2(e.x,0.)).x,texture2D(tZ,uv-vec2(e.x,0.)).x),min(texture2D(tZ,uv+vec2(0.,e.y)).x,texture2D(tZ,uv-vec2(0.,e.y)).x));
  float k=smoothstep(.55,1.1,(d-dn)*zr);c*=1.-k*bordo;
- float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l)*vec3(.6,.74,1.12),notte*.3);c*=tinta;c=mix(c,mix(vec3(.8,.84,.88),vec3(.3,.36,.5),notte),nebbia*(.25+.3*vUv.y));
+ float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l)*vec3(.6,.74,1.12),notte*.3);c*=tinta;c=mix(c,mix(vec3(.8,.84,.88),vec3(.3,.36,.5),notte),nebbia*(.14+.2*vUv.y));
  c+=bayer(tx)*(1./26.);c=floor(c*26.+.5)/26.;
  vec2 v=vUv-.5;c*=1.-dot(v,v)*vig*1.5;c+=lampo;gl_FragColor=vec4(c,1.);}`});
   postScene.add(new T.Mesh(new T.PlaneGeometry(2,2),post))}
@@ -96,6 +96,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
   const pezzo=(S,ombra)=>{const me=new T.InstancedMesh(S.geo(),matInst,max);me.castShadow=ombra!==false;me.receiveShadow=false;me.count=0;me.frustumCulled=false;me.instanceMatrix.setUsage(T.DynamicDrawUsage);
    me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);me.instanceColor.setUsage(T.DynamicDrawUsage);scene.add(me);return me};
   const P={};
+  P.base=pezzo(So().cil(.62,.62,.05,10,0,.02,0,'#ffffff'),false);P.base.receiveShadow=true;
   P.corpo=pezzo(So().box(.2,.62,.24,-.15,0,0,'#6e665f').box(.2,.62,.24,.15,0,0,'#6e665f').box(.66,.62,.4,0,.6,0,'#ffffff',{c2:'#f2f2f2'}).box(.2,.5,.24,-.43,.7,0,'#e4e4e4').box(.2,.5,.24,.43,.7,0,'#e4e4e4').box(.66,.12,.4,0,.56,0,'#4a3a2c'));
   P.vest=pezzo(So().box(.72,.5,.46,0,.72,0,'#ffffff',{c2:'#e4e4e4'}),false);
   P.spall=pezzo(So().box(.3,.16,.36,-.44,1.1,0,'#ffffff').box(.3,.16,.36,.44,1.1,0,'#ffffff').box(.25,.3,.29,-.15,.04,0,'#dcdcdc').box(.25,.3,.29,.15,.04,0,'#dcdcdc'),false);
@@ -134,6 +135,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    metti(f){const sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0;
     col.set(f.col||'#888');c2.set(f.col2||'#ccc');c3.set(a.col||f.col||'#888');if(!a.col)c3.multiplyScalar(.72);const yb=f.y+(cav?.78*sc:0)+bob*sc;
     d.position.set(f.x,yb-giu*(cav?.5:.05)*sc,f.z);d.rotation.set(0,0,0);d.rotation.order='YXZ';d.rotation.y=f.yaw;d.rotation.x=giu*1.45+aff*.22+(cav?0:sw*.03);d.rotation.z=cav?0:sw*.05;d.scale.set(sc,sc*(1-giu*.2),sc);d.updateMatrix();
+    if(f.base&&giu<.5){const kb=new T.Color(f.base),mb=new T.Matrix4().compose(new T.Vector3(f.x,f.y,f.z),new T.Quaternion(),new T.Vector3(sc*(cav?1.5:1),sc,sc*(cav?1.5:1)));m('base',kb.r,kb.g,kb.b,mb)}
     m('corpo',L||col.r,L||col.g,L||col.b);m('testa',L||1,L||1,L||1);
     if(a.cor>0){const k=new T.Color(COR[a.cor]);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3)m('spall',L||k.r,L||k.g,L||k.b)}
     const el=ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto';m(el,L||(tinto?c3.r:1),L||(tinto?c3.g:1),L||(tinto?c3.b:1));if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}
@@ -174,4 +176,4 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const sc=sole.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=1;sc.far=260;sc.updateProjectionMatrix();
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
  return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
-  get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get grad(){return grad},SE,CE}})();
+  get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get ren(){return ren},get grad(){return grad},SE,CE}})();
