@@ -135,6 +135,17 @@ const VDAT=(()=>{
  const UNICA={val:'u_condottieri',sel:'u_arcoantico',fer:'u_margravio',mar:'u_sigillo',alt:'u_vento'};
  const COMUNI=['daga','ascia','tondo','cuoio','maglia','cervelliera','bacinetto','corsiero','bisaccia','stendardo','trattato','spadone','dadi'];
  const BOTTINO_ROVINE=['u_stemma','u_corona','u_reliquia','u_occhio','u_pelle','temprata','brigantina','dadi'];
+ // tornei nelle città (V2): tre duelli a piedi, un uomo per capitano. Iscrizione = posta × livello; il premio del turno è l'iscrizione × mol
+ // (si incassa ritirandosi o vincendo la finale); fama e oggetto a parte. Ogni avversario parte dalla `base` del suo turno e porta uno dei
+ // corredi: è l'arma che decide come batterlo (mazza contro le piastre, spadone contro chi è lento, scudo contro chi picchia piano…)
+ const TORNEO={posta:40,turni:['Sfidante','Campione','Gran campione'],mol:[2,4,8],fama:[0,5,15],xp:[14,28,50],
+  base:[{pf:72,att:15,dif:10,dan:10},{pf:100,att:19,dif:15,dan:13},{pf:135,att:23,dif:20,dan:16}],
+  colori:['#8a8172','#2f5f9e','#b3262b'],cor:[1,2,3],
+  kit:[{id:'spada',nome:'spada e scudo',arma:'spada',scudo:'tondo',elmo:'cervelliera'},{id:'due',nome:'spadone a due mani',arma:'spadone',scudo:null,elmo:'cervelliera'},
+   {id:'asta',nome:'alabarda',arma:'alabarda',scudo:null,elmo:'bacinetto'},{id:'mazza',nome:'mazza ferrata',arma:'mazza',scudo:'tondo',elmo:'cervelliera'}],
+  nomi:[['Gerio il Fabbro','Bruno Cortamano','Tonio dei Fossi','Nanni Spallalarga','Rolando il Giovane','Cecco Pietrabianca'],
+   ['Ser Ottone Ferrante','Madonna Griselda','Lupo di Roccaverde','Ansaldo il Rosso','Berta Bracciodiferro','Messer Dino Tagliavento'],
+   ['Il Leone di Maralta','Orsolina la Temuta','Ser Valerio Senzapari','Gundro il Gigante','La Spada di Tendalarga','Il Campione dei Tre Regni']]};
  // abilità del capitano (0..10), un punto per livello
  const ABIL={
   prodezza:{nome:'Prodezza',d:'Più danno e più punti ferita in battaglia.'},
@@ -191,5 +202,5 @@ const VDAT=(()=>{
   bande:['Banda del Fosso','Lupi del bosco','Tagliagole','Figli della forca','Compagnia del sacco','Corvi di strada','Masnada nera','Scannapolli']};
  // cosa produce ogni regno: le scorte tendono a salire dove si produce
  const PRODUCE={val:['grano','vino','velluto'],sel:['carne','lana','attrezzi'],fer:['ferro','sale','attrezzi'],mar:['pesce','spezie','velluto'],alt:['carne','lana','sale']};
- return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,TIPI,NOMI,PRODUCE}})();
+ return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,TIPI,NOMI,PRODUCE}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;

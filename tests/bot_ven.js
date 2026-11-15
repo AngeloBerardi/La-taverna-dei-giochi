@@ -41,6 +41,14 @@ module.exports = function (VEN, VDAT) {
       // commercio: compra a buon mercato ciò che qui si produce
       for (const m of Object.keys(VDAT.MERCI)) { if (VDAT.MERCI[m].cibo) continue; let g = 0; while (g++ < 8 && tu.oro > 260 && VEN.carico(tu) < VEN.caricoMax(s) - 2 && VEN.prezzo(s, l, m, 1) <= VDAT.MERCI[m].base * .75 && !fai({ a: 'compra', m, n: 1 }).err); }
       if (!s.servizio && s.fama >= VEN.P.FAMA_CONTRATTO) fai({ a: 'contratto' });
+      // torneo: se oggi c'è, il capitano è già forte e le monete avanzano, si iscrive; con poco livello si ritira dopo la prima vittoria
+      if (VEN.torneoOggi(s, l) && !s.torneo && s.cap.liv >= 3 && tu.oro >= VDAT.TORNEO.posta * s.cap.liv + 250 && !fai({ a: 'torneo' }).err) {
+        while (s.torneo) {
+          if (s.torneo.turno >= 1 && s.cap.liv < 4) { fai({ a: 'ritira' }); break; }
+          if (fai({ a: 'lizza' }).err) { fai({ a: 'ritira' }); break; }
+          VEN.auto(s);
+        }
+      }
     }
     if (l.inc && !l.inc.preso && l.inc.tipo !== 'reliquia' && l.inc.tipo !== 'taglia' && (l.inc.tipo !== 'predoni' || VEN.forza(tu) > 70)) fai({ a: 'incarico' });
     if (l.tipo === 'monastero') fai({ a: 'cura' });
@@ -58,6 +66,10 @@ module.exports = function (VEN, VDAT) {
     if (prede.length && VEN.sani(tu) >= VEN.uomini(tu) * .6) return VEN.ordina(s, { t: 'segui', pid: prede[0].id });
     const cons = s.incarichi.find(q => !q.fatto && !q.fallito && q.tipo === 'consegna' && (tu.merci[q.bene] || 0) >= q.n);
     if (cons) return VEN.ordina(s, { t: 'entra', lid: cons.a });
+    if (!s.torneo && s.cap.liv >= 3 && tu.oro >= VDAT.TORNEO.posta * s.cap.liv + 250) {
+      const t = VEN.tornei(s).find(t => t.giorni <= 1 && !VEN.nemiche(s, 'tu', s.l[t.lid].faz) && VEN.dist(s.l[t.lid], tu) <= 30 + 30 * t.giorni);
+      if (t) return VEN.ordina(s, { t: 'entra', lid: t.lid });
+    }
     const amici = s.l.filter(l => l.noto !== false && !VEN.SITO[l.tipo] && (l.faz === 'tu' || !VEN.nemiche(s, 'tu', l.faz)));
     amici.sort((a, b) => (VEN.dist(a, tu) + (mem[a.id] || 0) * 14) - (VEN.dist(b, tu) + (mem[b.id] || 0) * 14));
     const m = amici[0]; if (!m) return VEN.ordina(s, { t: 'aspetta', ore: 6 });

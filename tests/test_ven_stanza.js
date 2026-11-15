@@ -97,4 +97,20 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   const w2 = h.w, p2 = w2.p.find(p => p.k === 'pre'); p2.tr = [{ t: 'pre_f1', n: 3, f: 0, xp: 0 }]; w2.incontro = { tipo: 'nemico', pid: [p2.id], all: [], da: 'tu' };
   const bh = ok(S.act(h, { t: 'scegli', seat: 0, v: 'attacca' })); assert(bh.b && S.salvabile(bh) === null && S.salvabile(null) === null);
 }
+
+// torneo in compagnia (V2): due capitani si iscrivono insieme (si paga per ciascuno), entrano in lizza insieme contro due avversari, si vince o si perde come squadra
+{
+  let t = S.nuova(2, ['Angelo', 'Bea'], { seme: 12, regno: 'val' }); const w = t.w, l = w.l.find(l => l.tipo === 'citta'); w.t += ((7 - (V.giorno(w) + l.id) % 7) % 7) * 1440; w.dentro = l.id; V.TU(w).oro = 5000;
+  for (const c of V.capi(w)) { c.liv = 6; c.ab.prodezza = 4; Object.assign(c.eq, { arma: 'bastarda', scudo: 'mandorla', armatura: 'brigantina', elmo: 'bacinetto' }); }
+  const oro0 = V.TU(w).oro; t = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'torneo' } })); assert.strictEqual(oro0 - V.TU(t.w).oro, 40 * 12, 'iscrizione pagata per ciascun capitano');
+  assert(S.act(t, { t: 'fai', seat: 0, z: { a: 'torneo' } }).err, 'già iscritti'); t = ok(S.act(t, { t: 'fai', seat: 0, z: { a: 'lizza' } })); assert.strictEqual(t.w.incontro.tipo, 'arena'); assert(!S.scorre(t), 'durante il duello il tempo del mondo sta fermo');
+  const prima = J(t); assert(S.act(t, { t: 'fai', seat: 1, z: { a: 'esci' } }).err); assert.strictEqual(J(t), prima);
+  t = ok(S.act(t, { t: 'scegli', seat: 0, v: 'attacca' })); assert(t.b && t.b.c.tipo === 'arena' && t.b.c.capi.length === 2 && t.b.c.u.filter(u => u.l === 'b').length === 2);
+  assert(S.act(t, { t: 'b-ord', seat: 0, o: { t: 'carica' } }).err && S.act(t, { t: 'b-cap', seat: 1, o: { grido: true } }).err, 'nessun ordine, niente grido');
+  t = ok(S.act(t, { t: 'b-via', seat: 0 })); let g = 0; while (!t.b.c.fine && g++ < 400) t = ok(S.act(t, { t: 'tempo', seat: 0, fino: t.b.c.t + 100 }));
+  assert(t.b.c.fine, 'il duello finisce'); const vince = t.b.c.fine.vince; assert(S.act(t, { t: 'b-fine', seat: 1 }).s); t = ok(S.act(t, { t: 'b-fine', seat: 1 })); assert.strictEqual(t.b, null); assert.strictEqual(t.w.incontro, null);
+  const o = t.w.ult; assert.strictEqual(o.vince, vince); assert.strictEqual(!!o.torneo.vinto, vince === 'a'); if (vince === 'a') assert.strictEqual(t.w.torneo.turno, 1); else assert.strictEqual(t.w.torneo, null);
+  assert(vince === 'b' || S.salvabile(t).w.torneo.turno === 1, 'il torneo si salva con il mondo');
+  if (vince === 'a') { t = ok(S.act(t, { t: 'fai', seat: 1, z: { a: 'ritira' } })); assert.strictEqual(t.w.torneo, null); assert(V.TU(t.w).oro >= oro0 - 40 * 12 + 40 * 12 * 2 - 50, 'il premio maturato arriva alla cassa comune'); }
+}
 console.log('ven_stanza ok');

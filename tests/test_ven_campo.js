@@ -91,4 +91,28 @@ for (const f of ['28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js']) {
   const t = Date.now(); C.risolvi(scheda(1, T(0, { val_f2: 60, val_t2: 40, val_c3: 20 }), T(5, { fer_f2: 60, fer_t2: 40, fer_c3: 20 })));
   assert(Date.now() - t < 1500, 'risoluzione automatica lenta: ' + (Date.now() - t) + ' ms');
 }
+
+// arena dei tornei (V2): solo capitani contro avversari singoli, campo stretto, niente rotta né ordini né grido, fine quando un lato è a terra
+{
+  const duello = (n, pf, o) => ({ seme: 5, tipo: 'arena', a: [], faza: 'tu', fazb: 'val', scena: { vicino: { tipo: 'citta', faz: 'val' } },
+    capi: Array.from({ length: n }, (_, i) => Object.assign({ nome: 'C' + i, pf: pf || 100, att: 18, dif: 12, dan: 12, vel: 10, rit: 12, cavallo: false }, o || {})),
+    b: Array.from({ length: n }, (_, i) => ({ p: -100 - i, t: 'pre_f2', n: 1, st: { nome: 'A' + i, pf: 70, att: 14, dif: 10, dan: 10, rit: 12, perf: 0, git: 0, vel: 10 } })) });
+  const s = C.nuovo(duello(2)); assert.strictEqual(s.tipo, 'arena'); assert.strictEqual(s.muro, 0); assert.strictEqual(s.u.filter(u => u.l === 'a').length, 2, 'solo i capitani'); assert.strictEqual(s.u.filter(u => u.l === 'b').length, 2);
+  assert(s.u.filter(u => u.l === 'b').every(u => u.pf === 70 && u.nome && u.pfm === 70), 'gli avversari portano i loro numeri');
+  const ya = s.u.filter(u => u.cap)[0].y, yb = s.u.find(u => u.l === 'b').y; assert(Math.abs(ya - yb) >= 11 && Math.abs(ya - yb) <= 13, 'i lati partono a 12 passi: ' + Math.abs(ya - yb));
+  assert(C.ordina(s, { t: 'carica' }).err && C.capitano(s, { grido: true }).err, 'nessun ordine ai gruppi, niente grido');
+  // stesso seme, stesso duello
+  const f = x => { const q = C.nuovo(duello(2), { autoA: true }); while (!q.fine) C.passo(q, 50); return JSON.stringify([q.t, q.fine, q.u.map(u => [u.pf, u.st])]); }; assert.strictEqual(f(), f());
+  // si resta nell'anello, si finisce quando un lato è a terra, nessuna fuga, i caduti non pesano sulla compagnia
+  const q = C.nuovo(duello(2), { autoA: true }); let max = 0; while (!q.fine) { C.passo(q, 10); for (const u of q.u) max = Math.max(max, Math.hypot(u.x - q.W / 2, u.y - q.H / 2)); } assert(max <= C.C.ARENA + .01, 'dentro lo steccato: ' + max);
+  assert(!q.ev.some(e => e.t === 'rotta') && q.fug.a === 0 && q.fug.b === 0); const r = C.riepilogo(q); assert(r.vince === 'a' || r.vince === 'b'); assert(q.t < 3000, 'un duello dura una frazione della battaglia');
+  // forte vince, debole perde; con più capitani si vince o si perde come squadra
+  let forti = 0, deboli = 0; for (let i = 1; i <= 20; i++) { if (C.risolvi(Object.assign(duello(1, 200, { dan: 20, att: 24 }), { seme: i })).vince === 'a') forti++; if (C.risolvi(Object.assign(duello(1, 25, { dan: 3, att: 8 }), { seme: i })).vince === 'b') deboli++; }
+  assert(forti >= 19 && deboli >= 19, 'forte batte debole: ' + forti + ' ' + deboli);
+  { const d = duello(3, 90); const x = C.risolvi(d); assert.strictEqual(x.ko.length, 3); assert(x.vince === 'a' ? !x.capKo : true); }
+  // il tempo massimo decide per vita rimasta, mai una battaglia senza fine
+  { const q2 = C.nuovo(duello(1, 100000, { dan: 0 }), { autoA: true }); q2.u.find(u => u.l === 'b').dan = 0; C.passo(q2, C.C.TMAX + 10); assert(q2.fine, 'a tempo scaduto c\'è un vincitore'); }
+  // i battaglioni normali restano come prima: la rotta e gli ordini funzionano ancora
+  { const q3 = C.nuovo(scheda(1, pari()[0], pari()[1])); assert.strictEqual(q3.tipo, 'campo'); assert(!C.ordina(q3, { t: 'carica' }).err); }
+}
 console.log('ven_campo ok');
