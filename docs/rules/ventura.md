@@ -4,14 +4,18 @@ Fonte del testo di `RULES.ventura` in `src/js/app/07d-regole.js`. Regole nostre:
 truppe in un mondo libero (mappa strategica + battaglie campali in tempo reale); nessun nome, testo o grafica di giochi commerciali.
 
 ## In breve
-- Capitano di una compagnia in un mondo libero: tre regni (Valdoro, Selvamara, Ferropietra), 27 luoghi, predoni, carovane. Nessuna trama.
-- Mappa: tocco per muoversi; il tempo scorre solo camminando o accampandosi (un giorno ≈ 3 minuti a ×1).
-- Compagnia: reclute nei villaggi, mercenari e compagni in taverna; esperienza → promozioni lungo tre linee (fanti, tiratori, cavalieri);
+- Capitano di una compagnia in un mondo libero: cinque regni (Valdoro, Selvamara, Ferropietra, Maralta, Altaterra), 97 luoghi, predoni, carovane. Nessuna trama.
+- Luoghi: città, castelli, villaggi, porti (traversate per mare), monasteri (cure e benedizione), locande (voci e compagni), rovine e covi (nascosti finché non li scopri; si assaltano per il tesoro).
+- Mappa: tocco per muoversi; il tempo scorre solo camminando o accampandosi (un giorno ≈ 3 minuti a ×1). «Carta» mostra il mondo intero.
+- Compagnia: reclute nei villaggi, mercenari e compagni in taverna e locanda; esperienza → promozioni (fanti, tiratori, cavalieri; arcieri a cavallo solo ad Altaterra);
   viveri ogni giorno, paga ogni sette giorni, morale.
+- Zaino: arma, scudo, armatura, elmo, cavallo, cimelio. Botteghe d'armi con scorte che cambiano, un'offerta unica per capitale, bottino dopo le battaglie, tesori di rovine e covi, premi degli incarichi.
 - Monete: commercio a prezzi mobili, incarichi, bottino, riscatti, soldo da mercenario, rendite dei feudi.
 - Battaglia: tempo reale con pausa; capitano guidato a tocchi, ordini ai tre gruppi (Carica, Tieni, Seguimi, Avanti, Indietro), Grido;
+  il campo è quello dove ti trovi (bioma, costa, strada, luogo vicino, ora, meteo: nebbia accorcia il tiro, pioggia lo rende impreciso);
   rinforzi a ondate oltre 34 uomini per lato; rotta; risoluzione automatica con lo stesso motore.
-- Regni: contratto (fama 25), giuramento con feudo (fama 100), assedi con assalto dai varchi, fortezze proprie con guarnigione.
+- Regni: contratto (fama 25), giuramento con feudo (fama 100), assedi con assalto dai varchi, fortezze proprie con guarnigione. I signori hanno un tratto.
+- In compagnia (1–4): dalla stanza si sceglie «Compagnia di ventura». Una sola compagnia e una sola cassa, un capitano a testa.
 
 ## Riferimento visivo
 Stile nostro: diorama a facce piatte reso a pixel d'arte (telecamera ortografica a tre quarti, contorni, luce a bande, retino),

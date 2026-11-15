@@ -33,16 +33,16 @@ const VenArte=(()=>{
   matToon=new T.MeshToonMaterial({vertexColors:true,gradientMap:grad});matInst=new T.MeshToonMaterial({vertexColors:true,gradientMap:grad});// r128: un materiale non può servire insieme maglie semplici e a istanze colorate
   postCam=new T.OrthographicCamera(-1,1,1,-1,0,1);postScene=new T.Scene();
   post=new T.ShaderMaterial({depthTest:false,depthWrite:false,uniforms:{tD:{value:null},tZ:{value:null},res:{value:new T.Vector2(1,1)},off:{value:new T.Vector2()},zr:{value:100},tinta:{value:new T.Vector3(1,1,1)},
-    notte:{value:0},bordo:{value:.55},vig:{value:.35},lampo:{value:0}},
+    notte:{value:0},bordo:{value:.55},vig:{value:.35},lampo:{value:0},nebbia:{value:0}},
    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-   fragmentShader:`precision highp float;varying vec2 vUv;uniform sampler2D tD;uniform sampler2D tZ;uniform vec2 res;uniform vec2 off;uniform float zr;uniform vec3 tinta;uniform float notte;uniform float bordo;uniform float vig;uniform float lampo;
+   fragmentShader:`precision highp float;varying vec2 vUv;uniform sampler2D tD;uniform sampler2D tZ;uniform vec2 res;uniform vec2 off;uniform float zr;uniform vec3 tinta;uniform float notte;uniform float bordo;uniform float vig;uniform float lampo;uniform float nebbia;
 float bayer(vec2 p){vec2 q=floor(mod(p,4.));float i=q.x+q.y*4.;float v=0.;
  if(i<1.)v=0.;else if(i<2.)v=8.;else if(i<3.)v=2.;else if(i<4.)v=10.;else if(i<5.)v=12.;else if(i<6.)v=4.;else if(i<7.)v=14.;else if(i<8.)v=6.;
  else if(i<9.)v=3.;else if(i<10.)v=11.;else if(i<11.)v=1.;else if(i<12.)v=9.;else if(i<13.)v=15.;else if(i<14.)v=7.;else if(i<15.)v=13.;else v=5.;return v/16.-.47;}
 void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2D(tD,uv).rgb;float d=texture2D(tZ,uv).x;
  vec2 e=1./res;float dn=min(min(texture2D(tZ,uv+vec2(e.x,0.)).x,texture2D(tZ,uv-vec2(e.x,0.)).x),min(texture2D(tZ,uv+vec2(0.,e.y)).x,texture2D(tZ,uv-vec2(0.,e.y)).x));
  float k=smoothstep(.55,1.1,(d-dn)*zr);c*=1.-k*bordo;
- float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l)*vec3(.6,.74,1.12),notte*.3);c*=tinta;
+ float l=dot(c,vec3(.3,.59,.11));c=mix(c,vec3(l)*vec3(.6,.74,1.12),notte*.3);c*=tinta;c=mix(c,mix(vec3(.8,.84,.88),vec3(.3,.36,.5),notte),nebbia*(.14+.2*vUv.y));
  c+=bayer(tx)*(1./26.);c=floor(c*26.+.5)/26.;
  vec2 v=vUv-.5;c*=1.-dot(v,v)*vig*1.5;c+=lampo;gl_FragColor=vec4(c,1.);}`});
   postScene.add(new T.Mesh(new T.PlaneGeometry(2,2),post))}
@@ -63,7 +63,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
   const fx=fuoco.x-dx,fy=fuoco.y-du*CE,fz=fuoco.z+du*SE,D=140;
   cam.position.set(fx,fy+SE*D,fz+CE*D);cam.up.set(0,1,0);cam.lookAt(fx,fy,fz);
   const hh=hw*A.rh/(A.rh-2)/2,ww=hw*asp*A.rw/(A.rw-2)/2;cam.left=-ww;cam.right=ww;cam.top=hh;cam.bottom=-hh;cam.near=.1;cam.far=320;cam.updateProjectionMatrix();cam.userData.alt=alt;cam.userData.w=w;
-  const u=post.uniforms;u.off.value.set(dx/w,du/w);u.zr.value=320-.1;u.notte.value=o.notte||0;u.lampo.value=o.lampo||0;if(o.tinta)u.tinta.value.set(o.tinta[0],o.tinta[1],o.tinta[2]);else u.tinta.value.set(1,1,1);
+  const u=post.uniforms;u.off.value.set(dx/w,du/w);u.zr.value=320-.1;u.notte.value=o.notte||0;u.lampo.value=o.lampo||0;u.nebbia.value=o.nebbia||0;if(o.tinta)u.tinta.value.set(o.tinta[0],o.tinta[1],o.tinta[2]);else u.tinta.value.set(1,1,1);
   ren.setRenderTarget(rt);ren.render(scene,cam);ren.setRenderTarget(null);ren.render(postScene,postCam);
   // sonda dei fps: se il telefono fatica i pixel d'arte diventano più grossi (una volta, due al massimo)
   const ora=performance.now();if(A.t){const dt=ora-A.t;A.fps+=(1000/Math.max(1,dt)-A.fps)*.05;if(++A.nfps>180){A.nfps=0;if(A.fps<26&&A.lento<2){A.lento++;misura()}}}A.t=ora}
@@ -89,35 +89,63 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    geo(){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));return g},
    mesh(o){const me=new T.Mesh(S.geo(),matToon);me.castShadow=!(o&&o.ombra===false);me.receiveShadow=true;return me}};return S}
  // ---------- schiere di figure a istanze ----------
- // Ogni figura è fatta di pochi pezzi (corpo, testa, arma, scudo, cavallo): un InstancedMesh per pezzo, colore per istanza.
- function Schiera(scene,max){const d=new T.Object3D(),d2=new T.Object3D(),col=new T.Color();
+ // Ogni figura è fatta di pezzi scelti dal suo aspetto (`asp`, da VDAT.aspetto o dall'equipaggiamento del capitano): corpo e
+ // corazza, testa ed elmo, arma, scudo, mantello, cavallo e barda. Un InstancedMesh per pezzo, colore per istanza: così ogni
+ // truppa si riconosce a colpo d'occhio e l'equipaggiamento del capitano si vede addosso.
+ function Schiera(scene,max){const d=new T.Object3D(),d2=new T.Object3D(),col=new T.Color(),c2=new T.Color(),c3=new T.Color(),So=Solidi;
   const pezzo=(S,ombra)=>{const me=new T.InstancedMesh(S.geo(),matInst,max);me.castShadow=ombra!==false;me.receiveShadow=false;me.count=0;me.frustumCulled=false;me.instanceMatrix.setUsage(T.DynamicDrawUsage);
    me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);me.instanceColor.setUsage(T.DynamicDrawUsage);scene.add(me);return me};
   const P={};
-  P.corpo=pezzo(Solidi().box(.2,.62,.24,-.15,0,0,'#6e665f').box(.2,.62,.24,.15,0,0,'#6e665f').box(.66,.62,.4,0,.6,0,'#ffffff',{c2:'#f2f2f2'}).box(.2,.5,.24,-.43,.7,0,'#e4e4e4').box(.2,.5,.24,.43,.7,0,'#e4e4e4').box(.66,.12,.4,0,.56,0,'#4a3a2c'));
-  P.testa=pezzo(Solidi().box(.34,.32,.32,0,1.22,0,'#ffe2c0').box(.38,.16,.36,0,1.44,0,'#ffffff').box(.4,.05,.4,0,1.42,0,'#d0d0d0'));
-  P.spada=pezzo(Solidi().box(.07,.8,.07,.46,.86,.22,'#dfe6ee',{rx:.5}).box(.2,.06,.08,.46,.88,.12,'#8a6a2c'),false);
-  P.lancia=pezzo(Solidi().box(.06,2.1,.06,.46,.1,.16,'#8b6b43').box(.1,.28,.1,.46,2.2,.16,'#e6edf4'),false);
-  P.arco=pezzo(Solidi().box(.05,.5,.05,-.44,.95,.32,'#7a5230',{rx:.35}).box(.05,.5,.05,-.44,.5,.32,'#7a5230',{rx:-.35}).box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
-  P.scudo=pezzo(Solidi().box(.1,.62,.5,-.52,.62,.1,'#ffffff').box(.12,.2,.16,-.54,.82,.1,'#d8d8d8'),false);
-  P.cavallo=pezzo(Solidi().box(.56,.6,1.5,0,.72,0,'#ffffff').box(.34,.66,.36,0,1.1,.74,'#f4f4f4',{rx:-.5}).box(.3,.3,.56,0,1.54,1.06,'#ececec').box(.16,.74,.18,-.19,0,.58,'#d8d8d8').box(.16,.74,.18,.19,0,.58,'#d8d8d8')
+  P.base=pezzo(So().cil(.62,.62,.05,10,0,.02,0,'#ffffff'),false);P.base.receiveShadow=true;
+  P.corpo=pezzo(So().box(.2,.62,.24,-.15,0,0,'#6e665f').box(.2,.62,.24,.15,0,0,'#6e665f').box(.66,.62,.4,0,.6,0,'#ffffff',{c2:'#f2f2f2'}).box(.2,.5,.24,-.43,.7,0,'#e4e4e4').box(.2,.5,.24,.43,.7,0,'#e4e4e4').box(.66,.12,.4,0,.56,0,'#4a3a2c'));
+  P.vest=pezzo(So().box(.72,.5,.46,0,.72,0,'#ffffff',{c2:'#e4e4e4'}),false);
+  P.spall=pezzo(So().box(.3,.16,.36,-.44,1.1,0,'#ffffff').box(.3,.16,.36,.44,1.1,0,'#ffffff').box(.25,.3,.29,-.15,.04,0,'#dcdcdc').box(.25,.3,.29,.15,.04,0,'#dcdcdc'),false);
+  P.testa=pezzo(So().box(.34,.32,.32,0,1.22,0,'#ffe2c0'));
+  P.cappuccio=pezzo(So().box(.42,.36,.4,0,1.25,-.03,'#ffffff').box(.44,.16,.2,0,1.16,-.17,'#e2e2e2'),false);
+  P.paglia=pezzo(So().cil(.44,.48,.06,8,0,1.52,0,'#ecd382').cil(.2,.24,.14,7,0,1.56,0,'#d9bd62'),false);
+  P.berretto=pezzo(So().box(.4,.12,.4,0,1.52,0,'#ffffff').box(.22,.09,.22,.1,1.62,0,'#e0e0e0'),false);
+  P.pelliccia=pezzo(So().box(.46,.24,.44,0,1.46,0,'#7a5a3c').box(.52,.1,.5,0,1.44,0,'#cbbb9e'),false);
+  P.cervelliera=pezzo(So().box(.4,.16,.38,0,1.48,0,'#c9d2dc').box(.52,.05,.5,0,1.46,0,'#a5afba'),false);
+  P.bacinetto=pezzo(So().box(.42,.38,.4,0,1.29,0,'#cfd8e2').box(.3,.09,.08,0,1.38,.2,'#4a5058'),false);
+  P.corna=pezzo(So().box(.42,.3,.4,0,1.36,0,'#b4bdc8').box(.08,.32,.08,-.26,1.56,0,'#f2ead4',{rz:.55}).box(.08,.32,.08,.26,1.56,0,'#f2ead4',{rz:-.55}),false);
+  P.cappello=pezzo(So().cil(.46,.46,.05,8,0,1.52,0,'#3a3030').cil(.2,.23,.17,7,0,1.56,0,'#4a3c3c'),false);
+  P.cresta=pezzo(So().box(.09,.2,.46,0,1.66,-.02,'#ffffff'),false);
+  P.piuma=pezzo(So().box(.08,.36,.12,.2,1.6,-.12,'#ffffff',{rx:-.5}),false);
+  P.spada=pezzo(So().box(.07,.8,.07,.46,.86,.22,'#dfe6ee',{rx:.5}).box(.2,.06,.08,.46,.88,.12,'#8a6a2c'),false);
+  P.sciabola=pezzo(So().box(.07,.5,.07,.46,.86,.2,'#dfe6ee',{rx:.5}).box(.07,.4,.07,.46,1.22,.44,'#e8eef4',{rx:1}).box(.18,.06,.08,.46,.88,.12,'#8a6a2c'),false);
+  P.ascia=pezzo(So().box(.06,.9,.06,.46,.6,.2,'#7a5a3a',{rx:.4}).box(.06,.28,.32,.46,1.32,.58,'#cfd6de',{rx:.4}),false);
+  P.mazza=pezzo(So().box(.06,.7,.06,.46,.7,.2,'#7a5a3a',{rx:.4}).box(.22,.22,.22,.46,1.32,.5,'#8a9099',{rx:.4}),false);
+  P.lancia=pezzo(So().box(.06,2.1,.06,.46,.1,.16,'#8b6b43').box(.1,.28,.1,.46,2.2,.16,'#e6edf4'),false);
+  P.alabarda=pezzo(So().box(.06,2.0,.06,.46,.1,.16,'#8b6b43').box(.05,.36,.32,.46,1.86,.28,'#d6dde6').box(.08,.3,.08,.46,2.1,.16,'#e6edf4'),false);
+  P.spadone=pezzo(So().box(.1,1.3,.08,.46,.8,.26,'#e3e9f0',{rx:.45}).box(.36,.07,.09,.46,.86,.12,'#8a6a2c'),false);
+  P.arco=pezzo(So().box(.05,.5,.05,-.44,.95,.32,'#7a5230',{rx:.35}).box(.05,.5,.05,-.44,.5,.32,'#7a5230',{rx:-.35}).box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
+  P.balestra=pezzo(So().box(.08,.1,.6,.3,.9,.3,'#7a5230').box(.6,.06,.06,.3,.92,.52,'#5a4028').box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
+  P.tondo=pezzo(So().cil(.32,.32,.08,8,-.54,.56,.12,'#ffffff',{rz:1.5708}).cil(.1,.1,.12,6,-.57,.82,.12,'#d0d0d0',{rz:1.5708}),false);
+  P.mandorla=pezzo(So().box(.1,.62,.5,-.52,.62,.1,'#ffffff').box(.1,.3,.34,-.52,.36,.1,'#f0f0f0').box(.12,.2,.16,-.54,.82,.1,'#d8d8d8'),false);
+  P.pavese=pezzo(So().box(.1,.96,.62,-.54,.34,.12,'#ffffff').box(.12,.96,.12,-.56,.34,.12,'#d0d0d0'),false);
+  P.mantello=pezzo(So().box(.62,.84,.08,0,.4,-.25,'#ffffff',{c2:'#dedede',rx:-.14}),false);
+  P.cavallo=pezzo(So().box(.56,.6,1.5,0,.72,0,'#ffffff').box(.34,.66,.36,0,1.1,.74,'#f4f4f4',{rx:-.5}).box(.3,.3,.56,0,1.54,1.06,'#ececec').box(.16,.74,.18,-.19,0,.58,'#d8d8d8').box(.16,.74,.18,.19,0,.58,'#d8d8d8')
    .box(.16,.74,.18,-.19,0,-.58,'#d8d8d8').box(.16,.74,.18,.19,0,-.58,'#d8d8d8').box(.12,.6,.12,0,.6,-.82,'#5a5a5a',{rx:.4}).box(.6,.14,.7,0,1.3,-.05,'#b0b0b0'));
-  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#d8d2c6','#6e4a2e'],ELMI=['#c9a678','#c9a678','#9aa6b4','#b9c5d3','#e6c35a','#ffd866'];
-  const metti=(me,k,r,g,b)=>{me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,r,g,b)};
+  P.barda=pezzo(So().box(.64,.5,1.34,0,.78,-.04,'#ffffff',{c2:'#e2e2e2'}).box(.4,.32,.32,0,1.16,.72,'#f0f0f0',{rx:-.5}),false);
+  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#e6e0d4','#6e4a2e'],COR=[null,'#8a5a34','#98a2ad','#e2e8ef'],ELMO={paglia:'paglia',cappuccio:'cappuccio',berretto:'berretto',pelliccia:'pelliccia',cervelliera:'cervelliera',bacinetto:'bacinetto',crestato:'bacinetto',piuma:'cappello',corna:'corna'};
+  const m=(k,r,g,b,mat)=>{const me=P[k],i=n[k];if(i>=max)return;me.setMatrixAt(i,mat||d.matrix);me.instanceColor.setXYZ(i,r,g,b);n[k]=i+1};
   return{P,
    inizio(){for(const k of ord)n[k]=0},
-   // f: {x,y,z,yaw,sc,col,col2,cls,liv,cav,fase,colpo,giu,lampo,seme}
-   metti(f){const sc=f.sc||1,cav=f.cav||f.cls==='c',giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416);
-    col.set(f.col||'#888');let r=col.r,g=col.g,b=col.b;if(f.lampo){r=g=b=1.6}
-    const yb=f.y+(cav?.78*sc:0)+bob*sc;
+   // f: {x,y,z,yaw,sc,col,col2,asp,cav,fase,colpo,giu,lampo,seme}
+   metti(f){const sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0;
+    col.set(f.col||'#888');c2.set(f.col2||'#ccc');c3.set(a.col||f.col||'#888');if(!a.col)c3.multiplyScalar(.72);const yb=f.y+(cav?.78*sc:0)+bob*sc;
     d.position.set(f.x,yb-giu*(cav?.5:.05)*sc,f.z);d.rotation.set(0,0,0);d.rotation.order='YXZ';d.rotation.y=f.yaw;d.rotation.x=giu*1.45+aff*.22+(cav?0:sw*.03);d.rotation.z=cav?0:sw*.05;d.scale.set(sc,sc*(1-giu*.2),sc);d.updateMatrix();
-    if(n.corpo<max){metti(P.corpo,n.corpo++,r,g,b);const e=new T.Color(ELMI[Math.min(5,f.liv||1)]);metti(P.testa,n.testa++,f.lampo?1.6:e.r,f.lampo?1.6:e.g,f.lampo?1.6:e.b)}
-    if(giu<.5){const c2=new T.Color(f.col2||'#ccc');
-     if(f.cls==='t'){metti(P.arco,n.arco++,1,1,1)}
-     else{d2.position.copy(d.position);d2.rotation.copy(d.rotation);d2.rotation.x+=aff*1.1;d2.scale.copy(d.scale);d2.updateMatrix();const me=(f.cls==='c'||f.cls==='k'||(f.liv||1)===2&&f.cls==='f'&&(f.seme||0)%2)?P.lancia:P.spada;me.setMatrixAt(n[me===P.lancia?'lancia':'spada'],d2.matrix);me.instanceColor.setXYZ(n[me===P.lancia?'lancia':'spada']++,1,1,1);
-      if((f.liv||1)>=2||f.cls==='k')metti(P.scudo,n.scudo++,c2.r,c2.g,c2.b)}}
-    if(cav&&giu<.9){const m=new T.Color(MANTI[(f.seme||0)%MANTI.length]);d.position.set(f.x,f.y+bob*sc*.6-giu*.3*sc,f.z);d.rotation.set(sw*.06+giu*.2,f.yaw,giu*1.3,'YXZ');d.scale.set(sc,sc,sc);d.updateMatrix();metti(P.cavallo,n.cavallo++,m.r,m.g,m.b)}},
-   fine(){for(const k of ord){const me=P[k];me.count=n[k];me.instanceMatrix.needsUpdate=true;me.instanceColor.needsUpdate=true}},
+    if(f.base&&giu<.5){const kb=new T.Color(f.base),mb=new T.Matrix4().compose(new T.Vector3(f.x,f.y,f.z),new T.Quaternion(),new T.Vector3(sc*(cav?1.5:1),sc,sc*(cav?1.5:1)));m('base',kb.r,kb.g,kb.b,mb)}
+    m('corpo',L||col.r,L||col.g,L||col.b);m('testa',L||1,L||1,L||1);
+    if(a.cor>0){const k=new T.Color(COR[a.cor]);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3)m('spall',L||k.r,L||k.g,L||k.b)}
+    const el=ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto';m(el,L||(tinto?c3.r:1),L||(tinto?c3.g:1),L||(tinto?c3.b:1));if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}
+    if(a.mant)m('mantello',L||c3.r,L||c3.g,L||c3.b);
+    if(giu<.5){const arma=a.arma||'spada';
+     if(arma==='arco'||arma==='balestra')m(arma,1,1,1);
+     else{d2.position.copy(d.position);d2.rotation.copy(d.rotation);d2.rotation.x+=aff*1.1;d2.scale.copy(d.scale);if(arma==='picca')d2.scale.y*=1.3;d2.updateMatrix();m(arma==='picca'?'lancia':P[arma]?arma:'spada',1,1,1,d2.matrix)}
+     if(a.scudo&&P[a.scudo])m(a.scudo,c2.r,c2.g,c2.b)}
+    if(cav&&giu<.9){const mt=new T.Color(MANTI[(a.manto!=null?a.manto:(f.seme||0))%MANTI.length]);d.position.set(f.x,f.y+bob*sc*.6-giu*.3*sc,f.z);d.rotation.set(sw*.06+giu*.2,f.yaw,giu*1.3,'YXZ');d.scale.set(sc,sc,sc);d.updateMatrix();m('cavallo',mt.r,mt.g,mt.b);if(a.barda)m('barda',col.r,col.g,col.b)}},
+   fine(){for(const k of ord){const me=P[k];me.count=n[k];me.visible=n[k]>0;me.instanceMatrix.needsUpdate=true;me.instanceColor.needsUpdate=true}},
    via(){for(const k of ord){scene.remove(P[k]);P[k].geometry.dispose()}}}}
  // ---------- stendardi: asta e drappo che sventola, a istanze ----------
  function Stendardi(scene,max){const asta=new T.InstancedMesh(Solidi().box(.07,2.6,.07,0,0,0,'#6b4a2c').sfera(.11,0,2.66,0,'#e8c35a').geo(),matInst,max),d=new T.Object3D();asta.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);
@@ -148,4 +176,4 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const sc=sole.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=1;sc.far=260;sc.updateProjectionMatrix();
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
  return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
-  get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get grad(){return grad},SE,CE}})();
+  get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get ren(){return ren},get grad(){return grad},SE,CE}})();
