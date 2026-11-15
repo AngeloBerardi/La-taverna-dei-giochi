@@ -119,15 +119,19 @@ const VEN=(()=>{
  const ostile=(s,a,b)=>nemiche(s,a.faz,b.faz);
  function relaz(s,f,d){if(!(f in s.rel))return;s.rel[f]=Math.max(-100,Math.min(100,s.rel[f]+d))}
  // ---------- nuovo mondo ----------
+ const nuovoCap=nome=>({nome:String(nome).slice(0,20),liv:1,xp:0,punti:1,ab:{prodezza:0,comando:0,addestra:0,medicina:0,commercio:0,esplora:0},eq:{arma:0,armatura:0,cavallo:1}});
+ // i capitani: il primo guida la compagnia, i soci (partite in compagnia) gli stanno a fianco. posto 0 = s.cap
+ const capi=s=>[s.cap].concat(s.soci||[]);
+ const capDi=(s,seat)=>capi(s)[seat||0]||null;
  function nuovo(seme,o){o=o||{};seme=ADADI.u32(seme||1);const M=mappa(seme);
   const s={v:1,seme,rng:ADADI.semina(seme),t:8*60,uid:0,nome:o.compagnia||'Compagnia della Ventura',p:[],l:[],sig:[],guerra:{},rel:{val:0,sel:0,fer:0},servizio:null,incontro:null,
    dentro:-1,davanti:-1,assedio:null,scontri:[],prig:[],incarichi:[],log:[],ev:[],fama:0,slancio:0,stat:{vinte:0,perse:0,uccisi:0,giorniPaga:0},prigioniero:null,rotta:0,tregua:0,cadute:{},over:null,
-   cap:{nome:o.nome||'Capitano',liv:1,xp:0,punti:1,ab:{prodezza:0,comando:0,addestra:0,medicina:0,commercio:0,esplora:0},eq:{arma:0,armatura:0,cavallo:1},aspetto:o.aspetto||null}};
+   cap:nuovoCap(o.nome||'Capitano'),soci:(o.soci||[]).slice(0,3).map(x=>nuovoCap(x&&x.nome||'Capitano'))};
   const r=rnd(s);
   // la tua compagnia parte accanto a un villaggio del regno scelto (o a caso)
   const f0=D.REGNI.includes(o.regno)?o.regno:D.REGNI[Math.floor(r()*3)],vil=M.luoghi.filter(l=>l.faz===f0&&l.tipo==='villaggio')[0]||M.luoghi[0];
   const v0=vicinoOk(M,vil.x+2.6,vil.y+2.2);
-  const tu=nuovaP(s,'tu','tu',s.nome,v0[0],v0[1],[{t:f0+'_f1',n:5,f:0,xp:0},{t:f0+'_f2',n:2,f:0,xp:0}],{oro:P.ORO0,merci:{grano:6,carne:2}});tu.ia=null;
+  const ns=s.soci.length,tu=nuovaP(s,'tu','tu',s.nome,v0[0],v0[1],[{t:f0+'_f1',n:5+ns*3,f:0,xp:0},{t:f0+'_f2',n:2+ns,f:0,xp:0}],{oro:P.ORO0+ns*140,merci:{grano:6+ns*3,carne:2+ns}});tu.ia=null;
   // luoghi
   for(const b of M.luoghi){const prod=D.PRODUCE[b.faz],l={id:b.id,nome:b.nome,tipo:b.tipo,faz:b.faz,x:b.x,y:b.y,capo:b.capo,sig:-1,prosp:45+Math.floor(r()*30),rel:0,g:[],rec:0,sacc:0,ass:null,scorte:{},merc:[],inc:null};
    const punti=b.tipo==='citta'?260:b.tipo==='castello'?150:0;if(punti)l.g=leva(b.faz,punti,r);
@@ -157,16 +161,16 @@ const VEN=(()=>{
    l.inc={tipo:'consegna',bene:m,n,a:a.id,premio:Math.round(n*D.MERCI[m].base*.9+60),giorni:9}}
   else l.inc={tipo:'reclute',n:4+Math.floor(r()*4),premio:260+Math.floor(r()*120),giorni:12}}
  // ---------- numeri della compagnia ----------
- const abil=(s,k)=>s.cap.ab[k]+TU(s).tr.reduce((a,e)=>a+(D.TR[e.t].compagno===k&&e.n-(e.f||0)>0?2:0),0);
- const limite=s=>P.CAPIENZA+abil(s,'comando')*5+Math.floor(s.fama/20);
+ const abil=(s,k)=>capi(s).reduce((m,c)=>Math.max(m,c.ab[k]),0)+TU(s).tr.reduce((a,e)=>a+(D.TR[e.t].compagno===k&&e.n-(e.f||0)>0?2:0),0);
+ const limite=s=>P.CAPIENZA+abil(s,'comando')*5+Math.floor(s.fama/20)+(s.soci?s.soci.length*6:0);
  const limitePrig=s=>6+abil(s,'comando')*3;
  const razioni=p=>Object.keys(p.merci||{}).reduce((a,m)=>a+(D.MERCI[m].cibo?p.merci[m]:0),0);
  const carico=p=>Object.keys(p.merci||{}).reduce((a,m)=>a+p.merci[m],0);
- const caricoMax=s=>30+uomini(TU(s))*2+s.cap.eq.cavallo*10;
+ const caricoMax=s=>30+uomini(TU(s))*2+capi(s).reduce((a,c)=>a+c.eq.cavallo*10,0);
  const paga=s=>TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0);
  const xpLiv=l=>60*l*(l+1)/2;
  function velocita(s,p){const M=mappa(s.seme),i=cella(M,p.x,p.y),n=uomini(p);let cav=0;for(const e of p.tr)if(D.TR[e.t].c==='c')cav+=e.n;
-  let v=P.VEL-Math.min(1.1,n/90)+(n?cav/n*.7:0);if(p.k==='tu')v+=abil(s,'esplora')*.08+s.cap.eq.cavallo*.12-Math.max(0,carico(p)-caricoMax(s))*.02;
+  let v=P.VEL-Math.min(1.1,n/90)+(n?cav/n*.7:0);if(p.k==='tu')v+=abil(s,'esplora')*.08+capi(s).reduce((m,c)=>Math.min(m,c.eq.cavallo),9)*.12-Math.max(0,carico(p)-caricoMax(s))*.02;
   if(p.k==='car')v=1.9;if(p.k==='pre')v-=.15;v=Math.max(.8,v)/costo(M,i);if(notte(s))v*=.82;return v}
  const vista=s=>(P.VISTA+abil(s,'esplora')*.5)*(notte(s)?.65:1);
  function visibili(s){const tu=TU(s),v=vista(s);return s.p.filter(p=>p.id&&p.dentro<0&&dist(p,tu)<=v)}
@@ -340,14 +344,14 @@ const VEN=(()=>{
   else{nem=inc.pid.map(id=>part(s,id)).filter(Boolean);all=(inc.all||[]).map(id=>part(s,id)).filter(Boolean)}
   return{nem,all,luogo}}
  // la scheda della battaglia per VCAM: lato `a` = chi gioca e i suoi alleati
- function campo(s){const inc=s.incontro;if(!inc)return null;const{nem,all,luogo}=schieramenti(s),tu=TU(s),M=mappa(s.seme),i=cella(M,tu.x,tu.y),c=s.cap,E=D.EQUIP;
+ function campo(s){const inc=s.incontro;if(!inc)return null;const{nem,all,luogo}=schieramenti(s),tu=TU(s),M=mappa(s.seme),i=cella(M,tu.x,tu.y),E=D.EQUIP;
   const riga=(p,tr)=>tr.filter(e=>e.n-(e.f||0)>0).map(e=>({p,t:e.t,n:e.n-(e.f||0)}));
   let a=riga(0,tu.tr),b=[];for(const p of all)a=a.concat(riga(p.id,p.tr));for(const p of nem)b=b.concat(riga(p.id,p.tr));if(luogo)b=b.concat(riga(-1-luogo.id,luogo.g));
-  const pr=abil(s,'prodezza');
+  const scheda=c=>{const pr=c.ab.prodezza;return{nome:c.nome,pf:60+c.liv*6+pr*8+(E.armatura[c.eq.armatura].pf||0)+(E.cavallo[c.eq.cavallo].pf||0),att:14+c.liv+pr*2,dif:10+Math.floor(c.liv/2)+E.armatura[c.eq.armatura].dif,
+    dan:10+pr*1.5+E.arma[c.eq.arma].dan,vel:E.cavallo[c.eq.cavallo].vel,cavallo:c.eq.cavallo>0}},cs=capi(s).map(scheda);
   return{seme:(s.rng^s.t)|0,tipo:luogo?'assedio':'campo',terreno:M.T[i],bioma:M.B[i],notte:notte(s),a,b,
    faza:lato(s),fazb:luogo?luogo.faz:nem[0]?nem[0].faz:'pre',noma:s.nome,nomb:luogo?luogo.nome:nem.map(p=>p.nome).join(', '),
-   cap:{nome:c.nome,pf:60+c.liv*6+pr*8+(E.armatura[c.eq.armatura].pf||0)+(E.cavallo[c.eq.cavallo].pf||0),att:14+c.liv+pr*2,dif:10+Math.floor(c.liv/2)+E.armatura[c.eq.armatura].dif,
-    dan:10+pr*1.5+E.arma[c.eq.arma].dan,vel:E.cavallo[c.eq.cavallo].vel,cavallo:c.eq.cavallo>0},morale:tu.mor}}
+   cap:cs[0],capi:cs,morale:tu.mor}}
  function scegli(s,v){const inc=s.incontro,tu=TU(s),r=rnd(s);if(!inc)return{err:'Nessun incontro'};
   if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))relaz(s,p.faz,Math.min(-30-s.rel[p.faz],-30));inc.pronto=true;return{s}}
    if(v==='lascia'){s.incontro=null;return{s}}if(!inc.pronto)return{err:'Scegli con chi stare'}}
@@ -396,12 +400,12 @@ const VEN=(()=>{
    else{const M=mappa(s.seme),m=nem[0]||luogo;if(m){const v=vicinoOk(M,tu.x+(tu.x-m.x)*2+1.5,tu.y+(tu.y-m.y)*2+1.5);tu.x=v[0];tu.y=v[1]}L(s,'La compagnia è rotta e si ritira in disordine.','male')}
    s.rotta=s.t+180;tu.ord=null;tu.via=[]}
   // il capitano cresce
-  const c=s.cap;c.xp+=out.xp;while(c.xp>=xpLiv(c.liv)){c.xp-=xpLiv(c.liv);c.liv++;c.punti++;out.livello=true;L(s,c.nome+' sale al livello '+c.liv+'.','bene')}
+  for(const c of capi(s)){c.xp+=out.xp;while(c.xp>=xpLiv(c.liv)){c.xp-=xpLiv(c.liv);c.liv++;c.punti++;out.livello=true;L(s,c.nome+' sale al livello '+c.liv+'.','bene')}}
   s.incontro=null;s.ult=out;s.ev.push({t:'esito',out});return{s,out}}
  // risoluzione automatica: gioca la battaglia col motore del campo, senza grafica (VCAM è nel file dopo: esiste a runtime)
  function auto(s){const c=campo(s);if(!c)return{err:'Nessun incontro'};return esito(s,VCAM.risolvi(c))}
  // ---------- azioni nei luoghi ----------
- function fai(s,z){const tu=TU(s),r=rnd(s),lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null,c=s.cap;
+ function fai(s,z){const tu=TU(s),r=rnd(s),lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null,c=capDi(s,z.seat);if(!c)return{err:'Capitano sconosciuto'};
   const E=D.EQUIP;
   // sempre possibili
   if(z.a==='abilita'){if(c.punti<1)return{err:'Nessun punto da spendere'};if(!(z.k in c.ab))return{err:'Abilità sconosciuta'};if(c.ab[z.k]>=10)return{err:'Già al massimo'};c.ab[z.k]++;c.punti--;return{s}}
@@ -452,6 +456,6 @@ const VEN=(()=>{
   ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>l.tipo!=='villaggio')],['Un regno caduto',Object.keys(s.cadute).length>0]]}
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
  function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||s.v!==1||!s.p||!s.l)return null;s.ev=[];mappa(s.seme);return s}catch(e){return null}}
- return{P,G,MARE,COLLE,MONTE,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
+ return{P,G,MARE,COLLE,MONTE,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
   velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,lato,TU,part,traguardi,titoloInc,salva,apri,dist}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

@@ -3158,6 +3158,57 @@ async def sc_ventura_contesti(b, srv):
     check(errs == [], f'nessun errore di pagina: {errs}')
     await ctx.close()
 
+async def sc_ventura_stanza(b, srv):
+    """Compagnia di ventura in compagnia (C2): stanza live con 2 telefoni. Un capitano a testa, una compagnia: meta, tempo che scorre uguale, villaggio, battaglia condivisa, esito, ritorno al tavolo."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 41)
+    await A.wait_for_function("R.mode==='rt'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 42, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await A.evaluate("(async()=>{VenStanza.X.seme0=7;Ven.V.regno='val';await startGame('ventura')})()")
+    for pg in (A, B): await pg.wait_for_function("G&&G.g==='ventura'&&ui.ven&&Ven.V.s&&VenArte.A.pronta", timeout=40000)
+    await A.wait_for_timeout(800)
+    st = await B.evaluate("({capi:VEN.capi(Ven.V.s).map(c=>c.nome),posto:VenStanza.seat(),uom:VEN.uomini(VEN.TU(Ven.V.s)),cv:!!document.querySelector('.vn-scena canvas')})")
+    check(st['capi'] == ['Ada', 'Bruno'] and st['posto'] == 1 and st['uom'] == 11 and st['cv'] and await A.evaluate("VenStanza.seat()") == 0, f'due capitani in una compagnia, ognuno al suo posto, mappa accesa: {st}')
+    # Bruno dà la meta: la compagnia parte su tutti e due i telefoni e il tempo scorre uguale
+    await B.evaluate("(()=>{const s=Ven.V.s,tu=VEN.TU(s);const l=s.l.filter(l=>l.tipo==='villaggio'&&l.faz==='val').sort((a,b)=>VEN.dist(a,tu)-VEN.dist(b,tu))[0];window.__lid=l.id;VenStanza.manda({t:'vel',v:4});return VenStanza.manda({t:'ordina',o:{t:'entra',lid:l.id}})})()")
+    await A.wait_for_function("VEN.TU(Ven.V.s).ord&&Ven.V.vel===4", timeout=15000)
+    check(True, 'la meta di Bruno e la velocità arrivano sul telefono di Ada')
+    for pg in (A, B): await pg.wait_for_function("Ven.V.s.dentro>=0&&Ven.V.pan==='luogo'", timeout=90000)
+    await A.wait_for_timeout(1500)
+    t = [await pg.evaluate("G.w.t+'|'+G.w.dentro+'|'+VEN.TU(G.w).x.toFixed(4)") for pg in (A, B)]
+    check(t[0] == t[1], f'arrivati al villaggio allo stesso minuto e nello stesso punto: {t}')
+    await A.click('[data-v="fai:recluta:1"]'); await B.wait_for_function("VEN.uomini(VEN.TU(Ven.V.s))===12", timeout=15000)
+    await B.click('[data-v="fai:esci"]'); await B.click('[data-v="pan:capitano"]'); await B.wait_for_timeout(200)
+    await B.click('[data-v="fai:abilita:prodezza"]'); await A.wait_for_function("VEN.capi(Ven.V.s)[1].ab.prodezza===1", timeout=15000)
+    check(await A.evaluate("VEN.capi(Ven.V.s)[0].ab.prodezza") == 0 and await B.locator('.vn-pan').get_by_text('sei tu').count() == 1, 'la recluta di Ada e il punto abilità di Bruno arrivano all\'altro; ognuno spende i suoi punti')
+    await B.click('[data-v=chiudi]')
+    # battaglia condivisa
+    await A.evaluate("(()=>{const w=VenStanza.X.L.w,tu=VEN.TU(w);tu.tr=[{t:'val_f3',n:14,f:0,xp:0},{t:'val_t3',n:8,f:0,xp:0}];const p=w.p.find(p=>p.k==='pre');p.tr=[{t:'pre_f1',n:8,f:0,xp:0},{t:'pre_t2',n:3,f:0,xp:0}];w.incontro={tipo:'nemico',pid:[p.id],all:[],da:'tu'};const ns=VST.copia(VenStanza.X.L);ns.evn++;pushState(ns,true,R.rev+1);return SYNC.esegui(R.ref,cur=>({doc:{...cur,s:ns,rev:(cur.rev||0)+1}}))})()")
+    for pg in (A, B): await pg.wait_for_selector('[data-v="scegli:attacca"]', timeout=20000)
+    check(True, 'l\'incontro si apre su tutti e due i telefoni')
+    await B.click('[data-v="scegli:attacca"]')
+    for pg in (A, B): await pg.wait_for_function("Ven.V.modo==='campo'&&VenCampo.K.s&&VenCampo.K.s.capi.length===2&&VenCampo.K.pausa", timeout=20000)
+    await A.click('[data-v=cpausa]'); await B.wait_for_function("!VenCampo.K.pausa", timeout=15000)
+    await B.click('[data-v="cord:carica"]'); await A.wait_for_function("VenCampo.K.s.ord.a.f.t==='carica'", timeout=15000)
+    cv = await A.locator('.vn-cv').bounding_box(); await A.mouse.click(cv['x'] + cv['width'] * .3, cv['y'] + cv['height'] * .35)
+    await B.wait_for_function("(()=>{const c=VCAM.capU(G.b.c,0);return c&&(c.vx!=null||c.ob>=0)})()", timeout=15000)
+    mio = await B.evaluate("(()=>{const c=VCAM.capU(G.b.c,1);return c.ob<0&&(c.vx==null||Math.abs(c.vx-c.x)<.6)})()")
+    check(mio, 'il via di Ada sblocca tutti, la carica di Bruno arriva ad Ada, il tocco di Ada muove solo il suo capitano')
+    for pg in (A, B): await pg.wait_for_selector('[data-v=fine]', timeout=120000)
+    await A.click('[data-v=fine]')
+    for pg in (A, B): await pg.wait_for_function("Ven.V.modo==='mondo'&&!G.b&&Ven.V.pan==='esito'", timeout=20000)
+    fin = [await pg.evaluate("G.w.stat.vinte+'|'+G.w.fama+'|'+VEN.uomini(VEN.TU(G.w))+'|'+G.w.t") for pg in (A, B)]
+    check(fin[0] == fin[1] and fin[0].startswith('1|'), f'vittoria: stesso esito sui due telefoni: {fin}')
+    check(not await A.evaluate("!!localStorage.getItem('ven-salv')"), 'la partita in compagnia non tocca il salvataggio personale')
+    await A.click('[data-v=chiudi]'); await A.evaluate("toLobby()")
+    for pg in (A, B): await pg.wait_for_function("!G&&!ui.ven&&!document.querySelector('.vn')", timeout=20000)
+    check(True, 'tornati al tavolo: la mappa si spegne su tutti e due')
+    check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
+    await ctxA.close(); await ctxB.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
