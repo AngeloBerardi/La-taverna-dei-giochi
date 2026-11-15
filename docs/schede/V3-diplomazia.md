@@ -1,6 +1,6 @@
 # V3 — Alleanze, tregue e guerre decise dal giocatore
 
-> **Traccia.** Le decisioni di gioco sono prese; firme, campi e numeri li fissa l'`architetto` leggendo il codice, poi la scheda si esegue.
+> **Fatta** (PR 120, rivista dopo). Sotto, al posto delle domande per l'architetto, i contratti come sono nel codice.
 
 **Scopo.** Oggi guerre e paci tra i regni cambiano da sole. Il giocatore deve poterle muovere: da mercenario poco, da vassallo di più, da sovrano del tutto.
 
@@ -14,15 +14,17 @@
 - Peso della parola: capitano libero solo doni e tributi; mercenario a contratto può chiedere pace; vassallo può proporre tutto; sovrano (V4) decide per il proprio regno.
 - I regni fanno alleanze anche da soli, di rado, contro chi sta vincendo troppo (freno alla valanga).
 
-## Da fissare prima di eseguire (architetto)
-- Come è fatto `s.guerra` e dove l'IA dichiara guerra e pace (`giornoNuovo`), per aggiungere `alleanza` senza rompere `nemiche`.
-- Dove l'IA dei signori sceglie i bersagli (`pensa`) e il soccorso agli assedi.
-- Migrazione: i salvataggi v2 senza alleanze devono aprirsi (campo assente = nessuna).
-- Azioni nuove di `fai` e loro errori; passano già dalla stanza in compagnia.
+## Contratti (come eseguiti)
+- `s.alleanza[chiave(a,b)] = {da, rompe}` (`rompe` 0 = nessun preavviso); assente nei v2 vecchi, `VEN.apri` lo crea vuoto. Guerra e alleanza non convivono.
+- `VEN.alleate`, `alleatoDi`, `dominante` (quota ≥ `DIPL.QUOTA_DOM` di luoghi o di forza), `forzaRegno`, `proposta(s,tipo,a,b)` → `{tipo,a,b,f:[{n,v}],tot,ok}` o `{err}`, senza dadi.
+- `fai {a:'proponi', tipo:'pace'|'alleanza'|'guerra'|'rompi', f}` nella capitale del proprio re; poi `s.parola[re] = giorno + DIPL.ATTESA` (3). Errori in italiano da `proposta`.
+- IA in `giornoNuovo` (ogni 4 giorni: alleanze contro il dominante o un nemico comune, rotture con preavviso, più guerra al dominante); `pensa`: soccorso con `soccorre`
+  (stesso regno, o alleato **in guerra con chi assedia**); `oraNuova`: gli alleati vicini entrano nella mischia dalla stessa parte. Numeri in `VDAT.DIPL`.
 
 ## Prove da chiedere
 - Due alleati non si combattono mai in 60 giorni di bot; un'alleanza non dura meno di 20 giorni.
 - Stesso seme, stessa proposta → stesso esito; il pannello elenca gli stessi fattori usati dal conto.
-- In 20 semi nessun regno supera il 60% dei luoghi prima del giorno 60 più spesso di oggi.
+- In 20 semi nessun regno supera il 60% dei luoghi dei regni prima del giorno 60 più spesso di oggi. Il mondo lasciato a sé conquista poco: il freno si prova
+  in `test_ven_diplomazia.js` con un regno messo apposta a metà dei luoghi.
 
 **Fuori scopo:** matrimoni, spie, trattati commerciali.
