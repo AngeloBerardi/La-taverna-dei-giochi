@@ -27,9 +27,11 @@ const Ven=(()=>{
  const avvisiH=()=>V.avvisi.map(a=>`<div class="vn-av ${a.tipo}">${esc(a.tx)}</div>`).join('');
  // ---------- ingresso dalla pagina Avventura ----------
  function sezioneH(){const s=leggi(),R=D.REGNI;
+  const coop=VenStanza.leggiSalv('coop'),
+  daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
   const cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · fama ${s.fama}</small></span><span class="av-go">Continua</span></button>`:'';
   return`<div class="sh2">Compagnia di ventura ${infoH('Un mondo libero: tre regni in guerra, villaggi dove reclutare, città dove commerciare, castelli da prendere. Nessuna trama: la strada la scegli tu.')}</div>
-${cont}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
+${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
 <div class="vn-regni vn-r5">${R.map(f=>`<button class="vn-regno${V.regno===f?' on':''}" style="--fz:${D.FAZ[f].col}" data-a="ven" data-v="regno:${f}"><b>${esc(D.FAZ[f].breve)}</b><small>${esc(D.FAZ[f].motto)}</small></button>`).join('')}</div>
 <button class="b ${s?'sm':'gold'} ecta" data-a="ven" data-v="nuova">${ic('spada',18)} ${s?'Nuova compagnia':'Leva la compagnia'}</button>
 <small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «Compagnia di ventura» tra i giochi.</small></div>`}
@@ -213,6 +215,8 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>Tocca il ca
  // ---------- comandi ----------
  function act(v){const s=V.s,p=String(v||'').split(':'),c=p[0];V.msg='';
   if(c==='regno'){V.regno=p[1];return render()}
+  if(c==='rip')return VenStanza.scegli(p[1]);
+  if(c==='dasolo'){if(!V.confSolo&&leggi()){V.confSolo=true;return render()}V.confSolo=false;if(VenStanza.perSolo()){const x=leggi();if(x)entra(x)}return}
   if(c==='continua'){const x=leggi();if(x)entra(x);return}
   if(c==='nuova'){const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
   if(!s)return;
