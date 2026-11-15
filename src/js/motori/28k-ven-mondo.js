@@ -124,8 +124,15 @@ const VEN=(()=>{
  function alleatoDi(s,f){for(const k in s.alleanza||{}){const x=k.split('|');if(x[0]===f)return x[1];if(x[1]===f)return x[0]}return null}
  // la fazione vista da fuori: chi serve un regno ne porta i colori
  const lato=s=>s.servizio?s.servizio.faz:'tu';
+ // regno (V4): con la corona la fazione 'tu' è un regno tra gli altri (nome e stendardo suoi); senza, tutto come prima
+ const fazioni=s=>s.corona?D.REGNI.concat(['tu']):D.REGNI;
+ const viva=(s,f)=>f==='tu'?!!s.corona:!s.cadute[f];
+ const nomeF=(s,f,lungo)=>f==='tu'&&s.corona?s.corona.nome:lungo?D.FAZ[f].nome:D.FAZ[f].breve;
+ const colFaz=(s,f)=>{if(f==='tu'&&s.corona){const t=D.REGNO.STENDARDI[s.corona.stend]||D.REGNO.STENDARDI[0];return{col:t.col,col2:t.col2}}const x=D.FAZ[f]||D.FAZ.neu;return{col:x.col,col2:x.col2}};
+ // la cultura delle truppe di un signore: quella d'origine se è passato a un altro stendardo
+ const cultura=(s,p)=>(s.sig[p.sig]||{}).cult||p.faz;
  function nemiche(s,fa,fb){if(fa===fb)return false;if(fa==='pre'||fb==='pre')return true;if(fa==='mer'||fb==='mer')return false;
-  if(fa==='tu'||fb==='tu'){const f=fa==='tu'?fb:fa;if(s.servizio){if(s.servizio.faz===f)return false;if(inGuerra(s,s.servizio.faz,f))return true}return(s.rel[f]||0)<=-25}
+  if(fa==='tu'||fb==='tu'){const f=fa==='tu'?fb:fa;if(s.corona)return inGuerra(s,'tu',f);if(s.servizio){if(s.servizio.faz===f)return false;if(inGuerra(s,s.servizio.faz,f))return true}return(s.rel[f]||0)<=-25}
   return inGuerra(s,fa,fb)}
  const ostile=(s,a,b)=>nemiche(s,a.faz,b.faz);
  function relaz(s,f,d){if(!(f in s.rel))return;s.rel[f]=Math.max(-100,Math.min(100,s.rel[f]+d))}
@@ -133,37 +140,38 @@ const VEN=(()=>{
  // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
  const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
  // forza di un regno: guarnigioni (con le mura) e compagnie dei suoi signori; il dominante è chi tiene troppo (quota di luoghi dei regni o di forza)
- const forzaRegno=(s,f)=>s.l.filter(l=>l.faz===f).reduce((x,l)=>x+forzaTr(l.g)*(MURA[l.tipo]?P.MURA:1),0)+s.p.filter(p=>p.k==='sig'&&p.faz===f).reduce((x,p)=>x+forza(p),0);
- function dominante(s){const vivi=D.REGNI.filter(f=>!s.cadute[f]);if(vivi.length<3)return null;const nl=vivi.map(f=>s.l.filter(l=>l.faz===f).length),fr=vivi.map(f=>forzaRegno(s,f)),tl=nl.reduce((a,b)=>a+b,0),tf=fr.reduce((a,b)=>a+b,0);let m=null,mq=0;
+ const forzaRegno=(s,f)=>s.l.filter(l=>l.faz===f).reduce((x,l)=>x+forzaTr(l.g)*(MURA[l.tipo]?P.MURA:1),0)+s.p.filter(p=>p.k==='sig'&&p.faz===f).reduce((x,p)=>x+forza(p),0)+(f==='tu'?forza(TU(s)):0);
+ function dominante(s){const vivi=fazioni(s).filter(f=>viva(s,f));if(vivi.length<3)return null;const nl=vivi.map(f=>s.l.filter(l=>l.faz===f).length),fr=vivi.map(f=>forzaRegno(s,f)),tl=nl.reduce((a,b)=>a+b,0),tf=fr.reduce((a,b)=>a+b,0);let m=null,mq=0;
   vivi.forEach((f,i)=>{const q=Math.max(tl?nl[i]/tl:0,tf?fr[i]/tf:0);if(q>mq){mq=q;m=f}});return mq>=D.DIPL.QUOTA_DOM?{f:m,quota:mq}:null}
- const guerreDi=(s,f)=>D.REGNI.filter(x=>x!==f&&!s.cadute[x]&&inGuerra(s,f,x)).length;
+ const guerreDi=(s,f)=>fazioni(s).filter(x=>x!==f&&viva(s,x)&&inGuerra(s,f,x)).length;
  // la proposta di chi gioca al re `a` riguardo al regno `b` ('pace' | 'alleanza' | 'guerra' | 'rompi'): un conto con i fattori in chiaro, lo stesso che usa `fai`.
  // Ritorna {tipo,a,b,f:[{n,v}],tot,ok} oppure {err}. Non tira dadi e non tocca lo stato.
- function proposta(s,tipo,a,b){const X=D.DIPL,srv=s.servizio;
+ function proposta(s,tipo,a,b){const X=D.DIPL,sov=b==='tu'&&!!s.corona&&!s.servizio,srv=sov?{faz:'tu',tipo:'re'}:s.servizio;
   if(!srv)return{err:'Un capitano senza bandiera non ha voce presso i re'};
+  if(sov&&(tipo==='guerra'||tipo==='rompi'))return{err:'Per la guerra e per le rotture usa le tue azioni'};
   if(!X.BASE.hasOwnProperty(tipo)&&tipo!=='rompi')return{err:'Proposta sconosciuta'};
-  if(!D.REGNI.includes(a)||!D.REGNI.includes(b)||a===b)return{err:'Regno sconosciuto'};
-  if(srv.faz!==a)return{err:'Parli per chi servi: qui non hai voce'};
-  if(srv.tipo==='mer'&&tipo!=='pace')return{err:'Un mercenario a contratto può chiedere solo la pace'};
-  if(s.cadute[a]||s.cadute[b])return{err:'Quel regno è caduto'};
+  if(!D.REGNI.includes(a)||!(D.REGNI.includes(b)||sov)||a===b)return{err:'Regno sconosciuto'};
+  if(!sov&&srv.faz!==a)return{err:'Parli per chi servi: qui non hai voce'};
+  if(!sov&&srv.tipo==='mer'&&tipo!=='pace')return{err:'Un mercenario a contratto può chiedere solo la pace'};
+  if(s.cadute[a]||(!sov&&s.cadute[b]))return{err:'Quel regno è caduto'};
   if(s.parola&&s.parola[a]>giorno(s))return{err:D.FAZ[a].re+' ti riceverà di nuovo il giorno '+s.parola[a]};
   const guerra=inGuerra(s,a,b),al=alleate(s,a,b);
-  if(tipo==='pace'&&!guerra)return{err:'Non siete in guerra con '+D.FAZ[b].breve};
-  if(tipo==='alleanza'){if(guerra)return{err:'Prima la pace: con '+D.FAZ[b].breve+' siete in guerra'};if(al)return{err:'Siete già alleati'};if(alleatoDi(s,a)||alleatoDi(s,b))return{err:'Uno dei due ha già un alleato'}}
+  if(tipo==='pace'&&!guerra)return{err:'Non siete in guerra con '+nomeF(s,b)};
+  if(tipo==='alleanza'){if(guerra)return{err:'Prima la pace: con '+nomeF(s,b)+' siete in guerra'};if(al)return{err:'Siete già alleati'};if(alleatoDi(s,a)||alleatoDi(s,b))return{err:'Uno dei due ha già un alleato'}}
   if(tipo==='guerra'){if(guerra)return{err:'Siete già in guerra'};if(al)return{err:'Sono vostri alleati: rompete prima l\'alleanza'}}
   if(tipo==='rompi'){if(!al)return{err:'Non siete alleati'};if(s.alleanza[chiave(a,b)].rompe)return{err:'La rottura è già annunciata'};return{tipo,a,b,f:[],tot:0,ok:true}}
   const peso=X.PESO[srv.tipo],f=[],aggiungi=(n,v)=>{v=Math.round(v*10)/10;if(v)f.push({n,v})},re=s.sig.find(x=>x.faz===a&&x.re),tr=D.TRATTI[re&&re.tratto];
   aggiungi(tipo==='pace'?'Il re non ha nulla da perdere':'Diffidenza del re',X.BASE[tipo]);
   aggiungi('Amicizia col regno',peso*s.rel[a]/X.AMICIZIA);
   aggiungi('Fama della compagnia',peso*Math.min(s.fama,X.FAMA_MAX)/X.FAMA);
-  aggiungi('Opinione di '+D.FAZ[b].breve+' su di te',(tipo==='guerra'?-1:1)*peso*s.rel[b]/(2*X.AMICIZIA));
+  if(!sov)aggiungi('Opinione di '+nomeF(s,b)+' su di te',(tipo==='guerra'?-1:1)*peso*s.rel[b]/(2*X.AMICIZIA));
   if(tr&&tr.dipl)aggiungi('Indole del re ('+tr.nome+')',tr.dipl[tipo]);
   const fa=forzaRegno(s,a),fb=forzaRegno(s,b),rel=fa+fb>0?(fb-fa)/(fa+fb):0;
   aggiungi(tipo==='guerra'?'Forza relativa: '+(rel<0?'sei più forte':'sei più debole'):'Forza relativa',(tipo==='guerra'?-1:1)*X.FORZA*rel);
   aggiungi(tipo==='pace'?'Stanchezza di guerra':tipo==='guerra'?'Guerre già in corso':'Nemici da fronteggiare',X.GUERRE[tipo]*guerreDi(s,a));
   const dom=dominante(s);
-  if(tipo==='alleanza'){const c=D.REGNI.filter(x=>x!==a&&x!==b&&!s.cadute[x]&&inGuerra(s,a,x)&&inGuerra(s,b,x)).length;aggiungi('Nemico in comune',X.COMUNE*c);if(dom&&dom.f!==a&&dom.f!==b)aggiungi(D.FAZ[dom.f].breve+' vince troppo',X.DOMINANTE)}
-  if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(D.FAZ[b].breve+' vince troppo',X.DOMINANTE);
+  if(tipo==='alleanza'){const c=fazioni(s).filter(x=>x!==a&&x!==b&&viva(s,x)&&inGuerra(s,a,x)&&inGuerra(s,b,x)).length;aggiungi('Nemico in comune',X.COMUNE*c);if(dom&&dom.f!==a&&dom.f!==b)aggiungi(nomeF(s,dom.f)+' vince troppo',X.DOMINANTE)}
+  if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(nomeF(s,b)+' vince troppo',X.DOMINANTE);
   const tot=Math.round(f.reduce((x,y)=>x+y.v,0)*10)/10;return{tipo,a,b,f,tot,ok:tot>=0}}
  // firmata un'alleanza, le mischie in corso tra i due regni si sciolgono: nessuno resta schierato contro il suo alleato
  function scioglieScontri(s,a,b){const fz=ids=>ids.map(id=>part(s,id)).filter(Boolean).map(p=>p.faz);
@@ -317,8 +325,11 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if(ia.st==='caccia')ia.st='giro';if(!p.via.length){const c=p.cov||M.covi[Math.floor(r()*M.covi.length)];const v=vicinoOk(M,c[0]+(r()-.5)*12,c[1]+(r()-.5)*12);vai(s,p,v[0],v[1],M)}return}
   // signori
   const sg=s.sig[p.sig],casa=s.l[sg.casa],osa=(D.TRATTI[sg.tratto]||{}).osa||1;
+  // esuli: senza terra né bandiera, girano finché l'esilio non scade; i signori radunati dal sovrano lo raggiungono
+  if(p.faz==='neu'){ia.st='esilio';if(!p.via.length&&p.dentro<0){const v=vicinoOk(M,Math.max(2,Math.min(G-2,p.x+(r()-.5)*8)),Math.max(2,Math.min(G-2,p.y+(r()-.5)*8)));vai(s,p,v[0],v[1],M)}return}
+  if(p.faz==='tu'&&ia.st==='adunata'){if(s.t>=ia.fine){ia.st='giro';p.via=[]}else{p.dentro=-1;if(dist(p,tu)>1.4){if(!p.via.length||s.t%60<20)vai(s,p,tu.x,tu.y,M)}else p.via=[];return}}
   if(p.dentro>=0){const l=s.l[p.dentro];if(l.ass)return;const pieno=forza(p)>=(sg.re?170:110);
-   if(!pieno&&p.oro>=20&&s.t%120<20){const t=p.faz+'_'+(r()<.5?'f1':r()<.5?'f2':'t2');aggiungi(p.tr,t,1);p.oro-=12}
+   if(!pieno&&p.oro>=20&&s.t%120<20){const t=cultura(s,p)+'_'+(r()<.5?'f1':r()<.5?'f2':'t2');aggiungi(p.tr,t,1);p.oro-=12}
    if(s.t>=(ia.t||0)&&(pieno||r()<.02)){p.dentro=-1;ia.st='giro';ia.t=0}return}
   if(minaccia){const l=rifugio(s,p);ia.st='fuga';if(l){ia.a=l.id;if(dist(p,l)<.7){entraSig(s,p,l);return}vai(s,p,l.x,l.y,M)}return}
   if(preda&&ia.st!=='assedio'){ia.st='caccia';ia.b=preda.id;vai(s,p,preda.x,preda.y,M);return}
@@ -369,9 +380,10 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  function sconfitta(s,p,daFaz,preso){const r=rnd(s);if(p.k==='pre'){rimuovi(s,p);return}
   if(p.k==='car'){const c=s.l[p.casa];rimuovi(s,p);if(c){c.prosp=Math.max(5,c.prosp-6);c.carTorna=giorno(s)+4}return}
   if(p.k==='riv'){const C=s.l.filter(l=>l.tipo==='citta'),c=C[Math.floor(r()*C.length)],v=vicinoOk(mappa(s.seme),c.x+3,c.y+2);p.tr=leva('mer',70,r);aggiungi(p.tr,D.RIVALE.id,1);p.x=v[0];p.y=v[1];p.via=[];p.fermo=s.t+P.GIORNO*3;p.ia={st:'giro',t:0};return}
+  if(p.faz==='neu'){rimuovi(s,p);s.sig[p.sig].pid=-1;return}
   const sg=s.sig[p.sig];let casa=s.l[sg.casa];if(!casa||casa.faz!==sg.faz){casa=s.l.find(l=>l.faz===sg.faz&&l.tipo!=='villaggio');if(casa)sg.casa=casa.id}
   if(!casa){rimuovi(s,p);sg.pid=-1;return}
-  p.tr=leva(p.faz,18+r()*12,r);p.oro=Math.max(60,Math.floor(p.oro*.4));p.x=casa.x;p.y=casa.y;p.dentro=casa.id;p.via=[];p.ia={st:'casa',t:s.t+P.GIORNO*(preso?5:2)};if(preso)sg.prig=preso}
+  p.tr=leva(cultura(s,p),18+r()*12,r);p.oro=Math.max(60,Math.floor(p.oro*.4));p.x=casa.x;p.y=casa.y;p.dentro=casa.id;p.via=[];p.ia={st:'casa',t:s.t+P.GIORNO*(preso?5:2)};if(preso)sg.prig=preso}
  function rimuovi(s,p){const i=s.p.indexOf(p);if(i>0)s.p.splice(i,1);for(const q of s.incarichi)if(q.pid===p.id&&!q.fatto)q.pid=-1}
  // assalto alle mura da parte di signori
  function assalto(s,l,r){const A=l.ass.pid.map(id=>part(s,id)).filter(Boolean),dentro=s.p.filter(p=>p.dentro===l.id&&p.k==='sig');let fa=A.reduce((x,p)=>x+forza(p),0),fd=(forzaTr(l.g)+dentro.reduce((x,p)=>x+forza(p),0))*P.MURA;const fa0=fa,fd0=fd;
@@ -381,16 +393,31 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(presa){const capo=A.sort((a,b)=>forza(b)-forza(a))[0];for(const p of dentro)sconfitta(s,p,faz);conquista(s,l,faz,capo&&capo.k==='sig'?capo.sig:-1);
    if(capo){const meta=capo.tr.filter(e=>e.n>=2);l.g=[];for(const e of meta){const k=Math.floor(e.n*.35);togliUomini(capo.tr,e.t,k);aggiungi(l.g,e.t,k)}}}
   else{L(s,l.nome+' respinge l\'assalto.','guerra');for(const p of A){p.ia.st='casa';p.via=[]}}}
- function conquista(s,l,faz,sigId){const prima=l.faz;l.faz=faz;l.sig=sigId;l.ass=null;l.rel=0;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo]){v.faz=faz;v.sig=sigId}
+ function conquista(s,l,faz,sigId){const prima=l.faz,persi=prima==='tu'?[l,...s.l.filter(v=>v.capo===l.id&&!MURA[v.tipo])].map(v=>v.sig).filter(x=>x>=0):[];l.faz=faz;l.sig=sigId;l.ass=null;l.rel=0;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo]){v.faz=faz;v.sig=sigId}
   L(s,l.nome+' cade: ora è '+(faz==='tu'?'tua':'di '+D.FAZ[faz].breve)+'.','guerra');s.ev.push({t:'conquista',lid:l.id,faz});
   if(prima!=='tu'&&D.REGNI.includes(prima)&&!s.l.some(x=>x.faz===prima&&MURA[x.tipo])){s.cadute[prima]=giorno(s);L(s,D.FAZ[prima].nome+' non ha più mura: il regno è caduto.','guerra');
-   for(const sg of s.sig)if(sg.faz===prima){const p=part(s,sg.pid);if(p)rimuovi(s,p);sg.pid=-1}for(const v of s.l)if(v.faz===prima){v.faz=faz;v.sig=sigId}}}
+   for(const sg of s.sig)if(sg.faz===prima){const p=part(s,sg.pid);if(sg.re||!p){if(p)rimuovi(s,p);sg.pid=-1}else daEsule(s,sg,p)}for(const v of s.l)if(v.faz===prima){v.faz=faz;v.sig=sigId}}
+  if(prima==='tu'&&s.corona){if(s.l.some(x=>x.faz==='tu'&&MURA[x.tipo])){const sd=s.l[s.corona.sede];if(!sd||sd.faz!=='tu'){const n=s.l.find(x=>x.faz==='tu'&&MURA[x.tipo]);s.corona.sede=n.id}}else cadeCorona(s)}
+  if(prima==='tu'&&s.corona)for(const id of new Set(persi))perdeFeudo(s,id);
+  vittoria(s)}
+ // un signore senza più regno (o senza feudo) diventa esule: gira da neutrale e dopo ESILIO giorni sparisce, a meno che tu non lo convinca
+ function daEsule(s,sg,p){sg.cult=sg.cult||sg.faz;sg.esule=sg.cult;sg.esilio=giorno(s)+D.REGNO.ESILIO;sg.faz='neu';if(p){p.faz='neu';p.dentro=-1;p.via=[];p.ia={st:'esilio',t:0}}}
+ // la corona cade con l'ultima fortezza: guerre e alleanze del regno finiscono, i signori diventano esuli, i compagni investiti tornano con te
+ function cadeCorona(s){const g=giorno(s),tu=TU(s);L(s,'Cade l\'ultima fortezza: il regno '+s.corona.nome+' è finito.','guerra');s.corona=null;
+  for(const k of Object.keys(s.guerra))if(k.split('|').includes('tu'))delete s.guerra[k];for(const k of Object.keys(s.alleanza||{}))if(k.split('|').includes('tu'))delete s.alleanza[k];
+  for(const sg of s.sig)if(sg.faz==='tu'||sg.comp){const p=part(s,sg.pid);if(sg.comp){if(p)rimuovi(s,p);sg.pid=-1;aggiungi(tu.tr,sg.comp,1);s.compagni[sg.comp]=-1;sg.faz='neu';sg.comp=null;sg.esilio=0;sg.esule=null}else daEsule(s,sg,p)}
+  for(const l of s.l)if(l.faz==='tu'&&l.sig>=0)l.sig=-1;s.ev.push({t:'corona-cade'})}
+ function confinanti(s){return D.REGNI.filter(f=>!s.cadute[f]&&s.l.some(l=>l.faz===f&&s.l.some(m=>m.faz==='tu'&&dist(l,m)<=D.REGNO.CONFINE)))}
+ // vittoria: tutte le capitali (le città) in mano tua con la corona, o del tuo re se sei vassallo; si scrive una volta sola e la partita continua
+ function vittoria(s){if(s.vinta)return;const cap=s.l.filter(l=>l.tipo==='citta');if(!cap.length)return;let come=null;
+  if(s.corona&&cap.every(l=>l.faz==='tu'))come='re';else if(s.servizio&&s.servizio.tipo==='vas'&&cap.every(l=>l.faz===s.servizio.faz))come='vassallo';
+  if(!come)return;s.vinta={g:giorno(s),come};L(s,come==='re'?'Tutte le capitali sono tue: '+s.corona.nome+' unifica le terre.':'Il tuo sovrano tiene tutte le capitali: le terre sono unite.','bene');s.ev.push({t:'vittoria',come})}
  function giornoNuovo(s){const r=rnd(s),tu=TU(s),g=giorno(s);
   if(s.torneo&&s.torneo.giorno<g)chiudiTorneo(s,'Il torneo di '+s.l[s.torneo.lid].nome+' è finito');
   // viveri
   if(!s.prigioniero){let serve=Math.ceil(uomini(tu)/6);const cibi=Object.keys(tu.merci).filter(m=>D.MERCI[m].cibo&&tu.merci[m]>0);let k=0;
    while(serve>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;serve--}}
-   const fame=serve>0,varia=cibi.length;let meta=50+abil(s,'comando')*2+somma(s,'morale')+varia*4+Math.min(20,s.slancio)-(fame?35:0)-Math.max(0,uomini(tu)-limite(s))*3;
+   const fame=serve>0,varia=cibi.length;let meta=50+abil(s,'comando')*2+somma(s,'morale')+varia*4+Math.min(20,s.slancio)-(fame?35:0)-Math.max(0,uomini(tu)-limite(s))*3-(s.corona&&s.corona.malc>=60?s.corona.malc/10:0);
    tu.mor=Math.round(tu.mor+(meta-tu.mor)*.3);s.slancio=Math.max(0,s.slancio-2);
    if(fame)L(s,'La compagnia non ha da mangiare: il morale crolla.','male');
    if(tu.mor<25&&uomini(tu)>1){const e=tu.tr.filter(e=>!D.TR[e.t].compagno).sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)[0];if(e){const k2=Math.max(1,Math.floor(e.n*.2));togliUomini(tu.tr,e.t,k2);L(s,k2+' uomini disertano nella notte.','male')}}
@@ -407,32 +434,40 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if((l.tipo==='citta'||l.tipo==='porto')&&l.carTorna&&g>=l.carTorna&&D.REGNI.includes(l.faz)){l.carTorna=0;nasceCarovana(s,l,r)}
    if(g%7===0)rinnova(s,l,r)}
   // signori: tasse e prigionieri che tornano
-  for(const p of s.p)if(p.k==='sig'){p.oro+=30;const sg=s.sig[p.sig];if(sg.prig&&sg.prig!=='tu'&&p.ia.t<=s.t)sg.prig=null}
+  for(const p of s.p.slice())if(p.k==='sig'){p.oro+=30;const sg=s.sig[p.sig];if(sg.prig&&sg.prig!=='tu'&&p.ia.t<=s.t)sg.prig=null;
+   if(p.faz==='neu'&&sg.esilio&&g>=sg.esilio){rimuovi(s,p);sg.pid=-1;sg.esule=null;if(sg.comp){aggiungi(tu.tr,sg.comp,1);s.compagni[sg.comp]=-1;L(s,sg.nome+' rientra nella compagnia.');sg.comp=null}}}
+  for(const l of s.l)if(l.faz==='tu'&&l.sig>=0){const sg=s.sig[l.sig],p=sg&&part(s,sg.pid);if(p)p.oro+=Math.round(renditaL(l)/7)}
   // predoni nuovi
   if(s.p.filter(p=>p.k==='pre').length<P.PRED_MAX-s.stat.covi*2&&r()<.7){const vivi=s.l.filter(l=>l.tipo==='covo'&&l.g.length);if(vivi.length){const c=vivi[Math.floor(r()*vivi.length)];nascePredoni(s,r,[c.x,c.y])}}
   {const x=r();s.meteo=x<.62?'sereno':x<.87?'pioggia':'nebbia'}
   if(g%7===0){const rv=s.p.find(p=>p.k==='riv');if(rv&&forza(rv)<420)for(const e of leva('mer',26,r))aggiungi(rv.tr,e.t,e.n)}
+  // regno (V4): il malcontento sale con i luoghi tenuti oltre il tetto; i confinanti che non hanno firmato l'alleanza ti dichiarano guerra alla scadenza
+  if(s.corona){const c=s.corona,R=D.REGNO,tenuti=s.l.filter(l=>l.faz==='tu'&&l.sig<0).length;c.malc=Math.max(0,Math.min(100,c.malc+(tenuti>R.TENUTI?(tenuti-R.TENUTI)*R.MALC_SU:-R.MALC_GIU)));
+   for(const f of Object.keys(c.minacce)){if(g<c.minacce[f])continue;delete c.minacce[f];if(!s.cadute[f]&&!inGuerra(s,'tu',f)&&!alleate(s,'tu',f)){s.guerra[chiave('tu',f)]=true;L(s,nomeF(s,f)+' dichiara guerra a '+c.nome+'.','guerra')}}}
   // diplomazia: ogni tanto una guerra finisce o comincia
   // alleanze (V3): finiscono solo dopo il preavviso e non prima del minimo; se un regno cade finiscono subito
   for(const k of Object.keys(s.alleanza||{})){const al=s.alleanza[k],x=k.split('|');
    if(s.cadute[x[0]]||s.cadute[x[1]])delete s.alleanza[k];
-   else if(al.rompe&&g>=al.rompe&&g>=al.da+D.DIPL.MIN){delete s.alleanza[k];L(s,D.FAZ[x[0]].breve+' e '+D.FAZ[x[1]].breve+' non sono più alleati.','guerra')}}
-  if(g%4===0){const vivi=D.REGNI.filter(f=>!s.cadute[f]),dom=dominante(s),X=D.DIPL.IA;for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]);
-    if(s.guerra[k]){if(r()<.16){faiPace(s,vivi[i],vivi[j]);L(s,D.FAZ[vivi[i]].breve+' e '+D.FAZ[vivi[j]].breve+' firmano la pace.','guerra')}}
-    else if(r()<(dom&&(dom.f===vivi[i]||dom.f===vivi[j])?X.GUERRA_DOM:.14)&&!s.alleanza[k]){s.guerra[k]=true;L(s,D.FAZ[vivi[i]].breve+' dichiara guerra a '+D.FAZ[vivi[j]].breve+'.','guerra')}}
-   // ogni tanto due regni liberi si alleano contro chi vince troppo; ogni tanto un'alleanza matura si scioglie, con preavviso
-   for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const a=vivi[i],b=vivi[j];if(alleatoDi(s,a)||alleatoDi(s,b)||inGuerra(s,a,b))continue;
+   else if(al.rompe&&g>=al.rompe&&g>=al.da+D.DIPL.MIN){delete s.alleanza[k];L(s,nomeF(s,x[0])+' e '+nomeF(s,x[1])+' non sono più alleati.','guerra')}}
+  if(g%4===0){const vivi=fazioni(s).filter(f=>viva(s,f)),reali=vivi.filter(f=>f!=='tu'),dom=dominante(s),X=D.DIPL.IA;for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]),amico=(vivi[i]==='tu'||vivi[j]==='tu')&&s.rel[vivi[i]==='tu'?vivi[j]:vivi[i]]>=D.REGNO.AMICO;
+    if(s.guerra[k]){if(r()<.16){faiPace(s,vivi[i],vivi[j]);L(s,nomeF(s,vivi[i])+' e '+nomeF(s,vivi[j])+' firmano la pace.','guerra')}}
+    else if(r()<(dom&&(dom.f===vivi[i]||dom.f===vivi[j])?X.GUERRA_DOM:.14)&&!s.alleanza[k]&&!amico){s.guerra[k]=true;L(s,nomeF(s,vivi[i])+' dichiara guerra a '+nomeF(s,vivi[j])+'.','guerra')}}
+   // ogni tanto due regni liberi si alleano contro chi vince troppo (mai a nome del tuo regno); ogni tanto un'alleanza matura si scioglie, con preavviso
+   for(let i=0;i<reali.length;i++)for(let j=i+1;j<reali.length;j++){const a=reali[i],b=reali[j];if(alleatoDi(s,a)||alleatoDi(s,b)||inGuerra(s,a,b))continue;
      const contro=dom&&a!==dom.f&&b!==dom.f?dom.f:vivi.find(c=>c!==a&&c!==b&&inGuerra(s,a,c)&&inGuerra(s,b,c));
-     if(contro&&r()<(dom&&contro===dom.f?X.ALLEANZA:X.FRONTE)){s.alleanza[chiave(a,b)]={da:g,rompe:0};scioglieScontri(s,a,b);L(s,D.FAZ[a].breve+' e '+D.FAZ[b].breve+' si alleano contro '+D.FAZ[contro].breve+'.','guerra')}}
-   for(const k of Object.keys(s.alleanza)){const al=s.alleanza[k];if(!al.rompe&&g>=al.da+D.DIPL.MIN&&r()<X.ROTTURA){const x=k.split('|');al.rompe=g+D.DIPL.PREAVVISO;L(s,D.FAZ[x[0]].breve+' e '+D.FAZ[x[1]].breve+' annunciano la fine dell\'alleanza.','guerra')}}}
+     if(contro&&r()<(dom&&contro===dom.f?X.ALLEANZA:X.FRONTE)){s.alleanza[chiave(a,b)]={da:g,rompe:0};scioglieScontri(s,a,b);L(s,nomeF(s,a)+' e '+nomeF(s,b)+' si alleano contro '+nomeF(s,contro)+'.','guerra')}}
+   for(const k of Object.keys(s.alleanza)){const al=s.alleanza[k];if(!al.rompe&&g>=al.da+D.DIPL.MIN&&r()<X.ROTTURA){const x=k.split('|');al.rompe=g+D.DIPL.PREAVVISO;L(s,nomeF(s,x[0])+' e '+nomeF(s,x[1])+' annunciano la fine dell\'alleanza.','guerra')}}}
   for(const f of D.REGNI)if(s.rel[f]<0&&g%3===0&&!(s.servizio&&inGuerra(s,s.servizio.faz,f)))s.rel[f]++;
   // incarichi scaduti
   for(const q of s.incarichi)if(!q.fatto&&!q.fallito&&g>q.scad){q.fallito=true;const l=s.l[q.da];l.inc=null;l.rel-=3;L(s,'Incarico scaduto: '+titoloInc(s,q)+'.','male')}
   s.incarichi=s.incarichi.filter(q=>!(q.fatto||q.fallito)||g-q.scad<3);
   // contratto da mercenario
   if(s.servizio&&s.servizio.tipo==='mer'&&g>=s.servizio.fino){L(s,'Il contratto con '+D.FAZ[s.servizio.faz].breve+' è finito.');s.servizio=null}
-  s.ev.push({t:'giorno',g})}
- function rendite(s){let x=0;for(const l of s.l)if(l.faz==='tu'||(s.servizio&&s.servizio.tipo==='vas'&&l.sig===-2))x+=l.tipo==='villaggio'?Math.round(l.prosp*2.5):l.tipo==='porto'?Math.round(l.prosp*3.5):l.tipo==='castello'?120:l.tipo==='citta'?Math.round(l.prosp*7):0;
+  vittoria(s);s.ev.push({t:'giorno',g})}
+ const renditaL=l=>l.tipo==='villaggio'?Math.round(l.prosp*2.5):l.tipo==='porto'?Math.round(l.prosp*3.5):l.tipo==='castello'?120:l.tipo==='citta'?Math.round(l.prosp*7):0;
+ // rendite: solo i luoghi che tieni (quelli dati in feudo rendono al signore) e, da vassallo, i feudi del re; il malcontento del regno le riduce
+ function rendite(s){let x=0;for(const l of s.l)if((l.faz==='tu'&&l.sig<0)||(s.servizio&&s.servizio.tipo==='vas'&&l.sig===-2))x+=renditaL(l);
+  if(s.corona&&s.corona.malc)x=Math.round(x*(1-s.corona.malc/200));
   if(s.servizio&&s.servizio.tipo==='mer')x+=Math.round(forza(TU(s))*.8);return x}
  // ---------- prigionia ----------
  function libera(s){const tu=TU(s),M=mappa(s.seme);let m=null,md=1e9;for(const l of s.l){if(l.faz!=='tu'&&nemiche(s,'tu',l.faz))continue;const d=dist(l,tu);if(d<md){md=d;m=l}}
@@ -440,7 +475,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  // ---------- incontri ----------
  const titoloInc=(s,q)=>q.tipo==='reliquia'?'Ripulire '+s.l[q.a].nome:q.tipo==='taglia'?'Taglia: '+s.l[q.a].nome:q.tipo==='predoni'?'Caccia ai predoni presso '+s.l[q.da].nome:q.tipo==='consegna'?q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome:q.n+' soldati per '+s.l[q.da].nome;
  function schieramenti(s){const inc=s.incontro,tu=TU(s);let nem=[],all=[],luogo=null;
-  if(inc.tipo==='assalto'){luogo=s.l[inc.lid];nem=s.p.filter(p=>p.dentro===luogo.id&&p.k==='sig')}
+  if(inc.tipo==='assalto'){luogo=s.l[inc.lid];nem=s.p.filter(p=>p.dentro===luogo.id&&p.k==='sig');all=s.p.filter(p=>p.k==='sig'&&p.faz==='tu'&&p.dentro<0&&!p.sc&&dist(p,luogo)<2)}
   else if(inc.tipo==='mischia'){const sc=s.scontri.find(x=>x.id===inc.sc);if(sc){const A=sc.a.map(id=>part(s,id)).filter(Boolean),B=sc.b.map(id=>part(s,id)).filter(Boolean);if(inc.lato==='a'){all=A;nem=B}else{all=B;nem=A}}}
   else{nem=inc.pid.map(id=>part(s,id)).filter(Boolean);all=(inc.all||[]).map(id=>part(s,id)).filter(Boolean)}
   return{nem,all,luogo}}
@@ -493,15 +528,34 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   for(let d=1;d<=3&&!scena.costa;d++){if(M.T[cella(M,tu.x+d,tu.y)]===0)scena.costa='e';else if(M.T[cella(M,tu.x-d,tu.y)]===0)scena.costa='o'}
   {let m=luogo,md=3.4;if(!m)for(const l of s.l){const d=dist(l,tu);if(d<md&&l.noto!==false){md=d;m=l}}if(m)scena.vicino={tipo:m.tipo,faz:m.faz}}
   return{seme:(s.rng^s.t)|0,tipo:luogo&&MURA[luogo.tipo]?'assedio':'campo',terreno:M.T[i],bioma:M.B[i],notte:notte(s),ora:(s.t%P.GIORNO)/60,scena,a,b,
-   faza:lato(s),fazb:luogo?luogo.faz:nem[0]?nem[0].faz:'pre',noma:s.nome,nomb:luogo?luogo.nome:nem.map(p=>p.nome).join(', '),
+   faza:lato(s),fazb:luogo?luogo.faz:nem[0]?nem[0].faz:'pre',cola:colFaz(s,lato(s)),colb:colFaz(s,luogo?luogo.faz:nem[0]?nem[0].faz:'pre'),noma:s.nome,nomb:luogo?luogo.nome:nem.map(p=>p.nome).join(', '),
    cap:cs[0],capi:cs,morale:tu.mor}}
+ // aggredire gente di un regno: l'opinione crolla e, con la corona, è guerra (cade l'eventuale alleanza)
+ function inimica(s,f){relaz(s,f,Math.min(-30-s.rel[f],-30));if(s.corona){delete s.alleanza[chiave('tu',f)];s.guerra[chiave('tu',f)]=true;delete s.corona.minacce[f]}}
+ // lealtà di un signore che valuta di passare a te in cambio del feudo `lid`: un conto con i fattori in chiaro, senza dadi ({f,tot,ok} oppure {err})
+ function lealta(s,sid,lid){const sg=s.sig[sid],l=s.l[lid],P2=D.REGNO.PASSA;
+  if(!s.corona)return{err:'Non hai un regno'};if(!sg||sg.faz==='tu')return{err:'Non è un signore da convincere'};if(sg.re)return{err:'Un sovrano non si piega così'};
+  if(!l||l.faz!=='tu'||l.sig>=0)return{err:'Serve un tuo luogo tenuto da offrire in feudo'};if(l.id===s.corona.sede)return{err:'La sede del regno resta tua'};
+  const f=[],ag=(n,v)=>{v=Math.round(v*10)/10;if(v)f.push({n,v})},t=D.TRATTI[sg.tratto],reg=D.REGNI.includes(sg.faz);
+  ag('Giuramento al suo signore',P2.BASE);if(sg.faz==='neu'&&sg.esule)ag('Senza più patria',P2.ESULE);if(t)ag('Indole ('+t.nome+')',t.passa||0);
+  ag('Amicizia personale',(sg.am||0)/P2.AMICIZIA);ag('Fama della compagnia',Math.min(s.fama,P2.FAMA_MAX)/P2.FAMA);
+  if(reg&&s.l.filter(x=>x.faz===sg.faz&&MURA[x.tipo]).length<=2)ag('Il suo regno è debole',P2.DEBOLE);if(reg&&inGuerra(s,sg.faz,'tu'))ag('In guerra col tuo regno',P2.GUERRA);
+  ag('Il feudo offerto ('+l.tipo+')',P2.FEUDO[l.tipo]||0);
+  const tot=Math.round(f.reduce((x,y)=>x+y.v,0)*10)/10;return{f,tot,ok:tot>=0}}
+ function daiFeudo(s,l,sid){l.sig=sid;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo])v.sig=sid}
+ // un signore passa a te nell'incontro: i suoi luoghi restano senza signore, lui prende il feudo offerto e porta con sé le sue truppe
+ function passaA(s,p,lid){const sg=p.k==='sig'?s.sig[p.sig]:null;if(!sg)return{err:'Non è un signore'};const R=lealta(s,sg.id,lid);if(R.err)return R;if(!R.ok)return{err:sg.nome+' rifiuta: il conto dà '+R.tot+' (serve 0)'};
+  const l=s.l[lid],vecchia=sg.faz;sg.cult=sg.cult||(D.REGNI.includes(vecchia)?vecchia:sg.esule||vecchia);for(const x of s.l)if(x.sig===sg.id)x.sig=-1;
+  sg.faz=p.faz='tu';sg.esule=null;sg.esilio=0;sg.casa=lid;daiFeudo(s,l,sg.id);p.via=[];p.fermo=0;p.ia={st:'giro',t:0};if(D.REGNI.includes(vecchia))relaz(s,vecchia,-15);
+  L(s,sg.nome+' giura a '+s.corona.nome+' e riceve '+l.nome+'.','bene');s.ev.push({t:'passa',sid:sg.id});s.incontro=null;return{s}}
  function scegli(s,v){const inc=s.incontro,tu=TU(s),r=rnd(s);if(!inc)return{err:'Nessun incontro'};
-  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))relaz(s,p.faz,Math.min(-30-s.rel[p.faz],-30));inc.pronto=true;return{s}}
+  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))inimica(s,p.faz);inc.pronto=true;return{s}}
    if(v==='lascia'){s.incontro=null;return{s}}if(!inc.pronto)return{err:'Scegli con chi stare'}}
   if(inc.tipo==='parla'){const p=part(s,inc.pid[0]);if(v==='lascia'||!p){s.incontro=null;return{s}}
    if(v==='notizie'){if(inc.detto)return{err:'Non ha altro da dirti'};inc.detto=1;const x=s.l.filter(l=>l.noto===false&&l.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
     if(x){x.noto=true;inc.voce='«Si parla di '+x.nome+': '+(x.tipo==='covo'?'un nido di predoni':'pietre antiche, e chi ci va non sempre torna')+'. Te lo segno sulla mappa.»'}else inc.voce='«Niente che tu non sappia già, capitano.»';return{s}}
-   if(v==='aggredisci'){if(D.REGNI.includes(p.faz)){relaz(s,p.faz,Math.min(-30-s.rel[p.faz],-30));L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
+   if(v.slice(0,6)==='passa:')return passaA(s,p,+v.slice(6));
+   if(v==='aggredisci'){if(D.REGNI.includes(p.faz)){inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
   if(inc.tipo==='assalto'&&v==='togli'){s.assedio=null;s.incontro=null;if(s.dentro!==inc.lid)s.davanti=inc.lid;return{s}}
   if(v==='attacca'||v==='auto')return{s,campo:campo(s)};
   if(inc.tipo==='nemico'){const{nem}=schieramenti(s),capo=nem[0];
@@ -525,13 +579,13 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
     for(const q of s.incarichi)if(q.tipo==='predoni'&&q.pid===p.id&&!q.fatto){q.fatto=true;const l=s.l[q.da];tu.oro+=q.premio;l.rel+=8;l.inc=null;relaz(s,l.faz,2);s.fama+=3;L(s,'Predoni dispersi: '+l.nome+' vi paga '+q.premio+' monete.','bene')}
     if(p.k==='sig'&&r()<.3){const B=D.BOTTEGA[p.faz];if(B)dona(B[Math.floor(r()*B.length)])}
     if(p.k==='riv'&&!s.rivVinta){s.rivVinta=giorno(s);dona(D.RIVALE.premio);s.fama+=15;L(s,'La Volpe Rossa vi lascia il campo, e la sua cavalla.','bene')}
-    if(p.k==='sig'){const preso=r()<.5;sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
+    if(p.k==='sig'){const preso=r()<.5;sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
     else{if(p.porta){out.bottino.push([p.porta.m,p.porta.q]);tu.merci[p.porta.m]=(tu.merci[p.porta.m]||0)+p.porta.q}sconfitta(s,p,'tu')}
     if(era==='pre'){for(const l of s.l)if(l.tipo==='villaggio'&&dist(l,tu)<6)l.rel+=1}}
    out.oro+=Math.round(valUcc*.4);out.oro=Math.round(out.oro*(1+somma(s,'bottino')));tu.oro+=out.oro;
    // esperienza alle truppe rimaste, in proporzione
    const tot=uomini(tu)||1;for(const e of tu.tr)if(D.TR[e.t].su.length){e.xp=(e.xp||0)+valUcc*.9*e.n/tot;if(e.xp>=D.XP_SU[D.TR[e.t].t])out.promo=true}
-   for(const p of all){p.sc=0;if(D.REGNI.includes(p.faz))relaz(s,p.faz,3)}
+   for(const p of all){p.sc=0;if(D.REGNI.includes(p.faz))relaz(s,p.faz,3);if(p.k==='sig'&&s.sig[p.sig])s.sig[p.sig].am=(s.sig[p.sig].am||0)+4}
    if(luogo&&SITO[luogo.tipo]){const covo=luogo.tipo==='covo';luogo.g=[];luogo.vinto=giorno(s);if(luogo.tesoro){dona(luogo.tesoro);luogo.tesoro=null}s.stat[covo?'covi':'rovine']++;const pr=covo?260:120;tu.oro+=pr;out.oro+=pr;s.fama+=covo?12:6;out.fama+=covo?12:6;
     L(s,covo?luogo.nome+' è in cenere: le strade respirano.':'Le rovine tacciono. Quel che custodivano è vostro.','bene');if(covo)s.davanti=-1;
     for(const q of s.incarichi)if((q.tipo==='reliquia'||q.tipo==='taglia')&&q.a===luogo.id&&!q.fatto&&!q.fallito){q.fatto=true;tu.oro+=q.premio;out.oro+=q.premio;const da=s.l[q.da];da.inc=null;da.rel+=8;s.fama+=5;L(s,'Incarico compiuto: '+q.premio+' monete da '+da.nome+'.','bene')}}
@@ -554,9 +608,44 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  // risoluzione automatica: gioca la battaglia col motore del campo, senza grafica (VCAM è nel file dopo: esiste a runtime)
  function auto(s){const c=campo(s);if(!c)return{err:'Nessun incontro'};return esito(s,VCAM.risolvi(c))}
  // ---------- azioni nei luoghi ----------
+ // regno (V4): fondare un regno nella propria fortezza (città o castello tuo, fama e monete) e le prime mosse dei confinanti
+ function fondaRegno(s,z,l,dentro,mio){const R=D.REGNO,tu=TU(s),r=rnd(s),g=giorno(s);
+  if(s.corona)return{err:'Hai già un regno'};if(s.servizio)return{err:'Prima sciogli il tuo legame'};
+  if(!dentro||!mio||l.faz!=='tu'||(l.tipo!=='citta'&&l.tipo!=='castello'))return{err:'Serve una tua città o un tuo castello, e devi essere dentro'};
+  if(s.fama<R.FAMA)return{err:'Serve fama '+R.FAMA};if(tu.oro<R.ORO)return{err:'Servono '+R.ORO+' monete'};
+  const nome=String(z.nome==null?'':z.nome).trim().slice(0,24);if(!nome)return{err:'Dai un nome al regno'};const st=z.stend==null?0:z.stend|0;if(!(st>=0&&st<R.STENDARDI.length))return{err:'Stendardo sconosciuto'};
+  tu.oro-=R.ORO;s.corona={nome,stend:st,da:g,sede:l.id,malc:0,minacce:{}};const conf=confinanti(s);
+  for(const f of D.REGNI){if(s.cadute[f])continue;const vic=conf.includes(f);
+   if(vic&&s.rel[f]>=R.AMICO){relaz(s,f,5);L(s,nomeF(s,f)+' propone pace a '+nome+'.','bene')}
+   else if(s.rel[f]<=-25){s.guerra[chiave('tu',f)]=true;L(s,nomeF(s,f)+' ti dichiara guerra.','guerra')}
+   else if(vic)s.corona.minacce[f]=g+1+Math.floor(r()*R.GUERRA_ENTRO)}
+  L(s,'Fondi il regno «'+nome+'»: '+l.nome+' ne è la sede.','bene');s.ev.push({t:'regno'});return{s}}
+ // le azioni del sovrano, valide ovunque: feudi (sid=-2: lo tieni tu), compagni investiti, adunata dei signori, guerra e rottura di un'alleanza
+ function faiRegno(s,z){const tu=TU(s),g=giorno(s),R=D.REGNO,r=rnd(s);
+  if(z.a==='feudo'){const l=s.l[z.lid];if(!l||l.faz!=='tu')return{err:'Non è un luogo tuo'};if(l.id===s.corona.sede)return{err:'La sede del regno resta tua'};
+   if(l.capo>=0&&!MURA[l.tipo]&&s.l[l.capo].faz==='tu')return{err:'Va dato insieme alla sua fortezza'};
+   const sid=z.sid==null?-2:z.sid|0;let sg=null;if(sid>=0){sg=s.sig[sid];if(!sg||sg.faz!=='tu')return{err:'Non è un tuo signore'}}else if(sid!==-2)return{err:'Signore sconosciuto'};
+   const prima=l.sig>=0?l.sig:-1;if(prima===sid||(prima<0&&sid===-2))return{err:'È già così'};
+   daiFeudo(s,l,sid);if(prima>=0)perdeFeudo(s,prima);L(s,sg?l.nome+' va in feudo a '+sg.nome+'.':l.nome+' resta in mano tua.','bene');return{s}}
+  if(z.a==='investi'){const l=s.l[z.lid],T=D.TR[z.t],e=tu.tr.find(e=>e.t===z.t);if(!T||!T.compagno)return{err:'Non è un compagno'};if(!e||e.n<1)return{err:'Il compagno non è con te'};
+   if(!l||l.faz!=='tu'||l.sig>=0)return{err:'Serve un tuo luogo tenuto'};if(l.id===s.corona.sede)return{err:'La sede del regno resta tua'};
+   const co=D.COMPAGNI.find(x=>x.id===z.t),cult=M0(s,l);togliUomini(tu.tr,z.t,1);
+   const sg={id:s.sig.length,nome:co.nome,faz:'tu',casa:l.id,pid:-1,prig:null,torna:0,re:false,tratto:D.TRATTI_ID[s.sig.length%D.TRATTI_ID.length],cult,comp:co.id};s.sig.push(sg);
+   const p=nuovaP(s,'sig','tu',co.nome,l.x,l.y,leva(cult,R.TRUPPE_COMP,r),{oro:150,sig:sg.id,dentro:l.id});sg.pid=p.id;daiFeudo(s,l,sg.id);s.compagni[co.id]=-3;
+   L(s,co.nome+' è investito di '+l.nome+': ora è signore.','bene');return{s}}
+  if(z.a==='aduna'){let n=0;for(const p of s.p)if(p.k==='sig'&&p.faz==='tu'){p.dentro=-1;p.via=[];p.ia={st:'adunata',t:0,fine:s.t+R.ADUNATA*P.GIORNO};n++}
+   if(!n)return{err:'Non hai signori'};L(s,'Chiami a raccolta i tuoi signori: ti raggiungeranno ('+n+').');return{s}}
+  if(z.a==='dichiara'){const f=z.f;if(!D.REGNI.includes(f)||s.cadute[f])return{err:'Regno sconosciuto'};if(inGuerra(s,'tu',f))return{err:'Siete già in guerra'};if(alleate(s,'tu',f))return{err:'Sono tuoi alleati: rompi prima l\'alleanza'};
+   s.guerra[chiave('tu',f)]=true;delete s.corona.minacce[f];relaz(s,f,-10);L(s,'Dichiari guerra a '+nomeF(s,f)+'.','guerra');return{s}}
+  if(z.a==='rompi'){const al=s.alleanza&&s.alleanza[chiave('tu',z.f)];if(!al)return{err:'Non siete alleati'};if(al.rompe)return{err:'La rottura è già annunciata'};
+   al.rompe=Math.max(g+D.DIPL.PREAVVISO,al.da+D.DIPL.MIN);L(s,'Annunci la rottura dell\'alleanza con '+nomeF(s,z.f)+': finirà il giorno '+al.rompe+'.','guerra');return{s}}
+  return{err:'Azione sconosciuta'}}
+ // tolto l'ultimo feudo, il signore diventa esule
+ function perdeFeudo(s,sid){if(s.l.some(l=>l.faz==='tu'&&l.sig===sid))return;const sg=s.sig[sid],p=sg&&part(s,sg.pid);if(!sg)return;daEsule(s,sg,p);L(s,sg.nome+' resta senza feudo e se ne va in esilio.','male')}
  function fai(s,z){const tu=TU(s),r=rnd(s),lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null,c=capDi(s,z.seat);if(!c)return{err:'Capitano sconosciuto'};
   if(s.incontro&&s.incontro.tipo==='arena'&&!['ritira','equipa','togli','abilita'].includes(z.a))return{err:'Il duello ti aspetta'};
   // sempre possibili
+  if(['feudo','investi','aduna','dichiara','rompi'].includes(z.a)){if(!s.corona)return{err:'Non hai un regno'};return faiRegno(s,z)}
   if(z.a==='abilita'){if(c.punti<1)return{err:'Nessun punto da spendere'};if(!(z.k in c.ab))return{err:'Abilità sconosciuta'};if(c.ab[z.k]>=10)return{err:'Già al massimo'};c.ab[z.k]++;c.punti--;return{s}}
   if(z.a==='promuovi'){const e=tu.tr.find(e=>e.t===z.t),T=e&&D.TR[e.t];if(!e||!T.su.includes(z.su))return{err:'Promozione non valida'};const n=Math.max(1,z.n||1),xp=D.XP_SU[T.t]*n,oro=D.PROMO[T.t]*n;
    if(e.n<n)return{err:'Non hai abbastanza uomini'};if((e.xp||0)<xp)return{err:'Non hanno ancora abbastanza esperienza'};if(tu.oro<oro)return{err:'Servono '+oro+' monete'};
@@ -572,6 +661,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if(z.slot==='arma'||z.slot==='armatura')return{err:'Senza non si va in battaglia: scambiala con un\'altra'};if(!eq[z.slot])return{err:'Niente da togliere'};tu.zaino.push(eq[z.slot]);eq[z.slot]=null;return{s}}
   if(!l)return{err:'Devi essere in un luogo'};
   const dentro=s.dentro>=0,ost=l.faz!=='tu'&&nemiche(s,'tu',l.faz),mio=l.faz==='tu'||(l.sig===-2);
+  if(z.a==='fonda')return fondaRegno(s,z,l,dentro,mio);
   if(z.a==='assalta'){if(!SITO[l.tipo])return{err:'Qui non c\'è nulla da assaltare'};if(!l.g.length)return{err:'Non c\'è più nessuno'};s.incontro={tipo:'assalto',lid:l.id};s.ev.push({t:'incontro'});return{s}}
   if(z.a==='assedia'){if(!ost||!MURA[l.tipo])return{err:'Non si può assediare'};s.assedio={lid:l.id,pronto:s.t+Math.max(4,P.ASSEDIO_ORE-abil(s,'comando'))*60};tu.ord={t:'aspetta',fino:s.assedio.pronto+60};L(s,'Cingete d\'assedio '+l.nome+': scale e arieti saranno pronti tra qualche ora.','guerra');return{s}}
   if(z.a==='razzia'){if(!ost||l.tipo!=='villaggio')return{err:'Non si può razziare'};if(l.sacc>giorno(s))return{err:'Non è rimasto nulla da prendere'};const oro=60+Math.round(l.prosp*2.2);tu.oro+=oro;tu.merci.grano=(tu.merci.grano||0)+6;
@@ -611,29 +701,29 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    else{let k=q.n;const buoni=tu.tr.filter(e=>D.TR[e.t].t>=2&&!D.TR[e.t].compagno&&!D.TR[e.t].faz.startsWith('mer'));if(buoni.reduce((a,e)=>a+e.n,0)<k)return{err:'Servono '+q.n+' soldati addestrati (non reclute)'};
     for(const e of buoni.sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)){const x=Math.min(k,e.n);aggiungi(l.g,e.t,x);togliUomini(tu.tr,e.t,x);k-=x;if(!k)break}}
    q.fatto=true;tu.oro+=q.premio;da.inc=null;da.rel+=6;relaz(s,da.faz,4);s.fama+=4;L(s,'Incarico compiuto: '+q.premio+' monete.','bene');return{s,oro:q.premio}}
-  if(z.a==='contratto'){if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi firma'};if(s.servizio)return{err:'Servi già un regno'};if(s.fama<P.FAMA_CONTRATTO)return{err:'Serve fama '+P.FAMA_CONTRATTO};if(s.rel[l.faz]<0)return{err:'Non si fidano di te'};
+  if(z.a==='contratto'){if(s.corona)return{err:'Un sovrano non serve nessuno'};if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi firma'};if(s.servizio)return{err:'Servi già un regno'};if(s.fama<P.FAMA_CONTRATTO)return{err:'Serve fama '+P.FAMA_CONTRATTO};if(s.rel[l.faz]<0)return{err:'Non si fidano di te'};
    s.servizio={faz:l.faz,tipo:'mer',fino:giorno(s)+28};L(s,'Firmi un contratto di ventura con '+D.FAZ[l.faz].nome+': quattro settimane di soldo.','bene');return{s}}
-  if(z.a==='giura'){if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi riceve giuramenti'};if(s.servizio&&s.servizio.tipo==='vas')return{err:'Hai già un sovrano'};if(s.fama<P.FAMA_VASSALLO)return{err:'Serve fama '+P.FAMA_VASSALLO};if(s.rel[l.faz]<10)return{err:'Serve più amicizia col regno'};
+  if(z.a==='giura'){if(s.corona)return{err:'Un sovrano non serve nessuno'};if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi riceve giuramenti'};if(s.servizio&&s.servizio.tipo==='vas')return{err:'Hai già un sovrano'};if(s.fama<P.FAMA_VASSALLO)return{err:'Serve fama '+P.FAMA_VASSALLO};if(s.rel[l.faz]<10)return{err:'Serve più amicizia col regno'};
    if(s.l.some(x=>x.faz==='tu'))return{err:'Chi ha terre proprie non giura'};s.servizio={faz:l.faz,tipo:'vas'};const v=s.l.filter(x=>x.faz===l.faz&&x.tipo==='villaggio'&&x.sig!==-2).sort((a,b)=>a.prosp-b.prosp)[0];if(v){v.sig=-2;L(s,'Giuri fedeltà a '+D.FAZ[l.faz].re+': ti è dato in feudo '+v.nome+'.','bene')}return{s}}
   if(z.a==='lascia'){if(!s.servizio)return{err:'Non servi nessuno'};const f=s.servizio.faz;relaz(s,f,s.servizio.tipo==='vas'?-30:-8);for(const x of s.l)if(x.sig===-2&&x.faz===f)x.sig=x.capo>=0?s.l[x.capo].sig:-1;s.servizio=null;L(s,'Sciogli il tuo legame con '+D.FAZ[f].breve+'.');return{s}}
   if(z.a==='proponi'){const a=l.faz;if(!D.REGNI.includes(a)||l.tipo!=='citta')return{err:'Solo il re, nella sua capitale'};if(!dentro)return{err:'Devi essere dentro le mura'};
-   const b=z.f,p=proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=D.FAZ[b].breve;
+   const b=s.corona&&!s.servizio?'tu':z.f,p=proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=nomeF(s,b);
    if(!p.ok)return{err:D.FAZ[a].re+' rifiuta: il conto dà '+p.tot+' (serve 0)'};
    if(z.tipo==='pace'){faiPace(s,a,b);relaz(s,a,3);L(s,'Per le tue parole '+A+' e '+B+' firmano la pace.','bene')}
    else if(z.tipo==='alleanza'){s.alleanza=s.alleanza||{};s.alleanza[k]={da:g,rompe:0};scioglieScontri(s,a,b);relaz(s,a,2);L(s,A+' e '+B+' stringono un\'alleanza, per le tue parole.','bene')}
    else if(z.tipo==='guerra'){s.guerra[k]=true;relaz(s,b,-10);L(s,A+' dichiara guerra a '+B+', su tua richiesta.','guerra')}
    else{const al=s.alleanza[k];al.rompe=Math.max(g+D.DIPL.PREAVVISO,al.da+D.DIPL.MIN);L(s,A+' annuncia la rottura dell\'alleanza con '+B+': finirà il giorno '+al.rompe+'.','guerra')}
    (s.parola=s.parola||{})[a]=g+D.DIPL.ATTESA;return{s}}
-  if(z.a==='pace'){const f=l.faz;if(!D.REGNI.includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||s.rel[con]>-25)return{err:'Non siete in guerra'};const oro=400+Math.round(-s.rel[con]*6);if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=-5;L(s,'Paghi un tributo di '+oro+' monete: pace con '+D.FAZ[con].breve+'.');return{s}}
+  if(z.a==='pace'){const f=l.faz;if(!D.REGNI.includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||(s.corona?!inGuerra(s,'tu',con):s.rel[con]>-25))return{err:'Non siete in guerra'};const oro=400+Math.max(0,Math.round(-s.rel[con]*6));if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=Math.max(s.rel[con],-5);if(s.corona)faiPace(s,'tu',con);L(s,'Paghi un tributo di '+oro+' monete: pace con '+D.FAZ[con].breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
  const M0=(s,l)=>D.REGNI[mappa(s.seme).R[cella(mappa(s.seme),l.x,l.y)]];
  // traguardi: danno una direzione senza imporre una trama
  function traguardi(s){const mie=s.l.filter(l=>l.faz==='tu'||l.sig===-2);return[
   ['Venti uomini sotto lo stendardo',uomini(TU(s))>=20],['Fama 25: un contratto di ventura',s.fama>=25],['Cinque battaglie vinte',s.stat.vinte>=5],
-  ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Un covo di predoni stanato',s.stat.covi>0],['Un cimelio unico',capi(s).some(c=>indossa(c).some(o=>o.q===4))||TU(s).zaino.some(id=>D.OGG[id]&&D.OGG[id].q===4)],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>MURA[l.tipo])],['Un regno caduto',Object.keys(s.cadute).length>0]]}
+  ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Un covo di predoni stanato',s.stat.covi>0],['Un cimelio unico',capi(s).some(c=>indossa(c).some(o=>o.q===4))||TU(s).zaino.some(id=>D.OGG[id]&&D.OGG[id].q===4)],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>MURA[l.tipo])],['Un regno caduto',Object.keys(s.cadute).length>0],['Un regno tuo',!!s.corona||!!s.vinta],['Tutte le capitali',!!s.vinta]]}
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
  function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};s.ev=[];mappa(s.seme);return s}catch(e){return null}}
  return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,prezzoOgg,migra,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,torneoOggi,tornei,quando,premioTorneo,avversariTorneo,statArena,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
-  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap}})();
+  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap,fazioni,nomeF,colFaz,renditaL,lealta,confinanti,vittoria,conquista}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

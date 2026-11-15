@@ -19,7 +19,7 @@ const VCAM=(()=>{
   return[(col-(inRiga-1)/2)*passo,riga*passo]}
  function nuovo(scheda,o){o=o||{};const s={v:1,t:0,rng:ADADI.semina(scheda.seme||1),seme0:scheda.seme||1,scena:scheda.scena||null,ora:scheda.ora==null?-1:scheda.ora,meteo:(scheda.scena&&scheda.scena.meteo)||'sereno',W:C.W,H:C.H,tipo:scheda.tipo||'campo',terreno:scheda.terreno||1,bioma:scheda.bioma||0,notte:!!scheda.notte,u:[],uid:1,
    ris:{a:[],b:[]},ord:{a:{},b:{}},voli:[],ev:[],fine:null,cad:{},fug:{a:0,b:0},n0:{a:0,b:0},v0:{a:0,b:0},autoA:!!o.autoA,cap:-1,capi:[],ko:[],capKo:false,grido:0,gridi:[],
-   faza:scheda.faza,fazb:scheda.fazb,noma:scheda.noma,nomb:scheda.nomb,ia:{a:{f:0},b:{f:0}},muro:scheda.tipo==='assedio'?C.MURO:0,varchi:scheda.tipo==='assedio'?[[14,19],[41,46]]:[]};
+   faza:scheda.faza,fazb:scheda.fazb,cola:scheda.cola,colb:scheda.colb,noma:scheda.noma,nomb:scheda.nomb,ia:{a:{f:0},b:{f:0}},muro:scheda.tipo==='assedio'?C.MURO:0,varchi:scheda.tipo==='assedio'?[[14,19],[41,46]]:[]};
   s.r=ADADI.gen(s);
   for(const l of['a','b']){const righe=(scheda[l]||[]).map(x=>({p:x.p,t:x.t,n:x.n,st:x.st})).sort((x,y)=>D.TR[y.t].t-D.TR[x.t].t);
    for(const x of righe){s.n0[l]+=x.n;s.v0[l]+=x.n*D.valore(x.t)}

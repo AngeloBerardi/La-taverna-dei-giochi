@@ -1,10 +1,13 @@
 // Bot della Compagnia di ventura: un capitano accorto (recluta, commercia, promuove, caccia solo chi può battere)
 // e uno sconsiderato (ordini a caso, attacca chiunque). Usati da test_ven_mondo.js e da tools/avventura/ventura.js.
+// Opzione `{regno:true}` del capitano accorto (V4): da fama 120 niente contratti; con fama 150 e monete sceglie il castello più debole, se non è ostile
+// aggredisce un signore di quel regno, lo assedia, entra e fonda un regno.
 module.exports = function (VEN, VDAT) {
   const TU = s => VEN.TU(s);
   const forzaNemici = s => { const { nem, luogo } = VEN.schieramenti(s); return nem.reduce((a, p) => a + VEN.forza(p), 0) + (luogo ? VEN.forzaTr(luogo.g) * (VEN.MURA[luogo.tipo] ? VEN.P.MURA : 1) : 0); };
-  function incontro(s, bravo, r) {
+  function incontro(s, bravo, r, reg) {
     const inc = s.incontro;
+    if (reg && inc.tipo === 'parla' && reg.fase) { const p = VEN.part(s, inc.pid[0]), c = s.l[reg.t]; if (p && c && p.k === 'sig' && p.faz === c.faz && !VEN.nemiche(s, 'tu', p.faz)) return VEN.scegli(s, 'aggredisci'); }
     if (inc.tipo === 'parla') return VEN.scegli(s, bravo ? 'lascia' : (r() < .5 ? 'aggredisci' : 'lascia'));
     if (inc.tipo === 'mischia') { if (bravo) return VEN.scegli(s, 'lascia'); VEN.scegli(s, r() < .5 ? 'a' : 'b'); return VEN.auto(s); }
     if (inc.tipo === 'assalto') return VEN.auto(s);
@@ -15,8 +18,22 @@ module.exports = function (VEN, VDAT) {
     const y = VEN.scegli(s, 'fuggi'); if (!y.err) return y;
     return VEN.auto(s);
   }
-  function luogo(s, bravo, r) {
+  // il castello più debole che la compagnia può prendere (guarnigione con le mura e signori dentro), meglio se vicino
+  function bersaglio(s) {
+    const tu = TU(s); let m = null, mv = 1e9, md = 0;
+    for (const l of s.l) {
+      if (l.tipo !== 'castello' || !VDAT.REGNI.includes(l.faz) || l.ass) continue;
+      const dif = VEN.forzaTr(l.g) * VEN.P.MURA + s.p.filter(p => p.k === 'sig' && p.dentro === l.id).reduce((a, p) => a + VEN.forza(p), 0), d = VEN.dist(l, tu), v = dif + (d > 40 ? 5000 : 0) + d * 2;
+      if (v < mv) { mv = v; m = l; md = dif; }
+    }
+    return m && VEN.forza(tu) >= md * 1.5 ? m : null;
+  }
+  function luogo(s, bravo, r, reg) {
     const l = s.l[s.dentro], tu = TU(s), fai = z => VEN.fai(s, z);
+    if (bravo && reg && !s.corona) {
+      if (s.servizio && s.fama >= 120) fai({ a: 'lascia' });
+      if (reg.fase === 'assedio' && l.faz === 'tu' && !s.servizio && !fai({ a: 'fonda', nome: 'Regno del Capitano', stend: 3 }).err) reg.fase = 'fatto';
+    }
     if (!bravo) { // a caso
       const az = [{ a: 'recluta', n: 1 }, { a: 'compra', m: 'spezie', n: 1 }, { a: 'vendi', m: 'grano', n: 2 }, { a: 'incarico' }, { a: 'riposa' }, { a: 'compra', m: 'velluto', n: 1 }];
       for (let k = 0; k < 3; k++) fai(az[Math.floor(r() * az.length)]);
@@ -42,7 +59,7 @@ module.exports = function (VEN, VDAT) {
       for (const e of l.merc.slice()) { let g = 0; while (g++ < 6 && tu.oro > 500 && !fai({ a: 'assolda', t: e.t, n: 1 }).err); }
       // commercio: compra a buon mercato ciò che qui si produce
       for (const m of Object.keys(VDAT.MERCI)) { if (VDAT.MERCI[m].cibo) continue; let g = 0; while (g++ < 8 && tu.oro > 260 && VEN.carico(tu) < VEN.caricoMax(s) - 2 && VEN.prezzo(s, l, m, 1) <= VDAT.MERCI[m].base * .75 && !fai({ a: 'compra', m, n: 1 }).err); }
-      if (!s.servizio && s.fama >= VEN.P.FAMA_CONTRATTO) fai({ a: 'contratto' });
+      if (!s.servizio && s.fama >= VEN.P.FAMA_CONTRATTO && !s.corona && !(reg && s.fama >= 120)) fai({ a: 'contratto' });
       // torneo: se oggi c'è, il capitano è già forte e le monete avanzano, si iscrive; con poco livello si ritira dopo la prima vittoria
       if (VEN.torneoOggi(s, l) && !s.torneo && s.cap.liv >= 3 && tu.oro >= VDAT.TORNEO.posta * s.cap.liv + 250 && !fai({ a: 'torneo' }).err) {
         while (s.torneo) {
@@ -60,13 +77,23 @@ module.exports = function (VEN, VDAT) {
     if (tu.tr.reduce((a, e) => a + (e.f || 0), 0) > VEN.uomini(tu) * .4) { if (!fai({ a: 'riposa' }).err) return; }
     return fai({ a: 'esci' });
   }
-  function viaggia(s, bravo, r, mem) {
+  function viaggia(s, bravo, r, mem, reg) {
     const tu = TU(s), mia = VEN.forza(tu);
     if (!bravo) {
       const tn = VEN.tornei(s)[0]; if (tn.giorni <= 1 && r() < .8 && !VEN.nemiche(s, 'tu', s.l[tn.lid].faz)) return VEN.ordina(s, { t: 'entra', lid: tn.lid });
       const vis = VEN.visibili(s);
       if (vis.length && r() < .6) return VEN.ordina(s, { t: 'segui', pid: vis[Math.floor(r() * vis.length)].id });
       return VEN.ordina(s, { t: 'entra', lid: Math.floor(r() * s.l.length) });
+    }
+    if (reg && !s.corona && !s.servizio) {
+      if (!reg.fase && s.fama >= 150 && tu.oro >= 5200) { const c = bersaglio(s); if (c) { reg.fase = 'prep'; reg.t = c.id; } }
+      if (reg.fase === 'prep' || reg.fase === 'ostile' || reg.fase === 'assedio') {
+        const c = s.l[reg.t];
+        if (c.faz === 'tu' || VEN.nemiche(s, 'tu', c.faz)) { if (c.faz !== 'tu') reg.fase = 'assedio'; return VEN.ordina(s, { t: 'entra', lid: c.id }); }
+        reg.fase = 'ostile'; if (++reg.n > 60) { reg.fase = 'fatto'; } else {
+          const lord = VEN.visibili(s).filter(p => p.k === 'sig' && p.faz === c.faz && VEN.forza(p) * 1.3 < mia).sort((a, b) => VEN.dist(a, tu) - VEN.dist(b, tu))[0];
+          return VEN.ordina(s, lord ? { t: 'segui', pid: lord.id } : { t: 'entra', lid: c.id }); }
+      }
     }
     const prede = VEN.visibili(s).filter(p => VEN.ostile(s, p, tu) && VEN.forza(p) * 1.25 < mia).sort((a, b) => VEN.dist(a, tu) - VEN.dist(b, tu));
     if (prede.length && VEN.sani(tu) >= VEN.uomini(tu) * .6) return VEN.ordina(s, { t: 'segui', pid: prede[0].id });
@@ -83,16 +110,19 @@ module.exports = function (VEN, VDAT) {
     return VEN.ordina(s, { t: 'entra', lid: m.id });
   }
   // gioca `giorni` giorni e restituisce lo stato
-  return function gioca(s, giorni, bravo, r) {
-    const fine = s.t + giorni * 1440, mem = {}; let guardia = 0;
+  return function gioca(s, giorni, bravo, r, opt) {
+    const fine = s.t + giorni * 1440, mem = {}, reg = bravo && opt && opt.regno ? { fase: null, t: -1, n: 0, assedi: 0 } : null; let guardia = 0;
     while (s.t < fine && guardia++ < 400000) {
-      if (s.incontro) { const x = incontro(s, bravo, r); if (x && x.err) throw new Error('incontro: ' + x.err + ' ' + JSON.stringify(s.incontro)); continue; }
+      if (s.incontro) { const x = incontro(s, bravo, r, reg); if (x && x.err) throw new Error('incontro: ' + x.err + ' ' + JSON.stringify(s.incontro)); continue; }
       const tu = TU(s);
       if (s.prigioniero) { VEN.passo(s, 60); continue; }
       if (tu.ord && tu.ord.t === 'aspetta') { VEN.passo(s, 60); continue; }
-      if (s.dentro >= 0) { luogo(s, bravo, r); continue; }
-      if (s.davanti >= 0) { VEN.fai(s, { a: 'esci' }); continue; }
-      if (!tu.ord) { const x = viaggia(s, bravo, r, mem); if (x && x.err) VEN.ordina(s, { t: 'aspetta', ore: 3 }); }
+      if (s.dentro >= 0) { luogo(s, bravo, r, reg); continue; }
+      if (s.davanti >= 0) {
+        if (reg && reg.fase === 'assedio' && s.davanti === reg.t && !s.corona) { if (!s.assedio && (++reg.assedi > 3 || VEN.fai(s, { a: 'assedia' }).err)) { reg.fase = 'fatto'; VEN.fai(s, { a: 'esci' }); } else VEN.passo(s, 30); continue; }
+        VEN.fai(s, { a: 'esci' }); continue;
+      }
+      if (!tu.ord) { const x = viaggia(s, bravo, r, mem, reg); if (x && x.err) VEN.ordina(s, { t: 'aspetta', ore: 3 }); }
       VEN.passo(s, 30);
     }
     return s;
