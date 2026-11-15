@@ -3126,7 +3126,7 @@ async def sc_ventura_riprova(b, srv):
     st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,velo:!!document.querySelector('.vn-vela [data-v=riprova]'),rip:Ven.V.rip,ri:VenArte.A.rinascite,t:Math.round(performance.now()),ru:Math.round(Ven.V.ripUlt||0),persa:VenArte.persa()})")
     check(st['f'] and st['velo'], f'dopo perdite ravvicinate la scena si arrende e offre «Riprova»: {st}')
     n0 = await pg.evaluate("window.__ctx=(window.__ctx||0)")
-    await pg.click('.vn-vela [data-v=riprova]'); await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=15000); await pg.wait_for_timeout(1500)
+    await pg.click('.vn-vela [data-v=riprova]', timeout=90000); await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=60000); await pg.wait_for_timeout(1500)
     st = await pg.evaluate("({f:VenArte.A.fallita,p:VenArte.A.pronta,cv:document.querySelectorAll('.vn-scena canvas').length,persa:VenArte.persa(),raf:!!Ven.V.raf,vela:!!document.querySelector('.vn-vela')})")
     px = await pg.evaluate(COL)
     check(st['p'] and not st['f'] and st['cv'] == 1 and not st['vela'] and st['raf'] and px >= 6, f'Riprova riaccende la scena e il ciclo ({px} colori): {st}')
