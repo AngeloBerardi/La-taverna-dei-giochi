@@ -32,9 +32,12 @@ ${cont}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro re
   if(!VenArte.A.pronta){if(!VenArte.A.fallita)VenArte.avvia().then(()=>{if(ui.ven)render()});return}
   const host=document.querySelector('.vn-scena');if(!host)return;VenArte.monta(host);if(!V.gesti)gesti();
   if(V.modo==='mondo')VenMappa.apri(V.s);if(!V.raf){V.ult=0;V.raf=requestAnimationFrame(giro)}}
+ // «Riprova» dopo la resa: il canvas è nuovo, quindi gesti, scene e contatori si rifanno come dopo una perdita normale
+ function riprova(){ferma();V.rip=0;V.riparato=0;V.ripUlt=0;V.gesti=false;V.pt={};V.pin=0;VenMappa.K.scene=null;VenMappa.K.seme=-1;
+  VenArte.riprova().then(()=>{if(ui.ven&&V.modo==='campo'&&VenArte.A.pronta)VenCampo.scena();if(ui.ven)render()});render()}
  // contesto grafico perso (schermo bianco): si rifà tutto da capo, al massimo una volta ogni due secondi; alla terza di fila ci si arrende
  function ripara(ora){if(ora-(V.riparato||0)<2000)return false;V.riparato=ora;V.rip=(ora-(V.ripUlt||0)<20000?(V.rip||0):0)+1;V.ripUlt=ora;
-  if(V.rip>3){VenArte.A.fallita=true;VenArte.A.pronta=false;ferma();render();return false}
+  if(V.rip>3){VenArte.A.fallita=true;VenArte.A.pronta=false;VenArte.A.errore='il telefono ha tolto il contesto grafico troppe volte';ferma();render();return false}
   if(!VenArte.rifai()){ferma();render();return false}V.gesti=false;gesti();VenMappa.K.scene=null;VenMappa.K.seme=-1;if(V.modo==='campo')VenCampo.scena();else VenMappa.apri(V.s);return true}
  function giro(ora){V.raf=requestAnimationFrame(giro);if(!ui.ven||!V.s){ferma();return}if(VenArte.persa()&&!ripara(ora))return;const dt=Math.min(.1,V.ult?(ora-V.ult)/1000:.016);V.ult=ora;
   try{if(V.modo==='campo'){VenCampo.passo(dt);const k=VenCampo.K;if(k.finita&&!V.fine){V.fine=ora}if(V.fine&&ora-V.fine>1400&&V.pan!=='fine'){V.pan='fine';render()}}
@@ -181,7 +184,7 @@ ${k.pausa&&!b.fine&&b.t===0?`<div class="vn-via"><p>Tocca il campo per muovere i
   if(c==='nuova'){const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
   if(!s)return;
   if(c==='esci')return esci();
-  if(c==='riprova'){VenArte.riprova().then(()=>{if(ui.ven)render()});render();return}
+  if(c==='riprova'){riprova();return}
   if(c==='regole'){ui.rules='ventura';return render()}
   if(c==='pan'){V.pan=p[1];V.sub='home';V.carta=null;return render()}
   if(c==='sub'){V.sub=p[1];return render()}
