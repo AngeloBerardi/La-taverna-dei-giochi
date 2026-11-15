@@ -117,4 +117,14 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   const gioca = g0 => { let x = ok(S.act(S.copia(g0), { t: 'scegli', seat: 1, v: 'auto' })); const ult = J(x.w.ult); if (x.w.torneo) x = ok(S.act(x, { t: 'fai', seat: 0, z: { a: 'ritira' } })); return J(x) + ult; };
   assert.strictEqual(gioca(t0), gioca(t0), 'stesse mosse, stessa stanza'); assert(ok(S.act(S.copia(t0), { t: 'scegli', seat: 1, v: 'auto' })).w.ult.torneo, 'Risolvi in compagnia chiude il duello con un esito del torneo');
 }
+// diplomazia (V3) in compagnia: la proposta al re passa dalla stanza come ogni azione di luogo; chiunque sia seduto può parlare
+{
+  let d = S.nuova(2, ['Ada', 'Bruno'], { seme: 19, regno: 'val' }); const w = d.w, cap = w.l.find(l => l.tipo === 'citta' && l.faz === 'val');
+  w.servizio = { faz: 'val', tipo: 'vas' }; w.fama = 400; w.rel.val = 90; w.guerra = { 'sel|val': true }; w.alleanza = {}; w.dentro = cap.id; const t = V.TU(w); t.x = cap.x; t.y = cap.y; t.ord = null;
+  w.sig.find(x => x.faz === 'val' && x.re).tratto = 'onorevole';
+  d = ok(S.act(d, { t: 'fai', seat: 1, z: { a: 'proponi', tipo: 'pace', f: 'sel' } }));
+  assert(!V.inGuerra(d.w, 'val', 'sel'), 'la pace chiesta da Bruno vale per tutta la compagnia');
+  assert(/di nuovo/.test(S.act(d, { t: 'fai', seat: 0, z: { a: 'proponi', tipo: 'alleanza', f: 'sel' } }).err), 'lo stesso re non riceve di nuovo subito, chiunque chieda');
+  assert(J(S.copia(d).w.parola) === J(d.w.parola), 'l\'attesa viaggia con lo stato della stanza');
+}
 console.log('ven_stanza ok');

@@ -156,15 +156,17 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(!(l.tipo==='villaggio'&&!mio))h+=riga(`<b>Riposo</b><small>Otto ore: metà dei feriti torna in piedi.${mio?'':' '+Math.ceil(VEN.uomini(t)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5))+' monete.'}</small>`,bt('Riposa','fai:riposa'));
   h+=riga('',bt('Riparti','fai:esci',{cls:'gold'}));return pannello(esc(l.nome),h,{chiudi:'fai:esci'})}
  // la parola presso il re (V3): per ogni regno la proposta possibile, con i fattori a favore e contro e il totale che decide (serve ≥ 0)
- function diploH(f,srv){const s=V.s,g=VEN.giorno(s),vas=srv.tipo==='vas',num=v=>(v>0?'+':'−')+Math.abs(v).toFixed(1).replace('.',','),h=[];
+ function diploH(f,srv){const s=V.s,g=VEN.giorno(s),vas=srv.tipo==='vas';
+  const att=s.parola&&s.parola[f]>g;   // ha appena deciso su tua parola: si vedono le alleanze, ma niente proposte fino al giorno indicato
+  const num=v=>(v>0?'+':'−')+Math.abs(v).toFixed(1).replace('.',','),h=[];
   const conto=p=>{const pro=p.f.filter(x=>x.v>0),con=p.f.filter(x=>x.v<0),el=l=>l.map(x=>esc(x.n)+' '+num(x.v)).join(', ')||'nessuno';
    return`<small class="vn-bene">A favore: ${el(pro)}</small><small class="vn-male">Contro: ${el(con)}</small><small>Totale ${num(p.tot)}: il re accetta da 0 in su${p.ok?'. Accetterebbe.':'. Rifiuterebbe.'}</small>`};
   const riga1=(titolo,nota,tipo,k,lab,cls)=>{const p=VEN.proposta(s,tipo,f,k);return p.err?'':riga(`<b>${titolo}</b><small>${nota}</small>${tipo==='rompi'?'':conto(p)}`,bt(lab,'fai:proponi:'+tipo+':'+k,cls?{cls}:null))};
   for(const k of D.REGNI){if(k===f||s.cadute[k])continue;const nome=esc(D.FAZ[k].breve);
    if(VEN.inGuerra(s,f,k))h.push(riga1('Proponi pace con '+nome,'In guerra con '+nome+'. '+(vas?'Parli da vassallo.':'Da mercenario puoi chiedere solo la pace.'),'pace',k,'Proponi','gold'));
-   else if(VEN.alleate(s,f,k)){const al=s.alleanza[[f,k].sort().join('|')];h.push(vas?riga(`<b>Alleati di ${nome}</b><small>${al.rompe?'Rottura annunciata: finisce il giorno '+al.rompe+'.':'Dal giorno '+al.da+'; dura almeno '+D.DIPL.MIN+' giorni e si rompe con '+D.DIPL.PREAVVISO+' di preavviso.'}</small>`,al.rompe?'':bt('Rompi','fai:proponi:rompi:'+k)):riga(`<b>Alleati di ${nome}</b><small>Dal giorno ${al.da}.</small>`))}
+   else if(VEN.alleate(s,f,k)){const al=s.alleanza[[f,k].sort().join('|')];h.push(vas?riga(`<b>Alleati di ${nome}</b><small>${al.rompe?'Rottura annunciata: finisce il giorno '+al.rompe+'.':'Dal giorno '+al.da+'; dura almeno '+D.DIPL.MIN+' giorni e si rompe con '+D.DIPL.PREAVVISO+' di preavviso.'}</small>`,al.rompe||att?'':bt('Rompi','fai:proponi:rompi:'+k)):riga(`<b>Alleati di ${nome}</b><small>Dal giorno ${al.da}.</small>`))}
    else if(vas){h.push(riga1('Proponi alleanza con '+nome,'Si combatte insieme e ci si soccorre negli assedi. Un solo alleato per regno.','alleanza',k,'Proponi','gold'));h.push(riga1('Chiedi guerra a '+nome,'Il re muoverà le sue bandiere; '+nome+' non lo dimenticherà.','guerra',k,'Chiedi'))}}
-  return`<div class="sh2">Diplomazia</div>`+(h.join('')||'<p class="vn-p">Nessuna trattativa possibile, per ora.</p>')}
+  return`<div class="sh2">Diplomazia</div>`+(att?`<p class="vn-p">${esc(D.FAZ[f].re)} ha appena deciso su tua parola: ti riceverà di nuovo il giorno ${s.parola[f]}.</p>`:'')+(h.join('')||(att?'':'<p class="vn-p">Nessuna trattativa possibile, per ora.</p>'))}
  // il torneo della città: iscrizione, turno, avversari col loro corredo, premio maturato
  function torneoH(l){const s=V.s,t=s.torneo,T=D.TORNEO,g=VEN.giorno(s),capi=VEN.capi(s),posta=capi.reduce((a,c)=>a+T.posta*c.liv,0);
   if(t&&t.lid===l.id){const av=VEN.avversariTorneo(s,t.lid,t.giorno,t.turno,capi.length),mat=VEN.premioTorneo(t),fin=T.mol[2]*t.posta;
@@ -195,7 +197,8 @@ ${inS()?'<div class="sh2">Capitani della compagnia</div>'+VEN.capi(s).map((x,i)=
  function cartaMondoH(){return pannello('Carta del mondo','<p class="vn-p">Tocca un punto per portarci lo sguardo. I luoghi nascosti compaiono quando li scopri o quando qualcuno te ne parla.</p><p class="vn-p"><b>Tornei</b>: '+VEN.tornei(V.s).slice(0,3).map(t=>esc(V.s.l[t.lid].nome)+' '+VEN.quando(t.giorni)).join(' · ')+'.</p><canvas class="vn-carta-cv" width="512" height="512" data-a="ven" data-v="cartatocco"></canvas><div class="vn-leg"><span><i style="background:#f4e9c8"></i>locande e monasteri</span><span><i style="background:#9fe0c8"></i>rovine</span><span><i style="background:#c0392b"></i>covi</span><span><i style="background:#d98a1f"></i>voi</span></div>',{cls:'vn-pcarta'})}
  function diarioH(){const s=V.s,g=VEN.giorno(s),inc=s.incarichi.filter(q=>!q.fatto&&!q.fallito).map(q=>riga(`<b>${esc(VEN.titoloInc(s,q))}</b><small>${q.premio} monete · ancora ${Math.max(0,q.scad-g)} giorni</small>`)).join('')||'<p class="vn-p">Nessun incarico. Chiedi nei villaggi, nelle città e ai castelli.</p>';
   const gu=Object.keys(s.guerra).map(k=>k.split('|').map(f=>D.FAZ[f].breve).join(' contro ')).join(' · ')||'I regni sono in pace, per ora.';
-  return pannello('Diario',`<div class="sh2">Incarichi</div>${inc}<div class="sh2">Guerre</div><p class="vn-p">${esc(gu)}</p><div class="sh2">Cronaca</div><div class="vn-log">${s.log.slice(-18).reverse().map(x=>`<p class="${x.tipo}"><i>G${Math.floor(x.t/1440)+1}</i> ${esc(x.tx)}</p>`).join('')}</div>`)}
+  const al=Object.keys(s.alleanza||{}).map(k=>{const x=s.alleanza[k];return k.split('|').map(f=>D.FAZ[f].breve).join(' e ')+(x.rompe?' (finisce il giorno '+x.rompe+')':' (dal giorno '+x.da+')')}).join(' · ')||'Nessuna alleanza tra i regni.';
+  return pannello('Diario',`<div class="sh2">Incarichi</div>${inc}<div class="sh2">Guerre</div><p class="vn-p">${esc(gu)}</p><div class="sh2">Alleanze</div><p class="vn-p">${esc(al)}</p><div class="sh2">Cronaca</div><div class="vn-log">${s.log.slice(-18).reverse().map(x=>`<p class="${x.tipo}"><i>G${Math.floor(x.t/1440)+1}</i> ${esc(x.tx)}</p>`).join('')}</div>`)}
  function schieraH(parti,luogo){const c={f:0,t:0,c:0};let n=0;for(const p of parti)for(const e of p.tr){c[D.TR[e.t].c]+=e.n;n+=e.n}if(luogo)for(const e of luogo.g){c[D.TR[e.t].c]+=e.n;n+=e.n}return`${n} uomini · ${c.f} fanti, ${c.t} tiratori, ${c.c} cavalieri`}
  function incontroH(){const s=V.s,inc=s.incontro;if(!inc)return'';const t=tu();
   if(inc.tipo==='parla'){const p=VEN.part(s,inc.pid[0]);if(!p)return pannello('Incontro',bt('Prosegui','scegli:lascia'),{fisso:1});
@@ -277,7 +280,7 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
    else if(a==='pace')z.f=p[2];else if(a==='proponi'){z.tipo=p[2];z.f=p[3]}else if(a==='guarnigione'){z.t=p[2];z.verso=+p[3];z.n=1}
    const r=inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r.err){V.msg=r.err;Snd.play('err');return render()}
    if(a==='proponi'){V.msg='';avviso(s.log[s.log.length-1].tx,'bene')}
-   if(a==='esci'){V.pan=null;V.sub='home'}else if(a==='riposa'||a==='assedia'||a==='imbarca'){V.pan='attesa';V.sub='home'}else if(a==='razzia'){V.pan=null}else if(a==='assalta'||a==='lizza'){V.pan='incontro'}else if(a==='ritira'){V.pan='luogo'}else if(a==='voci'&&r.lid!=null){avviso('Segnato sulla carta: '+s.l[r.lid].nome,'bene')}
+   if(a==='esci'){V.pan=null;V.sub='home'}else if(a==='riposa'||a==='assedia'||a==='imbarca'){V.pan='attesa';V.sub='home'}else if(a==='razzia'){V.pan=null}else if(a==='assalta'||a==='lizza'){V.pan='incontro'}else if(a==='ritira'){V.pan='luogo'}else if(a==='voci'){avviso(r.lid!=null?'Segnato sulla carta: '+s.l[r.lid].nome:s.log[s.log.length-1].tx,'bene')}
    if(a==='recluta'||a==='assolda'||a==='compagno')Snd.play('avv-compagno');else if(a==='compra'||a==='vendi'||a==='riscatta'||a==='consegna'||a==='compraogg'||a==='vendiogg'||a==='equipa')Snd.play('avv-bottino');else if(a==='promuovi'||a==='abilita')Snd.play('avv-livello');
    salva();return render()}
   // battaglia

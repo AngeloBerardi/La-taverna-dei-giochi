@@ -139,7 +139,7 @@ const VDAT=(()=>{
  // (si incassa ritirandosi o vincendo la finale); fama e oggetto a parte. Ogni avversario parte dalla `base` del suo turno e porta uno dei
  // corredi: è l'arma che decide come batterlo (mazza contro le piastre, spadone contro chi è lento, scudo contro chi picchia piano…)
  const TORNEO={posta:40,turni:['Sfidante','Campione','Gran campione'],mol:[2,4,8],fama:[0,5,15],xp:[14,28,50],
-  base:[{pf:72,att:15,dif:10,dan:10},{pf:100,att:19,dif:15,dan:13},{pf:135,att:23,dif:20,dan:16}],
+  base:[{pf:72,att:15,dif:10,dan:10},{pf:100,att:19,dif:15,dan:13},{pf:135,att:23,dif:20,dan:16}],LIV:5,cresce:{pf:15,att:2.4,dif:1.1,dan:1.2},
   colori:['#8a8172','#2f5f9e','#b3262b'],cor:[1,2,3],
   kit:[{id:'spada',nome:'spada e scudo',arma:'spada',scudo:'tondo',elmo:'cervelliera'},{id:'due',nome:'spadone a due mani',arma:'spadone',scudo:null,elmo:'cervelliera'},
    {id:'asta',nome:'alabarda',arma:'alabarda',scudo:null,elmo:'bacinetto'},{id:'mazza',nome:'mazza ferrata',arma:'mazza',scudo:'tondo',elmo:'cervelliera'}],
@@ -185,8 +185,8 @@ const VDAT=(()=>{
  const TRATTI_ID=Object.keys(TRATTI);
  // diplomazia (V3): alleanze e proposte ai re. Tutto è un conto, mai un dado: ogni fattore ha un nome e un peso, e il re accetta se la somma è ≥ 0.
  // MIN: giorni minimi di un'alleanza; PREAVVISO: giorni tra l'annuncio della rottura e la fine; BASE: diffidenza di partenza di ogni proposta;
- // PESO: quanto vale la parola di chi gioca (mercenario a contratto / vassallo); i numeri si ritoccano qui.
- const DIPL={MIN:20,PREAVVISO:3,BASE:{pace:0,alleanza:-3,guerra:-2},PESO:{mer:.5,vas:1},AMICIZIA:12,FAMA:50,FAMA_MAX:200,FORZA:3,GUERRE:{pace:1.5,alleanza:1,guerra:-2.5},COMUNE:2,DOMINANTE:3,QUOTA_DOM:.4,
+ // ATTESA: giorni prima che lo stesso re ascolti un'altra proposta accolta; PESO: quanto vale la parola di chi gioca (mercenario a contratto / vassallo); i numeri si ritoccano qui.
+ const DIPL={MIN:20,PREAVVISO:3,ATTESA:3,BASE:{pace:0,alleanza:-3,guerra:-2},PESO:{mer:.5,vas:1},AMICIZIA:12,FAMA:50,FAMA_MAX:200,FORZA:3,GUERRE:{pace:1.5,alleanza:1,guerra:-2.5},COMUNE:2,DOMINANTE:3,QUOTA_DOM:.4,
   IA:{ALLEANZA:.35,FRONTE:.12,ROTTURA:.05,GUERRA_DOM:.3}};
  const TIPI={citta:'Città',castello:'Castello',villaggio:'Villaggio',porto:'Porto',monastero:'Monastero',locanda:'Locanda',rovine:'Rovine',covo:'Covo dei predoni'};
  const NOMI={

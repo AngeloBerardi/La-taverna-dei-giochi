@@ -12,7 +12,7 @@ const sala = (seme, f, tipo) => { const s = V.nuovo(seme); s.servizio = { faz: f
 const pulito = s => { s.guerra = {}; s.alleanza = {}; return s; };
 
 // i numeri e i tratti ci sono
-assert(D.DIPL.MIN === 20 && D.DIPL.PREAVVISO === 3);
+assert(D.DIPL.MIN === 20 && D.DIPL.PREAVVISO === 3 && D.DIPL.ATTESA === 3);
 for (const t of D.TRATTI_ID) for (const k of ['pace', 'alleanza', 'guerra']) assert(typeof D.TRATTI[t].dipl[k] === 'number', 'tratto senza peso: ' + t + ' ' + k);
 
 // chi parla e a chi: capitano libero niente, mercenario solo pace, vassallo tutto ma solo col proprio re
@@ -56,11 +56,14 @@ for (const t of D.TRATTI_ID) for (const k of ['pace', 'alleanza', 'guerra']) ass
   const s = pulito(sala(5, 'val', 'vas')); s.rel.val = 90; s.fama = 400; s.sig.find(x => x.faz === 'val' && x.re).tratto = 'onorevole';
   s.guerra[chiave('val', 'sel')] = true; const cit = s.l.find(l => l.faz === 'sel' && l.tipo === 'castello'); cit.ass = { faz: 'val', da: s.t, pid: [] };
   ok(V.fai(s, { a: 'proponi', tipo: 'pace', f: 'sel' })); assert(!V.inGuerra(s, 'val', 'sel') && cit.ass === null, 'la pace chiude la guerra e gli assedi');
+  // il re ascolta di nuovo solo dopo qualche giorno (niente pace e guerra a raffica)
+  assert(/di nuovo il giorno/.test(V.fai(s, { a: 'proponi', tipo: 'alleanza', f: 'sel' }).err) && /di nuovo/.test(V.proposta(s, 'alleanza', 'val', 'sel').err), 'stesso re, stesso giorno: aspetta');
+  s.t += 1440 * D.DIPL.ATTESA;
   const g0 = V.giorno(s); ok(V.fai(s, { a: 'proponi', tipo: 'alleanza', f: 'sel' })); assert(V.alleate(s, 'val', 'sel') && V.alleate(s, 'sel', 'val') && s.alleanza['sel|val'].da === g0);
   assert(V.proposta(s, 'guerra', 'val', 'sel').err, 'alleati non si dichiara guerra'); assert(V.proposta(s, 'alleanza', 'val', 'fer').err, 'un solo alleato');
   assert(!V.nemiche(s, 'val', 'sel') && !V.nemiche(s, 'sel', 'val'));
-  // preavviso il giorno dopo: l'alleanza regge fino al giorno 20, anche oltre l'annuncio + 3
-  s.t += 1440; ok(V.fai(s, { a: 'proponi', tipo: 'rompi', f: 'sel' })); const fine = s.alleanza['sel|val'].rompe; assert.strictEqual(fine, g0 + D.DIPL.MIN, 'rompe non prima di 20 giorni'); assert(V.fai(s, { a: 'proponi', tipo: 'rompi', f: 'sel' }).err, 'annuncio già dato');
+  // preavviso dopo qualche giorno: l'alleanza regge fino al giorno 20, anche oltre l'annuncio + 3
+  s.t += 1440 * D.DIPL.ATTESA; ok(V.fai(s, { a: 'proponi', tipo: 'rompi', f: 'sel' })); const fine = s.alleanza['sel|val'].rompe; assert.strictEqual(fine, g0 + D.DIPL.MIN, 'rompe non prima di 20 giorni'); assert(V.fai(s, { a: 'proponi', tipo: 'rompi', f: 'sel' }).err, 'annuncio già dato');
   s.dentro = -1; s.davanti = -1; s.servizio = null; // fuori dalle mura il mondo gira da solo
   while (V.giorno(s) < fine) { V.passo(s, 720); if (s.incontro) V.auto(s); assert(V.alleate(s, 'val', 'sel') || V.giorno(s) >= fine, 'alleanza sciolta troppo presto al giorno ' + V.giorno(s)); }
   while (s.incontro) V.auto(s); V.passo(s, 60); assert(!V.alleate(s, 'val', 'sel'), 'finita dopo il preavviso'); assert(s.log.some(x => /non sono più alleati/.test(x.tx)), 'è in cronaca');
@@ -78,13 +81,14 @@ for (const t of D.TRATTI_ID) for (const k of ['pace', 'alleanza', 'guerra']) ass
   const b = V.nuovo(14); b.alleanza['alt|val'] = { da: 3, rompe: 0 }; const c = V.apri(JSON.stringify(b)); assert.strictEqual(JSON.stringify(c.alleanza), JSON.stringify(b.alleanza));
 }
 
-// soccorso: un signore alleato che passa vicino a una città assediata accorre
-{
-  const s = pulito(V.nuovo(23)), A = 'val', B = 'sel', C = 'fer'; s.alleanza[chiave(A, B)] = { da: 1, rompe: 0 }; s.guerra[chiave(A, C)] = true; s.guerra[chiave(B, C)] = false;
+// soccorso: un signore alleato che passa vicino a una città assediata accorre, ma solo se è in guerra con chi assedia
+// (in pace con l'assediante resterebbe lì a guardare senza poter combattere)
+for (const inGuerra of [true, false]) {
+  const s = pulito(V.nuovo(23)), A = 'val', B = 'sel', C = 'fer'; s.alleanza[chiave(A, B)] = { da: 1, rompe: 0 }; s.guerra[chiave(A, C)] = true; if (inGuerra) s.guerra[chiave(B, C)] = true;
   const cit = capitale(s, A); cit.ass = { faz: C, da: s.t, pid: [] };
   const sig = s.p.find(p => p.k === 'sig' && p.faz === B); sig.dentro = -1; sig.sc = 0; sig.fermo = 0; sig.via = []; sig.x = cit.x + 3; sig.y = cit.y + 2; sig.ia = { st: 'giro', t: 0 };
-  let corso = false; for (let h = 0; h < 40 && !corso; h++) { sig.via = []; V.passo(s, 20); if (sig.ia.st === 'soccorso' && sig.ia.a === cit.id) corso = true; if (s.incontro) V.auto(s); }
-  assert(corso, 'l\'alleato accorre in soccorso della città assediata'); 
+  let corso = false; for (let h = 0; h < 40 && !corso; h++) { sig.via = []; if (!cit.ass) cit.ass = { faz: C, da: s.t, pid: [] }; V.passo(s, 20); if (sig.ia.st === 'soccorso' && sig.ia.a === cit.id) corso = true; if (s.incontro) V.auto(s); }
+  assert.strictEqual(corso, inGuerra, inGuerra ? 'l\'alleato in guerra con l\'assediante accorre' : 'l\'alleato in pace con l\'assediante non accorre');
 }
 
 // scontro: gli alleati vicini combattono dalla stessa parte
@@ -96,5 +100,21 @@ for (const t of D.TRATTI_ID) for (const k of ['pace', 'alleanza', 'guerra']) ass
   pa.x = x; pa.y = y; pc.x = x + .3; pc.y = y; pb.x = x + 1.1; pb.y = y + .4; s.t = s.t - (s.t % 60) + 59; V.passo(s, 2);
   const sc = s.scontri.find(q => q.a.includes(pa.id) || q.b.includes(pa.id)); assert(sc, 'si è accesa una mischia');
   const latoA = sc.a.includes(pa.id) ? sc.a : sc.b; assert(latoA.includes(pb.id), 'l\'alleato è dalla parte del suo alleato'); assert(!latoA.includes(pc.id));
+}
+// freno alla valanga: un regno che tiene troppo viene riconosciuto come dominante, gli altri si alleano contro di lui e gli fanno guerra più spesso.
+// (Lasciato a sé il mondo di oggi conquista poco e il freno scatta di rado: qui lo si mette alla prova creando apposta un regno che vince troppo.)
+{
+  let contro = 0, guerre = 0;
+  for (const seme of [12, 33]) {
+    const s = pulito(V.nuovo(seme)), D0 = 'val', vs = s.sig.findIndex(x => x.faz === D0);
+    for (const l of s.l) if (D.REGNI.includes(l.faz) && l.faz !== D0 && l.tipo !== 'citta' && s.l.filter(q => q.faz === D0).length < s.l.filter(q => D.REGNI.includes(q.faz)).length * .5) { l.faz = D0; l.sig = vs; }
+    const dom = V.dominante(s); assert(dom && dom.f === D0 && dom.quota >= D.DIPL.QUOTA_DOM, 'il regno che tiene metà dei luoghi è dominante: ' + JSON.stringify(dom));
+    let vista = false; // la cronaca tiene solo le ultime voci: si guarda lo stato, giorno per giorno
+    for (let h = 0; h < 24 * 24; h++) { if (s.incontro) { V.auto(s); continue; } V.passo(s, 60); if (!vista && Object.keys(s.alleanza).some(k => !k.split('|').includes(D0))) vista = true; }
+    if (vista) contro++;
+    guerre += D.REGNI.filter(f => f !== D0 && V.inGuerra(s, D0, f)).length;
+  }
+  assert(contro === 2, 'in tutti e due i mondi gli altri regni si alleano contro il dominante: ' + contro + '/2');
+  assert(guerre >= 4, 'il dominante si trova in guerra con più regni: ' + guerre + ' guerre in 2 mondi');
 }
 console.log('ven_diplomazia ok');

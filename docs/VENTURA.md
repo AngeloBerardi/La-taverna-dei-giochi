@@ -35,7 +35,9 @@ Costruzione della mappa 0,3 s; circa 330 mila triangoli a fotogramma contro 1,16
 Mappa libera → reclute nei villaggi → predoni, carovane e signori → bottino, prigionieri, commercio → fama e amicizie coi regni →
 contratto da mercenario → vassallo con feudo, oppure fortezze proprie → assedi → regni che cadono. I regni vivono da soli:
 i signori pattugliano, inseguono, fuggono, razziano, assediano, soccorrono; guerre, paci e alleanze cambiano ogni pochi giorni
-(V3: `s.alleanza`, un alleato per regno, minimo 20 giorni, preavviso 3; da vassallo si propongono pace, alleanza e guerra al proprio re con un conto in chiaro, `VEN.proposta`).
+(V3: `s.alleanza`, un alleato per regno, minimo 20 giorni, preavviso 3; da vassallo si propongono pace, alleanza e guerra al proprio re con un conto in chiaro, `VEN.proposta`;
+dopo una proposta accolta il re aspetta `DIPL.ATTESA` giorni, `s.parola`; soccorso agli alleati solo contro un nemico comune, `soccorre`).
+Freno alla valanga: il mondo lasciato a sé oggi conquista poco (in 6 semi × 120 giorni nessun luogo cambia padrone), quindi scatta di rado; `test_ven_diplomazia.js` lo prova creando un regno con metà dei luoghi: gli altri si alleano e gli fanno guerra.
 
 ## Regole di progetto
 - Motori puri e ripetibili: niente `Math.random`, `Date.now`, trigonometria (solo + − × ÷ e radice). Lo controlla `test_ven_campo.js`.
@@ -48,9 +50,11 @@ i signori pattugliano, inseguono, fuggono, razziano, assediano, soccorrono; guer
 Compagnia 40–46 uomini, fama 147–231, 21–40 battaglie vinte, nessun seme in rovina; il capitano sconsiderato perde più di quanto vince.
 Battaglie giocate: 30–90 secondi di scontro a ×1 più l'avvicinamento.
 
-**Tornei (V2)** — numeri in `VDAT.TORNEO` (`base` per turno: pf/att/dif/dan, più il corredo dell'avversario). Taratura: capitano di livello 5 con bastarda, mandorla, maglia, bacinetto e Prodezza 2
-vince il torneo circa 1 volta su 2 (55% su 40 prove; i primi due duelli sempre, la finale 55%); con spada e cuoio vince i primi due duelli ma non la finale; a livello 1 senza corazza quasi mai. Il bot accorto
-vince almeno un torneo in 60 giorni nel 65% dei semi (13 su 20), quello a caso (iscritto di tanto in tanto) quasi mai (prova lunga, lenta: `npm test -- ven_torneo_bot`).
+**Tornei (V2, ritarati)** — numeri in `VDAT.TORNEO` (`base` per turno: pf/att/dif/dan, più il corredo dell'avversario; oltre `LIV` 5, media dei capitani, ogni livello aggiunge `cresce`
+= pf 15, att 2,4, dif 1,1, dan 1,2). Taratura su 30 prove, con il miglior corredo da bottega per quel livello: livello 5 (bastarda, mandorla, maglia, bacinetto, Prodezza 2) 40%; livello 8 (brigantina,
+crestato, Prodezza 4) 43%; livello 10 (piastre, Prodezza 5) 40%; livello 12 (piastre, Prodezza 6) 50%. Chi non aggiorna il corredo perde la finale (livello 8 in maglia 1 su 30, livello 12 in maglia 0).
+Prima della ritaratura il livello 8 ben armato vinceva 30 su 30 (circa 2.240 monete nette a torneo). I primi due duelli restano quasi sempre vinti: la scommessa è la finale. Il bot accorto
+(Prodezza 2 presto; aspetta in città il torneo di domani) vince almeno un torneo in 60 giorni in 12 semi su 20, quello a caso quasi mai (prova lunga: `npm test -- ven_torneo_bot`).
 
 ## Multiplayer
 - **C2 fatto**: co-op in stanza live (`R.mode='rt'`). Stato `G={w,b,vel,nb,sim:true}`: `w` è il mondo di VEN, `b.c` la battaglia di VCAM. Chiunque dà la meta e compra; ognuno ha il suo capitano (abilità ed equipaggiamento propri) e in battaglia guida solo quello; gli ordini ai gruppi sono di tutti. La battaglia parte quando qualcuno dà il via, la pausa è comune.

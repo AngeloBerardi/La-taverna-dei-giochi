@@ -7,33 +7,36 @@
    `specchia` decide quale pannello mostrare dai cambi di stato, senza strappare di mano i pannelli aperti apposta.
    La TV (`ui.tv`) guarda soltanto. Salvataggio (V1): a ogni alba, all'uscita da un luogo e a fine battaglia ogni telefono seduto scrive
    il mondo in `ven-salv-coop` (`salva`, forma di `VST.salvabile`); prima di partire, se c'è un salvataggio, la carta `ripH` fa scegliere
-   (`chiedi`/`scegli`: «Riprendi la compagnia», «Porta qui la partita in solitario», «Nuova»). Piano: docs/VENTURA.md. */
+   (`chiedi`/`scegli`: «Riprendi la compagnia», «… precedente», «Porta qui la partita in solitario», «Nuova»). Se il telefono entra in
+   un'altra compagnia, quella che aveva salvato passa in `ven-salv-coop-prec` invece di sparire. Piano: docs/VENTURA.md. */
 const VenStanza=(()=>{
  const X={L:null,visto:null,acc:0,era:false,fermo:0,capT:0,pre:{inc:false,luogo:-1,prig:false,att:false,b:false},seme0:null,rip:null,pend:null,svk:null};
- const SALV_K='ven-salv-coop',SOLO_K='ven-salv';
+ const SALV_K='ven-salv-coop',SOLO_K='ven-salv',PREC_K='ven-salv-coop-prec',CHIAVI={coop:SALV_K,prec:PREC_K,solo:SOLO_K};
  const on=()=>!!(G&&G.g==='ventura');
  const seat=()=>on()&&!ui.tv?viewer():-1;
  const ora=()=>performance.now();
  // ---- partire ----
  function nuova(n,names,o){const rip=X.rip;X.rip=null;
-  if(rip==='coop'||rip==='solo'){const sv=leggiSalv(rip),r=sv&&VST.apri(sv,n,names);if(r&&r.s)return r.s}
+  if(rip==='coop'||rip==='prec'||rip==='solo'){const sv=leggiSalv(rip),r=sv&&VST.apri(sv,n,names);if(r&&r.s)return r.s}
   const seme=X.seme0!=null?X.seme0:(Date.now()^Math.floor(Math.random()*4294967296))>>>0;   // seme0: solo per le prove del browser
   return VST.nuova(n,names,Object.assign({seme,regno:Ven.V.regno},o||{}))}
  // ---- salvataggio e ripresa (V1) ----
- const leggiSalv=k=>{try{const x=JSON.parse(localStorage.getItem(k==='coop'?SALV_K:SOLO_K)||'null');return x&&(k==='coop'?x:VEN.apri(x))}catch(e){return null}};
+ const leggiSalv=k=>{try{const x=JSON.parse(localStorage.getItem(CHIAVI[k]||SOLO_K)||'null');return x&&(k==='solo'?VEN.apri(x):x.w?x:null)}catch(e){return null}};
  const giornoDi=sv=>sv&&(sv.giorno||(sv.w?VEN.giorno(sv.w):VEN.giorno(sv)));
  // prima di avviare: c'è qualcosa da riprendere? (e la scelta non è già fatta) → apre la carta e dice «aspetta»
- function chiedi(S,opts){if(X.rip!=null)return false;const c=leggiSalv('coop'),s=leggiSalv('solo');if(!c&&!s)return false;X.pend={S,opts};ui.venRip=true;return true}
+ function chiedi(S,opts){if(X.rip!=null)return false;const c=leggiSalv('coop'),pr=leggiSalv('prec'),s=leggiSalv('solo');if(!c&&!pr&&!s)return false;X.pend={S,opts};ui.venRip=true;return true}
  function scegli(k){const q=X.pend;ui.venRip=false;X.pend=null;if(k==='annulla'||!q)return render();X.rip=k;startGame('ventura',q.S,q.opts)}
- function ripH(){const c=leggiSalv('coop'),s=leggiSalv('solo');
+ function ripH(){const c=leggiSalv('coop'),pr=leggiSalv('prec'),s=leggiSalv('solo'),riga=x=>`<p><b>${esc(x.w.nome)}</b><small class="muted"> · giorno ${giornoDi(x)} · ${x.n} capitan${x.n===1?'o':'i'}</small></p>`;
   const bt=(a,tx,cls)=>`<button class="b ${cls||''}" data-a="ven" data-v="rip:${a}">${tx}</button>`;
   return`<div class="modal"><div class="box col"><h2>Compagnia di ventura</h2><p class="muted">Su questo telefono c'è una partita salvata.</p>
-${c?`<p><b>${esc(c.w.nome)}</b><small class="muted"> · giorno ${giornoDi(c)} · ${c.n} capitan${c.n===1?'o':'i'}</small></p>${bt('coop','Riprendi la compagnia','gold')}`:''}
+${c?riga(c)+bt('coop','Riprendi la compagnia','gold'):''}${pr?riga(pr)+bt('prec','Riprendi la compagnia precedente'):''}
 ${s?`<p><b>${esc(s.nome)}</b><small class="muted"> · partita in solitario, giorno ${VEN.giorno(s)}</small></p>${bt('solo','Porta qui la partita in solitario')}`:''}
-${bt('nuova','Nuova partita')}${bt('annulla','Annulla','sm')}</div></div>`}
+${bt('nuova','Nuova partita')}${c?`<small class="muted">${esc(c.w.nome)} resta tra le partite salvate come «precedente»${pr?'; '+esc(pr.w.nome)+' invece si perde':''}.</small>`:''}${bt('annulla','Annulla','sm')}</div></div>`}
  // scrive il mondo su questo telefono (mai durante una battaglia); solo per chi è seduto, non per la TV
  function salva(){const L=X.L;if(!L||ui.tv||seat()<0)return;const k=L.b?'b':VEN.giorno(L.w)+':'+(L.w.dentro>=0?L.w.dentro:-1);if(k===X.svk)return;X.svk=k;
-  const sv=VST.salvabile(L);if(!sv)return;try{localStorage.setItem(SALV_K,JSON.stringify(sv))}catch(e){}}
+  const sv=VST.salvabile(L);if(!sv)return;
+  // un'altra compagnia (nuova, o quella di chi ospita): quella salvata qui non si perde, passa a «precedente» (una sola copia)
+  try{const v=leggiSalv('coop');if(v&&v.w.seme!==sv.w.seme)localStorage.setItem(PREC_K,JSON.stringify(v));localStorage.setItem(SALV_K,JSON.stringify(sv))}catch(e){}}
  // dalla compagnia al solitario: il mondo diventa la partita da solo (il capitano è il primo; gli altri restano ma non scendono in campo)
  function perSolo(){const sv=leggiSalv('coop');if(!sv)return false;const w=sv.w;w.ev=[];if((w.soci||[]).length)w.attivi=1;try{localStorage.setItem(SOLO_K,VEN.salva(w))}catch(e){return false}return true}
  // ---- dallo stato della stanza alla vista ----

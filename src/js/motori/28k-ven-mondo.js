@@ -130,6 +130,8 @@ const VEN=(()=>{
  const ostile=(s,a,b)=>nemiche(s,a.faz,b.faz);
  function relaz(s,f,d){if(!(f in s.rel))return;s.rel[f]=Math.max(-100,Math.min(100,s.rel[f]+d))}
  // ---------- diplomazia (V3) ----------
+ // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
+ const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
  // forza di un regno: guarnigioni (con le mura) e compagnie dei suoi signori; il dominante è chi tiene troppo (quota di luoghi dei regni o di forza)
  const forzaRegno=(s,f)=>s.l.filter(l=>l.faz===f).reduce((x,l)=>x+forzaTr(l.g)*(MURA[l.tipo]?P.MURA:1),0)+s.p.filter(p=>p.k==='sig'&&p.faz===f).reduce((x,p)=>x+forza(p),0);
  function dominante(s){const vivi=D.REGNI.filter(f=>!s.cadute[f]);if(vivi.length<3)return null;const nl=vivi.map(f=>s.l.filter(l=>l.faz===f).length),fr=vivi.map(f=>forzaRegno(s,f)),tl=nl.reduce((a,b)=>a+b,0),tf=fr.reduce((a,b)=>a+b,0);let m=null,mq=0;
@@ -144,6 +146,7 @@ const VEN=(()=>{
   if(srv.faz!==a)return{err:'Parli per chi servi: qui non hai voce'};
   if(srv.tipo==='mer'&&tipo!=='pace')return{err:'Un mercenario a contratto può chiedere solo la pace'};
   if(s.cadute[a]||s.cadute[b])return{err:'Quel regno è caduto'};
+  if(s.parola&&s.parola[a]>giorno(s))return{err:D.FAZ[a].re+' ti riceverà di nuovo il giorno '+s.parola[a]};
   const guerra=inGuerra(s,a,b),al=alleate(s,a,b);
   if(tipo==='pace'&&!guerra)return{err:'Non siete in guerra con '+D.FAZ[b].breve};
   if(tipo==='alleanza'){if(guerra)return{err:'Prima la pace: con '+D.FAZ[b].breve+' siete in guerra'};if(al)return{err:'Siete già alleati'};if(alleatoDi(s,a)||alleatoDi(s,b))return{err:'Uno dei due ha già un alleato'}}
@@ -324,10 +327,10 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(ia.st==='assedio'){const l=s.l[ia.a];if(!l||!nemiche(s,p.faz,l.faz)){ia.st='giro';return}if(dist(p,l)<.9){p.via=[];if(!l.ass){l.ass={faz:p.faz,da:s.t,pid:[p.id]};L(s,p.nome+' cinge d\'assedio '+l.nome+'.','guerra')}else if(l.ass.faz===p.faz&&!l.ass.pid.includes(p.id))l.ass.pid.push(p.id)}else if(!p.via.length)vai(s,p,l.x,l.y,M);return}
   if(ia.st==='razzia'){const l=s.l[ia.a];if(!l||!nemiche(s,p.faz,l.faz)||l.sacc>giorno(s)){ia.st='giro';return}
    if(dist(p,l)<.8){p.via=[];if(!ia.t)ia.t=s.t+300;else if(s.t>=ia.t){l.sacc=giorno(s)+5;l.prosp=Math.max(5,l.prosp-18);l.rec=0;p.oro+=120;ia.st='giro';ia.t=0;L(s,p.nome+' mette a sacco '+l.nome+'.','guerra')}}else if(!p.via.length)vai(s,p,l.x,l.y,M);return}
-  if(ia.st==='soccorso'){const l=s.l[ia.a];if(!l||!l.ass){ia.st='giro';return}if(!p.via.length)vai(s,p,l.x,l.y,M);return}
+  if(ia.st==='soccorso'){const l=s.l[ia.a];if(!l||!l.ass||!soccorre(s,p,l)){ia.st='giro';return}if(!p.via.length)vai(s,p,l.x,l.y,M);return}
   if(p.via.length)return;
   // scelta nuova
-  const ass=s.l.find(l=>(l.faz===p.faz||alleate(s,l.faz,p.faz))&&l.ass&&dist(l,p)<22);if(ass&&r()<.7){ia.st='soccorso';ia.a=ass.id;vai(s,p,ass.x,ass.y,M);return}
+  const ass=s.l.find(l=>l.ass&&soccorre(s,p,l)&&dist(l,p)<22);if(ass&&r()<.7){ia.st='soccorso';ia.a=ass.id;vai(s,p,ass.x,ass.y,M);return}
   const nem=s.l.filter(l=>l.faz!=='tu'?nemiche(s,p.faz,l.faz):nemiche(s,p.faz,'tu'));
   if(nem.length&&r()<.6){const x=r();if(x<.45){const bers=nem.filter(l=>MURA[l.tipo]).sort((a,b)=>dist(a,p)-dist(b,p))[0];
      if(bers&&(mia>forzaTr(bers.g)*P.MURA*.75||bers.ass&&bers.ass.faz===p.faz)&&dist(bers,p)<34){ia.st='assedio';ia.a=bers.id;vai(s,p,bers.x,bers.y,M);return}}
@@ -451,8 +454,12 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  const premioTorneo=t=>t&&t.turno>0?t.posta*D.TORNEO.mol[t.turno-1]:0;
  // chi esce da un torneo in cui è iscritto: incassa il premio maturato
  function chiudiTorneo(s,motivo){const t=s.torneo,premio=premioTorneo(t);TU(s).oro+=premio;s.torneo=null;L(s,motivo+(premio?': incassi '+premio+' monete.':'.'),premio?'bene':'');return premio}
+ // i campioni crescono con chi si iscrive: oltre il livello medio `T.LIV` dei capitani ogni livello aggiunge `T.cresce` (così il premio, che sale
+ // col livello, resta una scommessa e non una rendita). Arrotondato per difetto: stesso mondo → stessi numeri.
+ function baseTorneo(s,turno){const T=D.TORNEO,b=T.base[turno],cs=capi(s),lv=Math.max(0,Math.floor(cs.reduce((a,c)=>a+c.liv,0)/Math.max(1,cs.length))-T.LIV),out={};
+  for(const k in b)out[k]=Math.round(b[k]+(T.cresce[k]||0)*lv);return out}
  // gli avversari di un turno: stesso mondo, stessa città, stesso giorno, stesso turno → stessi uomini
- function avversariTorneo(s,lid,giornoT,turno,n){const T=D.TORNEO,b=T.base[turno],r=ADADI.gen({rng:ADADI.semina((s.seme^Math.imul(lid+1,2654435761)^Math.imul(giornoT+1,40503)^Math.imul(turno+1,69069))>>>0)}),nomi=T.nomi[turno].slice(),out=[];
+ function avversariTorneo(s,lid,giornoT,turno,n){const T=D.TORNEO,b=baseTorneo(s,turno),r=ADADI.gen({rng:ADADI.semina((s.seme^Math.imul(lid+1,2654435761)^Math.imul(giornoT+1,40503)^Math.imul(turno+1,69069))>>>0)}),nomi=T.nomi[turno].slice(),out=[];
   for(let k=0;k<n;k++){const kit=T.kit[Math.floor(r()*T.kit.length)],arma=ogg(kit.arma),sc=kit.scudo?ogg(kit.scudo):null,nome=nomi.splice(Math.floor(r()*nomi.length),1)[0]||T.nomi[turno][0];
    out.push({nome,kit:kit.id,corredo:kit.nome,turno,st:{nome,pf:b.pf,att:b.att+(arma.att||0),dif:b.dif+(sc?sc.dif:0),dan:b.dan+(arma.dan||0),rit:arma.rit||12,perf:arma.perf||0,git:0,vel:10,
     asp:{elmo:kit.elmo,arma:arma.asp,scudo:sc?sc.asp:null,cor:T.cor[turno],mant:1,col:T.colori[turno]}}})}
@@ -590,8 +597,10 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    const oro=40+uomini(tu)*3;if(tu.oro<oro)return{err:'Servono '+oro+' monete per il passaggio'};tu.oro-=oro;tu.x=a.x;tu.y=a.y;tu.via=[];s.dentro=a.id;tu.ord={t:'aspetta',fino:s.t+Math.round(dist(l,a)*5)+120};L(s,'Vi imbarcate per '+a.nome+'.');return{s}}
   if(z.a==='cura'){if(l.tipo!=='monastero')return{err:'Qui non ci sono cerusici'};const fer=tu.tr.reduce((a,e)=>a+(e.f||0),0);if(!fer)return{err:'Nessun ferito'};const oro=fer*4;if(tu.oro<oro)return{err:'Servono '+oro+' monete di offerta'};tu.oro-=oro;for(const e of tu.tr)e.f=0;tu.mor=Math.min(100,tu.mor+4);return{s}}
   if(z.a==='benedizione'){if(l.tipo!=='monastero')return{err:'Qui nessuno benedice'};if(l.bened>giorno(s))return{err:'La compagnia è già stata benedetta di recente'};if(tu.oro<80)return{err:'Servono 80 monete di offerta'};tu.oro-=80;l.bened=giorno(s)+7;s.slancio=Math.min(30,s.slancio+12);tu.mor=Math.min(100,tu.mor+8);return{s}}
-  if(z.a==='voci'){if(l.tipo!=='locanda')return{err:'Qui nessuno chiacchiera'};if(tu.oro<25)return{err:'Servono 25 monete per un giro di vino'};const x=s.l.filter(q=>q.noto===false&&q.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];if(!x)return{err:'Stasera nessuno ha storie nuove'};
-   tu.oro-=25;x.noto=true;const tn=tornei(s)[0];L(s,l.oste+' abbassa la voce: «'+x.nome+'. Io non ci andrei, ma tu hai l\'aria di chi ci va.» E aggiunge: «A '+s.l[tn.lid].nome+' c\'è torneo '+quando(tn.giorni)+'.»','bene');return{s,lid:x.id}}
+  if(z.a==='voci'){if(l.tipo!=='locanda')return{err:'Qui nessuno chiacchiera'};if(tu.oro<25)return{err:'Servono 25 monete per un giro di vino'};const x=s.l.filter(q=>q.noto===false&&q.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
+   // il torneo si sa sempre; un posto nascosto solo finché ce n'è qualcuno da raccontare
+   tu.oro-=25;const tn=tornei(s)[0],dt='«A '+s.l[tn.lid].nome+' c\'è torneo '+quando(tn.giorni)+'.»';if(x)x.noto=true;
+   L(s,l.oste+(x?' abbassa la voce: «'+x.nome+'. Io non ci andrei, ma tu hai l\'aria di chi ci va.» E aggiunge: '+dt:' non ha storie nuove, ma una la sa: '+dt),'bene');return x?{s,lid:x.id}:{s}}
   if(z.a==='riposa'){if((l.tipo==='villaggio'||SITO[l.tipo])&&!mio)return{err:'Qui non c\'è locanda'};const oro=mio?0:Math.ceil(uomini(tu)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5));if(tu.oro<oro)return{err:'Servono '+oro+' monete'};tu.oro-=oro;for(const e of tu.tr)e.f=Math.max(0,(e.f||0)-Math.ceil(e.n*.5));tu.mor=Math.min(100,tu.mor+6);tu.ord={t:'aspetta',fino:s.t+8*60};return{s}}
   if(z.a==='riscatta'){if(!MURA[l.tipo])return{err:'Qui nessuno compra prigionieri'};let oro=0;for(const e of s.prig){if(e.sig!=null){const sg=s.sig[e.sig];oro+=350+(sg.re?450:0);sg.prig=null;const p=part(s,sg.pid);if(p)p.ia.t=s.t+P.GIORNO}else oro+=e.n*(12+D.TR[e.t].t*14)}
    if(!oro)return{err:'Non hai prigionieri'};s.prig=[];tu.oro+=oro;L(s,'Riscatti incassati: '+oro+' monete.','bene');return{s,oro}}
@@ -614,7 +623,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    else if(z.tipo==='alleanza'){s.alleanza=s.alleanza||{};s.alleanza[k]={da:g,rompe:0};scioglieScontri(s,a,b);relaz(s,a,2);L(s,A+' e '+B+' stringono un\'alleanza, per le tue parole.','bene')}
    else if(z.tipo==='guerra'){s.guerra[k]=true;relaz(s,b,-10);L(s,A+' dichiara guerra a '+B+', su tua richiesta.','guerra')}
    else{const al=s.alleanza[k];al.rompe=Math.max(g+D.DIPL.PREAVVISO,al.da+D.DIPL.MIN);L(s,A+' annuncia la rottura dell\'alleanza con '+B+': finirà il giorno '+al.rompe+'.','guerra')}
-   return{s}}
+   (s.parola=s.parola||{})[a]=g+D.DIPL.ATTESA;return{s}}
   if(z.a==='pace'){const f=l.faz;if(!D.REGNI.includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||s.rel[con]>-25)return{err:'Non siete in guerra'};const oro=400+Math.round(-s.rel[con]*6);if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=-5;L(s,'Paghi un tributo di '+oro+' monete: pace con '+D.FAZ[con].breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
