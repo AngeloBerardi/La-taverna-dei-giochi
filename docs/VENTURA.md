@@ -53,7 +53,5 @@ Battaglie giocate: 30–90 secondi di scontro a ×1 più l'avvicinamento.
 - C3: **mondo persistente a distanza** su Firestore (partite asincrone). C4: banda contro banda.
 
 ## Da fare
-- Alleanze tra regni decise dal giocatore, altri talenti, dialoghi più lunghi con signori e compagni (riuso di `ARAC`).
-- Vista TV dedicata per la stanza; salvataggio sull'account (oggi solo sul telefono, e la stanza vive finché è aperta).
-- Ripiego senza WebGL (oggi la modalità chiede il 3D).
-- Prestazioni e co-op su telefoni veri: provati solo in Chromium senza scheda grafica, la co-op con due telefoni simulati.
+Le prossime funzioni sono schede di lavoro in `docs/schede/` (V1–V7: salvataggio della co-op, tornei, diplomazia, regno, tattica, personaggi, TV e musica);
+come eseguirle e con quale modello: `docs/LAVORO.md`. Restano fuori dalle schede: salvataggio sull'account, ripiego senza WebGL, prova su telefoni veri.

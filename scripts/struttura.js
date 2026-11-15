@@ -40,6 +40,12 @@ for (const f of manifest) {
   if (t.length > 45 * 1024) avvisi.push(`${f}: ${(t.length / 1024).toFixed(0)} KB, valuta di spezzarlo`);
 }
 
+// 3b. le istruzioni caricate in ogni sessione restano corte: i dettagli stanno in docs/moduli/
+{
+  const n = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8').length;
+  if (n > 9000) avvisi.push(`CLAUDE.md: ${n} caratteri (limite 9000): sposta i dettagli nella scheda dell'area in docs/moduli/`);
+}
+
 // 4. blocchi CSS copiati: >= 8 regole identiche condivise tra due file
 const norm = s => s.replace(/\s+/g, '');
 const regole = {};
