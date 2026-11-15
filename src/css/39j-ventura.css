@@ -63,7 +63,7 @@ html.vn-on #plancia,html.vn-on #dock{display:none!important}
 /* battaglia */
 .vn-ca{gap:5px}.vn-barra{display:flex;align-items:center;gap:8px;width:100%}.vn-barra b{min-width:30px;text-align:center;font:800 17px var(--f-d)}
 .vn-capo{display:flex;align-items:center;gap:6px;width:100%;color:#ff8a7a}.vn-pfb{flex:1;height:9px;background:#3a1612;border:1px solid #000}.vn-pfb i{display:block;height:100%;background:linear-gradient(180deg,#ff8a6a,#c9402e);transition:width .2s}
-.vn-cb{grid-template-columns:1fr;gap:5px}.vn-gr{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.vn-or{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.vn-cb{grid-template-columns:1fr;gap:5px}.vn-cb.vn-arena .vn-gr,.vn-cb.vn-arena .vn-or{display:none}.vn-gr{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}.vn-or{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .vn-grido{--r:0;border-color:#ffd75a}.vn-grido.no{opacity:.55}.vn-grido::after{content:'';position:absolute;left:0;bottom:0;height:3px;width:calc((1 - var(--r))*100%);background:#ffd75a}
 .vn-via{position:absolute;left:14px;right:14px;top:36%;display:grid;gap:10px;justify-items:center;padding:14px;text-align:center;background:rgba(24,15,8,.9);border:2px solid #b88a3c}.vn-via p{margin:0}
 /* pagina Avventura */

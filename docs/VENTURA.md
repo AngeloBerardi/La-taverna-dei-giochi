@@ -7,7 +7,7 @@ la campagna a capitoli (piani A e B) resta nella pagina Avventura come secondo m
 Scelte prese in autonomia (l'utente ha lasciato mano libera): il capitano **combatte in mezzo alle truppe**; grafica 3D a pixel
 d'arte con telecamera ortografica; un solo salvataggio sul telefono.
 
-## Stato: C1 (mondo e battaglia), C2 (co-op in stanza) e approfondimento fatti
+## Stato: C1 (mondo e battaglia), C2 (co-op in stanza), approfondimento, V1 (salvataggio co-op) e V2 (tornei) fatti
 | Pezzo | File | Note |
 |---|---|---|
 | Dati | `motori/28j-ven-dati.js` (`VDAT`) | unica fonte dei numeri: 5 regni, truppe e `aspetto(tid)`, catalogo oggetti `OGG` (6 posti, pregio 1–4), botteghe, offerte uniche delle capitali, bottino dei siti, 10 compagni, 6 capibanda, la rivale, tratti dei signori |
@@ -46,6 +46,10 @@ i signori pattugliano, inseguono, fuggono, razziano, assediano, soccorrono; guer
 ## Misure del bot (60 giorni, capitano accorto, semi 3, 11, 29)
 Compagnia 40–46 uomini, fama 147–231, 21–40 battaglie vinte, nessun seme in rovina; il capitano sconsiderato perde più di quanto vince.
 Battaglie giocate: 30–90 secondi di scontro a ×1 più l'avvicinamento.
+
+**Tornei (V2)** — numeri in `VDAT.TORNEO` (`base` per turno: pf/att/dif/dan, più il corredo dell'avversario). Taratura: capitano di livello 5 con bastarda, mandorla, maglia, bacinetto e Prodezza 2
+vince il torneo circa 1 volta su 2 (55% su 40 prove; i primi due duelli sempre, la finale 55%); con spada e cuoio vince i primi due duelli ma non la finale; a livello 1 senza corazza quasi mai. Il bot accorto
+vince almeno un torneo in 60 giorni nel 65% dei semi (13 su 20), quello a caso mai (prova lunga, lenta: `npm test -- ven_torneo_bot`).
 
 ## Multiplayer
 - **C2 fatto**: co-op in stanza live (`R.mode='rt'`). Stato `G={w,b,vel,nb,sim:true}`: `w` è il mondo di VEN, `b.c` la battaglia di VCAM. Chiunque dà la meta e compra; ognuno ha il suo capitano (abilità ed equipaggiamento propri) e in battaglia guida solo quello; gli ordini ai gruppi sono di tutti. La battaglia parte quando qualcuno dà il via, la pausa è comune.
