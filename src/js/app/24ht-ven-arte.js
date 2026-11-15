@@ -11,7 +11,13 @@ const VenArte=(()=>{
  const qual=()=>{try{return localStorage.getItem('ven-q')||'media'}catch(e){return'media'}};
  const ELEV=52*Math.PI/180,SE=Math.sin(ELEV),CE=Math.cos(ELEV);
  function avvia(){if(A.pronta||A.fallita)return Promise.resolve(A.pronta);if(A.attesa)return A.attesa;
-  A.attesa=VENDOR.load('three').then(()=>{try{T=THREE;costruisci();A.pronta=true}catch(e){A.fallita=true;ERR.n(e,'ventura-3d')}return A.pronta},()=>{A.fallita=true;return false});return A.attesa}
+  A.attesa=VENDOR.load('three').then(()=>{T=THREE;A.pronta=accendi();return A.pronta},e=>{A.fallita=true;A.errore='libreria 3D non caricata';A.attesa=null;return false});return A.attesa}
+ // Sul telefono i contesti WebGL sono pochi: la home e la mappa dell'Avventura ne tengono uno ciascuna, quindi si chiudono prima di aprire questo.
+ // Se la creazione fallisce lo stesso si riprova una volta, poi si ricorda il motivo (si legge nel velo) e «Riprova» ricomincia da capo.
+ function accendi(){for(const f of[()=>Crocevia.rilascia(),()=>Scena3D.rilascia()]){try{f()}catch(e){}}
+  for(let i=0;i<2;i++){try{costruisci();A.errore='';return true}catch(e){A.errore=String((e&&e.message)||e).slice(0,120);ERR.n(e,'ventura-3d');try{ren&&ren.dispose&&ren.dispose()}catch(x){}ren=null;rt=null}}
+  A.fallita=true;return false}
+ function riprova(){A.fallita=false;A.pronta=false;A.attesa=null;A.errore='';A.persa=false;return avvia()}
  // Il telefono può togliere il contesto grafico (memoria, scheda in secondo piano): il canvas resta bianco.
  // Si segna la perdita e `rifai` ricostruisce canvas, renderer e materiali; le scene le rifà chi le possiede (Ven.ripara).
  const persa=()=>!!(A.pronta&&(A.persa||(ren&&ren.getContext().isContextLost())));
@@ -139,5 +145,5 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const r=raggio||30;sole.position.set(fuoco.x+ex*60,fuoco.y+ey*70+10,fuoco.z+38);sole.target.position.set(fuoco.x,fuoco.y,fuoco.z);sole.target.updateMatrixWorld();
     const sc=sole.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=1;sc.far=260;sc.updateProjectionMatrix();
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
- return{A,avvia,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
+ return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
   get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get grad(){return grad},SE,CE}})();

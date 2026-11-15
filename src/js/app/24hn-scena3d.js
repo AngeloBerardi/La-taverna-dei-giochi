@@ -282,7 +282,9 @@ vec3 matT(vec2 tx,vec3 t){if(uMat<.5||t.z>.1)return t;vec2 wp=(tx+.5)/uKt,w=wp/u
 <div class="s3-set" role="group" aria-label="Grafica 3D">${['auto','si','no'].map(k=>`<button class="b sm ${v===k||(v==='lento'&&k==='no')?'gold':''}" data-a="s3d" data-v="${k}" aria-pressed="${v===k}">${NOMI[k]}</button>`).join('')}</div>
 ${v==='lento'?'<small class="muted">Il telefono è sembrato lento: la grafica 3D è spenta. Scegli «Automatica» per riprovare.</small>':''}`}
  function imposta(v){if(!['auto','si','no'].includes(v))return;scrivi(v);K.sonda=null;if(v==='no')parcheggia();else if(!K.pronta&&!K.carico)K.fallita=false;if(typeof render==='function')render()}
- const Pub={K,C,GU,V,metti,tessera,mesh,pezzo,matrice,mescola,scuro,esagono,libera,sporca,dopo,vista,dimensiona,on,avvia,impostaH,imposta,impo,sync,bande,pixel,tinta,
+ // il telefono ha pochi contesti WebGL: chi ne ha bisogno altrove (Compagnia di ventura) fa chiudere questo; `avvia()` lo ricostruisce alla prossima mappa
+ function rilascia(){parcheggia();if(!K.pronta&&!K.carico)return;try{K.ren&&(K.ren.dispose(),K.ren.forceContextLoss())}catch(e){}K.ren=null;K.cv=null;K.pronta=false;K.carico=null;K.fallita=false}
+ const Pub={K,C,GU,V,metti,rilascia,tessera,mesh,pezzo,matrice,mescola,scuro,esagono,libera,sporca,dopo,vista,dimensiona,on,avvia,impostaH,imposta,impo,sync,bande,pixel,tinta,
   get T(){return T},get fallita(){return K.fallita},get pronta(){return K.pronta},sonda:()=>K.msMediano,
   // quanto alzare etichette e numeri sopra le miniature quando il 3D è attivo
   sup:()=>on()?14:0,

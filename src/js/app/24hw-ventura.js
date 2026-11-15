@@ -167,7 +167,7 @@ ${k.pausa&&!b.fine&&b.t===0?`<div class="vn-via"><p>Tocca il campo per muovere i
 <div class="vn-basso vn-cb"><div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b>`:''}</button>`).join('')}</div>
 <div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>${fine}`}
  function html(){if(!V.s)return'';const A=VenArte.A;
-  const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Prova da un altro dispositivo.</p>${bt('Esci','esci',{cls:'gold'})}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
+  const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
    V.modo==='campo'?campoH():altoH()+(V.pan?'':bassoH())+(V.carta!=null&&!V.pan?cartaH():'')+
    (V.pan==='luogo'?luogoH():V.pan==='compagnia'?compagniaH():V.pan==='capitano'?capitanoH():V.pan==='diario'?diarioH():V.pan==='incontro'?incontroH():V.pan==='esito'?esitoH():V.pan==='attesa'?attesaH():V.pan==='menu'?menuH():'');
   return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}<div class="vn-avv">${avvisiH()}</div></div>`}
@@ -181,6 +181,7 @@ ${k.pausa&&!b.fine&&b.t===0?`<div class="vn-via"><p>Tocca il campo per muovere i
   if(c==='nuova'){const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
   if(!s)return;
   if(c==='esci')return esci();
+  if(c==='riprova'){VenArte.riprova().then(()=>{if(ui.ven)render()});render();return}
   if(c==='regole'){ui.rules='ventura';return render()}
   if(c==='pan'){V.pan=p[1];V.sub='home';V.carta=null;return render()}
   if(c==='sub'){V.sub=p[1];return render()}
