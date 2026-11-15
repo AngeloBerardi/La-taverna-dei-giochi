@@ -165,4 +165,65 @@ for (const seme of [1, 7, 2026]) {
   }
   assert(bravi === semi.length, 'il capitano accorto prospera su ogni seme: ' + bravi); assert(guerre === semi.length && cambi >= 1, 'i regni si fanno guerra da soli');
 }
+
+// tornei nelle città (V2): giorno giusto, iscrizione, tre duelli a piedi, premi, sconfitta senza danni alla compagnia, un solo tentativo al giorno
+{
+  const nuovoT = (seme, o) => { const s = V.nuovo(seme, o), l = s.l.find(l => l.tipo === 'citta'); const g = V.giorno(s), d = (7 - (g + l.id) % 7) % 7; s.t += d * 1440; s.dentro = l.id; V.TU(s).oro = 100000; return { s, l }; };
+  const T = D.TORNEO, vinci = s => ok(V.esito(s, { vince: 'a', cad: [], capKo: false })), perdi = s => ok(V.esito(s, { vince: 'b', cad: [], capKo: true }));
+  // il calendario: ogni città ha il suo giorno, uno ogni sette; la lista è ordinata
+  { const s = V.nuovo(3), L = V.tornei(s); assert.strictEqual(L.length, 5); for (let i = 1; i < L.length; i++) assert(L[i - 1].giorni <= L[i].giorni); for (const t of L) { assert(t.giorni >= 0 && t.giorni < 7); const l = s.l[t.lid], c = JSON.parse(V.salva(s)); c.t += t.giorni * 1440; assert(V.torneoOggi(c, c.l[t.lid]), 'il giorno annunciato è quello giusto'); assert.strictEqual(V.torneoOggi(s, l), t.giorni === 0); } }
+  // errori: fuori giorno, monete, iscritto due volte, un solo torneo al giorno, fuori dalle porte
+  { const { s, l } = nuovoT(5); s.t += 1440; assert.strictEqual(V.fai(s, { a: 'torneo' }).err, 'Oggi non c\'è torneo'); s.t -= 1440; V.TU(s).oro = 10; assert.strictEqual(V.fai(s, { a: 'torneo' }).err, 'Non hai abbastanza monete'); V.TU(s).oro = 1000;
+    assert(V.fai(s, { a: 'lizza' }).err && V.fai(s, { a: 'ritira' }).err, 'senza iscrizione niente lizza né ritiro');
+    ok(V.fai(s, { a: 'torneo' })); assert.strictEqual(V.TU(s).oro, 1000 - T.posta * s.cap.liv); assert.strictEqual(JSON.stringify(s.torneo), JSON.stringify({ lid: l.id, turno: 0, posta: T.posta * s.cap.liv, giorno: V.giorno(s) }));
+    assert.strictEqual(V.fai(s, { a: 'torneo' }).err, 'Sei già iscritto'); ok(V.fai(s, { a: 'ritira' })); assert.strictEqual(s.torneo, null); assert(V.fai(s, { a: 'torneo' }).err.includes('già partecipato'), 'niente seconda iscrizione nello stesso giorno'); }
+  // gli avversari: stessi uomini per stesso mondo, città, giorno e turno; più forti turno dopo turno; un corredo vero
+  { const { s, l } = nuovoT(7), g = V.giorno(s), a = V.avversariTorneo(s, l.id, g, 1, 3), b = V.avversariTorneo(s, l.id, g, 1, 3); assert.strictEqual(JSON.stringify(a), JSON.stringify(b)); assert.strictEqual(a.length, 3);
+    assert.notDeepStrictEqual(V.avversariTorneo(s, l.id, g + 7, 1, 3).map(x => x.nome + x.kit), a.map(x => x.nome + x.kit), 'un altro giorno, altri uomini');
+    for (let t = 0; t < 3; t++) for (const x of V.avversariTorneo(s, l.id, g, t, 4)) { assert(x.st.git === 0 && !x.st.cav, 'a piedi e corpo a corpo'); assert(x.st.asp.arma && D.TORNEO.kit.some(k => k.id === x.kit)); assert(x.st.pf >= T.base[t].pf && x.st.dan >= T.base[t].dan); }
+    assert(V.avversariTorneo(s, l.id, g, 2, 1)[0].st.pf > V.avversariTorneo(s, l.id, g, 0, 1)[0].st.pf);
+    const kits = new Set(); for (let i = 1; i < 40; i++) for (const x of V.avversariTorneo(s, l.id, g + i, i % 3, 4)) kits.add(x.kit); assert.strictEqual(kits.size, 4, 'escono tutti e quattro i corredi'); }
+  // la scheda del duello: a piedi, senza arco, solo capitani contro altrettanti avversari
+  { const { s } = nuovoT(9, { soci: [{ nome: 'Bea' }] }); const [c0, c1] = V.capi(s); c0.eq.arma = 'arco'; c0.eq.cavallo = 'corsiero'; c1.eq.arma = 'spadone'; c1.eq.scudo = null;
+    const posta = T.posta * (c0.liv + c1.liv); ok(V.fai(s, { a: 'torneo', seat: 1 })); assert.strictEqual(s.torneo.posta, posta, 'si paga per ogni capitano'); assert.strictEqual(V.fai(s, { a: 'esci' }).err, undefined);
+    s.dentro = s.torneo.lid; ok(V.fai(s, { a: 'lizza' })); assert.strictEqual(s.incontro.tipo, 'arena'); assert(V.fai(s, { a: 'riposa' }).err && V.fai(s, { a: 'esci' }).err, 'durante il duello non si fa altro');
+    const sc = V.campo(s); assert.strictEqual(sc.tipo, 'arena'); assert.strictEqual(sc.a.length, 0); assert.strictEqual(sc.b.length, 2); assert.strictEqual(sc.capi.length, 2); assert(sc.capi.every(c => !c.cavallo && !c.git), 'senza cavallo e senza arco');
+    assert.strictEqual(sc.capi[0].asp.arma, 'spada', 'l\'arco diventa una spada'); assert.strictEqual(sc.capi[1].asp.arma, 'spadone'); assert.strictEqual(sc.scena.vicino.tipo, 'citta'); assert.strictEqual(sc.b[0].st.pf, T.base[0].pf);
+    assert.strictEqual(V.scegli(s, 'lascia').err, 'Scelta non valida'); ok(V.fai(s, { a: 'ritira' })); assert.strictEqual(s.incontro, null, 'ritirarsi chiude anche il duello'); }
+  // tre vittorie: il premio del turno cresce, si incassa solo ritirandosi o vincendo la finale; fama e un oggetto di pregio 3 mai doppio
+  { const { s } = nuovoT(11); const tu = V.TU(s); ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta, oro0 = tu.oro, fama0 = s.fama;
+    ok(V.fai(s, { a: 'lizza' })); let o = vinci(s).out; assert(o.torneo.vinto && o.torneo.turno === 0 && o.torneo.premio === posta * 2 && !o.torneo.chiuso && o.fama === 0); assert.strictEqual(tu.oro, oro0, 'il premio matura ma non si incassa ancora'); assert.strictEqual(s.torneo.turno, 1);
+    ok(V.fai(s, { a: 'lizza' })); o = vinci(s).out; assert(o.torneo.premio === posta * 4 && o.fama === 5 && s.fama === fama0 + 5); assert.strictEqual(tu.oro, oro0);
+    const gia = new Set(tu.zaino); for (const c of V.capi(s)) for (const id of Object.values(c.eq).flat()) if (id) gia.add(id); const zaino0 = tu.zaino.length;
+    ok(V.fai(s, { a: 'lizza' })); o = vinci(s).out; assert(o.torneo.chiuso && o.torneo.premio === posta * 8 && o.fama === 15 && s.torneo === null); assert.strictEqual(tu.oro, oro0 + posta * 8);
+    assert.strictEqual(o.torneo.oggetto && D.OGG[o.torneo.oggetto].q, 3, 'oggetto di pregio 3'); assert(!gia.has(o.torneo.oggetto), 'mai uno già posseduto'); assert.strictEqual(tu.zaino.length, zaino0 + 1); assert.strictEqual(JSON.stringify(o.oggetti), JSON.stringify([o.torneo.oggetto]));
+    assert.strictEqual(s.stat.tornei, 1); assert(V.fai(s, { a: 'lizza' }).err, 'chiuso: niente altri duelli'); }
+  // ritirarsi tiene il premio maturato; il giorno che passa lo paga lo stesso; una sconfitta lo perde
+  { const { s } = nuovoT(13); const tu = V.TU(s); ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); const oro1 = tu.oro; const r = ok(V.fai(s, { a: 'ritira' })); assert.strictEqual(r.oro, posta * 2); assert.strictEqual(tu.oro, oro1 + posta * 2); assert.strictEqual(s.torneo, null); }
+  { const { s } = nuovoT(14); const tu = V.TU(s); ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); ok(V.fai(s, { a: 'lizza' })); vinci(s); const oro1 = tu.oro; ok(V.fai(s, { a: 'esci' }));
+    ok(V.ordina(s, { t: 'aspetta', ore: 20 })); let g = 0; while (s.torneo && g++ < 2000) V.passo(s, 30); assert.strictEqual(s.torneo, null, 'a fine giornata il torneo si chiude'); assert(s.log.some(x => x.tx.includes('incassi ' + posta * 4 + ' monete')), 'pagando il premio maturato'); assert(tu.oro > oro1 + posta * 4 - 200, 'le monete sono arrivate'); }
+  { const { s } = nuovoT(15); const tu = V.TU(s), uomini = V.uomini(tu), tr = JSON.stringify(tu.tr), oro = tu.oro; ok(V.fai(s, { a: 'torneo' })); const posta = s.torneo.posta; ok(V.fai(s, { a: 'lizza' })); vinci(s); ok(V.fai(s, { a: 'lizza' }));
+    const o = perdi(s).out; assert(!o.torneo.vinto && o.torneo.chiuso && o.torneo.premio === 0 && s.torneo === null, 'si perde tutto il premio maturato'); assert.strictEqual(tu.oro, oro - posta);
+    assert.strictEqual(V.uomini(tu), uomini); assert.strictEqual(JSON.stringify(tu.tr), tr, 'nessun uomo perso né ferito'); assert.strictEqual(s.prigioniero, null); assert.strictEqual(s.incontro, null); assert.strictEqual(o.morti + o.feriti + o.prig, 0);
+    // vita al 50% per il resto del giorno, poi torna piena
+    const piena = V.statCap(V.capi(s)[0]).pf; s.incontro = { tipo: 'nemico', pid: [], all: [] }; const p = V.part(s, s.p.find(p => p.k === 'pre').id); s.incontro = { tipo: 'nemico', pid: [p.id], all: [], da: 'tu' };
+    assert.strictEqual(V.campo(s).capi[0].pf, Math.round(piena * .5), 'combatte a metà vita'); s.t += 1440; assert.strictEqual(V.campo(s).capi[0].pf, piena, 'il giorno dopo sta bene'); }
+  // un salvataggio di prima dei tornei (senza torneo, torneoUsato, ferito, stat.tornei) si apre e si gioca
+  { const { s } = nuovoT(21); const j = JSON.parse(V.salva(s)); for (const k of ['torneo', 'torneoUsato', 'ferito']) delete j[k]; delete j.stat.tornei; delete j.stat.duelli; const t = V.apri(JSON.stringify(j)); assert(t); assert.strictEqual(V.tornei(t).length, 5);
+    ok(V.fai(t, { a: 'torneo' })); ok(V.fai(t, { a: 'lizza' })); assert.strictEqual(V.campo(t).tipo, 'arena'); ok(V.esito(t, { vince: 'a', cad: [] })); assert.strictEqual(t.stat.duelli, 1); }
+  // mai un doppione, nemmeno di un oggetto portato da un socio fuori campo
+  { const { s } = nuovoT(22, { soci: [{ nome: 'Bea' }] }); const pregio = Object.keys(D.OGG).filter(id => D.OGG[id].q === 3), indosso = 'temprata', lascia = 'alabarda'; assert(pregio.includes(indosso) && pregio.includes(lascia));
+    s.soci[0].eq.arma = indosso; for (const id of pregio) if (id !== indosso && id !== lascia) V.TU(s).zaino.push(id);
+    s.attivi = 1; ok(V.fai(s, { a: 'torneo' })); for (let t = 0; t < 3; t++) { ok(V.fai(s, { a: 'lizza' })); ok(V.esito(s, { vince: 'a', cad: [] })); }
+    assert.strictEqual(s.ult.torneo.oggetto, lascia, 'esce solo l\'unico che non ha nessuno, nemmeno il socio fuori campo'); }
+  // le voci della locanda dicono dove sarà il prossimo
+  { const s = V.nuovo(17), loc = s.l.find(l => l.tipo === 'locanda'), x = s.l.find(l => l.noto === false && l.g.length); assert(loc && x); s.dentro = loc.id; V.TU(s).oro = 500; ok(V.fai(s, { a: 'voci' })); const ultimo = s.log[s.log.length - 1].tx; assert(/torneo/.test(ultimo) && ultimo.includes(s.l[V.tornei(s)[0].lid].nome), ultimo); }
+  // salvare e riaprire a metà torneo dà la stessa partita
+  { const { s } = nuovoT(19); ok(V.fai(s, { a: 'torneo' })); ok(V.fai(s, { a: 'lizza' })); const t = V.apri(V.salva(s)); assert.strictEqual(V.salva(t), V.salva(s)); assert.strictEqual(JSON.stringify(V.campo(t)), JSON.stringify(V.campo(s))); }
+  // risoluzione automatica: capitano forte e ben equipaggiato vince circa una volta su due, un capitano nudo non vince, a caso quasi mai
+  { const prova = (eq, liv, pr, N) => { let vinti = 0; for (let i = 1; i <= N; i++) { const { s } = nuovoT(i * 3); for (const c of V.capi(s)) { c.liv = liv; c.ab.prodezza = pr; Object.assign(c.eq, eq); } ok(V.fai(s, { a: 'torneo' })); while (s.torneo) { ok(V.fai(s, { a: 'lizza' })); const r = ok(V.auto(s)); if (!r.out.torneo.vinto) break; if (r.out.torneo.chiuso) vinti++; } } return vinti / N; };
+    const eq = (a, sc, ar, el) => ({ arma: a, scudo: sc, armatura: ar, elmo: el, cavallo: 'ronzino', cimeli: [null, null] });
+    const forte = prova(eq('bastarda', 'mandorla', 'maglia', 'bacinetto'), 5, 2, 40), nudo = prova(eq('spada', null, 'giaco', null), 1, 0, 25);
+    assert(forte >= .3 && forte <= .75, 'livello 5 ben equipaggiato: circa un torneo su due (' + forte.toFixed(2) + ')'); assert(nudo <= .05, 'livello 1 senza corazza non vince (' + nudo + ')'); }
+}
 console.log('ven_mondo ok');

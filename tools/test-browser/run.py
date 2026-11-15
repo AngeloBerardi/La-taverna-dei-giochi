@@ -3110,6 +3110,52 @@ async def sc_ventura(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_torneo(b, srv):
+    """Ventura, torneo in città (V2): iscrizione, in lizza, arena a 390 px senza ordini ai gruppi, esito con premio maturato, risoluzione automatica e ritiro."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # la compagnia entra in una città amica nel giorno del suo torneo; capitano forte, tasche piene
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s),l=s.l.filter(l=>l.tipo==='citta'&&!VEN.nemiche(s,'tu',l.faz))[0],g=VEN.giorno(s);s.t+=((7-(g+l.id)%7)%7)*1440;tu.x=l.x;tu.y=l.y;s.dentro=l.id;s.davanti=-1;tu.ord=null;tu.via=[];tu.oro=5000;
+      const c=s.cap;c.liv=12;c.ab.prodezza=8;Object.assign(c.eq,{arma:'temprata',scudo:'mandorla',armatura:'brigantina',elmo:'bacinetto'});Ven.act('pan:luogo')})()""")
+    await pg.wait_for_selector('[data-v="fai:torneo"]', timeout=10000)
+    check('Torneo di oggi' in await pg.inner_text('.vn-pan') and await pg.locator('[data-v="fai:lizza"]').count() == 0, 'città: «Torneo di oggi» con iscrizione, nessun duello prima di iscriversi')
+    oro0 = await pg.evaluate("VEN.TU(Ven.V.s).oro"); await pg.click('[data-v="fai:torneo"]'); await pg.wait_for_selector('[data-v="fai:lizza"]', timeout=5000)
+    st = await pg.evaluate("({t:Ven.V.s.torneo,oro:VEN.TU(Ven.V.s).oro})")
+    check(st['t'] and st['t']['turno'] == 0 and st['oro'] == oro0 - 40 * 12 and 'Sfidante' in await pg.inner_text('.vn-pan'), f"iscritto: paga 40 × livello, ecco lo sfidante e i suoi avversari: {st}")
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    check(await pg.locator('[data-v="fai:torneo"]').count() == 0, 'iscritto: niente seconda iscrizione')
+    await pg.click('[data-v="fai:lizza"]'); await pg.wait_for_selector('[data-v="scegli:attacca"]', timeout=5000)
+    check('sfidante' in (await pg.inner_text('.vn-inc')).lower() and await pg.locator('[data-v="scegli:auto"]').count() == 1 and await pg.locator('[data-v="fai:ritira"]').count() == 1, 'pannello del duello: combatti, risolvi, ritirati')
+    await pg.click('[data-v="scegli:attacca"]'); await pg.wait_for_function("VenCampo.K.s&&VenCampo.K.s.tipo==='arena'", timeout=20000); await pg.wait_for_timeout(1200)
+    c0 = await pg.evaluate("({modo:Ven.V.modo,u:VenCampo.K.s.u.length,gr:getComputedStyle(document.querySelector('.vn-cb .vn-gr')).display,or:getComputedStyle(document.querySelector('.vn-cb .vn-or')).display,pausa:VenCampo.K.pausa})")
+    check(c0['modo'] == 'campo' and c0['u'] == 2 and c0['gr'] == 'none' and c0['or'] == 'none' and c0['pausa'], f"arena: due uomini in lizza, nessun ordine ai gruppi né grido: {c0}")
+    px = await pg.evaluate("(()=>{const c=VenArte.cv,g=document.createElement('canvas');g.width=g.height=24;const x=g.getContext('2d');VenCampo.passo(.016);x.drawImage(c,0,0,24,24);const d=x.getImageData(0,0,24,24).data;const q=new Set();for(let i=0;i<d.length;i+=4)q.add((d[i]>>5)+','+(d[i+1]>>5)+','+(d[i+2]>>5));return q.size})()")
+    check(px >= 6, f"l'arena ha colori diversi (non è nera): {px}")
+    await pg.screenshot(path='/tmp/arena-390.png')
+    await pg.click('[data-v=cpausa]'); await pg.wait_for_timeout(400)
+    await pg.evaluate("(()=>{const k=VenCampo.K;for(let i=0;i<6000&&!k.s.fine;i++)VCAM.passo(k.s,1);k.finita=true})()")
+    await pg.wait_for_selector('[data-v=fine]', timeout=20000); await pg.click('[data-v=fine]'); await pg.wait_for_timeout(300)
+    fin = await pg.evaluate("({modo:Ven.V.modo,pan:Ven.V.pan,t:Ven.V.s.torneo,inc:!!Ven.V.s.incontro,o:Ven.V.s.ult&&Ven.V.s.ult.torneo})")
+    check(fin['modo'] == 'mondo' and fin['pan'] == 'esito' and not fin['inc'] and fin['o'] and fin['o']['vinto'] and fin['t']['turno'] == 1, f"duello vinto: esito con il premio in palio, avanti al turno dopo: {fin}")
+    check('in palio' in await pg.inner_text('.vn-inc') and await pg.locator('.vn-griglia span').count() == 3, 'esito del torneo: premio, fama, esperienza')
+    await pg.click('[data-v=chiudi]'); await pg.wait_for_selector('[data-v="fai:lizza"]', timeout=5000)
+    check('Campione' in await pg.inner_text('.vn-pan'), 'di nuovo in città: tocca al campione')
+    # secondo duello: risoluzione automatica
+    await pg.click('[data-v="fai:lizza"]'); await pg.wait_for_selector('[data-v="scegli:auto"]'); await pg.click('[data-v="scegli:auto"]'); await pg.wait_for_selector('.vn-es', timeout=10000)
+    ris = await pg.evaluate("({pan:Ven.V.pan,t:Ven.V.s.torneo,o:Ven.V.s.ult.torneo})")
+    check(ris['pan'] == 'esito' and ris['o']['vinto'] and ris['t']['turno'] == 2 and ris['o']['premio'] > 0, f'«Risolvi» chiude il duello senza grafica: {ris}')
+    # ritiro: il premio maturato entra in cassa
+    await pg.click('[data-v=chiudi]'); await pg.wait_for_selector('[data-v="fai:ritira"]'); oro1 = await pg.evaluate("VEN.TU(Ven.V.s).oro"); mat = ris['o']['premio']
+    await pg.click('[data-v="fai:ritira"]'); await pg.wait_for_timeout(200)
+    fin2 = await pg.evaluate("({t:Ven.V.s.torneo,oro:VEN.TU(Ven.V.s).oro})")
+    check(fin2['t'] is None and fin2['oro'] == oro1 + mat, f'ritirati: incassi il premio maturato ({mat}): {fin2}')
+    check('già partecipato' in (await pg.evaluate("VEN.fai(Ven.V.s,{a:'torneo'}).err")), 'un solo torneo al giorno per città')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_riprova(b, srv):
     """Ventura: il contesto grafico si perde più volte di fila (telefono sotto pressione), la scena si arrende; «Riprova» la deve riaccendere davvero."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)

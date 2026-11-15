@@ -41,15 +41,16 @@ ${bt('nuova','Nuova partita')}${bt('annulla','Annulla','sm')}</div></div>`}
  function specchia(){const L=X.L,V=Ven.V,w=L.w,tu=VEN.TU(w),p=X.pre,k=VenCampo.K;V.s=w;V.vel=L.vel;
   if(L.b){k.seat=Math.max(0,seat());if(V.modo!=='campo'||k.batt!==L.nb||!k.esterno){V.modo='campo';V.pan=null;V.fine=null;V.carta=null;if(VenArte.A.pronta)VenCampo.usa(L.b.c,L.nb);else{k.s=L.b.c;k.batt=null}}else k.s=L.b.c;
    k.pausa=!VST.corre(L)&&!L.b.c.fine;if(L.b.c.fine)k.finita=true;p.b=true;return}
-  if(p.b){p.b=false;V.modo='mondo';V.fine=null;V.pan=w.ult?'esito':null;VenMappa.centra();p.inc=!!w.incontro;p.luogo=w.dentro>=0?w.dentro:w.davanti;return}
+  if(p.b){p.b=false;V.modo='mondo';V.fine=null;V.pan=w.ult?'esito':null;VenMappa.centra();p.inc=!!w.incontro;p.luogo=w.dentro>=0?w.dentro:w.davanti;p.ult=w.ult?w.ult.id:null;return}
   if(V.modo==='campo'){V.modo='mondo';V.fine=null}
   const inc=!!w.incontro,luogo=w.dentro>=0?w.dentro:w.davanti,prig=!!w.prigioniero,att=!!(tu.ord&&tu.ord.t==='aspetta');
-  if(inc&&!p.inc){V.pan='incontro';V.msg=''}else if(!inc&&V.pan==='incontro')V.pan=null;
+  if(inc&&!p.inc){V.pan='incontro';V.msg=''}else if(!inc&&V.pan==='incontro')V.pan=luogo>=0?'luogo':null;
+  if(w.ult&&w.ult.torneo&&w.ult.id!==p.ult&&!inc){V.pan='esito'}p.ult=w.ult?w.ult.id:null;
   if(luogo>=0&&luogo!==p.luogo&&!inc){V.pan='luogo';V.sub='home';V.msg=''}else if(luogo<0&&V.pan==='luogo')V.pan=null;
   if((prig&&!p.prig)||(att&&!p.att&&!inc))V.pan='attesa';else if(V.pan==='attesa'&&!prig&&!att)V.pan=inc?'incontro':luogo>=0?'luogo':null;
   p.inc=inc;p.luogo=luogo;p.prig=prig;p.att=att}
  // chiamata da Ven.html a ogni disegno: stato nuovo dalla stanza, o stanza finita
- function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();return}
+ function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false,ult:G&&G.w&&G.w.ult?G.w.ult.id:null};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();return}
   if(X.era){X.era=false;X.L=null;X.visto=null;Ven.V.s=null;Ven.V.pan=null;Ven.V.modo='mondo';ui.ven=false;Ven.ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on')}}
  // ---- mosse ----
  function invia(a,ns){X.fermo=ora();X.visto=ns;const base=R.grev!=null?R.grev:R.rev,gid=G.gid;

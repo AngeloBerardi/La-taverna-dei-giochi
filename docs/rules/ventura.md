@@ -14,6 +14,10 @@ truppe in un mondo libero (mappa strategica + battaglie campali in tempo reale);
 - Battaglia: tempo reale con pausa; capitano guidato a tocchi, ordini ai tre gruppi (Carica, Tieni, Seguimi, Avanti, Indietro), Grido;
   il campo è quello dove ti trovi (bioma, costa, strada, luogo vicino, ora, meteo: nebbia accorcia il tiro, pioggia lo rende impreciso);
   rinforzi a ondate oltre 34 uomini per lato; rotta; risoluzione automatica con lo stesso motore.
+- Tornei (V2): ogni città ha il suo giorno, uno su sette (`(giorno + id) % 7 === 0`); la Carta e le voci di locanda dicono dove. Iscrizione 40 × livello di ogni capitano, tre duelli a piedi
+  (sfidante, campione, gran campione), un avversario per capitano, ognuno con uno dei quattro corredi (spada e scudo, spadone, alabarda, mazza). Il capitano combatte con il suo equipaggiamento
+  senza cavallo né arco (l'arco diventa una spada), niente ordini né Grido. Premi 2×, 4×, 8× l'iscrizione (si incassano ritirandosi o vincendo la finale), +5 e +15 fama e un oggetto di pregio 3
+  mai già posseduto. Sconfitta: fuori, premio perso, nessuna prigionia né perdita di uomini, vita al 50% fino a sera. Un solo torneo al giorno per città.
 - Regni: contratto (fama 25), giuramento con feudo (fama 100), assedi con assalto dai varchi, fortezze proprie con guarnigione. I signori hanno un tratto.
 - In compagnia (1–4): dalla stanza si sceglie «Compagnia di ventura». Una sola compagnia e una sola cassa, un capitano a testa.
 - La partita in compagnia si salva da sola (a ogni alba, all'uscita da un luogo, a fine battaglia) sul telefono di ognuno: un altro giorno, aprendo di nuovo «Compagnia di ventura» dalla stanza, si sceglie «Riprendi la compagnia». Con più o meno giocatori la compagnia si adatta: i capitani senza giocatore restano nel libro ma non scendono in campo. Una partita in solitario si può portare in compagnia, e la compagnia si può continuare da soli.
