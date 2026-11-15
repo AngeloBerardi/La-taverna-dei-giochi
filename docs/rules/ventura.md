@@ -16,6 +16,7 @@ truppe in un mondo libero (mappa strategica + battaglie campali in tempo reale);
   rinforzi a ondate oltre 34 uomini per lato; rotta; risoluzione automatica con lo stesso motore.
 - Regni: contratto (fama 25), giuramento con feudo (fama 100), assedi con assalto dai varchi, fortezze proprie con guarnigione. I signori hanno un tratto.
 - In compagnia (1–4): dalla stanza si sceglie «Compagnia di ventura». Una sola compagnia e una sola cassa, un capitano a testa.
+- La partita in compagnia si salva da sola (a ogni alba, all'uscita da un luogo, a fine battaglia) sul telefono di ognuno: un altro giorno, aprendo di nuovo «Compagnia di ventura» dalla stanza, si sceglie «Riprendi la compagnia». Con più o meno giocatori la compagnia si adatta: i capitani senza giocatore restano nel libro ma non scendono in campo. Una partita in solitario si può portare in compagnia, e la compagnia si può continuare da soli.
 
 ## Riferimento visivo
 Stile nostro: diorama a facce piatte reso a pixel d'arte (telecamera ortografica a tre quarti, contorni, luce a bande, retino),

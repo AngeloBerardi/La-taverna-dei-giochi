@@ -5,17 +5,39 @@
    subito qui (`manda`), poi parte come ogni mossa di stanza (`SYNC.mossa`, atomica); quando arriva lo stato di un altro
    telefono lo si adotta e si riparte da lì (`adotta`). Schermate, pannelli e disegno restano quelli di `Ven` (24hw):
    `specchia` decide quale pannello mostrare dai cambi di stato, senza strappare di mano i pannelli aperti apposta.
-   La TV (`ui.tv`) guarda soltanto. Piano: docs/VENTURA.md. */
+   La TV (`ui.tv`) guarda soltanto. Salvataggio (V1): a ogni alba, all'uscita da un luogo e a fine battaglia ogni telefono seduto scrive
+   il mondo in `ven-salv-coop` (`salva`, forma di `VST.salvabile`); prima di partire, se c'è un salvataggio, la carta `ripH` fa scegliere
+   (`chiedi`/`scegli`: «Riprendi la compagnia», «Porta qui la partita in solitario», «Nuova»). Piano: docs/VENTURA.md. */
 const VenStanza=(()=>{
- const X={L:null,visto:null,acc:0,era:false,fermo:0,capT:0,pre:{inc:false,luogo:-1,prig:false,att:false,b:false},seme0:null};
+ const X={L:null,visto:null,acc:0,era:false,fermo:0,capT:0,pre:{inc:false,luogo:-1,prig:false,att:false,b:false},seme0:null,rip:null,pend:null,svk:null};
+ const SALV_K='ven-salv-coop',SOLO_K='ven-salv';
  const on=()=>!!(G&&G.g==='ventura');
  const seat=()=>on()&&!ui.tv?viewer():-1;
  const ora=()=>performance.now();
  // ---- partire ----
- function nuova(n,names,o){const seme=X.seme0!=null?X.seme0:(Date.now()^Math.floor(Math.random()*4294967296))>>>0;   // seme0: solo per le prove del browser
+ function nuova(n,names,o){const rip=X.rip;X.rip=null;
+  if(rip==='coop'||rip==='solo'){const sv=leggiSalv(rip),r=sv&&VST.apri(sv,n,names);if(r&&r.s)return r.s}
+  const seme=X.seme0!=null?X.seme0:(Date.now()^Math.floor(Math.random()*4294967296))>>>0;   // seme0: solo per le prove del browser
   return VST.nuova(n,names,Object.assign({seme,regno:Ven.V.regno},o||{}))}
+ // ---- salvataggio e ripresa (V1) ----
+ const leggiSalv=k=>{try{const x=JSON.parse(localStorage.getItem(k==='coop'?SALV_K:SOLO_K)||'null');return x&&(k==='coop'?x:VEN.apri(x))}catch(e){return null}};
+ const giornoDi=sv=>sv&&(sv.giorno||(sv.w?VEN.giorno(sv.w):VEN.giorno(sv)));
+ // prima di avviare: c'è qualcosa da riprendere? (e la scelta non è già fatta) → apre la carta e dice «aspetta»
+ function chiedi(S,opts){if(X.rip!=null)return false;const c=leggiSalv('coop'),s=leggiSalv('solo');if(!c&&!s)return false;X.pend={S,opts};ui.venRip=true;return true}
+ function scegli(k){const q=X.pend;ui.venRip=false;X.pend=null;if(k==='annulla'||!q)return render();X.rip=k;startGame('ventura',q.S,q.opts)}
+ function ripH(){const c=leggiSalv('coop'),s=leggiSalv('solo');
+  const bt=(a,tx,cls)=>`<button class="b ${cls||''}" data-a="ven" data-v="rip:${a}">${tx}</button>`;
+  return`<div class="modal"><div class="box col"><h2>Compagnia di ventura</h2><p class="muted">Su questo telefono c'è una partita salvata.</p>
+${c?`<p><b>${esc(c.w.nome)}</b><small class="muted"> · giorno ${giornoDi(c)} · ${c.n} capitan${c.n===1?'o':'i'}</small></p>${bt('coop','Riprendi la compagnia','gold')}`:''}
+${s?`<p><b>${esc(s.nome)}</b><small class="muted"> · partita in solitario, giorno ${VEN.giorno(s)}</small></p>${bt('solo','Porta qui la partita in solitario')}`:''}
+${bt('nuova','Nuova partita')}${bt('annulla','Annulla','sm')}</div></div>`}
+ // scrive il mondo su questo telefono (mai durante una battaglia); solo per chi è seduto, non per la TV
+ function salva(){const L=X.L;if(!L||ui.tv||seat()<0)return;const k=L.b?'b':VEN.giorno(L.w)+':'+(L.w.dentro>=0?L.w.dentro:-1);if(k===X.svk)return;X.svk=k;
+  const sv=VST.salvabile(L);if(!sv)return;try{localStorage.setItem(SALV_K,JSON.stringify(sv))}catch(e){}}
+ // dalla compagnia al solitario: il mondo diventa la partita da solo (il capitano è il primo; gli altri restano ma non scendono in campo)
+ function perSolo(){const sv=leggiSalv('coop');if(!sv)return false;const w=sv.w;w.ev=[];if((w.soci||[]).length)w.attivi=1;try{localStorage.setItem(SOLO_K,VEN.salva(w))}catch(e){return false}return true}
  // ---- dallo stato della stanza alla vista ----
- function adotta(){X.visto=G;X.L=VST.copia(G);X.acc=0;X.fermo=ora();specchia()}
+ function adotta(){X.visto=G;X.L=VST.copia(G);X.acc=0;X.fermo=ora();specchia();salva()}
  function specchia(){const L=X.L,V=Ven.V,w=L.w,tu=VEN.TU(w),p=X.pre,k=VenCampo.K;V.s=w;V.vel=L.vel;
   if(L.b){k.seat=Math.max(0,seat());if(V.modo!=='campo'||k.batt!==L.nb||!k.esterno){V.modo='campo';V.pan=null;V.fine=null;V.carta=null;if(VenArte.A.pronta)VenCampo.usa(L.b.c,L.nb);else{k.s=L.b.c;k.batt=null}}else k.s=L.b.c;
    k.pausa=!VST.corre(L)&&!L.b.c.fine;if(L.b.c.fine)k.finita=true;p.b=true;return}
@@ -27,7 +49,7 @@ const VenStanza=(()=>{
   if((prig&&!p.prig)||(att&&!p.att&&!inc))V.pan='attesa';else if(V.pan==='attesa'&&!prig&&!att)V.pan=inc?'incontro':luogo>=0?'luogo':null;
   p.inc=inc;p.luogo=luogo;p.prig=prig;p.att=att}
  // chiamata da Ven.html a ogni disegno: stato nuovo dalla stanza, o stanza finita
- function sync(){if(on()){if(!X.era){X.era=true;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();return}
+ function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();return}
   if(X.era){X.era=false;X.L=null;X.visto=null;Ven.V.s=null;Ven.V.pan=null;Ven.V.modo='mondo';ui.ven=false;Ven.ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on')}}
  // ---- mosse ----
  function invia(a,ns){X.fermo=ora();X.visto=ns;const base=R.grev!=null?R.grev:R.rev,gid=G.gid;
@@ -47,7 +69,7 @@ const VenStanza=(()=>{
   if(L.b){if(VST.corre(L)){X.acc+=dt*10;const n=Math.min(6,Math.floor(X.acc));if(n>0){X.acc-=n;if(X.acc>1)X.acc=0;VenCampo.eventi(VST.avanzaB(L,L.b.c.t+n));if(L.b.c.fine){k.finita=true;ferma()}}k.acc=X.acc}}
   else if(VST.scorre(L)){X.acc+=dt*8*VST.ritmo(L);const n=Math.floor(X.acc);if(n>0){X.acc-=n;const g0=VEN.giorno(L.w),ev=VST.avanza(L,L.w.t+n);
     for(const e of ev)if(e.t==='log'&&e.tipo)Ven.avviso(e.tx,e.tipo);
-    if(!VST.scorre(L)||VEN.giorno(L.w)!==g0||L.w.incontro){specchia();ferma();render()}}}
+    if(!VST.scorre(L)||VEN.giorno(L.w)!==g0||L.w.incontro){specchia();salva();ferma();render()}}}
   if(ora()-X.fermo>9000+Math.max(0,seat())*2500)ferma()}
  function esci(){ui.confirm=true;render()}
- return{X,on,seat,nuova,sync,manda,bCap,pausa,giro,esci}})();
+ return{X,on,seat,nuova,chiedi,scegli,ripH,salva,perSolo,leggiSalv,sync,manda,bCap,pausa,giro,esci}})();

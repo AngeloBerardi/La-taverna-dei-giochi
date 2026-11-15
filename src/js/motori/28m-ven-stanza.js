@@ -9,9 +9,18 @@
 const VST=(()=>{
  const MAX=4,AVANTI=2880,B_AVANTI=1500;
  const copia=x=>JSON.parse(JSON.stringify(x));
- function nuova(n,names,o){o=o||{};n=Math.max(1,Math.min(MAX,n|0));const nomi=(names||[]).slice(0,n).map((x,i)=>String(x||('Capitano '+(i+1))));
+ function nuova(n,names,o){o=o||{};if(o.rip){const r=apri(o.rip,n,names);return r.s||r}n=Math.max(1,Math.min(MAX,n|0));const nomi=(names||[]).slice(0,n).map((x,i)=>String(x||('Capitano '+(i+1))));
   const w=VEN.nuovo(o.seme||1,{nome:nomi[0],compagnia:o.compagnia||('Compagnia di '+nomi[0]),regno:o.regno,soci:nomi.slice(1).map(nome=>({nome}))});
   return{n,names:nomi,hands:[],cur:0,log:[],ev:[],evn:0,over:null,sim:true,w,b:null,vel:1,nb:0}}
+ // riprende un salvataggio → {s} oppure {err} (`salvabile`, o un mondo del solitario): con più giocatori dei capitani nascono capitani nuovi in coda
+ // a `soci` (al più MAX in tutto); con meno, i capitani senza giocatore restano in `soci` ma non scendono in campo (`w.attivi`)
+ function apri(rip,n,names){const w=rip&&VEN.apri(copia(rip.w||rip));if(!w)return{err:'Salvataggio non leggibile'};
+  n=Math.max(1,Math.min(MAX,n|0));w.soci=w.soci||[];const nomi=[];for(let i=0;i<n;i++)nomi.push(String(names&&names[i]||('Capitano '+(i+1))));
+  while(1+w.soci.length<n)w.soci.push(VEN.nuovoCap(nomi[1+w.soci.length]));
+  const tot=1+w.soci.length;if(n<tot)w.attivi=n;else delete w.attivi;w.ev=[];
+  return{s:{n,names:nomi,hands:[],cur:0,log:[],ev:[],evn:0,over:null,sim:true,w,b:null,vel:1,nb:0}}}
+ // cosa scrivere sul telefono: solo il mondo, mai una battaglia in corso (`null`: il salvataggio resta quello di prima)
+ const salvabile=G=>{if(!G||!G.w||G.b)return null;const w=copia(G.w);w.ev=[];return{v:1,w,nomi:[w.cap].concat(w.soci||[]).map(c=>c.nome),n:G.n,giorno:VEN.giorno(G.w)}};
  // il tempo del mondo scorre solo se la compagnia ha una meta, aspetta o è in catene, e nessuno deve decidere qualcosa
  const scorre=s=>{const w=s.w;if(s.b||w.incontro||w.over)return false;const tu=VEN.TU(w);if(w.prigioniero)return true;if(!tu.ord)return false;return!((w.dentro>=0||w.davanti>=0)&&tu.ord.t!=='aspetta')};
  // quante volte più svelto del passo normale: in attesa e in prigionia il tempo corre (uguale per tutti: dipende solo dallo stato)
@@ -40,5 +49,5 @@ const VST=(()=>{
    if(r&&r.err)return{err:r.err}}
   else return{err:'Mossa sconosciuta'};
   w.ev=[];if(s.b)s.b.c.ev=[];s.evn++;return{s}}
- return{MAX,nuova,act,avanza,avanzaB,scorre,corre,ritmo,tempo,copia,newGame:nuova}})();
+ return{MAX,nuova,apri,salvabile,act,avanza,avanzaB,scorre,corre,ritmo,tempo,copia,newGame:nuova}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VST;

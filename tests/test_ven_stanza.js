@@ -68,4 +68,33 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   V.esito(w, { vince: 'b', cad: [], capKo: true }); assert(w.prigioniero && S.scorre(g) && S.ritmo(g) >= 6);
   let n = 0; while (g.w.prigioniero && n++ < 200) g = ok(S.act(g, { t: 'tempo', seat: 0, fino: g.w.t + 120 })); assert(!g.w.prigioniero, 'prima o poi si fugge');
 }
+// salvare e riprendere (V1): il mondo si salva, mai una battaglia; con più o meno giocatori la compagnia si adatta
+{
+  let h = S.nuova(2, ['Ada', 'Bruno'], { seme: 11, regno: 'val' });
+  h = ok(S.act(h, { t: 'vel', seat: 0, v: 2 }));
+  const sv = S.salvabile(h); assert(sv && sv.v === 1 && sv.n === 2 && sv.giorno === V.giorno(h.w) && J(sv.nomi) === J(['Ada', 'Bruno']));
+  const r = ok(S.apri(JSON.parse(J(sv)), 2, ['X', 'Y']));
+  const senzaEv = w => J(Object.assign({}, w, { ev: [] }));
+  assert.strictEqual(senzaEv(r.w), senzaEv(h.w), 'riaprendo si ha lo stesso mondo');
+  assert(r.sim && r.n === 2 && !r.b && V.capi(r.w)[1].nome === 'Bruno', 'i nomi dei capitani salvati restano');
+  assert.strictEqual(J(S.nuova(2, ['X', 'Y'], { rip: sv }).w), J(r.w), 'nuova con rip chiama apri');
+  // 2 -> 3: un socio nuovo in coda, nessun attivi
+  const tre = ok(S.apri(sv, 3, ['A', 'B', 'Carla']));
+  assert(tre.w.soci.length === 2 && V.capi(tre.w)[2].nome === 'Carla' && V.capi(tre.w).length === 3 && tre.w.attivi === undefined && tre.n === 3);
+  assert.strictEqual(ok(S.apri(sv, 9, [])).n, S.MAX, 'al massimo quattro');
+  // 3 -> 1: i capitani restano in soci ma ne scende in campo uno solo
+  const uno = ok(S.apri(S.salvabile(tre), 1, ['Solo']));
+  assert(uno.w.attivi === 1 && uno.w.soci.length === 2 && V.capi(uno.w).length === 1);
+  const w1 = uno.w, p = w1.p.find(p => p.k === 'pre'); p.tr = [{ t: 'pre_f1', n: 3, f: 0, xp: 0 }]; w1.incontro = { tipo: 'nemico', pid: [p.id], all: [], da: 'tu' };
+  assert.strictEqual(V.campo(w1).capi.length, 1, 'in campo un solo capitano');
+  // e si può rialzare il numero: tornano tutti in campo
+  assert(V.capi(ok(S.apri(S.salvabile(uno), 3, ['a', 'b', 'c'])).w).length === 3);
+  // un salvataggio del solitario (mondo v2 senza forma {v:1,w}) si apre; uno rotto no
+  const solo = V.nuovo(5, { nome: 'Solo', regno: 'val' }); assert(ok(S.apri(JSON.parse(V.salva(solo)), 2, ['a', 'b'])).w.soci.length === 1);
+  assert(ok(S.apri(V.salva(solo), 1, ['a'])).w.attivi === undefined, 'senza soci, tutti attivi');
+  assert(S.apri({ w: { v: 9 } }, 1, []).err === 'Salvataggio non leggibile' && S.apri(null, 1, []).err && S.apri('{', 1, []).err);
+  // con una battaglia in corso non si salva
+  const w2 = h.w, p2 = w2.p.find(p => p.k === 'pre'); p2.tr = [{ t: 'pre_f1', n: 3, f: 0, xp: 0 }]; w2.incontro = { tipo: 'nemico', pid: [p2.id], all: [], da: 'tu' };
+  const bh = ok(S.act(h, { t: 'scegli', seat: 0, v: 'attacca' })); assert(bh.b && S.salvabile(bh) === null && S.salvabile(null) === null);
+}
 console.log('ven_stanza ok');
