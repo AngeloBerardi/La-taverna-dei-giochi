@@ -180,13 +180,13 @@ const VDAT=(()=>{
  const RIVALE={id:'rv_volpe',nome:'la Volpe Rossa',compagnia:'Compagnia della Volpe',premio:'u_tramontana',asp:A('piuma','sciabola','tondo',3,{mant:1,barda:1,col:'#c8421c'}),d:'Nessuno sa chi serva questa settimana. Sorride sempre.'};
  extra(RIVALE.id,'La Volpe Rossa','mer','c4',{pf:130,att:23,dif:18,dan:15,asp:RIVALE.asp,capo:1});
  // tratti dei signori: come parlano, e quanto osano
- const TRATTI={prode:{nome:'prode',osa:1.25,dipl:{pace:-2,alleanza:0,guerra:3},saluto:'«Buona strada, capitano. Se cerchi gloria, qui ce n\'è per tutti.»'},avido:{nome:'avido',osa:.95,dipl:{pace:1,alleanza:-1,guerra:1},saluto:'«Capitano. Spero tu non sia qui a chiedere denaro: ne ho appena per me.»'},
-  crudele:{nome:'crudele',osa:1.1,dipl:{pace:-2,alleanza:-1,guerra:2},saluto:'«Togliti dalla mia strada, mercenario, finché ti reggono le gambe.»'},onorevole:{nome:'d\'onore',osa:1,dipl:{pace:2,alleanza:2,guerra:-2},saluto:'«Che la tua parola valga quanto la tua spada, capitano.»'},prudente:{nome:'prudente',osa:.8,dipl:{pace:2,alleanza:1,guerra:-3},saluto:'«Le strade non sono sicure. Tu, da che parte stai?»'}};
+ const TRATTI={prode:{nome:'prode',osa:1.25,passa:0,dipl:{pace:-2,alleanza:0,guerra:3},saluto:'«Buona strada, capitano. Se cerchi gloria, qui ce n\'è per tutti.»'},avido:{nome:'avido',osa:.95,passa:2,dipl:{pace:1,alleanza:-1,guerra:1},saluto:'«Capitano. Spero tu non sia qui a chiedere denaro: ne ho appena per me.»'},
+  crudele:{nome:'crudele',osa:1.1,passa:1,dipl:{pace:-2,alleanza:-1,guerra:2},saluto:'«Togliti dalla mia strada, mercenario, finché ti reggono le gambe.»'},onorevole:{nome:'d\'onore',osa:1,passa:-4,dipl:{pace:2,alleanza:2,guerra:-2},saluto:'«Che la tua parola valga quanto la tua spada, capitano.»'},prudente:{nome:'prudente',osa:.8,passa:-1,dipl:{pace:2,alleanza:1,guerra:-3},saluto:'«Le strade non sono sicure. Tu, da che parte stai?»'}};
  const TRATTI_ID=Object.keys(TRATTI);
  // diplomazia (V3): alleanze e proposte ai re. Tutto è un conto, mai un dado: ogni fattore ha un nome e un peso, e il re accetta se la somma è ≥ 0.
  // MIN: giorni minimi di un'alleanza; PREAVVISO: giorni tra l'annuncio della rottura e la fine; BASE: diffidenza di partenza di ogni proposta;
  // ATTESA: giorni prima che lo stesso re ascolti un'altra proposta accolta; PESO: quanto vale la parola di chi gioca (mercenario a contratto / vassallo); i numeri si ritoccano qui.
- const DIPL={MIN:20,PREAVVISO:3,ATTESA:3,BASE:{pace:0,alleanza:-3,guerra:-2},PESO:{mer:.5,vas:1},AMICIZIA:12,FAMA:50,FAMA_MAX:200,FORZA:3,GUERRE:{pace:1.5,alleanza:1,guerra:-2.5},COMUNE:2,DOMINANTE:3,QUOTA_DOM:.4,
+ const DIPL={MIN:20,PREAVVISO:3,ATTESA:3,BASE:{pace:0,alleanza:-3,guerra:-2},PESO:{mer:.5,vas:1,re:1.2},AMICIZIA:12,FAMA:50,FAMA_MAX:200,FORZA:3,GUERRE:{pace:1.5,alleanza:1,guerra:-2.5},COMUNE:2,DOMINANTE:3,QUOTA_DOM:.4,
   IA:{ALLEANZA:.35,FRONTE:.12,ROTTURA:.05,GUERRA_DOM:.3}};
  const TIPI={citta:'Città',castello:'Castello',villaggio:'Villaggio',porto:'Porto',monastero:'Monastero',locanda:'Locanda',rovine:'Rovine',covo:'Covo dei predoni'};
  const NOMI={
@@ -205,7 +205,15 @@ const VDAT=(()=>{
   signori:{val:['re Aldemaro','conte Gualtiero','dama Fiammetta','messer Rinieri','contessa Bice'],sel:['reggente Isotta','ser Baldovino','dama Ermellina','messer Tebaldo','dama Selvaggia'],fer:['margravio Oddone','barone Arrigo','dama Gismonda','messer Corrado','baronessa Uta'],
    mar:['console Lazzaro','ammiraglio Marino','dama Violante','capitano Ugolotto','madonna Perla'],alt:['capoclan Temra','Batu Lunga Strada','Sarna Occhi di Vento','Ogul il Giovane','Yesui Tre Cavalli']},
   bande:['Banda del Fosso','Lupi del bosco','Tagliagole','Figli della forca','Compagnia del sacco','Corvi di strada','Masnada nera','Scannapolli']};
+ // regno (V4): fondare un regno, signori che passano a te, feudi, vittoria. Tutto è un conto; i numeri si ritoccano qui.
+ // FAMA/ORO: costo di fondazione; CONFINE: distanza dei regni che reagiscono; AMICO: opinione da cui un confinante propone pace; GUERRA_ENTRO: giorni entro cui gli altri dichiarano guerra;
+ // TENUTI: luoghi tenuti senza malcontento; MALC_SU/MALC_GIU: malcontento al giorno; ESILIO: giorni da esule; ADUNATA: giorni in cui i signori ti raggiungono; TRUPPE_COMP: truppe di un compagno investito;
+ // PASSA: fattori della lealtà di un signore che valuta di passare a te (tratto: TRATTI[x].passa).
+ const REGNO={FAMA:150,ORO:5000,CONFINE:20,AMICO:20,GUERRA_ENTRO:10,TENUTI:3,MALC_SU:4,MALC_GIU:3,ESILIO:30,ADUNATA:3,TRUPPE_COMP:70,
+  PASSA:{BASE:-4,ESULE:6,AMICIZIA:10,FAMA:100,FAMA_MAX:300,DEBOLE:2,GUERRA:-2,FEUDO:{villaggio:0,porto:1,castello:2,citta:3}},
+  STENDARDI:[{nome:'Porpora e oro',col:'#6a2a7a',col2:'#e8b23a'},{nome:'Nero e avorio',col:'#1d1a1a',col2:'#efe6cf'},{nome:'Argento e rosso',col:'#b9c0c8',col2:'#a8262b'},{nome:'Oro e verde',col:'#d9a521',col2:'#2d6a3a'},
+   {nome:'Oro e nero',col:'#d9a521',col2:'#1d1a1a'},{nome:'Notte e argento',col:'#1b2a55',col2:'#c9d3dc'},{nome:'Avorio e rosso',col:'#efe6cf',col2:'#a8262b'},{nome:'Rosso scuro e oro',col:'#6e1a1f',col2:'#e8b23a'}]};
  // cosa produce ogni regno: le scorte tendono a salire dove si produce
  const PRODUCE={val:['grano','vino','velluto'],sel:['carne','lana','attrezzi'],fer:['ferro','sale','attrezzi'],mar:['pesce','spezie','velluto'],alt:['carne','lana','sale']};
- return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,DIPL,TIPI,NOMI,PRODUCE}})();
+ return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;

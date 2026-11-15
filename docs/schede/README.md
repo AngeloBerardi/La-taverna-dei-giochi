@@ -7,7 +7,7 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V1-salvataggio-coop` | Salvare e riprendere la partita in compagnia; portare in compagnia la partita in solitario | fatta (PR 118; copia «precedente» nella revisione) | — |
 | `V2-tornei` | Tornei nelle città: duelli del capitano, premi unici | fatta (PR 119; ritarata nella revisione) | — |
 | `V3-diplomazia` | Alleanze, tregue e guerre decise dal giocatore | fatta (PR 120; contratti scritti nella scheda) | — |
-| `V4-regno` | Fondare un regno, vassalli, feudi, vittoria | pronta | Sonnet |
+| `V4-regno` | Fondare un regno, vassalli, feudi, vittoria | fatta (PR da unire) | — |
 | `V5-tattica` | Altura, bosco, formazioni, assedio a fasi | traccia | forte, poi Sonnet |
 | `V6-personaggi` | Compagni che reagiscono, incarichi a catena, dialoghi coi signori | traccia | forte, poi Sonnet |
 | `V7-tv-musica` | Vista TV della stanza, musica e suoni propri | traccia | Sonnet (musica: forte per il primo tema) |
