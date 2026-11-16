@@ -51,7 +51,11 @@ for (const as of [SCALE, ARIETE, TUTTO]) for (const seme of [2, 3]) {
   for (let k = 0; k < 600 && !s.fine; k++) { C.passo(s, 1); assert.strictEqual(s.porta.pf, C.C.AS.PORTA, 'senza ariete la porta non cala'); }
   const t = C.nuovo(scheda(4, ARIETE, T(0, { val_f2: 12 }), T(-3, { fer_f2: 1 })), { autoA: true });
   let caduta = 0; while (!caduta && t.t < 1000 && !t.fine) { C.passo(t, 1); if (t.ev.some(e => e.t === 'porta')) caduta = t.t; }
-  assert(caduta >= 100 && caduta <= 400, 'la porta cade in ' + caduta + ' istanti'); assert(t.varchi.some(g => g[0] === 28 && g[1] === 32) && t.porta.pf === 0);
+  assert(caduta >= 100 && caduta <= 400, 'la porta cade in ' + caduta + ' istanti');
+  // chi gioca: basta la carica dei fanti, quelli vicini alla porta la spingono
+  const g = C.nuovo(scheda(4, ARIETE, T(0, { val_f2: 12 }), T(-3, { fer_f2: 1 })));
+  assert(!C.ordina(g, { g: 'f', t: 'carica' }).err); let k = 0; while (g.porta.pf > 0 && k++ < 1000 && !g.fine) C.passo(g, 1);
+  assert.strictEqual(g.porta.pf, 0, 'alla carica i fanti sfondano la porta con l\'ariete'); assert(t.varchi.some(g => g[0] === 28 && g[1] === 32) && t.porta.pf === 0);
 }
 // ---- 5. ripetibilità e stato salvabile a metà salita ----
 {

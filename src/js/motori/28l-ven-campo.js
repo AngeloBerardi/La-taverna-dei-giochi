@@ -111,6 +111,8 @@ const VCAM=(()=>{
  function versoVarco(s,u,tx,ty){if(!s.muro)return[tx,ty];const m=s.muro,sopra=u.y<m,tsopra=ty<m;if(sopra===tsopra)return[tx,ty];
   let best=null,bd=1e9,sc=-1;for(const v of s.varchi){const cx=(v[0]+v[1])/2,d=Math.abs(u.x-cx)+Math.abs(tx-cx)*.5;if(d<bd){bd=d;best=v}}
   const SC=s.scale||[];if(!sopra&&puoSalire(u))for(let i=0;i<SC.length;i++){const sx=SC[i],d=Math.abs(u.x-sx)+Math.abs(tx-sx)*.5+4;if(d<bd){bd=d;best=null;sc=i}}
+  // con l'ariete pronto e senza breccia anche la porta è un passaggio per i fanti: ci si ferma davanti e si spinge
+  const P0=s.porta;if(!sopra&&u.l==='a'&&u.c==='f'&&P0&&P0.ariete&&P0.pf>0&&!s.varchi.length){const px=(P0.x0+P0.x1)/2,d=Math.abs(u.x-px)+Math.abs(tx-px)*.5+2;if(d<bd)return[stretto(u.x,px-1.6,px+1.6),m+1.2]}
   if(sc>=0)return[SC[sc],m+.6];
   if(!best)return!sopra&&cavaliere(u)?[u.x,m+12]:[u.x,u.y];// nessun passaggio: i cavalieri aspettano a distanza, gli altri restano
   const cx=stretto(u.x,best[0]+.7,best[1]-.7);if(u.x>best[0]+.5&&u.x<best[1]-.5)return[cx,ty];return[(best[0]+best[1])/2,m+(sopra?-1.6:1.6)]}
