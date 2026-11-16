@@ -9,7 +9,7 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V3-diplomazia` | Alleanze, tregue e guerre decise dal giocatore | fatta (PR 120; contratti scritti nella scheda) | — |
 | `V4-regno` | Fondare un regno, vassalli, feudi, vittoria | fatta (PR 123) | — |
 | `V5-tattica` | Altura, bosco, case, acqua bassa, formazioni dei gruppi | fatta (PR 126) | Sonnet |
-| `V5b-assedio` | Assedio a fasi: scale, breccia, porta con l'ariete | pronta (dopo V5) | Sonnet |
+| `V5b-assedio` | Assedio a fasi: scale, breccia, porta con l'ariete | fatta (PR da unire) | Sonnet + Opus (contratto corretto) |
 | `V6a-gradimento` | Gradimento dei compagni e addii, memoria e confidenza dei signori, tre talenti | pronta | Sonnet |
 | `V6b-dialoghi` | Motore dei dialoghi (riuso del racconto), incarichi personali in tre passi, la rivale a tappe | pronta (dopo V6a) | Sonnet |
 | `V6c-testi` | Testi di compagni, signori e rivale, in tre blocchi | pronta (dopo V6b) | forte |
