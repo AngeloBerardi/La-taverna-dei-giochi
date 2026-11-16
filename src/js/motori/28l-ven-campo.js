@@ -24,8 +24,8 @@ const VCAM=(()=>{
  const ell=(z,x,y)=>{const a=(x-z.x)/z.rx,b=(y-z.y)/z.ry;return a*a+b*b};
  function acqua(s,x,y){for(const z of ZONE(s))if(z.k==='acqua'&&ell(z,x,y)<1)return true;return false}
  // quota: 0 in piano, fino a `h` sul centro di un'altura, un poco sotto nell'acqua
- // in assedio il camminamento (da `muro-4` al muro) sta a MURO_Q: chi difende tira e colpisce dall'alto
- function quota(s,x,y){if(s.muro&&y>=s.muro-4&&y<=s.muro)return C.AS.MURO_Q;let q=0;for(const z of ZONE(s))if(z.k==='altura'){const e=ell(z,x,y);if(e<1){const v=(z.h||1)*(1-e)*(1-e);if(v>q)q=v}}return q>0?q:acqua(s,x,y)?-.12:0}
+ // in assedio il camminamento (da `muro-4` al muro, fuori dai varchi aperti) sta a MURO_Q: chi difende tira e colpisce dall'alto
+ function quota(s,x,y){if(s.muro&&y>=s.muro-4&&y<=s.muro&&!s.varchi.some(g=>x>g[0]&&x<g[1]))return C.AS.MURO_Q;let q=0;for(const z of ZONE(s))if(z.k==='altura'){const e=ell(z,x,y);if(e<1){const v=(z.h||1)*(1-e)*(1-e);if(v>q)q=v}}return q>0?q:acqua(s,x,y)?-.12:0}
  function copre(s,x,y){for(const z of ZONE(s))if((z.k==='bosco'||z.k==='case')&&ell(z,x,y)<1)return z.k;return null}
  const piuAlto=(s,u,b)=>(ZONE(s).length>0||s.muro>0)&&quota(s,u.x,u.y)-quota(s,b.x,b.y)>C.TER.DISL;
  const gittata=(s,u,b)=>piuAlto(s,u,b)?u.git*(1+C.TER.GIT):u.git;
