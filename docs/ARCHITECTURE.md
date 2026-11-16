@@ -215,8 +215,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28g-avv-mini.js` | 15 | AMIN |
 | `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
-| `js/motori/28j-ven-dati.js` | 31 | VDAT |
-| `js/motori/28ja-ven-voci.js` | 6 | VVOC |
+| `js/motori/28j-ven-dati.js` | 32 | VDAT |
+| `js/motori/28ja-ven-voci.js` | 17 | VVOC |
 | `js/motori/28k-ven-mondo.js` | 108 | VEN, capi |
 | `js/motori/28l-ven-campo.js` | 29 | VCAM, k |
 | `js/motori/28m-ven-stanza.js` | 5 | VST |

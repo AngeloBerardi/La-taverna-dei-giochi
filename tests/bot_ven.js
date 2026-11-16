@@ -3,12 +3,31 @@
 // Opzione `{regno:true}` del capitano accorto (V4): da fama 120 niente contratti; con fama 150 e monete sceglie il castello più debole, se non è ostile
 // aggredisce un signore di quel regno, lo assedia, entra e fonda un regno.
 // V6b: risponde alle scene dei dialoghi (se il motore le ha caricate).
+// Opzione `{inc:true}` (V6c): insegue il passo aperto dell'incarico personale di un compagno (luogo, consegna, vittoria, sito da ripulire).
 module.exports = function (VEN, VDAT) {
   const TU = s => VEN.TU(s);
+  let O = null; // opzioni della partita in corso
+  // il passo aperto di un incarico personale (opzione inc): {c, p}
+  const mira = s => { if (!O || !O.inc || !s.grad) return null; for (const c of VDAT.COMPAGNI) { const g = s.grad[c.id]; if (c.inc && g && g.incA && s.compagni[c.id] != null && TU(s).tr.some(e => e.t === c.id && e.n > 0)) return { c, p: c.inc[g.incA - 1] }; } return null; };
+  const serveMerce = s => { const m = mira(s); return m && m.p.tipo === 'porta' && m.p.m ? m.p : null; };
+  function versoInc(s, m) {
+    const tu = TU(s), p = m.p, mia = VEN.forza(tu), vicino = L => L.sort((a, b) => VEN.dist(a, tu) - VEN.dist(b, tu))[0], amico = l => l.faz === 'tu' || !VEN.nemiche(s, 'tu', l.faz);
+    const adatto = l => (!p.tipoL || l.tipo === p.tipoL) && (!p.faz || l.faz === p.faz);
+    if (p.tipo === 'porta' && p.m && (tu.merci[p.m] || 0) < p.n) { if (tu.oro < VDAT.MERCI[p.m].base * 2 * (p.n - (tu.merci[p.m] || 0)) + 300) return null; const l = vicino(s.l.filter(l => VEN.MERCATO[l.tipo] && amico(l) && (l.scorte[p.m] || 0) >= p.n)); return l ? VEN.ordina(s, { t: 'entra', lid: l.id }) : null; }
+    if (p.tipo === 'porta' && p.oro && tu.oro < p.oro) return null;
+    if (p.tipo === 'luogo' || p.tipo === 'porta') { const l = vicino(s.l.filter(l => adatto(l) && amico(l))); return l ? VEN.ordina(s, { t: 'entra', lid: l.id }) : null; }
+    if (p.tipo === 'sito') { const l = vicino(s.l.filter(l => l.tipo === p.tipoL && l.g.length && VEN.forzaTr(l.g) * 1.3 < mia)); return l ? VEN.ordina(s, { t: 'entra', lid: l.id }) : null; }
+    if (p.tipo === 'vinci') {
+      const q = vicino(VEN.visibili(s).filter(x => x.k === p.k && (!p.faz || x.faz === p.faz) && VEN.forza(x) * 1.3 < mia)); if (q) return VEN.ordina(s, { t: 'segui', pid: q.id });
+      if (p.faz) { const l = vicino(s.l.filter(l => l.faz === p.faz && (l.tipo === 'castello' || l.tipo === 'citta') && amico(l))); if (l && VEN.dist(l, tu) > 4) return VEN.ordina(s, { t: 'entra', lid: l.id }); }
+    }
+    return null;
+  }
   const forzaNemici = s => { const { nem, luogo } = VEN.schieramenti(s); return nem.reduce((a, p) => a + VEN.forza(p), 0) + (luogo ? VEN.forzaTr(luogo.g) * (VEN.MURA[luogo.tipo] ? VEN.P.MURA : 1) : 0); };
   function incontro(s, bravo, r, reg) {
     const inc = s.incontro;
     if (reg && inc.tipo === 'parla' && reg.fase) { const p = VEN.part(s, inc.pid[0]), c = s.l[reg.t]; if (p && c && p.k === 'sig' && p.faz === c.faz && !VEN.nemiche(s, 'tu', p.faz)) return VEN.scegli(s, 'aggredisci'); }
+    const m = mira(s); if (m && m.p.tipo === 'vinci' && m.p.k === 'sig' && inc.tipo === 'parla') { const p = VEN.part(s, inc.pid[0]); if (p && p.k === 'sig' && (!m.p.faz || p.faz === m.p.faz) && VEN.forza(p) * 1.3 < VEN.forza(TU(s))) return VEN.scegli(s, 'aggredisci'); }
     if (inc.tipo === 'parla') return VEN.scegli(s, bravo ? 'lascia' : (r() < .5 ? 'aggredisci' : 'lascia'));
     if (inc.tipo === 'mischia') { if (bravo) return VEN.scegli(s, 'lascia'); VEN.scegli(s, r() < .5 ? 'a' : 'b'); return VEN.auto(s); }
     if (inc.tipo === 'assalto') return VEN.auto(s);
@@ -31,6 +50,7 @@ module.exports = function (VEN, VDAT) {
   }
   function luogo(s, bravo, r, reg) {
     const l = s.l[s.dentro], tu = TU(s), fai = z => VEN.fai(s, z);
+    if (bravo) { const mi = mira(s); if (mi && mi.p.tipo === 'sito' && l.tipo === mi.p.tipoL && l.g.length && !fai({ a: 'assalta' }).err) return; }
     if (bravo && reg && !s.corona) {
       if (s.servizio && s.fama >= 120) fai({ a: 'lascia' });
       if (reg.fase === 'assedio' && l.faz === 'tu' && !s.servizio && !fai({ a: 'fonda', nome: 'Regno del Capitano', stend: 3 }).err) reg.fase = 'fatto';
@@ -47,7 +67,8 @@ module.exports = function (VEN, VDAT) {
     for (const e of tu.tr.slice()) { const T = VDAT.TR[e.t]; if (!T.su.length) continue; const su = T.su[(e.n + s.t) % T.su.length]; let g = 0; while (g++ < 30 && !fai({ a: 'promuovi', t: e.t, su, n: 1 }).err); }
     if (VEN.MERCATO[l.tipo]) {
       // vende ciò che qui vale più del prezzo di riferimento, tiene i viveri
-      for (const m of Object.keys(tu.merci)) { if (VDAT.MERCI[m].cibo) continue; let g = 0; while (g++ < 40 && (tu.merci[m] || 0) > 0 && VEN.prezzo(s, l, m, -1) >= VDAT.MERCI[m].base * .95) fai({ a: 'vendi', m, n: 1 }); }
+      const tieni = serveMerce(s); if (tieni) { let g = 0; while (g++ < 20 && (tu.merci[tieni.m] || 0) < tieni.n && tu.oro > 300 && !fai({ a: 'compra', m: tieni.m, n: 1 }).err); }
+      for (const m of Object.keys(tu.merci)) { if (VDAT.MERCI[m].cibo || (tieni && m === tieni.m)) continue; let g = 0; while (g++ < 40 && (tu.merci[m] || 0) > 0 && VEN.prezzo(s, l, m, -1) >= VDAT.MERCI[m].base * .95) fai({ a: 'vendi', m, n: 1 }); }
       const serve = Math.ceil(VEN.uomini(tu) / 6) * 6; let g = 0;
       while (g++ < 60 && VEN.razioni(tu) < serve) { const m = ['grano', 'pesce', 'carne'].sort((a, b) => VEN.prezzo(s, l, a, 1) - VEN.prezzo(s, l, b, 1)).find(m => (l.scorte[m] || 0) > 0); if (!m || fai({ a: 'compra', m, n: 1 }).err) break; }
     }
@@ -96,6 +117,7 @@ module.exports = function (VEN, VDAT) {
           return VEN.ordina(s, lord ? { t: 'segui', pid: lord.id } : { t: 'entra', lid: c.id }); }
       }
     }
+    const mi = mira(s); if (mi) { const x = versoInc(s, mi); if (x && !x.err) return x; }
     const prede = VEN.visibili(s).filter(p => VEN.ostile(s, p, tu) && VEN.forza(p) * 1.25 < mia).sort((a, b) => VEN.dist(a, tu) - VEN.dist(b, tu));
     if (prede.length && VEN.sani(tu) >= VEN.uomini(tu) * .6) return VEN.ordina(s, { t: 'segui', pid: prede[0].id });
     const cons = s.incarichi.find(q => !q.fatto && !q.fallito && q.tipo === 'consegna' && (tu.merci[q.bene] || 0) >= q.n);
@@ -112,7 +134,7 @@ module.exports = function (VEN, VDAT) {
   }
   // gioca `giorni` giorni e restituisce lo stato
   return function gioca(s, giorni, bravo, r, opt) {
-    const fine = s.t + giorni * 1440, mem = {}, reg = bravo && opt && opt.regno ? { fase: null, t: -1, n: 0, assedi: 0 } : null; let guardia = 0;
+    O = opt || null; const fine = s.t + giorni * 1440, mem = {}, reg = bravo && opt && opt.regno ? { fase: null, t: -1, n: 0, assedi: 0 } : null; let guardia = 0;
     while (s.t < fine && guardia++ < 400000) {
       // V6b: una scena aperta ferma il tempo; il bot risponde con la prima scelta disponibile (o `opt.voce(vista)` → indice)
       if (s.rac && s.rac.scena) { const v = VEN.voce(s), i = v.continua ? -1 : (opt && opt.voce ? opt.voce(v) : v.scelte.find(c => c.ok).i), x = VEN.parla(s, i < 0 ? { t: 'continua' } : { t: 'scegli', i }); if (x.err) throw new Error('voce: ' + x.err); continue; }
@@ -123,6 +145,7 @@ module.exports = function (VEN, VDAT) {
       if (s.dentro >= 0) { luogo(s, bravo, r, reg); continue; }
       if (s.davanti >= 0) {
         if (reg && reg.fase === 'assedio' && s.davanti === reg.t && !s.corona) { if (!s.assedio && (++reg.assedi > 3 || VEN.fai(s, { a: 'assedia' }).err)) { reg.fase = 'fatto'; VEN.fai(s, { a: 'esci' }); } else VEN.passo(s, 30); continue; }
+        const mi = mira(s), l = s.l[s.davanti]; if (mi && mi.p.tipo === 'sito' && l.tipo === mi.p.tipoL && l.g.length && !VEN.fai(s, { a: 'assalta' }).err) continue;
         VEN.fai(s, { a: 'esci' }); continue;
       }
       if (!tu.ord) { const x = viaggia(s, bravo, r, mem, reg); if (x && x.err) VEN.ordina(s, { t: 'aspetta', ore: 3 }); }

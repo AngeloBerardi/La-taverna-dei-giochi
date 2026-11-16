@@ -1,5 +1,6 @@
 // Compagnia di ventura, dialoghi (V6b), prova lunga: il capitano accorto (tests/bot_ven.js) gioca 90 giorni su tre semi rispondendo alle scene.
-// La rivale ti raggiunge alle tre tappe, ognuna si chiude, e il suo dono è uno solo (zaino + equipaggiamento). (Test lento: `npm test -- ven_voci_bot`.)
+// La rivale ti raggiunge alle tre tappe, ognuna si chiude, e il suo dono è uno solo (zaino + equipaggiamento).
+// V6c: ogni incarico personale si compie entro 40 giorni dall'apertura. (Test lento: `npm test -- ven_voci_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
 const F = ['27-eroi.js', '27a-avv-dadi.js', '27p-avv-compagni.js', '27q-avv-racconto.js', '28j-ven-dati.js', '28ja-ven-voci.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
@@ -17,4 +18,14 @@ for (const seme of [3, 17, 41]) {
   assert.strictEqual(cimeli, 1, 'un solo cimelio della rivale: ' + riassunto[riassunto.length - 1]);
   assert(!s.rac.scena, 'nessuna scena rimasta aperta');
 }
-console.log('ven_voci_bot ok (' + riassunto.join(' | ') + ')');
+// V6c: ogni incarico personale scritto si compie col bot accorto entro 40 giorni da quando si apre (il compagno entra fedele, a 80)
+const incarichi = [];
+for (const c of D.COMPAGNI.filter(c => c.inc && c.premio)) for (const seme of [3, 17, 41]) {
+  const s = V.nuovo(seme), gr = () => s.grad[c.id];
+  V.TU(s).tr.push({ t: c.id, n: 1, f: 0, xp: 0 }); s.compagni[c.id] = -1; s.grad[c.id] = { g: 80, avv: 0, visto: [] };
+  const r = carica.rng(seme + 7), opt = { inc: true }; let aperto = -1, g = 0;
+  while (g++ < 60 && !(gr() && gr().prem)) { gioca(s, 1, true, r, opt); if (aperto < 0 && gr() && gr().incA) aperto = V.giorno(s); }
+  const giorni = V.giorno(s) - aperto; incarichi.push(c.id.slice(3) + '@' + seme + ': ' + giorni + 'g');
+  assert(aperto >= 0 && gr().prem && giorni <= 40, c.nome + ', seme ' + seme + ': incarico ' + ((gr() || {}).inc | 0) + '/3 in ' + giorni + ' giorni');
+}
+console.log('ven_voci_bot ok (' + riassunto.join(' | ') + ' · incarichi ' + incarichi.join(', ') + ')');

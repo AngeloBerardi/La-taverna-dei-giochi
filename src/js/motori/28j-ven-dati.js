@@ -127,6 +127,7 @@ const VDAT=(()=>{
  og('u_reliquia','Reliquia di San Bruno','cimelio',4,2000,{morale:5,ab:{medicina:3}},'Si dice che i feriti accanto a lei si rialzino.');
  og('u_sigillo','Sigillo dei Tre Regni','cimelio',4,2400,{ab:{comando:2,commercio:1}},'Apre le porte e scioglie le lingue.');
  og('u_occhio','Occhio del Falco','cimelio',4,2000,{ab:{esplora:3},grido:.3},'Una pietra che vede prima di te.');
+ og('u_guadi','Carta dei Guadi','cimelio',4,2100,{ab:{esplora:2,commercio:1}},'I sentieri che le guardie non conoscono, segnati a carboncino da Ghino.');
  const SLOT={arma:'Arma',scudo:'Scudo',armatura:'Armatura',elmo:'Elmo',cavallo:'Cavallo',cimelio:'Cimelio'};
  const PREGIO=['','Comune','Buono','Pregiato','Unico'];
  // cosa vende l'armaiolo di ogni regno (oltre al comune) e l'offerta unica della sua capitale
@@ -178,10 +179,11 @@ const VDAT=(()=>{
  for(const c of COMPAGNI){const g=GRC[c.id];c.ama=g[0];c.odia=g[1];c.lega={id:g[2],n:g[3]}}
  // incarichi personali (V6b): tre passi per compagno, fatti in ordine e annunciati dalle scene `<c>-inc-1..3`. Tipi: luogo {tipoL?,faz?} (entrarci) · vinci {k:'pre'|'sig'|'riv',faz?} ·
  // sito {tipoL} (ripulire rovine o covo) · porta {tipoL?, m,n | oro} (consegnare merce o monete entrando in un luogo); `d` = riga per il diario. Premio {ogg:id} (nello zaino) o {abil:1} (il compagno dà 3 punti di talento, non 2).
- // Per ora Berta e Lapo: i dieci premi e gli altri incarichi li fissa V6c.
+ // V6c, a blocchi: metà dei premi {abil:1}, metà un oggetto unico di OGG (q 4). Blocco 1: Berta, Lapo, Ghino.
  const INC={
   co_berta:{inc:[{tipo:'luogo',tipoL:'citta',faz:'val',d:'Rimettere piede a Roccadoro a testa alta.'},{tipo:'vinci',k:'sig',faz:'val',d:'Battere in campo un signore di Valdoro.'},{tipo:'sito',tipoL:'covo',d:'Stanare un covo di predoni.'}],premio:{abil:1}},
-  co_lapo:{inc:[{tipo:'luogo',tipoL:'monastero',d:'Tornare in un monastero.'},{tipo:'porta',tipoL:'monastero',oro:120,d:'Lasciare 120 monete per i malati di un monastero.'},{tipo:'sito',tipoL:'rovine',d:'Ripulire delle rovine.'}],premio:{abil:1}}};
+  co_lapo:{inc:[{tipo:'luogo',tipoL:'monastero',d:'Tornare in un monastero.'},{tipo:'porta',tipoL:'monastero',oro:120,d:'Lasciare 120 monete per i malati di un monastero.'},{tipo:'sito',tipoL:'rovine',d:'Ripulire delle rovine.'}],premio:{abil:1}},
+  co_ghino:{inc:[{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'villaggio',m:'sale',n:6,d:'Portare sei sacchi di sale a un villaggio.'},{tipo:'luogo',tipoL:'porto',faz:'mar',d:'Entrare a viso aperto in un porto di Maralta.'}],premio:{ogg:'u_guadi'}}};
  for(const c of COMPAGNI){const x=INC[c.id];if(x){c.inc=x.inc;c.premio=x.premio}}
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro

@@ -31,4 +31,5 @@
 **Fuori scopo:** chiacchierate libere al bivacco, storie d'amore, ritratti, voci registrate.
 
 ## Fatto quando
+Blocco 1 (Volpe, Berta, Lapo, Ghino): fatto · blocco 2: da fare · blocco 3: da fare.
 - [ ] le prove del blocco · [ ] nessun testo `PROVV` rimasto nel blocco · [ ] `npm run verifica` verde.
