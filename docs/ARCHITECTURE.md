@@ -133,7 +133,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/37-schermo.css` | 2 |  |
 | `css/38-eroi.css` | 6 |  |
 | `css/39-campagna.css` | 10 |  |
-| `css/39a-avventura.css` | 9 |  |
+| `css/39a-avventura.css` | 12 |  |
 | `css/39b-inventario.css` | 3 |  |
 | `css/39c-battaglia.css` | 11 |  |
 | `css/39d-dialogo.css` | 4 |  |
@@ -303,7 +303,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 16 | Eroi |
 | `js/app/24h-campagna.js` | 10 | Camp |
-| `js/app/24ha-avventura.js` | 6 | Avv |
+| `js/app/24ha-avventura.js` | 12 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 21 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
@@ -325,11 +325,11 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
 | `js/app/24hv-ven-campo.js` | 29 | VenCampo |
-| `js/app/24hw-ventura.js` | 66 | Ven |
+| `js/app/24hw-ventura.js` | 65 | Ven |
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |
-| `js/app/24ib-creo.js` | 8 | Figura, Creo |
+| `js/app/24ib-creo.js` | 10 | Figura, Creo |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
 | `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |
