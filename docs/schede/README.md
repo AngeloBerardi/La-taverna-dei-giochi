@@ -10,7 +10,7 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V4-regno` | Fondare un regno, vassalli, feudi, vittoria | fatta (PR 123) | — |
 | `V5-tattica` | Altura, bosco, case, acqua bassa, formazioni dei gruppi | fatta (PR 126) | Sonnet |
 | `V5b-assedio` | Assedio a fasi: scale, breccia, porta con l'ariete | fatta (PR da unire) | Sonnet + Opus (contratto corretto) |
-| `V6a-gradimento` | Gradimento dei compagni e addii, memoria e confidenza dei signori, tre talenti | pronta | Sonnet |
+| `V6a-gradimento` | Gradimento dei compagni e addii, memoria e confidenza dei signori, tre talenti | fatta (PR da unire) | Sonnet |
 | `V6b-dialoghi` | Motore dei dialoghi (riuso del racconto), incarichi personali in tre passi, la rivale a tappe | pronta (dopo V6a) | Sonnet |
 | `V6c-testi` | Testi di compagni, signori e rivale, in tre blocchi | pronta (dopo V6b) | forte |
 | `V7-tv-musica` | Vista TV della stanza, telefoni come comandi, musica e suoni propri | pronta | Sonnet |

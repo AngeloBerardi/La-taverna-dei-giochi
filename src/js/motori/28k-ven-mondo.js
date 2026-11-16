@@ -169,6 +169,8 @@ const VEN=(()=>{
   const fa=forzaRegno(s,a),fb=forzaRegno(s,b),rel=fa+fb>0?(fb-fa)/(fa+fb):0;
   aggiungi(tipo==='guerra'?'Forza relativa: '+(rel<0?'sei più forte':'sei più debole'):'Forza relativa',(tipo==='guerra'?-1:1)*X.FORZA*rel);
   aggiungi(tipo==='pace'?'Stanchezza di guerra':tipo==='guerra'?'Guerre già in corso':'Nemici da fronteggiare',X.GUERRE[tipo]*guerreDi(s,a));
+  aggiungi('Diplomazia del capitano',.4*abil(s,'diplomazia'));
+  aggiungi('Sostegno dei signori',D.SIG.SOSTEGNO*Math.min(D.SIG.MAX_SOST,s.sig.filter(x=>x.faz===a&&confidenza(s,x)>=3).length));
   const dom=dominante(s);
   if(tipo==='alleanza'){const c=fazioni(s).filter(x=>x!==a&&x!==b&&viva(s,x)&&inGuerra(s,a,x)&&inGuerra(s,b,x)).length;aggiungi('Nemico in comune',X.COMUNE*c);if(dom&&dom.f!==a&&dom.f!==b)aggiungi(nomeF(s,dom.f)+' vince troppo',X.DOMINANTE)}
   if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(nomeF(s,b)+' vince troppo',X.DOMINANTE);
@@ -179,7 +181,7 @@ const VEN=(()=>{
  // chiude le guerre tra due regni: gli assedi dell'uno contro l'altro cadono
  function faiPace(s,a,b){delete s.guerra[chiave(a,b)];for(const l of s.l)if(l.ass&&(l.ass.faz===a||l.ass.faz===b))l.ass=null}
  // ---------- nuovo mondo ----------
- const nuovoCap=nome=>({nome:String(nome).slice(0,20),liv:1,xp:0,punti:1,ab:{prodezza:0,comando:0,addestra:0,medicina:0,commercio:0,esplora:0},eq:{arma:'spada',scudo:null,armatura:'giaco',elmo:null,cavallo:'ronzino',cimeli:[null,null]}});
+ const nuovoCap=nome=>({nome:String(nome).slice(0,20),liv:1,xp:0,punti:1,ab:{prodezza:0,comando:0,addestra:0,medicina:0,commercio:0,esplora:0,carisma:0,diplomazia:0,cavaliere:0},eq:{arma:'spada',scudo:null,armatura:'giaco',elmo:null,cavallo:'ronzino',cimeli:[null,null]}});
  // i capitani: il primo guida la compagnia, i soci (partite in compagnia) gli stanno a fianco. posto 0 = s.cap
  // `attivi` (ripresa con meno giocatori): i capitani oltre quel numero restano in `soci` ma non scendono in campo; assente = tutti
 const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.attivi):c};
@@ -217,7 +219,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if(b.tipo==='citta')l.unica=D.UNICA[b.faz]||null;
    s.l.push(l)}
   // signori: il primo di ogni regno è il sovrano e tiene la città, gli altri un castello a testa. Ognuno ha il suo tratto
-  D.REGNI.forEach((f,fi)=>{const mura=s.l.filter(l=>l.faz===f&&MURA[l.tipo]);D.NOMI.signori[f].forEach((nome,k)=>{const casa=mura[k%mura.length],sg={id:s.sig.length,nome,faz:f,casa:casa.id,pid:-1,prig:null,torna:0,re:k===0,tratto:D.TRATTI_ID[(k+fi*2)%D.TRATTI_ID.length]};
+  D.REGNI.forEach((f,fi)=>{const mura=s.l.filter(l=>l.faz===f&&MURA[l.tipo]);D.NOMI.signori[f].forEach((nome,k)=>{const casa=mura[k%mura.length],sg={id:s.sig.length,nome,faz:f,casa:casa.id,pid:-1,prig:null,torna:0,re:k===0,tratto:D.TRATTI_ID[(k+fi*2)%D.TRATTI_ID.length],mem:{lib:0,sconf:0,trad:0,fav:0,g:-99}};
     s.sig.push(sg);if(casa.sig<0)casa.sig=sg.id;const p=nuovaP(s,'sig',f,nome,casa.x,casa.y,leva(f,(k===0?150:95)+r()*40,r),{oro:400,sig:sg.id,dentro:casa.id});sg.pid=p.id})});
   for(const l of s.l)if(!MURA[l.tipo]&&l.capo>=0)l.sig=s.l[l.capo].sig;
   // guerre di partenza: due, a caso
@@ -226,12 +228,12 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   for(let k=0;k<9;k++)nascePredoni(s,r);for(const l of s.l)if(l.tipo==='citta'||l.tipo==='porto')nasceCarovana(s,l,r);
   {const c=s.l.filter(l=>l.tipo==='citta')[Math.floor(r()*D.REGNI.length)],v=vicinoOk(M,c.x+3,c.y+2),tr=leva('mer',120,r);aggiungi(tr,D.RIVALE.id,1);nuovaP(s,'riv','mer',D.RIVALE.compagnia,v[0],v[1],tr,{oro:500})}
   for(const l of s.l){rinnova(s,l,r)}
-  s.compagni={};{const conta={};for(const c of D.COMPAGNI){const posti=s.l.filter(l=>l.tipo===c.dove);conta[c.dove]=(conta[c.dove]||0)+1;s.compagni[c.id]=posti.length?posti[(conta[c.dove]*3+c.costo)%posti.length].id:-2}}
+  s.compagni={};s.grad={};s.lettere={};s.debiti=[];{const conta={};for(const c of D.COMPAGNI){const posti=s.l.filter(l=>l.tipo===c.dove);conta[c.dove]=(conta[c.dove]||0)+1;s.compagni[c.id]=posti.length?posti[(conta[c.dove]*3+c.costo)%posti.length].id:-2}}
   L(s,'La compagnia leva le tende presso '+vil.nome+'.');s.ev=[];return s}
  // chi arriva da un salvataggio del mondo piccolo (v1) porta capitano, uomini e monete nel mondo nuovo
  function migra(v){const a=v.p[0],f0=((a.tr[0]||{}).t||'val_f1').slice(0,3),s=nuovo(v.seme,{nome:v.cap.nome,compagnia:v.nome,regno:f0}),tu=TU(s),c=s.cap,o=v.cap,feudi=v.l.filter(l=>l.faz==='tu'||l.sig===-2).length;
   tu.tr=a.tr.filter(e=>D.TR[e.t]);tu.oro=a.oro+feudi*400;tu.merci=a.merci||{};tu.mor=a.mor;s.fama=v.fama;s.stat.vinte=v.stat.vinte;s.stat.perse=v.stat.perse;
-  c.liv=o.liv;c.xp=o.xp;c.punti=o.punti;c.ab=o.ab;c.eq.arma=['spada','bastarda','spadone','u_condottieri'][o.eq.arma]||'spada';c.eq.armatura=['giaco','maglia','piastre','u_margravio'][o.eq.armatura]||'giaco';c.eq.cavallo=[null,'ronzino','corsiero','destriero'][o.eq.cavallo]||null;
+  c.liv=o.liv;c.xp=o.xp;c.punti=o.punti;c.ab=Object.assign({},c.ab,o.ab);c.eq.arma=['spada','bastarda','spadone','u_condottieri'][o.eq.arma]||'spada';c.eq.armatura=['giaco','maglia','piastre','u_margravio'][o.eq.armatura]||'giaco';c.eq.cavallo=[null,'ronzino','corsiero','destriero'][o.eq.cavallo]||null;
   for(const f of D.REGNI)if(v.rel[f]!=null)s.rel[f]=v.rel[f];for(const e of tu.tr)if(D.TR[e.t].compagno)s.compagni[e.t]=-1;
   L(s,'La compagnia varca i vecchi confini: il mondo è più grande di come lo ricordava.','bene');s.ev=[];return s}
  function nascePredoni(s,r,vicinoA){const M=mappa(s.seme),c=vicinoA||M.covi[Math.floor(r()*M.covi.length)],g=giorno(s),pos=vicinoOk(M,c[0]+(r()-.5)*3,c[1]+(r()-.5)*3);
@@ -412,6 +414,51 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  function vittoria(s){if(s.vinta)return;const cap=s.l.filter(l=>l.tipo==='citta');if(!cap.length)return;let come=null;
   if(s.corona&&cap.every(l=>l.faz==='tu'))come='re';else if(s.servizio&&s.servizio.tipo==='vas'&&cap.every(l=>l.faz===s.servizio.faz))come='vassallo';
   if(!come)return;s.vinta={g:giorno(s),come};L(s,come==='re'?'Tutte le capitali sono tue: '+s.corona.nome+' unifica le terre.':'Il tuo sovrano tiene tutte le capitali: le terre sono unite.','bene');s.ev.push({t:'vittoria',come})}
+ // ---------- gradimento dei compagni e memoria dei signori (V6a) ----------
+ // I numeri stanno in VDAT.GRAD e VDAT.SIG. Niente dadi: tutto è un conto. s.grad[id]={g,avv,visto}: g 0..100, avv = giorno dell'avviso di partenza, visto = eventi già successi.
+ const inCompagnia=s=>D.COMPAGNI.filter(c=>TU(s).tr.some(e=>e.t===c.id&&e.n>0));
+ const gradDi=(s,id)=>{if(!s.grad)s.grad={};return s.grad[id]||(s.grad[id]={g:D.GRAD.INIZIO,avv:0,visto:[]})};
+ const memSig=sg=>sg.mem||(sg.mem={lib:0,sconf:0,trad:0,fav:0,g:-99});
+ const limita=v=>Math.max(0,Math.min(100,v));
+ // un salvataggio v2 precedente alla scheda: talenti a 0, memoria dei signori, gradimento dei compagni già in compagnia
+ function gradApri(s){if(!s.grad)s.grad={};if(!s.lettere)s.lettere={};if(!s.debiti)s.debiti=[];
+  for(const c of [s.cap].concat(s.soci||[]))for(const k of ['carisma','diplomazia','cavaliere'])if(c.ab[k]==null)c.ab[k]=0;
+  for(const sg of s.sig)memSig(sg);for(const c of inCompagnia(s))gradDi(s,c.id)}
+ function umore(g){return g>=D.GRAD.FIDO?'fedele':g>=55?'contento':g>=35?'tranquillo':g>=D.GRAD.PARLA?'scontento':'in bilico'}
+ // un evento di cronaca: chi lo ama sale, chi lo detesta scende (con Carisma più su e meno giù). Il servizio presso un regno pesa SERVE/NONSERVE.
+ function reagisci(s,ev){const G=D.GRAD,car=abil(s,'carisma'),servi=ev.slice(0,6)==='servi_';
+  for(const c of inCompagnia(s)){const ama=c.ama.includes(ev),odia=c.odia.includes(ev);if(!ama&&!odia)continue;const gr=gradDi(s,c.id);if(!gr.visto.includes(ev))gr.visto.push(ev);
+   const d=ama?(servi?G.SERVE:G.AMA)*(1+.1*car):(servi?G.NONSERVE:G.ODIA)*Math.max(0,1-.05*car),n=limita(gr.g+Math.round(d));
+   if(n!==gr.g){gr.g=n;L(s,c.nome+(ama?' approva.':' non gradisce.'),ama?'bene':'male')}}}
+ // il compagno se ne va per sempre, con qualche uomo dei ranghi più bassi; chi aveva intesa con lui ne soffre
+ function parte(s,id){const G=D.GRAD,tu=TU(s),c=D.COMPAGNI.find(x=>x.id===id);if(!c)return{err:'Non è un compagno'};if(!tu.tr.some(e=>e.t===id&&e.n>0))return{err:'Non è in compagnia'};
+  togliUomini(tu.tr,id,1);s.compagni[id]=-3;if(s.grad)delete s.grad[id];
+  let k=Math.min(G.SEGUONO,Math.floor(uomini(tu)*G.QUOTA)),via=0;
+  while(k>0){const e=tu.tr.filter(x=>!D.TR[x.t].compagno&&x.n>0).sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)[0];if(!e)break;togliUomini(tu.tr,e.t,1);k--;via++}
+  for(const x of inCompagnia(s))if(x.lega&&x.lega.id===id&&x.lega.n>0){const gr=gradDi(s,x.id);gr.g=limita(gr.g+G.LUTTO)}
+  L(s,c.nome+' lascia la compagnia'+(via?' e porta con sé '+via+' uomini.':'.'),'male');s.ev.push({t:'compagno',id,via:1});return{s}}
+ // ogni giorno: chi sta male lo dice, poi se ne va
+ function addii(s){const G=D.GRAD,g=giorno(s);
+  for(const c of inCompagnia(s)){const gr=gradDi(s,c.id);if(gr.g<=G.VIA){parte(s,c.id);continue}
+   if(gr.g<G.PARLA){if(!gr.avv){gr.avv=g;L(s,c.nome+' vuole parlarti: così non resta.','male')}else if(g-gr.avv>=G.GIORNI)parte(s,c.id)}else gr.avv=0}}
+ // giorno di paga: pagati +PAGA, in ritardo è un evento; servizio presso un regno; legami con chi è in compagnia
+ function gradPaga(s,pagato){const G=D.GRAD,ci=inCompagnia(s);if(!ci.length)return;
+  if(pagato)for(const c of ci){const gr=gradDi(s,c.id);gr.g=limita(gr.g+G.PAGA)}else reagisci(s,'pagatardi');
+  if(s.servizio&&D.REGNI.includes(s.servizio.faz))reagisci(s,'servi_'+s.servizio.faz);
+  for(const c of ci)if(c.lega&&ci.some(x=>x.id===c.lega.id)){const gr=gradDi(s,c.id);gr.g=limita(gr.g+(c.lega.n>0?G.INTESA:G.ANTIPATIA))}}
+ // confidenza di un signore verso chi gioca: 0..3, dalla sua memoria e dall'amicizia col suo regno
+ function confidenza(s,sg){const m=memSig(sg),S=D.SIG.SOGLIE,pt=m.lib*3+m.fav*2+Math.floor(Math.max(0,s.rel[sg.faz]||0)/15)-m.sconf*2-m.trad*6;return pt>=S[2]?3:pt>=S[1]?2:pt>=S[0]?1:0}
+ // favori di un signore nell'incontro (notizie, lettera, prestito) e il debito da rendere
+ function favoreSig(s,sg,v){const S=D.SIG,m=memSig(sg),tu=TU(s),g=giorno(s),vuole=n=>confidenza(s,sg)<n?{err:'Non ti conosce abbastanza'}:null;
+  if(v==='rendi'){const i=s.debiti.findIndex(d=>d.sig===sg.id);if(i<0)return{err:'Non gli devi nulla'};const d=s.debiti[i];if(tu.oro<d.oro)return{err:'Servono '+d.oro+' monete'};tu.oro-=d.oro;s.debiti.splice(i,1);L(s,'Rendi a '+sg.nome+' le '+d.oro+' monete: il conto è chiuso.','bene');return{s}}
+  const e=vuole(v==='notizie'?1:2);if(e)return e;if(g-m.g<S.ATTESA)return{err:'Torna tra qualche giorno'};
+  if(v==='lettera'){if(!D.REGNI.includes(sg.faz))return{err:'Non scrive per nessun re'};s.lettere[sg.faz]=g+S.LETTERA;m.g=g;L(s,sg.nome+' scrive per te una lettera di raccomandazione ('+S.LETTERA+' giorni).','bene');return{s}}
+  if(v==='prestito'){if(s.debiti.some(d=>d.sig===sg.id))return{err:'Gli devi già del denaro'};tu.oro+=S.PRESTITO;s.debiti.push({sig:sg.id,oro:S.RESA,scad:g+S.SCAD});m.g=g;L(s,sg.nome+' ti presta '+S.PRESTITO+' monete: ne vuole '+S.RESA+' entro '+S.SCAD+' giorni.');return{s}}
+  return null}
+ // debiti scaduti: se hai l'oro li paga la compagnia da sé, altrimenti il signore se ne ricorda
+ function debiti(s){const tu=TU(s),g=giorno(s);for(const d of s.debiti.slice()){if(g<d.scad)continue;const sg=s.sig[d.sig];s.debiti.splice(s.debiti.indexOf(d),1);if(!sg)continue;
+  if(tu.oro>=d.oro){tu.oro-=d.oro;L(s,'Il debito con '+sg.nome+' scade: gli sono rese '+d.oro+' monete.')}
+  else{memSig(sg).trad++;relaz(s,sg.faz,-10);L(s,'Non rendi il denaro a '+sg.nome+': non lo dimenticherà.','male')}}}
  function giornoNuovo(s){const r=rnd(s),tu=TU(s),g=giorno(s);
   if(s.torneo&&s.torneo.giorno<g)chiudiTorneo(s,'Il torneo di '+s.l[s.torneo.lid].nome+' è finito');
   // viveri
@@ -419,12 +466,13 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    while(serve>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;serve--}}
    const fame=serve>0,varia=cibi.length;let meta=50+abil(s,'comando')*2+somma(s,'morale')+varia*4+Math.min(20,s.slancio)-(fame?35:0)-Math.max(0,uomini(tu)-limite(s))*3-(s.corona&&s.corona.malc>=60?s.corona.malc/10:0);
    tu.mor=Math.round(tu.mor+(meta-tu.mor)*.3);s.slancio=Math.max(0,s.slancio-2);
-   if(fame)L(s,'La compagnia non ha da mangiare: il morale crolla.','male');
+   if(fame){L(s,'La compagnia non ha da mangiare: il morale crolla.','male');reagisci(s,'fame')}
    if(tu.mor<25&&uomini(tu)>1){const e=tu.tr.filter(e=>!D.TR[e.t].compagno).sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)[0];if(e){const k2=Math.max(1,Math.floor(e.n*.2));togliUomini(tu.tr,e.t,k2);L(s,k2+' uomini disertano nella notte.','male')}}
    const ad=abil(s,'addestra');if(ad)for(const e of tu.tr)if(D.TR[e.t].su.length)e.xp=(e.xp||0)+e.n*ad*.7;
    // paga ogni sette giorni
    if(g%P.PAGA_GIORNI===1&&g>1){const dovuto=paga(s),rendita=rendite(s);tu.oro+=rendita;if(rendita)L(s,'Rendite e soldo: +'+rendita+' monete.','bene');
-    if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.')}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male')}}}
+    if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.');gradPaga(s,true)}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male');gradPaga(s,false)}}}
+  debiti(s);addii(s);
   // economia e reclute
   for(const l of s.l){if(MERCATO[l.tipo]){const prod=D.PRODUCE[D.REGNI.includes(l.faz)?l.faz:M0(s,l)]||[],fermo=l.sacc>g;for(const m of Object.keys(D.MERCI)){const mio=prod.includes(m),cibo=D.MERCI[m].cibo;
      let d=mio||(l.tipo==='porto'&&m==='pesce')?(fermo?0:4):cibo&&l.tipo!=='citta'?(fermo?0:3):-1;l.scorte[m]=Math.max(0,Math.min(120,(l.scorte[m]||0)+d+(r()<.3?1:0)))}}
@@ -500,7 +548,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
     asp:{elmo:kit.elmo,arma:arma.asp,scudo:sc?sc.asp:null,cor:T.cor[turno],mant:1,col:T.colori[turno]}}})}
   return out}
  // il capitano in lizza: a piedi, senza arco, con tutto il resto che porta addosso
- function statArena(c){const eq=Object.assign({},c.eq,{cavallo:null});if((ogg(eq.arma)||{}).git)eq.arma='spada';return statCap(Object.assign({},c,{eq}))}
+ function statArena(c){const eq=Object.assign({},c.eq,{cavallo:null});if((ogg(eq.arma)||{}).git)eq.arma='spada';const st=statCap(Object.assign({},c,{eq})),cv=c.ab.cavaliere||0;st.att+=2*cv;st.pf+=4*cv;return st}
  // dopo una sconfitta in lizza si combatte a metà vita fino a sera
  const feritoOggi=(s,c)=>s.ferito===giorno(s)?Object.assign({},c,{pf:Math.max(1,Math.round(c.pf*.5))}):c;
  function campoArena(s){const t=s.torneo,l=s.l[t.lid],cs=capi(s).map(c=>feritoOggi(s,statArena(c))),av=avversariTorneo(s,t.lid,t.giorno,t.turno,cs.length);
@@ -557,10 +605,12 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))inimica(s,p.faz);inc.pronto=true;return{s}}
    if(v==='lascia'){s.incontro=null;return{s}}if(!inc.pronto)return{err:'Scegli con chi stare'}}
   if(inc.tipo==='parla'){const p=part(s,inc.pid[0]);if(v==='lascia'||!p){s.incontro=null;return{s}}
-   if(v==='notizie'){if(inc.detto)return{err:'Non ha altro da dirti'};inc.detto=1;const x=s.l.filter(l=>l.noto===false&&l.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
+   const sgp=p.k==='sig'?s.sig[p.sig]:null;
+   if(sgp&&(v==='lettera'||v==='prestito'||v==='rendi')){const R=favoreSig(s,sgp,v);if(R)return R}
+   if(v==='notizie'){if(inc.detto)return{err:'Non ha altro da dirti'};if(sgp){const R=favoreSig(s,sgp,'notizie');if(R)return R;memSig(sgp).g=giorno(s)}inc.detto=1;const x=s.l.filter(l=>l.noto===false&&l.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
     if(x){x.noto=true;inc.voce='«Si parla di '+x.nome+': '+(x.tipo==='covo'?'un nido di predoni':'pietre antiche, e chi ci va non sempre torna')+'. Te lo segno sulla mappa.»'}else inc.voce='«Niente che tu non sappia già, capitano.»';return{s}}
    if(v.slice(0,6)==='passa:')return passaA(s,p,+v.slice(6));
-   if(v==='aggredisci'){if(D.REGNI.includes(p.faz)){inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
+   if(v==='aggredisci'){if(sgp)memSig(sgp).trad++;if(D.REGNI.includes(p.faz)){inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
   if(inc.tipo==='assalto'&&v==='togli'){s.assedio=null;s.incontro=null;if(s.dentro!==inc.lid)s.davanti=inc.lid;return{s}}
   if(inc.tipo==='assalto'&&(v==='attendi'||v==='ariete')){const a=s.assedio;if(!a||a.lid!==inc.lid||!MURA[s.l[inc.lid].tipo])return{err:'Qui non c\'è un assedio'};
    // si rimanda l'assalto: paghe, viveri e soccorsi dei signori continuano a correre
@@ -569,34 +619,34 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    a.da=inizio(a);s.incontro=null;tu.ord={t:'aspetta',fino:a.pronto+60};L(s,v==='attendi'?'Aspettate che le mura cedano.':'Si abbatte un tronco per l\'ariete: pronto tra '+P.ARIETE_ORE+' ore.','guerra');return{s}}
   if(v==='attacca'||v==='auto')return{s,campo:campo(s)};
   if(inc.tipo==='nemico'){const{nem}=schieramenti(s),capo=nem[0];
-   if(v==='paga'){if(!capo||capo.k!=='pre')return{err:'Non trattano'};const q=Math.max(30,Math.floor(tu.oro*.25));if(tu.oro<q)return{err:'Non hai abbastanza monete'};tu.oro-=q;capo.oro+=q;for(const p of nem){p.fermo=s.t+240;p.ia.st='giro';p.via=[]}s.tregua=s.t+480;s.incontro=null;L(s,'Paghi '+q+' monete e i predoni vi lasciano passare.');return{s}}
+   if(v==='paga'){if(!capo||capo.k!=='pre')return{err:'Non trattano'};const q=Math.max(30,Math.floor(tu.oro*.25));if(tu.oro<q)return{err:'Non hai abbastanza monete'};tu.oro-=q;capo.oro+=q;for(const p of nem){p.fermo=s.t+240;p.ia.st='giro';p.via=[]}s.tregua=s.t+480;s.incontro=null;L(s,'Paghi '+q+' monete e i predoni vi lasciano passare.');reagisci(s,'tributo');return{s}}
    if(v==='fuggi'){const e=tu.tr.filter(e=>!D.TR[e.t].compagno&&e.n>0);const persi=inc.da==='tu'?0:Math.max(1,Math.floor(uomini(tu)*.12));let k=persi,via=0;while(k>0&&e.length){const x=e[Math.floor(r()*e.length)];if(togliUomini(tu.tr,x.t,1)){k--;via++}else e.splice(e.indexOf(x),1);if(!e.some(q=>q.n>0))break}
-    for(const p of nem){p.fermo=s.t+150;p.ia.st='giro';p.via=[]}s.tregua=s.t+300;tu.mor=Math.max(0,tu.mor-6);s.incontro=null;L(s,via?'Vi sganciate lasciando indietro '+via+' uomini di retroguardia.':'Vi sganciate senza perdite.',via?'male':'');return{s}}}
+    for(const p of nem){p.fermo=s.t+150;p.ia.st='giro';p.via=[]}s.tregua=s.t+300;tu.mor=Math.max(0,tu.mor-6);s.incontro=null;L(s,via?'Vi sganciate lasciando indietro '+via+' uomini di retroguardia.':'Vi sganciate senza perdite.',via?'male':'');reagisci(s,'fuga');return{s}}}
   return{err:'Scelta non valida'}}
  // chiude una battaglia giocata o risolta: riep = { vince:'a'|'b', cad:[{p,t,n}], capKo, uccisi }
  function esito(s,riep){const inc=s.incontro;if(!inc)return{err:'Nessun incontro'};if(inc.tipo==='arena')return esitoArena(s,riep);const{nem,all,luogo}=schieramenti(s),tu=TU(s),r=rnd(s),med=abil(s,'medicina');
   const out={vince:riep.vince,morti:0,feriti:0,oro:0,xp:0,prig:0,fama:0,bottino:[],oggetti:[],promo:false,presa:null,livello:false};const dona=id=>{if(D.OGG[id]){tu.zaino.push(id);out.oggetti.push(id)}};
   const fn=nem.reduce((x,p)=>x+forza(p),0)+(luogo?forzaTr(luogo.g)*(MURA[luogo.tipo]?P.MURA:1):0),fa=forza(tu)+all.reduce((x,p)=>x+forza(p),0);
-  let valUcc=0;
+  let valUcc=0;const prima=uomini(tu);
   for(const c of riep.cad||[]){if(c.n<=0)continue;if(c.p===0){const e=tu.tr.find(e=>e.t===c.t);if(!e)continue;const comp=!!D.TR[c.t].compagno;let fer=0;for(let k=0;k<c.n;k++)if(comp||r()<.3+med*.06)fer++;
      const morti=Math.min(c.n-fer,e.n);togliUomini(tu.tr,c.t,morti);const e2=tu.tr.find(e=>e.t===c.t);if(e2)e2.f=Math.min(e2.n,(e2.f||0)+fer);out.morti+=morti;out.feriti+=fer}
    else if(c.p<0){const l=s.l[-1-c.p];togliUomini(l.g,c.t,c.n);valUcc+=c.n*D.valore(c.t)}
    else{const p=part(s,c.p);if(p){togliUomini(p.tr,c.t,c.n);if(nem.includes(p)){valUcc+=c.n*D.valore(c.t);if(riep.vince==='a'&&r()<.3&&s.prig.reduce((a,e)=>a+e.n,0)<limitePrig(s)){aggiungi(s.prig,c.t,1);out.prig++}}}}}
-  s.stat.uccisi+=Math.round(valUcc);
-  if(riep.vince==='a'){s.stat.vinte++;const rapporto=fn/Math.max(1,fa);out.fama=Math.max(1,Math.round(Math.min(25,fn/14*Math.max(.4,rapporto))));s.fama+=out.fama;s.slancio=Math.min(30,s.slancio+8);
+  s.stat.uccisi+=Math.round(valUcc);if(prima>0&&out.morti>=prima*.25)reagisci(s,'perdite');
+  if(riep.vince==='a'){s.stat.vinte++;if(fn>=fa){reagisci(s,'vittoria');for(const c of inCompagnia(s)){const gr=gradDi(s,c.id);gr.g=limita(gr.g+D.GRAD.VINTA)}}const rapporto=fn/Math.max(1,fa);out.fama=Math.max(1,Math.round(Math.min(25,fn/14*Math.max(.4,rapporto))));s.fama+=out.fama;s.slancio=Math.min(30,s.slancio+8);
    out.xp=Math.round(valUcc*1.4+10);
    for(const p of nem){out.oro+=Math.floor(p.oro*.6)+Math.round(forza(p)*.2);const era=p.k,sgi=p.sig;
     for(const q of s.incarichi)if(q.tipo==='predoni'&&q.pid===p.id&&!q.fatto){q.fatto=true;const l=s.l[q.da];tu.oro+=q.premio;l.rel+=8;l.inc=null;relaz(s,l.faz,2);s.fama+=3;L(s,'Predoni dispersi: '+l.nome+' vi paga '+q.premio+' monete.','bene')}
     if(p.k==='sig'&&r()<.3){const B=D.BOTTEGA[p.faz];if(B)dona(B[Math.floor(r()*B.length)])}
     if(p.k==='riv'&&!s.rivVinta){s.rivVinta=giorno(s);dona(D.RIVALE.premio);s.fama+=15;L(s,'La Volpe Rossa vi lascia il campo, e la sua cavalla.','bene')}
-    if(p.k==='sig'){const preso=r()<.5;sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
+    if(p.k==='sig'){memSig(s.sig[sgi]).sconf++;const preso=r()<.5;sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
     else{if(p.porta){out.bottino.push([p.porta.m,p.porta.q]);tu.merci[p.porta.m]=(tu.merci[p.porta.m]||0)+p.porta.q}sconfitta(s,p,'tu')}
     if(era==='pre'){for(const l of s.l)if(l.tipo==='villaggio'&&dist(l,tu)<6)l.rel+=1}}
    out.oro+=Math.round(valUcc*.4);out.oro=Math.round(out.oro*(1+somma(s,'bottino')));tu.oro+=out.oro;
    // esperienza alle truppe rimaste, in proporzione
    const tot=uomini(tu)||1;for(const e of tu.tr)if(D.TR[e.t].su.length){e.xp=(e.xp||0)+valUcc*.9*e.n/tot;if(e.xp>=D.XP_SU[D.TR[e.t].t])out.promo=true}
-   for(const p of all){p.sc=0;if(D.REGNI.includes(p.faz))relaz(s,p.faz,3);if(p.k==='sig'&&s.sig[p.sig])s.sig[p.sig].am=(s.sig[p.sig].am||0)+4}
-   if(luogo&&SITO[luogo.tipo]){const covo=luogo.tipo==='covo';luogo.g=[];luogo.vinto=giorno(s);if(luogo.tesoro){dona(luogo.tesoro);luogo.tesoro=null}s.stat[covo?'covi':'rovine']++;const pr=covo?260:120;tu.oro+=pr;out.oro+=pr;s.fama+=covo?12:6;out.fama+=covo?12:6;
+   for(const p of all){p.sc=0;if(D.REGNI.includes(p.faz))relaz(s,p.faz,3);if(p.k==='sig'&&s.sig[p.sig]){s.sig[p.sig].am=(s.sig[p.sig].am||0)+4;memSig(s.sig[p.sig]).fav++}}
+   if(luogo&&SITO[luogo.tipo]){const covo=luogo.tipo==='covo';reagisci(s,'sito');luogo.g=[];luogo.vinto=giorno(s);if(luogo.tesoro){dona(luogo.tesoro);luogo.tesoro=null}s.stat[covo?'covi':'rovine']++;const pr=covo?260:120;tu.oro+=pr;out.oro+=pr;s.fama+=covo?12:6;out.fama+=covo?12:6;
     L(s,covo?luogo.nome+' è in cenere: le strade respirano.':'Le rovine tacciono. Quel che custodivano è vostro.','bene');if(covo)s.davanti=-1;
     for(const q of s.incarichi)if((q.tipo==='reliquia'||q.tipo==='taglia')&&q.a===luogo.id&&!q.fatto&&!q.fallito){q.fatto=true;tu.oro+=q.premio;out.oro+=q.premio;const da=s.l[q.da];da.inc=null;da.rel+=8;s.fama+=5;L(s,'Incarico compiuto: '+q.premio+' monete da '+da.nome+'.','bene')}}
    else if(luogo){for(const p of s.p.filter(p=>p.dentro===luogo.id&&p.k!=='sig'))p.dentro=-1;const srv=s.servizio;
@@ -640,7 +690,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(z.a==='investi'){const l=s.l[z.lid],T=D.TR[z.t],e=tu.tr.find(e=>e.t===z.t);if(!T||!T.compagno)return{err:'Non è un compagno'};if(!e||e.n<1)return{err:'Il compagno non è con te'};
    if(!l||l.faz!=='tu'||l.sig>=0)return{err:'Serve un tuo luogo tenuto'};if(l.id===s.corona.sede)return{err:'La sede del regno resta tua'};
    const co=D.COMPAGNI.find(x=>x.id===z.t),cult=M0(s,l);togliUomini(tu.tr,z.t,1);
-   const sg={id:s.sig.length,nome:co.nome,faz:'tu',casa:l.id,pid:-1,prig:null,torna:0,re:false,tratto:D.TRATTI_ID[s.sig.length%D.TRATTI_ID.length],cult,comp:co.id};s.sig.push(sg);
+   const sg={id:s.sig.length,nome:co.nome,faz:'tu',casa:l.id,pid:-1,prig:null,torna:0,re:false,tratto:D.TRATTI_ID[s.sig.length%D.TRATTI_ID.length],cult,comp:co.id,mem:{lib:0,sconf:0,trad:0,fav:0,g:-99}};s.sig.push(sg);
    const p=nuovaP(s,'sig','tu',co.nome,l.x,l.y,leva(cult,R.TRUPPE_COMP,r),{oro:150,sig:sg.id,dentro:l.id});sg.pid=p.id;daiFeudo(s,l,sg.id);s.compagni[co.id]=-3;
    L(s,co.nome+' è investito di '+l.nome+': ora è signore.','bene');return{s}}
   if(z.a==='aduna'){let n=0;for(const p of s.p)if(p.k==='sig'&&p.faz==='tu'){p.dentro=-1;p.via=[];p.ia={st:'adunata',t:0,fine:s.t+R.ADUNATA*P.GIORNO};n++}
@@ -661,7 +711,9 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if(e.n<n)return{err:'Non hai abbastanza uomini'};if((e.xp||0)<xp)return{err:'Non hanno ancora abbastanza esperienza'};if(tu.oro<oro)return{err:'Servono '+oro+' monete'};
    e.xp-=xp;tu.oro-=oro;const fer=Math.min(e.f||0,Math.max(0,n-(e.n-(e.f||0))));togliUomini(tu.tr,z.t,n);aggiungi(tu.tr,z.su,n);if(fer){const e2=tu.tr.find(x=>x.t===z.su);e2.f=(e2.f||0)+fer}return{s}}
   if(z.a==='congeda'){const n=togliUomini(tu.tr,z.t,Math.max(1,z.n||1));return n?{s}:{err:'Nessuno da congedare'}}
-  if(z.a==='libera'){const i=s.prig.findIndex(e=>e.t===z.t&&!e.sig);if(i<0)return{err:'Nessun prigioniero'};s.prig.splice(i,1);return{s}}
+  if(z.a==='libera'){const i=s.prig.findIndex(e=>e.t===z.t&&!e.sig);if(i<0)return{err:'Nessun prigioniero'};s.prig.splice(i,1);reagisci(s,'libera');return{s}}
+  if(z.a==='liberasig'){const i=s.prig.findIndex(e=>e.sig!=null&&e.sig===z.sig);if(i<0)return{err:'Non è tuo prigioniero'};const sg=s.sig[z.sig];s.prig.splice(i,1);sg.prig=null;const pg=part(s,sg.pid);if(pg)pg.ia.t=s.t+P.GIORNO;
+   memSig(sg).lib++;relaz(s,sg.faz,6);L(s,'Liberi '+sg.nome+' senza riscatto: se ne ricorderà.','bene');return{s}}
   if(z.a==='esci'){s.dentro=-1;s.davanti=-1;return{s}}
   if(z.a==='equipa'){const i=z.i|0,id=tu.zaino[i],o=ogg(id),eq=c.eq;if(!o)return{err:'Oggetto sconosciuto'};
    if(o.slot==='cimelio'){const k=z.k===1?1:z.k===0?0:(eq.cimeli[0]&&!eq.cimeli[1]?1:0),old=eq.cimeli[k];eq.cimeli[k]=id;tu.zaino.splice(i,1);if(old)tu.zaino.push(old);return{s}}
@@ -675,10 +727,10 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(z.a==='assalta'){if(!SITO[l.tipo])return{err:'Qui non c\'è nulla da assaltare'};if(!l.g.length)return{err:'Non c\'è più nessuno'};s.incontro={tipo:'assalto',lid:l.id};s.ev.push({t:'incontro'});return{s}}
   if(z.a==='assedia'){if(!ost||!MURA[l.tipo])return{err:'Non si può assediare'};s.assedio={lid:l.id,pronto:s.t+Math.max(4,P.ASSEDIO_ORE-abil(s,'comando'))*60,da:s.t,ariete:false};tu.ord={t:'aspetta',fino:s.assedio.pronto+60};L(s,'Cingete d\'assedio '+l.nome+': scale e arieti saranno pronti tra qualche ora.','guerra');return{s}}
   if(z.a==='razzia'){if(!ost||l.tipo!=='villaggio')return{err:'Non si può razziare'};if(l.sacc>giorno(s))return{err:'Non è rimasto nulla da prendere'};const oro=60+Math.round(l.prosp*2.2);tu.oro+=oro;tu.merci.grano=(tu.merci.grano||0)+6;
-   l.sacc=giorno(s)+6;l.prosp=Math.max(5,l.prosp-20);l.rec=0;l.rel-=40;relaz(s,l.faz,-6);s.t+=180;L(s,'Mettete a sacco '+l.nome+': '+oro+' monete e sei sacchi di grano.','guerra');return{s}}
+   l.sacc=giorno(s)+6;l.prosp=Math.max(5,l.prosp-20);l.rec=0;l.rel-=40;relaz(s,l.faz,-6);s.t+=180;L(s,'Mettete a sacco '+l.nome+': '+oro+' monete e sei sacchi di grano.','guerra');reagisci(s,'razzia');return{s}}
   if(!dentro)return{err:'Le porte sono chiuse'};
   if(z.a==='torneo'){if(!torneoOggi(s,l))return{err:'Oggi non c\'è torneo'};if(s.torneo)return{err:'Sei già iscritto'};if(s.torneoUsato&&s.torneoUsato[l.id]===giorno(s))return{err:'Hai già partecipato al torneo di oggi'};const posta=capi(s).reduce((a,x)=>a+D.TORNEO.posta*x.liv,0);if(tu.oro<posta)return{err:'Non hai abbastanza monete'};
-   tu.oro-=posta;s.torneo={lid:l.id,turno:0,posta,giorno:giorno(s)};(s.torneoUsato=s.torneoUsato||{})[l.id]=giorno(s);L(s,'Ti iscrivi al torneo di '+l.nome+' per '+posta+' monete.');return{s,oro:-posta}}
+   tu.oro-=posta;s.torneo={lid:l.id,turno:0,posta,giorno:giorno(s)};(s.torneoUsato=s.torneoUsato||{})[l.id]=giorno(s);L(s,'Ti iscrivi al torneo di '+l.nome+' per '+posta+' monete.');reagisci(s,'torneo');return{s,oro:-posta}}
   if(z.a==='lizza'){const t=s.torneo;if(!t||t.lid!==l.id)return{err:'Non sei iscritto a un torneo qui'};if(t.giorno!==giorno(s))return{err:'Il torneo è finito'};if(s.incontro)return{err:'Il duello ti aspetta'};s.incontro={tipo:'arena'};s.ev.push({t:'incontro'});return{s}}
   if(z.a==='ritira'){const t=s.torneo;if(!t||t.lid!==l.id)return{err:'Non sei iscritto a un torneo qui'};if(s.incontro&&s.incontro.tipo==='arena')s.incontro=null;const oro=chiudiTorneo(s,'Ti ritiri dal torneo di '+l.nome);return{s,oro}}
   if(z.a==='recluta'){if(l.tipo!=='villaggio')return{err:'Qui non si recluta'};const n=Math.max(1,z.n||1);if(l.rec<n)return{err:'Non ci sono abbastanza volontari'};if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};
@@ -689,13 +741,13 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   if(z.a==='assolda'){if(!OSTERIA[l.tipo])return{err:'Qui non c\'è taverna'};const e=l.merc.find(e=>e.t===z.t),n=Math.max(1,z.n||1);if(!e||e.n<n)return{err:'Non ce ne sono abbastanza'};if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};
    const oro=D.INGAGGIO[D.TR[z.t].t]*n;if(tu.oro<oro)return{err:'Servono '+oro+' monete'};tu.oro-=oro;togliUomini(l.merc,z.t,n);aggiungi(tu.tr,z.t,n);return{s}}
   if(z.a==='compagno'){const co=D.COMPAGNI.find(x=>x.id===z.id);if(!co||s.compagni[co.id]!==l.id)return{err:'Non è qui'};if(tu.oro<co.costo)return{err:'Servono '+co.costo+' monete'};if(uomini(tu)+1>limite(s))return{err:'La compagnia è al completo'};
-   tu.oro-=co.costo;s.compagni[co.id]=-1;aggiungi(tu.tr,co.id,1);L(s,co.nome+' si unisce alla compagnia.','bene');return{s}}
+   tu.oro-=co.costo;s.compagni[co.id]=-1;aggiungi(tu.tr,co.id,1);if(s.grad)delete s.grad[co.id];gradDi(s,co.id);L(s,co.nome+' si unisce alla compagnia.','bene');return{s}}
   if(z.a==='compraogg'){const o=ogg(z.id),unica=l.unica===z.id;if(!o||(!l.bott.includes(z.id)&&!unica))return{err:'Qui non lo vendono'};const pz=prezzoOgg(s,o,1);if(tu.oro<pz)return{err:'Servono '+pz+' monete'};
    tu.oro-=pz;tu.zaino.push(z.id);if(unica)l.unica=null;else l.bott.splice(l.bott.indexOf(z.id),1);return{s,oro:-pz}}
   if(z.a==='vendiogg'){if(MURA[l.tipo]&&l.tipo!=='citta'||l.tipo==='villaggio'||SITO[l.tipo])return{err:'Qui nessuno compra roba simile'};const i=z.i|0,o=ogg(tu.zaino[i]);if(!o)return{err:'Oggetto sconosciuto'};const pz=prezzoOgg(s,o,-1);tu.oro+=pz;tu.zaino.splice(i,1);return{s,oro:pz}}
   if(z.a==='imbarca'){if(l.tipo!=='porto')return{err:'Qui non ci sono navi'};const a=s.l[z.lid];if(!a||a.tipo!=='porto'||a.id===l.id)return{err:'Rotta sconosciuta'};if(a.faz!=='tu'&&nemiche(s,'tu',a.faz))return{err:'Quel porto vi è nemico'};
    const oro=40+uomini(tu)*3;if(tu.oro<oro)return{err:'Servono '+oro+' monete per il passaggio'};tu.oro-=oro;tu.x=a.x;tu.y=a.y;tu.via=[];s.dentro=a.id;tu.ord={t:'aspetta',fino:s.t+Math.round(dist(l,a)*5)+120};L(s,'Vi imbarcate per '+a.nome+'.');return{s}}
-  if(z.a==='cura'){if(l.tipo!=='monastero')return{err:'Qui non ci sono cerusici'};const fer=tu.tr.reduce((a,e)=>a+(e.f||0),0);if(!fer)return{err:'Nessun ferito'};const oro=fer*4;if(tu.oro<oro)return{err:'Servono '+oro+' monete di offerta'};tu.oro-=oro;for(const e of tu.tr)e.f=0;tu.mor=Math.min(100,tu.mor+4);return{s}}
+  if(z.a==='cura'){if(l.tipo!=='monastero')return{err:'Qui non ci sono cerusici'};const fer=tu.tr.reduce((a,e)=>a+(e.f||0),0);if(!fer)return{err:'Nessun ferito'};const oro=fer*4;if(tu.oro<oro)return{err:'Servono '+oro+' monete di offerta'};tu.oro-=oro;for(const e of tu.tr)e.f=0;tu.mor=Math.min(100,tu.mor+4);reagisci(s,'cura');return{s}}
   if(z.a==='benedizione'){if(l.tipo!=='monastero')return{err:'Qui nessuno benedice'};if(l.bened>giorno(s))return{err:'La compagnia è già stata benedetta di recente'};if(tu.oro<80)return{err:'Servono 80 monete di offerta'};tu.oro-=80;l.bened=giorno(s)+7;s.slancio=Math.min(30,s.slancio+12);tu.mor=Math.min(100,tu.mor+8);return{s}}
   if(z.a==='voci'){if(l.tipo!=='locanda')return{err:'Qui nessuno chiacchiera'};if(tu.oro<25)return{err:'Servono 25 monete per un giro di vino'};const x=s.l.filter(q=>q.noto===false&&q.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
    // il torneo si sa sempre; un posto nascosto solo finché ce n'è qualcuno da raccontare
@@ -703,19 +755,19 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    L(s,l.oste+(x?' abbassa la voce: «'+x.nome+'. Io non ci andrei, ma tu hai l\'aria di chi ci va.» E aggiunge: '+dt:' non ha storie nuove, ma una la sa: '+dt),'bene');return x?{s,lid:x.id}:{s}}
   if(z.a==='riposa'){if((l.tipo==='villaggio'||SITO[l.tipo])&&!mio)return{err:'Qui non c\'è locanda'};const oro=mio?0:Math.ceil(uomini(tu)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5));if(tu.oro<oro)return{err:'Servono '+oro+' monete'};tu.oro-=oro;for(const e of tu.tr)e.f=Math.max(0,(e.f||0)-Math.ceil(e.n*.5));tu.mor=Math.min(100,tu.mor+6);tu.ord={t:'aspetta',fino:s.t+8*60};return{s}}
   if(z.a==='riscatta'){if(!MURA[l.tipo])return{err:'Qui nessuno compra prigionieri'};let oro=0;for(const e of s.prig){if(e.sig!=null){const sg=s.sig[e.sig];oro+=350+(sg.re?450:0);sg.prig=null;const p=part(s,sg.pid);if(p)p.ia.t=s.t+P.GIORNO}else oro+=e.n*(12+D.TR[e.t].t*14)}
-   if(!oro)return{err:'Non hai prigionieri'};s.prig=[];tu.oro+=oro;L(s,'Riscatti incassati: '+oro+' monete.','bene');return{s,oro}}
+   if(!oro)return{err:'Non hai prigionieri'};s.prig=[];tu.oro+=oro;L(s,'Riscatti incassati: '+oro+' monete.','bene');reagisci(s,'riscatta');return{s,oro}}
   if(z.a==='incarico'){const q=l.inc;if(!q||q.preso)return{err:'Nessun incarico'};if(s.incarichi.filter(x=>!x.fatto&&!x.fallito).length>=4)return{err:'Hai già troppi incarichi'};
    const inc=Object.assign({id:s.uid++,da:l.id,scad:giorno(s)+q.giorni},q);if(q.tipo==='predoni'){const b=nascePredoni(s,r,[l.x,l.y]);b.cov=[l.x,l.y];inc.pid=b.id}if(q.tipo==='reliquia'||q.tipo==='taglia')s.l[q.a].noto=true;q.preso=true;s.incarichi.push(inc);return{s}}
   if(z.a==='consegna'){const q=s.incarichi.find(q=>!q.fatto&&!q.fallito&&(q.tipo==='consegna'&&q.a===l.id||q.tipo==='reclute'&&q.da===l.id));if(!q)return{err:'Niente da consegnare qui'};const da=s.l[q.da];
    if(q.tipo==='consegna'){if((tu.merci[q.bene]||0)<q.n)return{err:'Ti servono '+q.n+' di '+D.MERCI[q.bene].nome};tu.merci[q.bene]-=q.n;if(!tu.merci[q.bene])delete tu.merci[q.bene];l.scorte[q.bene]=(l.scorte[q.bene]||0)+q.n}
    else{let k=q.n;const buoni=tu.tr.filter(e=>D.TR[e.t].t>=2&&!D.TR[e.t].compagno&&!D.TR[e.t].faz.startsWith('mer'));if(buoni.reduce((a,e)=>a+e.n,0)<k)return{err:'Servono '+q.n+' soldati addestrati (non reclute)'};
     for(const e of buoni.sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)){const x=Math.min(k,e.n);aggiungi(l.g,e.t,x);togliUomini(tu.tr,e.t,x);k-=x;if(!k)break}}
-   q.fatto=true;tu.oro+=q.premio;da.inc=null;da.rel+=6;relaz(s,da.faz,4);s.fama+=4;L(s,'Incarico compiuto: '+q.premio+' monete.','bene');return{s,oro:q.premio}}
-  if(z.a==='contratto'){if(s.corona)return{err:'Un sovrano non serve nessuno'};if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi firma'};if(s.servizio)return{err:'Servi già un regno'};if(s.fama<P.FAMA_CONTRATTO)return{err:'Serve fama '+P.FAMA_CONTRATTO};if(s.rel[l.faz]<0)return{err:'Non si fidano di te'};
+   q.fatto=true;tu.oro+=q.premio;da.inc=null;da.rel+=6;relaz(s,da.faz,4);s.fama+=4;if(l.sig>=0)memSig(s.sig[l.sig]).fav++;L(s,'Incarico compiuto: '+q.premio+' monete.','bene');return{s,oro:q.premio}}
+  if(z.a==='contratto'){if(s.corona)return{err:'Un sovrano non serve nessuno'};if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi firma'};if(s.servizio)return{err:'Servi già un regno'};if(s.fama<P.FAMA_CONTRATTO&&!(s.lettere&&s.lettere[l.faz]>=giorno(s)))return{err:'Serve fama '+P.FAMA_CONTRATTO};if(s.rel[l.faz]<0)return{err:'Non si fidano di te'};
    s.servizio={faz:l.faz,tipo:'mer',fino:giorno(s)+28};L(s,'Firmi un contratto di ventura con '+D.FAZ[l.faz].nome+': quattro settimane di soldo.','bene');return{s}}
   if(z.a==='giura'){if(s.corona)return{err:'Un sovrano non serve nessuno'};if(!MURA[l.tipo]||!D.REGNI.includes(l.faz))return{err:'Qui non c\'è chi riceve giuramenti'};if(s.servizio&&s.servizio.tipo==='vas')return{err:'Hai già un sovrano'};if(s.fama<P.FAMA_VASSALLO)return{err:'Serve fama '+P.FAMA_VASSALLO};if(s.rel[l.faz]<10)return{err:'Serve più amicizia col regno'};
    if(s.l.some(x=>x.faz==='tu'))return{err:'Chi ha terre proprie non giura'};s.servizio={faz:l.faz,tipo:'vas'};const v=s.l.filter(x=>x.faz===l.faz&&x.tipo==='villaggio'&&x.sig!==-2).sort((a,b)=>a.prosp-b.prosp)[0];if(v){v.sig=-2;L(s,'Giuri fedeltà a '+D.FAZ[l.faz].re+': ti è dato in feudo '+v.nome+'.','bene')}return{s}}
-  if(z.a==='lascia'){if(!s.servizio)return{err:'Non servi nessuno'};const f=s.servizio.faz;relaz(s,f,s.servizio.tipo==='vas'?-30:-8);for(const x of s.l)if(x.sig===-2&&x.faz===f)x.sig=x.capo>=0?s.l[x.capo].sig:-1;s.servizio=null;L(s,'Sciogli il tuo legame con '+D.FAZ[f].breve+'.');return{s}}
+  if(z.a==='lascia'){if(!s.servizio)return{err:'Non servi nessuno'};const f=s.servizio.faz;if(s.servizio.tipo==='vas')for(const sg of s.sig)if(sg.faz===f)memSig(sg).trad++;relaz(s,f,s.servizio.tipo==='vas'?-30:-8);for(const x of s.l)if(x.sig===-2&&x.faz===f)x.sig=x.capo>=0?s.l[x.capo].sig:-1;s.servizio=null;L(s,'Sciogli il tuo legame con '+D.FAZ[f].breve+'.');return{s}}
   if(z.a==='proponi'){const a=l.faz;if(!D.REGNI.includes(a)||l.tipo!=='citta')return{err:'Solo il re, nella sua capitale'};if(!dentro)return{err:'Devi essere dentro le mura'};
    const b=s.corona&&!s.servizio?'tu':z.f,p=proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=nomeF(s,b);
    if(!p.ok)return{err:D.FAZ[a].re+' rifiuta: il conto dà '+p.tot+' (serve 0)'};
@@ -733,7 +785,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   ['Venti uomini sotto lo stendardo',uomini(TU(s))>=20],['Fama 25: un contratto di ventura',s.fama>=25],['Cinque battaglie vinte',s.stat.vinte>=5],
   ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Un covo di predoni stanato',s.stat.covi>0],['Un cimelio unico',capi(s).some(c=>indossa(c).some(o=>o.q===4))||TU(s).zaino.some(id=>D.OGG[id]&&D.OGG[id].q===4)],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>MURA[l.tipo])],['Un regno caduto',Object.keys(s.cadute).length>0],['Un regno tuo',!!s.corona||!!s.vinta],['Tutte le capitali',!!s.vinta]]}
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
- function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};s.ev=[];mappa(s.seme);return s}catch(e){return null}}
+ function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};gradApri(s);s.ev=[];mappa(s.seme);return s}catch(e){return null}}
  return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,prezzoOgg,migra,assedioStato,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,torneoOggi,tornei,quando,premioTorneo,avversariTorneo,statArena,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
-  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap,fazioni,nomeF,colFaz,renditaL,lealta,confinanti,vittoria,conquista}})();
+  velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap,reagisci,umore,parte,confidenza,fazioni,nomeF,colFaz,renditaL,lealta,confinanti,vittoria,conquista}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

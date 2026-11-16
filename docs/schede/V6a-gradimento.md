@@ -52,4 +52,4 @@ in `motori/28k-ven-mondo.js` `nuovoCap`, `abil`, `nuovo` (ultima riga: `s.compag
 **Fuori scopo:** dialoghi e incarichi personali (V6b, V6c), voto dei vassalli (V4), storie d'amore, voci registrate, ritratti dipinti.
 
 ## Fatto quando
-- [ ] `npm run verifica` e `npm test -- ven_` verdi · [ ] le sei prove sopra · [ ] scenario `ventura_personaggi` · [ ] regole in-game aggiornate · [ ] co-op: una partita in stanza salvata prima della scheda si riapre.
+- [x] `npm run verifica` e `npm test -- ven_` verdi · [x] le sei prove sopra · [x] scenario `ventura_personaggi` · [x] regole in-game aggiornate · [x] co-op: una partita in stanza salvata prima della scheda si riapre.

@@ -153,7 +153,10 @@ const VDAT=(()=>{
   addestra:{nome:'Addestramento',d:'Le truppe guadagnano esperienza ogni giorno.'},
   medicina:{nome:'Medicina',d:'Più caduti restano feriti invece di morire, e guariscono prima.'},
   commercio:{nome:'Commercio',d:'Compri a meno e vendi a più.'},
-  esplora:{nome:'Esplorazione',d:'Viaggi più svelto e vedi più lontano.'}};
+  esplora:{nome:'Esplorazione',d:'Viaggi più svelto e vedi più lontano.'},
+  carisma:{nome:'Carisma',d:'I compagni apprezzano di più ciò che fai bene e perdonano di più ciò che fai male.'},
+  diplomazia:{nome:'Diplomazia',d:'Pesa sulle proposte che fai ai re: alleanze, tregue, guerre.'},
+  cavaliere:{nome:'Fama di cavaliere',d:'Nei tornei: più attacco e più punti ferita.'}};
  // compagni: guerrieri con un nome, una storia, un aspetto e due punti a un'abilità della compagnia. dove = in che tipo di luogo si incontrano
  const COMPAGNI=[
   {id:'co_berta',nome:'Berta la Rossa',arch:'f4',abil:'prodezza',costo:420,dove:'citta',asp:A('nuda','ascia','tondo',2,{mant:1,col:'#b3262b'}),d:'Già sergente a Valdoro, cacciata per aver steso un conte. Mena come tre.'},
@@ -166,6 +169,13 @@ const VDAT=(()=>{
   {id:'co_nera',nome:'Suor Nera',arch:'f3',abil:'medicina',costo:460,dove:'monastero',asp:A('cappuccio','mazza','tondo',2,{mant:1,col:'#20202a'}),d:'Prega prima, picchia dopo. A volte nell\'ordine inverso.'},
   {id:'co_brando',nome:'Brando Seicolpi',arch:'t3',abil:'prodezza',costo:480,dove:'porto',asp:A('berretto','balestra',0,2,{col:'#6b4a8a'}),d:'Sei quadrelli, sei uomini a terra: poi di solito scappa.'},
   {id:'co_fosca',nome:'Fosca delle Rovine',arch:'f2',abil:'addestra',costo:400,dove:'locanda',asp:A('cappuccio','spada',0,1,{mant:1,col:'#7a6a52'}),d:'Cercatrice di cimeli. Sa dove scavare e chi ci abita sopra.'}];
+ // gradimento (V6a): ciò che ogni compagno ama o detesta (eventi di VEN.reagisci) e con chi fa lega (n: 1 intesa, -1 antipatia)
+ const GRC={co_berta:[['vittoria','torneo'],['fuga','tributo'],'co_ulf',-1],co_lapo:[['libera','cura'],['razzia','perdite'],'co_nera',1],
+  co_ghino:[['sito','tributo'],['perdite','servi_mar'],'co_fosca',1],co_isa:[['riscatta','servi_mar'],['pagatardi','fame'],'co_brando',-1],
+  co_ulf:[['vittoria','servi_fer'],['fuga','pagatardi'],'co_berta',-1],co_dia:[['libera','vittoria'],['razzia','tributo'],'co_ulf',1],
+  co_temu:[['razzia','sito'],['servi_alt','fame'],'co_ghino',1],co_nera:[['libera','cura'],['razzia','riscatta'],'co_lapo',1],
+  co_brando:[['riscatta','fuga'],['perdite','torneo'],'co_isa',-1],co_fosca:[['sito','riscatta'],['perdite','fame'],'co_temu',1]};
+ for(const c of COMPAGNI){const g=GRC[c.id];c.ama=g[0];c.odia=g[1];c.lega={id:g[2],n:g[3]}}
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro
  const CAPIBANDA=[
@@ -188,6 +198,13 @@ const VDAT=(()=>{
  // ATTESA: giorni prima che lo stesso re ascolti un'altra proposta accolta; PESO: quanto vale la parola di chi gioca (mercenario a contratto / vassallo); i numeri si ritoccano qui.
  const DIPL={MIN:20,PREAVVISO:3,ATTESA:3,BASE:{pace:0,alleanza:-3,guerra:-2},PESO:{mer:.5,vas:1,re:1.2},AMICIZIA:12,FAMA:50,FAMA_MAX:200,FORZA:3,GUERRE:{pace:1.5,alleanza:1,guerra:-2.5},COMUNE:2,DOMINANTE:3,QUOTA_DOM:.4,
   IA:{ALLEANZA:.35,FRONTE:.12,ROTTURA:.05,GUERRA_DOM:.3}};
+ // gradimento dei compagni (V6a): 0..100, tutto un conto. INIZIO: da quando entrano; PARLA/VIA: sotto PARLA vogliono parlarti, a VIA o dopo GIORNI giorni sotto PARLA se ne vanno;
+ // FIDO/AMA/ODIA: soglia «fedele» e punti per evento amato/detestato; SERVE/NONSERVE: servizio presso la loro fazione; PAGA/VINTA: a ogni paga e a ogni vittoria;
+ // INTESA/ANTIPATIA: ogni paga se l'altro è in compagnia; LUTTO: a chi aveva intesa con chi parte; QUOTA/SEGUONO: quota degli uomini (e massimo) che se ne va con lui.
+ const GRAD={INIZIO:50,PARLA:25,VIA:10,FIDO:75,GIORNI:7,AMA:6,ODIA:-8,SERVE:3,NONSERVE:-4,PAGA:2,VINTA:1,INTESA:1,ANTIPATIA:-1,LUTTO:-8,QUOTA:.12,SEGUONO:6};
+ // memoria dei signori (V6a): SOGLIE: punti di confidenza a 1/2/3; ATTESA: giorni tra due favori dello stesso signore; PRESTITO/RESA: oro dato e da rendere; SCAD/LETTERA: giorni;
+ // SOSTEGNO: punti alla proposta per signore a confidenza 3 (al più MAX_SOST signori)
+ const SIG={SOGLIE:[3,7,12],ATTESA:10,PRESTITO:300,RESA:360,SCAD:21,LETTERA:14,SOSTEGNO:1.5,MAX_SOST:2};
  const TIPI={citta:'Città',castello:'Castello',villaggio:'Villaggio',porto:'Porto',monastero:'Monastero',locanda:'Locanda',rovine:'Rovine',covo:'Covo dei predoni'};
  const NOMI={
   citta:{val:['Roccadoro'],sel:['Fontesalice'],fer:['Castelferro'],mar:['Maralta'],alt:['Tendalarga']},
@@ -215,5 +232,5 @@ const VDAT=(()=>{
    {nome:'Oro e nero',col:'#d9a521',col2:'#1d1a1a'},{nome:'Notte e argento',col:'#1b2a55',col2:'#c9d3dc'},{nome:'Avorio e rosso',col:'#efe6cf',col2:'#a8262b'},{nome:'Rosso scuro e oro',col:'#6e1a1f',col2:'#e8b23a'}]};
  // cosa produce ogni regno: le scorte tendono a salire dove si produce
  const PRODUCE={val:['grano','vino','velluto'],sel:['carne','lana','attrezzi'],fer:['ferro','sale','attrezzi'],mar:['pesce','spezie','velluto'],alt:['carne','lana','sale']};
- return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
+ return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,GRAD,SIG,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;
