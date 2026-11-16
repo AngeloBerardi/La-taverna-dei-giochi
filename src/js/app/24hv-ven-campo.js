@@ -60,7 +60,8 @@ const VenCampo=(()=>{
   // ---- acqua bassa (riva, guado): un piano azzurro semitrasparente sulle zone «acqua», appena sopra il fondo ----
   for(const za of s.zone||[]){if(za.k!=='acqua')continue;const m=new T.Mesh(new T.CircleGeometry(1,40),new T.MeshBasicMaterial({color:'#5fb4d6',transparent:true,opacity:.5,depthWrite:false}));m.rotation.x=-Math.PI/2;m.scale.set(za.rx,za.ry,1);m.position.set(za.x,-.1,za.y);m.renderOrder=1;sc.add(m)}
   // ---- quel che c'è intorno: si combatte davanti a un villaggio, sotto un monastero, tra le rovine, alle porte di un covo… ----
-  if(vic&&!s.muro&&s.tipo!=='arena'){const S=A.Solidi(),st=(VenMappa.STILE[vic.faz]||VenMappa.STILE.neu),r=k=>hh(k,semeD,91),cx0=C.W/2;
+  const vq=vic||((s.zone||[]).some(z=>z.k==='case')?{tipo:'',faz:'neu'}:null);// una zona «case» data a mano si vede anche senza luogo vicino
+  if(vq&&!s.muro&&s.tipo!=='arena'){const vic=vq,S=A.Solidi(),st=(VenMappa.STILE[vic.faz]||VenMappa.STILE.neu),r=k=>hh(k,semeD,91),cx0=C.W/2;
    const casa=(x,z,w,h,ry)=>{const y=Math.max(0,alto(x,z));if(st.tende){S.cil(w*.6,w*.64,h*.8,8,x,y,z,st.muro,{c2:'#fff7e0'});S.cono(w*.74,h*.8,8,x,y+h*.8,z,st.tetto)}else{S.box(w,h,w*.85,x,y,z,st.muro,{ry,c2:'#fff7e0'});S.tetto(w*1.16,h*.8,w,x,y+h,z,st.tetto,{ry})}};
    const steccato=(x0,z0,x1,z1)=>{const n=Math.ceil(Math.hypot(x1-x0,z1-z0)/2);for(let k=0;k<n;k++){const x=x0+(x1-x0)*(k+.5)/n,z=z0+(z1-z0)*(k+.5)/n;S.box(2,.12,.1,x,Math.max(0,alto(x,z))+.6,z,'#7a5a3a',{ry:Math.atan2(x1-x0,z1-z0)+1.5708});S.box(.14,.9,.14,x,Math.max(0,alto(x,z)),z,'#6a4a2e')}};
    const campo2=(x,z,c1,c2)=>{for(let q=0;q<5;q++)S.box(7,.08,1.1,x,Math.max(0,alto(x,z))+.04,z+q*1.3,q%2?c1:c2)};
