@@ -100,6 +100,28 @@ assert.strictEqual(V.umore(80), 'fedele'); assert.strictEqual(V.umore(60), 'cont
   for (const c of [m.cap].concat(m.soci)) for (const k of Object.keys(D.ABIL)) assert(Number.isFinite(c.ab[k]), c.nome + ' ' + k);
   assert(m.sig.every(sg => sg.mem) && m.grad && m.debiti);
 }
+// gli agganci: ogni azione o evento di cronaca arriva ai compagni (tutti e dieci in compagnia: qualcuno lo ama o lo detesta, quindi lo «vede»)
+{
+  const dieci = s => { const tu = V.TU(s); for (const c of D.COMPAGNI) { tu.tr.push({ t: c.id, n: 1, f: 0, xp: 0 }); s.compagni[c.id] = -1; s.grad[c.id] = { g: G.INIZIO, avv: 0, visto: [] }; } return s; };
+  const visti = s => new Set(Object.values(s.grad).flatMap(g => g.visto));
+  const luogoDi = (s, tipo) => { const l = s.l.find(x => x.tipo === tipo); s.dentro = l.id; s.davanti = -1; return l; };
+  { const s = dieci(V.nuovo(20)); V.TU(s).oro = 9999; s.prig.push({ t: 'pre_f1', n: 1 }); luogoDi(s, 'villaggio'); ok(V.fai(s, { a: 'libera', t: 'pre_f1' })); assert(visti(s).has('libera'), 'libera'); }
+  { const s = dieci(V.nuovo(20)); luogoDi(s, 'citta'); s.prig.push({ t: 'pre_f1', n: 2 }); ok(V.fai(s, { a: 'riscatta' })); assert(visti(s).has('riscatta'), 'riscatta'); }
+  { const s = dieci(V.nuovo(20)); luogoDi(s, 'monastero'); const tu = V.TU(s); tu.oro = 999; tu.tr.find(e => e.t.endsWith('_f1')).f = 2; ok(V.fai(s, { a: 'cura' })); assert(visti(s).has('cura'), 'cura'); }
+  { const s = dieci(V.nuovo(20)), v = s.l.find(x => x.tipo === 'villaggio' && x.faz !== 'tu'); s.rel[v.faz] = -80; s.guerra = {}; for (const f of D.REGNI) if (f !== v.faz) s.guerra[f < v.faz ? f + '|' + v.faz : v.faz + '|' + f] = true; s.dentro = -1; s.davanti = v.id; v.sacc = 0;
+    ok(V.fai(s, { a: 'razzia' })); assert(visti(s).has('razzia'), 'razzia'); }
+  { const s = dieci(V.nuovo(20)), tu = V.TU(s); s.dentro = -1; const p = s.p.find(x => x.k === 'pre'); p.ia.st = 'giro'; tu.oro = 800;
+    s.incontro = { tipo: 'nemico', pid: [p.id], da: 'x' }; const r = V.scegli(s, 'paga'); assert(!r.err, r.err); assert(visti(s).has('tributo'), 'tributo');
+    const t = dieci(V.nuovo(20)); t.dentro = -1; const q = t.p.find(x => x.k === 'pre'); t.incontro = { tipo: 'nemico', pid: [q.id], da: 'x' }; ok(V.scegli(t, 'fuggi')); assert(visti(t).has('fuga'), 'fuga'); }
+  { const s = dieci(V.nuovo(20)); s.dentro = -1; s.tregua = 1e9; V.TU(s).oro = 9999; V.TU(s).merci = {}; aspetta(s, 2); assert(visti(s).has('fame'), 'fame'); }
+  { const s = dieci(V.nuovo(20)); s.dentro = -1; s.tregua = 1e9; s.servizio = { faz: 'mar', tipo: 'mer', fino: 999 }; ricco(s); aspetta(s, 8); assert(visti(s).has('servi_mar'), 'servi_mar alla paga'); }
+}
+// investi: il compagno fatto signore ha la sua memoria
+{
+  const s = V.nuovo(21), tu = V.TU(s); s.corona = { nome: 'Regno', stend: 0, da: 1, sede: -1, malc: 0, minacce: {} }; const l = s.l.find(x => x.tipo === 'castello'); l.faz = 'tu'; l.sig = -1; s.dentro = l.id;
+  tu.tr.push({ t: 'co_dia', n: 1, f: 0, xp: 0 }); s.compagni.co_dia = -1; ok(V.fai(s, { a: 'investi', t: 'co_dia', lid: l.id }));
+  assert(s.sig[s.sig.length - 1].mem && s.sig[s.sig.length - 1].mem.fav === 0, 'investi: memoria presente');
+}
 // memoria dei signori e confidenza
 const signore = (s, f) => s.sig.find(x => x.faz === f && !x.re);
 {
