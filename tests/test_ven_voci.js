@@ -21,16 +21,23 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
 {
   assert.strictEqual(J(R.valida(VV)), '[]', 'il capitolo delle voci è valido (ogni nodo si raggiunge, nessun vicolo cieco)');
   assert.strictEqual(J(D.VOLPE.GIORNI), '[12,40,80]');
-  // V6c blocco 1: la Volpe, Berta, Lapo, Ghino hanno tutte le loro scene; misure dei testi (nodo ≤ 280 lettere, 3–6 nodi; l'addio è breve)
-  const B1 = ['berta', 'lapo', 'ghino'];
-  for (const k of B1.flatMap(c => [c + '-lamento', c + '-addio', c + '-inc-1', c + '-inc-2', c + '-inc-3']).concat(['volpe-1', 'volpe-2', 'volpe-3'])) {
+  // V6c: la Volpe, i dieci compagni e i signori (cinque indoli × tre livelli) hanno tutte le loro scene; misure dei testi (nodo ≤ 280 lettere, 3–6 nodi; l'addio è breve)
+  const B1 = D.COMPAGNI.map(c => c.id.slice(3)), SIGS = D.TRATTI_ID.flatMap(x => [1, 2, 3].map(l => 'sig-' + x + '-' + l));
+  assert.strictEqual(SIGS.length, 15);
+  for (const k of B1.flatMap(c => [c + '-lamento', c + '-addio', c + '-inc-1', c + '-inc-2', c + '-inc-3']).concat(['volpe-1', 'volpe-2', 'volpe-3'], SIGS)) {
     const sc = VV.scene[k]; assert(sc, 'manca la scena ' + k); const n = Object.keys(sc.nodi).length;
     assert(/-addio$/.test(k) ? n <= 3 : n >= 3 && n <= 6, k + ': ' + n + ' nodi');
+    if (/^sig-/.test(k)) assert(sc.nodi.a.chi === 'signore' && sc.nodi.a.scelte.length <= 2, k + ': parla il signore, due scelte al massimo');
+    if (/^sig-/.test(k)) for (const c of sc.nodi.a.scelte) assert(c.effetti.some(e => e.t === 'oro' || e.k === 'conf'), k + ': ogni risposta tocca fiducia o monete');
     for (const nd of Object.values(sc.nodi)) { assert(nd.testo.length <= 280, k + ': nodo di ' + nd.testo.length + ' lettere'); for (const c of nd.scelte || []) assert(c.t.length <= 80, k + ': scelta lunga'); }
   }
   for (const id of Object.keys(VV.scene)) for (const nd of Object.values(VV.scene[id].nodi)) assert(nd.testo.length <= 280, id + ': nodo oltre 280 lettere');
   for (const c of B1) { const x = D.COMPAGNI.find(y => y.id === 'co_' + c); assert(x.inc && x.inc.length === 3 && x.premio, c + ': incarico e premio'); if (x.premio.ogg) assert(D.OGG[x.premio.ogg] && D.OGG[x.premio.ogg].q === 4, c + ': premio unico'); }
   const premi = D.COMPAGNI.filter(c => c.premio).map(c => J(c.premio)).filter(p => p !== '{"abil":1}'); assert.strictEqual(new Set(premi).size, premi.length, 'oggetti in premio tutti diversi');
+  assert.strictEqual(premi.length, 5, 'metà dei premi sono oggetti, metà talenti');
+  // ogni compagno ha un legame con un altro: lo si sente almeno in una battuta delle sue scene
+  for (const c of D.COMPAGNI) { const altro = D.COMPAGNI.find(y => y.id === c.lega.id).nome.split(' ').find(w => w !== 'Mastro' && w !== 'Suor') || ''; const k = c.id.slice(3);
+    const testi = Object.keys(VV.scene).filter(id => id.startsWith(k + '-')).map(id => J(VV.scene[id])).join(' '); assert(testi.includes(altro), c.nome + ' nomina ' + altro); }
   for (const id of Object.keys(VV.scene)) assert(/^[a-z0-9-]+$/.test(id), id);
   assert(!VV.dove && Object.values(VV.scene).every(sc => !sc.dove), 'le scene non hanno «dove»: le avvia il mondo');
   assert(D.COMPAGNI.find(c => c.id === 'co_berta').inc.length === 3 && D.COMPAGNI.find(c => c.id === 'co_berta').premio.abil === 1 && D.COMPAGNI.find(c => c.id === 'co_lapo').premio.abil === 1);
@@ -55,7 +62,7 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
   // ogni combinazione di bandiere che apre un ramo (patto, odio, sfida, debito, promesse), con i tre compagni del blocco 1 in compagnia
   const combo = [{}, { 'volpe-patto': 1 }, { 'volpe-odio': 1 }, { 'volpe-sfida': 1 }, { 'volpe-debito': 1 }, { 'volpe-patto': 1, 'volpe-debito': 1 }, { 'berta-promessa': 1, 'lapo-promessa': 1, 'ghino-promessa': 1 }];
   for (const fl of combo) for (const id of Object.keys(VV.scene)) {
-    const s = quieto(V.nuovo(5)); for (const c of ['co_berta', 'co_lapo', 'co_ghino']) assolda(s, c); Object.assign(s.rac.bandiere, fl); V.TU(s).oro = 500; s.volpe.tappa = 0;
+    const s = quieto(V.nuovo(5)); for (const c of D.COMPAGNI) assolda(s, c.id); Object.assign(s.rac.bandiere, fl); V.TU(s).oro = 500; s.volpe.tappa = 0;
     assert(V.accoda(s, id), 'accoda ' + id); const v = apriCoda(s); assert(v && v.scena === id, 'si apre ' + id);
     visita(s, 0);
   }
@@ -167,13 +174,16 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
 // i signori: la confidenza che sale di livello apre la scena del loro tratto (qui una scena di prova aggiunta al capitolo)
 {
   const s = quieto(V.nuovo(10)); const sg = s.sig.find(x => x.faz === 'val'), p = V.part(s, sg.pid);
-  VV.scene['sig-' + sg.tratto + '-1'] = { inizio: 'a', nodi: { a: { chi: 'signore', testo: '«{signore} si fida di te, {capitano}.»', scelte: [{ t: 'Grazie.', effetti: [{ t: 'ven', k: 'conf', n: 1 }], fine: true }] } } };
+  const vera = VV.scene['sig-' + sg.tratto + '-1']; VV.scene['sig-' + sg.tratto + '-1'] = { inizio: 'a', nodi: { a: { chi: 'signore', testo: '«{signore} si fida di te, {capitano}.»', scelte: [{ t: 'Grazie.', effetti: [{ t: 'ven', k: 'conf', n: 1 }], fine: true }] } } };
   sg.mem.lib = 1; s.incontro = { tipo: 'parla', pid: [sg.pid], all: [] }; ok(V.scegli(s, 'notizie')); s.incontro = null;
   assert.strictEqual(s.voci[0].id, 'sig-' + sg.tratto + '-1'); assert.strictEqual(s.voci[0].sig, sg.id); assert.strictEqual(sg.mem.vl, 1);
   const v = apriCoda(s); assert(v.testo.includes(sg.nome) && v.testo.includes(s.cap.nome), 'segnaposto sostituiti'); assert.strictEqual(v.chi.nome, sg.nome);
   const f0 = sg.mem.fav; rispondi(s, 0); assert.strictEqual(sg.mem.fav, f0 + 1, 'conf aggiunge alla memoria del signore');
   s.incontro = { tipo: 'parla', pid: [sg.pid], all: [] }; s.incontro.detto = 1; V.scegli(s, 'lettera'); assert.strictEqual(s.voci.filter(x => x.id === 'sig-' + sg.tratto + '-1').length, 0, 'una volta per livello');
-  delete VV.scene['sig-' + sg.tratto + '-1'];
+  VV.scene['sig-' + sg.tratto + '-1'] = vera;
+  // la scena vera: parla il signore col suo nome, e la prima risposta alza la fiducia
+  const u = quieto(V.nuovo(10)); const sg2 = u.sig.find(x => x.faz === 'val'); u.vsig = -1; assert(V.accoda(u, 'sig-' + sg2.tratto + '-1', sg2.id)); const w = apriCoda(u);
+  assert.strictEqual(w.chi.nome, sg2.nome); assert(!/\{(signore|capitano)\}/.test(w.testo)); const f1 = sg2.mem.fav; chiudi(u, 0); assert(sg2.mem.fav > f1, 'la prima risposta alza la fiducia');
 }
 
 // ripetibilità e salvataggi

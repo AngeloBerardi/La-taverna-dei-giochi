@@ -62,7 +62,7 @@ module.exports = function (VEN, VDAT) {
       if (VEN.torneoOggi(s, l) && !s.torneo && r() < .7 && !fai({ a: 'torneo' }).err) { while (s.torneo) { if (r() < .3 || fai({ a: 'lizza' }).err) { fai({ a: 'ritira' }); break; } VEN.auto(s); } }
       return fai({ a: 'esci' });
     }
-    fai({ a: 'consegna' }); fai({ a: 'riscatta' });
+    fai({ a: 'consegna' }); if (!(O && O.inc && VDAT.COMPAGNI.some(c => c.odia.includes('riscatta') && s.compagni[c.id] === -1))) fai({ a: 'riscatta' });
     while (s.cap.punti > 0) { const ab = s.cap.ab, k = ab.comando < 2 ? 'comando' : ab.prodezza < 2 ? 'prodezza' : ab.comando < 3 ? 'comando' : ab.addestra < 2 ? 'addestra' : ab.medicina < 2 ? 'medicina' : ab.prodezza < 4 ? 'prodezza' : 'comando'; if (fai({ a: 'abilita', k }).err) break; }
     for (const e of tu.tr.slice()) { const T = VDAT.TR[e.t]; if (!T.su.length) continue; const su = T.su[(e.n + s.t) % T.su.length]; let g = 0; while (g++ < 30 && !fai({ a: 'promuovi', t: e.t, su, n: 1 }).err); }
     if (VEN.MERCATO[l.tipo]) {
