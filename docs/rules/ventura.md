@@ -66,3 +66,8 @@ Tre modi di entrare in una città o in un castello nemico:
 - **Porta**: «Costruisci l'ariete» (150 monete, pronto 6 ore dopo). In battaglia fino a 6 fanti spingono il portone (60 colpi in tutto); senza ariete la porta non cede mai.
 - Chi difende sta sul camminamento (più in alto: tira più lontano e colpisce meglio), presidia le scale dove si preme di più e non va in rotta. Attraverso il muro non si combatte corpo a corpo.
 
+## Sul televisore (V7)
+- La TV si unisce alla stanza come per gli altri giochi e **guarda soltanto**: mappa larga con la compagnia al centro, in alto nome della compagnia, giorno e ora, monete, uomini, viveri e codice della stanza; a destra la cronaca (ultime sei righe); in basso i capitani con il livello. In battaglia mostra il campo intero con la barra delle forze e il tempo.
+- I telefoni non trovano la TV da soli: un capitano la accende dal menu con «Mappa sulla TV». Da quel momento sui telefoni la mappa si stringe in alto e sotto compaiono tasti grandi (gli stessi della barra, più «Luogo»); in battaglia gruppi e ordini sulla stessa griglia. Si spegne dallo stesso interruttore; non entra nel salvataggio.
+- Musica e suoni sono della Ventura: quattro temi (viaggio, notte e accampamento, città, battaglia) e due motivi (vittoria, sconfitta). Con la TV accesa musica e suoni del mondo e della battaglia escono solo dalla TV; ogni telefono suona solo ciò che fa lui (ordini, acquisti, reclute…). Senza TV ogni telefono suona tutto.
+
