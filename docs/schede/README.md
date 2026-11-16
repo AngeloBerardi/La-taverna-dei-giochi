@@ -14,6 +14,11 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V6b-dialoghi` | Motore dei dialoghi (riuso del racconto), incarichi personali in tre passi, la rivale a tappe | fatta (PR da unire) | Sonnet |
 | `V6c-testi` | Testi di compagni, signori e rivale, in tre blocchi | pronta (dopo V6b) | forte |
 | `V7-tv-musica` | Vista TV della stanza, telefoni come comandi, musica e suoni propri | pronta | Sonnet |
+| `T1-render-stabile` | Niente sfarfallio nei menù, un solo caricamento all'ingresso | pronta (per prima) | Sonnet + revisione forte |
+| `T2-stanza-avventura-pulita` | Voto di un altro gioco durante l'Avventura senza viste sovrapposte; zoom che non si blocca | pronta | Sonnet |
+| `T3-personaggio-ingresso` | Al primo ingresso nome e personaggio 3D, lo stesso al crocevia e in Taverna | pronta (dopo T1) | Sonnet (separazione di `figura`: forte) |
+| `T4-menu-avventura` | Nuovo menù dell'Avventura: Riprendi, due insegne, schede | pronta (dopo T1 e T5) | Sonnet + `artist` |
+| `T5-dorso-e-nome` | Dorso classico in bottega; nome nuovo della campagna a capitoli | pronta (una domanda in cima) | Sonnet |
 
 «Pronta» = eseguibile così. «Traccia» = le decisioni di gioco ci sono, ma firme e prove vanno fissate dall'`architetto` leggendo il codice
 (una sessione breve col modello forte: «completa la scheda V3»), poi si esegue con Sonnet. Ordine consigliato: V5, V5b, V6a, V6b, V6c, V7. Dopo ogni scheda: le prove lente (`npm test -- ven_`), che `npm run verifica` non lancia.
