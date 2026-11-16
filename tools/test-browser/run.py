@@ -3570,6 +3570,23 @@ async def sc_ventura_tattica(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_bottega_dorso(b, srv):
+    """T5: l'anteprima del dorso classico in bottega non cambia quando se ne indossa un altro."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("(()=>{const k=Object.keys(window.__db).find(x=>x.startsWith('players/'));window.__db[k].coins=100;localStorage.setItem('__stub',JSON.stringify(window.__db))})()")
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    await pg.evaluate("ui.cfg=true;render()"); await pg.click('[data-a=shop]'); await pg.wait_for_timeout(200)
+    leggi = "(()=>{const f=s=>{const e=document.querySelector(s);const c=getComputedStyle(e);return c.backgroundImage+'|'+c.borderTopColor};return[f('.shopi .card.d-classico'),f('.shopi .card.d-notte')]})()"
+    prima = await pg.evaluate(leggi)
+    check(prima[0] != prima[1], 'in bottega classico e notte hanno aspetto diverso')
+    check(await pg.evaluate("document.querySelectorAll('.shopi .card.back').length === document.querySelectorAll('.shopi .card.back[class*=\"d-\"]').length"), 'ogni anteprima ha la sua classe d-…')
+    await pg.click('[data-a=shopbuy][data-v=dorso-notte]'); await pg.wait_for_timeout(500)
+    dopo = await pg.evaluate(leggi)
+    check(await pg.evaluate("document.documentElement.dataset.dorso") == 'notte', 'il dorso notte è indossato')
+    check(dopo[0] == prima[0], f"l'anteprima del classico non cambia con notte indossato: {prima[0][:60]} / {dopo[0][:60]}")
+    check(dopo[1] == prima[1], "l'anteprima di notte resta uguale")
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

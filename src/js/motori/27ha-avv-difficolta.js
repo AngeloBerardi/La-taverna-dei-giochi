@@ -12,7 +12,7 @@ const ADIF=(()=>{
  // Il budget di PE delle tabelle (27i `D.m`) è tarato sul singolo scontro; su un capitolo di ~60 battaglie 3 vite non bastano a chi perde 1 scontro su 8, perciò il «Normale» scala i gruppi a .75.
  const D={
   racconto:{id:'racconto',nome:'Racconto',breve:'La storia prima di tutto',
-   desc:'Nemici molto più deboli, 6 vite, perdizione lenta e un quarto di esperienza in più. Per chi vuole godersi il cantare.',
+   desc:'Nemici molto più deboli, 6 vite, perdizione lenta e un quarto di esperienza in più. Per chi vuole godersi la cronaca.',
    gruppi:.6,vite:6,perdizione:2,xp:1.25,pfRisveglio:.75,oroPersa:.25,perdizioneSconfitta:5},
   normale:{id:'normale',nome:'Normale',breve:'La sfida pensata per il capitolo',
    desc:'4 vite, gruppi di nemici a misura di compagnia, perdizione a 3 per alba. Si vince con prudenza, cure e qualche riposo.',

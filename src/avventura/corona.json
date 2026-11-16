@@ -1,7 +1,7 @@
 {
   "id": "corona",
   "titolo": "La Corona Spezzata",
-  "sottotitolo": "Capitolo 1 dei Cantari di Ventura",
+  "sottotitolo": "Capitolo 1 delle Cronache del Crocevia",
   "v": 1,
   "note": "Capitolo 1. Formato e convenzioni in docs/AVVENTURA-A7.md, scaletta e piano in docs/AVVENTURA-A8.md. Questa versione contiene gli Atti I (Marca dei Corvi), II (Brughiere Cenerine) e III (Boschi Velati, con i tre finali).",
   "mondo": {
@@ -131,7 +131,7 @@
     { "se": { "bandiera": "mirta-lascia" }, "testo": "Mirta ha lasciato la compagnia." }
   ],
   "prossimo": [
-    { "se": { "bandiera": "finale-fatto" }, "testo": "Il primo cantare è compiuto. Il Locandiere vi versa da bere e aspetta il prossimo." },
+    { "se": { "bandiera": "finale-fatto" }, "testo": "La prima cronaca è compiuta. Il Locandiere vi versa da bere e aspetta il prossimo." },
     { "se": { "bandiera": "maestro-sconfitto" }, "testo": "Il Maestro è caduto: il re, i tre pezzi e la scelta sono sul tavolo della torre." },
     { "se": { "bandiera": "torre-soglia-ok" }, "testo": "La Torre dei Corvi si sale piano per piano, e la voce del Maestro aspetta in cima." },
     { "se": { "bandiera": "altare-notte-fatta" }, "testo": "All'alba la Torre dei Corvi è a poche ore di marcia, e i corvi vi guardano." },

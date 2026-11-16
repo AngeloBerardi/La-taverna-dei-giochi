@@ -126,7 +126,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
-| `css/33-dorsi.css` | 2 |  |
+| `css/33-dorsi.css` | 3 |  |
 | `css/34-account.css` | 2 |  |
 | `css/35-locandiere.css` | 1 |  |
 | `css/36-distanza.css` | 1 |  |

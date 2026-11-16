@@ -21,7 +21,7 @@ const LOC=(()=>{
   const o=(hash('g'+c.giorno)%L.length);const s=[0,1,2].map(i=>L[(o+i)%L.length]).filter((g,i,a)=>a.indexOf(g)===i);
   return`${c.n>1?'In '+c.n+' ':'Da solo '}${filtro==='coop'?'in squadra ':filtro==='gara'?'in sfida ':''}io proverei ${elenco(s.map(g=>g.name))}. ${s[0].name}: ${s[0].desc}`}
  const ARG=[
-  ['cantare',/\b(cantare|cantari|puntata|riassunt|ultima volta|sessione precedente|dove eravamo|a che punto|cosa e successo|che e successo)/],
+  ['cantare',/\b(cantare|cantari|cronaca|cronache|puntata|riassunt|ultima volta|sessione precedente|dove eravamo|a che punto|cosa e successo|che e successo)/],
   ['consigli',/\b(consigli|consiglia|suggerisc|suggerimento|che gioco|quale gioco|a cosa gioc|cosa giochiamo|cosa gioco|propon|un gioco|qualcosa in|in squadra|da solo|sfidar)/],
   ['monete',/\b(monete|moneta|soldi|guadagn|bottega|dorso|dorsi|negozio|compr)/],
   ['classifica',/\b(classifica|elo|punteggio|ranking|graduatoria|punti|migliori)/],
@@ -51,12 +51,12 @@ const LOC=(()=>{
   return scegli(['Non ho capito bene, ma qui si gioca: chiedimi un gioco da fare.','Questa non la so. Posso consigliarti un gioco o spiegarti le regole di uno.','Il fumo mi ha dato alla testa… prova a chiedermi di un gioco, delle monete o della classifica.'],seed)}
  // il cantare dell'avventura: `c.cantare` = { titolo, capitolo, sessioni, apertura:[righe dalle bandiere], chiusura } (lo prepara il racconto, ARAC.cantare)
  const FRASE=r=>String(r||'').trim().replace(/\s+/g,' ');
- function apertura(c){const k=c&&c.cantare;if(!k)return'Nessuna storia in corso: apri la pagina Avventura e comincia un cantare.';
+ function apertura(c){const k=c&&c.cantare;if(!k)return'Nessuna storia in corso: apri la pagina Avventura e comincia una cronaca.';
   if(!(k.sessioni>0)&&!k.apertura.length)return`${k.titolo}${k.capitolo?': «'+k.capitolo+'»':''}. La storia comincia adesso: sedetevi e ascoltate.`;
   const fatti=k.apertura.map(FRASE).filter(Boolean);
   return`${k.titolo}${k.capitolo?', «'+k.capitolo+'»':''}. Nella sessione precedente… ${fatti.length?fatti.join(' '):'non è successo nulla che meriti una canzone.'}${k.chiusura?' '+FRASE(k.chiusura):''}`}
  function chiusura(c){const k=c&&c.cantare;if(!k)return'Alla prossima, e che la strada vi sia lieve.';
-  return`Per oggi basta così. ${k.chiusura?FRASE(k.chiusura)+' ':''}Il cantare è salvato: ci vediamo alla prossima sessione.`}
+  return`Per oggi basta così. ${k.chiusura?FRASE(k.chiusura)+' ':''}La cronaca è salvata: ci vediamo alla prossima sessione.`}
  // chip di domande pronte per la vista
  const rapide=c=>c&&c.cantare?['A che punto siamo?','Che gioco ci consigli?',c.n>1?'Qualcosa in squadra':'Un gioco da solo','Come guadagno monete?']:['Che gioco ci consigli?',c.n>1?'Qualcosa in squadra':'Un gioco da solo','Come guadagno monete?','Come funziona la classifica?'];
  return{norm,saluto,consiglia,risposta,rapide,apertura,chiusura}})();
