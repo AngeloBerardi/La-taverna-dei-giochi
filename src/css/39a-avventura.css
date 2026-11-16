@@ -77,3 +77,6 @@
 @keyframes tr-lancia{to{filter:drop-shadow(0 0 5px #f3d37a) brightness(1.25)}}
 @keyframes tr-colpo{40%{transform:scale(1.14)}}
 @media (prefers-reduced-motion:reduce){.bt-tok.t-sel .bt-piede,.tr-zone polygon,.tr-px .tr-zone,.bt-tok.tr-lancia .bt-corpo,.bt-tok.tr-colpo .bt-corpo{animation:none}.tr-pf i{transition:none}}
+
+/* segnaposto con altezza fissa mentre eroi e salvataggi arrivano (T1): la pagina non salta */
+.avv-vuoto{border:2px dashed rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.03)}

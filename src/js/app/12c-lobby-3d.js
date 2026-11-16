@@ -1817,6 +1817,9 @@ stage.addEventListener('pointerup',function(e){
 stage.addEventListener('pointercancel',function(){ptr=null});
 /* ---- ciclo ---- */
 var FMIN=1000/(+A.ST('rg-3dfps')||40)-4,v3=new T.Vector3(),raf=0,fpsN=0,fpsT=0,fpsChecked=A.ST('rg-3dforce')==='1';
+var primoFrame=false,primoRes=null;
+/* risolve dopo il primo fotogramma disegnato (la Soglia dell'app aspetta questo prima di mostrare la scena) */
+E.pronta=function(){return primoFrame?Promise.resolve(true):new Promise(function(r){primoRes=r})};
 function frame(now){
   raf=0;if(!E.on||document.hidden)return;raf=requestAnimationFrame(frame);
   if(now-(frame.l||0)<FMIN)return;
@@ -1837,6 +1840,7 @@ function frame(now){
   var tg=S.tags;for(var i=0;i<tg.length;i++){var o=tg[i];if(o.follow){v3.set(o.follow.position.x,o.follow.position.y+o.pos.y,o.follow.position.z)}else v3.copy(o.pos);v3.project(cam);
     o.el.style.transform='translate('+Math.round((v3.x*.5+.5)*w)+'px,'+Math.round((-v3.y*.5+.5)*h)+'px) translate(-50%,-100%)'}
   renderer.render(scene,cam);
+  if(!primoFrame){primoFrame=true;if(primoRes){var pr=primoRes;primoRes=null;pr(true)}}
 }
 /* qualità adattiva: se il telefono non regge (dopo un rientro dal background, scaldato…), prima si abbassa la risoluzione e poi si tolgono le ombre.
    Solo in discesa e solo per questa sessione; i tempi di background (salti tra un frame e l'altro) non contano. */
@@ -1871,6 +1875,6 @@ return E;
  return{
   ok:()=>state==='ready'||(state==='idle'&&!!window.THREE&&hasGL()),
   show:screen=>{if(!boot()){if(ui.lobby==='3d'){ui.lobby='iso';render()}return}wrap.style.display='';E.show(screen)},
-  hide,dbg:()=>E,sync:()=>{if(E&&wrap&&wrap.style.display!=='none')E.sync()},
+  hide,dbg:()=>E,pronta:()=>E?E.pronta():Promise.resolve(false),sync:()=>{if(E&&wrap&&wrap.style.display!=='none')E.sync()},
  };
 })();

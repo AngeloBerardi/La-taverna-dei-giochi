@@ -10,5 +10,6 @@ const L3D=(()=>{
   hide:()=>{if(vero)vero.hide()},
   sync:()=>{if(vero)vero.sync()},
   dbg:()=>vero?vero.dbg():null,
+  pronta:()=>vero&&vero.pronta?vero.pronta():Promise.resolve(false),
   avvia};
 })();

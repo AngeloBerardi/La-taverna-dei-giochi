@@ -16,13 +16,13 @@ const Avv={
  cartaCont(s){const e=s.eroi.map(h=>`<span class="av-rit${h.hp<=0?' ko':''}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,40)}</span>`).join('');
   return`<button class="av-card av-cont" data-a="avvcontinua"><span class="av-ritt">${e}</span><span class="av-tx"><b>${esc(s.missione.titolo)}</b><small>Giorno ${s.giorno} · perdizione ${s.perdizione}/100 · ${CAMP.vivi(s).length} eroi in piedi</small></span><span class="av-go">Continua</span></button>`},
  html(){const lista=Avv.eroiElenco(),s=Avv.inCorso(),on=Avv.online(),pochi=!lista.length,pend=lista.filter(h=>APOT.daScegliere(h).length);
-  const eroi=on?(lista.length?`<div class="av-ritt big">${lista.map(h=>`<span class="av-rit" title="${esc(h.nome)}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,52)}</span>`).join('')}</div>
+  const eroi=on&&Avv.caricando?'<div class="avv-vuoto" style="height:84px" aria-hidden="true"></div>':on?(lista.length?`<div class="av-ritt big">${lista.map(h=>`<span class="av-rit" title="${esc(h.nome)}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,52)}</span>`).join('')}</div>
 <small class="muted">${lista.map(h=>esc(h.nome)+' · '+esc(EROI.CLASSI[h.classe].nome)+' '+h.liv).join(' — ')}</small>${pend.length?`<small class="muted"><b>Scelte di livello in attesa:</b> ${pend.map(h=>esc(h.nome)).join(', ')}. Falle da «Gestisci gli eroi».</small>`:''}`:'<p class="muted" style="margin:0">Nessun eroe: creane uno per partire.</p>'):
    '<p class="muted" style="margin:0">Per creare e salvare gli eroi serve il profilo online.</p>';
-  return`<div class="modal"><div class="box col av"><h2>Cronache del Crocevia ${infoH('Una campagna a capitoli: ogni sessione è una «cronaca». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
+  return`<div class="modal" data-sc><div class="box col av"><h2>Cronache del Crocevia ${infoH('Una campagna a capitoli: ogni sessione è una «cronaca». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
 <p class="muted" style="margin:0">Due modi di andare alla ventura: il mondo libero del capitano di compagnia e la campagna a capitoli.</p>
 ${Ven.sezioneH()}
-${Ses.sezioneH()}
+${Avv.caricando?(Avv.online()&&Dia.INDICE[Ses.CAP]?'<div class="avv-vuoto" style="height:132px" aria-hidden="true"></div>':''):Ses.sezioneH()}
 ${AvvStanza.sezioneH()}
 <div class="sh2">Campagna libera ${infoH('Solo la mappa del mondo, senza la storia: i premi restano nella campagna e non tornano agli eroi.')}</div>
 ${s?Avv.cartaCont(s):''}
@@ -39,7 +39,11 @@ ${Scena3D.impostaH()}
 ${AvvTut.pagH()}
 <p class="acc-msg" role="status">${esc(Avv.msg)}</p></div></div>`},
  async act(a){
-  if(a==='avv'){Plancia.chiudi();ui.avv=true;Avv.msg='';Ses.nuova=Ses.conf=null;render();if(Avv.online()&&!Eroi.lista){await Eroi.carica()}if(Avv.online()){await Ses.leggiElenco();if(ui.avv)render()}return}
+  if(a==='avv'){Plancia.chiudi();ui.avv=true;Avv.msg='';Ses.nuova=Ses.conf=null;
+   // scheletro subito (altezze fisse), poi un solo ridisegno quando eroi e salvataggi sono arrivati insieme
+   Avv.caricando=Avv.online()&&(!Eroi.lista||!Ses.elenco);render();
+   if(Avv.online()){try{await Promise.all([Eroi.lista?null:Eroi.carica(),Ses.leggiElenco()])}catch(e){ERR.n(e,'avventura')}}
+   Avv.caricando=false;if(ui.avv)render();return}
   if(a==='avvx'){ui.avv=false;return render()}
   if(a==='avvcontinua'){if(!Avv.inCorso())return render();ui.avv=false;ui.camp=true;return render()}
   if(a==='avvnuova'){if(Avv.busy)return;Avv.busy=true;Avv.msg='';render();
