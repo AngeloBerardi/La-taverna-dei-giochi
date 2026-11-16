@@ -80,3 +80,20 @@
 
 /* segnaposto con altezza fissa mentre eroi e salvataggi arrivano (T1): la pagina non salta */
 .avv-vuoto{border:2px dashed rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.03)}
+
+/* Menù Avventura (T4): fascia Riprendi, due insegne, schede, foglio del gioco. Prefisso av2-. Un solo pulsante dorato per schermata. */
+.av2-ripr{position:relative;display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:12px 96px 12px 14px;border:3px solid var(--gold2);border-radius:8px;background:linear-gradient(180deg,#4a2f18,#2c1a0d);color:#f4e6c4;font:inherit;box-shadow:inset 0 0 0 2px rgba(0,0,0,.4),0 4px 0 rgba(0,0,0,.45)}
+.av2-ripr b{font-size:18px}.av2-ripr small{opacity:.8}.av2-k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2)}
+.av2-go{position:absolute;right:12px;top:50%;transform:translateY(-50%);padding:10px 14px;border-radius:6px;background:linear-gradient(180deg,#f2d27a,#b8943a);color:#1a110a;font-weight:800}
+.av2-insegne{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.av2-ins{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:120px;padding:12px;border:3px solid var(--gold2);border-radius:8px;color:#f4e6c4;font:inherit;text-align:left;box-shadow:inset 0 0 0 2px rgba(0,0,0,.4),0 4px 0 rgba(0,0,0,.45)}
+.av2-campagna{background:linear-gradient(160deg,#5a3a1a,#241409)}.av2-ventura{background:linear-gradient(160deg,#2b3a2a,#101a10)}
+.av2-ins b{font-size:16px;line-height:1.15}.av2-ins small{opacity:.8;line-height:1.25}.av2-ill{color:var(--gold2)}
+@media (max-width:420px){.av2-insegne{grid-template-columns:1fr}.av2-ins{min-height:0}}
+.av2-tabs{display:flex;gap:6px}.av2-tabs button{flex:1;min-height:44px;border:2px solid var(--gold2);border-radius:6px;background:#2a1a10;color:#f4e6c4;font:inherit;font-weight:700}.av2-tabs button.on{background:var(--gold2);color:#1a110a}
+.av2-pane{display:flex;flex-direction:column;gap:8px;min-height:140px}
+.av2-prove{margin-top:6px}.av2-prove summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.av2-foglio{position:fixed;inset:0;z-index:110;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px));box-sizing:border-box;display:flex;align-items:flex-end;background:rgba(0,0,0,.6)}
+.av2-fbox{width:100%;max-width:560px;margin:0 auto;max-height:80vh;overflow:auto;box-sizing:border-box;padding:14px 14px 18px;display:flex;flex-direction:column;gap:10px;border:3px solid var(--gold2);border-bottom:0;border-radius:14px 14px 0 0;background:var(--bg,#15100d)}
+.av2-fh{display:flex;align-items:center;justify-content:space-between}.av2-fh h3{margin:0;font-size:20px}
+.av2-modo{display:flex;gap:6px}.av2-modo button{flex:1;min-height:44px;border:2px solid var(--gold2);border-radius:6px;background:#2a1a10;color:#f4e6c4;font:inherit;font-weight:700}.av2-modo button.on{background:var(--gold2);color:#1a110a}.av2-modo button[disabled]{opacity:.45}

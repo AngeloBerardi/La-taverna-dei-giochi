@@ -40,15 +40,11 @@ const Ven=(()=>{
  function avviso(tx,tipo){V.avvisi.push({tx,tipo:tipo||'',t:performance.now()});if(V.avvisi.length>3)V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}
  const avvisiH=()=>V.avvisi.map(a=>`<div class="vn-av ${a.tipo}">${esc(a.tx)}</div>`).join('');
  // ---------- ingresso dalla pagina Avventura ----------
- function sezioneH(){const s=leggi(),R=D.REGNI;
-  const coop=VenStanza.leggiSalv('coop'),
-  daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
-  const cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · fama ${s.fama}</small></span><span class="av-go">Continua</span></button>`:'';
-  return`<div class="sh2">Compagnia di ventura ${infoH('Un mondo libero: tre regni in guerra, villaggi dove reclutare, città dove commerciare, castelli da prendere. Nessuna trama: la strada la scegli tu.')}</div>
-${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
+ // «Nuova partita» della Compagnia di ventura (foglio del menù Avventura): scelta del regno e pulsante
+ function nuovaH(){const s=leggi(),R=D.REGNI;
+  return`<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
 <div class="vn-regni vn-r5">${R.map(f=>`<button class="vn-regno${V.regno===f?' on':''}" style="--fz:${D.FAZ[f].col}" data-a="ven" data-v="regno:${f}"><b>${esc(D.FAZ[f].breve)}</b><small>${esc(D.FAZ[f].motto)}</small></button>`).join('')}</div>
-<button class="b ${s?'sm':'gold'} ecta" data-a="ven" data-v="nuova">${ic('spada',18)} ${s?'Nuova compagnia':'Leva la compagnia'}</button>
-<small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «Compagnia di ventura» tra i giochi.</small></div>`}
+<button class="b ${s?'sm':'gold'} ecta" data-a="ven" data-v="nuova">${ic('spada',18)} ${s?'Nuova compagnia':'Leva la compagnia'}</button></div>`}
  function entra(s){V.s=s;V.modo='mondo';V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;V.sub='home';V.carta=null;V.msg='';V.avvisi=[];V.vitVista=!!s.vinta;V.nomeRegno='';V.stend=0;Plancia.chiudi();ui.ven=true;render()}
  function esci(){salva();ui.ven=false;ui.avv=true;V.pan=null;ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on');render()}
  // ---------- ciclo ----------
@@ -368,4 +364,4 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='cgrido'){const r=inS()?VenStanza.manda({t:'b-cap',o:{grido:true}}):VCAM.capitano(k.s,{grido:true});if(r.err)avviso(r.err);return}
   if(c==='fine'){if(inS()){const r=VenStanza.manda({t:'b-fine'});if(r.err)avviso(r.err);return render()}return fineBattaglia()}}
  const traccia=()=>V.modo==='campo'?'avv-battaglia':V.pan==='luogo'?'avv-citta':V.s&&VEN.notte(V.s)?'avv-notte':'avv-giorno';
- return{V,sezioneH,html,dopo,act,avviso,traccia,entra,salva,ferma}})();
+ return{V,nuovaH,html,dopo,act,avviso,traccia,entra,salva,ferma}})();
