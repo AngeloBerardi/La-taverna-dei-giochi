@@ -63,5 +63,6 @@ Prima della ritaratura il livello 8 ben armato vinceva 30 su 30 (circa 2.240 mon
 - C3: **mondo persistente a distanza** su Firestore (partite asincrone). C4: banda contro banda.
 
 ## Da fare
+Prossima major release («Il Condottiero»: interfaccia, battaglie, eserciti): `docs/VENTURA-2.md`.
 Le prossime funzioni sono schede di lavoro in `docs/schede/` (V1–V7: salvataggio della co-op, tornei, diplomazia, regno, tattica, personaggi, TV e musica);
 come eseguirle e con quale modello: `docs/LAVORO.md`. Restano fuori dalle schede: salvataggio sull'account, ripiego senza WebGL, prova su telefoni veri.
