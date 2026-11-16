@@ -51,7 +51,7 @@ html.vn-on #plancia,html.vn-on #dock{display:none!important}
 .vn-tag{font:700 10px var(--f-b);font-style:normal;padding:1px 5px;background:#3f5d2a;color:#dff0c4;text-transform:uppercase}
 .vn-bene{color:#b6e07e}.vn-male{color:#ff9a8a}
 .vn-qta{display:flex;align-items:center;gap:6px}.vn-qta small{flex:1;color:#cdbb96}
-.vn-ch{min-height:44px;min-width:44px;padding:4px 11px;font:800 13px var(--f-d);color:#f3e6c8;background:#3c2614;border:1px solid #b88a3c;cursor:pointer}.vn-ch.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#3a2206}.vn-ch b{font:800 12px var(--f-b)}
+.vn-ch{min-height:44px;min-width:44px;padding:4px 11px;font:800 13px var(--f-d);color:#f3e6c8;background:#3c2614;border:1px solid #b88a3c;cursor:pointer}.vn-ch.on{background:linear-gradient(180deg,#f0c166,#cf8f2c);color:#3a2206}.vn-ch b{font:800 12px var(--f-b)}.vn-fm{display:block;margin-top:1px;font:700 10px var(--f-b);letter-spacing:.02em;opacity:.8}.vn-ch.on .vn-fm{opacity:1}
 .vn-forze{height:12px;flex:1;background:#8a2a22;border:1px solid #000;box-shadow:0 0 0 1px #b88a3c}.vn-forze i{display:block;height:100%;background:linear-gradient(180deg,#f0c166,#cf8f2c);transition:width .4s}
 .vn-fl{display:flex;justify-content:space-between;color:#cdbb96}
 .vn-es{display:grid;place-items:center;padding:6px;color:#f0c166}.vn-es.s{color:#c9d3dc}

@@ -68,7 +68,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  // numeri che cambiano senza ridisegnare tutta la pagina
  function hudVivo(){const s=V.s,q=(id,tx)=>{const el=document.getElementById(id);if(el&&el.textContent!==tx)el.textContent=tx};
   if(V.modo==='campo'){const b=VenCampo.K.s;if(!b)return;const na=VCAM.vivi(b,'a').length+VCAM.riserva(b,'a'),nb=VCAM.vivi(b,'b').length+VCAM.riserva(b,'b'),g=VCAM.gruppi(b,'a'),c=VCAM.capU(b,posto());
-   q('vn-na',String(na));q('vn-nb',String(nb));const ba=document.getElementById('vn-ba');if(ba)ba.style.width=(na/Math.max(1,na+nb)*100).toFixed(1)+'%';for(const k of['f','t','c'])q('vn-g'+k,String(g[k]));
+   q('vn-na',String(na));q('vn-nb',String(nb));const ba=document.getElementById('vn-ba');if(ba)ba.style.width=(na/Math.max(1,na+nb)*100).toFixed(1)+'%';const fm=VCAM.forme(b,'a');for(const k of['f','t','c']){q('vn-g'+k,String(g[k]));q('vn-fm'+k,fm[k])}
    const pf=document.getElementById('vn-pf');if(pf&&c)pf.style.width=Math.max(0,c.pf/c.pfm*100).toFixed(0)+'%';const gr=document.getElementById('vn-grido');if(gr){const r=Math.max(0,((b.gridi[posto()]||0)-b.t)/VCAM.C.GRIDO);gr.style.setProperty('--r',r.toFixed(2));gr.classList.toggle('no',r>0)}return}
   const t=tu(),h=VEN.ora(s),m=s.t%60;q('vn-ora','Giorno '+VEN.giorno(s)+' · '+String(h).padStart(2,'0')+':'+String(m-m%10).padStart(2,'0'));q('vn-oro',n0(t.oro));
   q('vn-uom',VEN.uomini(t)+'/'+VEN.limite(s));q('vn-cibo',String(Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))));q('vn-mor',String(t.mor));q('vn-fama',String(s.fama));q('vn-meteo',s.meteo==='pioggia'?'pioggia':s.meteo==='nebbia'?'nebbia':'');
@@ -279,7 +279,7 @@ ${riga('<b>Regole</b><small>Come si gioca, in breve.</small>',bt('Leggi','regole
   return`<div class="vn-alto vn-ca"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div>
 <div class="vn-capo"><span>${ic('cuore',14)}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel">×${k.vel}</button><button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button></div></div>
 ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo==='arena'?'Tocca lo steccato per muovere il capitano, l\'avversario per attaccarlo. Qui conta solo la tua arma.':'Tocca il campo per muovere il capitano, un nemico per attaccarlo. Scegli un gruppo e dagli un ordine.'}</p>${bt(ic('spada',18)+' Via','cpausa',{cls:'gold'})}</div>`:''}
-<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}"><div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b>`:''}</button>`).join('')}</div>
+<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}"><div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b><small class="vn-fm" id="vn-fm${g}">${VCAM.forme(b,'a')[g]}</small>`:''}</button>`).join('')}</div>
 <div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>${fine}`}
  function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;
   const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
@@ -331,7 +331,12 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   const k=VenCampo.K;
   if(c==='cpausa'){if(inS()){const r=VenStanza.pausa();if(r&&r.err)avviso(r.err)}else k.pausa=!k.pausa;return render()}
   if(c==='cvel'){if(inS())avviso('In compagnia si combatte a passo normale');else k.vel=k.vel===1?2:1;return render()}
-  if(c==='cgr'){k.gruppo=p[1];return render()}
+  if(c==='cgr'){const g=p[1];
+   if(g!=='tutti'&&k.gruppo===g){// un tocco sul gruppo già scelto gira la formazione: serrata, cuneo, larga (i tiratori saltano il cuneo)
+    const r=inS()?VenStanza.manda({t:'b-ord',o:{g,t:'forma'}}):VCAM.ordina(k.s,{g,t:'forma'});
+    if(r.err)avviso(r.err);else avviso(CLS[g]+': '+({serrata:'serrate le file',larga:'allargatevi',cuneo:'a cuneo'})[VCAM.forme(inS()&&r.s&&r.s.b?r.s.b.c:k.s,'a')[g]]);
+    return render()}
+   k.gruppo=g;return render()}
   if(c==='cord'){const r=inS()?VenStanza.manda({t:'b-ord',o:{g:k.gruppo,t:p[1]}}):VCAM.ordina(k.s,{g:k.gruppo,t:p[1]});if(r.err)avviso(r.err);else avviso((k.gruppo==='tutti'?'Tutti':CLS[k.gruppo])+': '+({carica:'alla carica!',tieni:'tenete la posizione',segui:'con me!',avanza:'avanti dieci passi',arretra:'indietro dieci passi'})[p[1]]);return}
   if(c==='cgrido'){const r=inS()?VenStanza.manda({t:'b-cap',o:{grido:true}}):VCAM.capitano(k.s,{grido:true});if(r.err)avviso(r.err);return}
   if(c==='fine'){if(inS()){const r=VenStanza.manda({t:'b-fine'});if(r.err)avviso(r.err);return render()}return fineBattaglia()}}
