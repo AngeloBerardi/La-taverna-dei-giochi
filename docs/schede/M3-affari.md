@@ -1,5 +1,7 @@
 # M3 — Affari della compagnia: botteghe e carovane proprie (traccia)
 
+**Binario** C (mondo); i testi di M4 nel binario F; i modelli 3D di M2 nel binario D. M1 si accende con X3; M2–M4 sono visibili appena unite.
+
 > **Traccia**: da completare con l'`architetto` dopo R1 e M2.
 
 **Scopo.** Qualcosa di tuo lavora mentre combatti: una bottega in città rende ogni settimana, una carovana tua porta merci tra due città. La guerra può rovinare entrambe.

@@ -1,5 +1,7 @@
 # R2 — Spezzare la vista della Ventura (nessun cambio visibile)
 
+**Binario** A. **Dopo** R1 (o in parallelo, perché tocca solo la vista). Finché non è unita, i binari D ed E non partono.
+
 **Scopo.** `app/24hw-ventura.js` (69 KB) diventa quattro file. Le schede U1–U4 toccheranno solo il file del loro pannello.
 
 **Leggi prima.** `app/24hw-ventura.js` con `grep -n "^ function \|^ const [a-zA-Z]*H="`, il `return` di `Ven`, `src/manifest.json`, `app/CLAUDE.md`.

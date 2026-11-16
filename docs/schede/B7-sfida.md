@@ -1,5 +1,7 @@
 # B7 — La sfida al capo (singolar tenzone)
 
+**Binario** C (mondo: `sfidaOk`, effetti). **Dopo** B3 e U3. Il bottone appare da solo come una delle `anteprima.scelte` di U3: nessun tocco alla vista. Visibile appena unita.
+
 **Scopo.** Prima di una battaglia contro un signore, un capobanda o la Volpe, il capitano può sfidarne il capo a duello davanti alle schiere. Vincere mette paura al nemico (o lo fa arrendere, se sono predoni); perdere costa sangue e morale. È nostro: riusa l'arena dei tornei.
 
 **Leggi prima.** `motori/28kc-ven-scontro.js`: `campoArena`, `esitoArena`, `statArena`, `feritoOggi`, `campo`, `esito`; `motori/28j-ven-dati.js`: `TRATTI`, `CAPIBANDA`, `RIVALE`, `SIG`; `app/24hwd-ven-scontro.js` (`incontroH`), `motori/28m-ven-stanza.js` (`scegli` in compagnia). Dipende da B3 (`VDAT.SIG.CAMPO`, `capoB`) e U3.

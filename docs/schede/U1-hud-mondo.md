@@ -1,5 +1,7 @@
 # U1 — HUD del mondo: numeri con un nome, mappa sempre in vista
 
+**Binario** E (interfaccia del mondo). **Dopo** R2. Visibile appena unita (rilascio 1).
+
 **Scopo.** Sulla mappa si capisce in un colpo d'occhio quanto hai e cosa puoi fare; qualunque pannello aperto lascia vedere la mappa.
 
 **Leggi prima.** Dopo R2: `app/24hwa-ven-barre.js` (`altoH`, `tastiH`, `bassoH`), `app/24hw-ventura.js` (`hudVivo`, `html`), `css/39ja-ven-barre.css`, `css/39jb-ven-pannelli.css` (`.vn-pan`), `docs/STYLE.md`. Riferimento dell'errore: `docs/VENTURA-2.md`, «Dove siamo».

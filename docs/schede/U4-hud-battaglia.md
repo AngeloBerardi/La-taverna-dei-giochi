@@ -1,5 +1,7 @@
 # U4 — HUD della battaglia: tre gruppi, cinque ordini, una mappa del campo
 
+**Binario** D. **Dopo** B1v. I pannelli dei reparti si vedono solo se lo stato ha i reparti (X1); senza, la fascia mostra i tre gruppi di oggi con la grafica nuova.
+
 **Scopo.** In battaglia lo schermo è del campo: i comandi stanno in una fascia sola, si vede quale gruppo cede, una piccola mappa dice dove sono tutti.
 
 **Leggi prima.** `app/24hwd-ven-scontro.js` (`campoH`), `app/24hv-ven-campo.js` (`K`, `numeri`, `tocco`), `css/39jc-ven-campo.css`, `VCAM.gruppi`, `VCAM.forme`, e dopo B3 `VCAM.morali`. Dipende da B1 (lo schieramento usa questa fascia) e meglio dopo B3.
@@ -8,10 +10,12 @@
 
 **Decisioni già prese.**
 1. **Barra alta (56 px)**: a sinistra il nostro stendardo + numero, a destra il loro; in mezzo la barra delle forze. Sotto, sottile, la vita del capitano con il suo nome. Pausa e velocità come nel mondo (U1).
-2. **Fascia bassa unica (128 px)**: riga 1 = tre **carte dei gruppi** (Fanti, Tiratori, Cavalieri) da ~120 px: icona, numero, formazione come piccolo segno grafico (non parola), e una **barra del morale** del gruppo (verde → ambra → rosso; lampeggia quando sta per rompersi, dopo B3). Toccare una carta la sceglie; toccarla di nuovo cambia formazione (come oggi `cgr:g`). Tocco lungo = tutti. Riga 2 = cinque ordini come icone con nome sotto (Carica, Tieni, Seguimi, Avanza, Ripiega) + Grido d'ottone a destra con l'anello della ricarica.
+2. **Fascia bassa unica (128 px)**: riga 1 = le **carte dei reparti** (da `VCAM.reparti`; senza reparti sono i tre gruppi; fino a 6, scorrevoli in orizzontale, con le ondate «Al mio segnale» in fondo come carte d'ottone scuro con il numero e l'ingresso: tocco = `vondata:N`). Ogni carta mostra anche la **fatica** (ombra sulla carta) e la **faretra** per i tiratori (B3). Prima versione con tre gruppi: (Fanti, Tiratori, Cavalieri) da ~120 px: icona, numero, formazione come piccolo segno grafico (non parola), e una **barra del morale** del gruppo (verde → ambra → rosso; lampeggia quando sta per rompersi, dopo B3). Toccare una carta la sceglie; toccarla di nuovo cambia formazione (come oggi `cgr:g`). Tocco lungo = tutti. Riga 2 = cinque ordini come icone con nome sotto (Carica, Tieni, Seguimi, Avanza, Ripiega) + Grido d'ottone a destra con l'anello della ricarica.
 3. **Mini-mappa** 72×120 px nell'angolo in alto a destra sotto la barra: rettangolo del campo, puntini ambra (nostri) e rosso scuro (loro) a gruppi (un puntino per gruppo, grande secondo gli uomini), il riquadro della telecamera. Toccarla sposta la telecamera lì (`VenCampo.centra`). Disegnata su un `<canvas>` 2D aggiornato 4 volte al secondo.
 4. **Sul campo**: il gruppo scelto ha l'anello sotto i piedi più chiaro; l'ancora dell'ordine «Tieni» si vede come bandierina finché il gruppo non la raggiunge.
 5. Gli avvisi (`.vn-avv`) in battaglia: al più due righe, sopra la fascia bassa, spariscono in 2,5 s.
+
+6. Bottone «Vista del comandante» nella barra alta: porta la camera al livello lontano di B0v.
 
 **Stato e contratti.** Nessun campo nel motore. In `VenCampo`: `minimappa(cv)` (disegna), `K.selG` già c'è come `K.gruppo`. I `data-v` restano: `cgr:*`, `cord:*`, `cgrido`, `cpausa`, `cvel` (gli scenari li usano).
 

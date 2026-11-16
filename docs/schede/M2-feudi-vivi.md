@@ -1,5 +1,7 @@
 # M2 — Feudi vivi: costruire nei propri luoghi (traccia)
 
+**Binario** C (mondo); i testi di M4 nel binario F; i modelli 3D di M2 nel binario D. M1 si accende con X3; M2–M4 sono visibili appena unite.
+
 > **Traccia**: firme e prove le fissa l'`architetto` leggendo `28kb-ven-economia.js` e `28kd-ven-corte.js` dopo R1.
 
 **Scopo.** Un feudo non è solo una rendita: ci costruisci, e lo vedi crescere sulla mappa. Le scelte cambiano cosa rende e come si difende.

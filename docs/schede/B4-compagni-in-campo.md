@@ -1,8 +1,10 @@
 # B4 — I compagni in campo: una dote e la loro voce
 
+**Binari** B (doti nel motore, dopo B3) e F (testi, in parallelo). La vista dei fumetti va nel binario D dopo B5. Tre PR separate: B4-motore, B4-testi, B4-vista. Le doti si vedono appena unite, ma solo con i reparti accesi.
+
 **Scopo.** I dieci compagni non sono più soldati qualunque: in battaglia ognuno cambia qualcosa attorno a sé e parla nei momenti che contano (carica, rotta, ferita, vittoria). Le loro frasi passano anche sulla TV.
 
-**Leggi prima.** `motori/28j-ven-dati.js` (`COMPAGNI`, voci `TR` dei compagni con `compagno:true`), `motori/28ja-ven-voci.js` (formato e tono delle voci di V6c), `motori/28l-ven-campo.js` (`mischia`, `tiro`, `muovi`, eventi), `app/24hv-ven-campo.js` (`eventi`, numeri fluttuanti). Dipende da B3.
+**Leggi prima.** `motori/28j-ven-dati.js` (`COMPAGNI`, voci `TR` dei compagni con `compagno:true`), `motori/28ja-ven-voci.js` (formato e tono delle voci di V6c), `motori/28l-ven-campo.js` (`mischia`, `tiro`, `muovi`, eventi), `app/24hv-ven-campo.js` (`eventi`, numeri fluttuanti). Dipende da B3. Nei passi, «gruppo» va letto come «reparto» (B1).
 
 **Decisioni già prese.**
 1. Ogni compagno ha `campo:{k,r}` in `COMPAGNI` (**numeri qui**), effetto entro `r` passi su unità dello stesso lato:

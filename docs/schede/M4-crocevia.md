@@ -1,5 +1,7 @@
 # M4 — Gli incontri del crocevia (traccia)
 
+**Binario** C (mondo); i testi di M4 nel binario F; i modelli 3D di M2 nel binario D. M1 si accende con X3; M2–M4 sono visibili appena unite.
+
 > **Traccia**: il formato esiste già (scene di `ARAC`/`VVOC`, V6b); l'`architetto` fissa i ganci, il modello forte scrive i testi.
 
 **Scopo.** La strada tra due luoghi non è vuota: ai crocevia e nei luoghi selvaggi capitano piccoli fatti a scelte (un pellegrino ferito, un ponte crollato, un disertore che chiede di unirsi, un mercante che offre un affare sospetto, un villaggio che brucia). È il nome del gioco che diventa gioco.

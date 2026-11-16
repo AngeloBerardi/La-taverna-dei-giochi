@@ -1,5 +1,7 @@
 # R1 — Spezzare il motore del mondo (nessun cambio di gioco)
 
+**Binario** A (fondamenta). **Prima di tutto**: finché non è unita, nessun altro binario tocca `28k`.
+
 **Scopo.** `motori/28k-ven-mondo.js` (110 KB, una sola chiusura) diventa sei file sotto i 30 KB. Il giocatore non vede nulla; chi esegue le prossime schede legge un quarto del codice.
 
 **Leggi prima.** `motori/28k-ven-mondo.js` solo con `grep -n "^ function \|^ const "` (mappa delle funzioni), il `return{…}` in fondo, `tests/carica.js`, `src/manifest.json` (posizione di `28k`), `motori/CLAUDE.md`.

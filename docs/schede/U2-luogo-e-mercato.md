@@ -1,5 +1,7 @@
 # U2 — Il luogo come una piazza, il mercato come un banco
 
+**Binario** E. **Dopo** U1. Visibile appena unita. `segnali` e `prezzoMedio` vanno nel file nuovo `28kf-ven-anteprima.js` (un file nuovo non dà conflitti con il binario C).
+
 **Scopo.** Entrando in una città si vedono a colpo d'occhio i servizi e cosa c'è di nuovo; il mercato si usa con il pollice senza leggere frasi.
 
 **Leggi prima.** `app/24hwb-ven-luoghi.js` (`luogoH`, sotto-pannelli `sub:*`), `css/39jb-ven-pannelli.css`, `app/01b-icone.js` (icone disponibili per `ic()`), `docs/STYLE.md`. Dipende da U1 (fogli).

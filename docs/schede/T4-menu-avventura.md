@@ -1,5 +1,7 @@
 # T4 — Nuovo menù dell'Avventura
 
+> **Sostituita da `W1-menu-e-nuova-campagna`** (la struttura resta valida, ma la Compagnia di ventura diventa l'insegna principale e si aggiunge la difficoltà).
+
 **Scopo.** Una pagina Avventura che si capisce in tre secondi: «Continua» in cima, poi le due avventure come due grandi insegne, il resto dietro una riga di schede.
 
 **Leggi prima.** `app/24ha-avventura.js` (`Avv.html`, `cartaCont`, `eroiElenco`, `act`), `app/24hj-sessione.js` (elenco dei posti), `app/24hx-ven-stanza.js` (`ripH`), `app/24hl-tutorial.js` (`pagH`), `docs/STYLE.md`.

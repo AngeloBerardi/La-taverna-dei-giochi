@@ -1,5 +1,7 @@
 # M1 — Eserciti dei regni e adunate (traccia)
 
+**Binario** C (mondo); i testi di M4 nel binario F; i modelli 3D di M2 nel binario D. M1 si accende con X3; M2–M4 sono visibili appena unite.
+
 > **Traccia**: le decisioni di gioco ci sono; firme e prove le fissa l'`architetto` (modello forte, sessione breve: «completa la scheda M1») leggendo `28ka-ven-ia.js` dopo R1.
 
 **Scopo.** In guerra i signori non vagano più da soli: un maresciallo del regno chiama l'adunata, i signori si radunano e marciano insieme su un obiettivo (assedio, soccorso, razzia). Da vassallo vieni convocato; puoi seguire l'esercito e combattere con lui; da sovrano lo chiami tu.

@@ -1,5 +1,7 @@
 # B6 — Il peso della mischia (resa, `artist`)
 
+**Binario** D. **Dopo** B5. Visibile appena unita.
+
 **Scopo.** Lo scontro si sente: polvere sotto le cariche, caduti che restano a terra, stendardi dei gruppi, frecce che si vedono, scintille sui colpi forti, il rumore della mischia che cresce. Sempre pixel d'arte, senza sangue.
 
 **Leggi prima.** `app/24ht-ven-arte.js` (`Schiera`, `Stendardi`, `Particelle`, budget e qualità `ven-q`), `app/24hv-ven-campo.js` (`eventi`, `passo`), `motori/28n-ven-audio.js` (`CAMPO`, `MAX_CAMPO`), regole di r128 in `docs/moduli/ventura.md`. Dipende da B5.
