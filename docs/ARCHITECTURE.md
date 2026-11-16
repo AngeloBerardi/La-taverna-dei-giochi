@@ -322,7 +322,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
 | `js/app/24hv-ven-campo.js` | 29 | VenCampo |
-| `js/app/24hw-ventura.js` | 65 | Ven |
+| `js/app/24hw-ventura.js` | 66 | Ven |
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |

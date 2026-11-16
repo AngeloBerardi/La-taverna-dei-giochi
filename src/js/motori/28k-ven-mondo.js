@@ -457,9 +457,9 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  const EFF_VOCI=['grad','via','passo','premio','scontro','conf','tappa'];
  function voceInit(s){const R=RAC();if(!s.rac&&R)s.rac=R.nuovo('ventura',s.seme);if(!s.voci)s.voci=[];if(!s.volpe)s.volpe={tappa:0};if(s.vsig==null)s.vsig=-1}
  // un salvataggio più vecchio non rivive le tappe già passate della rivale
- function vociApri(s){const nuova=!s.volpe;voceInit(s);if(nuova)s.volpe.tappa=D.VOLPE.GIORNI.filter(x=>x<giorno(s)).length}
+ function vociApri(s){const nuova=!s.volpe;voceInit(s);if(nuova){s.volpe.tappa=D.VOLPE.GIORNI.filter(x=>x<giorno(s)).length;if(s.rivVinta)s.volpe.dono=1}}
  function accoda(s,id,sig){const V=VOC();if(!V||!s.voci||!V.scene[id]||s.voci.some(x=>x.id===id&&x.sig===sig)||(s.rac&&s.rac.scena&&s.rac.scena.id===id))return false;
-  if(s.voci.length<12)s.voci.push(sig==null?{id}:{id,sig});return true}
+  if(s.voci.length>=12)return false;s.voci.push(sig==null?{id}:{id,sig});return true}
  function fattiVoci(s){const b={},ci=inCompagnia(s);for(const c of D.COMPAGNI){const k=c.id.slice(3),gr=(s.grad||{})[c.id];b['grad-'+k]=gr?gr.g:0;b['inc-'+k]=gr?gr.inc|0:0;b['con-'+k]=ci.includes(c)?1:0}
   for(const f of D.REGNI)b['serve-'+f]=s.servizio&&s.servizio.faz===f?1:0;b.fama=s.fama|0;b.tappa=(s.volpe||{}).tappa|0;b.giorno=giorno(s);return b}
  const ctxVoci=s=>({oro:TU(s).oro,giorno:giorno(s),eroi:[]});
@@ -471,8 +471,8 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  // avvia la prima scena in coda che esiste (le altre si scartano); il tempo si ferma finché non è chiusa
  function avviaVoce(s){const R=RAC(),V=VOC();if(!R||!V||!s.rac)return false;
   while(s.voci.length){const q=s.voci.shift();if(!V.scene[q.id]){if(/^volpe-/.test(q.id))s.volpe.coda=0;continue}
-   avanzaInc(s,'scena');const r=R.act(statoRac(s),{t:'avvia',id:q.id},V,ctxVoci(s));if(r.err)continue;
-   const x=chiudiAtto(s,r);if(x.err)continue;s.vsig=q.sig==null?-1:q.sig;s.ev.push({t:'voce'});return true}
+   const r=R.act(statoRac(s),{t:'avvia',id:q.id},V,ctxVoci(s));if(r.err)continue;
+   const x=chiudiAtto(s,r);if(x.err)continue;s.vsig=q.sig==null?-1:q.sig;s.ev.push({t:'voce'});avanzaInc(s,'scena');return true}
   return false}
  // risposta del giocatore: {t:'scegli',i} | {t:'continua'}
  function parla(s,a){const R=RAC(),V=VOC();if(!R||!V||!s.rac||!s.rac.scena)return{err:'Nessuno ti sta parlando'};
@@ -480,7 +480,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   const r=R.act(statoRac(s),a,V,ctxVoci(s));if(r.err)return{err:r.err};const x=chiudiAtto(s,r);return x.err?x:{s}}
  // applica un atto del racconto: prima si controllano tutti gli effetti (o non cambia nulla), poi lo stato e gli effetti sul mondo
  function chiudiAtto(s,r){for(const e of r.fuori||[])if(!(e.t==='oro'||(e.t==='ven'&&EFF_VOCI.includes(e.k))))return{err:'Effetto sconosciuto'};
-  s.rac=r.s;for(const e of r.fuori||[])applicaVoce(s,e);
+  s.rac=r.s;for(const k of Object.keys(fattiVoci(s)))delete s.rac.bandiere[k];for(const e of r.fuori||[])applicaVoce(s,e);
   if(!s.rac.scena){s.vsig=-1;if(s.volpe.coda){s.volpe.tappa=Math.max(s.volpe.tappa,s.volpe.coda);s.volpe.coda=0}}return{s}}
  function applicaVoce(s,e){const tu=TU(s);
   if(e.t==='oro'){tu.oro=Math.max(0,tu.oro+(e.n|0));return}
@@ -494,7 +494,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    case'conf':{const sg=s.vsig>=0?s.sig[s.vsig]:null;if(sg){memSig(sg).fav+=e.n|0;confSig(s,sg)}return}
    case'tappa':s.volpe.tappa++;s.volpe.coda=0;return}}
  function premioComp(s,c){if(!c.premio||!inCompagnia(s).includes(c))return;const gr=gradDi(s,c.id);if(gr.prem)return;gr.prem=1;
-  if(c.premio.ogg&&D.OGG[c.premio.ogg])TU(s).zaino.push(c.premio.ogg);if(c.premio.abil)gr.piu=1;L(s,c.nome+' ti ripaga: il suo aiuto conta di più.','bene')}
+  if(c.premio.ogg&&D.OGG[c.premio.ogg])TU(s).zaino.push(c.premio.ogg);if(c.premio.abil)gr.piu=1;L(s,c.nome+(c.premio.ogg&&D.OGG[c.premio.ogg]?' ti dona '+D.OGG[c.premio.ogg].nome+'.':' ti ripaga: il suo aiuto conta di più.'),'bene')}
  // un signore che ti conosce di più ha qualcosa da dirti (una volta per livello)
  function confSig(s,sg){const l=confidenza(s,sg),m=memSig(sg);if(l>(m.vl|0)&&accoda(s,'sig-'+sg.tratto+'-'+l,sg.id))m.vl=l}
  // un passo dell'incarico personale è compiuto? ev: arriva (luogo) · vinci (compagnia nemica) · sito (luogo ripulito) · scena (inizio di una scena)

@@ -3446,6 +3446,35 @@ async def sc_ventura_stanza(b, srv):
     check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_ventura_voci_stanza(b, srv):
+    """Ventura, dialoghi in compagnia (V6b): 2 telefoni. La scena compare su tutti e due, il tempo si ferma; la risposta di uno la chiude all'altro e il gradimento cambia uguale."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 41)
+    await A.wait_for_function("R.mode==='rt'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 42, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await A.evaluate("(async()=>{VenStanza.X.seme0=7;Ven.V.regno='val';await startGame('ventura')})()")
+    for pg in (A, B): await pg.wait_for_function("G&&G.g==='ventura'&&ui.ven&&Ven.V.s&&VenArte.A.pronta", timeout=40000)
+    await A.wait_for_timeout(800)
+    # Berta in compagnia e la sua scena in coda: la spinge Ada nello stato della stanza
+    await A.evaluate("""(()=>{const w=VenStanza.X.L.w,tu=VEN.TU(w);tu.tr.push({t:'co_berta',n:1,f:0,xp:0});w.compagni.co_berta=-1;w.grad.co_berta={g:30,avv:0,visto:[]};w.tregua=1e9;VEN.accoda(w,'berta-lamento');
+      const ns=VST.copia(VenStanza.X.L);ns.evn++;pushState(ns,true,R.rev+1);return SYNC.esegui(R.ref,cur=>({doc:{...cur,s:ns,rev:(cur.rev||0)+1}}))})()""")
+    for pg in (A, B): await pg.wait_for_selector('.vn-voce', timeout=30000)
+    t = [await pg.evaluate("Ven.V.s.t+'|'+(Ven.V.s.rac.scena&&Ven.V.s.rac.scena.id)") for pg in (A, B)]
+    await A.wait_for_timeout(1500)
+    t2 = [await pg.evaluate("Ven.V.s.t+'|'+(Ven.V.s.rac.scena&&Ven.V.s.rac.scena.id)") for pg in (A, B)]
+    check(t[0] == t[1] and t2 == t and t[0].endswith('|berta-lamento'), f'la scena è aperta su tutti e due e il tempo è fermo: {t} {t2}')
+    check(await B.locator('.vn-voce .vn-vs').count() == 3 and 'berta la rossa' in (await B.inner_text('.vn-voce .vn-pt')).lower(), 'pannello visibile al secondo telefono con le sue risposte')
+    # Bruno risponde: «Hai ragione» (+10), la scena sparisce anche per Ada
+    await B.click('.vn-voce .vn-vs >> nth=0')
+    await A.wait_for_function("!document.querySelector('.vn-voce')&&Ven.V.s.grad.co_berta.g===40", timeout=20000)
+    g = [await pg.evaluate("Ven.V.s.grad.co_berta.g+'|'+Ven.V.s.rac.scena") for pg in (A, B)]
+    check(g[0] == g[1] == '40|null', f'la risposta di Bruno chiude la scena per Ada: gradimento uguale: {g}')
+    check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
+    await ctxA.close(); await ctxB.close()
+
 async def sc_ventura_stanza_ripresa(b, srv):
     """Compagnia di ventura, salvataggio in compagnia (V1): due telefoni giocano fino al giorno 2 e escono; riaprono la stanza e «Riprendi»: stesso giorno, stesse monete, stessi uomini su entrambi."""
     sh = Shared()

@@ -31,7 +31,7 @@ const VVOC=(()=>{
     {t:'Prima servono più uomini. Ma ci sto.',effetti:[gr('co_berta',1),ven('passo',{id:'co_berta'})],fine:true}]}}},
   'berta-inc-3':{inizio:'a',nodi:{
    a:{chi:'co_berta',testo:'«L\'ultimo conto: un covo di predoni, di quelli veri. Poi smetto di cercare scuse.»',scelte:[
-    {t:'Li stanaremo.',effetti:[gr('co_berta',3),ven('passo',{id:'co_berta'})],fine:true},
+    {t:'Li staneremo.',effetti:[gr('co_berta',3),ven('passo',{id:'co_berta'})],fine:true},
     {t:'Se è l\'ultimo, d\'accordo.',effetti:[ven('passo',{id:'co_berta'})],fine:true}]}}},
   'volpe-1':{inizio:'a',nodi:{
    a:{chi:'rv_volpe',testo:'«Così sei tu il capitano di cui si parla. Io sono la Volpe Rossa, e la strada è larga abbastanza per due compagnie. Per ora.»',scelte:[

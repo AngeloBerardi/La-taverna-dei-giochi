@@ -62,8 +62,19 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   // con poco oro la scelta a pagamento non c'è
   const u = quieto(V.nuovo(6)); assolda(u, 'co_berta'); V.TU(u).oro = 10; V.accoda(u, 'berta-lamento'); assert.strictEqual(apriCoda(u).scelte.filter(c => c.ok).length, 2);
   assert(V.parla(u, { t: 'scegli', i: 1 }).err, 'senza monete: non disponibile');
-  // «la porta è là»: il compagno se ne va, con la sua scena d'addio, e il gradimento sparisce
-  rispondi(u, 2); assert(u.grad.co_berta.g <= 42);
+  // «la porta è là»: -8 di gradimento
+  rispondi(u, 2); assert.strictEqual(u.grad.co_berta.g, D.GRAD.INIZIO - 8);
+  // gli effetti `via` e `premio` su un compagno: se ne va con la sua scena d'addio; il premio si dà una volta (scena di prova aggiunta al capitolo)
+  VV.scene['berta-prova'] = { inizio: 'a', nodi: { a: { chi: 'co_berta', testo: 'x', scelte: [
+    { t: 'premio', effetti: [{ t: 'ven', k: 'premio', id: 'co_berta' }], fine: true }, { t: 'via', effetti: [{ t: 'ven', k: 'via', id: 'co_berta' }], fine: true }] } } };
+  const w = quieto(V.nuovo(6)); assolda(w, 'co_berta'); const base = V.abil(w, 'prodezza'); V.accoda(w, 'berta-prova'); apriCoda(w); rispondi(w, 0);
+  assert.strictEqual(w.grad.co_berta.prem, 1); assert.strictEqual(V.abil(w, 'prodezza'), base + 1);
+  V.accoda(w, 'berta-prova'); apriCoda(w); rispondi(w, 0); assert.strictEqual(V.abil(w, 'prodezza'), base + 1, 'il premio una volta sola');
+  V.accoda(w, 'berta-prova'); apriCoda(w); rispondi(w, 1); assert(!V.TU(w).tr.some(e => e.t === 'co_berta' && e.n > 0), 'via: se ne va'); assert(w.voci.some(x => x.id === 'berta-addio'), 'con la sua scena d\'addio');
+  delete VV.scene['berta-prova'];
+  // coda piena: accoda risponde no e non si perde il fatto (l'invito resta da fare)
+  const q = quieto(V.nuovo(6)); assolda(q, 'co_berta', 80); for (let i = 0; i < 12; i++) q.voci.push({ id: 'volpe-1' }); assert.strictEqual(V.accoda(q, 'berta-lamento'), false);
+  aGiorno(q, 3); assert(!q.grad.co_berta.invito, 'invito non segnato se la coda è piena'); q.voci.length = 0; q.rac.scena = null; aGiorno(q, 4); assert(q.grad.co_berta.invito && q.voci[0].id === 'berta-inc-1');
 }
 
 // scena assente (lapo-lamento): nessun blocco, resta la riga di cronaca di V6a; il lamento di Berta invece parte
@@ -100,6 +111,16 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   assert(!s.voci.some(x => /berta-inc-4/.test(x.id)), 'dopo il terzo non c\'è un altro invito'); assert(s.log.some(r => /ti ripaga/.test(r.tx)));
   // il premio si dà una volta sola e un salvataggio lo ricorda
   const s2 = V.apri(V.salva(s)); assert.strictEqual(V.abil(s2, 'prodezza'), base + 1);
+}
+
+// incarico con consegna (Lapo): le monete si lasciano entrando in un monastero, non altrove; i fatti non restano nelle bandiere salvate
+{
+  const s = quieto(V.nuovo(8)); assolda(s, 'co_lapo', 80); const tu = V.TU(s); tu.oro = 500; const gr = s.grad.co_lapo; gr.inc = 1; gr.incA = 2;
+  const altro = s.l.find(l => l.tipo === 'villaggio' && l.faz === 'val'); tu.x = altro.x - 2; tu.y = altro.y; ok(V.ordina(s, { t: 'entra', lid: altro.id })); let g = 0; while (s.dentro < 0 && g++ < 600) V.passo(s, 1);
+  assert.strictEqual(s.dentro, altro.id); assert.strictEqual(tu.oro, 500, 'in un villaggio non si consegna nulla'); assert.strictEqual(gr.inc, 1); ok(V.fai(s, { a: 'esci', seat: 0 }));
+  const mon = s.l.find(l => l.tipo === 'monastero'); tu.x = mon.x - 2; tu.y = mon.y; ok(V.ordina(s, { t: 'entra', lid: mon.id })); g = 0; while (s.dentro < 0 && g++ < 600) V.passo(s, 1);
+  assert.strictEqual(s.dentro, mon.id); assert.strictEqual(tu.oro, 380, '120 monete lasciate al monastero'); assert.strictEqual(gr.inc, 2); assert(s.voci.some(x => x.id === 'lapo-inc-3') === false, 'scena del passo dopo non ancora scritta: nessun blocco');
+  const raw = JSON.parse(V.salva(s)); assert(!('grad-berta' in raw.rac.bandiere) && !('fama' in raw.rac.bandiere), 'i fatti non si salvano nelle bandiere');
 }
 
 // la rivale a tappe: ai giorni 12, 40, 80 compare accanto alla compagnia; le scene si chiudono con `tappa`; il dono si dà una volta sola
@@ -143,6 +164,7 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   // un salvataggio V6a (senza i campi dei dialoghi) si apre
   const v6a = V.nuovo(12); delete v6a.rac; delete v6a.voci; delete v6a.volpe; delete v6a.vsig; v6a.t = 50 * V.P.GIORNO;
   const o = V.apri(J(v6a)); assert(o && o.rac && Array.isArray(o.voci) && o.volpe.tappa === 2, 'tappe già passate non si rivivono'); assert.strictEqual(V.apri(V.salva(o)).volpe.tappa, 2);
+  const b6 = V.nuovo(12); delete b6.rac; delete b6.voci; delete b6.volpe; delete b6.vsig; b6.rivVinta = 5; assert.strictEqual(V.apri(J(b6)).volpe.dono, 1, 'rivale già battuta: il cimelio c\'è già');
   assert(!V.voce(o)); const p = V.apri(V.salva(a)); assert.strictEqual(V.salva(p), V.salva(a), 'aprire e salvare non cambia nulla');
 }
 

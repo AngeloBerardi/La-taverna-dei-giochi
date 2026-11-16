@@ -72,7 +72,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
- function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero;if(!cammina)return;
+ function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero||(s.voci&&s.voci.length&&s.dentro<0&&s.davanti<0);if(!cammina)return;
   V.acc+=dt*8*(s.prigioniero||(t.ord&&t.ord.t==='aspetta')?Math.max(6,V.vel*3):V.vel);const n=Math.floor(V.acc);if(n<1)return;V.acc-=n;const g0=VEN.giorno(s),ev=VEN.passo(s,n);let ridisegna=false;
   for(const e of ev){if(e.t==='incontro'){V.pan='incontro';ridisegna=true;Snd.play('avv-missione')}else if(e.t==='dentro'||e.t==='davanti'){V.pan='luogo';V.sub='home';V.msg='';ridisegna=true;salva();Snd.play('avv-porta')}
    else if(e.t==='log'&&e.tipo)avviso(e.tx,e.tipo);else if(e.t==='giorno'){salva();Snd.play('avv-alba')}else if(e.t==='libero'||e.t==='fine-attesa'){ridisegna=true}else if(e.t==='voce'){ridisegna=true;Snd.play('avv-missione')}else if(e.t==='conquista')ridisegna=true}
