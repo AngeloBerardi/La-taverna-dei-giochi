@@ -95,7 +95,7 @@ const VDAT=(()=>{
  og('u_martello','Martello del Margravio','arma',4,2300,{dan:8,perf:.7,asp:'mazza'},'Le piastre si piegano come stagno.');
  og('u_arcoantico','Arco delle Madri','arma',4,2200,{dan:8,git:34,rit:18,due:1,asp:'arco'},'Legno di tasso millenario di Selvamara: tira lontano e presto.');
  og('u_vento','Lancia del Vento','arma',4,2400,{dan:6,att:2,car:1.2,asp:'lancia'},'Si dice non abbia mai mancato una carica.');
- og('u_seicolpi','Balestra dei Sei Colpi','arma',4,2300,{dan:10,git:32,rit:26,perf:.35,due:1,asp:'balestra'},'Sei tacche sul calcio. Brando giura che ne mancano altre sei.');
+ og('u_seicolpi','Balestra dei Sei Colpi','arma',4,2300,{dan:12,git:32,rit:22,perf:.35,due:1,asp:'balestra'},'Sei tacche sul calcio. Brando giura che ne mancano altre sei.');
  og('tondo','Scudo tondo','scudo',1,60,{dif:2,asp:'tondo'},'Legno e cuoio.');
  og('mandorla','Scudo a mandorla','scudo',2,220,{dif:4,asp:'mandorla'},'Copre dalla spalla al ginocchio.');
  og('pavese','Pavese','scudo',2,260,{dif:6,vel:-1,asp:'pavese'},'Un muro da portarsi dietro: rallenta.');
@@ -118,7 +118,7 @@ const VDAT=(()=>{
  og('steppa','Cavallo della steppa','cavallo',2,760,{vel:21,manto:5,ab:{esplora:1}},'Piccolo, instancabile.');
  og('destriero','Destriero bardato','cavallo',3,1900,{vel:19,pf:20,car:.3,manto:3,barda:1},'Mezzo quintale di ferro e muscoli.');
  og('u_tramontana','Tramontana','cavallo',4,2600,{vel:22,pf:15,car:.3,manto:4},'Bianca come la neve, nessuno l\'ha mai raggiunta.');
- og('u_grigio','Il Grigio','cavallo',4,2300,{vel:21,pf:12,car:.2,manto:5,ab:{esplora:1}},'Vecchio cavallo della steppa con un occhio bianco. Corre ancora.');
+ og('u_grigio','Il Grigio','cavallo',4,2300,{vel:21,pf:16,car:.2,manto:5,ab:{esplora:2}},'Vecchio cavallo della steppa con un occhio bianco. Corre ancora.');
  og('corno','Corno di guerra','cimelio',2,420,{grido:.5},'Il grido del capitano torna in metà tempo.');
  og('stendardo','Stendardo benedetto','cimelio',2,460,{morale:8},'Il morale della compagnia resta alto.');
  og('borsa','Borsa del cambiavalute','cimelio',2,480,{ab:{commercio:2}},'Compri a meno, vendi a più.');
@@ -191,7 +191,7 @@ const VDAT=(()=>{
   co_isa:{inc:[{tipo:'luogo',tipoL:'porto',d:'Tornare in un porto a cercare la nave perduta.'},{tipo:'sito',tipoL:'covo',d:'Riprendere il libro di bordo da un covo di predoni.'},{tipo:'luogo',tipoL:'citta',faz:'mar',d:'Portare il libro a Maralta.'}],premio:{ogg:'u_bilancia'}},
   co_ulf:{inc:[{tipo:'luogo',tipoL:'citta',faz:'fer',d:'Rivedere la piazza d\'armi di Castelferro.'},{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'castello',m:'ferro',n:4,d:'Portare quattro carichi di ferro a un castello.'}],premio:{abil:1}},
   co_dia:{inc:[{tipo:'sito',tipoL:'rovine',d:'Ripulire le rovine dove cadde il suo re.'},{tipo:'vinci',k:'sig',d:'Battere in campo un signore.'},{tipo:'luogo',tipoL:'monastero',d:'Dare una tomba al re in un monastero.'}],premio:{abil:1}},
-  co_temu:{inc:[{tipo:'luogo',tipoL:'locanda',d:'Chiedere del cavallo grigio in una locanda.'},{tipo:'vinci',k:'pre',d:'Battere i predoni che rubano cavalli.'},{tipo:'luogo',tipoL:'citta',faz:'alt',d:'Riportare il grigio a Tendalarga.'}],premio:{ogg:'u_grigio'}},
+  co_temu:{inc:[{tipo:'luogo',tipoL:'locanda',d:'Chiedere del cavallo grigio in una locanda.'},{tipo:'vinci',k:'pre',d:'Battere i predoni che rubano cavalli.'},{tipo:'luogo',tipoL:'citta',faz:'alt',d:'Mostrare il grigio a Tendalarga.'}],premio:{ogg:'u_grigio'}},
   co_nera:{inc:[{tipo:'porta',tipoL:'villaggio',m:'grano',n:8,d:'Portare otto sacchi di grano a un villaggio.'},{tipo:'sito',tipoL:'covo',d:'Stanare i predoni che bruciarono l\'ospizio.'},{tipo:'luogo',tipoL:'monastero',d:'Portare la campana a un monastero.'}],premio:{abil:1}},
   co_brando:{inc:[{tipo:'luogo',tipoL:'porto',d:'Chiedere di Tano in un porto.'},{tipo:'sito',tipoL:'rovine',d:'Liberare Tano dalle rovine dei briganti.'},{tipo:'porta',tipoL:'porto',oro:200,d:'Pagare il debito di Tano in un porto (200 monete).'}],premio:{ogg:'u_seicolpi'}},
   co_fosca:{inc:[{tipo:'sito',tipoL:'rovine',d:'Ripulire le rovine dove il maestro vide la lanterna.'},{tipo:'luogo',tipoL:'locanda',d:'Trovare l\'oste che comprò la lanterna.'},{tipo:'sito',tipoL:'covo',d:'Riprendere la lanterna da un covo.'}],premio:{ogg:'u_lanterna'}}};

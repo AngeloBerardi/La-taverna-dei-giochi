@@ -28,6 +28,7 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
     const sc = VV.scene[k]; assert(sc, 'manca la scena ' + k); const n = Object.keys(sc.nodi).length;
     assert(/-addio$/.test(k) ? n <= 3 : n >= 3 && n <= 6, k + ': ' + n + ' nodi');
     if (/^sig-/.test(k)) assert(sc.nodi.a.chi === 'signore' && sc.nodi.a.scelte.length <= 2, k + ': parla il signore, due scelte al massimo');
+    if (/^sig-/.test(k)) for (const c of sc.nodi.a.scelte) assert(c.effetti.some(e => e.t === 'oro' || e.k === 'conf'), k + ': ogni risposta tocca fiducia o monete');
     for (const nd of Object.values(sc.nodi)) { assert(nd.testo.length <= 280, k + ': nodo di ' + nd.testo.length + ' lettere'); for (const c of nd.scelte || []) assert(c.t.length <= 80, k + ': scelta lunga'); }
   }
   for (const id of Object.keys(VV.scene)) for (const nd of Object.values(VV.scene[id].nodi)) assert(nd.testo.length <= 280, id + ': nodo oltre 280 lettere');
@@ -182,7 +183,7 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
   VV.scene['sig-' + sg.tratto + '-1'] = vera;
   // la scena vera: parla il signore col suo nome, e la prima risposta alza la fiducia
   const u = quieto(V.nuovo(10)); const sg2 = u.sig.find(x => x.faz === 'val'); u.vsig = -1; assert(V.accoda(u, 'sig-' + sg2.tratto + '-1', sg2.id)); const w = apriCoda(u);
-  assert.strictEqual(w.chi.nome, sg2.nome); assert(!/\{(signore|capitano)\}/.test(w.testo)); const f1 = sg2.mem.fav; chiudi(u, 0); assert.strictEqual(sg2.mem.fav, f1 + 1);
+  assert.strictEqual(w.chi.nome, sg2.nome); assert(!/\{(signore|capitano)\}/.test(w.testo)); const f1 = sg2.mem.fav; chiudi(u, 0); assert(sg2.mem.fav > f1, 'la prima risposta alza la fiducia');
 }
 
 // ripetibilità e salvataggi

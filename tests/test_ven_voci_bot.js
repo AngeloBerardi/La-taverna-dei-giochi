@@ -18,11 +18,11 @@ for (const seme of [3, 17, 41]) {
   assert.strictEqual(cimeli, 1, 'un solo cimelio della rivale: ' + riassunto[riassunto.length - 1]);
   assert(!s.rac.scena, 'nessuna scena rimasta aperta');
 }
-// V6c: ogni incarico personale scritto si compie col bot accorto entro 40 giorni da quando si apre (il compagno entra fedele, a 95: chi detesta i riscatti scende in fretta)
+// V6c: ogni incarico personale scritto si compie col bot accorto entro 40 giorni da quando si apre (il compagno entra fedele, a 80; con `inc` il bot non riscatta prigionieri se un compagno lo detesta)
 const incarichi = [];
 for (const c of D.COMPAGNI.filter(c => c.inc && c.premio)) for (const seme of [3, 17, 41]) {
   const s = V.nuovo(seme), gr = () => s.grad[c.id];
-  V.TU(s).tr.push({ t: c.id, n: 1, f: 0, xp: 0 }); s.compagni[c.id] = -1; s.grad[c.id] = { g: 95, avv: 0, visto: [] };
+  V.TU(s).tr.push({ t: c.id, n: 1, f: 0, xp: 0 }); s.compagni[c.id] = -1; s.grad[c.id] = { g: 80, avv: 0, visto: [] };
   const r = carica.rng(seme + 7), opt = { inc: true }; let aperto = -1, g = 0;
   while (g++ < 60 && !(gr() && gr().prem)) { gioca(s, 1, true, r, opt); if (aperto < 0 && gr() && gr().incA) aperto = V.giorno(s); }
   const giorni = V.giorno(s) - aperto; incarichi.push(c.id.slice(3) + '@' + seme + ': ' + giorni + 'g');
