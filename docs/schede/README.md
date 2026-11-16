@@ -13,7 +13,7 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V6a-gradimento` | Gradimento dei compagni e addii, memoria e confidenza dei signori, tre talenti | fatta (PR da unire) | Sonnet |
 | `V6b-dialoghi` | Motore dei dialoghi (riuso del racconto), incarichi personali in tre passi, la rivale a tappe | fatta (PR da unire) | Sonnet |
 | `V6c-testi` | Testi di compagni, signori e rivale, in tre blocchi | pronta (dopo V6b) | forte |
-| `V7-tv-musica` | Vista TV della stanza, telefoni come comandi, musica e suoni propri | pronta | Sonnet |
+| `V7-tv-musica` | Vista TV della stanza, telefoni come comandi, musica e suoni propri | fatta (PR da unire) | Sonnet |
 | `T1-render-stabile` | Niente sfarfallio nei menù, un solo caricamento all'ingresso | pronta (per prima) | Sonnet + revisione forte |
 | `T2-stanza-avventura-pulita` | Voto di un altro gioco durante l'Avventura senza viste sovrapposte; zoom che non si blocca | pronta | Sonnet |
 | `T3-personaggio-ingresso` | Al primo ingresso nome e personaggio 3D, lo stesso al crocevia e in Taverna | pronta (dopo T1) | Sonnet (separazione di `figura`: forte) |

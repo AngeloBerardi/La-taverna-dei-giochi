@@ -84,7 +84,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  // numeri che cambiano senza ridisegnare tutta la pagina
  function hudVivo(){const s=V.s,q=(id,tx)=>{const el=document.getElementById(id);if(el&&el.textContent!==tx)el.textContent=tx};
   if(V.modo==='campo'){const b=VenCampo.K.s;if(!b)return;const na=VCAM.vivi(b,'a').length+VCAM.riserva(b,'a'),nb=VCAM.vivi(b,'b').length+VCAM.riserva(b,'b'),g=VCAM.gruppi(b,'a'),c=VCAM.capU(b,posto());
-   q('vn-na',String(na));q('vn-nb',String(nb));const ba=document.getElementById('vn-ba');if(ba)ba.style.width=(na/Math.max(1,na+nb)*100).toFixed(1)+'%';const fm=VCAM.forme(b,'a');for(const k of['f','t','c']){q('vn-g'+k,String(g[k]));q('vn-fm'+k,fm[k])}
+   q('vn-na',String(na));{const sec=Math.floor(b.t/10);q('vn-tvt',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'))}q('vn-nb',String(nb));const ba=document.getElementById('vn-ba');if(ba)ba.style.width=(na/Math.max(1,na+nb)*100).toFixed(1)+'%';const fm=VCAM.forme(b,'a');for(const k of['f','t','c']){q('vn-g'+k,String(g[k]));q('vn-fm'+k,fm[k])}
    const pf=document.getElementById('vn-pf');if(pf&&c)pf.style.width=Math.max(0,c.pf/c.pfm*100).toFixed(0)+'%';const gr=document.getElementById('vn-grido');if(gr){const r=Math.max(0,((b.gridi[posto()]||0)-b.t)/VCAM.C.GRIDO);gr.style.setProperty('--r',r.toFixed(2));gr.classList.toggle('no',r>0)}return}
   const t=tu(),h=VEN.ora(s),m=s.t%60;q('vn-ora','Giorno '+VEN.giorno(s)+' · '+String(h).padStart(2,'0')+':'+String(m-m%10).padStart(2,'0'));q('vn-oro',n0(t.oro));
   q('vn-uom',VEN.uomini(t)+'/'+VEN.limite(s));q('vn-cibo',String(Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))));q('vn-mor',String(t.mor));q('vn-fama',String(s.fama));q('vn-meteo',s.meteo==='pioggia'?'pioggia':s.meteo==='nebbia'?'nebbia':'');
@@ -124,8 +124,8 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
 <span>${ic('moneta',18)} <b id="vn-oro"></b></span><span>${ic('amici',18)} <b id="vn-uom"></b></span><span>${ic('boccale',18)} <b id="vn-cibo"></b></span>${R.code?`<span class="vn-tvc">Stanza <b>${esc(R.code)}</b></span>`:''}</div>
 <div class="vn-tvl"><h3>Cronaca</h3>${s.log.slice(-6).reverse().map(x=>`<p class="${col[x.tipo]||''}">${esc(x.tx)}</p>`).join('')}</div>
 <div class="vn-tvk">${VEN.capi(s).map(c=>`<span>${ic('utente',18)} <b>${esc(c.nome)}</b> <small>liv. ${c.liv}</small></span>`).join('')}</div>`}
- function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';const sec=Math.floor(b.t/10);
-  return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt">${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}</span></div>`}
+ function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';
+  return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt" id="vn-tvt"></span></div>`}
  function cartaH(){const s=V.s,p=VEN.part(s,V.carta);if(!p||p.dentro>=0)return'';const ost=VEN.ostile(s,p,tu()),f=VEN.forza(p),mia=VEN.forza(tu()),giud=f<mia*.6?'Più debole di voi':f<mia*1.1?'Alla vostra portata':f<mia*1.7?'Più forte di voi':'Molto più forte di voi';
   const comp={f:0,t:0,c:0};for(const e of p.tr)comp[D.TR[e.t].c]+=e.n;
   return`<div class="vn-carta"><div class="vn-ct"><b>${esc(p.nome)}</b>${faz(p.faz)}<button class="vn-ib" data-a="ven" data-v="carta" aria-label="Chiudi">${ic('x',16)}</button></div>

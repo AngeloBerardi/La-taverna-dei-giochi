@@ -3448,6 +3448,63 @@ async def sc_ventura_stanza(b, srv):
     check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_ventura_tv(b, srv):
+    """Compagnia di ventura sulla TV (V7): 2 telefoni + TV 1280×720. La TV guarda soltanto (niente comandi, pannello laterale nascosto, qualità «tv»),
+    resta allineata ai telefoni, suona i temi propri; l'interruttore «Mappa sulla TV» trasforma i telefoni in tastiere di comando."""
+    sh = Shared()
+    ctxA, A = await telefono_rt(b, srv, sh, 'Ada', 51)
+    await A.wait_for_function("R.mode==='rt'&&R.members.length>0", timeout=30000)
+    code = await A.evaluate("(async()=>{const c=await createRoom();await joinRoom(c);setRoomUrl(c);return c})()")
+    ctxB, B = await telefono_rt(b, srv, sh, 'Bruno', 52, '?room=' + code + '&net=rt')
+    await B.wait_for_function(f"R.mode==='rt'&&R.code==={code!r}&&R.members.length>=2", timeout=30000)
+    ctxT, T = await telefono_rt(b, srv, sh, '', 53, '?tv=' + code + '&net=rt'); await T.set_viewport_size({'width': 1280, 'height': 720})
+    await T.wait_for_function("ui.tv&&R.mode==='rt'&&R.doc", timeout=30000)
+    await A.wait_for_function("R.members.length>=2", timeout=15000)
+    await A.evaluate("(async()=>{VenStanza.X.seme0=7;Ven.V.regno='val';await startGame('ventura')})()")
+    for pg in (A, B, T): await pg.wait_for_function("G&&G.g==='ventura'&&ui.ven&&Ven.V.s&&VenArte.A.pronta&&document.querySelector('.vn-scena canvas')", timeout=40000)
+    await A.wait_for_timeout(1200)
+    tv = await T.evaluate("({v:viewer(),basso:!!document.querySelector('.vn-basso'),pan:(()=>{const e=document.getElementById('tvpanel');return !e||getComputedStyle(e).display==='none'})(),k:VenArte.A.k,q:VenArte.qual(),cl:document.documentElement.classList.contains('vn-tv'),cron:!!document.querySelector('.vn-tvl'),capi:document.querySelectorAll('.vn-tvk span').length,mus:Snd.quale()})")
+    check(tv['v'] == -1 and not tv['basso'] and tv['pan'] and tv['cl'], f'TV: nessun posto, nessun comando, pannello laterale nascosto: {tv}')
+    check(tv['k'] == 2 and tv['q'] == 'tv', f'TV: qualità propria, pixel da 2 a 1280×720: {tv}')
+    check(tv['cron'] and tv['capi'] == 2, f'TV: cronaca e due capitani: {tv}')
+    check(tv['mus'] == 'ven-viaggio', f'TV: suona il tema del viaggio: {tv}')
+    check(await T.evaluate("VenStanza.manda({t:'ordina',o:{t:'aspetta',ore:1}}).err") == 'La TV guarda soltanto', 'la TV non manda mosse')
+    check(await A.evaluate("Snd.quale()") == 'ven-viaggio', 'anche il telefono suona il tema della Ventura nella stanza')
+    # due ore di attesa: la TV va avanti da sola e resta allineata ai telefoni
+    await A.evaluate("VenStanza.manda({t:'ordina',o:{t:'aspetta',ore:2}})")
+    for pg in (A, B, T): await pg.wait_for_function("!(VEN.TU(Ven.V.s).ord&&VEN.TU(Ven.V.s).ord.t==='aspetta')&&Ven.V.s.t>=G.w.t", timeout=60000)
+    await A.wait_for_timeout(1200)
+    al = [await pg.evaluate("VEN.giorno(Ven.V.s)+'|'+VEN.TU(Ven.V.s).oro") for pg in (A, B, T)]
+    check(al[0] == al[1] == al[2], f'stesso giorno e stesse monete sui telefoni e sulla TV: {al}')
+    tx = await T.evaluate("document.getElementById('vn-oro').textContent")
+    check(tx.replace('.', '').replace(',', '') == al[2].split('|')[1], f'la TV mostra le monete della compagnia: {tx} {al[2]}')
+    if os.environ.get('SCATTA'): await T.screenshot(path=os.environ['SCATTA'] + '-tv-mappa.png')
+    # l'interruttore: lo accende un capitano dal menu, i telefoni diventano comandi
+    check(await T.query_selector('[data-v="tv"]') is None, 'la TV non ha l\'interruttore')
+    await B.click('[data-v="pan:menu"]'); await B.click('[data-v="tv"]')
+    for pg in (A, B): await pg.wait_for_function("G.tv===true&&document.documentElement.classList.contains('vn-ctl')", timeout=20000)
+    await B.click('[data-v="chiudi"]'); await A.wait_for_timeout(500)
+    for pg, n in ((A, 'A'), (B, 'B')):
+        c = await pg.evaluate("({h:document.querySelector('.vn-scena').getBoundingClientRect().height,H:innerHeight,ctl:document.querySelectorAll('.vn-ctlg .vn-bt').length,basso:!!document.querySelector('.vn-basso'),alto:document.querySelector('.vn-ctlg .vn-bt').getBoundingClientRect().height})")
+        check(c['h'] < c['H'] / 2 and c['ctl'] >= 6 and not c['basso'] and c['alto'] >= 63, f'{n}: scena sotto metà schermo, tasti grandi al posto della barra: {c}')
+    check(not await T.evaluate("document.documentElement.classList.contains('vn-ctl')"), 'la TV non diventa un comando')
+    # battaglia: la musica della TV cambia, il campo intero si vede, i telefoni hanno gli ordini sulla griglia
+    await A.evaluate("(()=>{const w=VenStanza.X.L.w,tu=VEN.TU(w);tu.tr=[{t:'val_f3',n:14,f:0,xp:0},{t:'val_t3',n:8,f:0,xp:0}];const p=w.p.find(p=>p.k==='pre');p.tr=[{t:'pre_f1',n:8,f:0,xp:0},{t:'pre_t2',n:3,f:0,xp:0}];w.incontro={tipo:'nemico',pid:[p.id],all:[],da:'tu'};const ns=VST.copia(VenStanza.X.L);ns.evn++;pushState(ns,true,R.rev+1);return SYNC.esegui(R.ref,cur=>({doc:{...cur,s:ns,rev:(cur.rev||0)+1}}))})()")
+    for pg in (B, T): await pg.wait_for_selector('[data-v="scegli:attacca"]', timeout=20000)
+    check(await T.query_selector('.vn-tvh') is not None and await T.evaluate("getComputedStyle(document.querySelector('[data-v=\"scegli:attacca\"]')).pointerEvents") == 'none', 'TV: l\'incontro si vede sopra la mappa, senza bottoni attivi')
+    await B.click('[data-v="scegli:attacca"]')
+    for pg in (A, B, T): await pg.wait_for_function("Ven.V.modo==='campo'&&VenCampo.K.s", timeout=20000)
+    await A.click('[data-v=cpausa]'); await T.wait_for_function("!VenCampo.K.pausa", timeout=15000)
+    await T.wait_for_function("Snd.quale()==='ven-battaglia'", timeout=10000)
+    await T.wait_for_timeout(2500)
+    bt = await T.evaluate("({basso:!!document.querySelector('.vn-cb'),barra:!!document.querySelector('.vn-tvb #vn-na'),alt:VenCampo.K.alt,seg:VenCampo.K.segue,t:document.getElementById('vn-tvt').textContent})")
+    check(not bt['basso'] and bt['barra'] and bt['alt'] == 80 and not bt['seg'] and bt['t'] != '0:00', f'TV in battaglia: solo le forze e il tempo che corre, campo intero: {bt}')
+    g = await B.evaluate("({gr:getComputedStyle(document.querySelector('.vn-cb .vn-or')).gridTemplateColumns.split(' ').length,h:document.querySelector('.vn-cb .vn-or .vn-bt').getBoundingClientRect().height})")
+    check(g['gr'] == 2 and g['h'] >= 63, f'telefono in battaglia: ordini su due colonne, tasti alti: {g}')
+    if os.environ.get('SCATTA'): await T.screenshot(path=os.environ['SCATTA'] + '-tv-battaglia.png')
+    check(not A.errs and not B.errs and not T.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]} {T.errs[:2]}')
+    await ctxA.close(); await ctxB.close(); await ctxT.close()
+
 async def sc_ventura_voci_stanza(b, srv):
     """Ventura, dialoghi in compagnia (V6b): 2 telefoni. La scena compare su tutti e due, il tempo si ferma; la risposta di uno la chiude all'altro e il gradimento cambia uguale."""
     sh = Shared()

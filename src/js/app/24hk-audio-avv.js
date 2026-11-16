@@ -15,7 +15,8 @@ const AvvAudio=(()=>{
    if(Ses.a)return AAUD.contesto(Ses.a,b);
    if(Camp.s&&(ui.camp||ui.inv||ui.dia))return AAUD.contesto({camp:Camp.s,racc:{scena:null},bat:null,fine:null},b);   // campagna senza sessione (mappa del mondo)
    return AAUD.contesto(null,b)},
-  traccia(){if(ui.ven&&ui.screen!=='game')return Ven.traccia();if(!AvvAudio.attiva())return null;try{return AAUD.traccia(AvvAudio.contesto())}catch(e){ERR.n(e);return null}},
+  traccia(){if(ui.ven&&(ui.screen!=='game'||(G&&G.g==='ventura')))return Ven.traccia();   // V7: anche nella stanza della Ventura
+  if(!AvvAudio.attiva())return null;try{return AAUD.traccia(AvvAudio.contesto())}catch(e){ERR.n(e);return null}},
   suona,
   passo(x,f){try{suona(AAUD.passo(x),f)}catch(e){ERR.n(e)}},
   dopo(az,prima,dopo){try{suona(AAUD.azione(az,prima,dopo))}catch(e){ERR.n(e)}}};
