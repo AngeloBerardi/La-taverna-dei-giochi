@@ -28,19 +28,19 @@ const VVOC=(()=>{
   'berta-lamento':lamento('berta',
    "«Due cose, capitano, e le dico una volta. Al nemico non si volta la schiena. E ai briganti non si paga il passo: l'oro ai ladri lo dà chi ha paura. Io paura non ne ho. Tu?»",
    ['Hai ragione. Da oggi si tiene il campo.','Prendi queste, e restiamo amici.','Si fa quel che conviene. Abituati.'],
-   ["«Detto davanti a me. Me lo ricorderò, anche se te lo scordi tu.»",
+   ["«Detto. Davanti a me. Basta così.»",
     "«Monete. Le prendo, non sono scema. Ma la prossima volta che scappiamo non mettermele in conto.»",
     "«Quel che conviene. Parli come Ulfredo coi suoi regolamenti. Va bene: so con chi ho a che fare.»"]),
   'berta-addio':addio('berta',"«Basta. Prendo l'ascia e chi mi vuole seguire. Non ti auguro male, capitano: ti auguro di imparare a tenere il campo.»",
-   'Buona strada, Berta.','Berta, aspetta.',"«Avevi promesso. Davanti a tutti. Chi scappa almeno non mente: tu sì. Non cercarmi.»"),
+   'Buona strada, Berta.','Berta…',"«Avevi promesso. Davanti a tutti. Chi scappa almeno non mente: tu sì. Non cercarmi.»"),
   'berta-inc-1':{inizio:'a',nodi:{
    a:{chi:'co_berta',testo:"«Sai perché mi hanno cacciata da Valdoro? Un conte ha messo le mani su una sguattera. L'ho steso con un pugno, davanti alla sua gente. Da allora a Roccadoro mi aspettano con la corda.»",vai:'b'},
    b:{chi:'co_berta',testo:"«Voglio rientrarci. Dalla porta grande, di giorno, con una compagnia alle spalle. Mi ci porti?»",scelte:[
     {t:'Dalla porta grande. Tutti insieme.',effetti:[gr('co_berta',4),passo('co_berta')],fine:true},
-    {t:'Ci andiamo. Ma se tocchi il conte, paghi tu.',effetti:[gr('co_berta',-2),passo('co_berta')],fine:true},
+    {t:'Ci andiamo. Ma se tocchi il conte, paghi tu.',effetti:[gr('co_berta',-2),gr('co_ulf',2),passo('co_berta')],fine:true},
     {t:'Prima dimmi che fine ha fatto la ragazza.',vai:'c'}]},
    c:{chi:'co_berta',testo:"«Sposata a un mugnaio, tre figli, mi manda i saluti coi mercanti. Non è lei che devo vendicare. Sono io che devo tornare.»",scelte:[
-    {t:'Allora si torna.',effetti:[gr('co_berta',6),passo('co_berta')],fine:true}]}}},
+    {t:'Allora si torna.',effetti:[gr('co_berta',3),passo('co_berta')],fine:true}]}}},
   'berta-inc-2':{inizio:'a',nodi:{
    a:{chi:'co_berta',testo:"«Hai visto le facce? Il conte s'è chiuso in casa. Ma in piazza dicevano che sono una sbandata con l'ascia. Voglio che parlino d'altro: un signore di Valdoro battuto in campo aperto.»",scelte:[
     {t:'Un signore di Valdoro. Scegli tu quale.',effetti:[gr('co_berta',3),passo('co_berta')],vai:'b'},
@@ -60,23 +60,23 @@ const VVOC=(()=>{
   'lapo-lamento':lamento('lapo',
    "«Capitano, posso? Ultimamente ho cucito più fosse che ferite. E quei villaggi bruciati: i loro malati li curavo io, una volta. Non ti chiedo di non combattere. Ti chiedo di non farmi ricucire anche i poveri.»",
    ['Meno razzie e meno morti inutili. Hai la mia parola.','Compra bende e unguenti, e non pensarci.','La guerra è questa, Lapo.'],
-   ["«La parola di un capitano. Me la segno qui, sotto la dose di corteccia di salice. Non farmela cancellare.»",
+   ["«La parola di un capitano. La metto tra i rimedi, accanto alla corteccia di salice. Vediamo se guarisce qualcosa.»",
     "«Bende buone, almeno. Coprono quasi tutto. Quasi.»",
     "«Lo so. Anche al convento dicevano che il mondo è questo. Suor Nera, almeno, ci prega sopra. Io cucio.»"]),
   'lapo-addio':addio('lapo',"«Me ne vado, capitano. Ti lascio l'ago grosso e le pinze: a chi resta serviranno più che a me. Il vino si versa sulle ferite. Non prima, in gola.»",
-   'Grazie di tutto, Lapo.','Lapo, avevo detto…',"«Avevi detto. Io invece avevo scritto. È la differenza tra un cerusico e un capitano: io quel che scrivo lo rileggo.»"),
+   'Grazie di tutto, Lapo.','Lapo, avevo detto…',"«Avevi detto. Le promesse sono come le bende, capitano: se nessuno le cambia, marciscono.»"),
   'lapo-inc-1':{inizio:'a',nodi:{
    a:{chi:'co_lapo',testo:"«Una cosa da poco. Al convento mi chiusero fuori perché portavo dentro i lebbrosi della strada. Da allora non ho più messo piede in un chiostro. Vorrei vedere se trema la porta, o se tremo io.»",scelte:[
     {t:'Andiamo al primo monastero sulla strada.',effetti:[gr('co_lapo',3),passo('co_lapo')],vai:'b'},
-    {t:'Ci andiamo. Ma niente prediche ai frati.',effetti:[gr('co_lapo',1),passo('co_lapo')],vai:'c'}]},
+    {t:'Ci andiamo. Ma niente prediche ai frati.',effetti:[gr('co_lapo',1),gr('co_berta',2),passo('co_lapo')],vai:'c'}]},
    b:{chi:'co_lapo',testo:"«Bene. Se il priore mi riconosce, tu fai la faccia da capitano severo. Ti riesce benissimo, sai.»",fine:true},
    c:{chi:'co_lapo',testo:"«Prediche, io? Taglio, cucio e taccio. Le prediche le lascio a chi ha fiato da sprecare.»",fine:true}}},
   'lapo-inc-2':{inizio:'a',nodi:{
    a:{chi:'co_lapo',testo:"«Il portinaio non mi ha riconosciuto: la porta non ha tremato. Però in infermeria c'erano undici malati e un mortaio solo. Centoventi monete, capitano. Le lascio io, al prossimo monastero.»",scelte:[
     {t:'Le avrai. Sono monete della compagnia: ricordatelo.',effetti:[gr('co_lapo',2),passo('co_lapo')],vai:'b'},
-    {t:'Prima ce le guadagniamo, poi vediamo.',effetti:[gr('co_lapo',-1),passo('co_lapo')],vai:'c'}]},
-   b:{chi:'co_lapo',testo:"«Me lo ricorderò. E il conto lo tengo io, non Isabetta: lei ci metterebbe gli interessi.»",fine:true},
-   c:{chi:'co_lapo',testo:"«Vediamo, sì. Intanto i malati aspettano. Sono bravissimi ad aspettare: ne hanno l'abitudine.»",fine:true}}},
+    {t:'Le avrai quando la cassa respira.',effetti:[gr('co_lapo',-1),gr('co_isa',2),passo('co_lapo')],vai:'c'}]},
+   b:{chi:'co_lapo',testo:"«Grazie. Isabetta vorrà la ricevuta: dille che la firma il priore. Le piacerà poco.»",fine:true},
+   c:{chi:'co_lapo',testo:"«Quando respira, sì. Intanto i malati aspettano. Sono bravissimi ad aspettare: ne hanno l'abitudine.»",fine:true}}},
   'lapo-inc-3':{inizio:'a',nodi:{
    a:{chi:'co_lapo',testo:"«Il frate dell'infermeria mi ha detto una cosa. In certe rovine qui attorno c'era un lazzaretto. Ora ci sta gente che spoglia i febbricitanti di passaggio. E sotto, in una cripta, i libri d'erbe del vecchio priore.»",vai:'b'},
    b:{chi:'co_lapo',testo:"«Ripuliamo le rovine. Poi i libri: li riporto al convento, che ne ha diritto, o li teniamo noi, che ne abbiamo bisogno?»",scelte:[
@@ -102,9 +102,9 @@ const VVOC=(()=>{
    c:{chi:'co_ghino',testo:"«Sessanta monete. Ecco: vedi come si fa il socio? Io le cose le pago sempre. A volte anche in tempo.»",fine:true}}},
   'ghino-inc-2':{inizio:'a',nodi:{
    a:{chi:'co_ghino',testo:"«Ora sanno che Ghino sta con la gente onesta. Quasi onesta. Resta un debito: per dieci anni ho venduto ai villaggi sale tagliato con la sabbia. Minestre salate di sabbia, capitano.»",vai:'b'},
-   b:{chi:'co_ghino',testo:"«Sei sacchi di sale buono, portati da noi al primo villaggio che troviamo. Non per la coscienza. Per il nome.»",scelte:[
-    {t:'Sei sacchi. Li compriamo strada facendo.',effetti:[gr('co_ghino',3),passo('co_ghino')],vai:'c'},
-    {t:'Il sale lo paghi con la tua quota.',effetti:[gr('co_ghino',-2),gr('co_isa',2),passo('co_ghino')],vai:'d'}]},
+   b:{chi:'co_ghino',testo:"«Quattro sacchi di sale buono, portati da noi al primo villaggio che troviamo. Non per la coscienza. Per il nome.»",scelte:[
+    {t:'Quattro sacchi. Li compriamo strada facendo.',effetti:[gr('co_ghino',3),passo('co_ghino')],vai:'c'},
+    {t:'Il sale lo paga la tua quota.',effetti:[oro(200),gr('co_ghino',-3),gr('co_isa',2),passo('co_ghino')],vai:'d'}]},
    c:{chi:'co_ghino',testo:"«Conosco un salinaro che non bagna i sacchi. Non te lo presento: è timido coi capitani.»",fine:true},
    d:{chi:'co_ghino',testo:"«Con la mia quota. E va bene: il nome me lo pago da solo, come tutto il resto.»",fine:true}}},
   'ghino-inc-3':{inizio:'a',nodi:{
@@ -122,12 +122,12 @@ const VVOC=(()=>{
     {t:'Non tratto con chi cambia padrone ogni settimana.',vai:'d'}]},
    b:{chi:'rv_volpe',testo:"«Spartire. Che parola gentile.» Ti stringe la mano, e la stretta è vera. «A presto, socio.»",effetti:[ba('volpe-patto'),gr('co_isa',2),gr('co_ghino',2),ven('tappa')],fine:true},
    c:{chi:'rv_volpe',testo:"«Allora ci intralceremo. Sarà divertente.» Si tocca il cappello e se ne va senza voltarsi.",effetti:[ba('volpe-sfida'),gr('co_berta',3),gr('co_ulf',2),ven('tappa')],fine:true},
-   d:{chi:'rv_volpe',testo:"«Ogni settimana? Esageri. Ogni mese.» Ride piano. «Me lo ricorderò, capitano. Io ricordo tutto.»",effetti:[ba('volpe-odio'),gr('co_dia',3),ven('tappa')],fine:true}}},
+   d:{chi:'rv_volpe',testo:"«Ogni settimana? Esageri. Ogni mese.» Ride piano, e ti guarda come si guarda un cavallo da comprare.",effetti:[ba('volpe-odio'),gr('co_dia',3),ven('tappa')],fine:true}}},
   'volpe-2':{inizio:'a',nodi:{
    a:{chi:'rv_volpe',testo:"«Le strade s'incrociano, capitano. Lo dicono i preti, i mercanti e i ladri. Io sono un po' tutti e tre.»",scelte:[
     {t:'Il nostro patto vale ancora?',se:'volpe-patto',vai:'b'},
     {t:'Che vuoi, Volpe?',se:'volpe-odio',vai:'c'},
-    {t:'Hai la faccia di chi ha bisogno di qualcosa.',vai:'d'}]},
+    {t:'Hai la faccia di chi ha bisogno di qualcosa.',se:{non:'volpe-odio'},vai:'d'}]},
    b:{chi:'rv_volpe',testo:"«Vale. Domani passa un carro di gabelle al guado. Io prendo il carro, tu guardi dall'altra parte. Oppure ti sporchi le mani e prendi di più.»",scelte:[
     {t:'Guardo dall\'altra parte.',effetti:[oro(80),ven('tappa')],fine:true},
     {t:'Mi sporco le mani.',effetti:[oro(180),gr('co_lapo',-4),gr('co_dia',-3),gr('co_ghino',2),ven('tappa')],fine:true}]},
@@ -138,13 +138,16 @@ const VVOC=(()=>{
     {t:'Te li presto.',effetti:[ba('volpe-debito'),gr('co_ulf',-3),gr('co_brando',2),ven('tappa')],fine:true},
     {t:'I miei uomini non si prestano.',effetti:[gr('co_ulf',2),ven('tappa')],fine:true}]}}},
   'volpe-3':{inizio:'a',nodi:{
-   a:{chi:'rv_volpe',testo:"«L'ultima volta, capitano. Un contratto mi porta lontano, e le cose lasciate a metà mi danno il prurito.» Accarezza la cavalla bianca. «Come chiudiamo?»",scelte:[
-    {t:'Con l\'acciaio.',vai:'b'},
-    {t:'Mi devi qualcosa, Volpe.',se:{o:['volpe-patto','volpe-debito']},vai:'c'},
-    {t:'Con una stretta di mano.',vai:'d'}]},
+   a:{chi:'rv_volpe',testo:"«L'ultima volta, capitano.» Accarezza la cavalla bianca. «Come chiudiamo?»",scelte:[
+    {t:'Con l\'acciaio.',se:{non:'volpe-sfida'},vai:'b'},
+    {t:'Mi devi qualcosa, Volpe.',se:'volpe-debito',vai:'c'},
+    {t:'Soci fino in fondo?',se:['volpe-patto',{non:'volpe-debito'}],vai:'c'},
+    {t:'Con una stretta di mano.',vai:'d'},
+    {t:'Come avevamo detto: con l\'acciaio.',se:'volpe-sfida',vai:'e'}]},
    b:{chi:'rv_volpe',testo:"«Speravo che lo dicessi.» E sorride ancora, mentre sguaina.",effetti:[gr('co_berta',4),ven('scontro'),ven('tappa')],fine:true},
-   c:{chi:'rv_volpe',testo:"«Ti devo qualcosa.» Smonta e ti porge le redini. «Si chiama Tramontana. Non frustarla: non serve.»",effetti:[ven('premio',{id:'rv_volpe'}),ven('tappa')],fine:true},
-   d:{chi:'rv_volpe',testo:"«Una stretta di mano.» La tiene a lungo. «Nessuno dei due saprà mai chi avrebbe vinto. È il regalo più bello che ti lascio.»",effetti:[gr('co_lapo',3),ven('tappa')],fine:true}}}
+   c:{chi:'rv_volpe',testo:"«Fino in fondo.» Smonta e ti porge le redini. «Si chiama Tramontana. Non frustarla: non serve.»",effetti:[ven('premio',{id:'rv_volpe'}),ven('tappa')],fine:true},
+   d:{chi:'rv_volpe',testo:"«Una stretta di mano.» La tiene a lungo. Poi sorride, e se ne va.",effetti:[gr('co_lapo',3),ven('tappa')],fine:true},
+   e:{chi:'rv_volpe',testo:"«Te lo ricordavi.» Sorride, si toglie il guanto e lo getta ai tuoi piedi.",effetti:[gr('co_berta',6),gr('co_ulf',2),ven('scontro'),ven('tappa')],fine:true}}}
  };
  // bandiere (i fatti copiati dal mondo) e ingressi (ogni scena può essere avviata dal mondo): calcolati dai nomi
  const bandiere=['fama','tappa','giorno'].concat(D.REGNI.map(f=>'serve-'+f));

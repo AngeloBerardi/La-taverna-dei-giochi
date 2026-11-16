@@ -10,7 +10,7 @@ const riassunto = [];
 for (const seme of [3, 17, 41]) {
   const s = V.nuovo(seme), tu = V.TU(s);
   // con la scelta del patto alla prima tappa e del dono all'ultima (se c'è)
-  const voce = v => { if (v.scena === 'volpe-3') { const d = v.scelte.find(c => c.i === 1); if (d) return d.i; } return v.scelte.find(c => c.ok).i; };
+  const voce = v => { if (v.scena === 'volpe-3') { const d = v.scelte.find(c => c.ok && (c.i === 1 || c.i === 2)); if (d) return d.i; } return v.scelte.find(c => c.ok).i; };
   gioca(s, 90, true, carica.rng(seme + 1), { voce });
   const cimeli = tu.zaino.filter(x => x === D.RIVALE.premio).length + V.capi(s).reduce((a, c) => a + Object.values(c.eq).filter(x => x === D.RIVALE.premio).length, 0);
   riassunto.push('seme ' + seme + ': tappa ' + s.volpe.tappa + ', cimeli ' + cimeli);

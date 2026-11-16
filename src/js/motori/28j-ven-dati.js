@@ -183,7 +183,7 @@ const VDAT=(()=>{
  const INC={
   co_berta:{inc:[{tipo:'luogo',tipoL:'citta',faz:'val',d:'Rimettere piede a Roccadoro a testa alta.'},{tipo:'vinci',k:'sig',faz:'val',d:'Battere in campo un signore di Valdoro.'},{tipo:'sito',tipoL:'covo',d:'Stanare un covo di predoni.'}],premio:{abil:1}},
   co_lapo:{inc:[{tipo:'luogo',tipoL:'monastero',d:'Tornare in un monastero.'},{tipo:'porta',tipoL:'monastero',oro:120,d:'Lasciare 120 monete per i malati di un monastero.'},{tipo:'sito',tipoL:'rovine',d:'Ripulire delle rovine.'}],premio:{abil:1}},
-  co_ghino:{inc:[{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'villaggio',m:'sale',n:6,d:'Portare sei sacchi di sale a un villaggio.'},{tipo:'luogo',tipoL:'porto',faz:'mar',d:'Entrare a viso aperto in un porto di Maralta.'}],premio:{ogg:'u_guadi'}}};
+  co_ghino:{inc:[{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'villaggio',m:'sale',n:4,d:'Portare quattro sacchi di sale a un villaggio.'},{tipo:'luogo',tipoL:'porto',faz:'mar',d:'Entrare a viso aperto in un porto di Maralta.'}],premio:{ogg:'u_guadi'}}};
  for(const c of COMPAGNI){const x=INC[c.id];if(x){c.inc=x.inc;c.premio=x.premio}}
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro

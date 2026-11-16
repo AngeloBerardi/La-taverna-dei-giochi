@@ -52,8 +52,10 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
     const aperte = v.scelte.filter(c => c.ok); assert(aperte.length, 'scena senza scelte disponibili: ' + v.scena + '/' + v.nodo);
     for (const c of aperte) { const t = copia(s); ok(V.parla(t, { t: 'scegli', i: c.i })); visita(t, prof + 1); }
   };
-  for (const flag of [false, true]) for (const id of Object.keys(VV.scene)) {
-    const s = quieto(V.nuovo(5)); assolda(s, 'co_berta'); s.rac.bandiere['volpe-patto'] = flag; V.TU(s).oro = 500; s.volpe.tappa = 0;
+  // ogni combinazione di bandiere che apre un ramo (patto, odio, sfida, debito, promesse), con i tre compagni del blocco 1 in compagnia
+  const combo = [{}, { 'volpe-patto': 1 }, { 'volpe-odio': 1 }, { 'volpe-sfida': 1 }, { 'volpe-debito': 1 }, { 'volpe-patto': 1, 'volpe-debito': 1 }, { 'berta-promessa': 1, 'lapo-promessa': 1, 'ghino-promessa': 1 }];
+  for (const fl of combo) for (const id of Object.keys(VV.scene)) {
+    const s = quieto(V.nuovo(5)); for (const c of ['co_berta', 'co_lapo', 'co_ghino']) assolda(s, c); Object.assign(s.rac.bandiere, fl); V.TU(s).oro = 500; s.volpe.tappa = 0;
     assert(V.accoda(s, id), 'accoda ' + id); const v = apriCoda(s); assert(v && v.scena === id, 'si apre ' + id);
     visita(s, 0);
   }
@@ -149,7 +151,7 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
   assert(!s.rac.scena && s.rac.bandiere['volpe-patto']); assert.strictEqual(s.volpe.tappa, 1); assert.strictEqual(s.volpe.coda, 0); aGiorno(s, 13); assert.strictEqual(s.voci.length, 0, 'la prossima tappa è al giorno 40');
   aGiorno(s, 40); assert.strictEqual(s.voci[0].id, 'volpe-2'); apriCoda(s); const v2 = V.voce(s); assert(v2.scelte[0].i === 0 && v2.scelte.every(c => c.i !== 1), 'col patto: c\'è la scelta del patto e non quella di chi non ce l\'ha'); const oro0 = tu.oro; rispondi(s, 0); rispondi(s, 0); assert.strictEqual(tu.oro, oro0 + 80); assert.strictEqual(s.volpe.tappa, 2);
   aGiorno(s, 80); assert.strictEqual(s.voci[0].id, 'volpe-3'); apriCoda(s); const z = () => tu.zaino.filter(x => x === D.RIVALE.premio).length + V.capi(s).reduce((a, c) => a + Object.values(c.eq).filter(x => x === D.RIVALE.premio).length, 0);
-  assert.strictEqual(z(), 0); rispondi(s, 1); rispondi(s, 0); assert.strictEqual(s.volpe.tappa, 3); assert.strictEqual(z(), 1, 'dono');
+  assert.strictEqual(z(), 0); rispondi(s, 2); rispondi(s, 0); assert.strictEqual(s.volpe.tappa, 3); assert.strictEqual(z(), 1, 'dono');
   // se poi la batti davvero il dono non si ripete
   rv.tr.length = 0; rv.tr.push({ t: 'mer_f3', n: 1, f: 0, xp: 0 }); rv.x = tu.x + 1; rv.y = tu.y; s.incontro = { tipo: 'nemico', pid: [rv.id], all: [], da: 'tu' }; assert(!V.auto(s).err); assert.strictEqual(z(), 1, 'un solo cimelio');
   aGiorno(s, 90); assert.strictEqual(s.voci.length, 0, 'finite le tappe');
@@ -157,7 +159,7 @@ const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, 
   const t = quieto(V.nuovo(9)); t.volpe.tappa = 2; aGiorno(t, 80); apriCoda(t); rispondi(t, 0); rispondi(t, 0);
   assert(t.incontro && t.incontro.tipo === 'nemico' && t.incontro.pid[0] === t.p.find(p => p.k === 'riv').id, 'lo scontro con la rivale'); assert.strictEqual(t.volpe.tappa, 3);
   // tregua: nessun dono né battaglia
-  const u = quieto(V.nuovo(9)); u.volpe.tappa = 2; aGiorno(u, 80); apriCoda(u); rispondi(u, 2); rispondi(u, 0); assert(!u.incontro && !u.volpe.dono && u.volpe.tappa === 3);
+  const u = quieto(V.nuovo(9)); u.volpe.tappa = 2; aGiorno(u, 80); apriCoda(u); rispondi(u, 3); rispondi(u, 0); assert(!u.incontro && !u.volpe.dono && u.volpe.tappa === 3);
   // senza la scena (stato che non la conosce) la rivale non compare
   const w = quieto(V.nuovo(9)); const rv2 = w.p.find(p => p.k === 'riv'), px = rv2.x, sc1 = VV.scene['volpe-1']; delete VV.scene['volpe-1']; aGiorno(w, 12); VV.scene['volpe-1'] = sc1; assert.strictEqual(rv2.x, px); assert.strictEqual(w.volpe.coda | 0, 0);
 }

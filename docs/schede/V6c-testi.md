@@ -31,5 +31,5 @@
 **Fuori scopo:** chiacchierate libere al bivacco, storie d'amore, ritratti, voci registrate.
 
 ## Fatto quando
-Blocco 1 (Volpe, Berta, Lapo, Ghino): fatto · blocco 2: da fare · blocco 3: da fare.
+Blocco 1 (Volpe, Berta, Lapo, Ghino): fatto · blocco 2: da fare · blocco 3: da fare. Premi del blocco 1: Berta e Lapo `{abil:1}`, Ghino `u_guadi`: ai blocchi 2 e 3 restano 3 talenti e 4 oggetti.
 - [ ] le prove del blocco · [ ] nessun testo `PROVV` rimasto nel blocco · [ ] `npm run verifica` verde.
