@@ -132,4 +132,13 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   assert(/di nuovo/.test(S.act(d, { t: 'fai', seat: 0, z: { a: 'proponi', tipo: 'alleanza', f: 'sel' } }).err), 'lo stesso re non riceve di nuovo subito, chiunque chieda');
   assert(J(S.copia(d).w.parola) === J(d.w.parola), 'l\'attesa viaggia con lo stato della stanza');
 }
+// TV (V7): accende e spegne la mappa sul televisore senza muovere il tempo, non si salva, resta accesa dopo un ordine, solo chi è seduto
+{
+  let t = S.nuova(2, ['Angelo', 'Bea'], { seme: 3 }); const w0 = t.w.t, e0 = t.evn;
+  t = ok(S.act(t, { t: 'tv', v: true, seat: 1 })); assert.strictEqual(t.tv, true); assert.strictEqual(t.w.t, w0, 'il tempo non si muove'); assert.strictEqual(t.evn, e0 + 1);
+  assert(!('tv' in S.salvabile(t)) && !J(S.salvabile(t)).includes('"tv"'), 'la TV non entra nel salvataggio');
+  t = ok(S.act(t, { t: 'ordina', seat: 0, o: { t: 'aspetta', ore: 2 } })); assert.strictEqual(t.tv, true, 'resta accesa dopo un ordine');
+  assert(S.act(t, { t: 'tv', v: false, seat: 4 }).err && S.act(t, { t: 'tv', v: false }).err, 'chi non è seduto non tocca la TV');
+  const e1 = t.evn, w1 = t.w.t; t = ok(S.act(t, { t: 'tv', v: false, seat: 0 })); assert(!('tv' in t), 'spenta'); assert.strictEqual(t.evn, e1 + 1); assert.strictEqual(t.w.t, w1);
+}
 console.log('ven_stanza ok');

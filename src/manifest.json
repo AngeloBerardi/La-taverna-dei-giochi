@@ -134,6 +134,7 @@
  "src/js/motori/28k-ven-mondo.js",
  "src/js/motori/28l-ven-campo.js",
  "src/js/motori/28m-ven-stanza.js",
+ "src/js/motori/28n-ven-audio.js",
  "src/js/motori/29-spie.js",
  "src/js/motori/30-domande.js",
  "src/js/motori/31-quiz.js",
