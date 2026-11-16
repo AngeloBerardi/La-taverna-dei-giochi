@@ -27,6 +27,15 @@
 - Dall'alto: `quota(s,x,y)` in assedio vale `MURO_Q` per `y` tra `m-4` e `m` (il camminamento) e 0 altrove; i tiratori di `b` ci stanno già (`m-2.5`). Resta il −.2 di oggi a chi tira da sotto.
 - Rotta e fine come oggi (chi difende le mura non va in rotta).
 
+## Correzioni durante l'esecuzione (Opus)
+Con il contratto sopra le sole scale vincevano 29 volte su 30 (le scale non erano un collo di bottiglia: si colpiva attraverso il muro e i difensori restavano divisi). Aggiunti:
+- `muroTra(s,u,b)`: niente mischia tra i due lati del muro se tra loro non c'è un varco aperto; chi «tiene» non insegue chi sta oltre il muro.
+- `presidi`: con le mura intere i fanti di `b` si dividono tra le scale (e la porta se c'è l'ariete), uno a testa e il resto dove gli assalitori premono di più; caricano solo se qualcuno è entrato oltre il camminamento.
+- `C.AS.FIATO:100`: chi arriva in cima a una scala aspetta 10 secondi prima di colpire.
+- Porta come passaggio: con l'ariete pronto e senza breccia, i fanti alla carica scelgono anche la porta (costo +2) e la spingono; così basta «Carica» anche a chi gioca.
+- Il capitano a cavallo sale a piedi; nessun cavaliere ha mai `sal`.
+Misure (30 semi): sole scale 9, con ariete 30, con ariete e breccia 30; campo aperto 30. Esiti del mondo con e senza breccia diversi in 9 semi su 20.
+
 ## Passi
 1. `28l`: `C.AS`, `nuovo`, scale, porta, `versoVarco`, `comanda`, `quota`. Test `tests/test_ven_assedio.js` (rapido); il blocco «assedio» di `test_ven_campo.js` si aggiorna (`varchi.length` non è più 2).
 2. `28k`: `P`, `da`, `campo`, `scegli` (`attendi`, `ariete`), `assedioStato`; stessi test.

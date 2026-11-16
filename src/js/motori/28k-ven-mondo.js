@@ -9,7 +9,7 @@
    Piano: docs/VENTURA.md. */
 const VEN=(()=>{
  const D=VDAT,G=128,MURA={citta:1,castello:1},MERCATO={citta:1,villaggio:1,porto:1},SITO={rovine:1,covo:1},OSTERIA={citta:1,locanda:1,porto:1};
- const P={VEL:2.6,VISTA:8,ORA:60,GIORNO:1440,CONTATTO:.55,CAPIENZA:20,PRED_MAX:16,ASSEDIO_ORE:10,ASSEDIO_IA_ORE:36,MURA:1.6,PAGA_GIORNI:7,
+ const P={VEL:2.6,VISTA:8,ORA:60,GIORNO:1440,CONTATTO:.55,CAPIENZA:20,PRED_MAX:16,ASSEDIO_ORE:10,ASSEDIO_IA_ORE:36,BRECCIA_ORE:72,ARIETE_ORE:6,ARIETE_ORO:150,MURA:1.6,PAGA_GIORNI:7,
   FAMA_CONTRATTO:25,FAMA_VASSALLO:100,ORO0:320};
  // ---------- rumore e mappa ----------
  const h2=(x,y,s)=>{let n=Math.imul(x,374761393)^Math.imul(y,668265263)^Math.imul(s,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
@@ -529,7 +529,12 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   {let m=luogo,md=3.4;if(!m)for(const l of s.l){const d=dist(l,tu);if(d<md&&l.noto!==false){md=d;m=l}}if(m)scena.vicino={tipo:m.tipo,faz:m.faz}}
   return{seme:(s.rng^s.t)|0,tipo:luogo&&MURA[luogo.tipo]?'assedio':'campo',terreno:M.T[i],bioma:M.B[i],notte:notte(s),ora:(s.t%P.GIORNO)/60,scena,a,b,
    faza:lato(s),fazb:luogo?luogo.faz:nem[0]?nem[0].faz:'pre',cola:colFaz(s,lato(s)),colb:colFaz(s,luogo?luogo.faz:nem[0]?nem[0].faz:'pre'),noma:s.nome,nomb:luogo?luogo.nome:nem.map(p=>p.nome).join(', '),
-   cap:cs[0],capi:cs,morale:tu.mor}}
+   cap:cs[0],capi:cs,morale:tu.mor,assedio:luogo&&MURA[luogo.tipo]&&s.assedio&&s.assedio.lid===luogo.id?fasi(s):undefined}}
+ // assedio di chi gioca (V5b): le scale sono pronte subito, la breccia dopo BRECCIA_ORE dall'inizio, la porta con l'ariete
+ // un salvataggio di prima delle fasi non ha `da`: l'assedio era iniziato ASSEDIO_ORE prima di `pronto`
+ const inizio=a=>a.da!=null?a.da:a.pronto-P.ASSEDIO_ORE*60;
+ const fasi=s=>({breccia:s.t-inizio(s.assedio)>=P.BRECCIA_ORE*60,ariete:!!s.assedio.ariete});
+ function assedioStato(s){const a=s.assedio;if(!a)return null;const f=fasi(s),resta=inizio(a)+P.BRECCIA_ORE*60-s.t;return{scale:true,breccia:f.breccia,ariete:f.ariete,oreBreccia:Math.max(0,Math.ceil(resta/60))}}
  // aggredire gente di un regno: l'opinione crolla e, con la corona, è guerra (cade l'eventuale alleanza)
  function inimica(s,f){relaz(s,f,Math.min(-30-s.rel[f],-30));if(s.corona){delete s.alleanza[chiave('tu',f)];s.guerra[chiave('tu',f)]=true;delete s.corona.minacce[f]}}
  // lealtà di un signore che valuta di passare a te in cambio del feudo `lid`: un conto con i fattori in chiaro, senza dadi ({f,tot,ok} oppure {err})
@@ -557,6 +562,11 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    if(v.slice(0,6)==='passa:')return passaA(s,p,+v.slice(6));
    if(v==='aggredisci'){if(D.REGNI.includes(p.faz)){inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
   if(inc.tipo==='assalto'&&v==='togli'){s.assedio=null;s.incontro=null;if(s.dentro!==inc.lid)s.davanti=inc.lid;return{s}}
+  if(inc.tipo==='assalto'&&(v==='attendi'||v==='ariete')){const a=s.assedio;if(!a||a.lid!==inc.lid||!MURA[s.l[inc.lid].tipo])return{err:'Qui non c\'è un assedio'};
+   // si rimanda l'assalto: paghe, viveri e soccorsi dei signori continuano a correre
+   if(v==='attendi'){if(fasi(s).breccia)return{err:'La breccia è già aperta'};a.pronto=inizio(a)+P.BRECCIA_ORE*60}
+   else{if(a.ariete)return{err:'L\'ariete è già pronto'};if(tu.oro<P.ARIETE_ORO)return{err:'Servono '+P.ARIETE_ORO+' monete'};tu.oro-=P.ARIETE_ORO;a.ariete=true;a.pronto=s.t+P.ARIETE_ORE*60}
+   a.da=inizio(a);s.incontro=null;tu.ord={t:'aspetta',fino:a.pronto+60};L(s,v==='attendi'?'Aspettate che le mura cedano.':'Si abbatte un tronco per l\'ariete: pronto tra '+P.ARIETE_ORE+' ore.','guerra');return{s}}
   if(v==='attacca'||v==='auto')return{s,campo:campo(s)};
   if(inc.tipo==='nemico'){const{nem}=schieramenti(s),capo=nem[0];
    if(v==='paga'){if(!capo||capo.k!=='pre')return{err:'Non trattano'};const q=Math.max(30,Math.floor(tu.oro*.25));if(tu.oro<q)return{err:'Non hai abbastanza monete'};tu.oro-=q;capo.oro+=q;for(const p of nem){p.fermo=s.t+240;p.ia.st='giro';p.via=[]}s.tregua=s.t+480;s.incontro=null;L(s,'Paghi '+q+' monete e i predoni vi lasciano passare.');return{s}}
@@ -663,7 +673,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   const dentro=s.dentro>=0,ost=l.faz!=='tu'&&nemiche(s,'tu',l.faz),mio=l.faz==='tu'||(l.sig===-2);
   if(z.a==='fonda')return fondaRegno(s,z,l,dentro,mio);
   if(z.a==='assalta'){if(!SITO[l.tipo])return{err:'Qui non c\'è nulla da assaltare'};if(!l.g.length)return{err:'Non c\'è più nessuno'};s.incontro={tipo:'assalto',lid:l.id};s.ev.push({t:'incontro'});return{s}}
-  if(z.a==='assedia'){if(!ost||!MURA[l.tipo])return{err:'Non si può assediare'};s.assedio={lid:l.id,pronto:s.t+Math.max(4,P.ASSEDIO_ORE-abil(s,'comando'))*60};tu.ord={t:'aspetta',fino:s.assedio.pronto+60};L(s,'Cingete d\'assedio '+l.nome+': scale e arieti saranno pronti tra qualche ora.','guerra');return{s}}
+  if(z.a==='assedia'){if(!ost||!MURA[l.tipo])return{err:'Non si può assediare'};s.assedio={lid:l.id,pronto:s.t+Math.max(4,P.ASSEDIO_ORE-abil(s,'comando'))*60,da:s.t,ariete:false};tu.ord={t:'aspetta',fino:s.assedio.pronto+60};L(s,'Cingete d\'assedio '+l.nome+': scale e arieti saranno pronti tra qualche ora.','guerra');return{s}}
   if(z.a==='razzia'){if(!ost||l.tipo!=='villaggio')return{err:'Non si può razziare'};if(l.sacc>giorno(s))return{err:'Non è rimasto nulla da prendere'};const oro=60+Math.round(l.prosp*2.2);tu.oro+=oro;tu.merci.grano=(tu.merci.grano||0)+6;
    l.sacc=giorno(s)+6;l.prosp=Math.max(5,l.prosp-20);l.rec=0;l.rel-=40;relaz(s,l.faz,-6);s.t+=180;L(s,'Mettete a sacco '+l.nome+': '+oro+' monete e sei sacchi di grano.','guerra');return{s}}
   if(!dentro)return{err:'Le porte sono chiuse'};
@@ -724,6 +734,6 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
   ['Fama 100: vassallo di un regno, o signore di te stesso',s.fama>=100],['Un covo di predoni stanato',s.stat.covi>0],['Un cimelio unico',capi(s).some(c=>indossa(c).some(o=>o.q===4))||TU(s).zaino.some(id=>D.OGG[id]&&D.OGG[id].q===4)],['Una terra tua',mie.length>0],['Una fortezza tua',mie.some(l=>MURA[l.tipo])],['Un regno caduto',Object.keys(s.cadute).length>0],['Un regno tuo',!!s.corona||!!s.vinta],['Tutte le capitali',!!s.vinta]]}
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
  function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};s.ev=[];mappa(s.seme);return s}catch(e){return null}}
- return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,prezzoOgg,migra,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,torneoOggi,tornei,quando,premioTorneo,avversariTorneo,statArena,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
+ return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,prezzoOgg,migra,assedioStato,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,fai,scegli,campo,esito,auto,torneoOggi,tornei,quando,premioTorneo,avversariTorneo,statArena,schieramenti,forza,forzaTr,uomini,sani,limite,limitePrig,razioni,carico,caricoMax,paga,rendite,
   velocita,vista,visibili,prezzo,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,proposta,dominante,forzaRegno,lato,TU,part,traguardi,titoloInc,salva,apri,dist,nuovoCap,fazioni,nomeF,colFaz,renditaL,lealta,confinanti,vittoria,conquista}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

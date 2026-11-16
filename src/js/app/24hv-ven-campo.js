@@ -14,7 +14,7 @@ const VenCampo=(()=>{
   const c=VCAM.capU(s,K.seat||0);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=s.ora>=0?s.ora:s.notte?22.5:10+hh((s.seme0|0)&1023,1,2)*6}
  const CAPC=['#d98a1f','#2f9bd6','#b455c8','#3fb968'];
  // la scena si può rifare a battaglia in corso (contesto grafico perso): lo stato della battaglia non si tocca
- function scena(){const T=VenArte.T,A=VenArte,C=VCAM.C,scheda=K.scheda;K.frecce=[];
+ function scena(){const T=VenArte.T,A=VenArte,C=VCAM.C,scheda=K.scheda;K.frecce=[];K.portone=K.abbattuto=null;
   if(K.scene)K.scene.traverse(q=>{if(q.geometry)q.geometry.dispose()});
   const semeT=(scheda.seme|0)&255,sc=K.scene=new T.Scene(),bio=scheda.bioma||0,bosco=scheda.terreno===2,s=K.s,sn=scheda.scena||{},costa=sn.costa||null,vic=sn.vicino||null,monte=scheda.terreno===3||sn.pend;K.sn=sn;K.fuochi=[];K.cam=A.camera();K.luce=A.luce(sc);
   const PAL=bio===1?['#dfe8ee','#d0dde6','#c0d0dc']:bio===2?['#c4ae5a','#b8a252','#ad9c4c']:bio===3?['#bfae62','#b0a258','#a39850']:['#6fa446','#679b41','#7aae4a'];sc.background=new T.Color(bio===1?'#b9c8d4':bio===2?'#a89a58':'#4f8240');
@@ -47,10 +47,24 @@ const VenCampo=(()=>{
   const d=new T.Object3D();for(const[nome,geo]of[['ciuffo',ciuffo],['pino',pino],['lati',lati],['sasso',sasso]]){const Ls=liste[nome];if(!Ls.length)continue;const me=new T.InstancedMesh(geo,A.matI,Ls.length);me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(Ls.length*3),3);
    Ls.forEach((p,k)=>{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,hh(k,10,semeD)*6.28,0);d.scale.setScalar(p[3]);d.updateMatrix();me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,p[4][0],p[4][1],p[4][2])});me.castShadow=nome!=='ciuffo';me.frustumCulled=false;sc.add(me)}
   // ---- assedio: mura merlate con i varchi, torri, mastio alle spalle ----
-  if(s.muro){const S=A.Solidi(),m=s.muro,p='#aaa49b',p2='#cfc8bc',F=VDAT.FAZ[scheda.fazb]||VDAT.FAZ.fer;let x=-12;const tratti=[];for(const v of s.varchi){tratti.push([x,v[0]]);x=v[1]}tratti.push([x,C.W+12]);
+  if(s.muro){const S=A.Solidi(),m=s.muro,p='#aaa49b',p2='#cfc8bc',F=VDAT.FAZ[scheda.fazb]||VDAT.FAZ.fer,PO=s.porta;
+   // aperture del muro: la porta (chiusa dal portone finché regge) e le brecce già aperte all'inizio (macerie)
+   const ap=s.varchi.map(v=>v.slice());if(PO&&!ap.some(v=>v[0]===PO.x0))ap.push([PO.x0,PO.x1]);ap.sort((a,b)=>a[0]-b[0]);
+   let x=-12;const tratti=[];for(const v of ap){tratti.push([x,v[0]]);x=v[1]}tratti.push([x,C.W+12]);
    for(const[a,b]of tratti){const w=b-a;S.box(w,3.4,1.6,(a+b)/2,0,m,p,{c2:p2});for(let k=0;k<Math.floor(w/1.6);k++)S.box(.8,.7,.5,a+.6+k*1.6,3.4,m+.5,p2);S.box(w,.3,1.2,(a+b)/2,2.5,m-1.3,'#8a6a48')}
-   for(const v of s.varchi)for(const e of v){S.cil(1.3,1.5,5.2,8,e+(e===v[0]?-1.1:1.1),0,m,p,{c2:p2});S.cono(1.7,1.8,8,e+(e===v[0]?-1.1:1.1),5.2,m,F.col)}
-   for(const v of s.varchi){const cx=(v[0]+v[1])/2;S.box(v[1]-v[0],.5,1.8,cx,4.2,m,p2);S.box(.5,2.6,.3,v[0]+.4,0,m+1.6,'#6b4a2e',{ry:.5});S.box(.5,2.6,.3,v[1]-.4,0,m+1.6,'#6b4a2e',{ry:-.5})}
+   for(const v of ap){const porta=PO&&v[0]===PO.x0,cx=(v[0]+v[1])/2;
+    if(porta){for(const e of v){S.cil(1.3,1.5,5.2,8,e+(e===v[0]?-1.1:1.1),0,m,p,{c2:p2});S.cono(1.7,1.8,8,e+(e===v[0]?-1.1:1.1),5.2,m,F.col)}S.box(v[1]-v[0],.5,1.8,cx,4.2,m,p2)}
+    else for(let k=0;k<14;k++){const rx=v[0]+.3+hh(k,v[0],5)*(v[1]-v[0]-.6),rz=m-1.6+hh(k,v[0],6)*3.4,r=.25+hh(k,v[0],7)*.45;S.box(r*2,r*1.3,r*1.6,rx,0,rz,k%3?p:p2,{ry:hh(k,v[0],8)*3,rz:(hh(k,v[0],9)-.5)*.6})}}
+   // scale appoggiate al muro (dal piede, fuori, alla cima del parapetto)
+   for(const sx of s.scale||[]){const th=-.3,L=3.87,yc=1.85,zc=m+1.42;for(const ox of[-.36,.36])S.box(.12,L,.12,sx+ox,yc-L/2,zc,'#7a5232',{rx:th});
+    for(let k=1;k<9;k++){const f=k/9-.5;S.box(.72,.08,.08,sx,yc+f*L*Math.cos(th)-.04,zc-f*L*Math.sin(-th),'#9a7046')}}
+   // l'ariete: un tronco ferrato su ruote, davanti alla porta
+   if(PO&&PO.ariete){const ax=(PO.x0+PO.x1)/2,az=m+4.6;S.box(2,.3,4.6,ax,.6,az,'#5e4128');S.cil(.42,.42,6,8,ax,1.25-3,az,'#7b5634',{rx:1.5708});S.cono(.48,.6,8,ax,1.25-.3,az-3.2,'#4a4a4e',{rx:-1.5708});
+    for(const dx of[-1.15,1.15])for(const dz of[-1.4,1.4])S.cil(.55,.55,.28,10,ax+dx,.41,az+dz,'#3e2c1c',{rz:1.5708})}
+   // il portone: due battenti chiusi; abbattuto, resta a terra
+   if(PO){const G1=A.Solidi(),G2=A.Solidi(),w=PO.x1-PO.x0,cx=(PO.x0+PO.x1)/2;G1.box(w,3.6,.35,cx,0,m+.55,'#6b4a2e',{c2:'#8a6440'});for(const y of[.7,2.6])G1.box(w,.22,.12,cx,y,m+.78,'#3a3a3e');G1.box(.08,3.6,.4,cx,0,m+.55,'#3a2a1a');
+    G2.box(w,.3,3.4,cx,.05,m-1.4,'#6b4a2e',{rx:.05,c2:'#8a6440'});G2.box(w*.5,.25,1.2,cx-.8,.05,m+1.4,'#5e4128',{ry:.4});
+    K.portone=G1.mesh();K.abbattuto=G2.mesh();sc.add(K.portone);sc.add(K.abbattuto);K.portone.visible=PO.pf>0;K.abbattuto.visible=PO.pf<=0}
    S.box(14,8,10,C.W/2,0,m-22,p,{c2:p2});S.tetto(15,4,11,C.W/2,8,m-22,F.col);for(const ox of[-8,8]){S.cil(2.2,2.5,11,8,C.W/2+ox,0,m-17,p,{c2:p2});S.cono(2.9,3.4,8,C.W/2+ox,11,m-17,F.col)}
    for(let k=0;k<7;k++){const hx=6+hh(k,1,77)*(C.W-12),hz=m-6-hh(k,2,77)*9;S.box(3,2,2.6,hx,0,hz,'#e9dfc6');S.tetto(3.5,1.6,2.9,hx,2,hz,'#b0703c')}sc.add(S.mesh())}
   // ---- il mare, se si combatte sulla riva ----
@@ -116,12 +130,15 @@ const VenCampo=(()=>{
    else if(e.t==='tiro'){K.frecce.push({x0:e.x0,z0:e.y0,x1:e.x1,z1:e.y1,t0:K.t,dur:e.vt/10/K.vel,ok:e.colpito});const a=K.U[e.da];if(a)a.colpo=K.t}
    else if(e.t==='ko'){const u=s.u.find(u=>u.id===e.id);if(u){for(let k=0;k<6;k++)K.par.emetti(u.x+(Math.random()-.5),.2,u.y+(Math.random()-.5),{vy:.8,s:.22,dur:.8,col:'#d8c8a4',cresce:1.3});if(e.cap){K.lampo=.5;suono('avv-cade')}}}
    else if(e.t==='grido'){K.lampo=.25;for(let k=0;k<26;k++){const an=k/26*6.28;K.par.emetti(e.x,.4,e.y,{vx:Math.cos(an)*7,vz:Math.sin(an)*7,vy:.4,s:.24,dur:.7,col:'#ffe27a'})}suono('avv-livello')}
+   else if(e.t==='ariete'&&s.porta){if(e.pf%6===0){const m=s.muro;for(let k=0;k<4;k++)K.par.emetti((s.porta.x0+s.porta.x1)/2+(Math.random()-.5)*2,1.4,m+.9,{vy:.5,vz:.6,s:.18,dur:.5,col:'#c9b48a'});K.scossa=Math.max(K.scossa,.08)}}
+   else if(e.t==='porta'&&s.porta){const m=s.muro;for(let k=0;k<22;k++)K.par.emetti(s.porta.x0+Math.random()*(s.porta.x1-s.porta.x0),.4+Math.random()*2.5,m+(Math.random()-.5)*2,{vy:1,s:.3,dur:1.1,col:'#d8c8a4',cresce:1.4});K.scossa=.35;suono('avv-cade');Ven.avviso('La porta cede!')}
    else if(e.t==='rinforzi')Ven.avviso(e.l==='a'?'Arrivano i tuoi rinforzi':'Rinforzi nemici in campo');
    else if(e.t==='rotta')Ven.avviso(e.l==='a'?'I tuoi uomini sono in rotta!':'Il nemico è in rotta!');
    else if(e.t==='cap-ko')Ven.avviso(e.seat===(K.seat||0)?'Sei caduto: gli uomini combattono senza di te':'Un capitano è caduto!','male');
    else if(e.t==='fine'){K.finita=true;suono(e.vince==='a'?'avv-fanfara':'avv-lamento')}}}
  const suono=n=>{try{Snd.play(n)}catch(e){}};
  function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;
+  if(K.portone){const su=!!(s.porta&&s.porta.pf>0);K.portone.visible=su;K.abbattuto.visible=!su}
   if(!K.esterno&&!K.pausa&&!s.fine){K.acc+=dt*10*K.vel;let n=0;while(K.acc>=1&&n++<6){K.acc-=1;eventi(VCAM.passo(s,1))}if(K.acc>1)K.acc=0}
   const al=s.fine||K.pausa?1:Math.min(1,K.acc),cap=VCAM.capU(s,K.seat||0);
   K.fig.inizio();K.ste.inizio();const cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};let caduti=0;
@@ -129,7 +146,9 @@ const VenCampo=(()=>{
    const x=u.st==='ko'?u.x:u.px+(u.x-u.px)*al,z=u.st==='ko'?u.y:u.py+(u.y-u.py)*al,mosso=Math.hypot(u.x-u.px,u.y-u.py);
    if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(++caduti>46&&q.giu>=1)continue}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
    const F=FAZ(u.l),tc=K.t-q.colpo,FT=VDAT.FAZ[(VDAT.TR[u.t]||{}).faz]||F,mioL=u.l==='a';
-   K.fig.metti({x,y:Math.max(-.4,K.alto(x,z)),z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&FT!==VDAT.FAZ.tu?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id});
+   // chi sale una scala: la quota va dal piede al camminamento in SCALA istanti
+   const sal=u.sal>s.t?Math.min(1,Math.max(0,1-(u.sal-s.t-1+al)/C.AS.SCALA)):-1;
+   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&FT!==VDAT.FAZ.tu?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id});
    if(u.st==='vivo'&&!u.cap){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}
    if(u.st==='fuga'&&Math.random()<dt*2)K.par.emetti(x,.1,z,{vy:.4,s:.16,dur:.6,col:'#d8c8a4',cresce:1});
    else if(mosso>.3&&Math.random()<dt*6)K.par.emetti(x,.1,z,{vy:.5,s:.18,dur:.7,col:K.scheda.bioma===1?'#ffffff':'#d8c8a4',cresce:1.2})}

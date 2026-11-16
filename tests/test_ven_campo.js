@@ -49,8 +49,8 @@ for (const f of ['28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js']) {
 // assedio: nessuno attraversa il muro fuori dai varchi; le mura aiutano chi difende
 {
   const a = T(0, { val_f2: 24, val_t2: 10 }), b = T(-3, { fer_f2: 10, fer_t2: 8 });
-  const s = C.nuovo(scheda(6, a, b, { tipo: 'assedio' }), { autoA: true }); assert(s.muro > 0 && s.varchi.length === 2);
-  while (!s.fine) { C.passo(s, 1); for (const u of s.u) if (u.st === 'vivo' && Math.abs(u.y - s.muro) < .45) assert(s.varchi.some(g => u.x > g[0] && u.x < g[1]), 'unità dentro il muro a x=' + u.x.toFixed(1)); }
+  const s = C.nuovo(scheda(6, a, b, { tipo: 'assedio' }), { autoA: true }); assert(s.muro > 0 && s.varchi.length === 1 && s.scale.length === 4, 'senza fasi nella scheda: breccia aperta, scale pronte');
+  while (!s.fine) { C.passo(s, 1); for (const u of s.u) if (u.st === 'vivo' && u.sal <= s.t && Math.abs(u.y - s.muro) < .45) assert(s.varchi.some(g => u.x > g[0] && u.x < g[1]), 'unità dentro il muro a x=' + u.x.toFixed(1)); }
   let campo = 0, mura = 0;
   for (let k = 0; k < 16; k++) {
     const x = T(0, { val_f2: 16, val_t2: 7 }), y = T(5, { val_f2: 15, val_t2: 7 });

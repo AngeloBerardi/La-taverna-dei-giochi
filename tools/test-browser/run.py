@@ -3156,6 +3156,44 @@ async def sc_ventura_torneo(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_assedio(b, srv):
+    """Ventura, assedio a fasi (V5b): pannello dell'assalto con scale, breccia e ariete; ariete costruito; battaglia con scale, portone e camminamento; la porta cade."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # davanti a un castello nemico, assedio appena pronto (solo le scale), compagnia forte e tasche piene
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s),l=s.l.find(l=>l.tipo==='castello'&&l.faz!=='tu'&&VEN.MURA[l.tipo]);s.rel[l.faz]=-60;
+      for(const p of s.p)if(p.dentro===l.id)p.dentro=-1;l.g=[{t:l.faz+'_f2',n:10,f:0,xp:0},{t:l.faz+'_t2',n:8,f:0,xp:0}];
+      tu.tr=[{t:'val_f2',n:30,f:0,xp:0},{t:'val_t2',n:10,f:0,xp:0}];tu.oro=400;tu.x=l.x+.4;tu.y=l.y;tu.ord=null;tu.via=[];s.dentro=-1;s.davanti=l.id;
+      s.assedio={lid:l.id,pronto:s.t,da:s.t,ariete:false};s.incontro={tipo:'assalto',lid:l.id};Ven.act('pan:incontro')})()""")
+    await pg.wait_for_selector('[data-v="scegli:ariete"]', timeout=10000)
+    tx = await pg.inner_text('.vn-inc')
+    check(all(k in tx for k in ['Scale', 'Breccia', 'Ariete', 'Tra 72 ore']) and await pg.locator('[data-v="scegli:attendi"]').count() == 1 and await pg.locator('[data-v="scegli:attacca"]').count() == 1 and await pg.locator('[data-v="scegli:auto"]').count() == 1,
+          'pannello dell\'assalto: scale pronte, breccia tra 72 ore, ariete da costruire, combatti e risolvi')
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    await pg.click('[data-v="scegli:ariete"]'); await pg.wait_for_timeout(200)
+    st = await pg.evaluate("({oro:VEN.TU(Ven.V.s).oro,a:Ven.V.s.assedio,inc:Ven.V.s.incontro})")
+    check(st['oro'] == 250 and st['a']['ariete'] and st['inc'] is None, f'ariete costruito: 150 monete, si aspetta che sia pronto: {st}')
+    # passano le ore: di nuovo l'assalto, con l'ariete pronto
+    await pg.evaluate("(()=>{const s=Ven.V.s;let g=0;while(!s.incontro&&g++<100)VEN.passo(s,30);Ven.act('pan:incontro')})()")
+    await pg.wait_for_selector('[data-v="scegli:attacca"]', timeout=10000)
+    check('Pronto davanti alla porta' in await pg.inner_text('.vn-inc') and await pg.locator('[data-v="scegli:ariete"]').count() == 0, 'all\'assalto l\'ariete è pronto')
+    await pg.click('[data-v="scegli:attacca"]'); await pg.wait_for_function("VenCampo.K.s&&VenCampo.K.s.tipo==='assedio'", timeout=20000); await pg.wait_for_timeout(1000)
+    c0 = await pg.evaluate("({v:VenCampo.K.s.varchi,sc:VenCampo.K.s.scale,p:VenCampo.K.s.porta,port:!!VenCampo.K.portone&&VenCampo.K.portone.visible})")
+    check(c0['v'] == [] and len(c0['sc']) == 4 and c0['p']['ariete'] and c0['p']['pf'] == 60 and c0['port'], f'campo: mura intere, quattro scale, portone chiuso, ariete: {c0}')
+    # uno sguardo alle mura: qualche istante di battaglia, visuale sul portone
+    await pg.evaluate("VCAM.ordina(VenCampo.K.s,{g:'tutti',t:'carica'})"); await pg.click('.vn-via [data-v=cpausa]'); await pg.wait_for_timeout(150); await pg.click('[data-v=cpausa]'); await pg.wait_for_timeout(200)
+    await pg.evaluate("(()=>{const k=VenCampo.K;VCAM.passo(k.s,420-k.s.t);k.segue=false;k.fuoco.x=30;k.fuoco.z=40;k.alt=56;VenCampo.passo(.016)})()"); await pg.wait_for_timeout(500)
+    sal = await pg.evaluate("VenCampo.K.s.u.filter(u=>u.sal>VenCampo.K.s.t).length+VenCampo.K.s.u.filter(u=>u.l==='a'&&u.st==='vivo'&&u.y<VenCampo.K.s.muro).length")
+    check(sal > 0, f'si sale con le scale mentre l\'ariete spinge ({sal} sopra o in salita)')
+    await pg.screenshot(path='/tmp/assedio-390.png')
+    fin = await pg.evaluate("(()=>{const k=VenCampo.K,s=k.s;let t=0;while(s.porta.pf>0&&!s.fine&&t++<3000)VCAM.passo(s,1);VenCampo.passo(.016);return{pf:s.porta.pf,v:s.varchi,port:k.portone.visible,giu:k.abbattuto.visible}})()")
+    check(fin['pf'] == 0 and [28, 32] in fin['v'] and not fin['port'] and fin['giu'], f'i fanti spingono l\'ariete e la porta cade: {fin}')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_diplomazia(b, srv):
     """Ventura, diplomazia (V3): nella sala del re i fattori a favore e contro e il totale, pace/alleanza/guerra, rottura con preavviso, mercenario solo pace, 390 px."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)

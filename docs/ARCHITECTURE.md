@@ -216,8 +216,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/28j-ven-dati.js` | 28 | VDAT |
-| `js/motori/28k-ven-mondo.js` | 92 | VEN, capi |
-| `js/motori/28l-ven-campo.js` | 24 | VCAM |
+| `js/motori/28k-ven-mondo.js` | 93 | VEN, capi |
+| `js/motori/28l-ven-campo.js` | 29 | VCAM, k |
 | `js/motori/28m-ven-stanza.js` | 5 | VST |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
 | `js/motori/30-domande.js` | 12 | DOMANDE, CATS, Q |
@@ -244,7 +244,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07a-rete-stanza.js` | 9 | netInit, netInit0, retryNet, unsubAll, enterHub, enterHub0, p2pCreate |
 | `js/app/07b-partita.js` | 5 | defOpts, startGame, rematch, toLobby, Q, pushState, risincronizza |
 | `js/app/07c-comandi.js` | 9 |  |
-| `js/app/07d-regole.js` | 59 | RULES |
+| `js/app/07d-regole.js` | 60 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
 | `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
@@ -320,8 +320,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hs-bat-pixel.js` | 5 | BatPx |
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
-| `js/app/24hv-ven-campo.js` | 26 | VenCampo |
-| `js/app/24hw-ventura.js` | 60 | Ven |
+| `js/app/24hv-ven-campo.js` | 29 | VenCampo |
+| `js/app/24hw-ventura.js` | 61 | Ven |
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |
