@@ -3156,6 +3156,40 @@ async def sc_ventura_torneo(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_personaggi(b, srv):
+    """Ventura, personaggi (V6a): pannello Compagnia con umore e barra del gradimento (ⓘ con ciò che amano solo se già visto), incontro con un signore con la sua fiducia, favori e debito, prigioniero di riguardo da liberare."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # due compagni in compagnia: Lapo scontento (ha già visto una razzia), Ulfredo fedele (nulla di visto)
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s);for(const id of ['co_lapo','co_ulf']){tu.tr.push({t:id,n:1,f:0,xp:0});s.compagni[id]=-1}
+      s.grad.co_lapo={g:30,avv:0,visto:['razzia']};s.grad.co_ulf={g:80,avv:0,visto:[]};Ven.act('pan:compagnia')})()""")
+    await pg.wait_for_selector('.vn-grad', timeout=5000)
+    um = await pg.evaluate("[...document.querySelectorAll('.vn-um')].map(x=>x.textContent.replace(/\\s+/g,' ').trim().toLowerCase())")
+    check(len(um) == 2 and any(x.startswith('scontento') for x in um) and any(x.startswith('fedele') for x in um), f'pannello Compagnia: umore e barra di ogni compagno: {um}')
+    tip = await pg.evaluate("[...document.querySelectorAll('.vn-um .tip')].map(x=>x.textContent)")
+    check(any('Detesta: le razzie' in x for x in tip) and any('lo scopri giocando' in x for x in tip) and not any('Gli piace' in x for x in tip), f'ⓘ: solo ciò che è già successo, il resto si scopre giocando: {tip}')
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    await pg.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'ventura-personaggi.png'))
+    # prigioniero di riguardo: «Libera» senza riscatto
+    await pg.evaluate("(()=>{const s=Ven.V.s,sg=s.sig.find(x=>!x.re&&x.faz==='sel');s.prig.push({sig:sg.id,n:1,t:'sig'});sg.prig='tu';Ven.act('pan:compagnia')})()")
+    await pg.wait_for_selector('[data-v^="fai:liberasig:"]', timeout=5000); await pg.click('[data-v^="fai:liberasig:"]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("Ven.V.s.sig.find(x=>!x.re&&x.faz==='sel').mem.lib") == 1 and await pg.evaluate("Ven.V.s.prig.length") == 0, 'liberato senza riscatto: se ne ricorderà')
+    # incontro con un signore: fiducia 0 (niente notizie), poi 2 (lettera e prestito), prestito e debito
+    await pg.evaluate("(()=>{const s=Ven.V.s,sg=s.sig.find(x=>!x.re&&x.faz==='val'),p=s.p.find(p=>p.sig===sg.id);s.rel.val=0;sg.mem={lib:0,sconf:0,trad:0,fav:0,g:-99};s.incontro={tipo:'parla',pid:[p.id],all:[]};Ven.act('pan:incontro')})()")
+    await pg.wait_for_selector('[data-v="scegli:notizie"]', timeout=5000)
+    check(await pg.locator('[data-v="scegli:notizie"][disabled]').count() == 1 and 'Non ti conosce' in await pg.inner_text('.vn-pan') and await pg.locator('[data-v="scegli:prestito"]').count() == 0, 'fiducia 0: nessuna notizia, nessun favore')
+    await pg.evaluate("(()=>{const s=Ven.V.s,sg=s.sig.find(x=>!x.re&&x.faz==='val');sg.mem.lib=2;sg.mem.fav=1;Ven.act('pan:incontro')})()")
+    await pg.wait_for_selector('[data-v="scegli:prestito"]', timeout=5000)
+    oro0 = await pg.evaluate("VEN.TU(Ven.V.s).oro"); await pg.click('[data-v="scegli:prestito"]'); await pg.wait_for_selector('[data-v="scegli:rendi"]', timeout=5000)
+    st = await pg.evaluate("({oro:VEN.TU(Ven.V.s).oro,deb:Ven.V.s.debiti.length})")
+    check(st['oro'] == oro0 + 300 and st['deb'] == 1 and await pg.locator('[data-v="scegli:prestito"][disabled]').count() == 1, f'prestito: +300 monete, un debito, «Rendi» compare: {st}')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), 'incontro: nessuno scorrimento orizzontale')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_assedio(b, srv):
     """Ventura, assedio a fasi (V5b): pannello dell'assalto con scale, breccia e ariete; ariete costruito; battaglia con scale, portone e camminamento; la porta cade."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)

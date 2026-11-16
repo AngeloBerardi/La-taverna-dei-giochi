@@ -92,3 +92,7 @@ html.vn-on #plancia,html.vn-on #dock{display:none!important}
 .vn-stdr{height:34px;margin-bottom:6px;border:2px solid rgba(0,0,0,.6);background:linear-gradient(90deg,var(--a) 0 50%,var(--b) 50% 100%)}
 .vn-malc{display:block;height:8px;margin-top:5px;background:rgba(0,0,0,.4);border:1px solid rgba(184,138,60,.4)}.vn-malc b{display:block;height:100%;background:linear-gradient(90deg,#6aa33a,#e0b030 60%,#c0392b)}
 .vn-vit .vn-pt h3{color:#ffd75a}.vn-vit .vn-tr li{font-size:13px}
+.vn-um{display:flex;align-items:center;gap:7px;margin-top:3px;font:700 12px var(--f-b);text-transform:capitalize;color:#e6d6b4}.vn-um .info{margin-left:auto}
+.vn-grad{flex:0 0 74px;height:8px;background:rgba(0,0,0,.4);border:1px solid rgba(184,138,60,.4)}.vn-grad i{display:block;height:100%;background:#7a7a6a}
+.vn-u4 .vn-grad i{background:#6aa33a}.vn-u3 .vn-grad i{background:#a3b83a}.vn-u2 .vn-grad i{background:#e0b030}.vn-u1 .vn-grad i{background:#d9702e}.vn-u0 .vn-grad i{background:#c0392b}
+.vn-u1,.vn-u0{color:#ff9a8a}.vn-u4{color:#b6e07e}
