@@ -96,3 +96,7 @@ html.vn-on #plancia,html.vn-on #dock{display:none!important}
 .vn-grad{flex:0 0 74px;height:8px;background:rgba(0,0,0,.4);border:1px solid rgba(184,138,60,.4)}.vn-grad i{display:block;height:100%;background:#7a7a6a}
 .vn-u4 .vn-grad i{background:#6aa33a}.vn-u3 .vn-grad i{background:#a3b83a}.vn-u2 .vn-grad i{background:#e0b030}.vn-u1 .vn-grad i{background:#d9702e}.vn-u0 .vn-grad i{background:#c0392b}
 .vn-u1,.vn-u0{color:#ff9a8a}.vn-u4{color:#b6e07e}
+/* dialoghi (V6b): pannello fisso della scena, risposte a tutta riga; riga dell'incarico di un compagno */
+.vn-voce{max-height:70%}.vn-dl{font:600 16px/1.4 var(--f-b);color:#fff3d6;padding:2px 0 4px}
+.vn-vs{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;width:100%;text-align:left;justify-content:flex-start}.vn-vs span{flex:1 1 60%}.vn-vs small{flex:1 0 100%;color:#cdbb96}
+.vn-inc{display:block;margin-top:3px;color:#e0c070;font-size:12px}

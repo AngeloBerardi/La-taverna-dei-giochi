@@ -23,6 +23,14 @@ const Ven=(()=>{
  function gradH(s,id){const co=D.COMPAGNI.find(c=>c.id===id),gr=s.grad&&s.grad[id];if(!co||!gr)return'';const u=VEN.umore(gr.g),vis=l=>l.filter(x=>gr.visto.includes(x)).map(evNome),am=vis(co.ama),od=vis(co.odia),alt=co.lega&&D.COMPAGNI.find(c=>c.id===co.lega.id),qui=alt&&VEN.TU(s).tr.some(e=>e.t===alt.id&&e.n>0);
   const tip=(am.length?'Gli piace: '+am.join(', ')+'. ':'')+(od.length?'Detesta: '+od.join(', ')+'. ':'')+(!am.length&&!od.length?'Non sai ancora cosa gli piace e cosa no: lo scopri giocando. ':'')+(qui?(co.lega.n>0?'Ha intesa con ':'Ha antipatia per ')+alt.nome+'. ':'')+(gr.g<D.GRAD.PARLA?'Così non resterà a lungo.':'');
   return`<span class="vn-um vn-u${u==='fedele'?4:u==='contento'?3:u==='tranquillo'?2:u==='scontento'?1:0}"><span class="vn-grad"><i style="width:${gr.g}%"></i></span>${u}${gr.avv?' · vuole parlarti':''}${infoH(esc(tip))}</span>`}
+ // incarico personale di un compagno (V6b): una riga col passo aperto; prima che gli si parli non si sa nulla
+ function incH(s,id){const co=D.COMPAGNI.find(c=>c.id===id),gr=s.grad&&s.grad[id];if(!co||!co.inc||!gr)return'';
+  if(gr.incA)return`<small class="vn-inc">Incarico, passo ${gr.incA} di ${co.inc.length}: ${esc(co.inc[gr.incA-1].d)}</small>`;
+  return gr.inc>=co.inc.length?'<small class="vn-inc">Incarico compiuto.</small>':gr.inc?`<small class="vn-inc">Incarico: ${gr.inc} passi su ${co.inc.length}. Aspetta che ti parli.</small>`:''}
+ // una scena dei dialoghi (V6b): pannello fisso, chi parla, il testo, le risposte con la loro etichetta («20 monete»). In compagnia risponde chiunque; la TV guarda soltanto.
+ function voceH(){const v=VEN.voce(V.s);if(!v)return'';const tv=inS()&&ui.tv;
+  const sc=v.scelte.map(c=>`<button class="b sm vn-vs" data-a="ven" data-v="parla:${c.i}" ${c.ok&&!tv?'':'disabled'}><span>${esc(c.t)}</span>${c.etichetta?` <i class="vn-tag">${esc(c.etichetta)}</i>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
+  return pannello(esc(v.chi.nome||'La compagnia'),`<p class="vn-p vn-dl">${esc(v.testo)}</p>${v.continua?bt(esc(v.continua),'parla:c',{cls:'gold',no:tv}):sc}`,{fisso:1,cls:'vn-voce'})}
  const CLS={f:'Fanti',t:'Tiratori',c:'Cavalieri'};
  function doti(o){const x=[],piu=(v,tx)=>{if(v)x.push((v>0?'+':'')+v+' '+tx)};piu(o.dan,'danno');piu(o.att,'mira');piu(o.dif,'difesa');piu(o.pf,'vita');if(o.slot==='cavallo')x.push('passo '+o.vel);else piu(o.vel,'passo');
   if(o.rit)x.push(o.rit<12?'svelta':o.rit>14?'lenta':'');if(o.perf)x.push('sfonda '+Math.round(o.perf*100)+'% d\'armatura');if(o.git)x.push('tira a '+o.git+' passi');if(o.due)x.push('a due mani');if(o.car)x.push('carica +'+Math.round(o.car*100)+'%');
@@ -64,10 +72,10 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
- function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero;if(!cammina)return;
+ function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero||(s.voci&&s.voci.length&&s.dentro<0&&s.davanti<0);if(!cammina)return;
   V.acc+=dt*8*(s.prigioniero||(t.ord&&t.ord.t==='aspetta')?Math.max(6,V.vel*3):V.vel);const n=Math.floor(V.acc);if(n<1)return;V.acc-=n;const g0=VEN.giorno(s),ev=VEN.passo(s,n);let ridisegna=false;
   for(const e of ev){if(e.t==='incontro'){V.pan='incontro';ridisegna=true;Snd.play('avv-missione')}else if(e.t==='dentro'||e.t==='davanti'){V.pan='luogo';V.sub='home';V.msg='';ridisegna=true;salva();Snd.play('avv-porta')}
-   else if(e.t==='log'&&e.tipo)avviso(e.tx,e.tipo);else if(e.t==='giorno'){salva();Snd.play('avv-alba')}else if(e.t==='libero'||e.t==='fine-attesa'){ridisegna=true}else if(e.t==='conquista')ridisegna=true}
+   else if(e.t==='log'&&e.tipo)avviso(e.tx,e.tipo);else if(e.t==='giorno'){salva();Snd.play('avv-alba')}else if(e.t==='libero'||e.t==='fine-attesa'){ridisegna=true}else if(e.t==='voce'){ridisegna=true;Snd.play('avv-missione')}else if(e.t==='conquista')ridisegna=true}
   if(V.pan==='attesa'&&!(t.ord&&t.ord.t==='aspetta')&&!s.prigioniero){V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;ridisegna=true}
   if(s.prigioniero&&V.pan!=='attesa'){V.pan='attesa';ridisegna=true}
   if(ridisegna||VEN.giorno(s)!==g0)render()}
@@ -226,7 +234,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
 
  function compagniaH(){const s=V.s,t=tu(),regnoRiga=s.corona?riga(`<b>${esc(s.corona.nome)}</b><small>Malcontento ${s.corona.malc}/100 · ${s.l.filter(l=>l.faz==='tu'&&l.sig<0).length} luoghi tenuti</small>`,bt('Il regno','pan:corona',{cls:'gold'})):'',h=t.tr.map(e=>{const T=D.TR[e.t],need=D.XP_SU[T.t],pr=T.su.length?Math.min(e.n,Math.floor((e.xp||0)/need)):0;
    const su=pr?T.su.map(x=>bt(esc(D.TR[x].nome)+' · '+D.PROMO[T.t],'fai:promuovi:'+e.t+':'+x,{cls:'gold'})).join(''):'';
-   return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.su.length?' · esperienza '+Math.floor(e.xp||0)+'/'+need:''}${pr?' · <span class="vn-bene">'+pr+' pronti a salire</span>':''}</small>${T.compagno?gradH(s,e.t):''}`,su+(T.compagno?'':bt('Congeda','fai:congeda:'+e.t)))}).join('');
+   return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.su.length?' · esperienza '+Math.floor(e.xp||0)+'/'+need:''}${pr?' · <span class="vn-bene">'+pr+' pronti a salire</span>':''}</small>${T.compagno?gradH(s,e.t)+incH(s,e.t):''}`,su+(T.compagno?'':bt('Congeda','fai:congeda:'+e.t)))}).join('');
   const prig=s.prig.map(e=>e.sig!=null?riga(`<b>${esc(s.sig[e.sig].nome)}</b><small>Prigioniero di riguardo: vale un riscatto, o un favore se lo liberi.</small>`,bt('Libera','fai:liberasig:'+e.sig)):riga(`<b>${esc(D.TR[e.t].nome)}</b><small>${e.n} prigionieri</small>`)).join('');
   return pannello(esc(s.nome),`<p class="vn-p">${VEN.uomini(t)} uomini su ${VEN.limite(s)} · paga ${VEN.paga(s)} monete ogni sette giorni · rendite ${VEN.rendite(s)} · viveri per ${Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))} giorni</p>${regnoRiga}${h}${prig?'<div class="sh2">Prigionieri</div>'+prig:''}`)}
  function capitanoH(){const s=V.s,c=mio(),t=tu(),st=VEN.statCap(c),ab=Object.keys(D.ABIL).map(k=>riga(`<b>${esc(D.ABIL[k].nome)} ${c.ab[k]}</b>${VEN.abil(s,k)>c.ab[k]?' <i class="vn-tag">+'+(VEN.abil(s,k)-c.ab[k])+'</i>':''}<small>${esc(D.ABIL[k].d)}</small>`,c.punti>0&&c.ab[k]<10?bt(ic('plus',14),'fai:abilita:'+k,{cls:'gold'}):'')).join('');
@@ -301,7 +309,7 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
  function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;
   const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
    V.modo==='campo'?campoH():altoH()+(V.pan?'':bassoH())+(V.carta!=null&&!V.pan?cartaH():'')+
-   (V.pan==='luogo'?luogoH():V.pan==='compagnia'?compagniaH():V.pan==='capitano'?capitanoH():V.pan==='diario'?diarioH():V.pan==='incontro'?incontroH():V.pan==='esito'?esitoH():V.pan==='attesa'?attesaH():V.pan==='menu'?menuH():V.pan==='carta'?cartaMondoH():V.pan==='corona'?coronaH():V.pan==='vittoria'?vittoriaH():'');
+   (V.pan==='luogo'?luogoH():V.pan==='compagnia'?compagniaH():V.pan==='capitano'?capitanoH():V.pan==='diario'?diarioH():V.pan==='incontro'?incontroH():V.pan==='esito'?esitoH():V.pan==='attesa'?attesaH():V.pan==='menu'?menuH():V.pan==='carta'?cartaMondoH():V.pan==='corona'?coronaH():V.pan==='vittoria'?vittoriaH():'')+voceH();
   return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}<div class="vn-avv">${avvisiH()}</div></div>`}
  // ---------- battaglia ----------
  function inBattaglia(scheda){V.modo='campo';V.pan=null;V.fine=null;VenCampo.apri(scheda);render()}
@@ -330,6 +338,8 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='ferma'){ordina({t:'ferma'});V.pan=s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
   if(c==='campo'){const r=ordina({t:'aspetta',ore:8});if(r.err)avviso(r.err);else V.pan='attesa';return render()}
   if(c==='segui'){const r=ordina({t:'segui',pid:+p[1]});V.carta=null;if(r.err)avviso(r.err);return render()}
+  if(c==='parla'){const a=p[1]==='c'?{t:'continua'}:{t:'scegli',i:+p[1]},r=inS()?VenStanza.manda({t:'parla',a}):VEN.parla(s,a);if(r.err){V.msg=r.err;Snd.play('err');return render()}
+   V.msg='';if(!inS()){salva();if(s.incontro){V.pan='incontro';Snd.play('avv-missione')}}return render()}
   if(c==='scegli'){const sv=p.slice(1).join(':'),r=inS()?VenStanza.manda({t:'scegli',v:sv}):VEN.scegli(s,sv);if(r.err){V.msg=r.err;return render()}if(inS())return render();if(p[1]==='passa')avviso(s.log[s.log.length-1].tx,'bene');
    if(p[1]==='attacca')return inBattaglia(r.campo);if(p[1]==='auto'){VEN.auto(s);V.pan='esito';salva();return render()}
    V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}

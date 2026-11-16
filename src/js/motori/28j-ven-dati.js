@@ -176,6 +176,13 @@ const VDAT=(()=>{
   co_temu:[['razzia','sito'],['servi_alt','fame'],'co_ghino',1],co_nera:[['libera','cura'],['razzia','riscatta'],'co_lapo',1],
   co_brando:[['riscatta','fuga'],['perdite','torneo'],'co_isa',-1],co_fosca:[['sito','riscatta'],['perdite','fame'],'co_temu',1]};
  for(const c of COMPAGNI){const g=GRC[c.id];c.ama=g[0];c.odia=g[1];c.lega={id:g[2],n:g[3]}}
+ // incarichi personali (V6b): tre passi per compagno, fatti in ordine e annunciati dalle scene `<c>-inc-1..3`. Tipi: luogo {tipoL?,faz?} (entrarci) · vinci {k:'pre'|'sig'|'riv',faz?} ·
+ // sito {tipoL} (ripulire rovine o covo) · porta {tipoL?, m,n | oro} (consegnare merce o monete entrando in un luogo); `d` = riga per il diario. Premio {ogg:id} (nello zaino) o {abil:1} (il compagno dà 3 punti di talento, non 2).
+ // Per ora Berta e Lapo: i dieci premi e gli altri incarichi li fissa V6c.
+ const INC={
+  co_berta:{inc:[{tipo:'luogo',tipoL:'citta',faz:'val',d:'Rimettere piede a Roccadoro a testa alta.'},{tipo:'vinci',k:'sig',faz:'val',d:'Battere in campo un signore di Valdoro.'},{tipo:'sito',tipoL:'covo',d:'Stanare un covo di predoni.'}],premio:{abil:1}},
+  co_lapo:{inc:[{tipo:'luogo',tipoL:'monastero',d:'Tornare in un monastero.'},{tipo:'porta',tipoL:'monastero',oro:120,d:'Lasciare 120 monete per i malati di un monastero.'},{tipo:'sito',tipoL:'rovine',d:'Ripulire delle rovine.'}],premio:{abil:1}}};
+ for(const c of COMPAGNI){const x=INC[c.id];if(x){c.inc=x.inc;c.premio=x.premio}}
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro
  const CAPIBANDA=[
@@ -188,6 +195,8 @@ const VDAT=(()=>{
  for(const c of CAPIBANDA)extra(c.id,c.nome,'pre','f4',{nome:c.nome.charAt(0).toUpperCase()+c.nome.slice(1),pf:120,att:22,dif:16,dan:15,asp:c.asp,capo:1});
  // la rivale: un'altra compagnia di ventura che gira il mondo e cresce
  const RIVALE={id:'rv_volpe',nome:'la Volpe Rossa',compagnia:'Compagnia della Volpe',premio:'u_tramontana',asp:A('piuma','sciabola','tondo',3,{mant:1,barda:1,col:'#c8421c'}),d:'Nessuno sa chi serva questa settimana. Sorride sempre.'};
+ // la rivale a tappe (V6b): giorni in cui la Volpe Rossa ti raggiunge (scene volpe-1..3)
+ const VOLPE={GIORNI:[12,40,80]};
  extra(RIVALE.id,'La Volpe Rossa','mer','c4',{pf:130,att:23,dif:18,dan:15,asp:RIVALE.asp,capo:1});
  // tratti dei signori: come parlano, e quanto osano
  const TRATTI={prode:{nome:'prode',osa:1.25,passa:0,dipl:{pace:-2,alleanza:0,guerra:3},saluto:'«Buona strada, capitano. Se cerchi gloria, qui ce n\'è per tutti.»'},avido:{nome:'avido',osa:.95,passa:2,dipl:{pace:1,alleanza:-1,guerra:1},saluto:'«Capitano. Spero tu non sia qui a chiedere denaro: ne ho appena per me.»'},
@@ -232,5 +241,5 @@ const VDAT=(()=>{
    {nome:'Oro e nero',col:'#d9a521',col2:'#1d1a1a'},{nome:'Notte e argento',col:'#1b2a55',col2:'#c9d3dc'},{nome:'Avorio e rosso',col:'#efe6cf',col2:'#a8262b'},{nome:'Rosso scuro e oro',col:'#6e1a1f',col2:'#e8b23a'}]};
  // cosa produce ogni regno: le scorte tendono a salire dove si produce
  const PRODUCE={val:['grano','vino','velluto'],sel:['carne','lana','attrezzi'],fer:['ferro','sale','attrezzi'],mar:['pesce','spezie','velluto'],alt:['carne','lana','sale']};
- return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,GRAD,SIG,CAPIBANDA,RIVALE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
+ return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,GRAD,SIG,CAPIBANDA,RIVALE,VOLPE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;

@@ -2,6 +2,7 @@
 // e uno sconsiderato (ordini a caso, attacca chiunque). Usati da test_ven_mondo.js e da tools/avventura/ventura.js.
 // Opzione `{regno:true}` del capitano accorto (V4): da fama 120 niente contratti; con fama 150 e monete sceglie il castello più debole, se non è ostile
 // aggredisce un signore di quel regno, lo assedia, entra e fonda un regno.
+// V6b: risponde alle scene dei dialoghi (se il motore le ha caricate).
 module.exports = function (VEN, VDAT) {
   const TU = s => VEN.TU(s);
   const forzaNemici = s => { const { nem, luogo } = VEN.schieramenti(s); return nem.reduce((a, p) => a + VEN.forza(p), 0) + (luogo ? VEN.forzaTr(luogo.g) * (VEN.MURA[luogo.tipo] ? VEN.P.MURA : 1) : 0); };
@@ -113,6 +114,8 @@ module.exports = function (VEN, VDAT) {
   return function gioca(s, giorni, bravo, r, opt) {
     const fine = s.t + giorni * 1440, mem = {}, reg = bravo && opt && opt.regno ? { fase: null, t: -1, n: 0, assedi: 0 } : null; let guardia = 0;
     while (s.t < fine && guardia++ < 400000) {
+      // V6b: una scena aperta ferma il tempo; il bot risponde con la prima scelta disponibile (o `opt.voce(vista)` → indice)
+      if (s.rac && s.rac.scena) { const v = VEN.voce(s), i = v.continua ? -1 : (opt && opt.voce ? opt.voce(v) : v.scelte.find(c => c.ok).i), x = VEN.parla(s, i < 0 ? { t: 'continua' } : { t: 'scegli', i }); if (x.err) throw new Error('voce: ' + x.err); continue; }
       if (s.incontro) { const x = incontro(s, bravo, r, reg); if (x && x.err) throw new Error('incontro: ' + x.err + ' ' + JSON.stringify(s.incontro)); continue; }
       const tu = TU(s);
       if (s.prigioniero) { VEN.passo(s, 60); continue; }

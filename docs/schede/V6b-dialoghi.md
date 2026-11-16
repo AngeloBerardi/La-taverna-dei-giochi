@@ -45,4 +45,4 @@ in `motori/28k-ven-mondo.js` `passo`, `giornoNuovo`, `esito` (riga `p.k==='riv'`
 **Fuori scopo:** i testi definitivi (V6c), prove di abilità nei dialoghi, ritratti, voci registrate, storie d'amore.
 
 ## Fatto quando
-- [ ] `npm run verifica`, `npm test -- ven_ avv_racc` verdi · [ ] le sei prove · [ ] l'Avventura a capitoli non cambia (`test_avv_corona` verde) · [ ] regole e scheda d'area aggiornate.
+- [x] `npm run verifica`, `npm test -- ven_ avv_racc` verdi · [x] le sei prove · [x] l'Avventura a capitoli non cambia (`test_avv_corona` verde) · [x] regole e scheda d'area aggiornate.
