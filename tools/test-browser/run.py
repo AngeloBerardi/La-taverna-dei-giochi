@@ -3496,7 +3496,7 @@ async def sc_ventura_tv(b, srv):
     for pg in (A, B, T): await pg.wait_for_function("Ven.V.modo==='campo'&&VenCampo.K.s", timeout=20000)
     await A.click('[data-v=cpausa]'); await T.wait_for_function("!VenCampo.K.pausa", timeout=15000)
     await T.wait_for_function("Snd.quale()==='ven-battaglia'", timeout=10000)
-    await T.wait_for_timeout(2500)
+    await T.wait_for_function("VenCampo.K.s.t>=12", timeout=90000); await T.wait_for_timeout(400)   # nel browser senza GPU la battaglia va piano
     bt = await T.evaluate("({basso:!!document.querySelector('.vn-cb'),barra:!!document.querySelector('.vn-tvb #vn-na'),alt:VenCampo.K.alt,seg:VenCampo.K.segue,t:document.getElementById('vn-tvt').textContent})")
     check(not bt['basso'] and bt['barra'] and bt['alt'] == 80 and not bt['seg'] and bt['t'] != '0:00', f'TV in battaglia: solo le forze e il tempo che corre, campo intero: {bt}')
     g = await B.evaluate("({gr:getComputedStyle(document.querySelector('.vn-cb .vn-or')).gridTemplateColumns.split(' ').length,h:document.querySelector('.vn-cb .vn-or .vn-bt').getBoundingClientRect().height})")
