@@ -2,12 +2,12 @@
 
 **Scopo.** Il campo cambia già aspetto con il luogo; ora cambia anche il combattimento (altura, bosco, case, acqua bassa) e ogni gruppo può cambiare formazione con un tocco. L'assedio a fasi è la scheda `V5b-assedio`, da eseguire dopo questa.
 
-**Area:** `docs/moduli/ventura.md`. **Modello:** Sonnet. **Prima:** PR 123 (V4) unita, per non scontrarsi su `28k` e `24hw`.
+**Area:** `docs/moduli/ventura.md`. **Modello:** Sonnet. **Prima:** PR 123 (V4), già unita: righe ricontrollate dopo l'unione.
 
 ## Leggi prima (solo questi pezzi, con `grep -n`)
 - `motori/28l-ven-campo.js` tutto (154 righe): `C`, `posto`, `nuovo`, `ordina`, `muovi`, `mischia`, `tiro`, `comanda`, `istante`.
-- `motori/28j-ven-dati.js`: `ASP` e `aspetto(tid)` (dà `arma` e `scudo`). `motori/28k-ven-mondo.js`: solo `campo` (riga 488 circa: `terreno`, `scena`).
-- `app/24hv-ven-campo.js`: `scena()` (righe 17–40: `alto`, alberi, case di `vic`), riga 119 (`K.alto` per i soldati). `app/24hw-ventura.js`: righe 240–241 (bottoni dei gruppi), comandi `cgr` e `cord` (riga 290).
+- `motori/28j-ven-dati.js`: `ASP` e `aspetto(tid)` (dà `arma` e `scudo`). `motori/28k-ven-mondo.js`: solo `campo` (riga 523 circa: `terreno`, `scena`).
+- `app/24hv-ven-campo.js`: `scena()` (righe 17–40: `alto`, alberi, case di `vic`), riga 119 (`K.alto` per i soldati). `app/24hw-ventura.js`: righe 282–283 (bottoni dei gruppi), comandi `cgr` e `cord` (righe 334–335).
 - `tests/test_ven_campo.js` (forma dei test), `tests/test_ven_stanza.js` (un blocco con `b-ord`).
 
 ## Decisioni già prese
@@ -34,7 +34,7 @@
 
 ## Passi
 1. `28l`: `C.TER`, `C.FM`, zone in `nuovo`, `quota`/`copre`/`acqua`, effetti in `muovi`, `mischia`, `tiro`, `istante`; `posto` e `ordina` con `forma`; `comanda`. Test nuovo `tests/test_ven_tattica.js` (rapido); ritocchi a `tests/test_ven_campo.js` solo dove i numeri si spostano.
-2. Taratura: se le prove di durata o del comandante accorto non passano si toccano solo `C.TER` e `C.FM`, mai i numeri delle truppe. `node tools/avventura/ventura.js` prima e dopo: il giudizio prima dello scontro (forze, riga 515 di `28k`) deve continuare a dare il vincitore nella stessa quota di casi (±5 punti).
+2. Taratura: se le prove di durata o del comandante accorto non passano si toccano solo `C.TER` e `C.FM`, mai i numeri delle truppe. `node tools/avventura/ventura.js` prima e dopo: il giudizio prima dello scontro (forze, riga 569 di `28k`) deve continuare a dare il vincitore nella stessa quota di casi (±5 punti).
 3. `tests/test_ven_stanza.js`: stessi ordini (`forma` compresa) e stesso seme su due copie della stanza → `JSON` uguale.
 4. Vista `24hv`: dentro il campo `alto(x,z)=VCAM.quota(K.s,x,z)*C.TER.ALTO` (fuori dal campo i dossi di oggi, raccordati sul bordo; il rumore di `monte` dentro il campo si toglie); alberi dentro il campo solo dove `copre==='bosco'` (fitti: 1 ogni 9 passi quadrati); 3–5 case di `vic` dentro ogni zona `case`; acqua: un piano azzurro semitrasparente a `y=-.1` sulle zone `acqua`. Nessuna nuova luce né materiale.
 5. `24hw`: `cgr:g` sul gruppo già scelto (non `tutti`) manda `forma` (in stanza con `VenStanza.manda({t:'b-ord',…})`); sotto il nome del gruppo una riga piccola `vn-fm` con «serrata», «larga» o «cuneo» da `VCAM.forme`; avviso «Fanti: serrate le file», «…: allargatevi», «…: a cuneo». Niente emoji. CSS in `css/39j-ventura.css`.

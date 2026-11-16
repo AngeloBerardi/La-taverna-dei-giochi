@@ -6,8 +6,8 @@
 
 ## Leggi prima (solo questi pezzi, con `grep -n`)
 - `motori/28l-ven-campo.js`: `nuovo` (`muro`, `varchi`), `versoVarco`, `muovi`, `comanda` (ramo `s.muro`), `istante` (bersaglio, blocco «muro», rotta e fine), `quota`.
-- `motori/28k-ven-mondo.js`: `P` (riga 12), `passo` riga 353 (assedio pronto), `campo`, `scegli` (`togli`), `fai` `assedia` (riga 576), riga 266 (muoversi toglie l'assedio).
-- `app/24hw-ventura.js`: pannello dell'incontro (riga 219), riga dell'assedio in `luogoH` (riga 119). `app/24hv-ven-campo.js`: righe 41–46 (mura e varchi).
+- `motori/28k-ven-mondo.js`: `P` (riga 12), `passo` riga 364 (assedio pronto), `campo`, `scegli` (`togli`), `fai` `assedia` (riga 666), riga 274 (muoversi toglie l'assedio).
+- `app/24hw-ventura.js`: pannello dell'incontro (riga 260), riga dell'assedio in `luogoH` (riga 119). `app/24hv-ven-campo.js`: righe 41–46 (mura e varchi).
 - `tests/test_ven_campo.js`: il blocco «assedio».
 
 ## Decisioni già prese
