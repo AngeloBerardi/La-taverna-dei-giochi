@@ -8,7 +8,7 @@
 const ARAC=(()=>{
  const ER=typeof EROI!=='undefined'?EROI:require('./27-eroi.js'),DAD=typeof ADADI!=='undefined'?ADADI:require('./27a-avv-dadi.js'),CM=typeof ACMP!=='undefined'?ACMP:require('./27p-avv-compagni.js');
  const AO=()=>typeof AOGG!=='undefined'?AOGG:require('./27b-avv-oggetti.js'),BE=()=>typeof BEST!=='undefined'?BEST:require('./27f-avv-bestiario.js'),AM=()=>typeof AMON!=='undefined'?AMON:require('./27m-avv-mondo.js'),AR=()=>typeof AARE!=='undefined'?AARE:require('./27h-avv-arene.js');
- const NARRATORE='_',MAX_TESTO=700,PROPRI=['bandiera','conta','togli','approv','recluta','congeda','missione','diario'],FUORI=['oro','oggetto','pf','perdizione','xp','razioni','battaglia','sposta','apri'];
+ const NARRATORE='_',MAX_TESTO=700,PROPRI=['bandiera','conta','togli','approv','recluta','congeda','missione','diario'],FUORI=['oro','oggetto','pf','perdizione','xp','razioni','battaglia','sposta','apri','ven'];
  const DIFF=['facile','medio','difficile','capo'],SERVIZI=['bottega','locanda','guaritore','tempio'],STATI_MISSIONE=['attiva','fatta','fallita'],CD_MIN=5,CD_MAX=25;
  const PRIM=['bandiera','valore','non','e','o','classe','razza','oggetto','livello','compagno','alleato','approv','missione','oro','perdizione','giorno','luogo'];
  const MAX_RIASSUNTO=8,CANTARI=['Primo','Secondo','Terzo','Quarto','Quinto','Sesto','Settimo','Ottavo'];
@@ -184,6 +184,7 @@ const ARAC=(()=>{
      if(x.capo&&!(BE().M[x.capo]&&BE().M[x.capo].capo))e.push(p+': capo sconosciuto '+x.capo);if(x.diff&&!DIFF.includes(x.diff))e.push(p+': difficoltà sconosciuta '+x.diff);
      if(x.sorpresa&&!['eroi','nemici'].includes(x.sorpresa))e.push(p+': sorpresa sconosciuta '+x.sorpresa+' (eroi o nemici: chi è colto di sorpresa)');
      if(x.arena&&!AR().AMBIENTI.includes(x.arena))e.push(p+': ambiente sconosciuto '+x.arena);break;
+    case'ven':if(typeof x.k!=='string'||!x.k)e.push(p+': "ven" vuole k');break;
     case'sposta':id(L[x.id]);break;case'apri':if(!SERVIZI.includes(x.id))e.push(p+': servizio sconosciuto '+x.id);break}};
   const valEffs=(L2,p)=>{if(L2==null)return;if(!Array.isArray(L2)){e.push(p+': gli effetti sono una lista');return}L2.forEach((x,i)=>valEff(x,p+' effetto '+(i+1)))};
   for(const[id,m]of Object.entries(M)){if(!m.titolo)e.push('missione '+id+': manca il titolo');valEffs(m.ricompensa,'missione '+id);if(m.scena&&!S[m.scena])e.push('missione '+id+': la scena «'+m.scena+'» non esiste')}
