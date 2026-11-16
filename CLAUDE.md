@@ -24,6 +24,7 @@ Hub di giochi multiplayer per telefono (mobile-first, 390 px), UI in italiano. H
 | Azioni dei bottoni (`data-a`) | `src/js/app/07c-comandi.js` (un solo `switch`) |
 | Nuovo gioco | comando `/nuovo-gioco` |
 | Eseguire una scheda di lavoro | comando `/scheda <id>` (schede in `docs/schede/`, flusso e modelli in `docs/LAVORO.md`) |
+| Piano della Compagnia di ventura («Il Condottiero») | `/fase N` (una fase intera) o `/passo NN`; regole in `docs/passi/LEGGIMI.md`, controllo del piano `npm run passi` |
 
 ### Schede per area (**leggi solo quella che ti serve**, mai tutte)
 | Area | Scheda |
@@ -46,7 +47,7 @@ Mappa completa dei moduli e contratti: `docs/ARCHITECTURE.md`. Stile e HUD: `doc
 `architetto` (progetta e scrive la scheda, non codice), `programmer` (codice e test dalla scheda), `artist` (asset e animazioni), `game-hud-designer` (stile e HUD, scrive solo docs/mockup), `rules-scout` (ricerca giochi e regole), `revisore` (legge solo il diff). Il modello di ognuno è fissato nella sua scheda. Si passano file, mai testo lungo: leggi la scheda che ti serve, scrivi il risultato in un file, rispondi con meno di 150 parole e i percorsi toccati.
 
 ## Git
-- Mai lavorare su `main`. Rami: `design/…`, `art/…`, `rules/…`, `feat/…`, `fix/…`. Commit piccoli, messaggio in italiano all'imperativo breve.
+- Mai lavorare su `main`. Rami: `design/…`, `art/…`, `rules/…`, `feat/…`, `fix/…`, `passo/NN-…` (piano in `docs/passi/`). Commit piccoli, messaggio in italiano all'imperativo breve.
 - Push del proprio ramo; l'unione in `main` la fa l'orchestratore dopo l'verifica approvata dall'utente.
 - Un solo push alla volta (il proxy git limita le operazioni concorrenti). Prima di pushare: `git fetch origin main` e rebase.
 

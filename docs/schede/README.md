@@ -22,3 +22,5 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 
 «Pronta» = eseguibile così. «Traccia» = le decisioni di gioco ci sono, ma firme e prove vanno fissate dall'`architetto` leggendo il codice
 (una sessione breve col modello forte: «completa la scheda V3»), poi si esegue con Sonnet. Ordine consigliato: V5, V5b, V6a, V6b, V6c, V7. Dopo ogni scheda: le prove lente (`npm test -- ven_`), che `npm run verifica` non lancia.
+
+Il piano della release «Il Condottiero» (Compagnia di ventura) non usa più queste schede: è in `docs/passi/` (46 passi in 12 fasi, regole in `docs/passi/LEGGIMI.md`). La scheda T4 è sostituita dal passo 18.
