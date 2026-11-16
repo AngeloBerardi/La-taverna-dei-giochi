@@ -303,7 +303,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
 | `js/app/24g-eroi.js` | 16 | Eroi |
 | `js/app/24h-campagna.js` | 10 | Camp |
-| `js/app/24ha-avventura.js` | 12 | Avv |
+| `js/app/24ha-avventura.js` | 13 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 21 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |

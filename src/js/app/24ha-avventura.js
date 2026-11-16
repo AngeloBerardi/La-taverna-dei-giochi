@@ -15,6 +15,15 @@ const Avv={
   ['La missione','Il diario (pulsante in alto) dice dove andare: ascolta chi comanda in città, ripulisci l\'antro e abbatti la Torre dei Corvi. Il capo vero compare solo se la compagnia è abbastanza forte.']],
  cartaCont(s){const e=s.eroi.map(h=>`<span class="av-rit${h.hp<=0?' ko':''}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,40)}</span>`).join('');
   return`<button class="av-card av-cont" data-a="avvcontinua"><span class="av-ritt">${e}</span><span class="av-tx"><b>${esc(s.missione.titolo)}</b><small>Giorno ${s.giorno} · perdizione ${s.perdizione}/100 · ${CAMP.vivi(s).length} eroi in piedi</small></span><span class="av-go">Continua</span></button>`},
+ // T2: unica porta d'uscita dall'Avventura (un altro gioco parte, si torna alla Taverna). Non cancella i salvataggi.
+ spegni(salva){if(salva){try{if(ui.ven&&Ven.V&&Ven.V.s)Ven.salva()}catch(e){ERR.n(e,'spegni salva')}}
+  try{Plancia.chiudi()}catch(e){}
+  for(const k of['avv','ven','camp','bat','dia','ses','inv','eroi'])ui[k]=false;
+  try{Ven.ferma();VenArte.smonta()}catch(e){}
+  Ven.V.pt={};Ven.V.pin=0;Ven.V.pan=null;Bat.foglio=null;Bat.gen++;Ses.vista=null;AvvStanza.sh=null;
+  const c=document.documentElement.classList;c.remove('vn-on');c.remove('bat-on')},
+ // sovrapposto: un interruttore Avventura è acceso mentre sullo schermo c'è un gioco che non è dell'Avventura
+ acceso(){const c=document.documentElement.classList;return!!(ui.avv||ui.ven||ui.camp||ui.bat||ui.dia||ui.ses||ui.inv||ui.eroi||c.contains('vn-on')||c.contains('bat-on'))},
  // ---- menù (T4): Riprendi, due insegne, schede Partite · Eroi · Guida, foglio del gioco ----
  tab:null,foglio:null,modo:'solo',
  // tutte le partite salvate dei due giochi: [{gioco,posto,titolo,sub,fine,coop,az:[data-a,data-v]}]

@@ -18,3 +18,6 @@ Scheda dei moduli: dove si mette mano. La carica chi lavora su quest'area (riman
 
 ## Menù Avventura (T4)
 Pagina `Avv.html()` (24ha): fascia «Riprendi» (prima partita non finita, `Avv.partite()` raccoglie campagna a capitoli, compagnia di ventura e campagna libera), due insegne (campagna a capitoli, compagnia di ventura), schede Partite · Eroi · Guida (`Avv.tab`). Un'insegna apre il foglio del gioco (`Avv.foglio`): Nuova partita, Carica, interruttore Da solo / Con la stanza (`Avv.modo`, attivo solo dentro una stanza). Azioni: `avvtab`, `avvfoglio`, `avvmodo`, `avvstanza`, `avvprove`. Le vecchie prove (battaglia, racconto, 3D, campagna libera) stanno in Guida › Prove. Classi `av2-` in `39a-avventura.css`; prova `sc_menu_avventura`.
+
+## Uscire dall'Avventura (T2)
+`Avv.spegni(salva)` è l'unica porta d'uscita: salva, chiude plancia, interruttori `ui.*`, tela della compagnia, classi `vn-on`/`bat-on` e foglio di stanza. La chiamano `startGame` (gioco che non è dell'Avventura), `toLobby` e, come rete di sicurezza, `afterRender`. In stanza `proponi('play')` è rifiutato a partita in corso. I diti dello zoom (`Ven.V.pt`, `BatMappa._g`) si azzerano su tela nuova, `visibilitychange` e `lostpointercapture`. Prova `sc_cambio_gioco`.

@@ -156,7 +156,7 @@ const BatMappa={
   const fine=e=>{const g=BatMappa._g.get(e.pointerId);if(!g)return;BatMappa._g.delete(e.pointerId);
    if(e.type==='pointerup'&&!BatMappa._pan&&BatMappa._g.size===0&&performance.now()-g.t0<700&&Bat.s){const p=BatMappa.pt(g.svg,e.clientX,e.clientY);if(p)BatMappa.tocco(BatMappa.cellaDa(p.x,p.y),p)}
    if(BatMappa._g.size===0)setTimeout(()=>{BatMappa._pan=false},0)};
-  document.addEventListener('pointerup',fine,{passive:true});document.addEventListener('pointercancel',fine,{passive:true});
+  document.addEventListener('pointerup',fine,{passive:true});document.addEventListener('pointercancel',fine,{passive:true});document.addEventListener('visibilitychange',()=>{BatMappa._g.clear();BatMappa._pan=false});
   document.addEventListener('wheel',e=>{const svg=trova(e);if(!svg||!Bat.s)return;e.preventDefault();if(BatMappa.px)return BatPx.rotella(e.deltaY);const p=BatMappa.pt(svg,e.clientX,e.clientY);BatMappa.zoom(svg,e.deltaY<0?1.2:1/1.2,p&&p.x,p&&p.y)},{passive:false})},
  // un tocco su un esagono (il secondo di due tocchi molto ravvicinati è un rimbalzo e non conferma nulla)
  tocco(c,p){const A=Bat.s.arena,t=performance.now(),u=BatMappa._ultimo;if(!AGRI.dentro(A,c))return Bat.tocca(null,p);

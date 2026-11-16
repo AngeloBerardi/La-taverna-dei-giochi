@@ -49,9 +49,10 @@ const Ven=(()=>{
  function esci(){salva();ui.ven=false;ui.avv=true;V.pan=null;ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on');render()}
  // ---------- ciclo ----------
  function ferma(){if(V.raf){cancelAnimationFrame(V.raf);V.raf=0}}
+ if(typeof document!=='undefined')document.addEventListener('visibilitychange',()=>{V.pt={};V.pin=0});
  function dopo(){const on=!!(ui.ven&&V.s);document.documentElement.classList.toggle('vn-on',on);if(!on){if(V.raf){ferma();VenArte.smonta()}return}
   if(!VenArte.A.pronta){if(!VenArte.A.fallita)VenArte.avvia().then(()=>{if(ui.ven)render()});return}
-  const host=document.querySelector('.vn-scena');if(!host)return;VenArte.monta(host);if(!V.gesti)gesti();
+  const host=document.querySelector('.vn-scena');if(!host)return;if(V.host!==host){V.host=host;V.pt={};V.pin=0}VenArte.monta(host);if(!V.gesti)gesti();
   if(V.modo==='mondo')VenMappa.apri(V.s);{const cc=document.querySelector('.vn-carta-cv');if(cc&&V.s)VenMappa.carta(cc,V.s)}
   if(!V.orecchio){V.orecchio=true;document.addEventListener('click',e=>{V.ultimoClick=e},true);document.addEventListener('input',e=>{if(e.target&&e.target.id==='vn-regno-nome')V.nomeRegno=e.target.value},true)}hudVivo();if(!V.raf){V.ult=0;V.raf=requestAnimationFrame(giro)}}
  // «Riprova» dopo la resa: il canvas è nuovo, quindi gesti, scene e contatori si rifanno come dopo una perdita normale
@@ -85,12 +86,12 @@ const Ven=(()=>{
   const lu=document.getElementById('vn-luna');if(lu){const nt=VEN.notte(s);if(lu.dataset.n!==String(nt)){lu.dataset.n=String(nt);lu.innerHTML=ic(nt?'luna':'sole',16)}}}
  // ---------- gesti sul canvas ----------
  function gesti(){V.gesti=true;const cv=VenArte.cv,sc=()=>V.modo==='campo'?VenCampo:VenMappa;cv.style.touchAction='none';
-  cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId)}catch(x){}V.pt[e.pointerId]={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now(),mosso:false};V.pin=0});
+  cv.addEventListener('pointerdown',e=>{if(Object.keys(V.pt).length>=2||Object.values(V.pt).some(q=>performance.now()-q.t>4000&&!q.mosso)){V.pt={};V.pin=0}try{cv.setPointerCapture(e.pointerId)}catch(x){}V.pt[e.pointerId]={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now(),mosso:false};V.pin=0});
   cv.addEventListener('pointermove',e=>{const p=V.pt[e.pointerId];if(!p)return;const ids=Object.keys(V.pt);
    if(ids.length>=2){const o=V.pt[ids.find(i=>+i!==e.pointerId)];p.x=e.clientX;p.y=e.clientY;const d=Math.hypot(p.x-o.x,p.y-o.y);if(V.pin>0&&d>0)sc().pizzico(d/V.pin);V.pin=d;p.mosso=o.mosso=true;return}
    const dx=e.clientX-p.x,dy=e.clientY-p.y;if(!p.mosso&&Math.hypot(e.clientX-p.x0,e.clientY-p.y0)<9)return;p.mosso=true;p.x=e.clientX;p.y=e.clientY;sc().trascina(dx,dy)});
   const su=e=>{const p=V.pt[e.pointerId];delete V.pt[e.pointerId];V.pin=0;if(!p||p.mosso||performance.now()-p.t>600||e.type==='pointercancel')return;tocco(e.clientX,e.clientY)};
-  cv.addEventListener('pointerup',su);cv.addEventListener('pointercancel',su);cv.addEventListener('wheel',e=>{e.preventDefault();sc().pizzico(e.deltaY<0?1.12:.89)},{passive:false})}
+  cv.addEventListener('pointerup',su);cv.addEventListener('pointercancel',su);cv.addEventListener('lostpointercapture',su);cv.addEventListener('wheel',e=>{e.preventDefault();sc().pizzico(e.deltaY<0?1.12:.89)},{passive:false})}
  function tocco(px,py){const s=V.s;if(V.modo==='campo'){const o=VenCampo.tocco(px,py);if(!o)return;const r=inS()?VenStanza.bCap(o):VCAM.capitano(VenCampo.K.s,o);if(r&&r.err)avviso(r.err);return}
   if(V.pan||s.incontro||s.prigioniero)return;const o=VenMappa.tocco(px,py);if(!o)return;V.carta=null;let r=null;
   if(o.tipo==='terra')r=ordina({t:'vai',x:o.x,y:o.y});
