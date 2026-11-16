@@ -36,7 +36,7 @@ Zone ellittiche sul campo, estratte dal seme (quindi uguali su tutti i telefoni)
 | Acqua bassa | riva (costa) e guado | passo dimezzato, niente carica |
 
 ## Le formazioni
-Ogni gruppo (fanti, tiratori, cavalieri) ha una formazione; un tocco sul gruppo già scelto passa alla successiva (larga → serrata → cuneo → larga; i tiratori saltano il cuneo). Dopo un cambio si aspetta tre secondi.
+Ogni gruppo (fanti, tiratori, cavalieri) ha una formazione; un tocco sul gruppo già scelto passa alla successiva (larga → serrata → cuneo → larga; i tiratori saltano il cuneo). Dopo un cambio gli uomini si riordinano per tre secondi (30 istanti, `C.FM.ATTESA`).
 
 | Formazione | Parte così | Effetto |
 |---|---|---|
