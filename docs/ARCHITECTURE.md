@@ -92,7 +92,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/03-arena-e-boss.css` | 6 |  |
 | `css/04-mano.css` | 1 |  |
 | `css/05-menu.css` | 1 |  |
-| `css/06-effetti.css` | 8 |  |
+| `css/06-effetti.css` | 9 |  |
 | `css/07-stanza-e-lobby.css` | 2 |  |
 | `css/08-tavoli.css` | 2 |  |
 | `css/09-carte-napoletane.css` | 1 |  |
@@ -143,7 +143,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39h-scena3d.css` | 1 |  |
 | `css/39i-succo.css` | 7 |  |
 | `css/39j-ventura.css` | 14 |  |
-| `css/40-legno-ottone.css` | 16 |  |
+| `css/40-legno-ottone.css` | 17 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
@@ -248,14 +248,15 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/07d-regole.js` | 62 | RULES |
 | `js/app/07d-viste-comuni.js` | 4 | lob3, seen, hudH, rulesH, cfgH, pausaH, storyH |
 | `js/app/07e-lobby-falo.js` | 26 | TVC, TVG, tvInfo, TVB, TVPX, TVP, tvExt |
-| `js/app/07f-viste-gioco.js` | 9 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
+| `js/app/07f-viste-gioco.js` | 10 | coverH, iWon, endH, playersH, fanH, bubbleH, gameH |
 | `js/app/08-relay-mqtt.js` | 7 | MQ, mqConnect, mqRid |
 | `js/app/09-rete-p2p.js` | 11 | P2P, p2pPeerOpts, p2pParent, p2pClone, p2pSnap, p2pNotify, p2pApply |
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
 | `js/app/11-carte-napoletane.js` | 12 | NAP |
 | `js/app/12b-lobby-diorama.js` | 17 | ISO, N, PAL, SPR, FIX, EMO, STUMPS |
-| `js/app/12c-lobby-3d.js` | 176 |  |
+| `js/app/12c-lobby-3d.js` | 177 |  |
 | `js/app/12d-lobby-3d-guscio.js` | 1 | L3D |
+| `js/app/12e-soglia.js` | 1 | Soglia |
 | `js/app/13-regicide.js` | 8 | pileH, regicideH, regClick, regPre |
 | `js/app/14-the-gang.js` | 11 | GCOL, gcardH, chipH, gangH, specPanel, gcardModal, handGuide |
 | `js/app/15-saboteur.js` | 12 | SEP, tileSVG, SAI, SAN, sabCardH, sabTargets, sabotH |
@@ -298,9 +299,9 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24d-locandiere.js` | 3 | Oste |
 | `js/app/24e-distanza.js` | 10 | FsDb, Dist |
 | `js/app/24f-schermo.js` | 9 | CAST_APP_ID, TV |
-| `js/app/24g-eroi.js` | 15 | Eroi |
+| `js/app/24g-eroi.js` | 16 | Eroi |
 | `js/app/24h-campagna.js` | 10 | Camp |
-| `js/app/24ha-avventura.js` | 5 | Avv |
+| `js/app/24ha-avventura.js` | 6 | Avv |
 | `js/app/24hb-inventario.js` | 10 | Inv |
 | `js/app/24hc-bat-mappa.js` | 21 | BatMappa |
 | `js/app/24hd-bat-sagome.js` | 5 | Sagome |
