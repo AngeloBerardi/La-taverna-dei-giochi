@@ -7,8 +7,8 @@
 const VenArte=(()=>{
  let T=null,ren=null,cv=null,rt=null,post=null,postScene=null,postCam=null,grad=null,matToon=null,matInst=null;
  const A={pronta:false,fallita:false,carica:false,W:0,H:0,k:3,rw:0,rh:0,host:null,t:0,fps:60,nfps:0,lento:0};
- const RIGHE={alta:500,media:400,bassa:290};
- const qual=()=>{try{return localStorage.getItem('ven-q')||'media'}catch(e){return'media'}};
+ const RIGHE={alta:500,media:400,bassa:290,tv:450};
+ const qual=()=>{if(typeof ui!=='undefined'&&ui.tv)return'tv';try{return localStorage.getItem('ven-q')||'media'}catch(e){return'media'}};   // la TV ha la sua (V7)
  const ELEV=52*Math.PI/180,SE=Math.sin(ELEV),CE=Math.cos(ELEV);
  function avvia(){if(A.pronta||A.fallita)return Promise.resolve(A.pronta);if(A.attesa)return A.attesa;
   A.attesa=VENDOR.load('three').then(()=>{T=THREE;A.pronta=accendi();return A.pronta},e=>{A.fallita=true;A.errore='libreria 3D non caricata';A.attesa=null;return false});return A.attesa}

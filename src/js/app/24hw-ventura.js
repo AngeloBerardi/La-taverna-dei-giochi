@@ -13,7 +13,7 @@ const Ven=(()=>{
  // in compagnia (stanza live) le azioni passano dalla stanza; da soli si chiamano i motori qui
  const mio2=()=>mio();
  const inS=()=>VenStanza.on(),posto=()=>inS()?Math.max(0,VenStanza.seat()):0,mio=()=>VEN.capDi(V.s,posto())||V.s.cap;
- const ordina=o=>inS()?VenStanza.manda({t:'ordina',o}):VEN.ordina(V.s,o);
+ const ordina=o=>{const r=inS()?VenStanza.manda({t:'ordina',o}):VEN.ordina(V.s,o);if(r&&!r.err)VenAudio.ordine(o);return r};
  const n0=x=>Math.round(x).toLocaleString('it-IT');
  const faz=f=>{const s=V.s;return`<span class="vn-fz" style="--fz:${s?VEN.colFaz(s,f).col:D.FAZ[f].col}">${esc(s?VEN.nomeF(s,f):D.FAZ[f].breve)}</span>`};
  const pips=t=>'<i class="vn-pip">'+'<b></b>'.repeat(t)+'</i>';
@@ -53,7 +53,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  function esci(){salva();ui.ven=false;ui.avv=true;V.pan=null;ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on');render()}
  // ---------- ciclo ----------
  function ferma(){if(V.raf){cancelAnimationFrame(V.raf);V.raf=0}}
- function dopo(){const on=!!(ui.ven&&V.s);document.documentElement.classList.toggle('vn-on',on);if(!on){if(V.raf){ferma();VenArte.smonta()}return}
+ function dopo(){const on=!!(ui.ven&&V.s),de=document.documentElement;de.classList.toggle('vn-on',on);de.classList.toggle('vn-tv',on&&!!ui.tv);de.classList.toggle('vn-ctl',on&&tvOn());if(!on){if(V.raf){ferma();VenArte.smonta()}return}
   if(!VenArte.A.pronta){if(!VenArte.A.fallita)VenArte.avvia().then(()=>{if(ui.ven)render()});return}
   const host=document.querySelector('.vn-scena');if(!host)return;VenArte.monta(host);if(!V.gesti)gesti();
   if(V.modo==='mondo')VenMappa.apri(V.s);{const cc=document.querySelector('.vn-carta-cv');if(cc&&V.s)VenMappa.carta(cc,V.s)}
@@ -68,14 +68,16 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  function giro(ora){V.raf=requestAnimationFrame(giro);if(!ui.ven||!V.s){ferma();return}if(VenArte.persa()&&!ripara(ora))return;const dt=Math.min(.1,V.ult?(ora-V.ult)/1000:.016);V.ult=ora;
   try{if(inS())VenStanza.giro(dt);if(!V.s)return;if(V.modo==='campo'){VenCampo.passo(dt);const k=VenCampo.K;if(k.finita&&!V.fine){V.fine=ora}if(V.fine&&ora-V.fine>1400&&V.pan!=='fine'){V.pan='fine';render()}}
    else{if(!inS())mondo(dt);VenMappa.passo(dt,V.s)}
+   if(ui.tv){if(V.modo==='campo'){const k=VenCampo.K;k.segue=false;k.fuoco.x=30;k.fuoco.z=50;k.alt=80}else{VenMappa.K.alt=26;VenMappa.centra()}}
    if(ora-V.hud>250){V.hud=ora;hudVivo()}
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
  function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero||(s.voci&&s.voci.length&&s.dentro<0&&s.davanti<0);if(!cammina)return;
   V.acc+=dt*8*(s.prigioniero||(t.ord&&t.ord.t==='aspetta')?Math.max(6,V.vel*3):V.vel);const n=Math.floor(V.acc);if(n<1)return;V.acc-=n;const g0=VEN.giorno(s),ev=VEN.passo(s,n);let ridisegna=false;
-  for(const e of ev){if(e.t==='incontro'){V.pan='incontro';ridisegna=true;Snd.play('avv-missione')}else if(e.t==='dentro'||e.t==='davanti'){V.pan='luogo';V.sub='home';V.msg='';ridisegna=true;salva();Snd.play('avv-porta')}
-   else if(e.t==='log'&&e.tipo)avviso(e.tx,e.tipo);else if(e.t==='giorno'){salva();Snd.play('avv-alba')}else if(e.t==='libero'||e.t==='fine-attesa'){ridisegna=true}else if(e.t==='voce'){ridisegna=true;Snd.play('avv-missione')}else if(e.t==='conquista')ridisegna=true}
+  VenAudio.mondo(ev);
+  for(const e of ev){if(e.t==='incontro'){V.pan='incontro';ridisegna=true}else if(e.t==='dentro'||e.t==='davanti'){V.pan='luogo';V.sub='home';V.msg='';ridisegna=true;salva()}
+   else if(e.t==='log'&&e.tipo)avviso(e.tx,e.tipo);else if(e.t==='giorno')salva();else if(e.t==='libero'||e.t==='fine-attesa'){ridisegna=true}else if(e.t==='voce')ridisegna=true;else if(e.t==='conquista')ridisegna=true}
   if(V.pan==='attesa'&&!(t.ord&&t.ord.t==='aspetta')&&!s.prigioniero){V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;ridisegna=true}
   if(s.prigioniero&&V.pan!=='attesa'){V.pan='attesa';ridisegna=true}
   if(ridisegna||VEN.giorno(s)!==g0)render()}
@@ -100,18 +102,30 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(o.tipo==='terra')r=ordina({t:'vai',x:o.x,y:o.y});
   else if(o.tipo==='luogo'){const l=s.l[o.id];if(VEN.dist(tu(),l)<.8&&(s.dentro===l.id||s.davanti===l.id)){V.pan='luogo';return render()}r=ordina({t:'entra',lid:o.id});if(!r.err)avviso('In marcia verso '+l.nome)}
   else{V.carta=o.id;return render()}
-  if(r&&r.err)avviso(r.err);else Snd.play('avv-passo');if(document.querySelector('.vn-carta'))render()}
+  if(r&&r.err)avviso(r.err);if(document.querySelector('.vn-carta'))render()}
  // ---------- HUD del mondo ----------
  function altoH(){return`<div class="vn-alto"><button class="vn-ib" data-a="ven" data-v="pan:menu" aria-label="Menu">${ic('menu',20)}</button>
 <div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small></div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
 <div class="vn-ris"><span title="Monete">${ic('moneta',15)}<b id="vn-oro"></b></span><span title="Uomini">${ic('amici',15)}<b id="vn-uom"></b></span><span title="Giorni di viveri">${ic('boccale',15)}<b id="vn-cibo"></b></span><span title="Morale">${ic('cuore',15)}<b id="vn-mor"></b></span><span title="Fama">${ic('star',15)}<b id="vn-fama"></b></span></div></div>`}
- function bassoH(){const s=V.s,t=tu(),att=t.ord&&t.ord.t==='aspetta',pt=mio().punti>0,prom=t.tr.some(e=>D.TR[e.t].su.length&&(e.xp||0)>=D.XP_SU[D.TR[e.t].t]);
-  return`<div class="vn-basso"><button class="vn-bt" data-a="ven" data-v="pan:compagnia">${ic('amici',20)}<small>Compagnia</small>${prom?'<i class="vn-punto"></i>':''}</button>
+ function tastiH(){const s=V.s,t=tu(),att=t.ord&&t.ord.t==='aspetta',pt=mio().punti>0,prom=t.tr.some(e=>D.TR[e.t].su.length&&(e.xp||0)>=D.XP_SU[D.TR[e.t].t]);
+  return`<button class="vn-bt" data-a="ven" data-v="pan:compagnia">${ic('amici',20)}<small>Compagnia</small>${prom?'<i class="vn-punto"></i>':''}</button>
 <button class="vn-bt" data-a="ven" data-v="pan:capitano">${ic('utente',20)}<small>Capitano</small>${pt?'<i class="vn-punto"></i>':''}</button>
 <button class="vn-bt" data-a="ven" data-v="pan:diario">${ic('diario',20)}<small>Diario</small></button>
 <button class="vn-bt" data-a="ven" data-v="${att?'ferma':'campo'}">${ic(att?'play':'letto',20)}<small>${att?'Riparti':'Accampati'}</small></button>
 <button class="vn-bt" data-a="ven" data-v="vel">${ic('passi',20)}<small>×${V.vel}</small></button>
-<button class="vn-bt" data-a="ven" data-v="pan:carta">${ic('mappa',20)}<small>Carta</small></button></div>`}
+<button class="vn-bt" data-a="ven" data-v="pan:carta">${ic('mappa',20)}<small>Carta</small></button>`}
+ const bassoH=()=>`<div class="vn-basso">${tastiH()}</div>`;
+ // V7, telefono con la TV accesa: gli stessi tasti, grandi, in due colonne, più «Luogo» quando si è in un luogo o davanti
+ function ctlH(){const s=V.s,lu=s.dentro>=0||s.davanti>=0;return`<div class="vn-ctlg">${tastiH()}${lu?`<button class="vn-bt" data-a="ven" data-v="pan:luogo">${ic('p_citta',20)}<small>Luogo</small></button>`:''}</div>`}
+ // V7, la TV: fascia alta con i numeri della compagnia, cronaca a destra, capitani in basso; in battaglia solo le forze e il tempo
+ const tvOn=()=>!!(inS()&&G&&G.tv&&!ui.tv);
+ function tvH(){const s=V.s,col={bene:'vn-bene',male:'vn-male',guerra:'vn-gu'};   // i numeri li scrive hudVivo (stessi id della fascia alta del telefono)
+  return`<div class="vn-tvh"><b>${esc(s.nome||'Compagnia')}</b><span id="vn-ora"></span>
+<span>${ic('moneta',18)} <b id="vn-oro"></b></span><span>${ic('amici',18)} <b id="vn-uom"></b></span><span>${ic('boccale',18)} <b id="vn-cibo"></b></span>${R.code?`<span class="vn-tvc">Stanza <b>${esc(R.code)}</b></span>`:''}</div>
+<div class="vn-tvl"><h3>Cronaca</h3>${s.log.slice(-6).reverse().map(x=>`<p class="${col[x.tipo]||''}">${esc(x.tx)}</p>`).join('')}</div>
+<div class="vn-tvk">${VEN.capi(s).map(c=>`<span>${ic('utente',18)} <b>${esc(c.nome)}</b> <small>liv. ${c.liv}</small></span>`).join('')}</div>`}
+ function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';const sec=Math.floor(b.t/10);
+  return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt">${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}</span></div>`}
  function cartaH(){const s=V.s,p=VEN.part(s,V.carta);if(!p||p.dentro>=0)return'';const ost=VEN.ostile(s,p,tu()),f=VEN.forza(p),mia=VEN.forza(tu()),giud=f<mia*.6?'Più debole di voi':f<mia*1.1?'Alla vostra portata':f<mia*1.7?'Più forte di voi':'Molto più forte di voi';
   const comp={f:0,t:0,c:0};for(const e of p.tr)comp[D.TR[e.t].c]+=e.n;
   return`<div class="vn-carta"><div class="vn-ct"><b>${esc(p.nome)}</b>${faz(p.faz)}<button class="vn-ib" data-a="ven" data-v="carta" aria-label="Chiudi">${ic('x',16)}</button></div>
@@ -297,6 +311,7 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
  function attesaH(){const s=V.s;if(s.prigioniero)return`<div class="vn-vela"><div><h3>In catene</h3><p>Prigioniero di ${esc(s.prigioniero.da)}. Le ore passano, in attesa di un'occasione per fuggire.</p></div></div>`;
   return`<div class="vn-vela chiaro"><div><h3>${s.assedio?'Assedio':'La compagnia riposa'}</h3><p>${s.assedio?'Si montano scale e arieti.':'Il tempo scorre.'}</p>${bt('Basta così','ferma',{cls:'gold'})}</div></div>`}
  function menuH(){return pannello('Compagnia di ventura',`${riga('<b>Grafica</b><small>Pixel d\'arte più grossi alleggeriscono i telefoni lenti.</small>',['alta','media','bassa'].map(q=>`<button class="vn-ch${VenArte.qual()===q?' on':''}" data-a="ven" data-v="qual:${q}">${q}</button>`).join(''))}
+${inS()&&!ui.tv?riga('<b>Mappa sulla TV</b><small>La mappa va sul televisore, i telefoni diventano comandi.</small>',`<button class="vn-ch${G.tv?' on':''}" data-a="ven" data-v="tv">${G.tv?'accesa':'spenta'}</button>`):''}
 ${riga('<b>Regole</b><small>Come si gioca, in breve.</small>',bt('Leggi','regole'))}${inS()?riga('<b>Torna al tavolo</b><small>Chiude la partita per tutta la compagnia.</small>',bt('Chiudi','esci')):riga('<b>Salva ed esci</b><small>La partita resta su questo telefono.</small>',bt('Esci','esci',{cls:'gold'}))}`)}
  // ---------- HUD della battaglia ----------
  function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';const O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanti','freccia'],['arretra','Indietro','indietro']];
@@ -308,12 +323,13 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
 <div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>${fine}`}
  function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;
   const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
-   V.modo==='campo'?campoH():altoH()+(V.pan?'':bassoH())+(V.carta!=null&&!V.pan?cartaH():'')+
+   ui.tv?(V.modo==='campo'?campoTvH():tvH()+(V.s.incontro?incontroH():'')+(V.pan==='esito'?esitoH():'')):
+   V.modo==='campo'?campoH():altoH()+(V.pan?'':tvOn()?ctlH():bassoH())+(V.carta!=null&&!V.pan?cartaH():'')+
    (V.pan==='luogo'?luogoH():V.pan==='compagnia'?compagniaH():V.pan==='capitano'?capitanoH():V.pan==='diario'?diarioH():V.pan==='incontro'?incontroH():V.pan==='esito'?esitoH():V.pan==='attesa'?attesaH():V.pan==='menu'?menuH():V.pan==='carta'?cartaMondoH():V.pan==='corona'?coronaH():V.pan==='vittoria'?vittoriaH():'')+voceH();
   return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}<div class="vn-avv">${avvisiH()}</div></div>`}
  // ---------- battaglia ----------
  function inBattaglia(scheda){V.modo='campo';V.pan=null;V.fine=null;VenCampo.apri(scheda);render()}
- function fineBattaglia(){const r=VCAM.riepilogo(VenCampo.K.s),x=VEN.esito(V.s,r);V.modo='mondo';V.fine=null;V.pan=x.err?null:'esito';VenMappa.centra();salva();Snd.play(r.vince==='a'?'avv-bottino':'avv-lamento');render()}
+ function fineBattaglia(){const r=VCAM.riepilogo(VenCampo.K.s),x=VEN.esito(V.s,r);V.modo='mondo';V.fine=null;V.pan=x.err?null:'esito';VenMappa.centra();salva();VenAudio.mondo([{t:'esito',out:r}]);render()}
  // ---------- comandi ----------
  function act(v){const s=V.s,p=String(v||'').split(':'),c=p[0];V.msg='';
   if(c==='regno'){V.regno=p[1];return render()}
@@ -325,6 +341,7 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='esci')return inS()?VenStanza.esci():esci();
   if(c==='riprova'){riprova();return}
   if(c==='regole'){ui.rules='ventura';return render()}
+  if(c==='tv'){if(!inS())return;const r=VenStanza.manda({t:'tv',v:!G.tv});if(r.err)avviso(r.err);return render()}
   if(c==='pan'){V.pan=p[1];V.sub='home';V.carta=null;return render()}
   if(c==='sub'){V.sub=p.slice(1).join(':');return render()}
   if(c==='stend'){nomeRegno();V.stend=+p[1]|0;return render()}
@@ -339,7 +356,7 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='campo'){const r=ordina({t:'aspetta',ore:8});if(r.err)avviso(r.err);else V.pan='attesa';return render()}
   if(c==='segui'){const r=ordina({t:'segui',pid:+p[1]});V.carta=null;if(r.err)avviso(r.err);return render()}
   if(c==='parla'){const a=p[1]==='c'?{t:'continua'}:{t:'scegli',i:+p[1]},r=inS()?VenStanza.manda({t:'parla',a}):VEN.parla(s,a);if(r.err){V.msg=r.err;Snd.play('err');return render()}
-   V.msg='';if(!inS()){salva();if(s.incontro){V.pan='incontro';Snd.play('avv-missione')}}return render()}
+   V.msg='';if(!inS()){salva();if(s.incontro){V.pan='incontro';VenAudio.mondo([{t:'incontro'}])}}return render()}
   if(c==='scegli'){const sv=p.slice(1).join(':'),r=inS()?VenStanza.manda({t:'scegli',v:sv}):VEN.scegli(s,sv);if(r.err){V.msg=r.err;return render()}if(inS())return render();if(p[1]==='passa')avviso(s.log[s.log.length-1].tx,'bene');
    if(p[1]==='attacca')return inBattaglia(r.campo);if(p[1]==='auto'){VEN.auto(s);V.pan='esito';salva();return render()}
    V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
@@ -350,9 +367,9 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
    else if(a==='fonda'){nomeRegno();z.nome=V.nomeRegno||'';z.stend=V.stend|0}else if(a==='feudo'){z.lid=+p[2];z.sid=+p[3]}else if(a==='investi'){z.t=p[2];z.lid=+p[3]}else if(a==='dichiara'||a==='rompi')z.f=p[2];
    const r=inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r.err){V.msg=r.err;Snd.play('err');return render()}
    if(a==='proponi'){V.msg='';avviso(s.log[s.log.length-1].tx,'bene')}
-   if(a==='fonda'){V.pan='corona';V.sub='home';V.nomeRegno='';avviso(s.log[s.log.length-1].tx,'bene');Snd.play('avv-livello')}else if(a==='feudo'||a==='investi'||a==='aduna'||a==='dichiara'||a==='rompi'){V.sub='home';avviso(s.log[s.log.length-1].tx,a==='dichiara'?'guerra':'bene')}
+   if(a==='fonda'){V.pan='corona';V.sub='home';V.nomeRegno='';avviso(s.log[s.log.length-1].tx,'bene')}else if(a==='feudo'||a==='investi'||a==='aduna'||a==='dichiara'||a==='rompi'){V.sub='home';avviso(s.log[s.log.length-1].tx,a==='dichiara'?'guerra':'bene')}
    if(a==='esci'){V.pan=null;V.sub='home'}else if(a==='riposa'||a==='assedia'||a==='imbarca'){V.pan='attesa';V.sub='home'}else if(a==='razzia'){V.pan=null}else if(a==='assalta'||a==='lizza'){V.pan='incontro'}else if(a==='ritira'){V.pan='luogo'}else if(a==='voci'){avviso(r.lid!=null?'Segnato sulla carta: '+s.l[r.lid].nome:s.log[s.log.length-1].tx,'bene')}
-   if(a==='recluta'||a==='assolda'||a==='compagno')Snd.play('avv-compagno');else if(a==='compra'||a==='vendi'||a==='riscatta'||a==='consegna'||a==='compraogg'||a==='vendiogg'||a==='equipa')Snd.play('avv-bottino');else if(a==='promuovi'||a==='abilita')Snd.play('avv-livello');
+   VenAudio.fai(a);
    salva();return render()}
   // battaglia
   const k=VenCampo.K;
@@ -367,5 +384,5 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='cord'){const r=inS()?VenStanza.manda({t:'b-ord',o:{g:k.gruppo,t:p[1]}}):VCAM.ordina(k.s,{g:k.gruppo,t:p[1]});if(r.err)avviso(r.err);else avviso((k.gruppo==='tutti'?'Tutti':CLS[k.gruppo])+': '+({carica:'alla carica!',tieni:'tenete la posizione',segui:'con me!',avanza:'avanti dieci passi',arretra:'indietro dieci passi'})[p[1]]);return}
   if(c==='cgrido'){const r=inS()?VenStanza.manda({t:'b-cap',o:{grido:true}}):VCAM.capitano(k.s,{grido:true});if(r.err)avviso(r.err);return}
   if(c==='fine'){if(inS()){const r=VenStanza.manda({t:'b-fine'});if(r.err)avviso(r.err);return render()}return fineBattaglia()}}
- const traccia=()=>V.modo==='campo'?'avv-battaglia':V.pan==='luogo'?'avv-citta':V.s&&VEN.notte(V.s)?'avv-notte':'avv-giorno';
+ const traccia=()=>VenAudio.traccia();
  return{V,sezioneH,html,dopo,act,avviso,traccia,entra,salva,ferma}})();
