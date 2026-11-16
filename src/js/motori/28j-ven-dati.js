@@ -95,6 +95,7 @@ const VDAT=(()=>{
  og('u_martello','Martello del Margravio','arma',4,2300,{dan:8,perf:.7,asp:'mazza'},'Le piastre si piegano come stagno.');
  og('u_arcoantico','Arco delle Madri','arma',4,2200,{dan:8,git:34,rit:18,due:1,asp:'arco'},'Legno di tasso millenario di Selvamara: tira lontano e presto.');
  og('u_vento','Lancia del Vento','arma',4,2400,{dan:6,att:2,car:1.2,asp:'lancia'},'Si dice non abbia mai mancato una carica.');
+ og('u_seicolpi','Balestra dei Sei Colpi','arma',4,2300,{dan:10,git:32,rit:26,perf:.35,due:1,asp:'balestra'},'Sei tacche sul calcio. Brando giura che ne mancano altre sei.');
  og('tondo','Scudo tondo','scudo',1,60,{dif:2,asp:'tondo'},'Legno e cuoio.');
  og('mandorla','Scudo a mandorla','scudo',2,220,{dif:4,asp:'mandorla'},'Copre dalla spalla al ginocchio.');
  og('pavese','Pavese','scudo',2,260,{dif:6,vel:-1,asp:'pavese'},'Un muro da portarsi dietro: rallenta.');
@@ -117,6 +118,7 @@ const VDAT=(()=>{
  og('steppa','Cavallo della steppa','cavallo',2,760,{vel:21,manto:5,ab:{esplora:1}},'Piccolo, instancabile.');
  og('destriero','Destriero bardato','cavallo',3,1900,{vel:19,pf:20,car:.3,manto:3,barda:1},'Mezzo quintale di ferro e muscoli.');
  og('u_tramontana','Tramontana','cavallo',4,2600,{vel:22,pf:15,car:.3,manto:4},'Bianca come la neve, nessuno l\'ha mai raggiunta.');
+ og('u_grigio','Il Grigio','cavallo',4,2300,{vel:21,pf:12,car:.2,manto:5,ab:{esplora:1}},'Vecchio cavallo della steppa con un occhio bianco. Corre ancora.');
  og('corno','Corno di guerra','cimelio',2,420,{grido:.5},'Il grido del capitano torna in metà tempo.');
  og('stendardo','Stendardo benedetto','cimelio',2,460,{morale:8},'Il morale della compagnia resta alto.');
  og('borsa','Borsa del cambiavalute','cimelio',2,480,{ab:{commercio:2}},'Compri a meno, vendi a più.');
@@ -128,6 +130,8 @@ const VDAT=(()=>{
  og('u_sigillo','Sigillo dei Tre Regni','cimelio',4,2400,{ab:{comando:2,commercio:1}},'Apre le porte e scioglie le lingue.');
  og('u_occhio','Occhio del Falco','cimelio',4,2000,{ab:{esplora:3},grido:.3},'Una pietra che vede prima di te.');
  og('u_guadi','Carta dei Guadi','cimelio',4,2100,{ab:{esplora:2,commercio:1}},'I sentieri che le guardie non conoscono, segnati a carboncino da Ghino.');
+ og('u_bilancia','Bilancia di Maralta','cimelio',4,2100,{ab:{commercio:2},bottino:.15},'Il bilancino d\'ottone di Isabetta: pesa monete, carichi e bugie.');
+ og('u_lanterna','Lanterna delle Cripte','cimelio',4,1900,{morale:3,ab:{esplora:1,addestra:1}},'Bronzo antico: non si spegne, nemmeno sott\'acqua.');
  const SLOT={arma:'Arma',scudo:'Scudo',armatura:'Armatura',elmo:'Elmo',cavallo:'Cavallo',cimelio:'Cimelio'};
  const PREGIO=['','Comune','Buono','Pregiato','Unico'];
  // cosa vende l'armaiolo di ogni regno (oltre al comune) e l'offerta unica della sua capitale
@@ -179,11 +183,18 @@ const VDAT=(()=>{
  for(const c of COMPAGNI){const g=GRC[c.id];c.ama=g[0];c.odia=g[1];c.lega={id:g[2],n:g[3]}}
  // incarichi personali (V6b): tre passi per compagno, fatti in ordine e annunciati dalle scene `<c>-inc-1..3`. Tipi: luogo {tipoL?,faz?} (entrarci) · vinci {k:'pre'|'sig'|'riv',faz?} ·
  // sito {tipoL} (ripulire rovine o covo) · porta {tipoL?, m,n | oro} (consegnare merce o monete entrando in un luogo); `d` = riga per il diario. Premio {ogg:id} (nello zaino) o {abil:1} (il compagno dà 3 punti di talento, non 2).
- // V6c, a blocchi: metà dei premi {abil:1}, metà un oggetto unico di OGG (q 4). Blocco 1: Berta, Lapo, Ghino.
+ // V6c: cinque premi {abil:1} (Berta, Lapo, Ulfredo, Diamante, Suor Nera) e cinque oggetti unici di OGG (q 4), uno per compagno.
  const INC={
   co_berta:{inc:[{tipo:'luogo',tipoL:'citta',faz:'val',d:'Rimettere piede a Roccadoro a testa alta.'},{tipo:'vinci',k:'sig',faz:'val',d:'Battere in campo un signore di Valdoro.'},{tipo:'sito',tipoL:'covo',d:'Stanare un covo di predoni.'}],premio:{abil:1}},
   co_lapo:{inc:[{tipo:'luogo',tipoL:'monastero',d:'Tornare in un monastero.'},{tipo:'porta',tipoL:'monastero',oro:120,d:'Lasciare 120 monete per i malati di un monastero.'},{tipo:'sito',tipoL:'rovine',d:'Ripulire delle rovine.'}],premio:{abil:1}},
-  co_ghino:{inc:[{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'villaggio',m:'sale',n:4,d:'Portare quattro sacchi di sale a un villaggio.'},{tipo:'luogo',tipoL:'porto',faz:'mar',d:'Entrare a viso aperto in un porto di Maralta.'}],premio:{ogg:'u_guadi'}}};
+  co_ghino:{inc:[{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'villaggio',m:'sale',n:4,d:'Portare quattro sacchi di sale a un villaggio.'},{tipo:'luogo',tipoL:'porto',faz:'mar',d:'Entrare a viso aperto in un porto di Maralta.'}],premio:{ogg:'u_guadi'}},
+  co_isa:{inc:[{tipo:'luogo',tipoL:'porto',d:'Tornare in un porto a cercare la nave perduta.'},{tipo:'sito',tipoL:'covo',d:'Riprendere il libro di bordo da un covo di predoni.'},{tipo:'luogo',tipoL:'citta',faz:'mar',d:'Portare il libro a Maralta.'}],premio:{ogg:'u_bilancia'}},
+  co_ulf:{inc:[{tipo:'luogo',tipoL:'citta',faz:'fer',d:'Rivedere la piazza d\'armi di Castelferro.'},{tipo:'vinci',k:'pre',d:'Battere in campo una banda di predoni.'},{tipo:'porta',tipoL:'castello',m:'ferro',n:4,d:'Portare quattro carichi di ferro a un castello.'}],premio:{abil:1}},
+  co_dia:{inc:[{tipo:'sito',tipoL:'rovine',d:'Ripulire le rovine dove cadde il suo re.'},{tipo:'vinci',k:'sig',d:'Battere in campo un signore.'},{tipo:'luogo',tipoL:'monastero',d:'Dare una tomba al re in un monastero.'}],premio:{abil:1}},
+  co_temu:{inc:[{tipo:'luogo',tipoL:'locanda',d:'Chiedere del cavallo grigio in una locanda.'},{tipo:'vinci',k:'pre',d:'Battere i predoni che rubano cavalli.'},{tipo:'luogo',tipoL:'citta',faz:'alt',d:'Riportare il grigio a Tendalarga.'}],premio:{ogg:'u_grigio'}},
+  co_nera:{inc:[{tipo:'porta',tipoL:'villaggio',m:'grano',n:8,d:'Portare otto sacchi di grano a un villaggio.'},{tipo:'sito',tipoL:'covo',d:'Stanare i predoni che bruciarono l\'ospizio.'},{tipo:'luogo',tipoL:'monastero',d:'Portare la campana a un monastero.'}],premio:{abil:1}},
+  co_brando:{inc:[{tipo:'luogo',tipoL:'porto',d:'Chiedere di Tano in un porto.'},{tipo:'sito',tipoL:'rovine',d:'Liberare Tano dalle rovine dei briganti.'},{tipo:'porta',tipoL:'porto',oro:200,d:'Pagare il debito di Tano in un porto (200 monete).'}],premio:{ogg:'u_seicolpi'}},
+  co_fosca:{inc:[{tipo:'sito',tipoL:'rovine',d:'Ripulire le rovine dove il maestro vide la lanterna.'},{tipo:'luogo',tipoL:'locanda',d:'Trovare l\'oste che comprò la lanterna.'},{tipo:'sito',tipoL:'covo',d:'Riprendere la lanterna da un covo.'}],premio:{ogg:'u_lanterna'}}};
  for(const c of COMPAGNI){const x=INC[c.id];if(x){c.inc=x.inc;c.premio=x.premio}}
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro
