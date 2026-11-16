@@ -1,4 +1,4 @@
-# Cantari di Ventura (id `avventura`)
+# Cronache del Crocevia (id `avventura`)
 **1–4 eroi (un telefono; poi TV + telefoni)** · **capitolo da 3–5 sessioni di circa un'ora, salvataggio tra una e l'altra** · **gioco di ruolo a campagne, cooperativo** · **Marchio**: libero. Nome, mondo, mostri, oggetti e testi sono nostri; le meccaniche (dadi, classi di armatura, vantaggio…) sono regole di genere, non protette.
 
 Piani e contratti: `docs/AVVENTURA.md` (piano), `AVVENTURA-A4.md` (battaglia), `-A6.md` (mappa), `-A7.md`/`-A8.md` (racconto e Capitolo 1), `-A9.md` (sessione, vite, rientro), `-A10.md` (musica, suoni, regole, tutorial, incarichi), `AVVENTURA-B.md` (piano B: tempo reale, mondo libero, resa pixel; regole nella sezione «Tempo reale»). Il testo che si legge nell'app è `RULES.avventura` in `app/07d-regole.js`.

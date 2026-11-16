@@ -13,3 +13,6 @@
 .shopi .card{--cw:46px}
 .shopt{display:flex;flex-direction:column;gap:3px;min-width:0}.shopt small{opacity:.75;font-size:11px;line-height:1.2}
 .shopt .b[disabled]{opacity:.45}
+/* l'anteprima del dorso classico non dipende da <html data-dorso>: torna ai colori del tema, presi dal contenitore (che non è toccato dalle regole di sopra) */
+.shopi{--cb0:var(--cb);--cb20:var(--cb2)}
+.card.back.d-classico{--cb:var(--cb0);--cb2:var(--cb20);border-color:var(--gold2);background:var(--dorso-fondo)}

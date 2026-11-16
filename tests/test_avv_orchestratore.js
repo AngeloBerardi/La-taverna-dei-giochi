@@ -39,7 +39,7 @@ const prova = {
     congedo: scena('Congedo', { a: nodo('Gherardo se ne va.', { effetti: [{ t: 'congeda', id: 'gherardo' }], fine: true }) }),
     scelta: scena('Scelta', { a: nodo('Che fai?', { scelte: [{ t: 'Prendo', effetti: [{ t: 'oro', n: 1 }], vai: 'b' }, { t: 'Lascio', fine: true }] }), b: nodo('Preso.', { fine: true }) }),
     'gherardo-parla': { titolo: 'Due parole', inizio: 'a', nodi: { a: nodo('Due parole con Gherardo.', { fine: true }) } },
-    finale: scena('Finale', { a: nodo('Fine del cantare.', { fine: 'finale-a-luminoso' }) })
+    finale: scena('Finale', { a: nodo('Fine della cronaca.', { fine: 'finale-a-luminoso' }) })
   }
 };
 prova.finali = { 'finale-a-luminoso': { titolo: 'Una fine luminosa', testo: 'Tutto è bene.' } };
@@ -303,7 +303,7 @@ function CtoSC(g) { return C.battaglia(g.camp).cb; }
   if (AVV.fase(m) !== 'citta' && AVV.fase(m) !== 'mappa') m = chiudiScena(m, cap, 200);
   const r = ok(AVV.act(m, { t: 'chiudi' }, cap), 'chiudi'); assert.strictEqual(r.riepilogo.sessione, 1); assert(r.riepilogo.oro >= 10); assert.strictEqual(r.riepilogo.xp.e1, m.camp.eroi[0].xp - (m.sessione.da.xp.e1 | 0));
   assert.strictEqual(r.s.racc.sessioni, 1); assert.strictEqual(r.s.sessione.battaglie, 0); assert.strictEqual(r.s.sessione.da.oro, r.s.camp.oro);
-  assert(r.riepilogo.cantare && /Secondo cantare/.test(r.riepilogo.cantare.titolo), 'il racconto passa al secondo cantare: ' + (r.riepilogo.cantare && r.riepilogo.cantare.titolo));
+  assert(r.riepilogo.cantare && /Seconda cronaca/.test(r.riepilogo.cantare.titolo), 'il racconto passa alla seconda cronaca: ' + (r.riepilogo.cantare && r.riepilogo.cantare.titolo));
   const r2 = ok(AVV.act(r.s, { t: 'chiudi' }, cap)); assert.strictEqual(r2.riepilogo.sessione, 2); assert.strictEqual(r2.riepilogo.oro, 0, 'sessione vuota');
 }
 

@@ -233,13 +233,13 @@ assert.strictEqual(R.valida(null)[0], 'capitolo mancante');
 {
   const ctx = ctxDi(gruppo('guerriero')), s = R.nuovo('prova', 2);
   let c = R.cantare(cap, s, ctx);
-  assert.strictEqual(c.titolo, 'Primo cantare'); assert.deepStrictEqual(c.apertura, []); assert(/nebbia del mattino/.test(c.chiusura), 'niente fatto, chiusura di ripiego');
+  assert.strictEqual(c.titolo, 'Prima cronaca'); assert.deepStrictEqual(c.apertura, []); assert(/nebbia del mattino/.test(c.chiusura), 'niente fatto, chiusura di ripiego');
   s.bandiere['ilda-salvata'] = true; s.compagni.ilda = { stato: 'gruppo' }; s.bandiere['voce-ignorata'] = true;
   c = R.cantare(cap, s, ctx); assert.strictEqual(c.apertura.length, 2); assert(/Ilda/.test(c.apertura[0]) && /senza risposta/.test(c.apertura[1])); assert(/molto da raccontare/.test(c.chiusura));
   s.missioni.fratello = { stato: 'attiva' }; assert(/promessa/.test(R.cantare(cap, s, ctx).chiusura), 'la prima chiusura che vale');
   const fine = R.finisciSessione(s); assert.strictEqual(fine.sessioni, 1); assert.strictEqual(s.sessioni, 0, 'senza modificare lo stato ricevuto');
-  assert.strictEqual(R.cantare(cap, fine, ctx).titolo, 'Secondo cantare');
-  assert.strictEqual(R.cantare(cap, Object.assign({}, s, { sessioni: 99 }), ctx).titolo, 'Ottavo cantare', 'dopo l\'ottavo si resta all\'ultimo nome');
+  assert.strictEqual(R.cantare(cap, fine, ctx).titolo, 'Seconda cronaca');
+  assert.strictEqual(R.cantare(cap, Object.assign({}, s, { sessioni: 99 }), ctx).titolo, 'Ottava cronaca', 'dopo l\'ottavo si resta all\'ultimo nome');
 }
 
 // ---- stato JSON puro e dado nello stato ----

@@ -148,7 +148,7 @@ const AVV=(()=>{
  // ---- fine del capitolo ----
  function concludi(s,cap,esito,righe){const f=(cap.finali||{})[esito]||{};
   const sbloccati=Object.keys(cap.compagni||{}).filter(id=>['gruppo','attende'].includes(CM.stato(s.racc,id)));
-  s.fine={esito,vinta:true,titolo:f.titolo||'Il cantare è finito',testo:f.testo||'',sbloccati,monete:PARAM.monete,vite:s.vite,giorni:s.camp.giorno};
+  s.fine={esito,vinta:true,titolo:f.titolo||'La cronaca è finita',testo:f.testo||'',sbloccati,monete:PARAM.monete,vite:s.vite,giorni:s.camp.giorno};
   s.bat=null;righe.push(s.fine.titolo)}
  // ---- eventi di strada ----
  function strada(s,cap,righe){const c=s.camp;if(c.sfida||c.incontro||c.evento||c.dentro||s.racc.scena||s.bat||s.fine)return;

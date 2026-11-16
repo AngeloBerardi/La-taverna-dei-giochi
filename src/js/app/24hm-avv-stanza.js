@@ -19,7 +19,7 @@ const AvvStanza={
  async prepara(S){await Ses.carica();const seme=AvvStanza.seme0!=null?AvvStanza.seme0:(Date.now()^(Math.random()*4294967296))>>>0;   // seme0: solo per le prove del browserlet h=null,slot=null;
   if(Avv.online()&&!AvvStanza.rip){try{const L=await FB.eroi();Eroi.lista=L;AvvStanza.eroi=L;const id=AvvStanza.sc&&L[AvvStanza.sc]&&EROI.coerente(L[AvvStanza.sc])?AvvStanza.sc:EROI.SLOT_ID.find(i=>L[i]&&EROI.coerente(L[i]));if(id){h=L[id];slot=id}}catch(e){ERR.n(e)}}
   AvvStanza.pre={seme,rip:AvvStanza.rip,posti:S.map(x=>{const io=x.dev===ME.dev&&x.k==='m';return{nome:x.name,uid:x.uid||null,ospite:x.k!=='m',eroe:io&&h?JSON.parse(JSON.stringify(h)):null,slot:io?slot:null}})}},
- nuova(n,names,o){const p=AvvStanza.pre;AvvStanza.pre=null;AvvStanza.rip=null;if(!p||!Ses.cap)throw new Error('Cantari di Ventura: capitolo non pronto');
+ nuova(n,names,o){const p=AvvStanza.pre;AvvStanza.pre=null;AvvStanza.rip=null;if(!p||!Ses.cap)throw new Error('Cronache del Crocevia: capitolo non pronto');
   if(p.rip){const r=AST.apri(p.rip,p.posti);if(r.err)throw new Error(r.err);return r.s}
   return AST.nuova(Ses.cap,p.posti,p.seme,{difficolta:Ses.diff})},
  // ---- mosse ----
@@ -130,12 +130,12 @@ const AvvStanza={
  // il foglio del tavolo: posti, il mio eroe (prima di partire), uscita
  sheetH(){const k=AvvStanza.sh;if(!k||!G)return'';const v=AvvStanza.v(),d=AvvStanza.occ?' disabled':'';
   const box=(t,corpo,bt)=>`<div class="modal avt-modal"><div class="box col avt" role="dialog" aria-label="${esc(t)}"><h2>${esc(t)}</h2>${corpo}<div class="se-bt">${bt}</div></div></div>`;
-  if(k==='esci')return box('Chiudere il cantare?',`<p class="muted">Il cantare si ferma per tutti e si torna alla stanza. Se avevi esperienza o monete da riscuotere, falle tornare sul profilo prima di uscire. La campagna resta salvata sul profilo di chi ospita.</p>`,`<button class="b" data-a="avt" data-v="chiudi">Resta</button><button class="b gold" data-a="avt" data-v="alza"${d}>Torna alla stanza</button>`);
+  if(k==='esci')return box('Chiudere la cronaca?',`<p class="muted">La cronaca si ferma per tutti e si torna alla stanza. Se avevi esperienza o monete da riscuotere, falle tornare sul profilo prima di uscire. La campagna resta salvata sul profilo di chi ospita.</p>`,`<button class="b" data-a="avt" data-v="chiudi">Resta</button><button class="b gold" data-a="avt" data-v="alza"${d}>Torna alla stanza</button>`);
   const mio=v.mioEroe>=0?G.av.camp.eroi[v.mioEroe]:null,L=AvvStanza.eroi,pre=v.pre&&!ui.tv&&viewer()>=0;
   const scelta=pre?`<div class="sh2">Il tuo eroe ${infoH('Prima della prima mossa ognuno porta qui uno dei propri eroi. Chi non ne sceglie uno gioca con un eroe di prova. Quando muovete, la compagnia è chiusa.')}</div>${Avv.online()?(L&&Object.keys(L).length?`<div class="se-eroi">${EROI.SLOT_ID.filter(id=>L[id]&&EROI.coerente(L[id])).map(id=>{const h=L[id],on=mio&&mio.nome===h.nome&&mio.razza===h.razza&&mio.classe===h.classe;return`<button class="se-er${on?' on':''}" data-a="avt" data-v="eroe:${id}" aria-pressed="${!!on}"${d}>${Eroi.ritratto(h.aspetto,h.razza,h.classe,44)}<b>${esc(h.nome)}</b><small>${esc(EROI.CLASSI[h.classe].nome)} ${h.liv}</small></button>`}).join('')}</div>`:AvvStanza.occ?'<small class="muted">Leggo i tuoi eroi…</small>':'<small class="muted">Sul tuo profilo non c\'è ancora nessun eroe: usi quello di prova.</small>'):'<small class="muted">Con il profilo online porti uno dei tuoi eroi; per ora giochi con un eroe di prova.</small>'}`:'';
   const voto=G.voto&&v.sonoHost?`<button class="b sm" data-a="avt" data-v="votaora">Chiudi il voto ora</button>`:'';
   const salva=!ui.tv&&v.sonoHost&&Avv.online()&&(G.riep||G.av.fine)?`<button class="b sm" data-a="avt" data-v="salva"${d}>Salva la campagna sul profilo</button>`:'';
-  return box('Il tavolo',`${AvvStanza.postiH()}${scelta}<small class="muted">Chi ospita (il primo posto presente) guida i compagni della storia e ciò che riguarda tutti; ognuno comanda il proprio eroe. ${G.n>1?'Se un telefono esce, il suo eroe lo guida chi ospita.':''}</small>${AvvStanza.msg?`<p class="se-st" role="status">${esc(AvvStanza.msg)}</p>`:''}${voto}${salva}`,`<button class="b" data-a="avt" data-v="esci">Lascia il cantare</button><button class="b gold" data-a="avt" data-v="chiudi">Chiudi</button>`)},
+  return box('Il tavolo',`${AvvStanza.postiH()}${scelta}<small class="muted">Chi ospita (il primo posto presente) guida i compagni della storia e ciò che riguarda tutti; ognuno comanda il proprio eroe. ${G.n>1?'Se un telefono esce, il suo eroe lo guida chi ospita.':''}</small>${AvvStanza.msg?`<p class="se-st" role="status">${esc(AvvStanza.msg)}</p>`:''}${voto}${salva}`,`<button class="b" data-a="avt" data-v="esci">Lascia la cronaca</button><button class="b gold" data-a="avt" data-v="chiudi">Chiudi</button>`)},
  // il rientro (fogli di fine sessione e fine capitolo): il proprio eroe soltanto
  riH(){const k=AvvStanza.seat(),r=k>=0?AST.rientro(G,k):null;if(!r)return'';const st=AvvStanza.ri,x=r;
   const dett=[x.pendente.xp?'+'+x.pendente.xp+' PE':'',x.pendente.oro?(x.pendente.oro>0?'+':'−')+Math.abs(x.pendente.oro)+' monete':''].filter(Boolean).join(' · ');
@@ -144,7 +144,7 @@ const AvvStanza={
  sezioneH(){if(!R.on)return'';const on=Avv.online(),E=Ses.elenco||{},salv=Ses.SLOT.filter(s=>E[s]&&!(E[s].sal.fine));
   return`<div class="sh2">In compagnia ${infoH('Una stanza, un eroe a testa: ognuno sul suo telefono comanda il proprio eroe; sulla TV (Impostazioni → Schermo comune) si vede la mappa grande. Le scelte della storia si votano e gli scontri si combattono insieme. I premi tornano a ciascun eroe.')}</div>
 <p class="muted" style="margin:0">Chi è nella tua stanza si siede al tavolo: ognuno porta uno dei propri eroi.${on?'':' Senza profilo giocate con eroi di prova.'}</p>
-<button class="b gold ecta" data-a="avt" data-v="parti"${AvvStanza.occ?' disabled':''}>${ic('spada',18)} Comincia un cantare in compagnia</button>
+<button class="b gold ecta" data-a="avt" data-v="parti"${AvvStanza.occ?' disabled':''}>${ic('spada',18)} Comincia una cronaca in compagnia</button>
 ${salv.map(s=>{const d=E[s].sal;return`<button class="b sm" data-a="avt" data-v="riprendi:${s}"${AvvStanza.occ?' disabled':''}>Riprendi in compagnia: ${esc((d.eroi||[]).map(x=>x.nome).join(', ')||'Compagnia')} · giorno ${d.giorno}</button>`}).join('')}${AvvStanza.msg&&ui.avv?`<small class="muted" role="status">${esc(AvvStanza.msg)}</small>`:''}`},
  // ---- comandi ----
  async act(a,v){if(a!=='avt')return;const i=String(v).indexOf(':'),verbo=i<0?String(v):String(v).slice(0,i),arg=i<0?'':String(v).slice(i+1);
@@ -159,6 +159,6 @@ ${salv.map(s=>{const d=E[s].sal;return`<button class="b sm" data-a="avt" data-v=
    case'parti':case'riprendi':{if(AvvStanza.occ)return;AvvStanza.occ=true;AvvStanza.msg='';render();
     try{AvvStanza.rip=null;if(verbo==='riprendi'){const e=Ses.elenco[arg];if(!e)throw new Error('posto vuoto');AvvStanza.rip=e.sal;AvvStanza.slot=arg}else AvvStanza.slot=null;
      ui.avv=false;await startGame('avventura')}
-    catch(e){ERR.n(e);AvvStanza.msg='Non riesco ad aprire il cantare: riprova.';ui.avv=true}
+    catch(e){ERR.n(e);AvvStanza.msg='Non riesco ad aprire la cronaca: riprova.';ui.avv=true}
     finally{AvvStanza.occ=false;render()}return}}}
 };

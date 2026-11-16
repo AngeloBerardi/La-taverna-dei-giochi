@@ -19,7 +19,7 @@ const Avv={
   const eroi=on?(lista.length?`<div class="av-ritt big">${lista.map(h=>`<span class="av-rit" title="${esc(h.nome)}">${Eroi.ritratto(h.aspetto,h.razza,h.classe,52)}</span>`).join('')}</div>
 <small class="muted">${lista.map(h=>esc(h.nome)+' · '+esc(EROI.CLASSI[h.classe].nome)+' '+h.liv).join(' — ')}</small>${pend.length?`<small class="muted"><b>Scelte di livello in attesa:</b> ${pend.map(h=>esc(h.nome)).join(', ')}. Falle da «Gestisci gli eroi».</small>`:''}`:'<p class="muted" style="margin:0">Nessun eroe: creane uno per partire.</p>'):
    '<p class="muted" style="margin:0">Per creare e salvare gli eroi serve il profilo online.</p>';
-  return`<div class="modal"><div class="box col av"><h2>Cantari di Ventura ${infoH('Una campagna a capitoli: ogni sessione è un «cantare». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
+  return`<div class="modal"><div class="box col av"><h2>Cronache del Crocevia ${infoH('Una campagna a capitoli: ogni sessione è una «cronaca». Qui parti, riprendi e gestisci i tuoi eroi.')}</h2>
 <p class="muted" style="margin:0">Due modi di andare alla ventura: il mondo libero del capitano di compagnia e la campagna a capitoli.</p>
 ${Ven.sezioneH()}
 ${Ses.sezioneH()}

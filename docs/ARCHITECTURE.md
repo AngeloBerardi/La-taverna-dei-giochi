@@ -126,7 +126,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/30-adatta.css` | 2 |  |
 | `css/31-orizzontale.css` | 1 |  |
 | `css/32-perudo.css` | 3 |  |
-| `css/33-dorsi.css` | 2 |  |
+| `css/33-dorsi.css` | 3 |  |
 | `css/34-account.css` | 2 |  |
 | `css/35-locandiere.css` | 1 |  |
 | `css/36-distanza.css` | 1 |  |
@@ -216,7 +216,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28h-avv-palette.js` | 9 | APAL |
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/28j-ven-dati.js` | 32 | VDAT |
-| `js/motori/28ja-ven-voci.js` | 17 | VVOC |
+| `js/motori/28ja-ven-voci.js` | 18 | VVOC |
 | `js/motori/28k-ven-mondo.js` | 108 | VEN, capi |
 | `js/motori/28l-ven-campo.js` | 29 | VCAM, k |
 | `js/motori/28m-ven-stanza.js` | 5 | VST |
