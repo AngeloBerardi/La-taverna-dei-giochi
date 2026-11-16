@@ -21,8 +21,8 @@ const VST=(()=>{
   return{s:{n,names:nomi,hands:[],cur:0,log:[],ev:[],evn:0,over:null,sim:true,w,b:null,vel:1,nb:0}}}
  // cosa scrivere sul telefono: solo il mondo, mai una battaglia in corso (`null`: il salvataggio resta quello di prima)
  const salvabile=G=>{if(!G||!G.w||G.b)return null;const w=copia(G.w);w.ev=[];return{v:1,w,nomi:[w.cap].concat(w.soci||[]).map(c=>c.nome),n:G.n,giorno:VEN.giorno(G.w)}};
- // il tempo del mondo scorre solo se la compagnia ha una meta, aspetta o è in catene, e nessuno deve decidere qualcosa
- const scorre=s=>{const w=s.w;if(s.b||w.incontro||w.over)return false;const tu=VEN.TU(w);if(w.prigioniero)return true;if(!tu.ord)return false;return!((w.dentro>=0||w.davanti>=0)&&tu.ord.t!=='aspetta')};
+ // il tempo del mondo scorre solo se la compagnia ha una meta, aspetta o è in catene, e nessuno deve decidere qualcosa (neppure rispondere a una scena: `parla`, in compagnia risponde chiunque)
+ const scorre=s=>{const w=s.w;if(s.b||w.incontro||w.over||(w.rac&&w.rac.scena))return false;const tu=VEN.TU(w);if(w.voci&&w.voci.length&&w.dentro<0&&w.davanti<0)return true;if(w.prigioniero)return true;if(!tu.ord)return false;return!((w.dentro>=0||w.davanti>=0)&&tu.ord.t!=='aspetta')};
  // quante volte più svelto del passo normale: in attesa e in prigionia il tempo corre (uguale per tutti: dipende solo dallo stato)
  const ritmo=s=>{const w=s.w,tu=VEN.TU(w);return w.prigioniero||(tu.ord&&tu.ord.t==='aspetta')?Math.max(6,s.vel*3):s.vel};
  // porta il mondo al minuto `fino` (sul posto), fermandosi dove il tempo smette di scorrere
@@ -34,6 +34,7 @@ const VST=(()=>{
   const s=copia(G0),w=s.w,fino=a.fino==null?tempo(s):a.fino;let r=null;
   if(a.t==='vel'){s.vel=a.v===2?2:a.v===4?4:1}
   else if(a.t==='tempo'){if(s.b)avanzaB(s,fino);else avanza(s,fino)}
+  else if(a.t==='parla'){if(s.b)return{err:'Si sta combattendo'};avanza(s,fino);r=VEN.parla(w,a.a);if(r.err)return{err:r.err}}
   else if(a.t==='ordina'||a.t==='fai'||a.t==='scegli'){if(s.b)return{err:'Si sta combattendo'};avanza(s,fino);
    if(a.t==='ordina')r=VEN.ordina(w,a.o||{});
    else if(a.t==='fai')r=VEN.fai(w,Object.assign({},a.z,{seat:a.seat}));
