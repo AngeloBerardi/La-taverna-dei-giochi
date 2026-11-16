@@ -3191,7 +3191,7 @@ async def sc_ventura_personaggi(b, srv):
     await ctx.close()
 
 async def sc_ventura_voci(b, srv):
-    """Ventura, dialoghi (V6b): una scena aperta ferma il tempo e mostra il pannello con chi parla, il testo e le risposte (etichetta «40 monete», bersagli da dito); la risposta cambia gradimento e oro e chiude la scena; riga «Incarico» del compagno."""
+    """Ventura, dialoghi (V6b): una scena aperta ferma il tempo e mostra il pannello con chi parla, il testo e le risposte (etichetta «80 monete», bersagli da dito); la risposta cambia gradimento e oro, Berta ribatte e «Continua» chiude la scena; riga «Incarico» del compagno."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
     await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
@@ -3205,13 +3205,15 @@ async def sc_ventura_voci(b, srv):
     await pg.wait_for_timeout(800)
     check(st['sc'] == 'berta-lamento' and await pg.evaluate("Ven.V.s.t") == st['t'], f'la scena è aperta e il tempo non passa: {st}')
     check('berta la rossa' in (await pg.inner_text('.vn-voce .vn-pt')).lower() and await pg.locator('.vn-voce .vn-vs').count() == 3, 'pannello: chi parla e tre risposte')
-    check('40 monete' in (await pg.inner_text('.vn-voce')).lower(), 'la risposta a pagamento porta la sua etichetta')
+    check('80 monete' in (await pg.inner_text('.vn-voce')).lower(), 'la risposta a pagamento porta la sua etichetta')
     piccoli = await pg.evaluate("[...document.querySelectorAll('.vn-voce button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
     check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
     await pg.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'ventura-voci.png'))
     await pg.click('.vn-voce .vn-vs >> nth=1'); await pg.wait_for_timeout(200)
+    check(await pg.locator('.vn-voce [data-v="parla:c"]').count() == 1, 'Berta ribatte: resta «Continua»')
+    await pg.click('.vn-voce [data-v="parla:c"]'); await pg.wait_for_timeout(200)
     st = await pg.evaluate("({oro:VEN.TU(Ven.V.s).oro,g:Ven.V.s.grad.co_berta.g,sc:Ven.V.s.rac.scena})")
-    check(st['oro'] == 260 and st['g'] == 36 and st['sc'] is None and await pg.locator('.vn-voce').count() == 0, f'risposta: -40 monete, gradimento +6, la scena si chiude: {st}')
+    check(st['oro'] == 220 and st['g'] == 42 and st['sc'] is None and await pg.locator('.vn-voce').count() == 0, f'risposta: -80 monete, gradimento +12, la scena si chiude: {st}')
     # incarico: la riga nel pannello Compagnia
     await pg.evaluate("(()=>{const s=Ven.V.s;s.grad.co_berta.inc=1;s.grad.co_berta.incA=2;Ven.act('pan:compagnia')})()")
     await pg.wait_for_selector('.vn-inc', timeout=5000)
@@ -3467,11 +3469,12 @@ async def sc_ventura_voci_stanza(b, srv):
     t2 = [await pg.evaluate("Ven.V.s.t+'|'+(Ven.V.s.rac.scena&&Ven.V.s.rac.scena.id)") for pg in (A, B)]
     check(t[0] == t[1] and t2 == t and t[0].endswith('|berta-lamento'), f'la scena è aperta su tutti e due e il tempo è fermo: {t} {t2}')
     check(await B.locator('.vn-voce .vn-vs').count() == 3 and 'berta la rossa' in (await B.inner_text('.vn-voce .vn-pt')).lower(), 'pannello visibile al secondo telefono con le sue risposte')
-    # Bruno risponde: «Hai ragione» (+10), la scena sparisce anche per Ada
+    # Bruno risponde: «Hai ragione» (+8), Ada chiude la battuta di Berta con «Continua»: la scena sparisce per tutti e due
     await B.click('.vn-voce .vn-vs >> nth=0')
-    await A.wait_for_function("!document.querySelector('.vn-voce')&&Ven.V.s.grad.co_berta.g===40", timeout=20000)
+    await A.wait_for_selector('.vn-voce [data-v="parla:c"]', timeout=20000); await A.click('.vn-voce [data-v="parla:c"]')
+    await B.wait_for_function("!document.querySelector('.vn-voce')&&Ven.V.s.grad.co_berta.g===38", timeout=20000)
     g = [await pg.evaluate("Ven.V.s.grad.co_berta.g+'|'+Ven.V.s.rac.scena") for pg in (A, B)]
-    check(g[0] == g[1] == '40|null', f'la risposta di Bruno chiude la scena per Ada: gradimento uguale: {g}')
+    check(g[0] == g[1] == '38|null', f'le risposte di Bruno e Ada chiudono la scena per tutti e due: gradimento uguale: {g}')
     check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
     await ctxA.close(); await ctxB.close()
 

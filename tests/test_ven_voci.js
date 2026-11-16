@@ -14,12 +14,23 @@ const aGiorno = (s, g) => { s.t = g * V.P.GIORNO - 1; V.passo(s, 1); };
 // risponde alla scena aperta con la scelta `i` (o continua)
 const rispondi = (s, i) => { const v = V.voce(s); assert(v, 'nessuna scena aperta'); return ok(V.parla(s, v.continua ? { t: 'continua' } : { t: 'scegli', i })); };
 const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
+// risponde con `i` alla prima domanda e poi continua fino alla fine della scena
+const chiudi = (s, i) => { let n = 0; while (V.voce(s) && n++ < 10) rispondi(s, n === 1 ? (i || 0) : 0); assert(!V.voce(s), 'la scena si chiude'); };
 
 // i dati e il capitolo
 {
   assert.strictEqual(J(R.valida(VV)), '[]', 'il capitolo delle voci è valido (ogni nodo si raggiunge, nessun vicolo cieco)');
   assert.strictEqual(J(D.VOLPE.GIORNI), '[12,40,80]');
-  for (const k of ['berta-lamento', 'berta-addio', 'berta-inc-1', 'berta-inc-2', 'berta-inc-3', 'volpe-1', 'volpe-2', 'volpe-3']) assert(VV.scene[k], 'manca la scena ' + k);
+  // V6c blocco 1: la Volpe, Berta, Lapo, Ghino hanno tutte le loro scene; misure dei testi (nodo ≤ 280 lettere, 3–6 nodi; l'addio è breve)
+  const B1 = ['berta', 'lapo', 'ghino'];
+  for (const k of B1.flatMap(c => [c + '-lamento', c + '-addio', c + '-inc-1', c + '-inc-2', c + '-inc-3']).concat(['volpe-1', 'volpe-2', 'volpe-3'])) {
+    const sc = VV.scene[k]; assert(sc, 'manca la scena ' + k); const n = Object.keys(sc.nodi).length;
+    assert(/-addio$/.test(k) ? n <= 3 : n >= 3 && n <= 6, k + ': ' + n + ' nodi');
+    for (const nd of Object.values(sc.nodi)) { assert(nd.testo.length <= 280, k + ': nodo di ' + nd.testo.length + ' lettere'); for (const c of nd.scelte || []) assert(c.t.length <= 80, k + ': scelta lunga'); }
+  }
+  for (const id of Object.keys(VV.scene)) for (const nd of Object.values(VV.scene[id].nodi)) assert(nd.testo.length <= 280, id + ': nodo oltre 280 lettere');
+  for (const c of B1) { const x = D.COMPAGNI.find(y => y.id === 'co_' + c); assert(x.inc && x.inc.length === 3 && x.premio, c + ': incarico e premio'); if (x.premio.ogg) assert(D.OGG[x.premio.ogg] && D.OGG[x.premio.ogg].q === 4, c + ': premio unico'); }
+  const premi = D.COMPAGNI.filter(c => c.premio).map(c => J(c.premio)).filter(p => p !== '{"abil":1}'); assert.strictEqual(new Set(premi).size, premi.length, 'oggetti in premio tutti diversi');
   for (const id of Object.keys(VV.scene)) assert(/^[a-z0-9-]+$/.test(id), id);
   assert(!VV.dove && Object.values(VV.scene).every(sc => !sc.dove), 'le scene non hanno «dove»: le avvia il mondo');
   assert(D.COMPAGNI.find(c => c.id === 'co_berta').inc.length === 3 && D.COMPAGNI.find(c => c.id === 'co_berta').premio.abil === 1 && D.COMPAGNI.find(c => c.id === 'co_lapo').premio.abil === 1);
@@ -41,8 +52,10 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
     const aperte = v.scelte.filter(c => c.ok); assert(aperte.length, 'scena senza scelte disponibili: ' + v.scena + '/' + v.nodo);
     for (const c of aperte) { const t = copia(s); ok(V.parla(t, { t: 'scegli', i: c.i })); visita(t, prof + 1); }
   };
-  for (const flag of [false, true]) for (const id of Object.keys(VV.scene)) {
-    const s = quieto(V.nuovo(5)); assolda(s, 'co_berta'); s.rac.bandiere['volpe-patto'] = flag; V.TU(s).oro = 500; s.volpe.tappa = 0;
+  // ogni combinazione di bandiere che apre un ramo (patto, odio, sfida, debito, promesse), con i tre compagni del blocco 1 in compagnia
+  const combo = [{}, { 'volpe-patto': 1 }, { 'volpe-odio': 1 }, { 'volpe-sfida': 1 }, { 'volpe-debito': 1 }, { 'volpe-patto': 1, 'volpe-debito': 1 }, { 'berta-promessa': 1, 'lapo-promessa': 1, 'ghino-promessa': 1 }];
+  for (const fl of combo) for (const id of Object.keys(VV.scene)) {
+    const s = quieto(V.nuovo(5)); for (const c of ['co_berta', 'co_lapo', 'co_ghino']) assolda(s, c); Object.assign(s.rac.bandiere, fl); V.TU(s).oro = 500; s.volpe.tappa = 0;
     assert(V.accoda(s, id), 'accoda ' + id); const v = apriCoda(s); assert(v && v.scena === id, 'si apre ' + id);
     visita(s, 0);
   }
@@ -53,17 +66,20 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
 {
   const s = quieto(V.nuovo(6)); assolda(s, 'co_berta', 30); const tu = V.TU(s); tu.oro = 100; V.accoda(s, 'berta-lamento');
   const t0 = s.t; const v = apriCoda(s); assert(v && v.scena === 'berta-lamento' && s.t === t0, 'la scena parte e il tempo non passa');
-  assert.strictEqual(v.chi.nome, 'Berta la Rossa'); assert.strictEqual(v.scelte.length, 3); assert.strictEqual(v.scelte[1].etichetta, '40 monete');
+  assert.strictEqual(v.chi.nome, 'Berta la Rossa'); assert.strictEqual(v.scelte.length, 3); assert.strictEqual(v.scelte[1].etichetta, '80 monete');
   V.passo(s, 50); assert.strictEqual(s.t, t0, 'con la scena aperta il tempo non scorre');
   for (const x of [V.ordina(s, { t: 'aspetta', ore: 1 }), V.fai(s, { a: 'riposa', seat: 0 }), V.scegli(s, 'lascia')]) assert.strictEqual(x.err, 'Prima rispondi');
   assert(V.parla(s, { t: 'scegli', i: 9 }).err, 'scelta non valida'); assert(V.parla(s, { t: 'balla' }).err);
-  rispondi(s, 1); assert.strictEqual(tu.oro, 60); assert.strictEqual(s.grad.co_berta.g, 36); assert(!V.voce(s) && !s.rac.scena, 'la scena si chiude');
+  rispondi(s, 1); assert.strictEqual(tu.oro, 20); assert.strictEqual(s.grad.co_berta.g, 42); assert(V.voce(s).continua, 'la risposta di Berta'); rispondi(s, 0); assert(!V.voce(s) && !s.rac.scena, 'la scena si chiude');
+  // la promessa resta nelle bandiere: se poi se ne va, il suo addio è più duro
+  const p = quieto(V.nuovo(6)); assolda(p, 'co_berta'); V.accoda(p, 'berta-lamento'); apriCoda(p); chiudi(p, 0); assert(p.rac.bandiere['berta-promessa']); assert.strictEqual(p.grad.co_berta.g, D.GRAD.INIZIO + 8);
+  V.accoda(p, 'berta-addio'); const ad = apriCoda(p); assert.strictEqual(ad.scelte.length, 1); rispondi(p, ad.scelte[0].i); assert(/promesso/.test(V.voce(p).testo)); rispondi(p, 0);
   V.passo(s, 5); assert(s.t > t0, 'il tempo riparte');
   // con poco oro la scelta a pagamento non c'è
   const u = quieto(V.nuovo(6)); assolda(u, 'co_berta'); V.TU(u).oro = 10; V.accoda(u, 'berta-lamento'); assert.strictEqual(apriCoda(u).scelte.filter(c => c.ok).length, 2);
   assert(V.parla(u, { t: 'scegli', i: 1 }).err, 'senza monete: non disponibile');
   // «la porta è là»: -8 di gradimento
-  rispondi(u, 2); assert.strictEqual(u.grad.co_berta.g, D.GRAD.INIZIO - 8);
+  chiudi(u, 2); assert.strictEqual(u.grad.co_berta.g, D.GRAD.INIZIO - 4);
   // gli effetti `via` e `premio` su un compagno: se ne va con la sua scena d'addio; il premio si dà una volta (scena di prova aggiunta al capitolo)
   VV.scene['berta-prova'] = { inizio: 'a', nodi: { a: { chi: 'co_berta', testo: 'x', scelte: [
     { t: 'premio', effetti: [{ t: 'ven', k: 'premio', id: 'co_berta' }], fine: true }, { t: 'via', effetti: [{ t: 'ven', k: 'via', id: 'co_berta' }], fine: true }] } } };
@@ -77,11 +93,14 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   aGiorno(q, 3); assert(!q.grad.co_berta.invito, 'invito non segnato se la coda è piena'); q.voci.length = 0; q.rac.scena = null; aGiorno(q, 4); assert(q.grad.co_berta.invito && q.voci[0].id === 'berta-inc-1');
 }
 
-// scena assente (lapo-lamento): nessun blocco, resta la riga di cronaca di V6a; il lamento di Berta invece parte
+// scena assente (un lamento non ancora scritto, o tolto per la prova): nessun blocco, resta la riga di cronaca di V6a; il lamento di Berta invece parte
 {
-  const s = quieto(V.nuovo(7)); assolda(s, 'co_lapo', 20); aGiorno(s, 3);
-  assert(s.log.some(r => /Lapo Cerusico vuole parlarti/.test(r.tx)), 'riga di cronaca'); assert.strictEqual(s.voci.length, 0); assert(!s.rac.scena);
+  const senza = D.COMPAGNI.find(c => !VV.scene[c.id.slice(3) + '-lamento']) || D.COMPAGNI.find(c => c.id === 'co_isa'), tolta = VV.scene[senza.id.slice(3) + '-lamento'];
+  delete VV.scene[senza.id.slice(3) + '-lamento'];
+  const s = quieto(V.nuovo(7)); assolda(s, senza.id, 20); aGiorno(s, 3);
+  assert(s.log.some(r => r.tx.includes(senza.nome + ' vuole parlarti')), 'riga di cronaca'); assert.strictEqual(s.voci.length, 0); assert(!s.rac.scena);
   const t0 = s.t; V.ordina(s, { t: 'aspetta', ore: 2 }); V.passo(s, 30); assert(s.t > t0, 'nessun blocco');
+  if (tolta) VV.scene[senza.id.slice(3) + '-lamento'] = tolta;
   const b = quieto(V.nuovo(7)); assolda(b, 'co_berta', 20); aGiorno(b, 3); assert.strictEqual(b.voci[0].id, 'berta-lamento');
   // se se ne va (gradimento troppo basso) la scena d'addio si accoda prima di togliere il compagno
   const c = quieto(V.nuovo(7)); assolda(c, 'co_berta', 5); aGiorno(c, 3); assert(!V.TU(c).tr.some(e => e.t === 'co_berta' && e.n > 0), 'Berta è partita');
@@ -92,18 +111,18 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
 {
   const s = quieto(V.nuovo(8)); assolda(s, 'co_berta', 74); const base = V.abil(s, 'prodezza'), tu = V.TU(s); tu.oro = 5000; tu.merci.grano = 200;
   aGiorno(s, 3); assert.strictEqual(s.voci.length, 0, 'sotto la soglia nessun invito'); s.grad.co_berta.g = 75; aGiorno(s, 4);
-  assert.strictEqual(s.voci[0].id, 'berta-inc-1'); assert.strictEqual(apriCoda(s).scena, 'berta-inc-1'); rispondi(s, 0);
+  assert.strictEqual(s.voci[0].id, 'berta-inc-1'); assert.strictEqual(apriCoda(s).scena, 'berta-inc-1'); chiudi(s, 0);
   assert.strictEqual(s.grad.co_berta.incA, 1, 'passo aperto'); aGiorno(s, 5); assert.strictEqual(s.voci.length, 0, 'un solo invito');
   // passo 1: entrare in una città di Valdoro
   const roccadoro = s.l.find(l => l.tipo === 'citta' && l.faz === 'val'); s.davanti = -1; s.dentro = -1;
   tu.x = roccadoro.x - 2; tu.y = roccadoro.y; ok(V.ordina(s, { t: 'entra', lid: roccadoro.id })); let g = 0; while (s.dentro < 0 && g++ < 400) V.passo(s, 1);
   assert.strictEqual(s.dentro, roccadoro.id); assert.strictEqual(s.grad.co_berta.inc, 1); assert.strictEqual(s.grad.co_berta.incA, 0); assert(s.voci.some(x => x.id === 'berta-inc-2'));
-  ok(V.fai(s, { a: 'esci', seat: 0 })); assert.strictEqual(apriCoda(s).scena, 'berta-inc-2'); rispondi(s, 0); assert.strictEqual(s.grad.co_berta.incA, 2);
+  ok(V.fai(s, { a: 'esci', seat: 0 })); assert.strictEqual(apriCoda(s).scena, 'berta-inc-2'); chiudi(s, 0); assert.strictEqual(s.grad.co_berta.incA, 2);
   // passo 2: battere in campo un signore di Valdoro (il suo seguito è ridotto a un uomo)
   const sg = s.p.find(p => p.k === 'sig' && p.faz === 'val'); sg.tr.length = 0; sg.tr.push({ t: 'val_f1', n: 1, f: 0, xp: 0 }); sg.x = tu.x + 1; sg.y = tu.y; sg.dentro = -1;
   s.incontro = { tipo: 'nemico', pid: [sg.id], all: [], da: 'tu' }; const e = V.auto(s); assert(!e.err, e.err); assert.strictEqual(e.out.vince, 'a');
   assert.strictEqual(s.grad.co_berta.inc, 2); assert(s.voci.some(x => x.id === 'berta-inc-3'), 'invito al terzo passo'); assert.strictEqual(V.abil(s, 'prodezza'), base, 'ancora nessun premio');
-  assert.strictEqual(apriCoda(s).scena, 'berta-inc-3'); rispondi(s, 0); assert.strictEqual(s.grad.co_berta.incA, 3);
+  assert.strictEqual(apriCoda(s).scena, 'berta-inc-3'); chiudi(s, 0); assert(s.rac.bandiere['berta-giustizia'], 'il finale scelto resta nelle bandiere'); assert.strictEqual(s.grad.co_berta.incA, 3);
   // passo 3: ripulire un covo
   const covo = s.l.find(l => l.tipo === 'covo'); covo.g = [{ t: 'pre_f1', n: 1, f: 0, xp: 0 }]; tu.x = covo.x; tu.y = covo.y;
   s.davanti = covo.id; s.incontro = { tipo: 'assalto', lid: covo.id }; const f = V.auto(s); assert(!f.err, f.err); assert.strictEqual(f.out.vince, 'a');
@@ -119,7 +138,7 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   const altro = s.l.find(l => l.tipo === 'villaggio' && l.faz === 'val'); tu.x = altro.x - 2; tu.y = altro.y; ok(V.ordina(s, { t: 'entra', lid: altro.id })); let g = 0; while (s.dentro < 0 && g++ < 600) V.passo(s, 1);
   assert.strictEqual(s.dentro, altro.id); assert.strictEqual(tu.oro, 500, 'in un villaggio non si consegna nulla'); assert.strictEqual(gr.inc, 1); ok(V.fai(s, { a: 'esci', seat: 0 }));
   const mon = s.l.find(l => l.tipo === 'monastero'); tu.x = mon.x - 2; tu.y = mon.y; ok(V.ordina(s, { t: 'entra', lid: mon.id })); g = 0; while (s.dentro < 0 && g++ < 600) V.passo(s, 1);
-  assert.strictEqual(s.dentro, mon.id); assert.strictEqual(tu.oro, 380, '120 monete lasciate al monastero'); assert.strictEqual(gr.inc, 2); assert(s.voci.some(x => x.id === 'lapo-inc-3') === false, 'scena del passo dopo non ancora scritta: nessun blocco');
+  assert.strictEqual(s.dentro, mon.id); assert.strictEqual(tu.oro, 380, '120 monete lasciate al monastero'); assert.strictEqual(gr.inc, 2); assert(s.voci.some(x => x.id === 'lapo-inc-3'), 'invito al terzo passo');
   const raw = JSON.parse(V.salva(s)); assert(!('grad-berta' in raw.rac.bandiere) && !('fama' in raw.rac.bandiere), 'i fatti non si salvano nelle bandiere');
 }
 
@@ -132,7 +151,7 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   assert(!s.rac.scena && s.rac.bandiere['volpe-patto']); assert.strictEqual(s.volpe.tappa, 1); assert.strictEqual(s.volpe.coda, 0); aGiorno(s, 13); assert.strictEqual(s.voci.length, 0, 'la prossima tappa è al giorno 40');
   aGiorno(s, 40); assert.strictEqual(s.voci[0].id, 'volpe-2'); apriCoda(s); const v2 = V.voce(s); assert(v2.scelte[0].i === 0 && v2.scelte.every(c => c.i !== 1), 'col patto: c\'è la scelta del patto e non quella di chi non ce l\'ha'); const oro0 = tu.oro; rispondi(s, 0); rispondi(s, 0); assert.strictEqual(tu.oro, oro0 + 80); assert.strictEqual(s.volpe.tappa, 2);
   aGiorno(s, 80); assert.strictEqual(s.voci[0].id, 'volpe-3'); apriCoda(s); const z = () => tu.zaino.filter(x => x === D.RIVALE.premio).length + V.capi(s).reduce((a, c) => a + Object.values(c.eq).filter(x => x === D.RIVALE.premio).length, 0);
-  assert.strictEqual(z(), 0); rispondi(s, 1); rispondi(s, 0); assert.strictEqual(s.volpe.tappa, 3); assert.strictEqual(z(), 1, 'dono');
+  assert.strictEqual(z(), 0); rispondi(s, 2); rispondi(s, 0); assert.strictEqual(s.volpe.tappa, 3); assert.strictEqual(z(), 1, 'dono');
   // se poi la batti davvero il dono non si ripete
   rv.tr.length = 0; rv.tr.push({ t: 'mer_f3', n: 1, f: 0, xp: 0 }); rv.x = tu.x + 1; rv.y = tu.y; s.incontro = { tipo: 'nemico', pid: [rv.id], all: [], da: 'tu' }; assert(!V.auto(s).err); assert.strictEqual(z(), 1, 'un solo cimelio');
   aGiorno(s, 90); assert.strictEqual(s.voci.length, 0, 'finite le tappe');
@@ -140,7 +159,7 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   const t = quieto(V.nuovo(9)); t.volpe.tappa = 2; aGiorno(t, 80); apriCoda(t); rispondi(t, 0); rispondi(t, 0);
   assert(t.incontro && t.incontro.tipo === 'nemico' && t.incontro.pid[0] === t.p.find(p => p.k === 'riv').id, 'lo scontro con la rivale'); assert.strictEqual(t.volpe.tappa, 3);
   // tregua: nessun dono né battaglia
-  const u = quieto(V.nuovo(9)); u.volpe.tappa = 2; aGiorno(u, 80); apriCoda(u); rispondi(u, 2); rispondi(u, 0); assert(!u.incontro && !u.volpe.dono && u.volpe.tappa === 3);
+  const u = quieto(V.nuovo(9)); u.volpe.tappa = 2; aGiorno(u, 80); apriCoda(u); rispondi(u, 3); rispondi(u, 0); assert(!u.incontro && !u.volpe.dono && u.volpe.tappa === 3);
   // senza la scena (stato che non la conosce) la rivale non compare
   const w = quieto(V.nuovo(9)); const rv2 = w.p.find(p => p.k === 'riv'), px = rv2.x, sc1 = VV.scene['volpe-1']; delete VV.scene['volpe-1']; aGiorno(w, 12); VV.scene['volpe-1'] = sc1; assert.strictEqual(rv2.x, px); assert.strictEqual(w.volpe.coda | 0, 0);
 }
@@ -175,7 +194,8 @@ const apriCoda = s => { V.passo(s, 1); return V.voce(s); };
   const g1 = ok(S.act(g, { t: 'tempo', seat: 0, fino: w.t + 5 })).s; assert(V.voce(g1.w) && V.voce(g1.w).scena === 'berta-lamento'); assert(!S.scorre(g1), 'scena aperta: il tempo si ferma');
   const a = copia(g1), b = copia(g1); assert.strictEqual(J(V.voce(a.w)), J(V.voce(b.w)), 'la vedono uguale');
   assert(S.act(g1, { t: 'ordina', seat: 1, o: { t: 'aspetta', ore: 1 } }).err === 'Prima rispondi');
-  const g2 = ok(S.act(g1, { t: 'parla', seat: 1, a: { t: 'scegli', i: 0 } })).s; assert(!V.voce(g2.w), 'chiusa'); assert.strictEqual(g2.w.grad.co_berta.g, D.GRAD.INIZIO + 10);
+  const g15 = ok(S.act(g1, { t: 'parla', seat: 1, a: { t: 'scegli', i: 0 } })).s; assert(V.voce(g15.w).continua); const g2 = ok(S.act(g15, { t: 'parla', seat: 0, a: { t: 'continua' } })).s;
+  assert(!V.voce(g2.w), 'chiusa'); assert.strictEqual(g2.w.grad.co_berta.g, D.GRAD.INIZIO + 8);
   assert(S.act(g2, { t: 'parla', seat: 0, a: { t: 'scegli', i: 0 } }).err, 'nessuno parla più'); assert(S.act(g1, { t: 'parla', seat: 7, a: { t: 'continua' } }).err);
 }
 console.log('test_ven_voci: ok');
