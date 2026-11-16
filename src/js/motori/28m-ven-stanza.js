@@ -33,6 +33,7 @@ const VST=(()=>{
  function act(G0,a){if(!G0||!G0.w)return{err:'Nessuna partita'};if(!a||!(a.seat>=0&&a.seat<G0.n))return{err:'Non sei seduto a questo tavolo'};
   const s=copia(G0),w=s.w,fino=a.fino==null?tempo(s):a.fino;let r=null;
   if(a.t==='vel'){s.vel=a.v===2?2:a.v===4?4:1}
+  else if(a.t==='tv'){if(a.v)s.tv=true;else delete s.tv}   // V7: la mappa sul televisore (mai salvata: `salvabile` copia solo `w`); il tempo resta fermo
   else if(a.t==='tempo'){if(s.b)avanzaB(s,fino);else avanza(s,fino)}
   else if(a.t==='parla'){if(s.b)return{err:'Si sta combattendo'};avanza(s,fino);r=VEN.parla(w,a.a);if(r.err)return{err:r.err}}
   else if(a.t==='ordina'||a.t==='fai'||a.t==='scegli'){if(s.b)return{err:'Si sta combattendo'};avanza(s,fino);
