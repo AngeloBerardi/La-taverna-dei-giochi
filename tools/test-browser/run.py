@@ -3190,6 +3190,36 @@ async def sc_ventura_personaggi(b, srv):
     check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
     await ctx.close()
 
+async def sc_ventura_voci(b, srv):
+    """Ventura, dialoghi (V6b): una scena aperta ferma il tempo e mostra il pannello con chi parla, il testo e le risposte (etichetta «40 monete», bersagli da dito); la risposta cambia gradimento e oro e chiude la scena; riga «Incarico» del compagno."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    # Berta in compagnia, scontenta; la sua scena in coda si apre al primo passo del tempo
+    await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s);tu.tr.push({t:'co_berta',n:1,f:0,xp:0});s.compagni.co_berta=-1;s.grad.co_berta={g:30,avv:0,visto:[]};tu.oro=300;s.tregua=1e9;
+      VEN.accoda(s,'berta-lamento');tu.ord={t:'aspetta',fino:s.t+600};Ven.V.pan=null;Ven.act('pan:compagnia')})()""")
+    await pg.evaluate("Ven.V.pan=null;VEN.passo(Ven.V.s,1);Ven.act('chiudi')")
+    await pg.wait_for_selector('.vn-voce', timeout=5000)
+    st = await pg.evaluate("({t:Ven.V.s.t,sc:Ven.V.s.rac.scena&&Ven.V.s.rac.scena.id})")
+    await pg.wait_for_timeout(800)
+    check(st['sc'] == 'berta-lamento' and await pg.evaluate("Ven.V.s.t") == st['t'], f'la scena è aperta e il tempo non passa: {st}')
+    check('berta la rossa' in (await pg.inner_text('.vn-voce .vn-pt')).lower() and await pg.locator('.vn-voce .vn-vs').count() == 3, 'pannello: chi parla e tre risposte')
+    check('40 monete' in (await pg.inner_text('.vn-voce')).lower(), 'la risposta a pagamento porta la sua etichetta')
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn-voce button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0 and await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), f'bersagli da dito e nessuno scorrimento orizzontale (piccoli: {piccoli})')
+    await pg.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'ventura-voci.png'))
+    await pg.click('.vn-voce .vn-vs >> nth=1'); await pg.wait_for_timeout(200)
+    st = await pg.evaluate("({oro:VEN.TU(Ven.V.s).oro,g:Ven.V.s.grad.co_berta.g,sc:Ven.V.s.rac.scena})")
+    check(st['oro'] == 260 and st['g'] == 36 and st['sc'] is None and await pg.locator('.vn-voce').count() == 0, f'risposta: -40 monete, gradimento +6, la scena si chiude: {st}')
+    # incarico: la riga nel pannello Compagnia
+    await pg.evaluate("(()=>{const s=Ven.V.s;s.grad.co_berta.inc=1;s.grad.co_berta.incA=2;Ven.act('pan:compagnia')})()")
+    await pg.wait_for_selector('.vn-inc', timeout=5000)
+    tx = await pg.inner_text('.vn-inc')
+    check('passo 2 di 3' in tx and 'signore di Valdoro' in tx, f'riga «Incarico» con il passo aperto: {tx}')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 async def sc_ventura_assedio(b, srv):
     """Ventura, assedio a fasi (V5b): pannello dell'assalto con scale, breccia e ariete; ariete costruito; battaglia con scale, portone e camminamento; la porta cade."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
