@@ -3402,6 +3402,40 @@ async def sc_ventura_stanza_ripresa(b, srv):
     check(not A.errs and not B.errs, f'nessun errore di pagina: {A.errs[:2]} {B.errs[:2]}')
     await ctxA.close(); await ctxB.close()
 
+async def sc_ventura_tattica(b, srv):
+    """Ventura, terreno e formazioni (V5): battaglia a 390 px con altura e bosco forzati, quote della vista = quote del motore, tocchi sul gruppo che ne fanno girare la formazione, attesa tra due cambi."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000); await pg.wait_for_timeout(600)
+    await pg.evaluate("(()=>{const s=Ven.V.s,tu=VEN.TU(s);tu.tr=[{t:'sel_f3',n:14,f:0,xp:0},{t:'sel_t3',n:8,f:0,xp:0}];const p=s.p.find(p=>p.k==='pre');p.tr=[{t:'pre_f1',n:8,f:0,xp:0},{t:'pre_t2',n:3,f:0,xp:0}];s.incontro={tipo:'nemico',pid:[p.id],all:[],da:'tu'};Ven.V.pan='incontro';render()})()")
+    await pg.click('[data-v="scegli:attacca"]'); await pg.wait_for_timeout(600)
+    # altura dalla parte del nemico e un bosco di lato, forzati sullo stato; la scena si ricostruisce da quello
+    await pg.evaluate("(()=>{const k=VenCampo.K;k.s.zone=[{k:'altura',x:30,y:26,rx:14,ry:9,h:1},{k:'bosco',x:11,y:52,rx:9,ry:8,h:0}];VenCampo.scena();VenCampo.K.segue=true})()"); await pg.wait_for_timeout(1200)
+    q = await pg.evaluate("""(()=>{const k=VenCampo.K,s=k.s,A=VCAM.C.TER.ALTO;let peggio=0,n=0;for(const u of s.u){if(u.st==='via')continue;peggio=Math.max(peggio,Math.abs(k.alto(u.x,u.y)-VCAM.quota(s,u.x,u.y)*A));n++}
+      return{n,peggio,cima:k.alto(30,26),piano:k.alto(30,60),altura:VCAM.quota(s,30,26),bosco:VCAM.copre(s,11,52),aperto:VCAM.copre(s,30,60)}})()""")
+    check(q['n'] >= 30 and q['peggio'] < 1e-6 and q['cima'] > 2 and abs(q['piano']) < .5 and q['bosco'] == 'bosco' and not q['aperto'], f'la vista usa le quote del motore: soldati sul terreno, altura in cima, piano a terra: {q}')
+    check(await pg.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), 'nessuno scorrimento orizzontale in battaglia')
+    f0 = await pg.inner_text('#vn-fmf'); t0 = await pg.inner_text('#vn-fmt'); c0 = await pg.inner_text('#vn-fmc')
+    check((f0, t0, c0) == ('serrata', 'larga', 'larga'), f'riga di formazione: fanti serrata, tiratori e cavalieri larga: {(f0, t0, c0)}')
+    await pg.click('[data-v="cgr:f"]')
+    check(await pg.inner_text('#vn-fmf') == f0 and await pg.evaluate("VenCampo.K.gruppo") == 'f', 'il primo tocco sceglie il gruppo, la formazione non cambia')
+    await pg.click('[data-v="cgr:f"]'); await pg.wait_for_timeout(200)
+    f1 = await pg.inner_text('#vn-fmf'); motore = await pg.evaluate("VenCampo.K.s.ord.a.f.fm")
+    check(f1 == 'cuneo' and motore == 'cuneo' and 'cuneo' in await pg.inner_text('.vn-avv'), f'il secondo tocco fa girare la formazione (serrata → cuneo) e lo dice: {f1}/{motore}')
+    await pg.click('[data-v="cgr:f"]'); await pg.wait_for_timeout(200)
+    check('si sta ancora schierando' in await pg.inner_text('.vn-avv') and await pg.evaluate("VenCampo.K.s.ord.a.f.fm") == 'cuneo' and await pg.inner_text('#vn-fmf') == 'cuneo', 'terzo tocco subito: «Il gruppo si sta ancora schierando», formazione invariata')
+    await pg.click('[data-v="cgr:t"]'); await pg.click('[data-v="cgr:t"]'); await pg.wait_for_timeout(200)
+    check(await pg.inner_text('#vn-fmt') == 'serrata', 'tiratori: larga → serrata (il cuneo non è per loro)')
+    await pg.click('[data-v="cgr:tutti"]'); await pg.wait_for_timeout(150)
+    piccoli = await pg.evaluate("[...document.querySelectorAll('.vn-gr button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
+    check(piccoli == 0, f'i bottoni dei gruppi restano grandi quanto un dito ({piccoli} troppo piccoli)')
+    await pg.click('[data-v=cpausa]'); await pg.evaluate("(()=>{const k=VenCampo.K;k.segue=false;k.fuoco.x=30;k.fuoco.z=44;k.alt=78})()"); await pg.wait_for_timeout(700)
+    await pg.screenshot(path=os.path.join(os.environ.get('SCHERMATE_DIR', tempfile.gettempdir()), 'ventura-tattica.png'))
+    await pg.evaluate("(()=>{const k=VenCampo.K;for(let i=0;i<300&&!k.s.fine;i++)VCAM.passo(k.s,1)})()"); await pg.wait_for_timeout(400)
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():

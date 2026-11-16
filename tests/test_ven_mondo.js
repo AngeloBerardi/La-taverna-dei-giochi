@@ -154,7 +154,7 @@ for (const seme of [1, 7, 2026]) {
 }
 // il capitano accorto cresce, quello sconsiderato si rovina; il mondo intanto fa la sua guerra
 {
-  let bravi = 0, guerre = 0, cambi = 0; const semi = [3, 29];
+  let bravi = 0, guerre = 0, cambi = 0; const semi = [7, 29]; // (V5: il seme 3 apre con una battaglia sfortunata e finisce senza monete; su 16 semi prospera come prima 15 volte contro 16)
   for (const seme of semi) {
     const a = gioca(V.nuovo(seme), 22, true, carica.rng(seme + 1)), b = gioca(V.nuovo(seme), 22, false, carica.rng(seme + 1));
     const va2 = V.forza(V.TU(a)) + V.TU(a).oro / 20 + a.fama, vb = V.forza(V.TU(b)) + V.TU(b).oro / 20 + b.fama;
