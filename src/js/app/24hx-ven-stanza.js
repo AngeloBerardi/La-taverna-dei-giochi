@@ -5,7 +5,7 @@
    subito qui (`manda`), poi parte come ogni mossa di stanza (`SYNC.mossa`, atomica); quando arriva lo stato di un altro
    telefono lo si adotta e si riparte da lì (`adotta`). Schermate, pannelli e disegno restano quelli di `Ven` (24hw):
    `specchia` decide quale pannello mostrare dai cambi di stato, senza strappare di mano i pannelli aperti apposta.
-   La TV (`ui.tv`) guarda soltanto. Salvataggio (V1): a ogni alba, all'uscita da un luogo e a fine battaglia ogni telefono seduto scrive
+   La TV (`ui.tv`) guarda soltanto; la accende un capitano con la mossa `tv` (V7: `G.tv`, telefoni come comandi, musica solo sulla TV). Salvataggio (V1): a ogni alba, all'uscita da un luogo e a fine battaglia ogni telefono seduto scrive
    il mondo in `ven-salv-coop` (`salva`, forma di `VST.salvabile`); prima di partire, se c'è un salvataggio, la carta `ripH` fa scegliere
    (`chiedi`/`scegli`: «Riprendi la compagnia», «… precedente», «Porta qui la partita in solitario», «Nuova»). Se il telefono entra in
    un'altra compagnia, quella che aveva salvato passa in `ven-salv-coop-prec` invece di sparire. Piano: docs/VENTURA.md. */
@@ -53,7 +53,10 @@ ${bt('nuova','Nuova partita')}${c?`<small class="muted">${esc(c.w.nome)} resta t
   if((prig&&!p.prig)||(att&&!p.att&&!inc))V.pan='attesa';else if(V.pan==='attesa'&&!prig&&!att)V.pan=inc?'incontro':luogo>=0?'luogo':null;
   p.inc=inc;p.luogo=luogo;p.prig=prig;p.att=att}
  // chiamata da Ven.html a ogni disegno: stato nuovo dalla stanza, o stanza finita
- function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false,ult:G&&G.w&&G.w.ult?G.w.ult.id:null};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();return}
+ function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false,ult:G&&G.w&&G.w.ult?G.w.ult.id:null};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();
+  // V7: con la TV accesa la musica esce solo dal televisore; il telefono abbassa la sua
+  const d=!ui.tv&&!!G.tv;if(d!==!!X.duck){X.duck=d;Snd.duck(d)}return}
+  if(X.duck){X.duck=false;Snd.duck(false)}
   if(X.era){X.era=false;X.L=null;X.visto=null;Ven.V.s=null;Ven.V.pan=null;Ven.V.modo='mondo';ui.ven=false;Ven.ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on')}}
  // ---- mosse ----
  function invia(a,ns){X.fermo=ora();X.visto=ns;const base=R.grev!=null?R.grev:R.rev,gid=G.gid;
@@ -71,7 +74,7 @@ ${bt('nuova','Nuova partita')}${c?`<small class="muted">${esc(c.w.nome)} resta t
  // ---- il tempo, su questo telefono ----
  function giro(dt){const L=X.L;if(!L||!on())return;const k=VenCampo.K;
   if(L.b){if(VST.corre(L)){X.acc+=dt*10;const n=Math.min(6,Math.floor(X.acc));if(n>0){X.acc-=n;if(X.acc>1)X.acc=0;VenCampo.eventi(VST.avanzaB(L,L.b.c.t+n));if(L.b.c.fine){k.finita=true;ferma()}}k.acc=X.acc}}
-  else if(VST.scorre(L)){X.acc+=dt*8*VST.ritmo(L);const n=Math.floor(X.acc);if(n>0){X.acc-=n;const g0=VEN.giorno(L.w),ev=VST.avanza(L,L.w.t+n);
+  else if(VST.scorre(L)){X.acc+=dt*8*VST.ritmo(L);const n=Math.floor(X.acc);if(n>0){X.acc-=n;const g0=VEN.giorno(L.w),ev=VST.avanza(L,L.w.t+n);VenAudio.mondo(ev);
     for(const e of ev)if(e.t==='log'&&e.tipo)Ven.avviso(e.tx,e.tipo);
     if(!VST.scorre(L)||VEN.giorno(L.w)!==g0||L.w.incontro){specchia();salva();ferma();render()}}}
   if(ora()-X.fermo>9000+Math.max(0,seat())*2500)ferma()}

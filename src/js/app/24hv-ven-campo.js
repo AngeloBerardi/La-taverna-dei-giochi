@@ -126,17 +126,17 @@ const VenCampo=(()=>{
  function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);for(const e of ev){
    if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(b&&e.dan>0){b.lampo=K.t;if(ub){for(let k=0;k<(e.crit?5:2);k++)K.par.emetti(ub.x,1+Math.random()*.5,ub.y,{vx:(Math.random()-.5)*3,vy:2+Math.random()*2,vz:(Math.random()-.5)*3,g:9,s:.13,dur:.5,col:e.crit?'#ffe27a':'#ffffff'})}}
     const cap=mio;if(ub&&cap&&(e.da===cap.id||e.a===cap.id)&&e.dan>0&&K.numeri.length<7)K.numeri.push({x:ub.x,z:ub.y,v:e.dan,t:K.t,cls:e.a===cap.id?'male':e.crit?'crit':''});
-    if(cap&&e.a===cap.id&&e.dan>0){K.scossa=.25}if(e.crit)suono('avv-critico');else if(e.dan>0&&cap&&(e.da===cap.id||e.a===cap.id))suono('avv-colpo-taglio')}
+    if(cap&&e.a===cap.id&&e.dan>0){K.scossa=.25}}
    else if(e.t==='tiro'){K.frecce.push({x0:e.x0,z0:e.y0,x1:e.x1,z1:e.y1,t0:K.t,dur:e.vt/10/K.vel,ok:e.colpito});const a=K.U[e.da];if(a)a.colpo=K.t}
-   else if(e.t==='ko'){const u=s.u.find(u=>u.id===e.id);if(u){for(let k=0;k<6;k++)K.par.emetti(u.x+(Math.random()-.5),.2,u.y+(Math.random()-.5),{vy:.8,s:.22,dur:.8,col:'#d8c8a4',cresce:1.3});if(e.cap){K.lampo=.5;suono('avv-cade')}}}
-   else if(e.t==='grido'){K.lampo=.25;for(let k=0;k<26;k++){const an=k/26*6.28;K.par.emetti(e.x,.4,e.y,{vx:Math.cos(an)*7,vz:Math.sin(an)*7,vy:.4,s:.24,dur:.7,col:'#ffe27a'})}suono('avv-livello')}
+   else if(e.t==='ko'){const u=s.u.find(u=>u.id===e.id);if(u){for(let k=0;k<6;k++)K.par.emetti(u.x+(Math.random()-.5),.2,u.y+(Math.random()-.5),{vy:.8,s:.22,dur:.8,col:'#d8c8a4',cresce:1.3});if(e.cap)K.lampo=.5}}
+   else if(e.t==='grido'){K.lampo=.25;for(let k=0;k<26;k++){const an=k/26*6.28;K.par.emetti(e.x,.4,e.y,{vx:Math.cos(an)*7,vz:Math.sin(an)*7,vy:.4,s:.24,dur:.7,col:'#ffe27a'})}}
    else if(e.t==='ariete'&&s.porta){if(e.pf%6===0){const m=s.muro;for(let k=0;k<4;k++)K.par.emetti((s.porta.x0+s.porta.x1)/2+(Math.random()-.5)*2,1.4,m+.9,{vy:.5,vz:.6,s:.18,dur:.5,col:'#c9b48a'});K.scossa=Math.max(K.scossa,.08)}}
-   else if(e.t==='porta'&&s.porta){const m=s.muro;for(let k=0;k<22;k++)K.par.emetti(s.porta.x0+Math.random()*(s.porta.x1-s.porta.x0),.4+Math.random()*2.5,m+(Math.random()-.5)*2,{vy:1,s:.3,dur:1.1,col:'#d8c8a4',cresce:1.4});K.scossa=.35;suono('avv-cade');Ven.avviso('La porta cede!')}
+   else if(e.t==='porta'&&s.porta){const m=s.muro;for(let k=0;k<22;k++)K.par.emetti(s.porta.x0+Math.random()*(s.porta.x1-s.porta.x0),.4+Math.random()*2.5,m+(Math.random()-.5)*2,{vy:1,s:.3,dur:1.1,col:'#d8c8a4',cresce:1.4});K.scossa=.35;Ven.avviso('La porta cede!')}
    else if(e.t==='rinforzi')Ven.avviso(e.l==='a'?'Arrivano i tuoi rinforzi':'Rinforzi nemici in campo');
    else if(e.t==='rotta')Ven.avviso(e.l==='a'?'I tuoi uomini sono in rotta!':'Il nemico è in rotta!');
    else if(e.t==='cap-ko')Ven.avviso(e.seat===(K.seat||0)?'Sei caduto: gli uomini combattono senza di te':'Un capitano è caduto!','male');
-   else if(e.t==='fine'){K.finita=true;suono(e.vince==='a'?'avv-fanfara':'avv-lamento')}}}
- const suono=n=>{try{Snd.play(n)}catch(e){}};
+   else if(e.t==='fine')K.finita=true}
+  if(ev.length)VenAudio.campo(ev)}
  function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;
   if(K.portone){const su=!!(s.porta&&s.porta.pf>0);K.portone.visible=su;K.abbattuto.visible=!su}
   if(!K.esterno&&!K.pausa&&!s.fine){K.acc+=dt*10*K.vel;let n=0;while(K.acc>=1&&n++<6){K.acc-=1;eventi(VCAM.passo(s,1))}if(K.acc>1)K.acc=0}
