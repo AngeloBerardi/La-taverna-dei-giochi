@@ -10,7 +10,7 @@ const Shop={
    const b=!ok?'':o.id===cur?'<span class="chip">In uso</span>':mio?`<button class="b sm" data-a="shopuse" data-v="${o.id}">Usa</button>`
     :`<button class="b sm gold" data-a="shopbuy" data-v="${o.id}" ${p.coins<o.prezzo?'disabled':''}>${ic('moneta',16)} ${o.prezzo}</button>`;
    return`<div class="shopi ${o.id===cur?'on':''}"><div class="card back d-${o.id===BOTTEGA.SLOT.dorso.base?'classico':su}" aria-hidden="true"></div><div class="shopt"><b>${esc(o.nome)}</b><small>${esc(o.desc)}</small>${b}</div></div>`};
-  return`<div class="modal"><div class="box col"><h2>Bottega</h2><p class="muted" style="margin:0">${ok?`${ic('moneta',16)} ${p.coins} monete · guadagni 10 a partita e 15 in più se vinci`:'Serve il profilo online: controlla la connessione.'}</p>
+  return`<div class="modal" data-sc><div class="box col"><h2>Bottega</h2><p class="muted" style="margin:0">${ok?`${ic('moneta',16)} ${p.coins} monete · guadagni 10 a partita e 15 in più se vinci`:'Serve il profilo online: controlla la connessione.'}</p>
 <h3 style="margin:4px 0 0">${BOTTEGA.SLOT.dorso.nome}</h3><div class="shop">${lista.map(voce).join('')}</div><button class="b sm" data-a="shopx">Chiudi</button></div></div>`},
  async act(a,v){
   if(a==='shop'){ui.shop=true;ui.cfg=false;return render()}

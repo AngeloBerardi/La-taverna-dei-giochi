@@ -806,7 +806,7 @@ async def sc_campagna(b, srv):
     # una cella calpestabile e già vista a due esagoni dal punto di partenza (con più scelte: la mappa nasce da un seme casuale)
     dest_js = "(()=>{const s=Camp.s,e=s.eroi[0];const L=Object.values(s.celle).filter(x=>x.visto&&!x.luogo&&CAMP.dist(x,e)===2&&CAMP.TERRENI[x.t].c!=null&&CAMP.TERRENI[x.t].c<=1);return L.length?{q:L[0].q,r:L[0].r}:null})()"
     await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(800)
-    check('Cantari di Ventura' in await pg.inner_text('.av h2') and await pg.query_selector('.av-cont') is None, 'pagina Avventura, nessuna campagna da riprendere')
+    check('Cronache del Crocevia' in await pg.inner_text('.av h2') and await pg.query_selector('.av-cont') is None, 'pagina Avventura, nessuna campagna da riprendere')
     check('Aldo' in await pg.inner_text('.av') and 'Mira' in await pg.inner_text('.av'), 'i due eroi dell\'account sono elencati')
     await pg.click('[data-a=avvnuova]'); await pg.wait_for_timeout(500)
     check(await pg.query_selector('.mo .mo-svg') is not None and await pg.query_selector('#plancia:not([hidden])') is None or True, 'mappa del mondo a tutto schermo')
@@ -1031,11 +1031,11 @@ async def sc_avv_racconto(b, srv):
     await pronto(); await vai('.dl-co'); await pg.click('.dl-bar [data-a=dl][data-v=chiudi]'); await pg.wait_for_timeout(300)
     # --- il Locandiere riassume; la sessione si chiude e il cantare cambia ---
     await pg.click('[data-a=dl][data-v=riassunto]'); await pg.wait_for_timeout(250)
-    r1 = await pg.inner_text('.dl-riass'); check(r1.startswith('Primo cantare') and 'Nella sessione precedente' in r1 and 'Ilda' in r1, 'riassunto del Locandiere: ' + r1[:90])
+    r1 = await pg.inner_text('.dl-riass'); check(r1.startswith('Prima cronaca') and 'Nella sessione precedente' in r1 and 'Ilda' in r1, 'riassunto del Locandiere: ' + r1[:90])
     await pg.click('[data-a=dl][data-v=sessione]'); await pg.wait_for_timeout(250)
     check('Per oggi basta' in await pg.inner_text('.dl-riass') and await pg.evaluate("Dia.s.sessioni") == 1, 'chiusura della sessione dal Locandiere')
     await pg.click('[data-a=dl][data-v=riassunto]'); await pg.wait_for_timeout(250)
-    check((await pg.inner_text('.dl-riass')).startswith('Secondo cantare'), 'la volta dopo è il secondo cantare')
+    check((await pg.inner_text('.dl-riass')).startswith('Seconda cronaca'), 'la volta dopo è il secondo cantare')
     # --- sopravvive al ricaricamento; si ricomincia da capo ---
     await pg.reload(); await pg.wait_for_timeout(900); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(700)
     check(await pg.evaluate("(()=>{Dia.leggi();return Dia.s&&Dia.s.sessioni===1&&ACMP.stato(Dia.s,'ilda')==='gruppo'})()"), 'lo stato del racconto resta salvato')
@@ -2216,7 +2216,7 @@ async def sc_avv_tv(b, srv):
     for p_ in (A, B): await p_.set_viewport_size({'width': 390, 'height': 760})
     await A.wait_for_function("R.members.length>=2", timeout=20000)
     # --- si parte: il gioco è nell'elenco e parte su tutti ---
-    check(await A.evaluate("!!GAMES.find(g=>g.id==='avventura')&&GN('avventura')") == 'Cantari di Ventura', 'il gioco «Cantari di Ventura» è tra i giochi')
+    check(await A.evaluate("!!GAMES.find(g=>g.id==='avventura')&&GN('avventura')") == 'Cronache del Crocevia', 'il gioco «Cantari di Ventura» è tra i giochi')
     await A.evaluate("AvvStanza.seme0=4711"); await A.evaluate("startGame('avventura')")   # seme fisso: la stessa storia a ogni prova
     for p_ in (A, B, T): await p_.wait_for_function("ui.screen==='game'&&G&&G.g==='avventura'", timeout=40000)
     for p_ in (A, B, T): await p_.wait_for_function("Ses.cap&&Ses.a", timeout=20000)
@@ -3586,6 +3586,35 @@ async def sc_bottega_dorso(b, srv):
     check(dopo[0] == prima[0], f"l'anteprima del classico non cambia con notte indossato: {prima[0][:60]} / {dopo[0][:60]}")
     check(dopo[1] == prima[1], "l'anteprima di notte resta uguale")
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
+async def sc_render_stabile(b, srv):
+    """T1: ridisegni fusi, niente lampi nel menù Avventura, un solo velo all'ingresso."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    # (a) 20 render() di fila → al massimo una scrittura di #app
+    n0 = await pg.evaluate("render.n"); await pg.evaluate("for(let i=0;i<20;i++)render()"); await pg.wait_for_timeout(250)
+    d = await pg.evaluate("render.n") - n0
+    check(d <= 1, f'20 render() di fila: {d} scritture di #app (≤1)')
+    # stato cambiato fra due render nello stesso fotogramma: il disegno finale è quello giusto
+    await pg.evaluate("ui.cfg=true;render();ui.cfg=false;render()"); await pg.wait_for_timeout(250)
+    check(await pg.evaluate("!document.querySelector('[data-a=shop]')"), 'l\'ultimo stato vince fra due ridisegni ravvicinati')
+    # (b) Avventura con dati lenti: al massimo 2 scritture, scheletro subito
+    await pg.evaluate("(()=>{Eroi.lista=null;const o=FB.eroi.bind(FB);FB.eroi=()=>new Promise(r=>setTimeout(()=>r(o()),300))})()")
+    n1 = await pg.evaluate("render.n")
+    await pg.evaluate("(Avv.act('avv'),0)"); await pg.wait_for_timeout(80)
+    check(await pg.evaluate("!!document.querySelector('.avv-vuoto')"), 'Avventura: scheletro subito, mentre i dati arrivano')
+    await pg.wait_for_timeout(1200)
+    d = await pg.evaluate("render.n") - n1
+    check(d <= 2, f'Avventura con dati lenti: {d} scritture (≤2)')
+    check(await pg.evaluate("!document.querySelector('.avv-vuoto')"), 'Avventura: a dati arrivati niente segnaposto')
+    # (c) ingresso: un solo velo, il ridisegno resta sospeso finché la scena non è pronta
+    await pg.evaluate("(()=>{ui.avv=false;ui.modal=null;ui.screen='room';ui.inroom=false;render();ui.lobby='3d';VENDOR.gl=()=>true;VENDOR.load=()=>Promise.resolve(true);L3D.avvia=()=>Promise.resolve(true);L3D.ok=()=>true;L3D.show=()=>{};L3D.pronta=()=>new Promise(r=>setTimeout(r,500));Soglia.fatto=false;window.__v=render.n;ui.inroom=true;render()})()")
+    await pg.wait_for_timeout(200)
+    st = await pg.evaluate("[document.querySelectorAll('.sg-velo').length,Soglia.attesa,render.n===window.__v]")
+    check(st == [1, True, True], f'durante l\'attesa: un velo, ridisegno sospeso {st}')
+    await pg.wait_for_timeout(1000)
+    st = await pg.evaluate("[document.querySelectorAll('.sg-velo').length,Soglia.attesa,Soglia.fatto]")
+    check(st == [0, False, True], f'finita l\'attesa: velo tolto, ridisegno ripreso {st}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 

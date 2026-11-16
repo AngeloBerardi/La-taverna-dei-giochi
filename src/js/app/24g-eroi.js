@@ -64,7 +64,7 @@ ${nx?`<div class="exp"><span>Esperienza ${h.xp}/${nx}</span><span class="ebar"><
  schedaH(){const h=Eroi.lista&&Eroi.lista[Eroi.sel];if(!h){Eroi.sel=null;return Eroi.listaH()}
   return`<div class="modal"><div class="box col eroi"><h2>Scheda</h2>${Eroi.sceltaH(h)}${Eroi.schedaCorpo(h)}<p class="acc-msg" role="status">${esc(Eroi.msg)}</p>
 <div class="row"><button class="b sm" data-a="eroiindietro">Indietro</button><button class="b sm" data-a="eroielimina" data-v="${esc(Eroi.sel)}">Elimina</button></div></div></div>`},
- async carica(){try{const m=await FB.eroi();for(const k of Object.keys(m))if(!EROI.coerente(m[k])){console.warn('Eroe non coerente',k);delete m[k]}Eroi.lista=m}catch(e){console.warn('Eroi',e);Eroi.lista=Eroi.lista||{};Eroi.msg='Non riesco a leggere gli eroi'}render()},
+ async carica(){try{const m=await FB.eroi();for(const k of Object.keys(m))if(!EROI.coerente(m[k])){console.warn('Eroe non coerente',k);delete m[k]}Eroi.lista=m}catch(e){console.warn('Eroi',e);Eroi.lista=Eroi.lista||{};Eroi.msg='Non riesco a leggere gli eroi'}if(!Avv.caricando)render()},   // la pagina Avventura, mentre carica, ridisegna una volta sola alla fine
  async act(a,v){
   if(a==='eroi'){ui.eroi=true;ui.cfg=false;Eroi.msg='';Eroi.pas=0;Eroi.sel=null;render();return Eroi.carica()}
   if(a==='eroix'){ui.eroi=false;ui.avv=true;return render()}

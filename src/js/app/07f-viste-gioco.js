@@ -20,11 +20,31 @@ function gameH(){if(!G)return hudH()+'<p class="muted" style="text-align:center"
 /* musica di sottofondo: gioco -> traccia (quelli non elencati usano 'it', i giochi a simulazione 'gang') */
 const MUSICA={giallo:'giallo',serata:'giallo',rlegacy:'rleg',gang:'gang',saboteur:'mine',azul:'azul',island:'island',machiavelli:'mach',valle:'valle',accordi:'accordi',discesa:'disc',trono:'trono',spie:'spie',quiz:'quiz',zucca:'zucca',fantasma:'fantasma',uno:'uno',pets:'pets',catan:'cata',kittens:'kitt',perudo:'peru'};
 const traccia=()=>AvvAudio.traccia()||(!(ui.screen==='game'&&G&&!G.over)?'menu':G.g==='giallo'?(ui.tv&&Snd.__gk?'kit':'giallo'):isRG(G.g)?(G.en?P(G.en.c).r:'menu'):MUSICA[G.g]||(G.sim?'gang':'it'));
-function render(){applyTheme();const ae=document.activeElement,id=ae&&ae.id;
- $('#app').classList.toggle('fixed',fxOn());
- $('#app').innerHTML=(ui.screen==='name'?nameH():ui.screen==='room'?roomH():ui.screen==='tv'?TV.lobbyH():gameH())+(ui.screen==='game'?chatDrawerH():'');
- if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}afterRender();
- Snd.track(traccia())}
+/* render: il primo ridisegno di un fotogramma è subito (chi legge il DOM subito dopo lo trova pronto); i successivi nello stesso fotogramma
+   (risposte asincrone che arrivano insieme: profilo, eroi, salvataggi, librerie) si fondono in uno solo, e se l'HTML è identico a quello già
+   scritto #app non si tocca. Le animazioni d'ingresso valgono solo al cambio di schermata (data-fermo), lo scorrimento dei [data-sc] si conserva. */
+const RD={t:0,to:0,pend:false,html:'',key:'',n:0,saltati:0};
+function renderOra(){
+ if(RD.t){cancelAnimationFrame(RD.t);clearTimeout(RD.to);RD.t=0}RD.pend=false;
+ if(typeof Soglia!=='undefined'){if(Soglia.serve()){RD.pend=true;Soglia.entra();return}if(Soglia.attesa){RD.pend=true;return}}
+ applyTheme();const ae=document.activeElement,id=ae&&ae.id,app=$('#app');
+ app.classList.toggle('fixed',fxOn());
+ const h=(ui.screen==='name'?nameH():ui.screen==='room'?roomH():ui.screen==='tv'?TV.lobbyH():gameH())+(ui.screen==='game'?chatDrawerH():'');
+ const key=ui.screen+'|'+Plancia.attivo()+'|'+(G?G.g:'')+'|'+(ui.modal||'');
+ if(h!==RD.html||!app.firstChild){
+  const sc=[...app.querySelectorAll('[data-sc]')].map(e=>e.scrollTop);
+  if(key===RD.key)app.setAttribute('data-fermo','');else app.removeAttribute('data-fermo');
+  app.innerHTML=h;RD.html=h;render.n=++RD.n;
+  if(sc.length)[...app.querySelectorAll('[data-sc]')].forEach((e,i)=>{if(sc[i])e.scrollTop=sc[i]});
+  if(id){const el=document.getElementById(id);if(el&&el.focus)el.focus({preventScroll:true})}
+ }else RD.saltati++;
+ RD.key=key;afterRender();Snd.track(traccia())}
+function render(){
+ if(RD.t){RD.pend=true;return}
+ const vai=()=>{if(!RD.t)return;cancelAnimationFrame(RD.t);clearTimeout(RD.to);RD.t=0;if(RD.pend)renderOra()};
+ RD.t=requestAnimationFrame(vai);RD.to=setTimeout(vai,100);
+ renderOra()}
+render.ora=renderOra;render.stat=RD;render.n=0;
 /* mano a ventaglio: le carte si sovrappongono quanto basta per stare nello SCHERMO (non solo nel contenitore, che può essere
    più largo), poi si misura il ventaglio vero (le carte ai lati sono ruotate e sporgono) e si stringe ancora se esce dai bordi */
 function fitHand(h){const sl=[...h.children].filter(x=>x.classList.contains('slot')),n=sl.length;h.style.setProperty('--ov','0px');if(n<2)return;
