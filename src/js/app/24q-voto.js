@@ -14,6 +14,7 @@ const label=P=>P.k==='stop'?'interrompere la partita di '+GN(P.g):'giocare a '+G
 function proponi(k,g,o,sel,seats){
  if(!R.on||members().length<2)return false;
  if(attiva()){ui.err='C’è già una proposta in corso';render();return true}
+ if(k==='play'&&R.doc&&R.doc.phase==='play'){ui.err='C’è una partita in corso: prima proponete di interromperla.';render();return true}
  const id=rid();R.mine.prop={id,k,g,o:o||null,sel:sel||'',t:Date.now(),by:R.mine.name||ME.name};if(seats)R.mine.prop.seats=seats;R.mine.pv={id,a:true};saveMine();return true}
 function rispondi(a){const P=attiva();if(!P)return;R.mine.pv={id:P.id,a};saveMine()}
 function box(){if(el)return el;el=document.createElement('div');el.id='votoov';el.className='votoov';el.setAttribute('role','alertdialog');el.setAttribute('aria-live','polite');document.body.appendChild(el);return el}

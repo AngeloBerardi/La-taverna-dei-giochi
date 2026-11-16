@@ -3603,6 +3603,23 @@ async def sc_bottega_dorso(b, srv):
     check(dopo[1] == prima[1], "l'anteprima di notte resta uguale")
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
 
+async def sc_cambio_gioco(b, srv):
+    """T2: un altro gioco che parte spegne le schermate dell'Avventura; i diti dello zoom non restano appesi."""
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    st = "(()=>({ui:['avv','ven','camp','bat','dia','ses','inv','eroi'].filter(k=>ui[k]),cl:['vn-on','bat-on'].filter(c=>document.documentElement.classList.contains(c)),pt:Object.keys(Ven.V.pt).length,screen:ui.screen,g:G&&G.g}))()"
+    await pg.evaluate("(()=>{ui.avv=true;ui.ven=true;document.documentElement.classList.add('vn-on','bat-on');Ven.V.pt={1:{x:0,y:0,t:0,mosso:false},2:{x:5,y:5,t:0,mosso:false}};Ven.V.pin=40})()")
+    s0 = await pg.evaluate(st); check(len(s0['ui']) == 2 and s0['pt'] == 2, f'prima: schermate accese e due diti appesi {s0}')
+    await pg.evaluate("startGame('regicide')"); await pg.wait_for_timeout(900)
+    s1 = await pg.evaluate(st)
+    check(s1['g'] == 'regicide' and s1['ui'] == [] and s1['cl'] == [], f'parte Regicidio: nessuna schermata dell\'Avventura sotto {s1}')
+    check(s1['pt'] == 0, 'i diti dello zoom sono azzerati')
+    await pg.evaluate("(ui.camp=true,document.documentElement.classList.add('vn-on'),render(),0)"); await pg.wait_for_timeout(300)
+    s2 = await pg.evaluate(st)
+    check(s2['ui'] == [] and s2['cl'] == [], f'rete di sicurezza: un interruttore sfuggito si spegne da solo {s2}')
+    await pg.evaluate("toLobby()"); await pg.wait_for_timeout(400)
+    check(await pg.evaluate("Avv.acceso()") is False, 'tornati in lobby: niente di acceso')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
+
 async def sc_menu_avventura(b, srv):
     """T4: menù Avventura: due insegne, schede Partite/Eroi/Guida, foglio del gioco con «Da solo / Con la stanza»."""
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)

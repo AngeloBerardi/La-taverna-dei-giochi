@@ -1,6 +1,7 @@
 /* ---- avvio, rivincita, ritorno alla stanza ---- */
 function defOpts(id){const g=GAMES.find(x=>x.id===id);const o={};if(g&&g.opts)o[g.opts.k]=ui.opts[id]||g.opts.vals[0][0];return o}
 async function startGame(id,seats,opts){const S=seats||lobbySeats(),g=GAMES.find(x=>x.id===id);
+ if(g&&id!=='avventura'&&id!=='ventura')Avv.spegni(true);
  if(!g||!g.ok(S.length)){ui.err=g?g.name+' si gioca con '+g.range+' giocatori':'Gioco sconosciuto';return render()}
  if(R.on&&R.doc&&R.doc.phase==='play'&&!seats){ui.err='C’è già una partita in corso in questa stanza';return render()}
  if(g.check){const m=g.check(S,opts||defOpts(id));if(m){ui.err=m;return render()}}
@@ -13,7 +14,7 @@ async function startGame(id,seats,opts){const S=seats||lobbySeats(),g=GAMES.find
   render();return}
  R.offSeats=S;R.offGame={id,opts:o};ui.screen='game';G=null;fxDone=null;ui.shown=-1;pushState(s,false);saveOff(s)}
 function rematch(){const id=G.g,S=seatsNow().slice(),o=R.on?R.doc.opts:(R.offGame||{}).opts;return startGame(id,S,o||{})}
-async function toLobby(){ui.confirm=false;ui.cfg=false;ui.story=false;if(R.on){try{const e=await SYNC.esegui(R.ref,cur=>SYNC.lobby(cur,{gid:G&&G.gid}));if(e.err){ui.err=e.err;await risincronizza()}}catch(e){ui.err=netErr(e)}return render()}
+async function toLobby(){Avv.spegni(true);ui.confirm=false;ui.cfg=false;ui.story=false;if(R.on){try{const e=await SYNC.esegui(R.ref,cur=>SYNC.lobby(cur,{gid:G&&G.gid}));if(e.err){ui.err=e.err;await risincronizza()}}catch(e){ui.err=netErr(e)}return render()}
  G=null;ui.screen='room';saveOff(null);render()}
 /* ---- coda degli stati e animazioni ---- */
 let Q=Promise.resolve();
