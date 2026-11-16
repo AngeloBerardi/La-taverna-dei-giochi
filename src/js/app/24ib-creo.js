@@ -32,6 +32,7 @@ const Creo={
   const avanti=p===3||(solo1&&p===1)?'Entra':'Avanti';
   return`<div class="cr"><div class="cr-top"><h2>${p===1?'Benvenuto, viandante':p===2?'Il tuo aspetto':'I tuoi abiti'}</h2><div class="cr-dots" aria-label="Passo ${p} di 3">${[1,2,3].map(i=>`<i class="${i===p?'on':i<p?'fatto':''}"></i>`).join('')}</div></div>
 <div class="cr-stage" id="crstage">${Creo.T3?'':Creo.pixel()}</div>
+${Creo.senza||!VENDOR.gl()?'':`<div class="cr-viste" role="group" aria-label="Da che lato guardarlo">${[['Fronte',0],['Lato',1],['Spalle',2]].map(([n,k])=>`<button type="button" data-a="crvista" data-v="${k}">${n}</button>`).join('')}</div>`}
 <div class="cr-body">${corpo}</div>
 <div class="cr-foot">${(p>(Creo.modifica?2:1))?'<button type="button" class="b sm" data-a="crprev">Indietro</button>':''}${pronto&&p>1?'<button type="button" class="b sm" data-a="crcaso">A caso</button>':''}<button type="button" class="b gold" data-a="crnext">${avanti}</button></div></div>`},
  // anteprima a pixel: finché la scena 3D non c'è, o se il telefono non ha WebGL
@@ -44,12 +45,20 @@ const Creo={
  costruisci(){const T=window.THREE,cv=document.createElement('canvas');cv.className='cr-cv';
   const ren=new T.WebGLRenderer({canvas:cv,antialias:true,alpha:true});ren.setPixelRatio(Math.min(2,devicePixelRatio||1));ren.outputEncoding=T.sRGBEncoding;
   const scn=new T.Scene(),cam=new T.PerspectiveCamera(30,1,1,200);cam.position.set(0,5.6,21);cam.lookAt(0,3.2,0);
-  scn.add(new T.HemisphereLight(0xfff0d6,0x3a2a1a,.95));const sole=new T.DirectionalLight(0xffe2b0,1.1);sole.position.set(6,10,9);scn.add(sole);
-  const ped=new T.Mesh(new T.CylinderGeometry(2.1,2.3,.35,32),new T.MeshStandardMaterial({color:0x5a3b1d,roughness:.8}));ped.position.y=-.2;scn.add(ped);
-  const anello=new T.Mesh(new T.TorusGeometry(2.1,.06,8,40),new T.MeshStandardMaterial({color:0xb8943a,metalness:.9,roughness:.35}));anello.rotation.x=Math.PI/2;anello.position.y=-.02;scn.add(anello);
-  const S=Creo.T3={T,cv,ren,scn,cam,fig:null,ry:.5,vel:0,drag:null,raf:0,w:0,h:0};
+  scn.add(new T.HemisphereLight(0xffd9a8,0x3a2a1a,.95));const sole=new T.DirectionalLight(0xffc27a,1.2);sole.position.set(-8,9,10);scn.add(sole);
+  // ambiente: il Crocevia al tramonto (sentiero a croce, cartello, alberi, nebbia); la figura sta al centro
+  scn.fog=new T.Fog(0x6a4a3a,26,60);
+  const MT=(c,r)=>new T.MeshStandardMaterial({color:c,roughness:r||.9}),ad=(m,x,y,z)=>{m.position.set(x,y,z);scn.add(m);return m};
+  ad(new T.Mesh(new T.CylinderGeometry(30,30,.3,40),MT(0x4a6a2e)),0,-.35,0);
+  [0,Math.PI/2].forEach(r=>{const via=ad(new T.Mesh(new T.BoxGeometry(60,.06,4.6),MT(0x9a7a4a)),0,-.18,0);via.rotation.y=r});
+  const ped=ad(new T.Mesh(new T.CylinderGeometry(2.1,2.3,.35,32),MT(0x5a3b1d,.8)),0,-.05,0);
+  const anello=new T.Mesh(new T.TorusGeometry(2.1,.06,8,40),new T.MeshStandardMaterial({color:0xb8943a,metalness:.9,roughness:.35}));anello.rotation.x=Math.PI/2;anello.position.y=.14;scn.add(anello);
+  const palo=ad(new T.Mesh(new T.CylinderGeometry(.14,.18,5.2,8),MT(0x5a3b1d)),-6.4,2.4,-4.2);
+  [[.5,.35],[-.35,-.5]].forEach(([y,r],k)=>{const as=new T.Mesh(new T.BoxGeometry(2.6,.62,.14),MT(0x8a5a2a));as.position.set(0,1.5-k*1.1,.18);as.rotation.z=r*.25;palo.add(as)});
+  [[-9,-8],[8.5,-9],[-13,-2],[12,-4],[5,-14],[-4,-15]].forEach(([x,z],k)=>{const h=4+k%3;ad(new T.Mesh(new T.CylinderGeometry(.35,.5,h*.5,7),MT(0x4a2e18)),x,h*.25-.2,z);ad(new T.Mesh(new T.ConeGeometry(2+k%2*.5,h,9),MT(k%2?0x2e5a2a:0x3a6a30)),x,h*.5+h*.4,z)});
+  const S=Creo.T3={T,cv,ren,scn,cam,fig:null,ry:0,vel:0,mira:null,drag:null,raf:0,w:0,h:0};
   Creo.rifai();
-  cv.addEventListener('pointerdown',e=>{S.drag={x:e.clientX};try{cv.setPointerCapture(e.pointerId)}catch(x){}});
+  cv.addEventListener('pointerdown',e=>{S.drag={x:e.clientX};S.mira=null;try{cv.setPointerCapture(e.pointerId)}catch(x){}});
   cv.addEventListener('pointermove',e=>{if(!S.drag)return;const dx=e.clientX-S.drag.x;S.drag.x=e.clientX;S.ry+=dx*.012;S.vel=dx*.012});
   const su=()=>{S.drag=null};cv.addEventListener('pointerup',su);cv.addEventListener('pointercancel',su);cv.addEventListener('lostpointercapture',su)},
  // ricostruisce il personaggio dall'aspetto in lavorazione
@@ -57,7 +66,7 @@ const Creo={
  misura(){const S=Creo.T3,st=document.getElementById('crstage');if(!S||!st)return;const w=Math.max(120,st.clientWidth),h=Math.max(120,st.clientHeight);
   if(w!==S.w||h!==S.h){S.w=w;S.h=h;S.ren.setSize(w,h,false);S.cam.aspect=w/h;S.cam.updateProjectionMatrix()}},
  cicla(){const S=Creo.T3;if(!S||S.raf)return;const passo=()=>{S.raf=0;if(!ui.creo||!S.cv.isConnected)return;S.raf=requestAnimationFrame(passo);
-   if(S.fig){if(!S.drag){S.vel*=.92;S.ry+=S.vel+(RM?0:.006)}S.fig.rotation.y=S.ry}S.ren.render(S.scn,S.cam)};S.raf=requestAnimationFrame(passo)},
+   if(S.fig){if(S.mira!=null&&!S.drag){const d=Math.atan2(Math.sin(S.mira-S.ry),Math.cos(S.mira-S.ry));if(Math.abs(d)<.01||RM){S.ry=S.mira;S.mira=null}else S.ry+=d*.18}else if(!S.drag){S.vel*=.92;S.ry+=S.vel+(RM?0:.006)}S.fig.rotation.y=S.ry}S.ren.render(S.scn,S.cam)};S.raf=requestAnimationFrame(passo)},
  ferma(){const S=Creo.T3;if(!S)return;if(S.raf){cancelAnimationFrame(S.raf);S.raf=0}},
  // ---- azioni ----
  async act(a,v){const F=Figura.F();
@@ -65,6 +74,7 @@ const Creo={
   if(a==='crsw'){const[f,k]=v.split('|'),L=F.OPT[f][+k],val=typeof L==='number'?L:L[0];Creo.look[f]=val;
    if(Creo.T3&&Creo.T3.fig){const ok=F.aggiorna?F.aggiorna(Creo.T3.fig,f,val):F.updateFigure(Creo.T3.fig,f,val);if(!ok)Creo.rifai()}
    return render()}
+  if(a==='crvista'){const S=Creo.T3,m=[0,Math.PI/2,Math.PI][+v]||0;if(S){S.mira=m;S.vel=0}return}
   if(a==='crcaso'){Creo.look=F.figCaso();Creo.rifai();return render()}
   if(a==='crprev'){ui.creo=Math.max(Creo.modifica?2:1,ui.creo-1);return render()}
   if(a==='crnext'){
