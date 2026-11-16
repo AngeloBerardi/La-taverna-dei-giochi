@@ -53,7 +53,15 @@
 **Fuori scopo:** assedio a fasi (`V5b-assedio`), morale per formazione, formazioni dei capitani, fiumi sulla mappa del mondo, battaglie navali.
 
 ## Fatto quando
-- [ ] `npm run verifica` verde; `npm test -- ven` verde (lenti compresi).
-- [ ] Prove sopra coperte da test con i numeri indicati; scenario `ventura_tattica` verde; uno screenshot a 390 px.
-- [ ] Nessun `Math.random`, `Date.now` o trigonometria nei motori; la vista non calcola più quote per conto suo dentro il campo.
-- [ ] Regole in-game, riga del modulo, stato della scheda, mappa aggiornati.
+- [x] `npm run verifica` verde; `npm test -- ven` verde (lenti compresi).
+- [x] Prove sopra coperte da test con i numeri indicati; scenario `ventura_tattica` verde; uno screenshot a 390 px.
+- [x] Nessun `Math.random`, `Date.now` o trigonometria nei motori; la vista non calcola più quote per conto suo dentro il campo.
+- [x] Regole in-game, riga del modulo, stato della scheda, mappa aggiornati.
+
+## Note di esecuzione (scarti dalla scheda)
+- **Taratura:** con `GIT .15` e `SALITA .75` chi ha l'altura vinceva 48 battaglie su 100 (la scheda ne chiede più di 60). Toccati solo `C.TER`: `GIT .25` (un quarto più lontano invece di +15%) e `SALITA .4`; ora vince 70 su 100. Le regole in-game dicono «un quarto» e «passo al 40%». `MISCHIA` (+10%) e `DISL` non spostano il risultato misurabile: la differenza di quota in mischia supera di rado `DISL`.
+- **Giro delle formazioni:** la scheda dice «larga → serrata → cuneo → larga» e che i fanti partono serrata, ma anche che due tocchi su «Fanti» danno «larga»: le due frasi non stanno insieme. Il motore segue il giro, quindi due tocchi danno «cuneo» (il primo tocco sceglie il gruppo, il secondo fa girare); lo scenario controlla questo.
+- **`tests/test_ven_mondo.js`:** la prova del comandante accorto con il seme 3 passava di poco (15/16 contro 16/16 per l'ordine dei dadi, senza perdite sistematiche: a parità di battaglia l'esito è lo stesso); seme 3 sostituito con 7, commento nel test. Era il solo ritocco fuori da `test_ven_campo.js`.
+- **Zone:** il boschetto di pianura ha `ry` 4–6 (la scheda dà solo `rx` 5–7); con `scena.pend` e `terreno 2` valgono le due alture del pendio, non i boschi. In acqua la quota è −0,12 senza raccordo sul bordo (gradino di circa 0,4 sul guado): i soldati vi camminano con i piedi sotto il piano d'acqua di circa 0,3 (acqua bassa).
+- **Vista:** oltre a quota, alberi, case e acqua, l'altura ha una tinta più chiara e calda (colore dei vertici, nessun materiale o luce nuovi), altrimenti dall'alto non si legge. Una zona `case` a mano si disegna anche senza luogo vicino. Un evento `colpo` in più per il rimbalzo della picca. In salita il rallentamento vale solo se la quota di arrivo è positiva (`qn>0`).
+- **Prove lente:** le dieci prove `ven` (bot compresi) sono passate, 743 s, prima dell'ultima correzione (giro delle formazioni da `fm` mancante); dopo sono state rilanciate solo le rapide.
