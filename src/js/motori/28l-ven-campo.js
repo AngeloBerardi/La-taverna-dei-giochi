@@ -87,7 +87,7 @@ const VCAM=(()=>{
   if(solo&&gs[0]==='t'&&o.f==='cuneo')return{err:'I tiratori non fanno il cuneo'};
   const fatti=[];let attesa=0;
   for(const g of gs){const q=s.ord[l][g];if(g==='t'&&o.f==='cuneo')continue;if(s.t<(q.fmT||0)){attesa++;continue}
-   let n=o.f;if(n==null){n=q.fm==='larga'?'serrata':q.fm==='serrata'?'cuneo':'larga';if(g==='t'&&n==='cuneo')n='larga'}fatti.push([q,n])}
+   let n=o.f;if(n==null){const cur=q.fm||'larga';n=cur==='larga'?'serrata':cur==='serrata'?'cuneo':'larga';if(g==='t'&&n==='cuneo')n='larga'}fatti.push([q,n])}
   if(!fatti.length)return{err:'Il gruppo si sta ancora schierando'};
   for(const[q,n]of fatti){q.fm=n;q.fmT=s.t+C.FM.ATTESA}
   s.ev.push({t:'ordine',l,g:o.g||'tutti',o:'forma',f:solo?fatti[0][1]:(o.f||null)});return{s}}

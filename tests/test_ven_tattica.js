@@ -154,7 +154,11 @@ function tiri(zone, N, tid, fm) {
   { const q = C.nuovo(scheda(2, T(0, { val_f2: 9 }), T(5, { pre_f1: 1 }), { zone: [] })); C.ordina(q, { g: 'f', t: 'forma', f: 'cuneo' }); C.ordina(q, { g: 'f', t: 'tieni' }); C.passo(q, 150);
     const ys = q.u.filter(u => u.l === "a" && u.c === "f").map(u => u.y); const punta = Math.min(...ys); assert(ys.filter(y => y <= punta + 1).length <= 3, 'in punta pochi uomini'); }
   // i capitani non hanno formazione e in arena non conta
-  { const q = C.nuovo(scheda(1, T(0, { val_f2: 4 }), T(5, { val_f2: 4 }), { cap, zone: [] })); assert(q.u.find(u => u.cap)); C.passo(q, 100); assert(!q.ev.some(e => e.err)); }
+  // (il capitano cammina alla stessa velocità qualunque formazione abbia il suo gruppo)
+  { const passi = fm => { const q = C.nuovo(scheda(1, T(0, { val_f2: 4 }), T(5, { val_f2: 4 }), { cap, zone: [] })); fermo(q); const u = C.capU(q), x0 = u.x, y0 = u.y;
+      q.ord.a.f.fm = fm; assert(C.capitano(q, { x: 30, y: 60 }).s); C.passo(q, 15); return Math.hypot(u.x - x0, u.y - y0); };
+    const ps = passi('serrata'), pl = passi('larga'), pc = passi('cuneo'); assert(ps > 1.5, 'il capitano si muove: ' + ps);
+    assert(ps > pl * .95 && pc > pl * .95, 'la formazione non rallenta il capitano (la serrata lo porterebbe all\'80%): ' + ps + ' ' + pl + ' ' + pc); }
 }
 
 // ---- 8. tiri e mischia contro le formazioni ----
@@ -189,9 +193,15 @@ function tiri(zone, N, tid, fm) {
   const c = C.nuovo(scheda(5, ...pari(), { zone: [] }), { autoA: true }); while (!c.fine && C.forme(c, 'b').c !== 'cuneo') C.passo(c, 20); assert.strictEqual(C.forme(c, 'b').c, 'cuneo', 'al contatto i cavalieri a cuneo'); assert.strictEqual(C.forme(c, 'a').c, 'cuneo');
   // fanti in larga contro soli tiratori
   const t = C.nuovo(scheda(5, T(0, { val_t2: 10 }), T(5, { val_f2: 10 }), { zone: [] }), { autoA: true }); while (!t.fine && !t.ia.a.m) C.passo(t, 20);
-  while (!t.fine && t.ia.a.m !== 1) C.passo(t, 20); if (!t.fine) assert.strictEqual(C.forme(t, 'b').f, 'larga', 'i fanti si allargano contro soli tiratori'); // b ha solo fanti: a ha solo tiratori
-  // un'ancora in acqua arretra
-  const w = C.nuovo(scheda(6, ...pari(), { zone: [{ k: 'acqua', x: 30, y: 50, rx: 45, ry: 3 }], seme: 6 })); C.passo(w, 21); const y0 = w.ord.b.f.y; assert(!C.acqua(w, w.ord.b.f.x, w.ord.b.f.y) || y0 < 50, 'un\'ancora in acqua arretra');
+  while (!t.fine && t.ia.b.m !== 1) C.passo(t, 20); assert(!t.fine && t.ia.b.m === 1, 'b arriva al contatto prima della fine'); // b ha solo fanti: a ha solo tiratori
+  assert.strictEqual(C.forme(t, 'b').f, 'larga', 'i fanti si allargano contro soli tiratori');
+  // un'ancora in acqua arretra: dopo il primo passo avanti i fanti di b sarebbero nell'acqua, il comandante li riporta indietro, all'asciutto
+  const base = C.nuovo(scheda(6, ...pari(), { zone: [] })), yb = base.ord.b.f.y, xb = base.ord.b.f.x;
+  const w = C.nuovo(scheda(6, ...pari(), { zone: [{ k: 'acqua', x: xb, y: yb + 3.2, rx: 20, ry: 2 }] })); assert.strictEqual(w.ord.b.f.y, yb, 'stessa partenza');
+  C.passo(w, 1); assert(w.ord.b.f.y < yb, 'l\'ancora in acqua arretra: ' + w.ord.b.f.y + ' contro ' + yb); assert(!C.acqua(w, w.ord.b.f.x, w.ord.b.f.y), 'e si ferma all\'asciutto');
+  // con due alture generate dal seme (colline) nessuno resta fermo ad aspettare: stesse durate dei campi aperti
+  { let d = 0, max = 0; for (let k = 1; k <= 50; k++) { const [a, b] = pari(), r = C.risolvi(scheda(k, a, b, { terreno: 3 })); d += r.durata; max = Math.max(max, r.durata); }
+    assert(d / 50 > 395 && d / 50 < 650 && max < 900, 'colline: durata media ' + (d / 50) + ', massima ' + max); }
   // la battaglia sul terreno finisce lo stesso, mai oltre il tempo massimo
   for (let k = 1; k <= 12; k++) { const [a, b] = pari(), q = C.nuovo(scheda(k, a, b, { terreno: k % 3 + 1 }), { autoA: true }); while (!q.fine) C.passo(q, 50); assert(q.t <= C.C.TMAX, 'finisce'); }
 }
@@ -201,6 +211,6 @@ function tiri(zone, N, tid, fm) {
   const s = C.nuovo(scheda(8, ...pari(), { zone: [] })); C.passo(s, 40);
   const v = JSON.parse(JSON.stringify(s)); delete v.zone; for (const l of ['a', 'b']) for (const g of ['f', 't', 'c']) { delete v.ord[l][g].fm; delete v.ord[l][g].fmT; } delete v.ia.a.m; delete v.ia.b.m;
   v.r = null; uguali(C.forme(v, 'a'), { f: 'larga', t: 'larga', c: 'larga' }, 'senza `fm` vale larga');
-  C.passo(v, 200); assert(v.t >= 240 || v.fine, 'avanza'); assert(!C.ordina(v, { g: 'f', t: 'forma' }).err, 'si può dare una formazione anche a uno stato vecchio');
+  C.passo(v, 200); assert(v.t >= 240 || v.fine, 'avanza'); assert(!C.ordina(v, { g: 'f', t: 'forma' }).err, 'si può dare una formazione anche a uno stato vecchio'); assert.strictEqual(C.forme(v, 'a').f, 'serrata', 'da «larga» (senza `fm`) il primo tocco va a serrata');
 }
 console.log('ven_tattica ok');
