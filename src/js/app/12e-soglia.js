@@ -4,7 +4,7 @@
 const Soglia=(()=>{
  const MAX=6000;
  const S={attesa:false,fatto:false,velo:null,
-  serve:()=>!S.fatto&&!S.attesa&&ui.lobby==='3d'&&VENDOR.gl()&&(ui.screen==='name'||(ui.screen==='room'&&ui.inroom&&!ui.glist)),
+  serve:()=>!ui.creo&&!S.fatto&&!S.attesa&&ui.lobby==='3d'&&VENDOR.gl()&&(ui.screen==='name'||(ui.screen==='room'&&ui.inroom&&!ui.glist)),
   async entra(){
    S.attesa=true;
    const v=document.createElement('div');v.className='sg-velo';v.setAttribute('role','status');

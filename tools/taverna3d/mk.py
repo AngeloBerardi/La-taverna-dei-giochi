@@ -1,12 +1,60 @@
 # Genera src/js/app/12c-lobby-3d.js e src/css/90-lobby-3d.css dai sorgenti di questa cartella.
 # three.js r128 sta in src/js/vendor/09c-three.min.js (non toccare).
 import re,json,shutil,os
+def top(src):
+    names=[];d=0;i=0;n=len(src);buf=''
+    while i<n:
+        c=src[i]
+        if src.startswith('/*',i): i=src.index('*/',i)+2;continue
+        if src.startswith('//',i): i=src.index('\n',i);continue
+        if c in '\'"':
+            q=c;i+=1
+            while src[i]!=q:
+                i+=2 if src[i]=='\\' else 1
+            i+=1;continue
+        if c in '([{': d+=1
+        elif c in ')]}': d-=1
+        if d==0:
+            m=re.match(r'(?:function\s+(\w+)|var\s+(\w+))',src[i:i+60]) if (i==0 or not (src[i-1].isalnum() or src[i-1] in '_$.')) else None
+            if m:
+                names.append(m.group(1) or m.group(2))
+                if m.group(2):
+                    # altre dichiarazioni dopo virgola al livello 0
+                    j=i+3;dd=0
+                    while j<n:
+                        cj=src[j]
+                        if cj in '\'"':
+                            q=cj;j+=1
+                            while src[j]!=q: j+=2 if src[j]=='\\' else 1
+                        elif cj in '([{':dd+=1
+                        elif cj in ')]}':dd-=1
+                        elif cj==';' and dd==0:break
+                        elif cj==',' and dd==0:
+                            mm=re.match(r'\s*(\w+)\s*=',src[j+1:j+60])
+                            if mm:names.append(mm.group(1))
+                        j+=1
+        i+=1
+    return names
+
 import os
 D=os.path.dirname(os.path.abspath(__file__))+'/'
 REPO=os.path.abspath(D+'../..')+'/'
 rd=lambda f:open(D+f).read()
 core=rd('core.js');core=core[core.index('/* ---------- texture procedurali'):]
-inner='\n'.join([rd('pre.js'),core,rd('fig.js'),rd('fire.js'),rd('main1.js'),rd('main2.js'),rd('catalog.js'),rd('main2e.js'),rd('main2f.js'),rd('music.js'),rd('page.js'),rd('eng0.js'),rd('eng.js')])
+fig=rd('fig.js');figopt=rd('figopt.js');FN=top(fig)+top(figopt)
+# il costruttore del pupazzo sta in un pezzo a parte (vendor «figura»): la Taverna lo prende da window.__FIGURA, come il crocevia e la creazione
+figura_js="""/* ---- Figura: il pupazzo 3D (costruttore, opzioni, conversioni) condiviso da Taverna 3D, creazione del personaggio e crocevia ----
+   Generato da tools/taverna3d/mk.py da fig.js e figopt.js. Serve solo three.js (window.THREE). */
+window.__FIGURA=(function(){
+'use strict';
+var T=window.THREE,PI=Math.PI;
+"""+fig+'\n'+figopt+"""
+return{"""+','.join(n+':'+n for n in FN)+""",crea:function(o){return figure(o,true)}};
+})();
+"""
+open(REPO+'src/js/app/12ca-figura.js','w',encoding='utf-8').write(figura_js)
+fig_bind='var F=window.__FIGURA;var '+','.join(n+'=F.'+n for n in FN)+';'
+inner='\n'.join([rd('pre.js'),core,fig_bind,rd('fire.js'),rd('main1.js'),rd('main2.js'),rd('catalog.js'),rd('main2e.js'),rd('main2f.js'),rd('music.js'),rd('page.js'),rd('eng0.js'),rd('eng.js')])
 inner=inner.replace("$('toast')","$('l3dtoast')")
 mark=rd('markup.html').strip().replace('id="toast"','id="l3dtoast"').replace('`','\\`')
 js="""/* ---- La Taverna 3D: ingresso, locanda e boschetto (estetica di base della lobby) ----

@@ -1,5 +1,5 @@
 /* ---- viste comuni ---- */
-const lob3=()=>ui.lobby==='3d'&&L3D.ok()&&!ui.glist&&(ui.screen!=='room'||ui.inroom);
+const lob3=()=>!ui.creo&&ui.lobby==='3d'&&L3D.ok()&&!ui.glist&&(ui.screen!=='room'||ui.inroom);
 const seen={h:null,p:new Set(),e:null};
 const hudH=(title)=>`<div class="hud"><div class="logo">${esc(title||'La Taverna dei Giochi')}</div><div class="grow"></div>${R.on&&ui.screen==='game'?`<button class="ib chatb" data-a="chatd" aria-label="Chat della stanza" title="Chat">${ic('chat',22)}${ui.unread?`<i class="nb">${ui.unread>9?'9+':ui.unread}</i>`:''}</button>`:''}<button class="ib ${Snd.mus?'':'off'}" data-a="mus" aria-label="Musica" title="Musica">${ic('nota',22)}</button><button class="ib" data-a="cfg" aria-label="Impostazioni">${ic('ingr',22)}</button></div>`;
 const rulesH=()=>ui.prep?Prep.html():!ui.rules?'':`<div class="modal"><div class="box"><h2>${ui.rules==='ventura'?'Compagnia di ventura':GN(ui.rules)}</h2>${RULES[ui.rules]||''}<button class="b gold" data-a="rules">Chiudi</button></div></div>`;

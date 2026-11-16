@@ -6,6 +6,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function accesso() { return request.auth != null; }
+    // aspetto 3D del personaggio: facoltativo, una mappa di al massimo 40 voci (solo scelte di aspetto, nessun dato personale)
+    function aspettoOk(d) { return !('av3' in d) || (d.av3 is map && d.av3.size() <= 40); }
+
     function nomeOk(d) { return d.name is string && d.name.size() >= 1 && d.name.size() <= 24; }
 
     // acquisto di UN oggetto al prezzo indicato: compare una sola chiave in `owned`, vale true, e le monete scendono del prezzo
@@ -447,8 +450,9 @@ service cloud.firestore {
       // aggiornamento: solo il proprio profilo e solo i campi previsti
       allow update: if accesso() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'lastAward', 'elo'])
+             .hasOnly(['name', 'coins', 'played', 'wins', 'owned', 'equipped', 'lastAward', 'elo', 'av3'])
         && nomeOk(request.resource.data)
+        && aspettoOk(request.resource.data)
         && (
           // 1) niente monete e niente oggetti nuovi: cambio di nome o scelta dei cosmetici già posseduti
           (request.resource.data.coins == resource.data.coins

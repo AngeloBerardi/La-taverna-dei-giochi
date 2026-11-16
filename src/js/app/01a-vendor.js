@@ -2,7 +2,9 @@
    con cache lunga e caricati solo quando servono. scripts/build.js riempie la mappa nome -> url. */
 const VENDOR=(()=>{
  const MAP=/*VENDOR*/{};
- const PRONTO={three:()=>!!window.THREE,peerjs:()=>!!(window.Peer||(window.peerjs&&window.peerjs.Peer)),lobby3d:()=>!!window.__L3D};
+ const PRONTO={three:()=>!!window.THREE,peerjs:()=>!!(window.Peer||(window.peerjs&&window.peerjs.Peer)),lobby3d:()=>!!window.__L3D,figura:()=>!!window.__FIGURA};
+ // la lobby 3D usa il costruttore del pupazzo (figura): si carica prima
+ const PRIMA={lobby3d:'figura',figura:'three'};
  const dentro={};
  // La sonda crea un contesto vero: va fatta una volta sola e chiusa subito. Ripetuta a ogni ridisegno accumula contesti e il telefono,
  // superato il suo limite, toglie il più vecchio: dopo un po' era quello della scena in uso.
@@ -10,6 +12,7 @@ const VENDOR=(()=>{
   try{const c=document.createElement('canvas'),x=window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl'));glOk=!!x;
    if(x){const e=x.getExtension('WEBGL_lose_context');if(e)e.loseContext()}}catch(e){glOk=false}return glOk};
  function load(n){
+  if(PRIMA[n]&&!PRONTO[PRIMA[n]]())return load(PRIMA[n]).then(()=>load(n));
   if(!PRONTO[n])return Promise.reject(new Error('vendor sconosciuto: '+n));
   if(PRONTO[n]())return Promise.resolve(true);
   if(dentro[n])return dentro[n];

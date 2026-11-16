@@ -8,12 +8,12 @@ function rid(){return Math.random().toString(36).slice(2,10)}
 var NAME=A.ME().name||'';
 /* ---- aspetto: av3 (pupazzo 3D) <-> av (pupazzetto a pixel delle altre lobby) ---- */
 var HEADS=['beret','crown','hood','elmo','none','top'];
-function hx(c){return parseInt(String(c).slice(1),16)}
+var hx=F.hx;
 function avTo3(av,av3,i){if(av3&&typeof av3==='object')return normFig(av3);var a=av||{},C=A.avc(),S0=A.avs();
   var H=C[(a.h!=null?a.h:i)%C.length],Cc=C[(a.c!=null?a.c:i+3)%C.length],sk=S0[(a.s||0)%S0.length],hd=HEADS[(a.t||0)%HEADS.length];
   return normFig({robe:hx(Cc[0]),skin:hx(sk),head:hd,hatc:hx(H[0]),hair:hd==='none'?'short':'bald',hairc:hx(H[1]||H[0])})}
-function near(list,c){var best=0,bd=1e9;list.forEach(function(x,k){var v=hx(Array.isArray(x)?x[0]:x),d=Math.abs((v>>16)-(c>>16))+Math.abs((v>>8&255)-(c>>8&255))+Math.abs((v&255)-(c&255));if(d<bd){bd=d;best=k}});return best}
-function pixFrom3(o){var t={beret:0,crown:1,hood:2,elmo:3,none:4,top:5,brim:5,bandana:0,fiori:4}[o.head];return{t:t==null?4:t,h:near(A.avc(),o.head==='none'?o.hairc:o.hatc),c:near(A.avc(),o.robe),s:near(A.avs(),o.skin)}}
+var near=F.figNear;
+function pixFrom3(o){return F.figPix(o,A.avc(),A.avs())}
 function myLook(){var m=A.R().mine;if(m.av3)return normFig(m.av3);var s=null;try{s=JSON.parse(A.ST('rg-av3')||'null')}catch(e){ERR.n(e)}if(s)return normFig(s);return avTo3(m.av,null,0)}
 E.saveLook=function(){var o=Object.assign({},FIG[6]);delete o.hat;var m=A.R().mine;m.av3=o;m.av=pixFrom3(o);A.ST('rg-av3',JSON.stringify(o));A.ST('rg-av',JSON.stringify(m.av));A.save()};
 /* ---- aree ---- */

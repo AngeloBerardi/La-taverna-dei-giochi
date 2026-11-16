@@ -16,7 +16,7 @@ Una scheda = una sessione nuova = un ramo = una PR. Si eseguono con `/scheda <id
 | `V7-tv-musica` | Vista TV della stanza, telefoni come comandi, musica e suoni propri | pronta | Sonnet |
 | `T1-render-stabile` | Niente sfarfallio nei menù, un solo caricamento all'ingresso | fatta (render accodato: il primo ridisegno subito, i successivi nello stesso fotogramma fusi) | Sonnet + revisione forte |
 | `T2-stanza-avventura-pulita` | Voto di un altro gioco durante l'Avventura senza viste sovrapposte; zoom che non si blocca | pronta | Sonnet |
-| `T3-personaggio-ingresso` | Al primo ingresso nome e personaggio 3D, lo stesso al crocevia e in Taverna | pronta (dopo T1) | Sonnet (separazione di `figura`: forte) |
+| `T3-personaggio-ingresso` | Al primo ingresso nome e personaggio 3D, lo stesso al crocevia e in Taverna | fatta (vendor «figura», schermata Creo, crocevia con lo stesso personaggio) | Sonnet (separazione di `figura`: forte) |
 | `T4-menu-avventura` | Nuovo menù dell'Avventura: Riprendi, due insegne, schede | pronta (dopo T1 e T5) | Sonnet + `artist` |
 | `T5-dorso-e-nome` | Dorso classico in bottega; nome nuovo della campagna a capitoli | fatta (nome «Cronache del Crocevia») | Sonnet |
 

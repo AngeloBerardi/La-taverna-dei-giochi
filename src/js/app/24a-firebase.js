@@ -34,6 +34,8 @@ const FB={
    if(d.coins<o.prezzo){const e=new Error('monete');e.code='monete';throw e}
    const u={coins:d.coins-o.prezzo,owned:{...(d.owned||{}),[id]:true},equipped:{...(d.equipped||{}),[o.slot]:id}};tx.update(ref,u);return{...d,...u}})},
  // sceglie cosa usare in uno slot (solo oggetti gratuiti o già posseduti)
+ // l'aspetto 3D del personaggio (solo l'aspetto, nessun dato personale)
+ async salvaAspetto(o){const F=FB.m.F;await F.updateDoc(FB.ref(),{av3:o});if(FB.p)FB.p={...FB.p,av3:o}},
  async equip(slot,id){const F=FB.m.F,ref=FB.ref();
   FB.p=await F.runTransaction(FB.db,async tx=>{const d=(await tx.get(ref)).data();if(!BOTTEGA.usabile(id,d.owned))throw new Error('non posseduto');
    const u={equipped:{...(d.equipped||{}),[slot]:id}};tx.update(ref,u);return{...d,...u}})},

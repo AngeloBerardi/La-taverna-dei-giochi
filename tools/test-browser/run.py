@@ -50,7 +50,7 @@ class Shared:
 
 async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None, dpr=1):
     ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=dpr, service_workers='allow' if sw else 'block')
-    init = "localStorage.setItem('rg-lb','iso');if(!localStorage.getItem('avv-3d'))localStorage.setItem('avv-3d','no');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
+    init = "localStorage.setItem('rg-lb','iso');if(!localStorage.getItem('avv-3d'))localStorage.setItem('avv-3d','no');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');localStorage.setItem('rg-av3','{{\"robe\":10107420}}');" if name else '')  # falò: il 3D in software rallenta i test
     if auth_error: init += f"window.__stubAuthError={auth_error!r};"
     if shared: init += 'window.__stubShared=true;'
     await ctx.add_init_script(init + extra_init)
@@ -84,7 +84,7 @@ async def sc_pwa_installa_e_offline(b, srv):
     await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1200)
     check(await pg.evaluate("typeof render==='function'&&!!document.querySelector('#app')"), 'offline: l\'app parte dalla cache')
     await ctx.set_offline(False)
-    await pg.evaluate("(()=>{PWA.ev={prompt(){window.__p=1},userChoice:Promise.resolve({})};ui.cfg=true;render()})()")
+    await pg.evaluate("(()=>{PWA.ev={prompt(){window.__p=1},userChoice:Promise.resolve({})};ui.creo=0;ui.cfg=true;render()})()")
     await pg.click('[data-a=pwainstall]'); await pg.wait_for_timeout(300)
     check(await pg.evaluate('window.__p===1'), 'il pulsante Installa lancia il prompt')
     check(not pg.errs, f'nessun errore JS {pg.errs[:1]}'); await ctx.close()
@@ -219,7 +219,7 @@ async def sc_vendor_offline_e_cache(b, srv):
     pg = await vendor_pg(ctx, srv.url + '?net=p2p', 500)
     await pg.wait_for_function('navigator.serviceWorker.ready.then(()=>true)', timeout=15000); await pg.wait_for_timeout(1500)
     nomi = await pg.evaluate("caches.open('taverna-vendor').then(c=>c.keys()).then(k=>k.map(r=>new URL(r.url).pathname))")
-    check(len(nomi) == 3 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
+    check(len(nomi) == 4 and all(n.startswith('/vendor/') for n in nomi), f'le librerie sono nella cache dedicata {nomi}')
     await pg.reload(); await pg.wait_for_timeout(800)
     await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(1500)
     check(await pg.evaluate('VENDOR.load("peerjs").then(()=>typeof Peer!=="undefined",()=>false)'), 'offline: PeerJS arriva dalla cache')
@@ -2398,7 +2398,7 @@ JS_3D_MINIATURE = """(()=>{const D=Scena3D.debug(),K=D.K,cv=K.cv,gl=K.ren.getCon
 async def sc_avv_3d(b, srv):
     """Grafica 3D (A12): canvas sotto l'SVG, telecamera allineata al pixel, miniature, mondo, ripiego SVG e impostazione."""
     ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, service_workers='block')
-    await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-av3','{\"robe\":10107420}');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
     async def route(r):
         u = r.request.url; m = SDK.match(u)
         if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
@@ -2445,7 +2445,7 @@ async def sc_avv_3d(b, srv):
     # ripiego automatico: con la memoria «lento» il 3D non parte
     await pg.close()
     ctx2 = await b.new_context(viewport={'width': 390, 'height': 844}, service_workers='block')
-    await ctx2.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','lento');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    await ctx2.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-av3','{\"robe\":10107420}');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','lento');localStorage.setItem('avv-tut','{\"spento\":true}');")
     await ctx2.route('**/*', route)
     p2 = await page(ctx2, srv.url)
     await p2.click('#plancia [data-v=avventura]'); await p2.wait_for_timeout(600)
@@ -2454,7 +2454,7 @@ async def sc_avv_3d(b, srv):
     await p2.evaluate("document.querySelector('[data-a=s3d][data-v=si]')&&0"); await ctx2.close()
     # mondo
     ctx3 = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, service_workers='block')
-    await ctx3.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
+    await ctx3.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-av3','{\"robe\":10107420}');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');localStorage.setItem('avv-tut','{\"spento\":true}');")
     await ctx3.route('**/*', route)
     pg = await page(ctx3, srv.url)
     await pg.evaluate("(async()=>{const mk=(n,c,r)=>EROI.nuovo({nome:n,razza:r,classe:c,base:EROI.baseIniziale(),aspetto:{pelle:0,capelli:0,mantello:0,viso:0}});await FB.salvaEroe('e1',mk('Aldo','guerriero','umano'));await FB.salvaEroe('e2',mk('Mira','ladro','elfo'));await FB.salvaEroe('e3',mk('Fra Tomaso','chierico','nano'))})()")
@@ -2549,7 +2549,7 @@ async def sc_avv_pixel(b, srv):
     async def apri(vp, dpr, scena='sotterraneo'):
         # tempo fermo e animazioni ridotte: si disegna solo quando serve (il WebGL del browser di prova è software)
         ctx = await b.new_context(viewport=vp, device_scale_factor=dpr, service_workers='block', reduced_motion='reduce')
-        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');")
+        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-av3','{\"robe\":10107420}');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','si');")
         async def route(r):
             u = r.request.url; m = SDK.match(u)
             if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
@@ -2711,7 +2711,7 @@ async def sc_avv_prestazioni(b, srv):
     con la CPU rallentata (×4) la battaglia resta giocabile (tocchi e turni) e la sonda dei fps spegne il 3D da sola."""
     async def contesto(imp):
         ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2, service_workers='block')
-        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','%s');localStorage.setItem('avv-tut','{\"spento\":true}');" % imp)
+        await ctx.add_init_script("localStorage.setItem('rg-lb','iso');localStorage.setItem('rg-name','Tester');localStorage.setItem('rg-av3','{\"robe\":10107420}');localStorage.setItem('rg-intro','1');localStorage.setItem('avv-3d','%s');localStorage.setItem('avv-tut','{\"spento\":true}');" % imp)
         async def route(r):
             u = r.request.url; m = SDK.match(u)
             if m: return await r.fulfill(status=200, content_type='application/javascript', body=stub.MODULES[m.group(1)])
@@ -3614,6 +3614,28 @@ async def sc_render_stabile(b, srv):
     await pg.wait_for_timeout(1000)
     st = await pg.evaluate("[document.querySelectorAll('.sg-velo').length,Soglia.attesa,Soglia.fatto]")
     check(st == [0, False, True], f'finita l\'attesa: velo tolto, ridisegno ripreso {st}')
+    check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
+
+async def sc_primo_ingresso(b, srv):
+    """T3: al primo ingresso nome e personaggio; chi ha già un aspetto non rivede la creazione."""
+    ctx = await new_context(b, srv.port, name=''); pg = await page(ctx, srv.url, 4500)
+    check(await pg.evaluate("ui.creo===1&&!!document.querySelector('.cr')&&!!document.getElementById('crnome')"), 'memoria vuota: compare la creazione, passo Nome')
+    await pg.fill('#crnome', 'A'); await pg.click('[data-a=crnext]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("ui.creo===1&&document.querySelector('.cr-err').innerText.includes('almeno due lettere')"), 'nome troppo corto: errore e si resta al passo 1')
+    await pg.fill('#crnome', 'Ada'); await pg.click('[data-a=crnext]'); await pg.wait_for_function("document.querySelector('.cr-righe')", timeout=20000)
+    check(await pg.evaluate("ui.creo===2&&!!document.querySelector('[data-a=crsw]')"), 'passo Aspetto: righe di scelta')
+    prima = await pg.evaluate("JSON.stringify(Creo.look)"); await pg.evaluate("document.querySelectorAll('[data-a=crsw]')[2].click()"); await pg.wait_for_timeout(150)
+    check(await pg.evaluate("JSON.stringify(Creo.look)") != prima, "una scelta cambia l'aspetto in lavorazione")
+    await pg.click('[data-a=crnext]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("ui.creo===3&&!!document.querySelector('[data-a=crtab][data-v=extra]')"), 'passo Abiti con le sue schede')
+    await pg.click('[data-a=crcaso]'); await pg.wait_for_timeout(150)
+    await pg.click('[data-a=crnext]'); await pg.wait_for_timeout(1500)
+    st = await pg.evaluate("[ui.creo,ME.name,localStorage.getItem('rg-name'),!!localStorage.getItem('rg-av3'),!!R.mine.av3,!!R.mine.av,ui.screen]")
+    check(st[:6] == [0, 'Ada', 'Ada', True, True, True], f'«Entra»: nome e aspetto salvati {st}')
+    check(await pg.evaluate("JSON.stringify(Figura.mio())===JSON.stringify(window.__FIGURA.normFig(JSON.parse(localStorage.getItem('rg-av3'))))"), 'lo stesso aspetto arriva a crocevia e Taverna (Figura.mio)')
+    check(await pg.evaluate("!document.querySelector('.cr')"), 'la creazione si chiude')
+    await pg.reload(); await pg.wait_for_timeout(3500)
+    check(await pg.evaluate("!ui.creo&&!document.querySelector('.cr')"), 'secondo avvio: niente creazione')
     check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
 
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]

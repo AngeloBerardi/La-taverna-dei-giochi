@@ -4,7 +4,7 @@ const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src/manifest.json'), 'utf8'));
 // librerie esterne (src/js/vendor/): non nella pagina ma in dist/vendor/<nome>.<hash>.js, caricate da VENDOR.load
-const NOMI = { '09-peerjs.js': 'peerjs', '09c-three.min.js': 'three', '12c-lobby-3d.js': 'lobby3d' }; // lobby3d: generato da tools/taverna3d, caricato a richiesta (guscio in app/12d-lobby-3d-guscio.js)
+const NOMI = { '09-peerjs.js': 'peerjs', '09c-three.min.js': 'three', '12c-lobby-3d.js': 'lobby3d', '12ca-figura.js': 'figura' }; // lobby3d: generato da tools/taverna3d, caricato a richiesta (guscio in app/12d-lobby-3d-guscio.js)
 const vendor = {};
 fs.mkdirSync(path.join(root, 'dist/vendor'), { recursive: true });
 for (const f of fs.readdirSync(path.join(root, 'dist/vendor'))) fs.rmSync(path.join(root, 'dist/vendor', f));

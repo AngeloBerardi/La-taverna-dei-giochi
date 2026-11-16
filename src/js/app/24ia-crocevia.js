@@ -87,7 +87,7 @@ const Crocevia=(()=>{
    k.position.set(0,5.2+c[1]/2,0);scn.add(k);fiamme.push({m:k,h:c[1],p:i*2.1})});
   alone=bagliore(scn,0,5.5,0,4.6,.9);
   // l'omino e la sua ombra morbida
-  man=new T.Group();fig=omino();man.add(fig);const om=me(new T.CircleGeometry(.75,20),new T.MeshBasicMaterial({color:0,transparent:true,opacity:.35,depthWrite:false}),0,.1,0,{cast:false,recv:false});om.rotation.x=-PI/2;man.add(om);scn.add(man);
+  man=new T.Group();fig=Figura.crea()||omino();if(fig.scale.x!==.55){fig.scale.setScalar(.55);fig.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}})}man.add(fig);const om=me(new T.CircleGeometry(.75,20),new T.MeshBasicMaterial({color:0,transparent:true,opacity:.35,depthWrite:false}),0,.1,0,{cast:false,recv:false});om.rotation.x=-PI/2;man.add(om);scn.add(man);
   for(let i=0;i<10;i++){const x=(R()-.5)*14,y=1+R()*2.5,z=-6+R()*10;lucc.push({s:bagliore(scn,x,y,z,.22,.9),x,y,z,p:R()*6})}
   K.pronta=true;arriva()}
  const VIE=[0,45,-45,90,-90,135,180];
@@ -107,7 +107,7 @@ const Crocevia=(()=>{
  function guasto(e){K.fallita=true;parcheggia();if(e)ERR.n(e,'crocevia')}
  function dopo(){
   try{const w=document.querySelector('.hm-hero');if(!w||!attiva()){if(K.host||cv&&cv.parentNode)parcheggia();return}
-   if(!K.pronta){if(!K.carica){K.carica=true;VENDOR.load('three').then(()=>{try{costruisci()}catch(e){guasto(e)}dopo()},()=>{K.fallita=true})}return}
+   if(!K.pronta){if(!K.carica){K.carica=true;VENDOR.load('three').then(()=>VENDOR.prova('figura',8000)).then(()=>{try{costruisci()}catch(e){guasto(e)}dopo()},()=>{K.fallita=true})}return}
    if(K.host!==w){const nuovo=!K.host;K.host=w;K.W=0;w.insertBefore(cv,w.firstChild);if(nuovo&&st.mode!=='cammino')arriva();K.t0=0;K.n=0}
    w.classList.add('cv-on');misura();if(!K.raf){K.ult=0;K.raf=requestAnimationFrame(passo)}}
   catch(e){guasto(e)}}

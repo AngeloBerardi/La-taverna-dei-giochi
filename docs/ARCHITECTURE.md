@@ -144,6 +144,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39i-succo.css` | 7 |  |
 | `css/39j-ventura.css` | 14 |  |
 | `css/40-legno-ottone.css` | 17 |  |
+| `css/40b-creo.css` | 2 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
 | `css/43-tv-lowpoly.css` | 9 |  |
@@ -254,7 +255,8 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/10-carte-piacentine.js` | 4 | pstyle, PSU, PSC, psv, pfig |
 | `js/app/11-carte-napoletane.js` | 12 | NAP |
 | `js/app/12b-lobby-diorama.js` | 17 | ISO, N, PAL, SPR, FIX, EMO, STUMPS |
-| `js/app/12c-lobby-3d.js` | 177 |  |
+| `js/app/12ca-figura.js` | 20 | T, cylBetween, gold2, steel, MATC, GEOC, gS |
+| `js/app/12c-lobby-3d.js` | 159 |  |
 | `js/app/12d-lobby-3d-guscio.js` | 1 | L3D |
 | `js/app/12e-soglia.js` | 1 | Soglia |
 | `js/app/13-regicide.js` | 8 | pileH, regicideH, regClick, regPre |
@@ -327,6 +329,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24i-plancia.js` | 13 | Plancia |
 | `js/app/24ia-crocevia.js` | 16 | Crocevia |
+| `js/app/24ib-creo.js` | 8 | Figura, Creo |
 | `js/app/24j-regicide-tv.js` | 5 | RTV, regicideTVH |
 | `js/app/24k-regicide-tavolo.js` | 17 | RTV3, T, TEX, CW, lin, M, hsh |
 | `js/app/24l-regicide-attori.js` | 30 | RACT, T, SUC, lin, sat, mulb, hsh |
