@@ -47,7 +47,7 @@ const VAUD=(()=>{
  const CAMPO={colpo:(e,cap)=>e.dan>0&&!e.freccia&&(e.crit||e.carica||(cap!=null&&(e.da===cap||e.a===cap)))?'ven-cozzo':null,
   tiro:'ven-freccia',ko:e=>e.cap?'ven-grido':null,'cap-ko':'ven-grido',grido:'ven-corno',rinforzi:'ven-corno',
   ordine:e=>e.l==='a'&&e.o==='carica'?'ven-corno':null,rotta:'ven-rotta',fine:e=>e.vince==='a'?'ven-vittoria':'ven-sconfitta',
-  ariete:'ven-cozzo',scala:'ven-passi',porta:'ven-porta'};
+  ariete:null,scala:'ven-passi',porta:'ven-porta'};
  const tutti=(l,v)=>Object.fromEntries(l.map(k=>[k,v]));
  const FAI=Object.assign(tutti(['compra','vendi'],'ven-mercato'),
   tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca'],'ven-moneta'),

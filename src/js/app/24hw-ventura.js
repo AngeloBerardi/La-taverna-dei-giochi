@@ -69,7 +69,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   try{if(inS())VenStanza.giro(dt);if(!V.s)return;if(V.modo==='campo'){VenCampo.passo(dt);const k=VenCampo.K;if(k.finita&&!V.fine){V.fine=ora}if(V.fine&&ora-V.fine>1400&&V.pan!=='fine'){V.pan='fine';render()}}
    else{if(!inS())mondo(dt);VenMappa.passo(dt,V.s)}
    if(ui.tv){if(V.modo==='campo'){const k=VenCampo.K;k.segue=false;k.fuoco.x=30;k.fuoco.z=50;k.alt=80}else{VenMappa.K.alt=26;VenMappa.centra()}}
-   if(ora-V.hud>250){V.hud=ora;hudVivo()}
+   if(ora-V.hud>250){V.hud=ora;hudVivo();const cl=ui.tv&&document.getElementById('vn-tvl');if(cl){const h=cronTv(V.s);if(cl.innerHTML!==h)cl.innerHTML=h}}
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
@@ -118,11 +118,12 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  // V7, telefono con la TV accesa: gli stessi tasti, grandi, in due colonne, più «Luogo» quando si è in un luogo o davanti
  function ctlH(){const s=V.s,lu=s.dentro>=0||s.davanti>=0;return`<div class="vn-ctlg">${tastiH()}${lu?`<button class="vn-bt" data-a="ven" data-v="pan:luogo">${ic('p_citta',20)}<small>Luogo</small></button>`:''}</div>`}
  // V7, la TV: fascia alta con i numeri della compagnia, cronaca a destra, capitani in basso; in battaglia solo le forze e il tempo
- const tvOn=()=>!!(inS()&&G&&G.tv&&!ui.tv);
- function tvH(){const s=V.s,col={bene:'vn-bene',male:'vn-male',guerra:'vn-gu'};   // i numeri li scrive hudVivo (stessi id della fascia alta del telefono)
+ const tvOn=()=>!!(inS()&&G&&G.tv&&!ui.tv&&VenStanza.seat()>=0);
+ const cronTv=s=>{const col={bene:'vn-bene',male:'vn-male',guerra:'vn-gu'};return s.log.slice(-6).reverse().map(x=>`<p class="${col[x.tipo]||''}">${esc(x.tx)}</p>`).join('')};
+ function tvH(){const s=V.s;   // i numeri li scrive hudVivo (stessi id della fascia alta del telefono)
   return`<div class="vn-tvh"><b>${esc(s.nome||'Compagnia')}</b><span id="vn-ora"></span>
 <span>${ic('moneta',18)} <b id="vn-oro"></b></span><span>${ic('amici',18)} <b id="vn-uom"></b></span><span>${ic('boccale',18)} <b id="vn-cibo"></b></span>${R.code?`<span class="vn-tvc">Stanza <b>${esc(R.code)}</b></span>`:''}</div>
-<div class="vn-tvl"><h3>Cronaca</h3>${s.log.slice(-6).reverse().map(x=>`<p class="${col[x.tipo]||''}">${esc(x.tx)}</p>`).join('')}</div>
+<div class="vn-tvl"><h3>Cronaca</h3><div id="vn-tvl">${cronTv(s)}</div></div>
 <div class="vn-tvk">${VEN.capi(s).map(c=>`<span>${ic('utente',18)} <b>${esc(c.nome)}</b> <small>liv. ${c.liv}</small></span>`).join('')}</div>`}
  function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';
   return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt" id="vn-tvt"></span></div>`}

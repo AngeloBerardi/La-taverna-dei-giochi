@@ -55,7 +55,7 @@ ${bt('nuova','Nuova partita')}${c?`<small class="muted">${esc(c.w.nome)} resta t
  // chiamata da Ven.html a ogni disegno: stato nuovo dalla stanza, o stanza finita
  function sync(){if(on()){if(!X.era){X.era=true;X.svk=null;X.pre={inc:false,luogo:-1,prig:false,att:false,b:false,ult:G&&G.w&&G.w.ult?G.w.ult.id:null};Ven.V.pan=null;Ven.V.modo='mondo';Ven.V.carta=null;Ven.V.avvisi=[]}if(G!==X.visto)adotta();
   // V7: con la TV accesa la musica esce solo dal televisore; il telefono abbassa la sua
-  const d=!ui.tv&&!!G.tv;if(d!==!!X.duck){X.duck=d;Snd.duck(d)}return}
+  const d=!ui.tv&&!!G.tv;if(d||X.duck){X.duck=d;Snd.duck(d)}return}
   if(X.duck){X.duck=false;Snd.duck(false)}
   if(X.era){X.era=false;X.L=null;X.visto=null;Ven.V.s=null;Ven.V.pan=null;Ven.V.modo='mondo';ui.ven=false;Ven.ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on')}}
  // ---- mosse ----
