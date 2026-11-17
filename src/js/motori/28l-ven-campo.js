@@ -33,6 +33,7 @@ const VCAM=(()=>{
  const forma=(s,u)=>{if(u.cap||s.tipo==='arena')return null;const q=s.ord[u.l][u.c];return q&&q.fm||'larga'};
  const passoFm=(fm,c)=>C.FM[fm].p+(c==='c'?C.FM.CAV:0);
  // zone di una battaglia: date dalla scheda (test, riproducibilità) oppure estratte dal seme, prima delle unità
+ // NB: le zone casuali stanno a coordinate fisse del campo 60×100; sui campi più grandi (scheda con W/H) vanno scalate: lo farà il passo 29.
  function zoneNuove(s,scheda){if(Array.isArray(scheda.zone))return scheda.zone.map(z=>Object.assign({},z));if(s.tipo==='arena'||s.tipo==='assedio')return[];
   const r=s.r,Z=[],sc=scheda.scena||{},t=s.terreno,al=(a,b)=>Math.round((a+r()*(b-a))*10)/10;
   const metti=z=>{if(!Z.some(q=>rad((q.x-z.x)*(q.x-z.x)+(q.y-z.y)*(q.y-z.y))<10))Z.push(z)};
@@ -195,7 +196,11 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   return{cw,ch,ini,el,lista}}
  // il nemico più vicino (distanza + `pen` se sta dall'altra parte del muro); a pari distanza il primo della lista: come scorrere tutti
  function piuVicino(g,u,muro){let m=null,md=1e9,mi=1e9;const cx=cella(u.x,g.cw),cy=cella(u.y,g.ch),pen=muro?6:0;
+  let visite=0;
   for(let r=0;r<=g.cw+g.ch;r++){if(r>1&&md<(r-1)*GRIGLIA.CELLA-GRIGLIA.MARGINE)break;
+   if(visite>g.lista.length){// nemici lontani: scorrere la lista costa meno di allargare ancora l'anello (stesso spareggio per indice)
+    m=null;md=1e9;for(let ix=0;ix<g.lista.length;ix++){const q=g.lista[ix],d=d2(u,q)+(pen&&(q.y<muro)!==(u.y<muro)?pen:0);if(d<md){md=d;m=q}}break}
+   visite+=r?8*r:1;
    for(let yy=Math.max(0,cy-r);yy<=Math.min(g.ch-1,cy+r);yy++){const passo=(yy===cy-r||yy===cy+r)?1:2*r||1;
     for(let xx=cx-r;xx<=cx+r;xx+=passo){if(xx<0||xx>=g.cw)continue;const c=yy*g.cw+xx;
      for(let e=g.ini[c];e<g.ini[c+1];e++){const ix=g.el[e],q=g.lista[ix],d=d2(u,q)+(pen&&(q.y<muro)!==(u.y<muro)?pen:0);if(d<md||(d===md&&ix<mi)){md=d;m=q;mi=ix}}}}}
@@ -245,14 +250,10 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    // chi tiene la posizione non insegue chi sta oltre il muro (resta al portone o sul camminamento)
    if(b&&(libero||!mt&&(db<=ingaggio||rad((b.x-ax)*(b.x-ax)+(b.y-ay)*(b.y-ay))<=ingaggio))){if(u.git&&libero&&db>gt){muovi(s,u,b.x,b.y)}else if(u.git&&libero){if(u.cd<=0)tiro(s,u,b,db)}else{const st=muovi(s,u,b.x,b.y);if(u.c==='c')u.ca=Math.min(1,u.ca+st*.12)}continue}
    const st=muovi(s,u,ax,ay);if(u.c==='c')u.ca=st>.2?Math.min(1,u.ca+st*.06):0;if(st<.02&&b){const dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d}}
-  // non ci si sovrappone
-  {const gt=riempi(vv,s.W,s.H),vic=[];
-   for(let i=0;i<vv.length;i++){const a=vv[i];if(a.st!=='vivo')continue;vic.length=0;const cx=cella(a.x,gt.cw),cy=cella(a.y,gt.ch);
-    for(let yy=Math.max(0,cy-1);yy<=Math.min(gt.ch-1,cy+1);yy++)for(let xx=Math.max(0,cx-1);xx<=Math.min(gt.cw-1,cx+1);xx++){const c=yy*gt.cw+xx;for(let e=gt.ini[c];e<gt.ini[c+1];e++)if(gt.el[e]>i)vic.push(gt.el[e])}
-    vic.sort((x,y)=>x-y);
-    for(const j of vic){const b=vv[j];if(b.st!=='vivo')continue;const dx=b.x-a.x,dy=b.y-a.y;if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
-     const r0=(a.c==='c'||b.c==='c'||a.cav||b.cav)?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(a.l===b.l?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
-     a.x-=ox*k;a.y-=oy*k;b.x+=ox*k;b.y+=oy*k}}}
+  // non ci si sovrappone (doppio ciclo con scarto rapido: misura meglio di una griglia, e non dipende dalla deriva delle posizioni)
+  for(let i=0;i<vv.length;i++){const a=vv[i];if(a.st!=='vivo')continue;for(let j=i+1;j<vv.length;j++){const b=vv[j];if(b.st!=='vivo')continue;const dx=b.x-a.x,dy=b.y-a.y;if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
+    const r0=(a.c==='c'||b.c==='c'||a.cav||b.cav)?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(a.l===b.l?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
+    a.x-=ox*k;a.y-=oy*k;b.x+=ox*k;b.y+=oy*k}}
   if(s.tipo==='arena')for(const u of vv){const dx=u.x-s.W/2,dy=u.y-s.H/2,d=rad(dx*dx+dy*dy);if(d>C.ARENA){u.x=s.W/2+dx/d*C.ARENA;u.y=s.H/2+dy/d*C.ARENA}}
   if(s.muro)for(const u of vv){const m=s.muro;if(Math.abs(u.y-m)<.5&&!s.varchi.some(g=>u.x>g[0]&&u.x<g[1]))u.y=u.py<m?m-.5:m+.5;u.x=stretto(u.x,.5,s.W-.5);u.y=stretto(u.y,.5,s.H-.5)}
   // rinforzi, rotta, fine
