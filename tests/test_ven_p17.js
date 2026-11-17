@@ -10,19 +10,15 @@ const al = (s, g) => { s.t = (g - 1) * 1440 + 600; return s; };               //
 const inSt = (s, k, g = 1) => al(s, s.anno + ['prim', 'est', 'aut', 'inv'].indexOf(k) * GG + g);
 const mondo = (seme, opz) => V.nuovo(seme, { opz: Object.assign({ geo: 2 }, opz) });
 const eq = (a, b, m) => assert.strictEqual(JSON.stringify(a), JSON.stringify(b), m);   // gli oggetti nascono in un altro contesto: si confrontano come JSON
-const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f');
+const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f'), cavallo = Object.keys(D.TR).find(t => D.TR[t].c === 'c');
 
-// senza `s.anno` non cambia nulla: un mondo vecchio e un mondo nuovo senza calendario si comportano come senza il file delle stagioni
+// senza `s.anno` non cambia nulla: un mondo vecchio non ha calendario e i moltiplicatori valgono 1 (l'impronta identica a `main` la prova la parte lenta, con `tools/avventura/impronta.js`)
 {
-  const senza = nuovoCtx(F.filter(f => !f.startsWith('28kh')));
-  const a = V.nuovo(3), b = senza.VEN.nuovo(3);
+  const a = V.nuovo(3);
   assert.strictEqual(a.anno, undefined, 'un mondo vecchio non ha calendario'); assert.strictEqual(V.stagione(a), null);
   for (const k of ['viveri', 'marcia', 'prezzo', 'reclute', 'guerra']) assert.strictEqual(V.molt(a, k, { p: V.TU(a), i: 5, m: 'grano' }), 1, k);
-  for (const [VV, s] of [[V, a], [senza.VEN, b]]) { const tu = VV.TU(s); VV.ordina(s, { t: 'entra', lid: s.l.find(l => l.tipo === 'villaggio').id }); VV.passo(s, 1440 * 4 + 7); void tu; }
-  assert.strictEqual(V.salva(a), senza.VEN.salva(b), 'quattro giorni di un mondo vecchio sono identici senza il file delle stagioni');
-  const c = mondo(3), d = senza.VEN.nuovo(3, { opz: { geo: 2 } });
-  delete c.anno; for (const VV of [V, senza.VEN]) VV.passo(VV === V ? c : d, 1500);
-  assert.strictEqual(V.salva(c), senza.VEN.salva(d), 'un mondo geo=2 senza `anno` non cambia nemmeno lui');
+  const c = mondo(3); delete c.anno; assert.strictEqual(V.stagione(c), null); for (const k of ['viveri', 'prezzo', 'reclute', 'guerra']) assert.strictEqual(V.molt(c, k, { p: V.TU(c), i: 5, m: 'grano' }), 1, 'geo=2 senza `anno`: ' + k);
+  const tu = V.TU(c); tu.tr = [{ t: piede, n: 20, f: 0, xp: 0 }, { t: cavallo, n: 10, f: 0, xp: 0 }]; tu.merci = { grano: 50 }; c.dentro = -1; c.tregua = 1e9; V.giornoNuovo(c); assert.strictEqual(tu.merci.grano, 45, 'senza calendario il nucleo da solo: 30 uomini, 5 razioni');
 }
 
 // calendario: quattro stagioni da 28 giorni, si parte a inizio primavera; i mondi nuovi hanno `anno`, i vecchi no
@@ -44,12 +40,20 @@ const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f');
   assert.strictEqual(V.molt(inSt(s, 'aut'), 'viveri', { p }), .9); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p }), 1);
   const miti = mondo(3, { stag: 'miti' }), rig = mondo(3, { stag: 'rigide' });
   assert.strictEqual(V.molt(inSt(miti, 'inv'), 'viveri', { p }), 1.25); assert.strictEqual(V.molt(inSt(rig, 'inv'), 'viveri', { p }), 1.75);
-  // i cavalli mangiano il foraggio: 10 su 10 a cavallo in inverno ×1,6, in primavera ×0,8
-  const cav = Object.keys(D.TR).find(t => D.TR[t].c === 'c'), pc = { tr: [{ t: cav, n: 10 }] };
-  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: pc }), 1.6); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p: pc }), .8);
+  // i cavalieri: gli uomini mangiano la loro razione (viveri), il cavallo il suo foraggio, a parte. 10 su 10 a cavallo: gli uomini valgono metà razione
+  const pc = { tr: [{ t: cavallo, n: 10 }] };
+  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: pc }), .75); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p: pc }), .5);
+  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: { tr: [{ t: piede, n: 5 }, { t: cavallo, n: 5 }] } }), 1.5 * .75, 'metà a cavallo');
   // il consumo vero di un giorno: 60 uomini, 10 razioni in estate, 15 in inverno
   const razioni = k => { const t = mondo(3); inSt(t, k, 3); const tu = V.TU(t); tu.tr = [{ t: piede, n: 60, f: 0, xp: 0 }]; tu.merci = { grano: 100 }; t.dentro = -1; V.giornoNuovo(t); return 100 - tu.merci.grano; };
   assert.strictEqual(razioni('est'), 10); assert.strictEqual(razioni('inv'), 15); assert.strictEqual(razioni('aut'), 9);
+  // 60 cavalieri: uomini (metà razione, molt dei viveri) più foraggio a parte (suo moltiplicatore)
+  const razioniC = (k, opz, grano = 100) => { const t = mondo(3, opz); inSt(t, k, 3); const tu = V.TU(t); tu.tr = [{ t: cavallo, n: 60, f: 0, xp: 0 }]; tu.merci = { grano }; t.dentro = -1; tu.mor = 100; t.tregua = 1e9; V.giornoNuovo(t); return { usate: grano - (tu.merci.grano || 0), log: t.log.map(x => x.tx), mor: tu.mor }; };
+  assert.strictEqual(razioniC('est').usate, 9); assert.strictEqual(razioniC('inv').usate, 16); assert.strictEqual(razioniC('aut').usate, 10);
+  assert(razioniC('inv', { stag: 'miti' }).usate < 16 && razioniC('inv', { stag: 'rigide' }).usate > 16, 'la leva `stag` pesa anche sul foraggio');
+  // senza scorta per i cavalli lo dice, e il morale scende
+  const scarso = razioniC('inv', null, 8); assert.strictEqual(scarso.usate, 8); assert(scarso.log.some(x => /cavalli non hanno foraggio/.test(x)), 'lo dice: ' + scarso.log.join('|'));
+  assert(!razioniC('inv').log.some(x => /foraggio/.test(x)), 'con la scorta non si lamenta nessuno');
 }
 
 // prezzo del grano, reclute e guerre per stagione
@@ -59,9 +63,14 @@ const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f');
   eq(v('reclute', { lid: 0 }), [1.4, 1, 1, .6]); eq(v('guerra', { a: 'val', b: 'sel' }), [1.5, 1.2, .8, .3]);
   eq(v('marcia', { i: 0 }).length, 4);
   const r = mondo(3, { stag: 'rigide' }); assert.strictEqual(+V.molt(inSt(r, 'inv'), 'guerra', {}).toFixed(3), 0, 'il valore non scende sotto zero');
-  // la stagione cambia davvero il prezzo di un mercato e le reclute di un villaggio
+  // la stagione cambia davvero il prezzo di un mercato...
   const t = mondo(3), l = t.l.find(x => x.tipo === 'citta'); const pr = st => { inSt(t, st); return V.prezzo(t, l, 'grano', 1); };
   assert(pr('inv') > pr('prim') && pr('prim') > pr('est') && pr('est') > pr('aut'), 'grano: inverno > primavera > estate > autunno');
+  // ...e le reclute vere che offre un villaggio: quante se ne possono ingaggiare dopo un giorno di quella stagione
+  const reclute = (st, opz) => { const u = mondo(3, opz), v = u.l.find(x => x.tipo === 'villaggio'), tu = V.TU(u); inSt(u, st, 5); Object.assign(v, { rec: 50, rel: 0, sacc: 0 }); tu.oro = 1e6; tu.tr = [{ t: piede, n: 1, f: 0, xp: 0 }]; u.dentro = v.id; tu.x = v.x; tu.y = v.y; u.tregua = 1e9;
+    V.giornoNuovo(u); let n = 0; for (let k = 0; k < 60 && !V.fai(u, { a: 'recluta', n: 1 }).err; k++) n++; return n; };
+  const rp = reclute('prim'), re = reclute('est'), ri = reclute('inv'); assert(rp > re && re > ri, 'reclute: primavera ' + rp + ' > estate ' + re + ' > inverno ' + ri);
+  assert.strictEqual(rp, 11); assert.strictEqual(re, 8); assert.strictEqual(ri, 4); assert(reclute('inv', { stag: 'miti' }) > ri && reclute('inv', { stag: 'rigide' }) < ri, 'la leva `stag` pesa sulle reclute');
 }
 
 // le guerre nuove dell'IA: più in primavera ed estate che in inverno (giorni fermi, solo il giro dei regni)
@@ -108,7 +117,11 @@ const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f');
     // lago gelato: si cammina sul ghiaccio, a velocità di terra; il mare non gela; i porti su un lago gelato sono chiusi
     inSt(s, 'inv'); let gh = -1, mare = -1;
     for (let i = 0; i < G * G; i++) if (M0.T[i] === 0) { if (V.lagoGelato(s, i)) { if (gh < 0) gh = i; } else if (M0.LG[i] === 0 && mare < 0) mare = i; }
-    if (gh >= 0) { assert(V.passa(V.mappaDi(s), gh % G + .5, Math.floor(gh / G) + .5), 'sul ghiaccio si passa'); assert(V.molt(s, 'marcia', { i: gh }) > .5, 'e non si va a passo d\'acqua'); ghiaccio++; inSt(s, 'prim'); assert(!V.lagoGelato(s, gh) && !V.passa(V.mappaDi(s), gh % G + .5, Math.floor(gh / G) + .5)); }
+    if (gh >= 0) { assert(V.passa(V.mappaDi(s), gh % G + .5, Math.floor(gh / G) + .5), 'sul ghiaccio si passa'); 
+      // la velocità vera sul ghiaccio è quella di una pianura vicina (senza strada, fiume, ponte, passo, neve): se cambia il costo dell'acqua nel nucleo, qui si vede
+      const tu = V.TU(s), piana = i => M0.T[i] === 1 && !M0.S[i] && !M0.F[i] && !M0.PN[i] && !M0.PS[i] && !V.innevata(s, i); let q = -1;
+      for (let r = 1; r < 60 && q < 0; r++) for (let dy = -r; dy <= r && q < 0; dy++) for (let dx = -r; dx <= r && q < 0; dx++) { const x = gh % G + dx, y = Math.floor(gh / G) + dy; if (x >= 0 && y >= 0 && x < G && y < G && piana(y * G + x)) q = y * G + x; }
+      const vel = i => V.velocita(s, Object.assign({}, tu, { x: i % G + .5, y: Math.floor(i / G) + .5 })); assert(q >= 0); assert(Math.abs(vel(gh) / vel(q) - 1) < 1e-9, 'sul ghiaccio si va come sulla pianura vicina: ' + vel(gh) + ' contro ' + vel(q)); ghiaccio++; inSt(s, 'prim'); assert(!V.lagoGelato(s, gh) && !V.passa(V.mappaDi(s), gh % G + .5, Math.floor(gh / G) + .5)); }
     inSt(s, 'inv'); assert(!V.lagoGelato(s, mare) && !V.passa(V.mappaDi(s), mare % G + .5, Math.floor(mare / G) + .5), 'il mare non gela');
     const gelo = s.l.filter(l => V.portoChiuso(s, l)); porti += gelo.length;
     for (const l of gelo) { inSt(s, 'prim'); assert(!V.portoChiuso(s, l), 'in primavera il porto riapre'); inSt(s, 'inv'); }
@@ -169,7 +182,7 @@ const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f');
   metti(nv); let sc = sch(); assert.strictEqual(sc.scena.meteo, 'neve'); assert.strictEqual(sc.mod.a.c.vel, .85); assert.strictEqual(sc.mod.b.c.vel, .85); assert(!sc.mod.a.f && !sc.mod.a.t, 'solo i cavalli');
   metti(no); sc = sch(); assert.strictEqual(sc.scena.meteo, 'sereno'); assert(!sc.mod, 'senza neve la scheda non cambia');
   inSt(s, 'est'); s.t = (s.t - s.t % 1440) + 12 * 60; metti(nv); sc = sch(); assert.strictEqual(sc.scena.meteo, 'sereno');
-  for (const l of ['a', 'b']) for (const c of ['f', 't', 'c']) assert.strictEqual(sc.mod[l][c].fa, 1.2, 'estate a mezzogiorno: fatica +20%');
+  for (const l of ['a', 'b']) for (const c of ['f', 't', 'c', 'k']) assert.strictEqual(sc.mod[l][c].fa, 1.2, 'estate a mezzogiorno: fatica +20%');
   s.t = (s.t - s.t % 1440) + 7 * 60; sc = sch(); assert(!sc.mod, 'di mattina no'); inSt(s, 'prim'); assert(!sch().mod);
   // non si pesta ciò che altri hanno già messo
   inSt(s, 'est'); s.t = (s.t - s.t % 1440) + 13 * 60; const sc2 = { tipo: 'campo', scena: { meteo: 'sereno' }, mod: { a: { c: { vel: 1.1 } } } }; V.chiedi('scheda', s, sc2); assert.strictEqual(sc2.mod.a.c.vel, 1.1); assert.strictEqual(sc2.mod.a.c.fa, 1.2);

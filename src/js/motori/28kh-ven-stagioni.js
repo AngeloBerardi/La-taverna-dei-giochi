@@ -14,8 +14,11 @@ VDAT.STAG={GIORNI:28,ORDINE:['prim','est','aut','inv'],NOMI:{prim:'primavera',es
  QUOTA_PASSI:.7,    // un passo più alto di così, in ogni parte del mondo, d'inverno si chiude...
  LAT_PASSI:.45,     // ...e così i passi del nord
  LAT_GELO:.6,       // un lago il cui centro sta più a nord di così gela d'inverno
- GHIACCIO:7,        // sul ghiaccio si cammina come sulla terra (l'acqua costerebbe 9)
+ GHIACCIO:9,        // sul ghiaccio si cammina come sulla pianura: il nucleo divide la marcia per il costo della cella (acqua 9, pianura 1), qui si rimette il rapporto (la prova lo verifica)
+ FORAGGIO_QUOTA:.5, // quanto della razione di un cavaliere è del cavallo: si consuma a parte, col suo moltiplicatore di stagione (foraggio)
+ CLASSI:['f','t','c','k'], // le classi della battaglia (fanti, tiratori, cavalli, capitani) a cui tocca la fatica estiva
  AVVISO:3,          // giorni di preavviso dell'inverno
+ MORALE_FORAGGIO:2, // morale perso ogni giorno senza foraggio per i cavalli
  MORALE_APERTO:2,   // morale perso ogni giorno d'inverno dormendo all'aperto
  SCHED:{CAVALLI_NEVE:.85,FATICA_ESTATE:1.2,MEZZOGIORNO:[11,15]}};
 Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MERCATO,MURA}=VEN._,ST=VDAT.STAG,passa=VEN.passa;
@@ -53,11 +56,14 @@ Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MER
  VEN.mappaDi=s=>{if(s.anno==null||s.geo!==2)return mappa0(s);const mondo=s.opz&&s.opz.mondo;
   if(mm.s!==s||mm.seme!==s.seme||mm.mondo!==mondo)mm={s,seme:s.seme,mondo,base:mappa0(s)};
   const M=mm.base;return M.PS&&M.LG&&M.laghi&&M.A&&inverno(s)?invernale(M):M};
+ // uomini e cavalieri di una compagnia (i cavalli mangiano a parte)
+ const cavalli=p=>{let n=0,cav=0;if(p&&p.tr)for(const x of p.tr){n+=x.n;if(D.TR[x.t]&&D.TR[x.t].c==='c')cav+=x.n}return{n,cav}};
  // ---------- moltiplicatori ----------
  const molt0=VEN.molt;
  VEN.molt=(s,k,c)=>{const m=molt0(s,k,c);if(s.anno==null)return m;const st=stagione(s),e=ST.EFF[st.k],sc=scartoDi(s);
   switch(k){
-   case'viveri':{let n=0,cav=0;if(c&&c.p&&c.p.tr)for(const x of c.p.tr){n+=x.n;if(D.TR[x.t]&&D.TR[x.t].c==='c')cav+=x.n}const f=n?cav/n:0;return m*attenua((1-f)*e.viveri+f*e.foraggio,sc)}
+   // gli uomini: la razione dei cavalieri senza la parte del cavallo, che si consuma a parte nel gancio `giorno` (foraggio)
+   case'viveri':{const{n,cav}=cavalli(c&&c.p);return m*attenua(e.viveri,sc)*(n?1-cav/n*ST.FORAGGIO_QUOTA:1)}
    case'marcia':{if(!c||c.i==null||st.k!=='inv'||s.geo!==2)return m*attenua(e.marcia,sc);const M=VEN.mappaDi(s);
     if(geoM(s,M)){if(chiusoM(M,c.i))return 0;if(M.T[c.i]===0&&M.LG[c.i]>0&&gelati(M)[M.LG[c.i]])return m*attenua(e.marcia,sc)*ST.GHIACCIO;if(innevataM(s,M,c.i))return m*attenua(ST.NEVE_MARCIA,sc)}
     return m*attenua(e.marcia,sc)}
@@ -76,6 +82,10 @@ Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MER
   const M=VEN.mappaDi(s);
   for(const p of s.p){if(p.dentro>=0||p.x==null||passa(M,p.x,p.y))continue;const v=vicinoOk(M,p.x,p.y);p.x=v[0];p.y=v[1];p.via=[];
    if(p.id===0&&!s.prigioniero)L(s,st.k==='inv'?'La neve ha chiuso il passo: la compagnia ripiega.':'Il ghiaccio cede: la compagnia torna a riva.','male')}
+  // foraggio: i cavalli mangiano a parte (granaglie e viveri della scorta, dopo gli uomini); senza, la truppa si scoraggia
+  if(!s.prigioniero){const cav=cavalli(tu).cav,serve=Math.round(cav*ST.FORAGGIO_QUOTA/6*attenua(ST.EFF[st.k].foraggio,scartoDi(s)));let da=serve;
+   if(da>0){const cibi=Object.keys(tu.merci).filter(m=>D.MERCI[m].cibo);let k=0;while(da>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;da--}}
+    if(da>0){tu.mor=Math.max(0,tu.mor-ST.MORALE_FORAGGIO);L(s,'I cavalli non hanno foraggio: la truppa si scoraggia.','male')}}}
   // all'aperto d'inverno il morale scende; al chiuso (città, castelli, porti) no
   if(st.k==='inv'&&s.dentro<0&&!s.prigioniero)tu.mor=Math.max(0,tu.mor-ST.MORALE_APERTO)});
  // svernare: i feriti guariscono il doppio (un secondo tiro ogni ora, come quello del nucleo)
@@ -91,5 +101,5 @@ Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MER
   // moltiplica `k` per `f` nei tipi indicati (senza toccare ciò che altri hanno già messo nella scheda)
   const mod=(f,k,tipi)=>{sc.mod=sc.mod||{};for(const l of['a','b']){sc.mod[l]=sc.mod[l]||{};for(const c of tipi){const o=sc.mod[l][c]=sc.mod[l][c]||{};o[k]=(o[k]==null?1:o[k])*f}}};
   if(st.k==='inv'&&innevataM(s,M,cella(M,tu.x,tu.y))){sc.scena=Object.assign({},sc.scena,{meteo:'neve'});mod(ST.SCHED.CAVALLI_NEVE,'vel',['c'])}
-  else if(st.k==='est'){const h=(s.t%P.GIORNO)/60;if(h>=ST.SCHED.MEZZOGIORNO[0]&&h<ST.SCHED.MEZZOGIORNO[1])mod(ST.SCHED.FATICA_ESTATE,'fa',['f','t','c'])}});
+  else if(st.k==='est'){const h=(s.t%P.GIORNO)/60;if(h>=ST.SCHED.MEZZOGIORNO[0]&&h<ST.SCHED.MEZZOGIORNO[1])mod(ST.SCHED.FATICA_ESTATE,'fa',ST.CLASSI)}});
  return{stagione,innevata,passoChiuso,lagoGelato,portoChiuso}})());
