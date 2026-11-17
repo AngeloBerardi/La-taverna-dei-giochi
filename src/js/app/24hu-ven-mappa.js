@@ -6,6 +6,10 @@
    di che truppe sono fatte. Le etichette sono elementi della pagina (`.vn-etc`). Bottega comune: `VenArte` (24ht). Piano: docs/VENTURA.md. */
 const VenMappa=(()=>{
  const K={s:null,seme:-1,scene:null,cam:null,fuoco:{x:32,y:0,z:32},alt:13,segue:true,t:0,P:{},lu:[],M:null};
+ const SEN=Math.sin(52*Math.PI/180);
+ function aspetto(){const A=VenArte;return A.rw&&A.rh?(A.rw-2)/(A.rh-2):.5}
+ function altMax(G,asp){return Math.max(8,Math.max(G/(2*asp),G*SEN/2))}
+ function limita(f,alt,G,asp){const R=(h)=>{const m=h-6;return m>=G/2?G/2:m},mx=R(alt*asp),mz=R(alt/SEN);return{x:Math.max(mx,Math.min(G-mx,f.x)),z:Math.max(mz,Math.min(G-mz,f.z))}}
  function quotaA(a){const m=VEN.MARE;if(a<m)return Math.max(-1.3,(a-m)*7);let h=(a-m)*5;if(a>VEN.COLLE)h+=(a-VEN.COLLE)*13;if(a>VEN.MONTE)h+=(a-VEN.MONTE)*44;return h+(Math.round(h*2)/2-h)*.4+.06}
  // i luoghi stanno su un ripiano: attorno a ognuno il terreno si spiana alla sua quota
  function piano(x,y,base){const L=K.pianiG[(Math.max(0,Math.min(K.M.G-1,y))>>3)*(K.M.G>>3)+(Math.max(0,Math.min(K.M.G-1,x))>>3)];if(!L)return base;for(const f of L){const dx=x-f.x,dy=y-f.y;if(dx>f.r||dx<-f.r||dy>f.r||dy<-f.r)continue;const d=Math.sqrt(dx*dx+dy*dy);if(d<f.r){const t=Math.min(1,(f.r-d)/(f.r*.42)),u=t*t*(3-2*t);base+=(f.h-base)*u}}return base}
@@ -154,7 +158,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   const vis=VEN.visibili(s).slice();if(!s.prigioniero)vis.unshift(tu);const visti={};K.fig.inizio();K.ste.inizio();const etc=[];
   for(const p of vis){let q=K.P[p.id];if(!q||Math.abs(q.x-p.x)+Math.abs(q.y-p.y)>3)q=K.P[p.id]={x:p.x,y:p.y,yaw:0,f:0};visti[p.id]=1;
    const dx=p.x-q.x,dy=p.y-q.y,dl=Math.hypot(dx,dy),k=Math.min(1,dt*9);q.x+=dx*k;q.y+=dy*k;const fermo=dl<.004;if(!fermo){const ya=Math.atan2(dx,dy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*8);q.f+=dt*(p.k==='car'?1.4:2.2)}
-   const F=Object.assign({},VDAT.FAZ[p.id===0?VEN.lato(s):p.faz],VEN.colFaz(s,p.id===0?VEN.lato(s):p.faz)),n=VEN.uomini(p),S=seguito(p),hq=quota(q.x,q.y),col=p.id===0?VEN.colFaz(s,'tu').col:F.col,sn=Math.sin(q.yaw),cs=Math.cos(q.yaw);
+   const F=Object.assign({},(VEN.rg?VEN.rg(s,p.id===0?VEN.lato(s):p.faz):VDAT.FAZ[p.id===0?VEN.lato(s):p.faz]),VEN.colFaz(s,p.id===0?VEN.lato(s):p.faz)),n=VEN.uomini(p),S=seguito(p),hq=quota(q.x,q.y),col=p.id===0?VEN.colFaz(s,'tu').col:F.col,sn=Math.sin(q.yaw),cs=Math.cos(q.yaw);
    // chi guida: il tuo capitano con quello che ha addosso; un signore, un capobanda o la rivale col loro aspetto
    const capo=p.tr.find(e=>VDAT.TR[e.t]&&VDAT.TR[e.t].capo);let asp,cav;
    if(p.id===0){const st=VEN.statCap(s.cap);asp=st.asp;cav=st.cavallo}else if(capo){asp=VDAT.aspetto(capo.t);cav=p.k==='riv'}else if(p.k==='sig'){asp=Object.assign({},VDAT.aspetto(p.faz+'_c4'),{mant:1});cav=true}else{asp=S.length?VDAT.aspetto(S[0][0]):{};cav=S.length>0&&VDAT.TR[S[0][0]].c==='c'}
@@ -186,7 +190,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
    K.orme.count=n;K.orme.instanceMatrix.needsUpdate=true}else{K.anello.visible=false;K.orme.count=0}
   // telecamera
   const me=K.P[0]||tu,G=K.M.G;if(K.segue&&!s.prigioniero){const k=Math.min(1,dt*5);K.fuoco.x+=(me.x-K.fuoco.x)*k;K.fuoco.z+=(me.y-K.fuoco.z)*k}
-  K.fuoco.x=Math.max(2,Math.min(G-2,K.fuoco.x));K.fuoco.z=Math.max(2,Math.min(G-1,K.fuoco.z));K.fuoco.y+=(quota(K.fuoco.x,K.fuoco.z)-K.fuoco.y)*Math.min(1,dt*4);
+  {const asp=aspetto(),a=altMax(G,asp);if(K.alt>a)K.alt=a;const t=limita(K.fuoco,K.alt,G,asp),k=Math.min(1,dt*16);K.fuoco.x+=(t.x-K.fuoco.x)*k;K.fuoco.z+=(t.z-K.fuoco.z)*k}K.fuoco.y+=(quota(K.fuoco.x,K.fuoco.z)-K.fuoco.y)*Math.min(1,dt*4);
   const L=K.luce.ora(h,K.fuoco,Math.max(16,K.alt*1.15));if(s.meteo!=='sereno'){K.luce.sole.intensity*=s.meteo==='nebbia'?.62:.78}K.fin.visible=L.notte>.35;
   {const vic=L.notte>.35?K.lu.filter(lu=>lu.me.visible&&Math.abs(lu.x-K.fuoco.x)<vx&&Math.abs(lu.y-K.fuoco.z)<vz).sort((a,b)=>Math.hypot(a.x-K.fuoco.x,a.y-K.fuoco.z)-Math.hypot(b.x-K.fuoco.x,b.y-K.fuoco.z)):[];K.lumi.forEach((p,i)=>{const lu=vic[i];if(lu){p.position.set(lu.x,lu.h0+1.6,lu.y+.6);p.intensity=L.notte*(lu.tipo==='citta'||lu.tipo==='castello'?.8:.5)*(1+Math.sin(K.t*7+i)*.06)}else p.intensity=0})}
   K.mare.uniforms.t.value=K.t;const lm=(1-L.notte*.55)*(s.meteo==='sereno'?1:.82);K.mare.uniforms.luce.value.set(lm*(1-L.notte*.25),lm*(1-L.notte*.1),lm+L.notte*.1);
@@ -201,7 +205,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   for(const el of Array.from(host.children))if(!vivi[el.dataset.e])host.removeChild(el)}
  // ---------- gesti ----------
  function trascina(dx,dy){const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
- function pizzico(f){K.alt=Math.max(8,Math.min(64,K.alt/f))}
+ function pizzico(f){K.alt=Math.max(8,Math.min(altMax(K.M?K.M.G:64,aspetto()),K.alt/f))}
  // dove ho toccato: una compagnia, un luogo o un punto di terra
  function tocco(px,py){const A=VenArte,s=K.s,r=A.cv.getBoundingClientRect();let m=null,md=30;
   for(const p of VEN.visibili(s)){const q=K.P[p.id]||p,c=A.aSchermo(K.cam,q.x,quota(q.x,q.y)+.4,q.y),d=Math.hypot(c.x-(px-r.left),c.y-(py-r.top));if(d<md){md=d;m={tipo:'parte',id:p.id}}}
@@ -216,4 +220,4 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   for(const l of s.l){if(l.noto===false)continue;const r=l.tipo==='citta'?5:l.tipo==='castello'?3.4:l.tipo==='villaggio'?2:2.8;x.fillStyle='#1a120a';x.fillRect(l.x*k-r-1,l.y*k-r-1,r*2+2,r*2+2);x.fillStyle=VEN.colFaz(s,l.faz).col;
    if(VEN.SITO[l.tipo]||l.tipo==='monastero'||l.tipo==='locanda'){x.beginPath();x.arc(l.x*k,l.y*k,r,0,6.283);x.fillStyle=l.tipo==='covo'?'#c0392b':l.tipo==='rovine'?'#9fe0c8':'#f4e9c8';x.fill()}else x.fillRect(l.x*k-r,l.y*k-r,r*2,r*2)}
   const tu=VEN.TU(s);x.strokeStyle='#fff';x.lineWidth=2;x.fillStyle='#d98a1f';x.beginPath();x.arc(tu.x*k,tu.y*k,5,0,6.283);x.fill();x.stroke()}
- return{K,STILE,apri,passo,trascina,pizzico,tocco,centra,guarda,carta,quota}})();
+ return{K,limita,altMax,aspetto,STILE,apri,passo,trascina,pizzico,tocco,centra,guarda,carta,quota}})();
