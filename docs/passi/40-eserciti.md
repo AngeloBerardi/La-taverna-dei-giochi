@@ -24,7 +24,7 @@ In guerra i signori non vagano più da soli: un maresciallo del regno chiama l'a
 
 ## Leggi prima
 
-`docs/passi/04-ganci.md` (ganci `giorno`, `scontro`, `incontro`, `azione`, `effetto`, `luogo`; `VEN.decidi`, `VEN.molt` con `marcia`, `VEN._`); `pensa` e `oraNuova` in `28ka`; `faiRegno` (`aduna`) in `28kd`; `contatti` in `28k`. Le scene `adunata-*` le scrive il passo 42.
+`docs/passi/04-ganci.md` (ganci `giorno`, `scontro`, `incontro`, `scheda`, `fatto`, `effetto`; `VEN.decidi`, `VEN.molt` con `marcia`, `VEN._`); `pensa` e `oraNuova` in `28ka`; `faiRegno` (`aduna`) in `28kd`; `contatti` in `28k`. Le scene `adunata-*` le scrive il passo 42.
 
 ## Decisioni
 
@@ -34,9 +34,9 @@ In guerra i signori non vagano più da soli: un maresciallo del regno chiama l'a
 4. **Obiettivo**, scelto alla nascita e alla fine di ogni obiettivo raggiunto: un proprio luogo assediato entro `LONTANO` → `soccorso`; altrimenti il luogo murato nemico più vicino entro `LONTANO` con forza della guarnigione × `P.MURA` < 1,2 × forza dell'esercito → `assedio`; altrimenti il villaggio nemico non saccheggiato più vicino → `razzia`; nessuno → si scioglie.
 5. **Movimento** (`VEN.decidi` composto): `aduna` → i membri vanno dal maresciallo, che resta fermo; dopo `ADUNA` giorni `marcia`, e chi non è arrivato lascia l'esercito. `marcia` → il maresciallo riceve `ia.st=obiettivo.tipo`, `ia.a=obiettivo.lid` e la decisione di oggi fa il resto; un membro oltre `STRETTI` caselle va dal maresciallo, altrimenti copia `ia.st` e `ia.a` del maresciallo (così entra nello stesso assedio). Con `l.ass` dell'esercito → `assedia`. `VEN.molt(s,'marcia',{p})` del maresciallo = il minimo, tra i membri, di velocità del membro / velocità del maresciallo (con una guardia contro la ricorsione).
 6. **Scioglimento** (in `giorno`): obiettivo compiuto (luogo preso, saccheggiato, assedio tolto), `DURATA` giorni da `da`, forza sotto `META`·`f0`, maresciallo perso, o pace con tutti. `stato='sciolto'` per un giorno (la vista mostra il segnalino che si disfa), poi l'esercito è tolto e `p.es` cancellato.
-7. **In battaglia**: ascoltatore di `scontro` → i membri entro `AIUTO` caselle, liberi, entrano nello stesso lato; di `incontro` → idem in `inc.pid`, con il **maresciallo messo per primo**, così il passo 16 ne fa il `capoB`. Chi gioca si unisce a una mischia dell'esercito come oggi (incontro `mischia`).
+7. **In battaglia**: ascoltatore di `scontro` → i membri entro `AIUTO` caselle, liberi, entrano nello stesso lato; di `incontro` → idem in `inc.pid` (così `VEN.campo` li somma da sé nelle ondate e nella riserva), con il **maresciallo messo per primo**; ascoltatore di `scheda` → se il maresciallo è tra i nemici, `capoB` è lui (formato del passo 16). Chi gioca si unisce a una mischia dell'esercito come oggi (incontro `mischia`).
 8. **Da vassallo** (`s.servizio.tipo==='vas'`): quando nasce un esercito del tuo re, `s.convoca={eid,fino:giorno+ENTRO,presente:false}` e `VEN.accoda(s,'adunata-convoca',sg del maresciallo)`. Sei presente se arrivi entro `PRESENTE` caselle dal maresciallo prima di `fino`. Allo scioglimento: presente → `relaz` +`FIDUCIA` col re e `PAGA`×uomini monete; assente → `relaz` `IGNORA` e `s.disobb++`; a `FEUDO` disobbedienze perdi il feudo (i luoghi con `sig===-2` tornano come in `lascia`) e la scena `adunata-feudo`. Effetto nuovo `{t:'ven',k:'adunata',v:0|1}` (gancio `effetto`): `v:0` è «non vengo», conta subito come assente.
-9. **Da sovrano**: ascoltatore di `azione` per `{a:'aduna'}` con `s.corona`: fa l'adunata di oggi (chiama la versione del nucleo) e poi mette `ia.fine=s.t+DURATA` giorni e un esercito `{faz:'tu',capo:0,obiettivo:null,stato:'marcia'}` che segue te (il nucleo li fa già seguire).
+9. **Da sovrano**: ascoltatore di `fatto` per `{a:'aduna'}` riuscita (l'adunata di oggi è già fatta dal nucleo): mette `ia.fine=s.t+DURATA` giorni e un esercito `{faz:'tu',capo:0,obiettivo:null,stato:'marcia'}` che segue te (il nucleo li fa già seguire).
 
 ## Stato e contratti
 
@@ -61,7 +61,7 @@ Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi g
 
 ## Fuori scopo
 
-Il segnalino sulla mappa (lo disegna la vista del rilascio 5 dai dati di `VEN.eserciti`), i testi delle lettere (passo 42).
+Il segnalino sulla mappa (lo disegna il passo 45 dai dati di `VEN.eserciti`), i testi delle lettere (passo 42).
 
 ## Fatto quando
 
