@@ -3,7 +3,7 @@
    Regole: `VEN` (motori/28k), battaglia `VCAM` (28l), dati `VDAT` (28j). Disegno: `VenMappa` (24hu), `VenCampo` (24hv), `VenArte` (24ht).
    Un solo comando: `data-a="ven" data-v="verbo:arg:arg"` (07c-comandi). Il tempo del mondo scorre solo mentre la compagnia
    cammina o aspetta, e mai con un pannello aperto. Salvataggio sul telefono (`ven-salv`), a ogni alba, luogo e battaglia.
-   CSS: css/39j-ventura.css (prefisso `vn-`). Piano: docs/VENTURA.md. */
+   Pannelli nei file 24hwa–24hwe (VenBarre, VenLuoghi, VenGente, VenScontro, VenTv), che leggono gli aiutanti da `Ven._`. CSS: css/39j*-ven-*.css (prefisso `vn-`). Piano: docs/VENTURA.md. */
 const Ven=(()=>{
  const V={s:null,modo:'mondo',pan:null,sub:'home',vel:1,acc:0,raf:0,ult:0,avvisi:[],qta:1,carta:null,msg:'',regno:'val',hud:0,fine:null,gesti:false,pt:{},pin:0};
  const D=VDAT,ST_K='ven-salv';
@@ -17,20 +17,6 @@ const Ven=(()=>{
  const n0=x=>Math.round(x).toLocaleString('it-IT');
  const faz=f=>{const s=V.s;return`<span class="vn-fz" style="--fz:${s?VEN.colFaz(s,f).col:D.FAZ[f].col}">${esc(s?VEN.nomeF(s,f):D.FAZ[f].breve)}</span>`};
  const pips=t=>'<i class="vn-pip">'+'<b></b>'.repeat(t)+'</i>';
- // gradimento (V6a): cosa ama o detesta un compagno si sa solo dopo che è successo una volta; i legami solo se l'altro è in compagnia
- const EVN={razzia:'le razzie',libera:'liberare i prigionieri',riscatta:'incassare riscatti',pagatardi:'la paga in ritardo',fame:'la fame',perdite:'le perdite pesanti',vittoria:'le vittorie sudate',fuga:'la fuga',tributo:'pagare pedaggi',sito:'ripulire covi e rovine',torneo:'i tornei',cura:'curare i feriti'};
- const evNome=x=>x.slice(0,6)==='servi_'?'servire '+D.FAZ[x.slice(6)].breve:EVN[x]||x;
- function gradH(s,id){const co=D.COMPAGNI.find(c=>c.id===id),gr=s.grad&&s.grad[id];if(!co||!gr)return'';const u=VEN.umore(gr.g),vis=l=>l.filter(x=>gr.visto.includes(x)).map(evNome),am=vis(co.ama),od=vis(co.odia),alt=co.lega&&D.COMPAGNI.find(c=>c.id===co.lega.id),qui=alt&&VEN.TU(s).tr.some(e=>e.t===alt.id&&e.n>0);
-  const tip=(am.length?'Gli piace: '+am.join(', ')+'. ':'')+(od.length?'Detesta: '+od.join(', ')+'. ':'')+(!am.length&&!od.length?'Non sai ancora cosa gli piace e cosa no: lo scopri giocando. ':'')+(qui?(co.lega.n>0?'Ha intesa con ':'Ha antipatia per ')+alt.nome+'. ':'')+(gr.g<D.GRAD.PARLA?'Così non resterà a lungo.':'');
-  return`<span class="vn-um vn-u${u==='fedele'?4:u==='contento'?3:u==='tranquillo'?2:u==='scontento'?1:0}"><span class="vn-grad"><i style="width:${gr.g}%"></i></span>${u}${gr.avv?' · vuole parlarti':''}${infoH(esc(tip))}</span>`}
- // incarico personale di un compagno (V6b): una riga col passo aperto; prima che gli si parli non si sa nulla
- function incH(s,id){const co=D.COMPAGNI.find(c=>c.id===id),gr=s.grad&&s.grad[id];if(!co||!co.inc||!gr)return'';
-  if(gr.incA)return`<small class="vn-inc">Incarico, passo ${gr.incA} di ${co.inc.length}: ${esc(co.inc[gr.incA-1].d)}</small>`;
-  return gr.inc>=co.inc.length?'<small class="vn-inc">Incarico compiuto.</small>':gr.inc?`<small class="vn-inc">Incarico: ${gr.inc} passi su ${co.inc.length}. Aspetta che ti parli.</small>`:''}
- // una scena dei dialoghi (V6b): pannello fisso, chi parla, il testo, le risposte con la loro etichetta («20 monete»). In compagnia risponde chiunque; la TV guarda soltanto.
- function voceH(){const v=VEN.voce(V.s);if(!v)return'';const tv=inS()&&ui.tv;
-  const sc=v.scelte.map(c=>`<button class="b sm vn-vs" data-a="ven" data-v="parla:${c.i}" ${c.ok&&!tv?'':'disabled'}><span>${esc(c.t)}</span>${c.etichetta?` <i class="vn-tag">${esc(c.etichetta)}</i>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
-  return pannello(esc(v.chi.nome||'La compagnia'),`<p class="vn-p vn-dl">${esc(v.testo)}</p>${v.continua?bt(esc(v.continua),'parla:c',{cls:'gold',no:tv}):sc}`,{fisso:1,cls:'vn-voce'})}
  const CLS={f:'Fanti',t:'Tiratori',c:'Cavalieri'};
  function doti(o){const x=[],piu=(v,tx)=>{if(v)x.push((v>0?'+':'')+v+' '+tx)};piu(o.dan,'danno');piu(o.att,'mira');piu(o.dif,'difesa');piu(o.pf,'vita');if(o.slot==='cavallo')x.push('passo '+o.vel);else piu(o.vel,'passo');
   if(o.rit)x.push(o.rit<12?'svelta':o.rit>14?'lenta':'');if(o.perf)x.push('sfonda '+Math.round(o.perf*100)+'% d\'armatura');if(o.git)x.push('tira a '+o.git+' passi');if(o.due)x.push('a due mani');if(o.car)x.push('carica +'+Math.round(o.car*100)+'%');
@@ -69,7 +55,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   try{if(inS())VenStanza.giro(dt);if(!V.s)return;if(V.modo==='campo'){VenCampo.passo(dt);const k=VenCampo.K;if(k.finita&&!V.fine){V.fine=ora}if(V.fine&&ora-V.fine>1400&&V.pan!=='fine'){V.pan='fine';render()}}
    else{if(!inS())mondo(dt);VenMappa.passo(dt,V.s)}
    if(ui.tv){if(V.modo==='campo'){const k=VenCampo.K;k.segue=false;k.fuoco.x=30;k.fuoco.z=50;k.alt=80}else{VenMappa.K.alt=26;VenMappa.centra()}}
-   if(ora-V.hud>250){V.hud=ora;hudVivo();const cl=ui.tv&&document.getElementById('vn-tvl');if(cl){const h=cronTv(V.s);if(cl.innerHTML!==h)cl.innerHTML=h}}
+   if(ora-V.hud>250){V.hud=ora;hudVivo();const cl=ui.tv&&document.getElementById('vn-tvl');if(cl){const h=VenTv.cronTv(V.s);if(cl.innerHTML!==h)cl.innerHTML=h}}
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
@@ -103,230 +89,19 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   else if(o.tipo==='luogo'){const l=s.l[o.id];if(VEN.dist(tu(),l)<.8&&(s.dentro===l.id||s.davanti===l.id)){V.pan='luogo';return render()}r=ordina({t:'entra',lid:o.id});if(!r.err)avviso('In marcia verso '+l.nome)}
   else{V.carta=o.id;return render()}
   if(r&&r.err)avviso(r.err);if(document.querySelector('.vn-carta'))render()}
- // ---------- HUD del mondo ----------
- function altoH(){return`<div class="vn-alto"><button class="vn-ib" data-a="ven" data-v="pan:menu" aria-label="Menu">${ic('menu',20)}</button>
-<div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small></div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
-<div class="vn-ris"><span title="Monete">${ic('moneta',15)}<b id="vn-oro"></b></span><span title="Uomini">${ic('amici',15)}<b id="vn-uom"></b></span><span title="Giorni di viveri">${ic('boccale',15)}<b id="vn-cibo"></b></span><span title="Morale">${ic('cuore',15)}<b id="vn-mor"></b></span><span title="Fama">${ic('star',15)}<b id="vn-fama"></b></span></div></div>`}
- function tastiH(){const s=V.s,t=tu(),att=t.ord&&t.ord.t==='aspetta',pt=mio().punti>0,prom=t.tr.some(e=>D.TR[e.t].su.length&&(e.xp||0)>=D.XP_SU[D.TR[e.t].t]);
-  return`<button class="vn-bt" data-a="ven" data-v="pan:compagnia">${ic('amici',20)}<small>Compagnia</small>${prom?'<i class="vn-punto"></i>':''}</button>
-<button class="vn-bt" data-a="ven" data-v="pan:capitano">${ic('utente',20)}<small>Capitano</small>${pt?'<i class="vn-punto"></i>':''}</button>
-<button class="vn-bt" data-a="ven" data-v="pan:diario">${ic('diario',20)}<small>Diario</small></button>
-<button class="vn-bt" data-a="ven" data-v="${att?'ferma':'campo'}">${ic(att?'play':'letto',20)}<small>${att?'Riparti':'Accampati'}</small></button>
-<button class="vn-bt" data-a="ven" data-v="vel">${ic('passi',20)}<small>×${V.vel}</small></button>
-<button class="vn-bt" data-a="ven" data-v="pan:carta">${ic('mappa',20)}<small>Carta</small></button>`}
- const bassoH=()=>`<div class="vn-basso">${tastiH()}</div>`;
- // V7, telefono con la TV accesa: gli stessi tasti, grandi, in due colonne, più «Luogo» quando si è in un luogo o davanti
- function ctlH(){const s=V.s,lu=s.dentro>=0||s.davanti>=0;return`<div class="vn-ctlg">${tastiH()}${lu?`<button class="vn-bt" data-a="ven" data-v="pan:luogo">${ic('p_citta',20)}<small>Luogo</small></button>`:''}</div>`}
  // V7, la TV: fascia alta con i numeri della compagnia, cronaca a destra, capitani in basso; in battaglia solo le forze e il tempo
  const tvOn=()=>!!(inS()&&G&&G.tv&&!ui.tv&&VenStanza.seat()>=0);
- const cronTv=s=>{const col={bene:'vn-bene',male:'vn-male',guerra:'vn-gu'};return s.log.slice(-6).reverse().map(x=>`<p class="${col[x.tipo]||''}">${esc(x.tx)}</p>`).join('')};
- function tvH(){const s=V.s;   // i numeri li scrive hudVivo (stessi id della fascia alta del telefono)
-  return`<div class="vn-tvh"><b>${esc(s.nome||'Compagnia')}</b><span id="vn-ora"></span>
-<span>${ic('moneta',18)} <b id="vn-oro"></b></span><span>${ic('amici',18)} <b id="vn-uom"></b></span><span>${ic('boccale',18)} <b id="vn-cibo"></b></span>${R.code?`<span class="vn-tvc">Stanza <b>${esc(R.code)}</b></span>`:''}</div>
-<div class="vn-tvl"><h3>Cronaca</h3><div id="vn-tvl">${cronTv(s)}</div></div>
-<div class="vn-tvk">${VEN.capi(s).map(c=>`<span>${ic('utente',18)} <b>${esc(c.nome)}</b> <small>liv. ${c.liv}</small></span>`).join('')}</div>`}
- function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';
-  return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt" id="vn-tvt"></span></div>`}
- function cartaH(){const s=V.s,p=VEN.part(s,V.carta);if(!p||p.dentro>=0)return'';const ost=VEN.ostile(s,p,tu()),f=VEN.forza(p),mia=VEN.forza(tu()),giud=f<mia*.6?'Più debole di voi':f<mia*1.1?'Alla vostra portata':f<mia*1.7?'Più forte di voi':'Molto più forte di voi';
-  const comp={f:0,t:0,c:0};for(const e of p.tr)comp[D.TR[e.t].c]+=e.n;
-  return`<div class="vn-carta"><div class="vn-ct"><b>${esc(p.nome)}</b>${faz(p.faz)}<button class="vn-ib" data-a="ven" data-v="carta" aria-label="Chiudi">${ic('x',16)}</button></div>
-<small>${p.k==='car'?'Carovana di mercanti':p.k==='pre'?'Predoni':'Signore in armi'} · ${VEN.uomini(p)} uomini (${comp.f} fanti, ${comp.t} tiratori, ${comp.c} cavalieri)</small><small class="${ost?'vn-male':''}">${ost?'Nemici. ':''}${giud}.</small>
-<button class="b sm ${ost?'gold':''}" data-a="ven" data-v="segui:${p.id}">${ic(ost?'spada':'passi',16)} ${ost?'Dagli addosso':'Raggiungi'}</button></div>`}
  // ---------- pannelli ----------
  const pannello=(titolo,corpo,o)=>`<div class="vn-pan ${o&&o.cls||''}"><div class="vn-pt"><h3>${titolo}</h3>${o&&o.fisso?'':`<button class="vn-ib" data-a="ven" data-v="${o&&o.chiudi||'chiudi'}" aria-label="Chiudi">${ic('x',18)}</button>`}</div><div class="vn-pc">${corpo}</div>${V.msg?`<p class="vn-msg" role="status">${esc(V.msg)}</p>`:''}</div>`;
  const riga=(sx,dx,cls)=>`<div class="vn-r ${cls||''}"><div class="vn-rs">${sx}</div><div class="vn-rd">${dx||''}</div></div>`;
  const bt=(tx,v,o)=>`<button class="b sm ${o&&o.cls||''}" data-a="ven" data-v="${v}" ${o&&o.no?'disabled':''}>${tx}</button>`;
- function truppaH(e,azioni){const T=D.TR[e.t];return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]||''} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.compagno?' · compagno':''}</small>`,azioni||'')}
- function luogoH(){const s=V.s,lid=s.dentro>=0?s.dentro:s.davanti,l=s.l[lid];if(!l)return'';const t=tu(),fuori=s.davanti>=0,mio=l.faz==='tu'||l.sig===-2,g=VEN.giorno(s),sito=VEN.SITO[l.tipo],mura=VEN.MURA[l.tipo];
-  const testa=`<div class="vn-lt" style="--fz:${VEN.colFaz(s,l.faz).col}"><small>${TIPO[l.tipo]} ${mio?'· tuo':''}</small>${sito||l.faz==='neu'?'':faz(l.faz)}<small>${sito?'':l.oste?'Vi accoglie '+esc(l.oste):'Prosperità '+l.prosp}${l.sacc>g?' · saccheggiato':''}${l.ass?' · sotto assedio':''}</small></div>`;
-  const uom=l.g.reduce((a,e)=>a+e.n,0),giud=VEN.forzaTr(l.g)*(mura?VEN.P.MURA:1)>VEN.forza(t)*1.15?'più forti di voi':VEN.forzaTr(l.g)>VEN.forza(t)*.7?'alla vostra portata':'più deboli di voi';
-  if(sito){const cb=l.boss&&D.CAPIBANDA.find(c=>c.id===l.boss),pieno=l.g.length>0;
-   return pannello(esc(l.nome),testa+(l.tipo==='covo'?`<p class="vn-p">${pieno?'Una palizzata, fumo di bivacchi, sentinelle tra gli alberi. '+(cb?'Qui comanda <b>'+esc(cb.nome)+'</b>: '+esc(cb.d):''):'Cenere e pali anneriti. Qui non ruba più nessuno.'}</p>`:`<p class="vn-p">${pieno?'Pietre antiche, muschio, e orme fresche: qualcuno si è accampato tra le colonne, a guardia di ciò che resta.':'Le rovine tacciono. Non c\'è più nulla da prendere.'}</p>`)+
-    (pieno?riga(`<b>${l.tipo==='covo'?'Assalto al covo':'Esplora le rovine'}</b><small>${uom} uomini, ${giud}. Chi vince si prende quel che c'è.</small>`,bt(ic('spada',16)+' Avanti','fai:assalta',{cls:'gold'})):'')+riga('',bt('Via di qui','fai:esci')),{chiudi:'fai:esci'})}
-  if(fuori){const ass=s.assedio&&s.assedio.lid===l.id;return pannello(esc(l.nome),testa+`<p class="vn-p">Le porte sono sbarrate: ${esc(VEN.nomeF(s,l.faz))} vi è nemica.</p>`+
-    (l.tipo==='villaggio'?riga('<b>Razzia</b><small>Monete e grano, ma il regno non dimentica.</small>',bt('Saccheggia','fai:razzia',{cls:'gold'})):mura?
-     riga(`<b>Assedio</b><small>Dietro le mura ${uom} uomini, ${giud}.${ass&&!VEN.assedioStato(s).breccia?' Breccia tra '+VEN.assedioStato(s).oreBreccia+' ore.':''}</small>`,bt(ass?'In corso':'Assedia','fai:assedia',{cls:'gold',no:ass})):'')+riga('',bt('Via di qui','fai:esci')),{chiudi:'fai:esci'})}
-  if(V.sub==='mercato'){const righe=Object.keys(D.MERCI).map(m=>{const sc=l.scorte[m]||0,pc=VEN.prezzo(s,l,m,1),pv=VEN.prezzo(s,l,m,-1),ho=t.merci[m]||0,rif=D.MERCI[m].base;
-    return riga(`<b>${esc(D.MERCI[m].nome)}</b>${D.MERCI[m].cibo?' <i class="vn-tag">viveri</i>':''}<small>Hai ${ho} · scorta ${sc} · compri a <span class="${pc<rif*.8?'vn-bene':pc>rif*1.3?'vn-male':''}">${pc}</span> · vendi a ${pv}</small>`,bt('Vendi','fai:vendi:'+m,{no:!ho})+bt('Compra','fai:compra:'+m,{cls:'gold',no:!sc}))}).join('');
-   return pannello('Mercato di '+esc(l.nome),`<div class="vn-qta"><small>Carico ${VEN.carico(t)}/${VEN.caricoMax(s)} · quantità</small>${[1,5,20].map(q=>`<button class="vn-ch${V.qta===q?' on':''}" data-a="ven" data-v="qta:${q}">×${q}</button>`).join('')}</div>`+righe,{chiudi:'sub:home'})}
-  if(V.sub==='taverna'){const merc=l.merc.map(e=>truppaH(e,bt(D.INGAGGIO[D.TR[e.t].t]+' m.','fai:assolda:'+e.t,{cls:'gold'}))).join('')||'<p class="vn-p">Nessun mercenario cerca lavoro, oggi.</p>';
-   const comp=D.COMPAGNI.filter(c=>s.compagni[c.id]===l.id).map(c=>riga(`<b>${esc(c.nome)}</b><small>${esc(c.d)}</small><small class="vn-bene">+2 a ${esc(D.ABIL[c.abil].nome)}, e combatte al vostro fianco.</small>`,bt(c.costo+' m.','fai:compagno:'+c.id,{cls:'gold'}))).join('');
-   return pannello(l.tipo==='monastero'?'Foresteria':'Taverna',`${comp?'<div class="sh2">Gente fuori dal comune</div>'+comp:''}${l.tipo==='monastero'?'':'<div class="sh2">Gente di ventura</div>'+merc}`,{chiudi:'sub:home'})}
-  if(V.sub==='armi'){const un=l.unica&&D.OGG[l.unica],c=mio2(),ora=o=>{const x=o.slot==='cimelio'?null:D.OGG[c.eq[o.slot]];return x?` · ora porti: ${esc(x.nome)}`:''};
-   const vend=l.bott.map(id=>{const o=D.OGG[id];return oggH(o,bt(VEN.prezzoOgg(s,o,1)+' m.','fai:compraogg:'+id,{cls:'gold'}),ora(o))}).join('')||'<p class="vn-p">Scaffali vuoti: torna tra qualche giorno.</p>';
-   const mia=t.zaino.map((id,i)=>{const o=D.OGG[id];return o?oggH(o,bt('Vendi '+VEN.prezzoOgg(s,o,-1),'fai:vendiogg:'+i)):''}).join('');
-   return pannello(l.tipo==='monastero'?'Reliquie e rimedi':l.tipo==='locanda'?'Il baule dell\'oste':l.tipo==='porto'?'Merci d\'oltremare':'Armaiolo',`${un?'<div class="sh2">Offerta unica della capitale</div>'+oggH(un,bt(VEN.prezzoOgg(s,un,1)+' m.','fai:compraogg:'+un.id,{cls:'gold'}),ora(un)):''}<div class="sh2">In vendita</div>${vend}${mia?'<div class="sh2">Dal tuo zaino</div>'+mia:''}`,{chiudi:'sub:home'})}
-  if(V.sub==='navi'){const porti=s.l.filter(x=>x.tipo==='porto'&&x.id!==l.id),oro=40+VEN.uomini(t)*3;
-   return pannello('Imbarco',`<p class="vn-p">Un passaggio per tutta la compagnia: ${oro} monete. Per mare si arriva prima, e i predoni restano a terra.</p>`+porti.map(x=>riga(`<b>${esc(x.nome)}</b> ${faz(x.faz)}<small>${Math.round(VEN.dist(l,x))} leghe${VEN.nemiche(s,'tu',x.faz)?' · porto nemico':''}</small>`,bt('Salpa','fai:imbarca:'+x.id,{cls:'gold',no:VEN.nemiche(s,'tu',x.faz)}))).join(''),{chiudi:'sub:home'})}
-  if(V.sub==='sala'){const f=l.faz,R=D.REGNI.includes(f),srv=s.servizio,prig=s.prig.reduce((a,e)=>a+e.n,0),sg=s.sig[l.sig],tr=sg&&D.TRATTI[sg.tratto];let h='';
-   if(R){h+=`<p class="vn-p">${esc(D.FAZ[f].nome)}, retto da ${esc(D.FAZ[f].re)}. Amicizia: ${s.rel[f]}.</p>${sg?`<p class="vn-p">Qui siede <b>${esc(sg.nome)}</b>, signore ${esc(tr.nome)}. ${esc(tr.saluto)}</p>`:''}`;
-    if(!srv&&!s.corona)h+=riga(`<b>Contratto di ventura</b><small>Quattro settimane di soldo; i loro nemici diventano i vostri. Fama ${VEN.P.FAMA_CONTRATTO}.</small>`,bt('Firma','fai:contratto',{cls:'gold'}));
-    if((!srv||srv.tipo==='mer')&&!s.corona)h+=riga(`<b>Giuramento</b><small>Vassallo del regno, con un villaggio in feudo. Fama ${VEN.P.FAMA_VASSALLO}, amicizia 10.</small>`,bt('Giura','fai:giura'));
-    if(srv&&srv.faz===f)h+=riga(`<b>Sciogli il legame</b><small>Servi ${esc(D.FAZ[f].breve)} come ${srv.tipo==='vas'?'vassallo':'mercenario'}.</small>`,bt('Lascia','fai:lascia'))}
-   if(R&&l.tipo==='citta'&&srv&&srv.faz===f)h+=diploH(f,srv);
-   if(R&&l.tipo==='citta'&&s.corona&&!srv)h+=sovranoH(f);
-   if(mio&&mura&&!s.corona&&!srv)h+=fondaH(l);
-   if(mio&&mura&&s.corona)h+=riga(`<b>${esc(s.corona.nome)}</b><small>Malcontento ${s.corona.malc}/100 · feudi, signori e rapporti coi regni.</small>`,bt('Il regno','pan:corona',{cls:'gold'}));
-   for(const k of D.REGNI)if(s.corona?VEN.inGuerra(s,'tu',k):s.rel[k]<=-25)h+=riga(`<b>Pace con ${esc(D.FAZ[k].breve)}</b><small>Un tributo mette fine all'inimicizia (${s.rel[k]}).</small>`,bt('Tratta','fai:pace:'+k));
-   h+=riga(`<b>Riscatti</b><small>${prig?prig+' prigionieri da cedere':'Nessun prigioniero'}</small>`,bt('Incassa','fai:riscatta',{cls:'gold',no:!prig}));return pannello('Sala del signore',h,{chiudi:'sub:home'})}
-  if(V.sub==='guarn'){return pannello('Guarnigione',`<div class="sh2">Dentro le mura</div>${l.g.map(e=>truppaH(e,bt('Riprendi','fai:guarnigione:'+e.t+':-1'))).join('')||'<p class="vn-p">Nessuno.</p>'}<div class="sh2">Con te</div>${t.tr.filter(e=>!D.TR[e.t].compagno).map(e=>truppaH(e,bt('Lascia','fai:guarnigione:'+e.t+':1'))).join('')}`,{chiudi:'sub:home'})}
-  // casa del luogo
-  let h=testa;const q=l.inc,cons=s.incarichi.find(x=>!x.fatto&&!x.fallito&&(x.tipo==='consegna'&&x.a===l.id||x.tipo==='reclute'&&x.da===l.id)),fer=t.tr.reduce((a,e)=>a+(e.f||0),0),ospiti=D.COMPAGNI.some(c=>s.compagni[c.id]===l.id);
-  if(l.tipo==='villaggio'){h+=riga(`<b>Volontari</b><small>${l.rec} pronti a seguirvi · ${D.INGAGGIO[1]} monete a testa</small>`,bt('Uno','fai:recluta:1',{no:!l.rec})+bt('Tutti','fai:recluta:'+l.rec,{cls:'gold',no:!l.rec}))}
-  if(VEN.MERCATO[l.tipo])h+=riga('<b>Mercato</b><small>Viveri e merci: compra dove abbonda, vendi dove manca.</small>',bt('Apri','sub:mercato',{cls:'gold'}));
-  if(l.tipo==='porto')h+=riga('<b>Imbarco</b><small>Un passaggio per mare verso un altro porto.</small>',bt('Rotte','sub:navi'));
-  if(l.tipo==='monastero'){h+=riga(`<b>Infermeria</b><small>${fer?fer+' feriti: i monaci li rimettono in piedi per '+fer*4+' monete di offerta.':'Nessun ferito da curare.'}</small>`,bt('Cura','fai:cura',{cls:'gold',no:!fer}));
-   h+=riga(`<b>Benedizione</b><small>${l.bened>g?'Già ricevuta: tornate tra qualche giorno.':'Ottanta monete di offerta: gli uomini marciano col cuore leggero.'}</small>`,bt('Chiedi','fai:benedizione',{no:l.bened>g}))}
-  if(l.tipo==='locanda')h+=riga('<b>Voci di strada</b><small>Un giro di vino (25 monete) e l\'oste racconta dove non andare. Cioè dove andare.</small>',bt('Ascolta','fai:voci',{cls:'gold'}));
-  if(VEN.OSTERIA[l.tipo]||(l.tipo==='monastero'&&ospiti))h+=riga(`<b>${l.tipo==='monastero'?'Foresteria':'Taverna'}</b><small>${ospiti?'C\'è qualcuno che vale la pena conoscere.':'Mercenari in cerca di soldo.'}</small>`,bt('Entra','sub:taverna',ospiti?{cls:'gold'}:null));
-  if(l.bott&&(l.bott.length||l.unica||l.tipo==='citta'))h+=riga(`<b>${l.tipo==='citta'?'Armaiolo':l.tipo==='porto'?'Merci d\'oltremare':l.tipo==='monastero'?'Reliquie e rimedi':'Il baule dell\'oste'}</b><small>${l.unica?'In vetrina un pezzo unico: '+esc(D.OGG[l.unica].nome)+'.':'Armi, armature, cavalli, cimeli. Qui si vende anche il bottino.'}</small>`,bt('Entra','sub:armi',l.unica?{cls:'gold'}:null));
-  if(l.tipo==='citta')h+=torneoH(l);
-  if(mura)h+=riga('<b>Sala del signore</b><small>Contratti, giuramenti, riscatti.</small>',bt('Entra','sub:sala'));
-  if(mio&&mura)h+=riga(`<b>Guarnigione</b><small>${uom} uomini a guardia.</small>`,bt('Gestisci','sub:guarn'));
-  if(cons)h+=riga(`<b>Consegna</b><small>${esc(VEN.titoloInc(s,cons))} · ${cons.premio} monete</small>`,bt('Consegna','fai:consegna',{cls:'gold'}));
-  if(q&&!q.preso)h+=riga(`<b>Incarico</b><small>${q.tipo==='predoni'?'Una banda infesta i dintorni: disperdetela.':q.tipo==='consegna'?'Portate '+q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome+'.':q.tipo==='reliquia'?'«Tra quelle pietre riposa qualcosa di sacro. Liberatele da chi le profana.» ('+esc(s.l[q.a].nome)+')':q.tipo==='taglia'?'C\'è una taglia su '+esc(s.l[q.a].nome)+': stanateli.':'Servono '+q.n+' soldati addestrati per la guarnigione.'} ${q.premio} monete, ${q.giorni} giorni.</small>`,bt('Accetta','fai:incarico'));
-  if(!(l.tipo==='villaggio'&&!mio))h+=riga(`<b>Riposo</b><small>Otto ore: metà dei feriti torna in piedi.${mio?'':' '+Math.ceil(VEN.uomini(t)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5))+' monete.'}</small>`,bt('Riposa','fai:riposa'));
-  h+=riga('',bt('Riparti','fai:esci',{cls:'gold'}));return pannello(esc(l.nome),h,{chiudi:'fai:esci'})}
- // la parola presso il re (V3): per ogni regno la proposta possibile, con i fattori a favore e contro e il totale che decide (serve ≥ 0)
- // il conto di una trattativa (re o signore): fattori a favore e contro, totale e verdetto
- const num=v=>(v>0?'+':'−')+Math.abs(v).toFixed(1).replace('.',',');
- function contoH(p,chi){const pro=p.f.filter(x=>x.v>0),con=p.f.filter(x=>x.v<0),el=l=>l.map(x=>esc(x.n)+' '+num(x.v)).join(', ')||'nessuno';
-  return`<small class="vn-bene">A favore: ${el(pro)}</small><small class="vn-male">Contro: ${el(con)}</small><small>Totale ${num(p.tot)}: ${chi||'il re'} accetta da 0 in su${p.ok?'. Accetterebbe.':'. Rifiuterebbe.'}</small>`}
- function diploH(f,srv){const s=V.s,g=VEN.giorno(s),vas=srv.tipo==='vas';
-  const att=s.parola&&s.parola[f]>g;   // ha appena deciso su tua parola: si vedono le alleanze, ma niente proposte fino al giorno indicato
-  const h=[],conto=contoH;
-  const riga1=(titolo,nota,tipo,k,lab,cls)=>{const p=VEN.proposta(s,tipo,f,k);return p.err?'':riga(`<b>${titolo}</b><small>${nota}</small>${tipo==='rompi'?'':conto(p)}`,bt(lab,'fai:proponi:'+tipo+':'+k,cls?{cls}:null))};
-  for(const k of D.REGNI){if(k===f||s.cadute[k])continue;const nome=esc(D.FAZ[k].breve);
-   if(VEN.inGuerra(s,f,k))h.push(riga1('Proponi pace con '+nome,'In guerra con '+nome+'. '+(vas?'Parli da vassallo.':'Da mercenario puoi chiedere solo la pace.'),'pace',k,'Proponi','gold'));
-   else if(VEN.alleate(s,f,k)){const al=s.alleanza[[f,k].sort().join('|')];h.push(vas?riga(`<b>Alleati di ${nome}</b><small>${al.rompe?'Rottura annunciata: finisce il giorno '+al.rompe+'.':'Dal giorno '+al.da+'; dura almeno '+D.DIPL.MIN+' giorni e si rompe con '+D.DIPL.PREAVVISO+' di preavviso.'}</small>`,al.rompe||att?'':bt('Rompi','fai:proponi:rompi:'+k)):riga(`<b>Alleati di ${nome}</b><small>Dal giorno ${al.da}.</small>`))}
-   else if(vas){h.push(riga1('Proponi alleanza con '+nome,'Si combatte insieme e ci si soccorre negli assedi. Un solo alleato per regno.','alleanza',k,'Proponi','gold'));h.push(riga1('Chiedi guerra a '+nome,'Il re muoverà le sue bandiere; '+nome+' non lo dimenticherà.','guerra',k,'Chiedi'))}}
-  return`<div class="sh2">Diplomazia</div>`+(att?`<p class="vn-p">${esc(D.FAZ[f].re)} ha appena deciso su tua parola: ti riceverà di nuovo il giorno ${s.parola[f]}.</p>`:'')+(h.join('')||(att?'':'<p class="vn-p">Nessuna trattativa possibile, per ora.</p>'))}
  // regno (V4): fondare, trattare da sovrano, governare, vincere
  function nomeRegno(){const el=document.getElementById('vn-regno-nome');if(el)V.nomeRegno=el.value}
- function fondaH(l){const s=V.s,R=D.REGNO,t=tu();if(l.tipo!=='citta'&&l.tipo!=='castello')return'';
-  return riga(`<b>Fonda un regno</b><small>Serve fama ${R.FAMA} (hai ${s.fama}) e ${n0(R.ORO)} monete (hai ${n0(t.oro)}). Qui sarà la sede; i regni vicini reagiranno entro ${R.GUERRA_ENTRO} giorni.</small><input id="vn-regno-nome" class="vn-in" maxlength="24" placeholder="Nome del regno" value="${esc(V.nomeRegno||'')}"><div class="vn-stend">${R.STENDARDI.map((x,i)=>`<button class="vn-sd${(V.stend|0)===i?' on':''}" style="--a:${x.col};--b:${x.col2}" data-a="ven" data-v="stend:${i}" aria-label="${esc(x.nome)}"></button>`).join('')}</div>`,bt('Fonda','fai:fonda',{cls:'gold',no:s.fama<R.FAMA||t.oro<R.ORO}))}
- // nella capitale di un re, da sovrano: pace e alleanza passano dal conto, la guerra la dichiari tu
- function sovranoH(f){const s=V.s,g=VEN.giorno(s),att=s.parola&&s.parola[f]>g,nome=esc(VEN.nomeF(s,f)),guerra=VEN.inGuerra(s,'tu',f),al=VEN.alleate(s,'tu',f),h=[];
-  const prop=(tit,nota,tipo,lab)=>{const p=VEN.proposta(s,tipo,f,'tu');return p.err?'':riga(`<b>${tit}</b><small>${nota}</small>${contoH(p)}`,bt(lab,'fai:proponi:'+tipo+':tu',{cls:'gold'}))};
-  if(guerra)h.push(prop('Proponi pace a '+nome,'Siete in guerra. Parli da sovrano.','pace','Proponi'));
-  else if(al){const a=s.alleanza[['tu',f].sort().join('|')];h.push(riga(`<b>Alleati di ${nome}</b><small>${a.rompe?'Rottura annunciata: finisce il giorno '+a.rompe+'.':'Dal giorno '+a.da+'; dura almeno '+D.DIPL.MIN+' giorni e si rompe con '+D.DIPL.PREAVVISO+' di preavviso.'}</small>`,a.rompe?'':bt('Rompi','fai:rompi:'+f)))}
-  else{h.push(prop('Proponi alleanza a '+nome,'Si combatte insieme e ci si soccorre negli assedi. Un solo alleato per regno.','alleanza','Proponi'));h.push(riga(`<b>Dichiara guerra a ${nome}</b><small>Le tue bandiere si muoveranno contro di lui.</small>`,bt('Dichiara','fai:dichiara:'+f)))}
-  return`<div class="sh2">Diplomazia del regno</div>`+(att?`<p class="vn-p">${esc(D.FAZ[f].re)} ha appena deciso su tua parola: ti riceverà di nuovo il giorno ${s.parola[f]}.</p>`:'')+h.join('')}
- // un signore di un altro regno, o senza patria, può giurarti fedeltà in cambio di un feudo: il conto è in chiaro per ogni luogo che puoi offrire
- function passaH(sg){const s=V.s;if(!s.corona||!sg||sg.faz==='tu'||sg.re)return'';
-  const ten=s.l.filter(l=>l.faz==='tu'&&l.sig<0&&l.id!==s.corona.sede&&!(l.capo>=0&&!VEN.MURA[l.tipo]&&s.l[l.capo].faz==='tu')).sort((a,b)=>VEN.renditaL(b)-VEN.renditaL(a)).slice(0,4);
-  if(!ten.length)return`<div class="sh2">Giuramento</div><p class="vn-p">Non hai un luogo da dargli in feudo.</p>`;
-  return`<div class="sh2">Giuramento</div>${sg.faz==='neu'?'<p class="vn-p">Senza terra né bandiera: ascolterebbe.</p>':''}`+ten.map(l=>{const p=VEN.lealta(s,sg.id,l.id);return p.err?'':riga(`<b>${esc(l.nome)} in feudo</b><small>${TIPO[l.tipo]} · rende ${VEN.renditaL(l)}</small>${contoH(p,'Il signore')}`,bt('Offri','scegli:passa:'+l.id,p.ok?{cls:'gold'}:null))}).join('')}
- function coronaH(){const s=V.s,c=s.corona;
-  if(!c)return pannello('Il regno',`<p class="vn-p">Non hai un regno. Dalla sala di una tua città o di un tuo castello puoi fonderlo, con fama ${D.REGNO.FAMA} e ${n0(D.REGNO.ORO)} monete.</p>`);
-  const R=D.REGNO,t=tu(),col=VEN.colFaz(s,'tu'),ten=s.l.filter(l=>l.faz==='tu'&&l.sig<0),sigs=s.sig.filter(x=>x.faz==='tu'),radice=l=>!(l.capo>=0&&!VEN.MURA[l.tipo]&&s.l[l.capo].faz==='tu'),nf=x=>s.l.filter(m=>m.faz==='tu'&&m.sig===x.id).length;
-  if(V.sub.startsWith('feudo:')){const l=s.l[+V.sub.slice(6)];if(!l)return'';
-   return pannello('Feudo: '+esc(l.nome),`<p class="vn-p">${TIPO[l.tipo]} · rende ${VEN.renditaL(l)} ogni sette giorni; al signore va un settimo al giorno.</p>`+(l.sig>=0?riga('<b>Tienilo tu</b><small>Torna a te. Un signore senza più feudi va in esilio.</small>',bt('Riprendi','fai:feudo:'+l.id+':-2')):'')+(sigs.filter(x=>x.id!==l.sig).map(x=>riga(`<b>${esc(x.nome)}</b><small>${esc((D.TRATTI[x.tratto]||{}).nome||'')} · ${nf(x)} feudi</small>`,bt('Daglielo','fai:feudo:'+l.id+':'+x.id,{cls:'gold'}))).join('')||'<p class="vn-p">Non hai signori a cui darlo: convincine qualcuno quando li incontri.</p>'),{chiudi:'sub:home'})}
-  if(V.sub.startsWith('inv:')){const id=V.sub.slice(4),T=D.TR[id];if(!T)return'';
-   return pannello('Investi '+esc(T.nome),`<p class="vn-p">Diventa signore di un tuo luogo con settanta punti di truppe sue. Non sarà più nella compagnia.</p>`+(ten.filter(l=>l.id!==c.sede&&radice(l)).map(l=>riga(`<b>${esc(l.nome)}</b><small>${TIPO[l.tipo]} · rende ${VEN.renditaL(l)}</small>`,bt('Investi','fai:investi:'+id+':'+l.id,{cls:'gold'}))).join('')||'<p class="vn-p">Nessun luogo tenuto da dargli.</p>'),{chiudi:'sub:home'})}
-  const rap=D.REGNI.filter(f=>!s.cadute[f]).map(f=>{const gu=VEN.inGuerra(s,'tu',f),al=VEN.alleate(s,'tu',f),m=c.minacce[f],a=al&&s.alleanza[['tu',f].sort().join('|')];
-   return riga(`${faz(f)}<small class="${gu?'vn-male':al?'vn-bene':''}">${gu?'In guerra':al?(a.rompe?'Alleati · rottura il giorno '+a.rompe:'Alleati dal giorno '+a.da):'In pace'}${m&&!gu&&!al?' · guerra attesa entro il giorno '+m:''} · amicizia ${s.rel[f]}</small>`,gu?'':al?(a.rompe?'':bt('Rompi','fai:rompi:'+f)):bt('Dichiara guerra','fai:dichiara:'+f))}).join('');
-  const feudi=s.l.filter(l=>l.faz==='tu'&&l.id!==c.sede&&radice(l)).map(l=>riga(`<b>${esc(l.nome)}</b><small>${TIPO[l.tipo]} · rende ${VEN.renditaL(l)} · ${l.sig>=0?'feudo di '+esc(s.sig[l.sig].nome):'tenuto da te'}</small>`,bt('Assegna','sub:feudo:'+l.id,{no:!sigs.length&&l.sig<0}))).join('');
-  const comp=t.tr.filter(e=>D.TR[e.t].compagno&&e.n>0).map(e=>riga(`<b>${esc(D.TR[e.t].nome)}</b><small>Compagno: può governare un tuo luogo.</small>`,bt('Investi','sub:inv:'+e.t,{no:ten.length<2}))).join('');
-  return pannello(esc(c.nome),`<div class="vn-stdr" style="--a:${col.col};--b:${col.col2}"></div><p class="vn-p">Sede: ${esc(s.l[c.sede].nome)} · fondato il giorno ${c.da} · ${ten.length} luoghi tenuti (oltre ${R.TENUTI} cresce il malcontento) · rendite ${VEN.rendite(s)} ogni sette giorni.</p>
-<p class="vn-p">Malcontento ${c.malc}/100${c.malc>=60?' <span class="vn-male">il morale ne soffre</span>':''}<i class="vn-malc"><b style="width:${c.malc}%"></b></i></p>
-<div class="sh2">Rapporti coi regni</div>${rap}<div class="sh2">Signori</div>${sigs.map(x=>{const p=VEN.part(s,x.pid);return riga(`<b>${esc(x.nome)}</b><small>${esc((D.TRATTI[x.tratto]||{}).nome||'')} · ${p?VEN.uomini(p)+' uomini':'senza truppe'} · ${nf(x)} feudi${x.comp?' · compagno':''}</small>`,'')}).join('')||'<p class="vn-p">Nessun signore. Incontrali in campo e offri un feudo a chi non ha più terra o patria.</p>'}${sigs.length?riga('<b>Chiama a raccolta</b><small>I tuoi signori ti raggiungono e restano con te '+R.ADUNATA+' giorni.</small>',bt('Aduna','fai:aduna')):''}
-<div class="sh2">Feudi</div>${feudi||'<p class="vn-p">Hai solo la sede.</p>'}${comp?'<div class="sh2">Compagni</div>'+comp:''}`)}
- function vittoriaH(){const s=V.s,v=s.vinta,c=s.corona,mie=s.l.filter(l=>l.faz==='tu'||l.sig===-2).length,tr=VEN.traguardi(s).filter(x=>x[1]).length;
-  return pannello(v.come==='re'?'Le terre sono unite':'Il tuo re ha vinto',`<p class="vn-p">${v.come==='re'?'Tutte le capitali sono tue: <b>'+esc(c?c.nome:s.nome)+'</b> regna sull\'intero mondo dal giorno '+v.g+'.':'Il tuo sovrano tiene tutte le capitali dal giorno '+v.g+': le terre sono unite sotto di lui.'}</p>
-<p class="vn-p">Giorno ${VEN.giorno(s)} · ${mie} luoghi tuoi · ${VEN.uomini(tu())} uomini · fama ${s.fama} · ${s.stat.vinte} battaglie vinte · ${Object.keys(s.cadute).length} regni caduti · ${tr} traguardi su ${VEN.traguardi(s).length}.</p>
-<ul class="vn-tr">${VEN.traguardi(s).map(x=>`<li class="${x[1]?'ok':''}">${ic(x[1]?'spunta':'bersaglio',14)} ${esc(x[0])}</li>`).join('')}</ul>${riga('<small>La partita continua: il mondo non finisce qui.</small>',bt('Continua','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-vit'})}
- // il torneo della città: iscrizione, turno, avversari col loro corredo, premio maturato
- function torneoH(l){const s=V.s,t=s.torneo,T=D.TORNEO,g=VEN.giorno(s),capi=VEN.capi(s),posta=capi.reduce((a,c)=>a+T.posta*c.liv,0);
-  if(t&&t.lid===l.id){const av=VEN.avversariTorneo(s,t.lid,t.giorno,t.turno,capi.length),mat=VEN.premioTorneo(t),fin=T.mol[2]*t.posta;
-   return riga(`<b>Torneo · ${esc(T.turni[t.turno])}</b><small>Duello ${t.turno+1} di 3, a piedi e senza arco: conta l'arma che porti. ${av.map(x=>esc(x.nome)+' ('+esc(x.corredo)+')').join(' · ')}</small>
-<small class="vn-bene">${mat?'Premio maturato '+mat+' monete.':'Nessun premio ancora.'} Vincere tutti e tre: ${fin} monete, ${T.fama[2]} fama e un oggetto di pregio.</small>`,
-    bt(ic('spada',16)+' In lizza','fai:lizza',{cls:'gold',no:t.giorno!==g})+(mat?bt('Ritirati · '+mat,'fai:ritira'):bt('Ritirati','fai:ritira')))}
-  if(VEN.torneoOggi(s,l)){const usato=!!s.torneoUsato&&s.torneoUsato[l.id]===g;
-   return riga(`<b>Torneo di oggi</b><small>Tre duelli: sfidante, campione, gran campione. ${capi.length>1?'Scendete in lizza tutti insieme. ':''}Iscrizione ${posta} monete; i premi sono ${T.mol.map(m=>m+'×').join(', ')} l'iscrizione.</small>${usato?'<small class="vn-male">Hai già partecipato oggi.</small>':''}`,
-    bt('Iscriviti · '+posta,'fai:torneo',{cls:'gold',no:usato||VEN.TU(s).oro<posta}))}
-  const n=(7-(g+l.id)%7)%7;return riga(`<b>Torneo</b><small>Il prossimo si tiene qui ${esc(VEN.quando(n))}.</small>`,'')}
-
- function compagniaH(){const s=V.s,t=tu(),regnoRiga=s.corona?riga(`<b>${esc(s.corona.nome)}</b><small>Malcontento ${s.corona.malc}/100 · ${s.l.filter(l=>l.faz==='tu'&&l.sig<0).length} luoghi tenuti</small>`,bt('Il regno','pan:corona',{cls:'gold'})):'',h=t.tr.map(e=>{const T=D.TR[e.t],need=D.XP_SU[T.t],pr=T.su.length?Math.min(e.n,Math.floor((e.xp||0)/need)):0;
-   const su=pr?T.su.map(x=>bt(esc(D.TR[x].nome)+' · '+D.PROMO[T.t],'fai:promuovi:'+e.t+':'+x,{cls:'gold'})).join(''):'';
-   return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.su.length?' · esperienza '+Math.floor(e.xp||0)+'/'+need:''}${pr?' · <span class="vn-bene">'+pr+' pronti a salire</span>':''}</small>${T.compagno?gradH(s,e.t)+incH(s,e.t):''}`,su+(T.compagno?'':bt('Congeda','fai:congeda:'+e.t)))}).join('');
-  const prig=s.prig.map(e=>e.sig!=null?riga(`<b>${esc(s.sig[e.sig].nome)}</b><small>Prigioniero di riguardo: vale un riscatto, o un favore se lo liberi.</small>`,bt('Libera','fai:liberasig:'+e.sig)):riga(`<b>${esc(D.TR[e.t].nome)}</b><small>${e.n} prigionieri</small>`)).join('');
-  return pannello(esc(s.nome),`<p class="vn-p">${VEN.uomini(t)} uomini su ${VEN.limite(s)} · paga ${VEN.paga(s)} monete ogni sette giorni · rendite ${VEN.rendite(s)} · viveri per ${Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))} giorni</p>${regnoRiga}${h}${prig?'<div class="sh2">Prigionieri</div>'+prig:''}`)}
- function capitanoH(){const s=V.s,c=mio(),t=tu(),st=VEN.statCap(c),ab=Object.keys(D.ABIL).map(k=>riga(`<b>${esc(D.ABIL[k].nome)} ${c.ab[k]}</b>${VEN.abil(s,k)>c.ab[k]?' <i class="vn-tag">+'+(VEN.abil(s,k)-c.ab[k])+'</i>':''}<small>${esc(D.ABIL[k].d)}</small>`,c.punti>0&&c.ab[k]<10?bt(ic('plus',14),'fai:abilita:'+k,{cls:'gold'}):'')).join('');
-  const rel=D.REGNI.map(f=>`${faz(f)} <b class="${s.rel[f]<=-25?'vn-male':s.rel[f]>=10?'vn-bene':''}">${s.rel[f]}</b>${s.cadute[f]?' (caduto)':''}`).join(' · ');
-  const tr=VEN.traguardi(s).map(x=>`<li class="${x[1]?'ok':''}">${ic(x[1]?'spunta':'bersaglio',14)} ${esc(x[0])}</li>`).join('');
-  if(V.sub==='zaino'){const posti=[['arma',c.eq.arma],['scudo',c.eq.scudo],['armatura',c.eq.armatura],['elmo',c.eq.elmo],['cavallo',c.eq.cavallo],['cimelio',c.eq.cimeli[0],0],['cimelio',c.eq.cimeli[1],1]];
-   const add=posti.map(([sl,id,k])=>{const o=D.OGG[id];return o?oggH(o,sl==='arma'||sl==='armatura'?'':bt('Togli','fai:togli:'+sl+':'+(k||0))):riga(`<b class="vn-vuoto">${D.SLOT[sl]}: niente</b><small>${sl==='scudo'&&(D.OGG[c.eq.arma]||{}).due?'L\'arma a due mani occupa tutte e due le braccia.':'Scegli qualcosa dallo zaino.'}</small>`)}).join('');
-   const z=t.zaino.map((id,i)=>{const o=D.OGG[id];if(!o)return'';const ora=o.slot==='cimelio'?null:D.OGG[c.eq[o.slot]];return oggH(o,bt('Indossa','fai:equipa:'+i,{cls:'gold'}),ora?` · al posto di: ${esc(ora.nome)}`:'')}).join('')||'<p class="vn-p">Lo zaino è vuoto. Armaioli, bottino, rovine e incarichi lo riempiono.</p>';
-   return pannello('Equipaggiamento di '+esc(c.nome),`<p class="vn-p">In battaglia: vita ${Math.round(st.pf)} · mira ${Math.round(st.att)} · difesa ${Math.round(st.dif)} · danno ${Math.round(st.dan)} · passo ${st.vel}${st.git?' · tira a '+st.git+' passi':''}</p><div class="sh2">Addosso</div>${add}<div class="sh2">Nello zaino della compagnia</div>${z}`,{chiudi:'sub:home'})}
-  const eqv=[c.eq.arma,c.eq.scudo,c.eq.armatura,c.eq.elmo,c.eq.cavallo].concat(c.eq.cimeli).map(id=>D.OGG[id]).filter(Boolean).map(o=>`<span class="${PREGIO[o.q]}">${esc(o.nome)}</span>`).join(' · ');
-  return pannello(esc(c.nome),`<p class="vn-p">Livello ${c.liv} · esperienza ${Math.floor(c.xp)}/${VEN.xpLiv(c.liv)} · fama ${s.fama}${c.punti?' · <span class="vn-bene">'+c.punti+' punti da spendere</span>':''}</p>
-<p class="vn-p">${s.servizio?(s.servizio.tipo==='vas'?'Vassallo di ':'Al soldo di ')+esc(D.FAZ[s.servizio.faz].nome)+'.':s.corona?'Sovrano di '+esc(s.corona.nome)+'.':'Capitano libero: nessun regno vi comanda.'}</p><p class="vn-p vn-rel">${rel}</p>
-${riga(`<b>Equipaggiamento</b>${t.zaino.length?' <i class="vn-tag">'+t.zaino.length+' nello zaino</i>':''}<small>${eqv}</small>`,bt('Apri','sub:zaino',{cls:'gold'}))}
-${inS()?'<div class="sh2">Capitani della compagnia</div>'+VEN.capi(s).map((x,i)=>riga(`<b style="color:${VenCampo.CAPC[i]}">${esc(x.nome)}</b><small>Livello ${x.liv}${i===posto()?' · sei tu':''} · ${esc((D.OGG[x.eq.arma]||{}).nome||'')}, ${esc((D.OGG[x.eq.armatura]||{}).nome||'')}</small>`)).join(''):''}<div class="sh2">Abilità</div>${ab}<div class="sh2">Traguardi</div><ul class="vn-tr">${tr}</ul>`)}
- function cartaMondoH(){return pannello('Carta del mondo','<p class="vn-p">Tocca un punto per portarci lo sguardo. I luoghi nascosti compaiono quando li scopri o quando qualcuno te ne parla.</p><p class="vn-p"><b>Tornei</b>: '+VEN.tornei(V.s).slice(0,3).map(t=>esc(V.s.l[t.lid].nome)+' '+VEN.quando(t.giorni)).join(' · ')+'.</p><canvas class="vn-carta-cv" width="512" height="512" data-a="ven" data-v="cartatocco"></canvas><div class="vn-leg"><span><i style="background:#f4e9c8"></i>locande e monasteri</span><span><i style="background:#9fe0c8"></i>rovine</span><span><i style="background:#c0392b"></i>covi</span><span><i style="background:#d98a1f"></i>voi</span></div>',{cls:'vn-pcarta'})}
- function diarioH(){const s=V.s,g=VEN.giorno(s),inc=s.incarichi.filter(q=>!q.fatto&&!q.fallito).map(q=>riga(`<b>${esc(VEN.titoloInc(s,q))}</b><small>${q.premio} monete · ancora ${Math.max(0,q.scad-g)} giorni</small>`)).join('')||'<p class="vn-p">Nessun incarico. Chiedi nei villaggi, nelle città e ai castelli.</p>';
-  const gu=Object.keys(s.guerra).map(k=>k.split('|').map(f=>VEN.nomeF(s,f)).join(' contro ')).join(' · ')||'I regni sono in pace, per ora.';
-  const al=Object.keys(s.alleanza||{}).map(k=>{const x=s.alleanza[k];return k.split('|').map(f=>VEN.nomeF(s,f)).join(' e ')+(x.rompe?' (finisce il giorno '+x.rompe+')':' (dal giorno '+x.da+')')}).join(' · ')||'Nessuna alleanza tra i regni.';
-  return pannello('Diario',`<div class="sh2">Incarichi</div>${inc}<div class="sh2">Guerre</div><p class="vn-p">${esc(gu)}</p><div class="sh2">Alleanze</div><p class="vn-p">${esc(al)}</p><div class="sh2">Cronaca</div><div class="vn-log">${s.log.slice(-18).reverse().map(x=>`<p class="${x.tipo}"><i>G${Math.floor(x.t/1440)+1}</i> ${esc(x.tx)}</p>`).join('')}</div>`)}
- function schieraH(parti,luogo){const c={f:0,t:0,c:0};let n=0;for(const p of parti)for(const e of p.tr){c[D.TR[e.t].c]+=e.n;n+=e.n}if(luogo)for(const e of luogo.g){c[D.TR[e.t].c]+=e.n;n+=e.n}return`${n} uomini · ${c.f} fanti, ${c.t} tiratori, ${c.c} cavalieri`}
- // fiducia di un signore (V6a): dalla sua memoria; favori (lettera, prestito) da confidenza 2, un favore ogni ATTESA giorni
- const FIDUCIA=['Non ti conosce','Ti conosce','Si fida di te','Ti considera amico'];
- function confH(s,sg){const S=D.SIG,m=sg.mem||{lib:0,sconf:0,trad:0,fav:0,g:-99},c=VEN.confidenza(s,sg),deb=s.debiti.find(d=>d.sig===sg.id),att=VEN.giorno(s)-m.g<S.ATTESA,regno=D.REGNI.includes(sg.faz);
-  const tip='Cresce se liberi i suoi prigionieri, lo aiuti in battaglia, consegni merci nei suoi luoghi e con l\'amicizia del suo regno; cala se lo sconfiggi o lo tradisci. Da fiducia 2 scrive lettere e presta denaro; da 3 sostiene le tue proposte al re. Un favore ogni '+S.ATTESA+' giorni.';
-  return riga(`<b>${FIDUCIA[c]}</b>${infoH(esc(tip))}<small>${att&&c>=1?'Gli hai già chiesto un favore da poco.':c<1?'Servono tempo e buone azioni.':'Può farti un favore.'}${deb?' Gli devi '+deb.oro+' monete entro il giorno '+deb.scad+'.':''}</small>`,
-   (c>=2&&regno?bt('Una lettera ('+S.LETTERA+' gg)','scegli:lettera',{no:att||(s.lettere[sg.faz]||0)>=VEN.giorno(s)}):'')+(c>=2?bt('Prestito '+S.PRESTITO,'scegli:prestito',{no:att||!!deb}):'')+(deb?bt('Rendi '+deb.oro,'scegli:rendi'):''))}
- function incontroH(){const s=V.s,inc=s.incontro;if(!inc)return'';const t=tu();
-  if(inc.tipo==='parla'){const p=VEN.part(s,inc.pid[0]);if(!p)return pannello('Incontro',bt('Prosegui','scegli:lascia'),{fisso:1});
-   const sg=p.k==='sig'?s.sig[p.sig]:null,tr=sg&&D.TRATTI[sg.tratto],riv=p.k==='riv';
-   return pannello(esc(riv?D.RIVALE.nome.charAt(0).toUpperCase()+D.RIVALE.nome.slice(1):p.nome),`<p class="vn-p">${p.k==='car'?'I mercanti vi salutano guardinghi, la mano sulle borse.':riv?'«Guarda guarda, un collega.» '+esc(D.RIVALE.d)+' «Il mondo è grande abbastanza per due compagnie. Forse.»':tr?'Signore '+esc(tr.nome)+'. '+esc(tr.saluto):'Vi squadrano in silenzio.'} ${faz(p.faz)}</p><p class="vn-p">${schieraH([p])}</p>${inc.voce?`<p class="vn-p vn-bene">${esc(inc.voce)}</p>`:''}
-${passaH(sg)}${sg?confH(s,sg):''}${riga('',bt('Buona strada','scegli:lascia',{cls:'gold'})+(inc.detto?'':bt('Che si dice in giro?','scegli:notizie',{no:!!sg&&VEN.confidenza(s,sg)<1}))+bt(riv?'Sfidala':'Aggredisci','scegli:aggredisci'))}`,{fisso:1})}
-  if(inc.tipo==='mischia'&&!inc.pronto){const sc=s.scontri.find(x=>x.id===inc.sc);if(!sc)return pannello('Battaglia',bt('Prosegui','scegli:lascia'),{fisso:1});const A=sc.a.map(id=>VEN.part(s,id)).filter(Boolean),B=sc.b.map(id=>VEN.part(s,id)).filter(Boolean);
-   return pannello('Una battaglia in corso',`<p class="vn-p">Due schiere si affrontano. Con chi state?</p>${riga(`<b>${A.map(p=>esc(p.nome)).join(', ')}</b><small>${schieraH(A)}</small>`,bt('Con loro','scegli:a',{cls:'gold'}))}${riga(`<b>${B.map(p=>esc(p.nome)).join(', ')}</b><small>${schieraH(B)}</small>`,bt('Con loro','scegli:b',{cls:'gold'}))}${riga('',bt('Non è affar nostro','scegli:lascia'))}`,{fisso:1})}
-  if(inc.tipo==='arena'){const T=D.TORNEO,tn=s.torneo;if(!tn)return pannello('Torneo',bt('Prosegui','chiudi'),{fisso:1});const capi=VEN.capi(s),av=VEN.avversariTorneo(s,tn.lid,tn.giorno,tn.turno,capi.length),mat=VEN.premioTorneo(tn),st=capi.map(c=>VEN.statArena(c));
-   return pannello(esc(T.turni[tn.turno])+' · '+esc(s.l[tn.lid].nome),`<p class="vn-p">Lo steccato è pieno di gente. Si combatte a piedi, uno contro uno${capi.length>1?' (ognuno col suo avversario: si vince o si perde insieme)':''}.</p>
-${av.map((x,k)=>riga(`<b>${esc(x.nome)}</b><small>${esc(x.corredo)} · vita ${x.st.pf} · danno ${x.st.dan} · difesa ${x.st.dif}</small>`,'')).join('')}
-<p class="vn-p"><small>Tu: ${capi.map((c,k)=>esc(c.nome)+' — '+esc((D.OGG[c.eq.arma]||{}).nome||'a mani nude')+', vita '+st[k].pf+', difesa '+st[k].dif).join(' · ')}.${s.ferito===VEN.giorno(s)?' <span class="vn-male">Ancora ammaccato: vita a metà fino a sera.</span>':''}</small></p>
-${riga('',bt(ic('spada',16)+' Combatti','scegli:attacca',{cls:'gold'})+bt('Risolvi','scegli:auto'))}${riga('<small>Cambia arma dal capitano prima di entrare.</small>',bt(mat?'Ritirati · '+mat:'Ritirati','fai:ritira'))}`,{fisso:1,cls:'vn-inc'})}
-  const{nem,all,luogo}=VEN.schieramenti(s),sito=luogo&&VEN.SITO[luogo.tipo],fn=nem.reduce((a,p)=>a+VEN.forza(p),0)+(luogo?VEN.forzaTr(luogo.g)*(VEN.MURA[luogo.tipo]?VEN.P.MURA:1):0),fa=VEN.forza(t)+all.reduce((a,p)=>a+VEN.forza(p),0),q=fa/Math.max(1,fa+fn)*100;
-  const titolo=sito?esc(luogo.nome):luogo?'Assalto a '+esc(luogo.nome):nem.map(p=>esc(p.nome)).join(', ')||'Nemici';
-  return pannello(titolo,`<p class="vn-p">${sito?(luogo.tipo==='covo'?'Le sentinelle danno l\'allarme. Vi aspettano: ':'Tra le colonne si alzano in piedi: '):luogo?'Le scale sono appoggiate alle mura. Dietro: ':inc.da==='tu'?'Li avete raggiunti: ':'Vi sono addosso: '}${schieraH(nem,luogo)}.</p>${all.length?`<p class="vn-p vn-bene">Al vostro fianco: ${all.map(p=>esc(p.nome)).join(', ')}.</p>`:''}
-<div class="vn-forze"><i style="width:${q.toFixed(0)}%"></i></div><small class="vn-fl"><span>Voi ${VEN.sani(t)}</span><span>${q>62?'In vantaggio':q>42?'Alla pari':q>28?'In svantaggio':'Disperata'}</span><span>Loro</span></small>
-${luogo&&!sito?fasiH():''}${riga('',bt(ic('spada',16)+' Combatti','scegli:attacca',{cls:'gold'})+bt('Risolvi','scegli:auto'))}${riga('',(luogo?bt(sito?'Meglio di no':'Togli l\'assedio','scegli:togli'):bt('Ritirata','scegli:fuggi')+(nem[0]&&nem[0].k==='pre'?bt('Paga il pedaggio','scegli:paga'):'')))}`,{fisso:1,cls:'vn-inc'})}
- // fasi dell'assedio (V5b): scale subito, breccia dopo i giorni di preparativi, porta con l'ariete
- function fasiH(){const a=VEN.assedioStato(V.s);if(!a)return'';const P=VEN.P,oro=VEN.TU(V.s).oro;
-  return riga('<b>Scale</b><small>Pronte. Si sale uno alla volta, sotto tiro.</small>','')+
-   riga(`<b>Breccia</b><small>${a.breccia?'Aperta: un tratto di muro è crollato.':'Tra '+a.oreBreccia+' ore. Paghe e viveri intanto corrono.'}</small>`,a.breccia?'':bt('Aspetta','scegli:attendi'))+
-   riga(`<b>Ariete</b><small>${a.ariete?'Pronto davanti alla porta.':'Pronto '+P.ARIETE_ORE+' ore dopo averlo costruito.'}</small>`,a.ariete?'':bt('Costruisci, '+P.ARIETE_ORO+' monete','scegli:ariete',{no:oro<P.ARIETE_ORO}))}
- function esitoH(){const o=V.s.ult;if(!o)return'';const v=o.vince==='a';
-  if(o.torneo){const x=o.torneo,T=D.TORNEO,s=V.s;
-   return pannello(x.vinto?(x.chiuso?'Campione del torneo':'Duello vinto'):'Sconfitta in lizza',`<div class="vn-es ${v?'v':'s'}">${ic(v?'coppa':'teschio',44)}</div>
-<div class="vn-griglia"><span><b>${x.premio}</b>${x.chiuso&&x.vinto?'incassate':x.vinto?'in palio':'premio'}</span><span><b>+${o.fama}</b>fama</span><span><b>+${o.xp}</b>esperienza</span></div>
-<p class="vn-p ${x.vinto?'vn-bene':'vn-male'}">${x.vinto?(x.chiuso?'Il pubblico è in piedi. Il premio è tuo.':'Superato: '+esc(T.turni[x.turno+1])+' ti aspetta. Puoi ritirarti col premio maturato o rischiarlo.'):'Sei fuori dal torneo e il premio maturato è perso. Nessun uomo è caduto; fino a sera combatti a metà delle forze.'}</p>
-${(o.oggetti||[]).map(id=>D.OGG[id]?oggH(D.OGG[id],'',' · nello zaino'):'').join('')}${o.livello?'<p class="vn-p vn-bene">Il capitano sale di livello: un punto abilità da spendere.</p>':''}
-${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
-  return pannello(v?'Vittoria':'Sconfitta',`<div class="vn-es ${v?'v':'s'}">${ic(v?'coppa':'teschio',44)}</div>
-<div class="vn-griglia"><span><b>${o.morti}</b>caduti</span><span><b>${o.feriti}</b>feriti</span><span><b>${o.oro>0?'+':''}${n0(o.oro)}</b>monete</span><span><b>+${o.fama}</b>fama</span><span><b>+${o.xp}</b>esperienza</span><span><b>${o.prig}</b>prigionieri</span></div>
-${o.presa!=null?`<p class="vn-p vn-bene">${esc(V.s.l[o.presa].nome)} è caduta.</p>`:''}${(o.oggetti||[]).map(id=>D.OGG[id]?oggH(D.OGG[id],'',' · nello zaino'):'').join('')}${o.livello?'<p class="vn-p vn-bene">Il capitano sale di livello: un punto abilità da spendere.</p>':''}${o.promo?'<p class="vn-p vn-bene">Alcuni uomini sono pronti a salire di rango.</p>':''}
-${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
- function attesaH(){const s=V.s;if(s.prigioniero)return`<div class="vn-vela"><div><h3>In catene</h3><p>Prigioniero di ${esc(s.prigioniero.da)}. Le ore passano, in attesa di un'occasione per fuggire.</p></div></div>`;
-  return`<div class="vn-vela chiaro"><div><h3>${s.assedio?'Assedio':'La compagnia riposa'}</h3><p>${s.assedio?'Si montano scale e arieti.':'Il tempo scorre.'}</p>${bt('Basta così','ferma',{cls:'gold'})}</div></div>`}
- function menuH(){return pannello('Compagnia di ventura',`${riga('<b>Grafica</b><small>Pixel d\'arte più grossi alleggeriscono i telefoni lenti.</small>',['alta','media','bassa'].map(q=>`<button class="vn-ch${VenArte.qual()===q?' on':''}" data-a="ven" data-v="qual:${q}">${q}</button>`).join(''))}
-${inS()&&!ui.tv?riga('<b>Mappa sulla TV</b><small>La mappa va sul televisore, i telefoni diventano comandi.</small>',`<button class="vn-ch${G.tv?' on':''}" data-a="ven" data-v="tv">${G.tv?'accesa':'spenta'}</button>`):''}
-${riga('<b>Regole</b><small>Come si gioca, in breve.</small>',bt('Leggi','regole'))}${inS()?riga('<b>Torna al tavolo</b><small>Chiude la partita per tutta la compagnia.</small>',bt('Chiudi','esci')):riga('<b>Salva ed esci</b><small>La partita resta su questo telefono.</small>',bt('Esci','esci',{cls:'gold'}))}`)}
- // ---------- HUD della battaglia ----------
- function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';const O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanti','freccia'],['arretra','Indietro','indietro']];
-  const fine=V.pan==='fine'?`<div class="vn-vela"><div><h3>${b.fine&&b.fine.vince==='a'?'Il campo è vostro':'La giornata è persa'}</h3><p>${b.fine&&b.fine.vince==='a'?'Il nemico volta le spalle.':'Chi può si mette in salvo.'}</p>${bt('Avanti','fine',{cls:'gold'})}</div></div>`:'';
-  return`<div class="vn-alto vn-ca"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div>
-<div class="vn-capo"><span>${ic('cuore',14)}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel">×${k.vel}</button><button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button></div></div>
-${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo==='arena'?'Tocca lo steccato per muovere il capitano, l\'avversario per attaccarlo. Qui conta solo la tua arma.':'Tocca il campo per muovere il capitano, un nemico per attaccarlo. Scegli un gruppo e dagli un ordine.'}</p>${bt(ic('spada',18)+' Via','cpausa',{cls:'gold'})}</div>`:''}
-<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}"><div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b><small class="vn-fm" id="vn-fm${g}">${VCAM.forme(b,'a')[g]}</small>`:''}</button>`).join('')}</div>
-<div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>${fine}`}
  function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;
   const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
-   ui.tv?(V.modo==='campo'?campoTvH():tvH()+(V.s.incontro?incontroH():'')+(V.pan==='esito'?esitoH():'')):
-   V.modo==='campo'?campoH():altoH()+(V.pan?'':tvOn()?ctlH():bassoH())+(V.carta!=null&&!V.pan?cartaH():'')+
-   (V.pan==='luogo'?luogoH():V.pan==='compagnia'?compagniaH():V.pan==='capitano'?capitanoH():V.pan==='diario'?diarioH():V.pan==='incontro'?incontroH():V.pan==='esito'?esitoH():V.pan==='attesa'?attesaH():V.pan==='menu'?menuH():V.pan==='carta'?cartaMondoH():V.pan==='corona'?coronaH():V.pan==='vittoria'?vittoriaH():'')+voceH();
+   ui.tv?(V.modo==='campo'?VenTv.campoTvH():VenTv.tvH()+(V.s.incontro?VenScontro.incontroH():'')+(V.pan==='esito'?VenScontro.esitoH():'')):
+   V.modo==='campo'?VenScontro.campoH():VenBarre.altoH()+(V.pan?'':tvOn()?VenBarre.ctlH():VenBarre.bassoH())+(V.carta!=null&&!V.pan?VenBarre.cartaH():'')+
+   (V.pan==='luogo'?VenLuoghi.luogoH():V.pan==='compagnia'?VenGente.compagniaH():V.pan==='capitano'?VenGente.capitanoH():V.pan==='diario'?VenGente.diarioH():V.pan==='incontro'?VenScontro.incontroH():V.pan==='esito'?VenScontro.esitoH():V.pan==='attesa'?VenScontro.attesaH():V.pan==='menu'?VenBarre.menuH():V.pan==='carta'?VenBarre.cartaMondoH():V.pan==='corona'?VenLuoghi.coronaH():V.pan==='vittoria'?VenLuoghi.vittoriaH():'')+VenGente.voceH();
   return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}<div class="vn-avv">${avvisiH()}</div></div>`}
  // ---------- battaglia ----------
  function inBattaglia(scheda){V.modo='campo';V.pan=null;V.fine=null;VenCampo.apri(scheda);render()}
@@ -386,4 +161,4 @@ ${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo===
   if(c==='cgrido'){const r=inS()?VenStanza.manda({t:'b-cap',o:{grido:true}}):VCAM.capitano(k.s,{grido:true});if(r.err)avviso(r.err);return}
   if(c==='fine'){if(inS()){const r=VenStanza.manda({t:'b-fine'});if(r.err)avviso(r.err);return render()}return fineBattaglia()}}
  const traccia=()=>VenAudio.traccia();
- return{V,sezioneH,html,dopo,act,avviso,traccia,entra,salva,ferma}})();
+ return{_:{CLS,D,PREGIO,TIPO,V,bt,faz,inS,mio,mio2,n0,oggH,pannello,pips,posto,riga,tu},V,sezioneH,html,dopo,act,avviso,traccia,entra,salva,ferma}})();
