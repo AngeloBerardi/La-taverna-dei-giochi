@@ -22,7 +22,7 @@ const VenMappa=(()=>{
  const cellaDi=(x,y)=>{const G=K.M.G;return Math.max(0,Math.min(G-1,Math.floor(y)))*G+Math.max(0,Math.min(G-1,Math.floor(x)))};
  // lo stile delle case di ogni regno
  const STILE={val:{muro:'#e9dfc6',tetto:'#b0703c',t2:'#8a5a3a'},sel:{muro:'#8f7150',tetto:'#4f7a3a',t2:'#3f6a34'},fer:{muro:'#b9b3aa',tetto:'#566270',t2:'#465260'},mar:{muro:'#f6f1e4',tetto:'#2a9a98',t2:'#1f7f86'},alt:{muro:'#e6d8b8',tetto:'#c57a1c',t2:'#9a5a2c',tende:1},neu:{muro:'#d8ccb4',tetto:'#8a6a4a',t2:'#6e5540'}};
- function costruisci(s){const T=VenArte.T,M=VEN.mappa(s.seme),G=M.G,A=VenArte;K.seme=s.seme;K.M=M;
+ function costruisci(s){const T=VenArte.T,M=VEN.mappaDi(s),G=M.G,A=VenArte;K.seme=s.seme;K.M=M;
   if(K.scene){K.scene.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   K.piani=M.luoghi.map(l=>({x:l.x,y:l.y,h:Math.max(.3,quotaA(VEN.alt(s.seme,l.x,l.y))),r:l.tipo==='citta'?3.9:l.tipo==='castello'?2.7:l.tipo==='porto'?2.6:2.3}));
   K.pianiG=[];{const q=G>>3;for(const f of K.piani)for(let cy=Math.max(0,(f.y-f.r)>>3);cy<=Math.min(q-1,(f.y+f.r)>>3);cy++)for(let cx=Math.max(0,(f.x-f.r)>>3);cx<=Math.min(q-1,(f.x+f.r)>>3);cx++)(K.pianiG[cy*q+cx]||(K.pianiG[cy*q+cx]=[])).push(f)}
@@ -214,7 +214,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
  const centra=()=>{K.segue=true};
  const guarda=(x,y)=>{K.fuoco.x=x;K.fuoco.z=y;K.segue=false};
  // la carta d'insieme: terre, strade e luoghi noti su un canvas (per il pannello «Carta»)
- function carta(cv,s){const M=VEN.mappa(s.seme),G=M.G,x=cv.getContext('2d'),k=cv.width/G,im=x.createImageData(G,G),COL=[[42,104,138],[150,186,96],[84,134,70],[166,158,104],[128,124,120]],BIO={1:[232,238,242],2:[214,196,104],3:[196,182,108]};
+ function carta(cv,s){const M=VEN.mappaDi(s),G=M.G,x=cv.getContext('2d'),k=cv.width/G,im=x.createImageData(G,G),COL=[[42,104,138],[150,186,96],[84,134,70],[166,158,104],[128,124,120]],BIO={1:[232,238,242],2:[214,196,104],3:[196,182,108]};
   for(let i=0;i<G*G;i++){const t=M.T[i];let c=COL[t];if(t===1&&BIO[M.B[i]])c=BIO[M.B[i]];else if(t===2&&M.B[i]===1)c=[176,200,190];if(M.S[i]&&t!==0)c=[201,172,124];im.data[i*4]=c[0];im.data[i*4+1]=c[1];im.data[i*4+2]=c[2];im.data[i*4+3]=255}
   const tmp=document.createElement('canvas');tmp.width=tmp.height=G;tmp.getContext('2d').putImageData(im,0,0);x.imageSmoothingEnabled=false;x.drawImage(tmp,0,0,cv.width,cv.height);
   for(const l of s.l){if(l.noto===false)continue;const r=l.tipo==='citta'?5:l.tipo==='castello'?3.4:l.tipo==='villaggio'?2:2.8;x.fillStyle='#1a120a';x.fillRect(l.x*k-r-1,l.y*k-r-1,r*2+2,r*2+2);x.fillStyle=VEN.colFaz(s,l.faz).col;
