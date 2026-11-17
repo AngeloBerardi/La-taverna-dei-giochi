@@ -59,7 +59,10 @@ Stato: `s.max` (tetto). `VCAM.taglia(k)` → `{max,W,H}`. Scheda: `max`, `W`, `H
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+- Le battaglie grandi possono portare in campo fino a centodieci uomini per lato: più grande è l'esercito, più largo è il campo.
+- Gli uomini che non trovano posto restano in riserva e scendono a ondate dal bordo, quando il campo si svuota.
+- Notte, neve e la strategia scelta prima dello scontro possono rendere più lenti, deboli o fragili interi gruppi di una schiera.
+- A parità di seme la battaglia va sempre allo stesso modo, su ogni telefono della compagnia.
 
 ## Fuori scopo
 
