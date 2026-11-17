@@ -8,7 +8,8 @@ Object.assign(VEN,(()=>{const{D,TU}=VEN._;
  const conta=(ps,luogo)=>{const c={f:0,t:0,c:0};for(const p of ps)for(const e of p.tr)c[D.TR[e.t].c]+=e.n-(e.f||0);if(luogo)for(const e of luogo.g)c[D.TR[e.t].c]+=e.n-(e.f||0);return c};
  const lato=(s,ps,luogo)=>{const c=conta(ps,luogo),p=ps[0],r=VEN.rg(s,luogo?luogo.faz:p?p.faz:'neu'),sg=p&&p.k==='sig'?s.sig[p.sig]:null;
   return{nome:luogo?luogo.nome:ps.map(x=>x.nome).join(', ')||'Nemici',col:r.col,col2:r.col2,f:c.f,t:c.t,c:c.c,capo:sg?sg.nome:'',indole:sg&&D.TRATTI[sg.tratto]?D.TRATTI[sg.tratto].nome:undefined}};
- function anteprima(s){const inc=s.incontro,a={noi:null,loro:null,scena:{},ora:0,avvisi:[],scelte:[]};if(!inc)return a;
+ function anteprima(s){const inc=s.incontro;if(!inc){const v={};VEN.ganci('anteprima',s,v);return v}   // senza incontro non c'è nulla da mostrare: solo ciò che aggiungono i ganci
+  const a={noi:null,loro:null,scena:{},ora:0,avvisi:[],scelte:[]};
   const{nem,all,luogo}=VEN.schieramenti(s),tu=TU(s),sc=VEN.campo(s),sito=luogo&&VEN.SITO[luogo.tipo],mia=VEN.rg(s,'tu');
   a.noi=lato(s,[tu].concat(all));a.noi.nome=tu.nome||'La Compagnia';a.noi.capo=(VEN.capi(s)[0]||{}).nome||'';a.noi.col=mia.col;a.noi.col2=mia.col2;
   a.loro=lato(s,nem,luogo);
