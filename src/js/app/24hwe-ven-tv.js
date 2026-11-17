@@ -10,4 +10,6 @@ const VenTv=(()=>{
 <div class="vn-tvk">${VEN.capi(s).map(c=>`<span>${ic('utente',18)} <b>${esc(c.nome)}</b> <small>liv. ${c.liv}</small></span>`).join('')}</div>`}
  function campoTvH(){const k=VenCampo.K,b=k.s;if(!b)return'';
   return`<div class="vn-alto vn-ca vn-tvb"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div><span class="vn-tvt" id="vn-tvt"></span></div>`}
- return{cronTv,tvH,campoTvH}})();
+ // la carta dell'incontro in grande sulla TV (la fascia delle scelte resta sui telefoni)
+ function incontroTvH(){return VenScontro.incontroH()}   // sulla TV la carta intera; i telefoni con la TV mostrano solo le scelte: incontroH(true)
+ return{cronTv,tvH,campoTvH,incontroTvH}})();
