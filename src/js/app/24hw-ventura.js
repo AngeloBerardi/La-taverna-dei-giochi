@@ -5,7 +5,7 @@
    cammina o aspetta, e mai con un pannello aperto. Salvataggio sul telefono (`ven-salv`), a ogni alba, luogo e battaglia.
    Pannelli nei file 24hwa–24hwe (VenBarre, VenLuoghi, VenGente, VenScontro, VenTv), che leggono gli aiutanti da `Ven._`. CSS: css/39j*-ven-*.css (prefisso `vn-`). Piano: docs/VENTURA.md. */
 const Ven=(()=>{
- const V={s:null,modo:'mondo',pan:null,sub:'home',vel:1,acc:0,raf:0,ult:0,avvisi:[],qta:1,carta:null,msg:'',regno:'val',hud:0,fine:null,gesti:false,pt:{},pin:0};
+ const V={s:null,modo:'mondo',pan:null,sub:'home',vel:1,acc:0,raf:0,ult:0,avvisi:[],qta:1,carta:null,msg:'',regno:'val',hud:0,pausa:false,rq:null,foglio:false,fine:null,gesti:false,pt:{},pin:0};
  const D=VDAT,ST_K='ven-salv';
  const leggi=()=>{try{return VEN.apri(localStorage.getItem(ST_K))}catch(e){return null}};
  const salva=()=>{if(!V.s||VenStanza.on())return;try{localStorage.setItem(ST_K,VEN.salva(V.s))}catch(e){}};
@@ -61,7 +61,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    if(V.avvisi.length&&ora-V.avvisi[0].t>4200){V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}}
   catch(e){ERR.n(e,'ventura');ferma()}}
  // il tempo del mondo: otto minuti di gioco al secondo a ×1 (un giorno ≈ tre minuti)
- function mondo(dt){const s=V.s,t=tu();if(V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero||(s.voci&&s.voci.length&&s.dentro<0&&s.davanti<0);if(!cammina)return;
+ function mondo(dt){const s=V.s,t=tu();if(V.pausa||V.pan&&V.pan!=='attesa')return;if(s.incontro)return;const cammina=t.ord||s.prigioniero||(s.voci&&s.voci.length&&s.dentro<0&&s.davanti<0);if(!cammina)return;
   V.acc+=dt*8*(s.prigioniero||(t.ord&&t.ord.t==='aspetta')?Math.max(6,V.vel*3):V.vel);const n=Math.floor(V.acc);if(n<1)return;V.acc-=n;const g0=VEN.giorno(s),ev=VEN.passo(s,n);let ridisegna=false;
   VenAudio.mondo(ev);
   for(const e of ev){if(e.t==='incontro'){V.pan='incontro';ridisegna=true}else if(e.t==='dentro'||e.t==='davanti'){V.pan='luogo';V.sub='home';V.msg='';ridisegna=true;salva()}
@@ -75,7 +75,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    q('vn-na',String(na));{const sec=Math.floor(b.t/10);q('vn-tvt',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'))}q('vn-nb',String(nb));const ba=document.getElementById('vn-ba');if(ba)ba.style.width=(na/Math.max(1,na+nb)*100).toFixed(1)+'%';const fm=VCAM.forme(b,'a');for(const k of['f','t','c']){q('vn-g'+k,String(g[k]));q('vn-fm'+k,fm[k])}
    const pf=document.getElementById('vn-pf');if(pf&&c)pf.style.width=Math.max(0,c.pf/c.pfm*100).toFixed(0)+'%';const gr=document.getElementById('vn-grido');if(gr){const r=Math.max(0,((b.gridi[posto()]||0)-b.t)/VCAM.C.GRIDO);gr.style.setProperty('--r',r.toFixed(2));gr.classList.toggle('no',r>0)}return}
   const t=tu(),h=VEN.ora(s),m=s.t%60;q('vn-ora','Giorno '+VEN.giorno(s)+' · '+String(h).padStart(2,'0')+':'+String(m-m%10).padStart(2,'0'));q('vn-oro',n0(t.oro));
-  q('vn-uom',VEN.uomini(t)+'/'+VEN.limite(s));q('vn-cibo',String(Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))));q('vn-mor',String(t.mor));q('vn-fama',String(s.fama));q('vn-meteo',s.meteo==='pioggia'?'pioggia':s.meteo==='nebbia'?'nebbia':'');
+  q('vn-uom',VEN.uomini(t)+'/'+VEN.limite(s));q('vn-cibo',VEN.giorniViveri(s)+' g');q('vn-mor',String(t.mor));q('vn-fama',String(s.fama));q('vn-meteo',s.meteo==='pioggia'?'pioggia':s.meteo==='nebbia'?'nebbia':'');
   const lu=document.getElementById('vn-luna');if(lu){const nt=VEN.notte(s);if(lu.dataset.n!==String(nt)){lu.dataset.n=String(nt);lu.innerHTML=ic(nt?'luna':'sole',16)}}}
  // ---------- gesti sul canvas ----------
  function gesti(){V.gesti=true;const cv=VenArte.cv,sc=()=>V.modo==='campo'?VenCampo:VenMappa;cv.style.touchAction='none';
@@ -99,7 +99,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
  const bt=(tx,v,o)=>`<button class="b sm ${o&&o.cls||''}" data-a="ven" data-v="${v}" ${o&&o.no?'disabled':''}>${tx}</button>`;
  // regno (V4): fondare, trattare da sovrano, governare, vincere
  function nomeRegno(){const el=document.getElementById('vn-regno-nome');if(el)V.nomeRegno=el.value}
- function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;
+ function html(){if(VenStanza.on()||VenStanza.X.era)VenStanza.sync();if(!V.s)return'';if(V.s.vinta&&!V.vitVista&&V.modo==='mondo'&&!V.s.incontro){V.vitVista=true;V.pan='vittoria'}const A=VenArte.A;V.foglio=V.modo==='mondo'&&!!V.pan&&!ui.tv;
   const corpo=A.fallita?`<div class="vn-vela"><div><h3>Serve la grafica 3D</h3><p>Questo telefono non riesce ad accendere la scena. Chiudi le altre schede e riprova.</p>${A.errore?`<p><small>${esc(A.errore)}</small></p>`:''}${bt('Riprova','riprova',{cls:'gold'})}${bt('Esci','esci')}</div></div>`:!A.pronta?'<div class="vn-vela"><div><h3>Si spiegano le mappe…</h3></div></div>':
    ui.tv?(V.modo==='campo'?VenTv.campoTvH():VenTv.tvH()+(V.s.incontro?VenScontro.incontroH():'')+(V.pan==='esito'?VenScontro.esitoH():'')):
    V.modo==='campo'?VenScontro.campoH():VenBarre.altoH()+(V.pan?'':tvOn()?VenBarre.ctlH():VenBarre.bassoH())+(V.carta!=null&&!V.pan?VenBarre.cartaH():'')+
@@ -127,6 +127,9 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(c==='carta'){V.carta=null;return render()}
   if(c==='qta'){V.qta=+p[1]||1;return render()}
   if(c==='qual'){try{localStorage.setItem('ven-q',p[1])}catch(e){}VenArte.A.lento=0;VenArte.misura();return render()}
+  if(c==='pausa'){V.pausa=!V.pausa;return render()}
+  if(c==='rq'){V.rq=V.rq===p[1]?null:p[1];return render()}
+  if(c==='taglia'){const r=inS()?{err:'Si cambia da solo, non in compagnia'}:VEN.opzione(s,{k:'taglia',v:p[1]});if(r&&r.err)avviso(r.err);else salva();return render()}
   if(c==='vel'){const v=V.vel===1?2:V.vel===2?4:1;if(inS()){const r=VenStanza.manda({t:'vel',v});if(r.err)avviso(r.err)}else V.vel=v;return render()}
   if(c==='cartatocco'){const cv=document.querySelector('.vn-carta-cv'),e=V.ultimoClick;if(cv&&e){const r=cv.getBoundingClientRect(),G=VEN.mappaDi(s).G;VenMappa.guarda((e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G);VenMappa.K.alt=Math.max(VenMappa.K.alt,22);V.pan=null}return render()}
   if(c==='centra'){(V.modo==='campo'?VenCampo:VenMappa).centra();return}

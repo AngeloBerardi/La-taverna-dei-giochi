@@ -158,7 +158,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   const vis=VEN.visibili(s).slice();if(!s.prigioniero)vis.unshift(tu);const visti={};K.fig.inizio();K.ste.inizio();const etc=[];
   for(const p of vis){let q=K.P[p.id];if(!q||Math.abs(q.x-p.x)+Math.abs(q.y-p.y)>3)q=K.P[p.id]={x:p.x,y:p.y,yaw:0,f:0};visti[p.id]=1;
    const dx=p.x-q.x,dy=p.y-q.y,dl=Math.hypot(dx,dy),k=Math.min(1,dt*9);q.x+=dx*k;q.y+=dy*k;const fermo=dl<.004;if(!fermo){const ya=Math.atan2(dx,dy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*8);q.f+=dt*(p.k==='car'?1.4:2.2)}
-   const F=Object.assign({},(VEN.rg?VEN.rg(s,p.id===0?VEN.lato(s):p.faz):VDAT.FAZ[p.id===0?VEN.lato(s):p.faz]),VEN.colFaz(s,p.id===0?VEN.lato(s):p.faz)),n=VEN.uomini(p),S=seguito(p),hq=quota(q.x,q.y),col=p.id===0?VEN.colFaz(s,'tu').col:F.col,sn=Math.sin(q.yaw),cs=Math.cos(q.yaw);
+   const F=Object.assign({},VEN.rg(s,p.id===0?VEN.lato(s):p.faz),VEN.colFaz(s,p.id===0?VEN.lato(s):p.faz)),n=VEN.uomini(p),S=seguito(p),hq=quota(q.x,q.y),col=p.id===0?VEN.colFaz(s,'tu').col:F.col,sn=Math.sin(q.yaw),cs=Math.cos(q.yaw);
    // chi guida: il tuo capitano con quello che ha addosso; un signore, un capobanda o la rivale col loro aspetto
    const capo=p.tr.find(e=>VDAT.TR[e.t]&&VDAT.TR[e.t].capo);let asp,cav;
    if(p.id===0){const st=VEN.statCap(s.cap);asp=st.asp;cav=st.cavallo}else if(capo){asp=VDAT.aspetto(capo.t);cav=p.k==='riv'}else if(p.k==='sig'){asp=Object.assign({},VDAT.aspetto(p.faz+'_c4'),{mant:1});cav=true}else{asp=S.length?VDAT.aspetto(S[0][0]):{};cav=S.length>0&&VDAT.TR[S[0][0]].c==='c'}
@@ -195,13 +195,14 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   {const vic=L.notte>.35?K.lu.filter(lu=>lu.me.visible&&Math.abs(lu.x-K.fuoco.x)<vx&&Math.abs(lu.y-K.fuoco.z)<vz).sort((a,b)=>Math.hypot(a.x-K.fuoco.x,a.y-K.fuoco.z)-Math.hypot(b.x-K.fuoco.x,b.y-K.fuoco.z)):[];K.lumi.forEach((p,i)=>{const lu=vic[i];if(lu){p.position.set(lu.x,lu.h0+1.6,lu.y+.6);p.intensity=L.notte*(lu.tipo==='citta'||lu.tipo==='castello'?.8:.5)*(1+Math.sin(K.t*7+i)*.06)}else p.intensity=0})}
   K.mare.uniforms.t.value=K.t;const lm=(1-L.notte*.55)*(s.meteo==='sereno'?1:.82);K.mare.uniforms.luce.value.set(lm*(1-L.notte*.25),lm*(1-L.notte*.1),lm+L.notte*.1);
   K.scene.background.set(L.notte>.5?'#0f2038':'#1d4f78');
-  A.disegna(K.scene,K.cam,K.fuoco,K.alt,{notte:L.notte,nebbia:s.meteo==='nebbia'?1:s.meteo==='pioggia'?.3:0,tinta:s.meteo==='pioggia'?[.9,.94,1]:h>17.5&&h<20.5?[1.06,.97,.9]:h>5&&h<7.5?[1.04,.98,.95]:null});
+  {const r=A.cv.getBoundingClientRect(),H=r.height||1,want=typeof Ven!=='undefined'&&Ven.V.foglio?(H/2-(96+H*.42)/2)*K.alt/H/A.SE:0;K.dz=(K.dz||0)+(want-(K.dz||0))*Math.min(1,dt*8);K.fz=K.fz||{x:0,y:0,z:0};K.fz.x=K.fuoco.x;K.fz.y=K.fuoco.y;K.fz.z=K.fuoco.z+K.dz}
+  A.disegna(K.scene,K.cam,K.fz,K.alt,{notte:L.notte,nebbia:s.meteo==='nebbia'?1:s.meteo==='pioggia'?.3:0,tinta:s.meteo==='pioggia'?[.9,.94,1]:h>17.5&&h<20.5?[1.06,.97,.9]:h>5&&h<7.5?[1.04,.98,.95]:null});
   etichette(etc)}
  // etichette nella pagina: un elemento per luogo o compagnia in vista, riusato
  function etichette(L){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte,vivi={},lontano=K.alt>30;
   for(const e of L){if(lontano&&e.luogo&&!/citta|castello|porto/.test(e.cls))continue;const p=A.aSchermo(K.cam,e.x,e.y,e.z);if(!p.ok)continue;vivi[e.id]=1;let el=host.querySelector('[data-e="'+e.id+'"]');
    if(!el){el=document.createElement('div');el.dataset.e=e.id;host.appendChild(el)}const cls='vn-et '+e.cls,tx=(e.luogo?'':(e.n!=null?'<b>'+e.n+'</b>':''))+(e.tx?'<span>'+esc(e.tx)+'</span>':'');
-   if(el.className!==cls)el.className=cls;if(el._tx!==tx){el.innerHTML=tx;el._tx=tx}el.style.transform='translate('+Math.round(p.x)+'px,'+Math.round(p.y)+'px) translate(-50%,-100%)';if(e.col&&el._c!==e.col){el.style.setProperty('--fz',e.col);el._c=e.col}}
+   if(el.className!==cls)el.className=cls;if(el._tx!==tx){el.innerHTML=tx;el._tx=tx}{const W=host.clientWidth,w=el.offsetWidth||0,x0=p.x-w/2,cx=p.x<40?w/2:p.x>W-40?W-w/2:p.x;el.style.transform='translate('+Math.round(Math.max(w/2,Math.min(W-w/2,cx)))+'px,'+Math.round(p.y)+'px) translate(-50%,-100%)'}if(e.col&&el._c!==e.col){el.style.setProperty('--fz',e.col);el._c=e.col}}
   for(const el of Array.from(host.children))if(!vivi[el.dataset.e])host.removeChild(el)}
  // ---------- gesti ----------
  function trascina(dx,dy){const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
