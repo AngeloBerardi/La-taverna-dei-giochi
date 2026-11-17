@@ -43,11 +43,55 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
  function attesaH(){const s=V.s;if(s.prigioniero)return`<div class="vn-vela"><div><h3>In catene</h3><p>Prigioniero di ${esc(s.prigioniero.da)}. Le ore passano, in attesa di un'occasione per fuggire.</p></div></div>`;
   return`<div class="vn-vela chiaro"><div><h3>${s.assedio?'Assedio':'La compagnia riposa'}</h3><p>${s.assedio?'Si montano scale e arieti.':'Il tempo scorre.'}</p>${bt('Basta così','ferma',{cls:'gold'})}</div></div>`}
  // ---------- HUD della battaglia ----------
- function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';const O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanti','freccia'],['arretra','Indietro','indietro']];
+ // ---------- il tavolo dello schieramento (passo 19, solo con i reparti): carte, foglio ondate, Pronto ----------
+ const NT={f:'Fanti',t:'Tiratori',c:'Cavalieri'},IC={f:'scudo',t:'freccia',c:'passi'},FM={serrata:'Serrata',larga:'Larga',cuneo:'Cuneo'},ING={retro:'Retro',fsx:'Fianco sinistro',fdx:'Fianco destro'},ORD={carica:'Carica',tieni:'Tieni',segui:'Seguimi'};
+ const FN={schiera:'schiera',dividi:'dividi',unisci:'unisci',prepara:'preparaOndata',ondata:'ondata'};
+ const nOnd=b=>(b.ond?b.ond.a:[]).reduce((a,w)=>a+w.tr.reduce((c,x)=>c+x.n,0),0);
+ const conto=b=>{const camp=b.u.filter(u=>u.l==='a'&&!u.cap&&u.st==='vivo').length,on=nOnd(b),ris=VCAM.riserva(b,'a');return`In campo ${camp}/${camp+on+ris} · Ondate ${on} · Riserva ${ris}`};
+ const libere=(b,t)=>b.ris.a.reduce((a,x)=>a+(x.t===t?x.n:0),0)+b.u.filter(u=>u.l==='a'&&u.t===t&&!u.cap&&u.st==='vivo'&&!u.sp).length;
+ // una mossa di schieramento: da soli subito, in compagnia come gli altri ordini (con il posto)
+ function manda(t,o){const k=VenCampo.K,r=inS()?VenStanza.manda({t:'b-'+t,o}):VCAM[FN[t]](k.s,Object.assign({l:'a'},o));if(r&&r.err){Ven.avviso(r.err);return false}return true}
+ function schieraSu(r,x,y){if(manda('schiera',{r,x,y}))VenCampo.K.selR=null;render()}
+ function foglioH(b){const k=VenCampo.K,id=k.od||1,W=b.ond.a,w=W.find(x=>x.id===id),bz=k.bz[id]||{ing:'retro',k:'comando',v:0,ord:'carica'},d=w?{ing:w.ing,k:w.quando.k,v:w.quando.v,ord:w.ord}:bz,m={},ts={};
+  for(const x of w?w.tr:[])m[x.t]=(m[x.t]||0)+x.n;
+  for(const x of b.ris.a)ts[x.t]=1;for(const u of b.u)if(u.l==='a'&&!u.cap&&u.st==='vivo'&&!u.sp)ts[u.t]=1;for(const t of Object.keys(m))ts[t]=1;
+  const ordT=Object.keys(ts).sort((x,y)=>'ftc'.indexOf(VDAT.TR[x].c)-'ftc'.indexOf(VDAT.TR[y].c)||(x<y?-1:1)),ok=new Set(VCAM.settori(b,'a').filter(z=>z.k==='ingresso').map(z=>z.id));
+  const ch=(tx,v,on,no)=>`<button class="vt-ch${on?' on':''}" data-a="ven" data-v="${v}"${no?' disabled':''}>${tx}</button>`,P=`vond:${id}:`;
+  const sub=d.k==='linea'?[50,30].map(v=>ch(v+'%',P+'q:linea:'+v,d.v===v)).join(''):d.k==='tempo'?[1,2,3].map(v=>ch(v+' min',P+'q:tempo:'+v*600,d.v===v*600)).join(''):'';
+  return`<div class="vt-fo"><div class="vt-fh">${[1,2].map(i=>{const x=W.find(y=>y.id===i);return ch('Ondata '+i+(x?' · '+x.tr.reduce((a,y)=>a+y.n,0):''),'vond:'+i,i===id)}).join('')}<button class="vt-ch vt-x" data-a="ven" data-v="vond:apri" aria-label="Chiudi">${ic('x',18)}</button></div>
+<div class="vt-fb"><p class="vt-ct">${conto(b)}</p>${ordT.map(t=>`<div class="vt-tr"><span>${esc(VDAT.TR[t].nome)}<small>${libere(b,t)} liberi</small></span><button class="vt-pm" data-a="ven" data-v="${P}t:${t}:-" aria-label="Meno">−</button><b>${m[t]||0}</b><button class="vt-pm" data-a="ven" data-v="${P}t:${t}:+" aria-label="Più">+</button></div>`).join('')}
+<p class="vt-et">Da dove entra</p><div class="vt-sg">${['retro','fsx','fdx'].map(i=>ch(ING[i],P+'ing:'+i,d.ing===i,!ok.has(i))).join('')}</div>
+<p class="vt-et">Quando</p><div class="vt-sg">${ch('Al mio segnale',P+'q:comando:0',d.k==='comando')}${ch('Quando la linea cede',P+'q:linea:50',d.k==='linea')}${ch('Dopo',P+'q:tempo:600',d.k==='tempo')}</div>${sub?`<div class="vt-sg">${sub}</div>`:''}
+<p class="vt-et">Che ordine ha</p><div class="vt-sg">${['carica','tieni','segui'].map(o=>ch(ORD[o],P+'o:'+o,d.ord===o)).join('')}</div></div></div>`}
+ function tavoloBasso(b){const k=VenCampo.K,R=VCAM.reparti(b,'a').filter(x=>x.n>0),cnt={},on=nOnd(b);
+  const carte=R.map(x=>{const n=(cnt[x.c]=(cnt[x.c]||0)+1),tot=R.filter(y=>y.c===x.c).length;return`<div class="vt-c${k.selR===x.r?' on':''}" data-r="${x.r}" data-c="${x.c}"><button class="vt-cm" data-a="ven" data-v="vrep:${x.r}">${ic(IC[x.c],18)}<b>${x.n}</b><small>${NT[x.c]}${tot>1?' '+n:''}</small></button><button class="vt-cb2" data-a="ven" data-v="vfm:${x.r}" aria-label="Formazione">${FM[x.fm]||x.fm}</button><button class="vt-cb2" data-a="ven" data-v="vdiv:${x.r}">Dividi</button></div>`}).join('');
+  return`<div class="vn-basso vt-bs"><p class="vt-h">${k.selR!=null?'Tocca il campo, dentro una zona, per metterlo':'Tocca un reparto, poi il campo'}</p><div class="vt-cs">${carte}</div><div class="vt-bb">${b.ondOk?bt('Ondate'+(on?' · '+on:''),'vond:apri'):''}${bt(ic('spada',18)+' Pronto','vpronto',{cls:'gold'})}</div></div>${k.fogOnd&&b.ondOk?foglioH(b):''}`}
+ function ondaMod(id,q){const k=VenCampo.K,b=k.s,w=b.ond.a.find(x=>x.id===id),bz=k.bz[id]||(k.bz[id]={ing:'retro',k:'comando',v:0,ord:'carica'}),d=w?{ing:w.ing,k:w.quando.k,v:w.quando.v,ord:w.ord}:Object.assign({},bz),m={};
+  for(const x of w?w.tr:[])m[x.t]=(m[x.t]||0)+x.n;
+  if(q[0]==='t'){const t=q[1],cur=m[t]||0,mx=cur+libere(b,t);m[t]=q[2]==='+'?Math.min(mx,cur+5):Math.max(0,cur-5)}
+  else if(q[0]==='ing')d.ing=q[1];else if(q[0]==='q'){d.k=q[1];d.v=+q[2]||0}else if(q[0]==='o')d.ord=q[1];
+  Object.assign(bz,d);const tr=Object.keys(m).filter(t=>m[t]>0).map(t=>({t,n:m[t]}));
+  if(w||tr.length)manda('prepara',{id,tr,ing:d.ing,quando:{k:d.k,v:d.v},ord:d.ord});render()}
+ function azione(v){const k=VenCampo.K,b=k.s,p=v.split(':'),c=p[0];if(!b)return;
+  if(c==='vrep'){const r=+p[1];k.selR=k.selR===r?null:r;return render()}
+  if(c==='vdiv'){if(manda('dividi',{r:+p[1]}))k.selR=null;return render()}
+  if(c==='vfm'){const r=inS()?VenStanza.manda({t:'b-ord',o:{r:+p[1],t:'forma'}}):VCAM.ordina(b,{r:+p[1],t:'forma'});if(r&&r.err)Ven.avviso(r.err);return render()}
+  if(c==='vond'){if(p[1]==='apri'){k.fogOnd=!k.fogOnd;return render()}const id=+p[1];if(p.length===2){k.od=id;return render()}return ondaMod(id,p.slice(2))}
+  if(c==='vondata'){manda('ondata',{id:+p[1]});return render()}
+  if(c==='vpronto'){const r=inS()?VenStanza.manda({t:'b-pronto',o:{}}):VCAM.pronto(b,'a');if(r&&r.err)return Ven.avviso(r.err);
+   // i gettoni nemici si muovono nel loro schieramento per un secondo, poi si parte
+   k.tvT=k.t+1.2;k.fogOnd=false;k.selR=null;setTimeout(()=>{const g=inS()?VenStanza.pausa():(k.pausa=false);if(g&&g.err)Ven.avviso(g.err);render()},1100);render()}}
+ // i comandi del tavolo passano da qui (prima del listener comune): un reparto si trascina su un altro dello stesso tipo per unirli
+ {let dr=null,salta=false;
+  document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a="ven"]');if(!b)return;const v=b.dataset.v||'';if(!/^(vrep|vdiv|vfm|vond|vondata|vpronto)(:|$)/.test(v))return;e.stopPropagation();e.preventDefault();if(salta){salta=false;return}azione(v)},true);
+  document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('.vt-cm');dr=c?{r:+c.parentNode.dataset.r,c:c.parentNode.dataset.c,x:e.clientX,y:e.clientY}:null},true);
+  document.addEventListener('pointerup',e=>{const d=dr;dr=null;if(!d||Math.hypot(e.clientX-d.x,e.clientY-d.y)<14)return;const t=document.elementFromPoint(e.clientX,e.clientY),c2=t&&t.closest('.vt-c');
+   if(c2&&+c2.dataset.r!==d.r&&c2.dataset.c===d.c){salta=true;setTimeout(()=>{salta=false},400);if(manda('unisci',{r:+c2.dataset.r,r2:d.r}))VenCampo.K.selR=null;render()}},true)}
+ function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';const tv=VenCampo.tavolo(b),pr=b.ond?b.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando'&&w.tr.length):[],O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanti','freccia'],['arretra','Indietro','indietro']];
   const fine=V.pan==='fine'?`<div class="vn-vela"><div><h3>${b.fine&&b.fine.vince==='a'?'Il campo è vostro':'La giornata è persa'}</h3><p>${b.fine&&b.fine.vince==='a'?'Il nemico volta le spalle.':'Chi può si mette in salvo.'}</p>${bt('Avanti','fine',{cls:'gold'})}</div></div>`:'';
   return`<div class="vn-alto vn-ca"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div>
-<div class="vn-capo"><span>${ic('cuore',14)}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel">×${k.vel}</button><button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button></div></div>
-${k.pausa&&!b.fine&&b.t===0&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo==='arena'?'Tocca lo steccato per muovere il capitano, l\'avversario per attaccarlo. Qui conta solo la tua arma.':'Tocca il campo per muovere il capitano, un nemico per attaccarlo. Scegli un gruppo e dagli un ordine.'}</p>${bt(ic('spada',18)+' Via','cpausa',{cls:'gold'})}</div>`:''}
-<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}"><div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b><small class="vn-fm" id="vn-fm${g}">${VCAM.forme(b,'a')[g]}</small>`:''}</button>`).join('')}</div>
-<div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>${fine}`}
- return{incontroH,esitoH,attesaH,campoH}})();
+<div class="vn-capo"><span>${ic('cuore',14)}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel">×${k.vel}</button><button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button></div>${tv?`<small class="vt-cnt">${conto(b)}</small>`:''}</div>
+${k.pausa&&!tv&&!b.fine&&b.t===0&&!(b.rep&&b.pronto&&b.pronto.a)&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo==='arena'?'Tocca lo steccato per muovere il capitano, l\'avversario per attaccarlo. Qui conta solo la tua arma.':'Tocca il campo per muovere il capitano, un nemico per attaccarlo. Scegli un gruppo e dagli un ordine.'}</p>${bt(ic('spada',18)+' Via','cpausa',{cls:'gold'})}</div>`:''}
+${tv?tavoloBasso(b):`<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}">${pr.length?`<div class="vt-or">${pr.map(w=>bt('Ondata '+w.id+' · '+w.tr.reduce((a,x)=>a+x.n,0),'vondata:'+w.id)).join('')}</div>`:''}<div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b><small class="vn-fm" id="vn-fm${g}">${VCAM.forme(b,'a')[g]}</small>`:''}</button>`).join('')}</div>
+<div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>`}${fine}`}
+ return{incontroH,esitoH,attesaH,campoH,conto,schieraSu}})();
