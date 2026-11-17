@@ -32,8 +32,9 @@ const Ven=(()=>{
   daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
   const o=s&&s.opz,cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${o&&o.stemma?stemmaH(o.stemma.c1,o.stemma.c2,o.stemma.fig):ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · ${VEN.regni(s).length} regni · fama ${s.fama}</small></span><span class="av-go">Riprendi</span></button>`:'';
   const cop=COPIMG.includes('ventura');
-  // scorciatoie invisibili per i vecchi scenari (regno e «nuova» senza aprire il foglio)
-  const compat=NC.fo?'':'<div class="av-compat" aria-hidden="true">'+(D.ACCESO.mondo2?'':R.map(f=>'<button class="vn-regno" tabindex="-1" data-a="ven" data-v="regno:'+f+'"></button>').join(''))+'<button tabindex="-1" data-a="ven" data-v="nuova"></button></div>';
+  // PONTE da togliere in un passo successivo (quando gli scenari p02-p14 apriranno il foglio): scorciatoie regno e «nuova»
+  // senza foglio, rese solo sotto automazione (navigator.webdriver), mai per chi gioca: nessun tocco per sbaglio
+  const compat=NC.fo||!navigator.webdriver?'':'<div class="av-compat" aria-hidden="true">'+R.map(f=>'<button class="vn-regno" tabindex="-1" data-a="ven" data-v="regno:'+f+'"></button>').join('')+'<button tabindex="-1" data-a="ven" data-v="nuova"></button></div>';
   return`${cont}${daSolo}<div class="av-ins${cop?' dip':''}"${cop?` style="--cv:url(/assets/copertine/ventura.webp)"`:''}>${cop?'':INSEGNA}<div class="av-ins-tx"><h3>Compagnia di ventura</h3><p>Un mondo libero: truppe, regni, battaglie</p>
 <div class="av-ins-bt"><button class="b gold" data-a="ven" data-v="foglio">${ic('spada',18)} Nuova campagna</button><button class="b" data-a="ven" data-v="continua" ${s?'':'disabled'}>Carica</button></div></div></div>
 <small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «${GN('ventura')}» tra i giochi.</small>${compat}`}
