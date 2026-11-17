@@ -80,3 +80,29 @@
 
 /* segnaposto con altezza fissa mentre eroi e salvataggi arrivano (T1): la pagina non salta */
 .avv-vuoto{border:2px dashed rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.03)}
+/* Passo 18: insegna della Compagnia di ventura, schede, foglio «Nuova campagna». Un solo ottone per schermata */
+.av-ins{position:relative;height:220px;overflow:hidden;border:2px solid var(--gold2);background:#241a22 var(--cv) center/cover}
+.av-ins-sv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.av-ins-tx{position:absolute;inset:auto 0 0 0;padding:28px 12px 10px;display:flex;flex-direction:column;gap:4px;background:linear-gradient(180deg,transparent,rgba(16,11,7,.88) 45%);color:#f3e6c8}
+.av-ins-tx h3{margin:0;font:900 22px var(--f-d);color:#f0c166}.av-ins-tx p{margin:0;font-size:13px}
+.av-ins-bt{display:flex;gap:8px}.av-ins-bt .b{flex:1;min-height:44px}.av-ins-bt .b:first-child{flex:2}
+.av-ins2{display:flex;align-items:center;gap:8px;height:88px;padding:0 10px;border:1px solid var(--gold2);background:linear-gradient(90deg,rgba(207,143,44,.28),transparent)}
+.av-ins2 b{font:800 16px var(--f-d)}
+.av-tab{display:flex;gap:6px}.av-tab button{flex:1;min-height:44px;font:800 14px var(--f-d);color:inherit;background:transparent;border:1px solid var(--gold2);cursor:pointer}
+.av-tab button.on{background:var(--gold2);color:#2a1a08}
+.av-fo-sf{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6)}
+.av-fo{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));max-height:58%;z-index:201;display:flex;flex-direction:column;background:#2a1b10;color:#f3e6c8;border-top:3px solid #cf8f2c}
+.av-fo-t{display:flex;align-items:center;justify-content:space-between;padding:6px 12px}.av-fo-t h3{margin:0;font:900 18px var(--f-d);color:#f0c166}
+.av-fo-c{flex:1;overflow-y:auto;padding:0 12px 8px;display:flex;flex-direction:column;gap:8px}
+.av-fo-b{padding:8px 12px;border-top:1px solid rgba(240,193,102,.3)}.av-fo-b .b{width:100%;min-height:48px}
+.av-dd{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.av-dc{display:flex;flex-direction:column;gap:2px;min-height:56px;padding:6px 8px;text-align:left;font:inherit;color:inherit;cursor:pointer;background:rgba(0,0,0,.3);border:2px solid transparent}
+.av-dc b{font:800 15px var(--f-d)}.av-dc small{font-size:11px;opacity:.8}.av-dc.on{border-color:#f0c166;background:rgba(240,193,102,.18)}
+.av-leve{display:flex;flex-direction:column;gap:6px}.av-ch{display:flex;flex-wrap:wrap;gap:6px}
+.av-c{min-height:44px;padding:0 12px;font:700 13px var(--f-b);color:inherit;cursor:pointer;background:rgba(0,0,0,.3);border:2px solid transparent}.av-c.on{border-color:#f0c166;background:rgba(240,193,102,.18)}
+.av-in{min-height:44px;padding:0 10px;font:600 16px var(--f-b);color:#2a1a08;background:#f3e6c8;border:2px solid #8a5a1e}
+.av-stm{display:flex;align-items:center;gap:10px}.av-cls{display:flex;gap:4px;flex-wrap:wrap}
+.av-cl{width:44px;height:44px;border:3px solid transparent;cursor:pointer}.av-cl.on{border-color:#fff}
+.av-seme summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
+.vn-riep{display:flex;flex-direction:column;gap:4px;padding:8px 10px;font-size:13px;background:rgba(0,0,0,.3);border:1px solid #8a5a1e}.vn-riep div{display:flex;flex-wrap:wrap;gap:4px 12px}
+.vn-riep-b{position:absolute;left:8px;right:8px;bottom:84px;z-index:5;display:flex;align-items:center;gap:8px;background:rgba(16,11,7,.92);color:#f3e6c8;padding:6px}.vn-riep-b .vn-riep{flex:1;background:none;border:0}.vn-riep-b .b{min-height:44px}

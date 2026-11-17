@@ -19,7 +19,10 @@ const VenStanza=(()=>{
  function nuova(n,names,o){const rip=X.rip;X.rip=null;
   if(rip==='coop'||rip==='prec'||rip==='solo'){const sv=leggiSalv(rip),r=sv&&VST.apri(sv,n,names);if(r&&r.s)return r.s}
   const seme=X.seme0!=null?X.seme0:(Date.now()^Math.floor(Math.random()*4294967296))>>>0;   // seme0: solo per le prove del browser
-  return VST.nuova(n,names,Object.assign({seme,regno:Ven.V.regno},o||{}))}
+  const st=VST.nuova(n,names,Object.assign({seme,regno:Ven.V.regno},o||{}));
+  // la difficoltà la sceglie l'oste dal foglio «Nuova campagna»; gli altri la vedono nel riepilogo (AvvNuova.riepilogoH)
+  if(st&&st.w&&AvvNuova.NC.pronta){const w=VEN.nuovo(seme,{nome:st.names[0],compagnia:st.w.nome,regno:Ven.V.regno,soci:st.names.slice(1).map(nome=>({nome})),opz:AvvNuova.opzNC()});st.w=w}
+  return st}
  // ---- salvataggio e ripresa (V1) ----
  const leggiSalv=k=>{try{const x=JSON.parse(localStorage.getItem(CHIAVI[k]||SOLO_K)||'null');return x&&(k==='solo'?VEN.apri(x):x.w?x:null)}catch(e){return null}};
  const giornoDi=sv=>sv&&(sv.giorno||(sv.w?VEN.giorno(sv.w):VEN.giorno(sv)));
