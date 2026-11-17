@@ -2,7 +2,7 @@
 // Niente dadi: le scene sono un conto sui fatti del mondo. (La prova lunga con il bot accorto è test_ven_voci_bot.js.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27-eroi.js', '27p-avv-compagni.js', '27q-avv-racconto.js'].concat(carica.VEN_FILES);
+const F = ['27-eroi.js'].concat(carica.VEN_FILES.slice(0, 1), ['27p-avv-compagni.js', '27q-avv-racconto.js'], carica.VEN_FILES.slice(1));
 // un solo contesto: le prove che aggiungono o tolgono scene a VVOC le vedono anche il mondo e la stanza
 const X = carica.multi(F, '({ VEN, VDAT, ARAC, VVOC, VST })'), V = X.VEN, D = X.VDAT, R = X.ARAC, VV = X.VVOC, S = X.VST;
 const J = x => JSON.stringify(x), copia = x => JSON.parse(J(x));

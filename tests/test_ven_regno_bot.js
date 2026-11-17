@@ -4,7 +4,7 @@
 // (Test lento: ~1-2 minuti, escluso da `npm run verifica`; si lancia con `npm test -- ven_regno_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = carica.VEN_FILES;
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const gioca = require('./bot_ven.js')(V, D);
 const coerente = (s, seme) => {

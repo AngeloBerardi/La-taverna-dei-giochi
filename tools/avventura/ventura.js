@@ -2,7 +2,7 @@
 // Uso: node tools/avventura/ventura.js [--giorni 60] [--semi 3,11,29] [--caso]
 const path = require('path'), carica = require(path.join(__dirname, '../../tests/carica.js'));
 const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i < 0 ? d : process.argv[i + 1]; };
-const F = carica.VEN_FILES;
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT'), gioca = require(path.join(__dirname, '../../tests/bot_ven.js'))(V, D);
 const giorni = +arg('giorni', 60), semi = String(arg('semi', '3,11,29')).split(',').map(Number), bravo = !process.argv.includes('--caso');
 console.log('seme  uomini forza  monete fama liv vinte/perse luoghi(val/sel/fer/mar/alt/tu)');

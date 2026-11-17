@@ -2,7 +2,7 @@
 // soccorso agli alleati, salvataggi senza alleanze, regni che non si combattono mai tra alleati. (La prova lunga a 20 semi è test_ven_diplomazia_bot.js.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = carica.VEN_FILES;
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const ok = x => { assert(!x.err, x.err); return x; };
 const capitale = (s, f) => s.l.find(l => l.tipo === 'citta' && l.faz === f);

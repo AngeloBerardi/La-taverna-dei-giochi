@@ -2,7 +2,7 @@
 // caduta della corona, vittoria, salvataggi vecchi. (La prova lunga con il bot è test_ven_regno_bot.js.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = carica.VEN_FILES;
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const ok = x => { assert(!x.err, x.err); return x; };
 const err = (x, tx) => { assert(x.err, 'doveva fallire: ' + tx); if (tx) assert(x.err.includes(tx), 'errore «' + x.err + '» senza «' + tx + '»'); };

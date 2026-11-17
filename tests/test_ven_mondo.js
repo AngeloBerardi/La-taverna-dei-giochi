@@ -3,7 +3,7 @@
 // capitano accorto che cresce e capitano sconsiderato che si rovina, mondo che vive da solo.
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = carica.VEN_FILES;
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const gioca = require('./bot_ven.js')(V, D);
 const ok = x => { assert(!x.err, x.err); return x; };
