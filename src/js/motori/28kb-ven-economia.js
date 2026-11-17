@@ -22,6 +22,8 @@ Object.assign(VEN,(()=>{
  const razioni=p=>Object.keys(p.merci||{}).reduce((a,m)=>a+(D.MERCI[m].cibo?p.merci[m]:0),0);
  const carico=p=>Object.keys(p.merci||{}).reduce((a,m)=>a+p.merci[m],0);
  const caricoMax=s=>30+uomini(TU(s))*2+capi(s).reduce((a,c)=>a+(c.eq.cavallo?12:0),0);
+ // giorni di viveri: razioni diviso il consumo giornaliero (una razione ogni sei uomini, almeno una)
+ const giorniViveri=s=>{const t=TU(s);return Math.floor(razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))};
  const paga=s=>{const x=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
  // prezzo di una merce in un luogo: sale quando la scorta è bassa. verso = 1 compri, -1 vendi
  function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
@@ -117,4 +119,4 @@ Object.assign(VEN,(()=>{
   if(z.a==='pace'){const f=l.faz;if(!VEN.regni(s).includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||(s.corona?!inGuerra(s,'tu',con):s.rel[con]>-25))return{err:'Non siete in guerra'};const oro=400+Math.max(0,Math.round(-s.rel[con]*6));if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=Math.max(s.rel[con],-5);if(s.corona)VEN.faiPace(s,'tu',con);L(s,'Paghi un tributo di '+oro+' monete: pace con '+VEN.rg(s,con).breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
- return{prezzoOgg,rinnova,razioni,carico,caricoMax,paga,prezzo,renditaL,rendite,libera,titoloInc,fai}})());
+ return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,prezzo,renditaL,rendite,libera,titoloInc,fai}})());

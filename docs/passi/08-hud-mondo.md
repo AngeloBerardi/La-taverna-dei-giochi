@@ -67,3 +67,10 @@ Pannello del luogo e mercato (passo 13), incontro (passo 09), battaglia (passo 2
 ## Fatto quando
 
 Lo scenario passa e lo screenshot mostra mappa + foglio con la compagnia visibile.
+
+## Regole per il giocatore
+
+- In alto leggi cinque numeri col loro nome: monete, uomini, viveri (in giorni), morale, fama. Toccane uno per il dettaglio.
+- Un riquadro diventa rosso quando i viveri bastano per due giorni o meno, il morale è sotto 30, o la paga è dovuta domani e le monete non bastano.
+- In alto a destra: pausa e velocità (x1, x2, x4). Il tempo scorre solo mentre la compagnia cammina o aspetta.
+- Ogni pannello si apre dal basso e copre meno di sei decimi dello schermo: la compagnia resta in vista sulla mappa.
