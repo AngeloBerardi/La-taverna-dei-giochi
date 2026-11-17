@@ -8,8 +8,8 @@
 const VGEO=(()=>{
  const D=VDAT,M_floor=Math.floor,M_imul=Math.imul,M_sqrt=Math.sqrt,M_min=Math.min,M_max=Math.max,M_abs=Math.abs,M_ceil=Math.ceil; // alias locali: più veloci dei globali
  // i numeri del passo 07
- const GEO=D.GEO={BORDO:8,TERRA:.54,COLLINA:.7,CRESTA:.6,LARGO:4.2,DORSALI:[3,5],PASSI:2,LAGO_GRANDE:40,LAGO_MIN:8,PROFONDITA:.012,FIUMI:[6,10],
-  PORTO_DIST:6,VILLAGGIO_DIST:4.5,CASTELLO_DIST:9,SCALA_VIAGGIO:.6,K_FIUME:.35,K_PONTE:.9,K_PASSO:.7,CACHE:4};
+ const GEO=D.GEO={BORDO:8,TERRA:.54,COLLINA:.84,CRESTA:.6,LARGO:5.2,DORSALI:[3,5],PASSI:2,LAGO_GRANDE:40,LAGO_MIN:8,PROFONDITA:.012,FIUMI:[6,10],
+  PORTO_DIST:6,VILLAGGIO_DIST:4.5,CASTELLO_DIST:9,GUARDIA:8,SCALA_VIAGGIO:.6,K_FIUME:.35,K_PONTE:.9,K_PASSO:.7,CACHE:4};
  const MARE=VEN.MARE,COLLE=VEN.COLLE,MONTE=VEN.MONTE;
  const CENTRI={val:[.72,.48],sel:[.3,.74],fer:[.45,.2],mar:[.7,.8],alt:[.2,.4]};
  const h2=(x,y,s)=>{let n=M_imul(x,374761393)^M_imul(y,668265263)^M_imul(s,1274126177);n=M_imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
@@ -20,13 +20,11 @@ const VGEO=(()=>{
  const d2p=(x0,y0,x1,y1)=>M_sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
  const clamp=(v,a,b)=>v<a?a:v>b?b:v;
  const N8=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
- // coda di priorità: chiave, poi indice (così gli spareggi sono sempre uguali)
+ // coda di priorità: chiave più indice (1e-12 per cella) così gli spareggi sono sempre uguali
  function Coda(n){const k=new Float64Array(n+1),v=new Int32Array(n+1);let m=0;
-  const meno=(a,b)=>k[a]<k[b]||(k[a]===k[b]&&v[a]<v[b]);
-  const scambia=(a,b)=>{const tk=k[a],tv=v[a];k[a]=k[b];v[a]=v[b];k[b]=tk;v[b]=tv};
-  return{get n(){return m},vuota(){m=0},
-   metti(c,id){m++;k[m]=c;v[m]=id;let i=m;while(i>1&&meno(i,i>>1)){scambia(i,i>>1);i>>=1}},
-   togli(){const id=v[1];k[1]=k[m];v[1]=v[m];m--;let i=1;for(;;){let a=i,l=2*i,r=l+1;if(l<=m&&meno(l,a))a=l;if(r<=m&&meno(r,a))a=r;if(a===i)break;scambia(a,i);i=a}return id}}}
+  return{len:()=>m,vuota(){m=0},
+   metti(c,id){const key=c+id*1e-12;let i=++m;while(i>1){const p=i>>1;if(k[p]<=key)break;k[i]=k[p];v[i]=v[p];i=p}k[i]=key;v[i]=id},
+   togli(){const id=v[1],key=k[m],vv=v[m];m--;let i=1;for(;;){let c=2*i;if(c>m)break;if(c<m&&k[c+1]<k[c])c++;if(k[c]>=key)break;k[i]=k[c];v[i]=v[c];i=c}k[i]=key;v[i]=vv;return id}}}
  const CACHE={},CHIAVI=[];
  function genera(seme,opz){
   const lato=((D.DIFF.mondo||{})[(opz&&opz.mondo)||D.OPZ0.mondo]||D.DIFF.mondo.ampio).lato,G=lato,chiave=seme+':'+G;
@@ -37,7 +35,7 @@ const VGEO=(()=>{
   let A=new Float32Array(N);
   const isole=[];for(let k=0;k<1+M_floor(h2(seme,5,701)*3);k++)isole.push([G*(.12+.76*h2(k,1,seme+702)),G*(.12+.76*h2(k,2,seme+703)),G*(.035+.035*h2(k,3,seme+704))]);
   for(let y=0;y<G;y++)for(let x=0;x<G;x++){const i=y*G+x,e=M_min(x,y,G-1-x,G-1-y);
-   const rampa=liscio(clamp((e-BORDO)/(G*.22),0,1)),base=fbm(x/(13*sc),y/(13*sc),seme);
+   const dx=(x+.5-G/2)/(G/2),dy=(y+.5-G/2)/(G/2),rr=M_sqrt(dx*dx+dy*dy)*(1+(rumore(x/(20*sc),y/(20*sc),seme+740)-.5)*.7),rampa=liscio(clamp((1.02-rr)/.55,0,1)),base=fbm(x/(13*sc),y/(13*sc),seme);
    let a=base*.55+rampa*.65;
    for(const o of isole){const d=((x-o[0])*(x-o[0])+(y-o[1])*(y-o[1]))/(o[2]*o[2]);if(d<1)a+=.4*(1-d)*(1-d)}
    A[i]=e<BORDO?-1:a}
@@ -46,28 +44,39 @@ const VGEO=(()=>{
     if(a<v0)r=MARE*.98*M_max(0,a-v00)/M_max(1e-9,v0-v00);else if(a<v1)r=MARE+(COLLE-MARE)*(a-v0)/M_max(1e-9,v1-v0);else r=COLLE+(MONTE-.02-COLLE)*(a-v1)/M_max(1e-9,v2-v1);
     A[i]=bordo(i)<BORDO?0:r}}
   // ---------- 2. catene con i loro passi ----------
+  // la terra principale prima delle catene: le dorsali nascono e corrono solo lì
+  const bm=new Uint8Array(N);
+  {const comp=new Int32Array(N).fill(-1);let nc=0,gr=0,gm=0;
+   for(let i=0;i<N;i++){if(comp[i]>=0||A[i]<MARE)continue;const lista=[i];comp[i]=nc;
+    for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(comp[j]<0&&A[j]>=MARE){comp[j]=nc;lista.push(j)}}}
+    if(lista.length>gm){gm=lista.length;gr=nc}nc++}
+   for(let i=0;i<N;i++)bm[i]=comp[i]===gr?1:0}
   const catene=[],R0=new Float32Array(N),nd=GEO.DORSALI[0]+M_floor(h2(seme,6,705)*(GEO.DORSALI[1]-GEO.DORSALI[0]+1)),larg=GEO.LARGO*sc;
   for(let t=0;t<80&&catene.length<nd;t++){
-   let x=G*(.15+.7*h2(t,1,seme+710)),y=G*(.15+.7*h2(t,2,seme+711));if(A[M_floor(y)*G+M_floor(x)]<MARE+.04)continue;
+   let x=G*(.15+.7*h2(t,1,seme+710)),y=G*(.15+.7*h2(t,2,seme+711));if(!bm[M_floor(y)*G+M_floor(x)]||A[M_floor(y)*G+M_floor(x)]<MARE+.04)continue;
    let dx=h2(t,3,seme+712)-.5,dy=h2(t,4,seme+713)-.5;{const l=M_sqrt(dx*dx+dy*dy)||1;dx/=l;dy/=l}
-   const pt=[],lung=M_floor(G*(.3+.2*h2(t,5,seme+714)));
-   for(let k=0;k<lung;k++){const ci=M_floor(y)*G+M_floor(x);if(x<BORDO||y<BORDO||x>=G-BORDO||y>=G-BORDO||A[ci]<MARE)break;pt.push([x,y]);
+   const pt=[],lung=M_floor(G*(.4+.3*h2(t,5,seme+714)));
+   for(let k=0;k<lung;k++){const ci=M_floor(y)*G+M_floor(x);if(x<BORDO||y<BORDO||x>=G-BORDO||y>=G-BORDO||!bm[ci])break;pt.push([x,y]);
     const w=(rumore(k/(9*sc),t*7.3,seme+715)-.5)*.5;const nx=dx-dy*w,ny=dy+dx*w,l=M_sqrt(nx*nx+ny*ny)||1;dx=nx/l;dy=ny/l;x+=dx;y+=dy}
    if(pt.length<24*sc)continue;
-   const passi=[],n=pt.length,quanti=GEO.PASSI+2;
+   const passi=[],n=pt.length,quanti=GEO.PASSI+1;
    for(let k=0;k<quanti;k++){const f=(k+.5)/quanti,j=clamp(M_floor(n*(f+(h2(t,k+7,seme+717)-.5)*.16)),2,n-3);passi.push(j)}
    catene.push({pt,passi})}
   for(const c of catene){const lib=new Uint8Array(c.pt.length);for(const j of c.passi)for(let k=M_max(0,j-2);k<=M_min(c.pt.length-1,j+2);k++)lib[k]=1;
    c.pt.forEach((p,k)=>{if(lib[k])return;const r=M_ceil(larg);for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++){const cx=M_floor(p[0])+ox,cy=M_floor(p[1])+oy;if(cx<0||cy<0||cx>=G||cy>=G)continue;
     const d=d2p(cx+.5,cy+.5,p[0],p[1]);if(d>=larg)continue;const v=GEO.CRESTA*(1-d/larg)*(1-d/larg),i=cy*G+cx;if(v>R0[i])R0[i]=v}})}
   for(let i=0;i<N;i++)if(A[i]>=MARE&&R0[i]>0)A[i]=M_min(1.2,A[i]+R0[i]);
+  // il passo attraversa tutta la cresta: un corridoio di colline lungo la perpendicolare alla dorsale
+  const scava=(c,k0,sul)=>{const p=c.pt[k0],pa=c.pt[M_max(0,k0-2)],pb=c.pt[M_min(c.pt.length-1,k0+2)];let tx=pb[0]-pa[0],ty=pb[1]-pa[1];const l=M_sqrt(tx*tx+ty*ty)||1;tx/=l;ty/=l;
+   for(let s=-larg*1.6;s<=larg*1.6;s+=.5){const cx=p[0]-ty*s,cy=p[1]+tx*s;for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const qx=M_floor(cx)+ox,qy=M_floor(cy)+oy;if(qx<BORDO||qy<BORDO||qx>=G-BORDO||qy>=G-BORDO)continue;const q=qy*G+qx;if(A[q]>=MONTE){A[q]=COLLE+.04;if(sul)sul[q]=1}}}};
   for(const c of catene){c.passi=c.passi.map(j=>{const p=c.pt[j],r=2;let x=M_floor(p[0]),y=M_floor(p[1]);
     for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++){const i=(y+oy)*G+x+ox;if(A[i]>=MONTE&&ox*ox+oy*oy<=r*r+1)A[i]=COLLE+.04}
+    scava(c,j);
     if(A[y*G+x]<COLLE+.01)A[y*G+x]=COLLE+.04;return[x,y]})}
   // ---------- 3. laghi: le conche si riempiono fino al punto di sfioro ----------
   const Q=new Float32Array(N),Dn=new Int32Array(N).fill(-1),vis=new Uint8Array(N),ordine=new Int32Array(N);let no=0;
   {const q=Coda(N);for(let i=0;i<N;i++)if(bordo(i)===0){vis[i]=1;Q[i]=A[i];q.metti(A[i],i)}
-   while(q.n){const c=q.togli();ordine[no++]=c;const cx=c%G,cy=(c-cx)/G;
+   while(q.len()){const c=q.togli();ordine[no++]=c;const cx=c%G,cy=(c-cx)/G;
     for(const[ox,oy]of N8){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(vis[j])continue;vis[j]=1;Dn[j]=c;Q[j]=M_max(A[j],Q[c]);q.metti(Q[j],j)}}}
   const T=new Uint8Array(N),PS0=new Uint8Array(N);
   for(const c of catene)for(const p of c.passi)for(let oy=-2;oy<=2;oy++)for(let ox=-2;ox<=2;ox++)PS0[(p[1]+oy)*G+p[0]+ox]=1;
@@ -102,10 +111,11 @@ const VGEO=(()=>{
   // una dorsale con meno di 2 passi raggiungibili ne riceve altri dove la terra principale la tocca
   {let nuovi=false;
    for(const c of catene){c.passi=c.passi.filter(p=>ok[p[1]*G+p[0]]);const n=c.pt.length;
-    for(let k=3;k<n-3&&c.passi.length<GEO.PASSI;k+=2){const p=c.pt[k],x=M_floor(p[0]),y=M_floor(p[1]);if(c.passi.some(q=>d2p(q[0],q[1],x,y)<8*sc))continue;
-     let tocca=false;for(let oy=-3;oy<=3&&!tocca;oy++)for(let ox=-3;ox<=3;ox++)if(ok[(y+oy)*G+x+ox]){tocca=true;break}
+    for(let k=3;k<n-3&&c.passi.length<GEO.PASSI;k++){const p=c.pt[k],x=M_floor(p[0]),y=M_floor(p[1]);if(c.passi.some(q=>d2p(q[0],q[1],x,y)<3*sc))continue;
+     let tocca=false;for(let oy=-7;oy<=7&&!tocca;oy++)for(let ox=-7;ox<=7;ox++)if(ok[(y+oy)*G+x+ox]){tocca=true;break}
      if(!tocca||T[y*G+x]===0)continue;
      for(let oy=-2;oy<=2;oy++)for(let ox=-2;ox<=2;ox++){const q=(y+oy)*G+x+ox;if(T[q]===4){T[q]=3;A[q]=COLLE+.04}}
+     {const sul=new Uint8Array(N);scava(c,k,sul);for(let q=0;q<N;q++)if(sul[q]&&T[q]===4)T[q]=3}
      c.passi.push([x,y]);nuovi=true}}
    if(nuovi){calcolaOk();for(const c of catene)c.passi=c.passi.filter(p=>ok[p[1]*G+p[0]]&&T[p[1]*G+p[0]]!==0)}}
   for(const c of catene)c.passi=c.passi.filter(p=>ok[p[1]*G+p[0]]);
@@ -116,8 +126,8 @@ const VGEO=(()=>{
   const umido=new Float32Array(N);
   for(let y=0;y<G;y++)for(let x=0;x<G;x++){const i=y*G+x,h=.5*rumore(x/(6*sc),y/(6*sc),seme+730)+.5*(1-M_min(dw[i],8)/8),lat=y/G;umido[i]=h;
    const nv=rumore(x/(9*sc),y/(9*sc),seme+731)-.5;
-   B[i]=lat<.22+nv*.1?1:lat>.7+nv*.1&&h<.5?3:lat>.52&&h<.4?2:0;
-   if(T[i]===1&&h>.62+(lat>.7?.1:0))T[i]=2}
+   B[i]=(lat<.22+nv*.1||(T[i]===4&&A[i]>.95))&&T[i]>=3?1:lat>.7+nv*.1&&h<.5?3:lat>.52&&h<.4?2:0;
+   if(T[i]===1&&h>(lat<.3?.5:.62)+(lat>.7?.1:0))T[i]=2}
   // ---------- 6. luoghi ----------
   const M={seme,G,T,B,S:new Uint8Array(N),R:new Uint8Array(N),A,ok,F,LG,Q,D:Dn,PN:new Uint8Array(N),PS:new Uint8Array(N),P:[],catene,fiumi,laghi};
   for(const c of catene)for(const p of c.passi){const r=2;for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++){const i=(p[1]+oy)*G+p[0]+ox;if(T[i]===3)M.PS[i]=1}}
@@ -133,7 +143,7 @@ const VGEO=(()=>{
   const cerca=(reg,okf,punti,anche)=>{let m=null,mv=-1e9;const lista=anche?candF:cand;for(let k=0;k<lista.length;k++){const i=lista[k];if(reg>=0&&M.R[i]!==reg)continue;const x=i%G,y=(i-x)/G;
     const v=punti(x,y,i)+rum[i];if(v<=mv||!okf(x,y,i))continue;mv=v;m=[x,y]}return m};
   const metti=(tipo,f,k,pos,capo)=>{if(!pos)return null;const NM=D.NOMI[tipo],nomi=tipo==='covo'?[D.CAPIBANDA[k%D.CAPIBANDA.length].banda]:f==='neu'||f==='pre'?NM:NM[f];
-   const l={id:L.length,tipo,faz:f,nome:(tipo==='covo'?'Covo: ':'')+nomi[k%nomi.length],x:pos[0]+.5,y:pos[1]+.5,capo:capo==null?-1:capo,k};L.push(l);
+   const l={id:L.length,tipo,faz:f,nome:(tipo==='covo'?'Covo: ':'')+nomi[k%nomi.length]+(k>=nomi.length&&tipo==='castello'?' bis':''),x:pos[0]+.5,y:pos[1]+.5,capo:capo==null?-1:capo,k};L.push(l);
    const i=pos[1]*G+pos[0];if(tipo==='citta'||tipo==='castello'){if(T[i]!==1)T[i]=3}else if(tipo!=='rovine'&&tipo!=='covo'&&tipo!=='monastero')T[i]=1;return l};
   // città: foci, confluenze, rive di lago grande, baie; una per regno, vicino al suo centro preferito e lontana dalle altre
   const minC=G/6,citta=[];
@@ -156,7 +166,7 @@ const VGEO=(()=>{
   // ---------- 7. strade: costo minimo, di valle; i fiumi si passano su ponti e guadi ----------
   const g=new Float32Array(N),da=new Int32Array(N),stampa=new Int32Array(N),chiuso=new Int32Array(N),coda=Coda(N*2);let giro=0;
   const COSTO=[9,1,1.45,1.35,9];
-  function percorso(a,b){giro++;const bx=b%G,by=(b-bx)/G;coda.vuota();g[a]=0;da[a]=-1;stampa[a]=giro;coda.metti(0,a);   while(coda.n){const c=coda.togli();if(chiuso[c]===giro)continue;chiuso[c]=giro;if(c===b)break;const cx=c%G,cy=(c-cx)/G;
+  function percorso(a,b){giro++;const bx=b%G,by=(b-bx)/G;coda.vuota();g[a]=0;da[a]=-1;stampa[a]=giro;coda.metti(0,a);   while(coda.len()){const c=coda.togli();if(chiuso[c]===giro)continue;chiuso[c]=giro;if(c===b)break;const cx=c%G,cy=(c-cx)/G;
     for(const[ox,oy]of N8){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(!ok[j])continue;
      if(ox&&oy&&(!ok[cy*G+nx]||!ok[ny*G+cx]))continue;
      const w=(M.S[j]?.5:COSTO[T[j]]+(T[j]===3?.6:0)+(F[j]>0?6:0)+M_abs(A[j]-A[c])*12)*(ox&&oy?1.4142:1),ng=g[c]+w;
@@ -175,6 +185,16 @@ const VGEO=(()=>{
    for(const a of C){const v=pv(a);for(let k=0;k<2&&k<v.length;k++){lega(a,v[k]);gruppo[trova(C.indexOf(a))]=trova(C.indexOf(v[k]))}}
    for(;;){let b=null,bd=1e9;for(const a of C)for(const c of C)if(trova(C.indexOf(a))!==trova(C.indexOf(c))){const d=d2p(a.x,a.y,c.x,c.y);if(d<bd){bd=d;b=[a,c]}}
     if(!b)break;lega(b[0],b[1]);gruppo[trova(C.indexOf(b[0]))]=trova(C.indexOf(b[1]))}}
+  // i castelli guardano i ponti e i passi: dove il più vicino è lontano se ne aggiunge uno accanto (con la sua strada)
+  const guarda=(x,y)=>{let b=1e9;for(const l of L)if(l.tipo==='castello'){const d=d2p(l.x,l.y,x,y);if(d<b)b=d}return b},RAGGIO=GEO.GUARDIA*sc;
+  const sorveglia=()=>{let n=0;const mire=M.P.map(p=>[p.x,p.y]);
+   for(const c of catene){let b=null,bd=1e9;for(const p of c.passi){const d=guarda(p[0]+.5,p[1]+.5);if(d<bd){bd=d;b=[p[0]+.5,p[1]+.5]}}if(b)mire.push(b)}
+   for(const m of mire){if(guarda(m[0],m[1])<=RAGGIO)continue;
+    const q=cerca(-1,(x,y,i)=>T[i]!==4&&lontano(x+.5,y+.5,3)&&d2p(x+.5,y+.5,m[0],m[1])<=RAGGIO*.85,(x,y,i)=>-d2p(x+.5,y+.5,m[0],m[1])+(T[i]===3?.5:0));if(!q)continue;
+    const f=REG[M.R[q[1]*G+q[0]]],cit=cittaDi(f);if(!cit)continue;const l=metti('castello',f,L.filter(z=>z.faz===f&&z.tipo==='castello').length,q,cit.id);if(l){lega(l,cit);n++}}
+   return n};
+  for(let k=0;k<4&&sorveglia();k++);
+  for(const p of M.P){let cs=-1,cd=1e9;for(const l of L)if(l.tipo==='castello'){const d=d2p(l.x,l.y,p.x,p.y);if(d<cd){cd=d;cs=l.id}}p.castello=cs}
   // monasteri e locande lungo le strade; rovine e covi nei boschi e sui monti lontani
   const ds=new Uint8Array(N).fill(255);
   {const lista=[];for(let i=0;i<N;i++)if(M.S[i]){ds[i]=0;lista.push(i)}

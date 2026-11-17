@@ -4,12 +4,14 @@ const carica = require('./carica.js');
 const F = ['27-eroi.js'].concat(carica.VEN_FILES.slice(0, 1), ['27p-avv-compagni.js', '27q-avv-racconto.js'], carica.VEN_FILES.slice(1));
 const nuovoCtx = () => carica.multi(F, '({ VEN, VGEO, VDAT })');
 const { VEN, VGEO } = nuovoCtx();
+// 20 semi: 6 qui, gli altri 14 e il tempo di generazione in test_ven_p07_lento.js
 const SEMI = Array.from({ length: 20 }, (_, i) => 100 + i * 37);
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const dim = M => M.G;
 const impronta = M => crypto.createHash('sha1').update(Buffer.from(M.T.buffer)).update(Buffer.from(M.F.buffer)).update(Buffer.from(M.S.buffer)).update(JSON.stringify(M.luoghi)).update(JSON.stringify(M.P)).digest('hex');
 
-for (const seme of SEMI) {
+function verifica(semi) {
+for (const seme of semi) {
   const M = VGEO.genera(seme, { mondo: 'ampio' }), G = dim(M), N = G * G, cell = l => Math.floor(l.y) * G + Math.floor(l.x);
   assert.strictEqual(G, 192);
   // nessuna terra sulle 8 celle del bordo
@@ -52,7 +54,23 @@ for (const seme of SEMI) {
   for (const p of M.P) { assert(p.castello >= 0 && M.luoghi[p.castello].tipo === 'castello'); assert(M.F[p.i] > 0 && M.PN[p.i] > 0); }
   // porti solo su acque navigabili: nessun luogo di mercato su un laghetto non c'è; i laghi grandi hanno almeno 40 celle
   for (const lg of M.laghi.slice(1)) assert.strictEqual(lg.grande, lg.n >= 40);
+  // colline e monti: né un altopiano di colline né monti ridotti a salsicciotti
+  const c = [0, 0, 0, 0, 0]; M.T.forEach(v => c[v]++); const terra = c[1] + c[2] + c[3] + c[4];
+  assert(c[3] / terra >= .08 && c[3] / terra <= .26, 'colline: ' + (100 * c[3] / terra).toFixed(1) + '%');
+  assert(c[4] / terra >= .04 && c[4] / terra <= .2, 'monti: ' + (100 * c[4] / terra).toFixed(1) + '%');
+  assert(c[4] >= c[3] * .2, 'pochi monti rispetto alle colline, seme ' + seme);
+  // la neve sta sui rilievi, non in pianura; la terra non è un quadrato (angoli del riquadro in mare)
+  for (let i = 0; i < N; i++) if (M.B[i] === 1) assert(M.T[i] >= 3, 'neve in pianura');
+  for (const [x, y] of [[20, 20], [G - 21, 20], [20, G - 21], [G - 21, G - 21]]) assert.strictEqual(M.T[y * G + x], 0, 'terra negli angoli, seme ' + seme);
+  // i castelli guardano ponti e passi (almeno un passo per dorsale)
+  const guardia = (x, y) => Math.min(...M.luoghi.filter(l => l.tipo === 'castello').map(l => Math.hypot(l.x - x, l.y - y)));
+  for (const p of M.P) assert(guardia(p.x, p.y) <= 8 * 1.5, 'ponte senza castello vicino: ' + guardia(p.x, p.y).toFixed(1) + ', seme ' + seme);
+  for (const ch of M.catene) assert(Math.min(...ch.passi.map(p => guardia(p[0] + .5, p[1] + .5))) <= 8 * 1.5, 'dorsale senza un passo guardato, seme ' + seme);
 }
+}
+module.exports = { verifica, impronta, nuovoCtx };
+if (require.main === module) {
+verifica(SEMI.slice(0, 6));
 
 // stesso seme, stessa mappa (anche in un altro contesto, come su un altro telefono)
 {
@@ -61,13 +79,8 @@ for (const seme of SEMI) {
   assert.strictEqual(VGEO.genera(7, { mondo: 'ampio' }), VGEO.genera(7, { mondo: 'ampio' }), 'cache per seme e grandezza');
   assert.notStrictEqual(VGEO.genera(7, { mondo: 'ampio' }), VGEO.genera(7, { mondo: 'vasto' }));
 }
-// il vasto: 240 celle; tempo di generazione ≤ 500 ms (la prima generazione a freddo è scartata, si prende la migliore di quattro semi)
-{
-  let meglio = 1e9, M;
-  for (const seme of [1, 2, 3, 4, 5]) { const t = Date.now(); M = VGEO.genera(seme, { mondo: 'vasto' }); const ms = Date.now() - t; if (seme > 1) meglio = Math.min(meglio, ms); assert.strictEqual(M.G, 240); }
-  console.log('generazione G=240: migliore di quattro, ' + meglio + ' ms');
-  assert(meglio <= 500, 'generazione troppo lenta: ' + meglio + ' ms');
-}
+// il vasto ha 240 celle (il tempo di generazione si misura in test_ven_p07_lento.js)
+assert.strictEqual(VGEO.genera(1, { mondo: 'vasto' }).G, 240);
 // salvataggi vecchi e mondi senza geo: mappaDi dà la mappa di oggi
 {
   const s0 = { seme: 29 }; assert.strictEqual(VEN.mappaDi(s0), VEN.mappa(29)); assert.strictEqual(VEN.mappaDi(s0).G, 128);
@@ -94,4 +107,5 @@ for (const seme of SEMI) {
   const passo = M.PS.findIndex(v => v); assert(Math.abs(m(passo) - sc * .7) < 1e-9);
   assert.strictEqual(VEN.molt({ seme: 100 }, 'marcia', { p: null, i: fiume }), 1, 'nei mondi vecchi nulla cambia');
 }
-console.log('test_ven_p07 ok (' + SEMI.length + ' semi)');
+console.log('test_ven_p07 ok (6 semi)');
+}
