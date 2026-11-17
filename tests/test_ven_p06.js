@@ -40,8 +40,17 @@ assert.strictEqual(JSON.stringify(C.taglia('boh')), JSON.stringify({ max: 34, W:
   const altri = s => s.u.filter(u => !(u.l === 'a' && u.c === 'c') && !u.cap).map(u => u.vel + '/' + u.att + '/' + u.dif);
   assert.strictEqual(altri(m).join(), altri(base).join(), 'gli altri non cambiano');
 }
+// …anche per chi entra con le ondate (i rinforzi nascono da `unita` come gli altri)
 {
-  const m = C.nuovo(grande({ mod: { b: { f: { att: 2, dif: .5 }, t: { git: .5 } } } }), { autoA: true }), b0 = C.nuovo(grande(), { autoA: true });
+  const m = C.nuovo(grande({ mod: { a: { c: { vel: .5 } } } }), { autoA: true }), base = C.nuovo(grande(), { autoA: true });
+  const vel0 = base.u.find(u => u.l === 'a' && u.c === 'c' && !u.cap).vel, id0 = m.uid;
+  let nuovi = [];
+  for (let i = 0; i < 3000 && !m.fine && !nuovi.length; i++) { C.passo(m, 1); nuovi = m.u.filter(u => u.id >= id0 && u.l === 'a' && u.c === 'c') }
+  assert(nuovi.length > 0, 'cavalieri di rinforzo in campo');
+  nuovi.forEach(u => assert.strictEqual(u.vel, vel0 * .5, 'rinforzo a velocità dimezzata'));
+}
+{
+  const m = C.nuovo(grande({ mod: { b:{ f: { att: 2, dif: .5 }, t: { git: .5 } } } }), { autoA: true }), b0 = C.nuovo(grande(), { autoA: true });
   const g = (s, c) => s.u.find(u => u.l === 'b' && u.c === c);
   assert.strictEqual(g(m, 'f').att, g(b0, 'f').att * 2); assert.strictEqual(g(m, 'f').dif, g(b0, 'f').dif * .5);
   assert.strictEqual(g(m, 't').git, Math.round(g(b0, 't').git * .5));
