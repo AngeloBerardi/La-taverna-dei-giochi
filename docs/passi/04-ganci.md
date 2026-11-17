@@ -143,9 +143,9 @@ Impronta identica (`node tools/avventura/impronta.js --controlla`).
 - (f) `VDAT.ACCESO` è tutto falso;
 - (g) i salvataggi di `tests/fixture/ven/` si aprono e `VEN.opz(s)` dà i valori di base;
 - (h) `VEN.opzione` cambia `taglia` e rifiuta le altre chiavi;
+- (i) `scripts/struttura.js` fallisce su un file finto con `Math.pow` (scritto in una cartella temporanea e poi cancellato);
 - (j) un ascoltatore di `azione` che risponde a `{a:'prova'}` dà `{s}`, senza ascoltatori `fai` dà «Azione sconosciuta»; un effetto `{t:'ven',k:'prova'}` aggiunto a `VEN.EFF_VOCI` arriva all'ascoltatore di `effetto`;
-- (k) `luogo` riceve `'razzia'` quando un signore dell'IA mette a sacco un villaggio e `'conquista'` da `VEN.conquista`;
-- (i) `scripts/struttura.js` fallisce su un file finto con `Math.pow` (scritto in una cartella temporanea e poi cancellato).
+- (k) `luogo` riceve `'razzia'` quando un signore dell'IA mette a sacco un villaggio e `'conquista'` da `VEN.conquista`.
 
 Scenari `ventura`, `ventura_stanza` e `ventura_regno` verdi; con `?ven=grandi` nessun errore in console.
 
