@@ -34,14 +34,14 @@ Prima del «Via» si divide la compagnia in reparti, li si mette nei settori con
    - Base: `sx`, `cx`, `dx` (tre terzi della fascia propria, profonda 30 passi; 36 se `scheda.esplora[l]≥3`).
    - `avan`: fascia di 12 passi più avanti, solo se `esplora[l] > esplora[altro]`.
    - `alt`: altura nella propria metà.
-   - `imb`: bosco nel terzo centrale, solo con `scheda.imboscata===l` (dal passo 32).
+   - `imb`: bosco nel terzo centrale in profondità (`y` fra H/3 e 2H/3, come `fsx` e `fdx`; la scatola del bosco non si taglia alla metà), solo con `scheda.imboscata===l` (dal passo 32).
    - Ingressi delle ondate: `fsx`, `fdx` (bordi laterali nel terzo centrale) e `retro` (il proprio bordo).
-   - In assedio: il difensore ha `mura` e `cortile`; l'attaccante solo `cx` più l'ingresso `retro`.
+   - In assedio: il difensore ha `mura` e `cortile`; l'attaccante solo `cx` più l'ingresso `retro` (niente `avan`, `alt`, `imb`, qualunque sia l'esplorazione).
 3. **Schierare**: `VCAM.schiera(s,{l,r,x,y})` solo a `t===0` e dentro un settore valido; rimette il reparto in fila con `posto`. `VCAM.dividi(s,{l,r})` divide a metà (nuovo reparto accanto); `VCAM.unisci(s,{l,r,r2})` unisce due reparti dello stesso tipo. La formazione a `t===0` cambia senza attesa.
 4. **Ondate**: `s.ond[l]=[{id,tr:[{t,n}],ing:'retro'|'fsx'|'fdx',quando:{k:'comando'|'linea'|'tempo',v},ord:'carica'|'tieni'|'segui',fatta:false}]`, al massimo 2. Le truppe di un'ondata **non** entrano con i rinforzi automatici. Scattano col comando del giocatore (`VCAM.ondata(s,{l,id})`), oppure quando gli uomini vivi in campo scendono sotto `v`% di quelli iniziali (`linea`), oppure all'istante `v` (`tempo`). Entrano come reparti nuovi dal loro ingresso, 2 passi dentro il bordo, a gruppi di `ONDATA` per istante finché c'è posto sotto il tetto. Evento `{t:'ondata',l,id,ing}`.
    - `VCAM.preparaOndata(s,{l,id,tr,ing,quando,ord})` solo a `t===0`.
    - Le truppe non assegnate né al campo né alle ondate restano **riserva generale** con i rinforzi automatici di oggi.
-5. **Chi si schiera per primo**: `scheda.esplora={a,b}` (assente → 0). Il lato con l'esplorazione minore (a parità il lato `a`) è `s.primo`. Quando il lato `a` preme «Pronto» (`VCAM.pronto(s,'a')`) e il lato `b` è secondo, l'IA rifà il proprio schieramento guardando il tuo (dal passo 21 in poi con `VCONS.schiera`; prima resta quello di nascita). Se secondo sei tu, vedi subito lo schieramento nemico.
+5. **Chi si schiera per primo**: `scheda.esplora={a,b}` (assente → 0, anche senza `esplora` quando la scheda ha `reparti` od `ondate`: parità, primo il lato `a`). Il lato con l'esplorazione minore (a parità il lato `a`) è `s.primo`. Quando il lato `a` preme «Pronto» (`VCAM.pronto(s,'a')`) e il lato `b` è secondo, l'IA rifà il proprio schieramento guardando il tuo (dal passo 21 in poi con `VCONS.schiera`; prima resta quello di nascita). Se secondo sei tu, vedi subito lo schieramento nemico.
 6. **IA alla nascita** (prima del passo 21): il lato `b` mette i reparti come oggi e non prepara ondate.
 7. **Compagnia**: chiunque schiera qualunque reparto; le mosse nuove (`schiera`, `dividi`, `unisci`, `prepara`, `ondata`, `pronto`) passano come gli altri ordini con `seat` (in `28m`).
 8. **Zone per la strategia** (le userà il passo 32):
