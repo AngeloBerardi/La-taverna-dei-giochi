@@ -80,7 +80,7 @@ const VCAM=(()=>{
  const vivi=(s,l)=>s.u.filter(u=>u.l===l&&u.st==='vivo');
  const riserva=(s,l)=>s.ris[l].reduce((a,x)=>a+x.n,0);
  // il capitano di un posto; senza posto, il primo ancora in piedi (è lui che «Seguimi» segue)
- const capU=(s,seat)=>{if(!s.capi||!s.capi.length)return null;if(seat!=null)return s.u.find(u=>u.id===s.capi[seat])||null;let primo=null;for(const id of s.capi){const u=s.u.find(u=>u.id===id);if(!primo)primo=u;if(u&&u.st==='vivo')return u}return primo};
+ const capU=(s,seat)=>{if(!s.capi||!s.capi.length)return null;if(seat!=null)return perId(s.u,s.capi[seat])||null;let primo=null;for(const id of s.capi){const u=perId(s.u,id);if(!primo)primo=u;if(u&&u.st==='vivo')return u}return primo};
  // ---------- ordini ----------
  function ordina(s,o){if(s.fine)return{err:'La battaglia è finita'};if(s.tipo==='arena')return{err:'In lizza non si danno ordini'};const l=o.l||'a',gs=o.g==='tutti'||!o.g?GR:[o.g];const cap=o.seat!=null&&capU(s,o.seat)&&capU(s,o.seat).st==='vivo'?capU(s,o.seat):capU(s);
   if(o.t==='forma')return formazione(s,o,l,gs);
@@ -184,42 +184,36 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(dist<26||s.t>900){ia.f=1}}
   else{if(ia.m!==1){ia.m=1;o.c.fm='cuneo';if(nt>ne.filter(u=>u.c==='c').length&&!ne.some(u=>u.c==='c'))o.f.fm='larga'}
    o.f.t='carica';o.c.t='carica';if(dist<9||s.t>ia.t0+200)o.t.t='carica';if(!ia.t0)ia.t0=s.t}}
- // ---------- griglia spaziale ----------
- // Celle da CELLA passi, rifatta a ogni istante in array piatti (`ini` = inizio di ogni cella, `el` = indici nella `lista`, in ordine crescente).
- // Le posizioni cambiano durante l'istante: i limiti tengono conto di uno spostamento fino a MARGINE.
- const GRIGLIA={CELLA:5,MARGINE:2.5},VIC={d:0};
- const cella=(v,n)=>Math.max(0,Math.min(n-1,Math.floor(v/GRIGLIA.CELLA)));
- function riempi(lista,W,H){const cw=Math.ceil(W/GRIGLIA.CELLA)+1,ch=Math.ceil(H/GRIGLIA.CELLA)+1,ini=new Array(cw*ch+1).fill(0),el=new Array(lista.length),cc=new Array(lista.length);
-  for(let i=0;i<lista.length;i++){const c=cella(lista[i].y,ch)*cw+cella(lista[i].x,cw);cc[i]=c;ini[c+1]++}
-  for(let c=0;c<cw*ch;c++)ini[c+1]+=ini[c];
-  const pos=ini.slice(0,cw*ch);for(let i=0;i<lista.length;i++)el[pos[cc[i]]++]=i;
-  return{cw,ch,ini,el,lista}}
- // il nemico più vicino (distanza + `pen` se sta dall'altra parte del muro); a pari distanza il primo della lista: come scorrere tutti
- function piuVicino(g,u,muro){let m=null,md=1e9,mi=1e9;const cx=cella(u.x,g.cw),cy=cella(u.y,g.ch),pen=muro?6:0;
-  let visite=0;
-  for(let r=0;r<=g.cw+g.ch;r++){if(r>1&&md<(r-1)*GRIGLIA.CELLA-GRIGLIA.MARGINE)break;
-   if(visite>g.lista.length){// nemici lontani: scorrere la lista costa meno di allargare ancora l'anello (stesso spareggio per indice)
-    m=null;md=1e9;for(let ix=0;ix<g.lista.length;ix++){const q=g.lista[ix],d=d2(u,q)+(pen&&(q.y<muro)!==(u.y<muro)?pen:0);if(d<md){md=d;m=q}}break}
-   visite+=r?8*r:1;
-   for(let yy=Math.max(0,cy-r);yy<=Math.min(g.ch-1,cy+r);yy++){const passo=(yy===cy-r||yy===cy+r)?1:2*r||1;
-    for(let xx=cx-r;xx<=cx+r;xx+=passo){if(xx<0||xx>=g.cw)continue;const c=yy*g.cw+xx;
-     for(let e=g.ini[c];e<g.ini[c+1];e++){const ix=g.el[e],q=g.lista[ix],d=d2(u,q)+(pen&&(q.y<muro)!==(u.y<muro)?pen:0);if(d<md||(d===md&&ix<mi)){md=d;m=q;mi=ix}}}}}
-  VIC.d=md;return m}
+ // ---------- appoggi per l'istante (stessi risultati del codice semplice, meno lavoro) ----------
+ // l'unità con quell'id: gli id nascono in fila (1, 2, 3…) e `s.u` non perde mai nessuno, quindi sta in U[id-1]; altrimenti si cerca
+ const perId=(U,id)=>{const q=U[id-1];return q&&q.id===id?q:U.find(x=>x.id===id)};
+ // il nemico più vicino tra quelli in `lista` (distanza + 6 se sta dall'altra parte del muro); a pari distanza il primo della lista
+ const VIC={d:0};
+ function piuVicino(lista,u,muro){let m=null,md=1e9;for(let i=0;i<lista.length;i++){const q=lista[i],d=d2(u,q)+(muro&&(q.y<muro)!==(u.y<muro)?6:0);if(d<md){md=d;m=q}}VIC.d=md;return m}
+ // non ci si sovrappone: a coppie, nell'ordine di sempre, su array numerici riusati (non fanno parte dello stato) e poi riscritti nelle unità
+ let SX=new Float64Array(256),SY=new Float64Array(256),SV=new Uint8Array(256),SK=new Uint8Array(256),SL=new Uint8Array(256);
+ function separa(vv){const n=vv.length;if(SX.length<n){const m=n*2;SX=new Float64Array(m);SY=new Float64Array(m);SV=new Uint8Array(m);SK=new Uint8Array(m);SL=new Uint8Array(m)}
+  const X=SX,Y=SY,V=SV,K=SK,L=SL;
+  for(let i=0;i<n;i++){const u=vv[i];X[i]=u.x;Y[i]=u.y;V[i]=u.st==='vivo'?1:0;K[i]=u.c==='c'||u.cav?1:0;L[i]=u.l==='a'?1:0}
+  for(let i=0;i<n;i++){if(!V[i])continue;for(let j=i+1;j<n;j++){if(!V[j])continue;const dx=X[j]-X[i],dy=Y[j]-Y[i];if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
+    const r0=K[i]||K[j]?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(L[i]===L[j]?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
+    X[i]-=ox*k;Y[i]-=oy*k;X[j]+=ox*k;Y[j]+=oy*k}}
+  for(let i=0;i<n;i++)if(V[i]){const u=vv[i];u.x=X[i];u.y=Y[i]}}
  // ---------- un istante ----------
  function istante(s){s.t++;const U=s.u;
   // frecce in arrivo
-  if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=U.find(u=>u.id===v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,U.find(u=>u.id===v.da))}}s.voli=resto}
+  if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=perId(U,v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,perId(U,v.da))}}s.voli=resto}
   if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
   const cap0=capU(s),vv=U.filter(u=>u.st==='vivo');
-  const GRI={a:riempi(vv.filter(u=>u.l==='a'),s.W,s.H),b:riempi(vv.filter(u=>u.l==='b'),s.W,s.H)};
+  const per={a:[],b:[]};for(const u of vv)per[u.l].push(u);
   let spingono=0;const conta={a:{f:0,t:0,c:0},b:{f:0,t:0,c:0}},idx={};for(const u of vv)if(!u.cap){idx[u.id]=conta[u.l][u.c]++}
   for(const u of U){if(u.st==='ko')continue;u.px=u.x;u.py=u.y;if(u.cd>0)u.cd--;
    if(u.st==='fuga'){const ty=u.l==='a'?s.H+2:-2;const dy=ty-u.y;u.y+=(dy>0?1:-1)*u.vel*C.PASSO*1.15;u.fy=dy>0?1:-1;u.fx=0;if(u.y<=.2||u.y>=s.H-.2){u.st='via';s.fug[u.l]++}continue}
    if(u.st!=='vivo')continue;
    if(u.sal){if(u.sal>s.t)continue;u.y=s.muro-.6;u.sal=0;u.scI=-1;u.cd=Math.max(u.cd,C.AS.FIATO)}// in cima alla scala: scende sul camminamento
    // bersaglio: ogni mezzo secondo si guarda intorno
-   const nem=u.l==='a'?'b':'a',o=u.cap?null:s.ord[u.l][u.c];let b=u.b>=0?U.find(q=>q.id===u.b&&q.st==='vivo'):null;
-   if(!b||(s.t+u.id)%5===0){const m=piuVicino(GRI[nem],u,s.muro&&!u.git?s.muro:0),md=m?VIC.d:1e9;b=m;u.b=m?m.id:-1;u.bd=md}
+   const nem=u.l==='a'?'b':'a',o=u.cap?null:s.ord[u.l][u.c];let b=u.b>=0?perId(U,u.b):null;if(b&&b.st!=='vivo')b=null;
+   if(!b||(s.t+u.id)%5===0){const m=piuVicino(per[nem],u,s.muro&&!u.git?s.muro:0),md=m?VIC.d:1e9;b=m;u.b=m?m.id:-1;u.bd=md}
    if(s.muro&&u.l==='a'&&u.y>s.muro){
     // al piede di una scala libera, chi può sale (lento: non si muove né colpisce finché sale)
     if(puoSalire(u)&&u.y>=s.muro+.4&&u.y<=s.muro+1&&b&&b.y<s.muro){const SC=s.scale||[];for(let i=0;i<SC.length;i++)if(Math.abs(u.x-SC[i])<.8&&s.scalaT[i]<=s.t){u.sal=s.t+C.AS.SCALA;u.scI=i;s.scalaT[i]=u.sal;s.ev.push({t:'scala',id:u.id,i});break}if(u.sal>s.t)continue}
@@ -230,7 +224,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    let ax=u.x,ay=u.y;// l'ancora: dove dovrei stare
    if(u.cap){if(s.autoA){const of=s.ord.a.f,db0=b?d2(u,b):1e9;if(of.t!=='carica'&&db0>6){muovi(s,u,of.x,of.y+3,.6);continue}
      if(b&&db0>C.MISCHIA+.3){let amici=0;for(const q of vv)if(q.l==='a'&&q!==u&&d2(q,b)<db0+1)amici++;if(amici<2&&db0>4&&s.tipo!=='arena'){continue}muovi(s,u,b.x,b.y,.6);continue}}
-    if(u.ob>=0){const q=U.find(x=>x.id===u.ob&&x.st==='vivo');if(q)b=q;else u.ob=-1}
+    if(u.ob>=0){const q=perId(U,u.ob);if(q&&q.st==='vivo')b=q;else u.ob=-1}
     const db=b?d2(u,b):1e9,mt=!!b&&muroTra(s,u,b);
     if(u.vx!=null&&!s.autoA){const dv=rad((u.vx-u.x)*(u.vx-u.x)+(u.vy-u.y)*(u.vy-u.y));if(dv>.4&&!(b&&db<=C.MISCHIA+.2&&u.ob>=0&&!mt)){const st=muovi(s,u,u.vx,u.vy);u.ca=u.cav?Math.min(1,u.ca+st*.12):0;if(b&&db<=C.MISCHIA+.3&&!mt&&u.cd<=0)mischia(s,u,b);continue}u.vx=null}
     if(b&&u.git&&db>3.2&&db<=gittata(s,u,b)&&(u.ob>=0||s.autoA||u.vx==null)){if(u.cd<=0)tiro(s,u,b,db);continue}
@@ -250,10 +244,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    // chi tiene la posizione non insegue chi sta oltre il muro (resta al portone o sul camminamento)
    if(b&&(libero||!mt&&(db<=ingaggio||rad((b.x-ax)*(b.x-ax)+(b.y-ay)*(b.y-ay))<=ingaggio))){if(u.git&&libero&&db>gt){muovi(s,u,b.x,b.y)}else if(u.git&&libero){if(u.cd<=0)tiro(s,u,b,db)}else{const st=muovi(s,u,b.x,b.y);if(u.c==='c')u.ca=Math.min(1,u.ca+st*.12)}continue}
    const st=muovi(s,u,ax,ay);if(u.c==='c')u.ca=st>.2?Math.min(1,u.ca+st*.06):0;if(st<.02&&b){const dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d}}
-  // non ci si sovrappone (doppio ciclo con scarto rapido: misura meglio di una griglia, e non dipende dalla deriva delle posizioni)
-  for(let i=0;i<vv.length;i++){const a=vv[i];if(a.st!=='vivo')continue;for(let j=i+1;j<vv.length;j++){const b=vv[j];if(b.st!=='vivo')continue;const dx=b.x-a.x,dy=b.y-a.y;if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
-    const r0=(a.c==='c'||b.c==='c'||a.cav||b.cav)?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(a.l===b.l?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
-    a.x-=ox*k;a.y-=oy*k;b.x+=ox*k;b.y+=oy*k}}
+  separa(vv);// non ci si sovrappone
   if(s.tipo==='arena')for(const u of vv){const dx=u.x-s.W/2,dy=u.y-s.H/2,d=rad(dx*dx+dy*dy);if(d>C.ARENA){u.x=s.W/2+dx/d*C.ARENA;u.y=s.H/2+dy/d*C.ARENA}}
   if(s.muro)for(const u of vv){const m=s.muro;if(Math.abs(u.y-m)<.5&&!s.varchi.some(g=>u.x>g[0]&&u.x<g[1]))u.y=u.py<m?m-.5:m+.5;u.x=stretto(u.x,.5,s.W-.5);u.y=stretto(u.y,.5,s.H-.5)}
   // rinforzi, rotta, fine
