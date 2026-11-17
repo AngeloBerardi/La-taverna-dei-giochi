@@ -185,7 +185,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
    dentro:-1,davanti:-1,assedio:null,scontri:[],prig:[],incarichi:[],log:[],ev:[],fama:0,slancio:0,stat:{vinte:0,perse:0,uccisi:0,covi:0,rovine:0},prigioniero:null,rotta:0,tregua:0,cadute:{},over:null,meteo:'sereno',
    cap:nuovoCap(o.nome||'Capitano'),soci:(o.soci||[]).slice(0,3).map(x=>nuovoCap(x&&x.nome||'Capitano'))};
   // opzioni di partita e mondo nuovo: vanno messi prima di generare la mappa (solo se chiesti, così i mondi di prima restano uguali)
-  if(o.opz)s.opz=Object.assign({},o.opz);if((o.opz&&o.opz.geo===2)||D.ACCESO.mondo2)s.geo=2;
+  if(o.opz)s.opz=Object.assign({},o.opz);if((o.opz&&o.opz.geo===2)||(D.ACCESO&&D.ACCESO.mondo2))s.geo=2;
   const M=VEN.mappaDi(s),RG=VEN.regni(s);
   for(const f of RG)s.rel[f]=0;
   const r=rnd(s);
