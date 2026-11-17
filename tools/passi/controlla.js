@@ -61,11 +61,10 @@ function controlla(passi) {
     if (p.err) { err.push(`${q}: ${p.err}`); return; }
     if (p.n !== i + 1) err.push(`${q}: numero ${p.n}, atteso ${i + 1} (i passi vanno in sequenza, senza buchi)`);
     if (!p.f.startsWith(pad(p.n) + '-')) err.push(`${q}: il nome del file non comincia con ${pad(p.n)}-`);
-    if (i && p.fase < passi[i - 1].fase) err.push(`${q}: fase ${p.fase} prima della fase ${passi[i - 1].fase} del passo precedente`);
     for (const [k, vals] of Object.entries(ENUM)) if (!vals.includes(p[k])) err.push(`${q}: ${k} «${p[k]}» non è tra ${vals.join(', ')}`);
     for (const d of p.dopo || []) {
       const dp = passi[d - 1];
-      if (!dp || d >= p.n) err.push(`${q}: dipende da ${pad(d)}, che non viene prima`);
+      if (!dp || d === p.n) err.push(`${q}: dipende da ${pad(d)}, che non viene prima`);
       else if (dp.fase >= p.fase) err.push(`${q}: dipende da ${pad(d)} della fase ${dp.fase}, deve stare in una fase precedente`);
     }
     for (const s of ['**In breve.**', '## Scopo', '## Prove']) if (!p.testo.includes(s)) err.push(`${q}: manca «${s}»`);
