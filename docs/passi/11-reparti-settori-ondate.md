@@ -78,7 +78,10 @@ Scheda: `reparti` (true per usarli), `ondate` (true per permetterle), `esplora:{
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Prima del «Via» dividi la compagnia in reparti (fanti, tiratori, cavalieri, anche più di uno per tipo, fino a sei) e mettili nelle zone che il terreno e i tuoi esploratori ti concedono: più esplori, più avanti puoi schierarti.
+Tieni qualche uomo fuori dal campo come ondata: entra dal retro o dai fianchi quando lo ordini, quando la tua linea si è assottigliata o a un'ora fissata, finché c'è posto.
+Chi esplora peggio si schiera per primo: l'altro lo vede e risponde. Una volta premuto «Pronto» non si cambia più niente.
+Nei pali i cavalli rallentano e non si carica; una colonna presa di sorpresa resta ferma un momento.
 
 ## Fuori scopo
 
