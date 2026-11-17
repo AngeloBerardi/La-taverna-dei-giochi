@@ -28,6 +28,16 @@ Object.assign(VEN,(()=>{
  // prezzo di una merce in un luogo: sale quando la scorta è bassa. verso = 1 compri, -1 vendi
  function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
   return Math.max(1,Math.round(D.MERCI[m].base*k*(verso>0?1.12-c*.02:.88+c*.02)*VEN.molt(s,'prezzo',{lid:l.id,m,compra:verso>0})))}
+ // prezzo d'acquisto medio di una merce nei luoghi noti con mercato (pura); se nessuno la tratta vale il prezzo base
+ function prezzoMedio(s,m){const v=s.l.filter(l=>l.noto&&MERCATO[l.tipo]).map(l=>prezzo(s,l,m,1));return v.length?Math.round(v.reduce((a,x)=>a+x,0)/v.length):D.MERCI[m].base}
+ // novità di un luogo, al più tre, in quest'ordine: torneo, incarico, compagno, pezzo unico, assedio
+ function segnali(s,lid){const l=s.l[lid];if(!l)return[];const o=[],g=giorno(s);
+  if(VEN.torneoOggi(s,l))o.push({k:'torneo',tx:'Torneo oggi'});
+  if(l.inc&&!l.inc.preso)o.push({k:'incarico',tx:'Incarico'});
+  if(D.COMPAGNI.some(c=>s.compagni[c.id]===l.id))o.push({k:'compagno',tx:'Compagno in taverna'});
+  if(l.unica)o.push({k:'unico',tx:'Pezzo unico dall\'armaiolo'});
+  if(l.ass||(s.assedio&&s.assedio.lid===l.id))o.push({k:'assedio',tx:'Assedio in vista'});
+  return o.slice(0,3)}
  const renditaL=l=>l.tipo==='villaggio'?Math.round(l.prosp*2.5):l.tipo==='porto'?Math.round(l.prosp*3.5):l.tipo==='castello'?120:l.tipo==='citta'?Math.round(l.prosp*7):0;
  // rendite: solo i luoghi che tieni (quelli dati in feudo rendono al signore) e, da vassallo, i feudi del re; il malcontento del regno le riduce
  function rendite(s){let x=0;for(const l of s.l)if((l.faz==='tu'&&l.sig<0)||(s.servizio&&s.servizio.tipo==='vas'&&l.sig===-2)){const m=VEN.molt(s,'rendita',{lid:l.id}),v=renditaL(l);x+=m===1?v:Math.round(v*m)}
@@ -119,4 +129,4 @@ Object.assign(VEN,(()=>{
   if(z.a==='pace'){const f=l.faz;if(!VEN.regni(s).includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||(s.corona?!inGuerra(s,'tu',con):s.rel[con]>-25))return{err:'Non siete in guerra'};const oro=400+Math.max(0,Math.round(-s.rel[con]*6));if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=Math.max(s.rel[con],-5);if(s.corona)VEN.faiPace(s,'tu',con);L(s,'Paghi un tributo di '+oro+' monete: pace con '+VEN.rg(s,con).breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
- return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,prezzo,renditaL,rendite,libera,titoloInc,fai}})());
+ return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,prezzo,prezzoMedio,segnali,renditaL,rendite,libera,titoloInc,fai}})());
