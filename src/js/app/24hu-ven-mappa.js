@@ -209,7 +209,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
  // si tengono solo i tasselli attorno alla vista (al massimo 25, i più vicini) e se ne costruiscono 2 per fotogramma; da lontano resta la texture unica
  function gestisci(){const CH=K.CH,NC=K.NC,G=K.M.G;K.nuovi=0;K.lontano=K.alt>LONT;K.far.visible=K.lontano;
   if(K.lontano){for(const k in K.tess)K.tess[k].visible=false;return}
-  const vx=K.alt*1.2+8,vz=K.alt*1.7+8,fx=K.fuoco.x,fz=K.fuoco.z,c0=Math.max(0,Math.floor((fx-vx)/CH)),c1=Math.min(NC-1,Math.floor((fx+vx)/CH)),r0=Math.max(0,Math.floor((fz-vz)/CH)),r1=Math.min(NC-1,Math.floor((fz+vz)/CH)),w=[];
+  const asp=aspetto(),vx=K.alt*asp+CH*.7,vz=K.alt*1.3+CH*.7,fx=K.fuoco.x,fz=K.fuoco.z,c0=Math.max(0,Math.floor((fx-vx)/CH)),c1=Math.min(NC-1,Math.floor((fx+vx)/CH)),r0=Math.max(0,Math.floor((fz-vz)/CH)),r1=Math.min(NC-1,Math.floor((fz+vz)/CH)),w=[];
   for(let cj=r0;cj<=r1;cj++)for(let ci=c0;ci<=c1;ci++){const dx=(ci+.5)*CH-fx,dz=(cj+.5)*CH-fz;w.push([dx*dx+dz*dz,ci,cj])}
   w.sort((a,b)=>a[0]-b[0]);w.length=Math.min(w.length,MAXT);const vol={};for(const t of w)vol[t[2]*NC+t[1]]=1;
   for(const k in K.tess){if(vol[k])K.tess[k].visible=true;else{K.libera(K.tess[k]);delete K.tess[k];K.nTess--}}
@@ -232,21 +232,23 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
  // le celle viste (il raggio cresce con l'esplorazione); si ricordano per telefono, un bit per cella
  function esplora(dt,s){K.tEsp=(K.tEsp||0)-dt;if(K.tEsp>0)return;K.tEsp=.25;const tu=VEN.TU(s),G=K.M.G,r=Math.max(6,Math.min(24,(VEN.vista?VEN.vista(s):8)*1.2)),cx=Math.floor(tu.x),cy=Math.floor(tu.y);let n=0;
   for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(G-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(G-1,Math.ceil(cx+r));x++){const i=y*G+x;if(K.visto[i]||(x-cx)*(x-cx)+(y-cy)*(y-cy)>r*r)continue;K.visto[i]=1;K.fogD[i*4+3]=0;n++}
-  if(n){K.fogT.needsUpdate=true;K.sporco=1;K.salva=1}
-  if(K.salva&&K.t-(K.tSalva||-9)>3){K.salva=0;K.tSalva=K.t;try{const b=new Uint8Array(G*G+7>>3);for(let i=0;i<G*G;i++)if(K.visto[i])b[i>>3]|=1<<(i&7);let z='';for(let i=0;i<b.length;i++)z+=String.fromCharCode(b[i]);localStorage.setItem('ven-visto-'+s.seme,btoa(z))}catch(e){}}}
+  if(n){K.fogT.needsUpdate=true;K.sporco=1;K.salva=1;K.sSeme=s.seme}}
+ // si salva solo al cambio di giorno e quando la pagina si nasconde, non a ogni passo
+ function salvaVisto(){if(!K.salva||!K.visto||!K.M)return;K.salva=0;const G=K.M.G;try{const b=new Uint8Array(G*G+7>>3);for(let i=0;i<G*G;i++)if(K.visto[i])b[i>>3]|=1<<(i&7);let z='';for(let i=0;i<b.length;i++)z+=String.fromCharCode(b[i]);localStorage.setItem('ven-visto-'+K.sSeme,btoa(z))}catch(e){}}
+ if(typeof document!=='undefined'){document.addEventListener('visibilitychange',()=>{if(document.hidden)salvaVisto()});window.addEventListener('pagehide',salvaVisto)}
  // bussola e mini-mappa nell'angolo: la stessa texture, il riquadro della vista, la compagnia; un tocco porta lo sguardo lì
  function mini(dt,s){const host=document.querySelector('.vn-etc'),par=host&&host.parentNode;if(!par)return;
   if(!K.mini||K.mini.dataset.seme!==String(s.seme)){if(K.mini&&K.mini.parentNode)K.mini.parentNode.removeChild(K.mini);const c=document.createElement('canvas');c.width=c.height=144;c.className='vn-mini';c.dataset.seme=s.seme;c.setAttribute('aria-label','Mini-mappa: tocca per andare lì');
    c.style.cssText='position:absolute;right:8px;top:calc(122px + env(safe-area-inset-top,0px));width:72px;height:72px;border:2px solid #1a120a;border-radius:6px;box-shadow:0 0 0 1px #b8883c;pointer-events:auto;touch-action:none;z-index:6;background:#1d4f78';
    const vai=e=>{e.stopPropagation();e.preventDefault();const r=c.getBoundingClientRect(),G=K.M.G;guarda(Math.max(0,Math.min(G,(e.clientX-r.left)/r.width*G)),Math.max(0,Math.min(G,(e.clientY-r.top)/r.height*G)))};
    c.addEventListener('pointerdown',vai);c.addEventListener('click',e=>e.stopPropagation());K.mini=c}
-  if(!K.mini.isConnected)par.appendChild(K.mini);K.tMini=(K.tMini||0)-dt;if(K.tMini>0||!K.cvOk)return;K.tMini=.2;
+  if(!K.mini.isConnected)par.appendChild(K.mini);K.tMini=(K.tMini||0)-dt;if(K.tMini>0||!K.cvOk)return;K.tMini=.4;
   const c=K.mini,x=c.getContext('2d'),W=c.width,G=K.M.G,k=W/G,tu=VEN.TU(s),asp=aspetto(),me=K.P[0]||tu;x.imageSmoothingEnabled=true;x.drawImage(K.cv,0,0,W,W);
   x.strokeStyle='#fff';x.lineWidth=2;x.strokeRect((K.fuoco.x-K.alt*asp)*k,(K.fuoco.z-K.alt/SEN)*k,K.alt*asp*2*k,K.alt/SEN*2*k);
   x.fillStyle='#d98a1f';x.beginPath();x.arc(me.x*k,me.y*k,5,0,6.283);x.fill();x.stroke();
   x.fillStyle='rgba(20,14,8,.7)';x.beginPath();x.arc(16,18,13,0,6.283);x.fill();x.fillStyle='#f4e9c8';x.beginPath();x.moveTo(16,6);x.lineTo(21,19);x.lineTo(11,19);x.fill();x.font='800 12px sans-serif';x.textAlign='center';x.fillText('N',16,32)}
  function vistaGrande(dt,s,L,lm){gestisci();const nt=L.notte,r=lm*(1-nt*.25),g=lm*(1-nt*.1),b=Math.min(1,lm+nt*.1);K.acqua.color.setRGB(r,g,b);K.far.material.color.setRGB(r,g,b);
-  const gi=VEN.giorno(s);if(K.gBordi!==gi){K.gBordi=gi;confini(s);K.sporco=1}
+  const gi=VEN.giorno(s);if(K.gBordi!==gi){K.gBordi=gi;confini(s);K.sporco=1;salvaVisto()}
   if(K.nebbia)esplora(dt,s);
   if(K.sporco&&(!K.cvOk||K.t-K.tUlt>.5)){K.sporco=0;K.tUlt=K.t;ridisegna()}
   mini(dt,s)}

@@ -35,7 +35,7 @@ async def sc_p14_mappa_grande_vista(b, srv):
       const o=VenMappa.passo;window.__t0=performance.now();
       window.__iv=setInterval(()=>{const K=VenMappa.K;window.__max=Math.max(window.__max,Object.keys(K.tess).length);window.__nuovi=Math.max(window.__nuovi,K.nuovi||0)},16)})()""")
     await pg.wait_for_timeout(30000)
-    r = await pg.evaluate("({max:window.__max,nuovi:window.__nuovi,n:Object.keys(VenMappa.K.tess).length,d:VEN.dist(VEN.TU(Ven.V.s),{x:Ven.V.s.cap?0:0,y:0})})")
+    r = await pg.evaluate("({max:window.__max,nuovi:window.__nuovi,n:Object.keys(VenMappa.K.tess).length})")
     check(r['max'] <= 25 and r['max'] >= 2, f'tasselli vivi al massimo {r["max"]} (<= 25)')
     check(r['nuovi'] <= 2, f'al massimo {r["nuovi"]} tasselli nuovi per fotogramma')
     check(not pg.errs and not pg.cons, f'30 s di marcia senza errori: {pg.errs[:3]} {pg.cons[:3]}')
@@ -46,10 +46,12 @@ async def sc_p14_mappa_grande_vista(b, srv):
     check(abs(fz['x'] - p['x']) < 3 and abs(fz['z'] - p['y']) < 3, f'lo sguardo sta sul ponte {fz} {p}')
     check(await pg.evaluate("VenMappa.K.nTess>=1&&VenMappa.K.nTess<=25"), 'vicino al ponte i tasselli sono costruiti')
     d = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    check(await pg.evaluate("!VenMappa.K.far.visible"), 'vicino al ponte si vedono i tasselli veri e non la texture unica')
     await pg.screenshot(path=os.path.join(d, 'p14-ponte.png'))
     # porto su un lago grande, se c'è
-    lago = await pg.evaluate("""(()=>{const M=VenMappa.K.M,G=M.G;const pr=M.luoghi.filter(l=>l.tipo==='porto'||l.tipo==='citta');for(const l of pr){const i=Math.floor(l.y)*G+Math.floor(l.x);for(let oy=-3;oy<=3;oy++)for(let ox=-3;ox<=3;ox++){const j=(Math.floor(l.y)+oy)*G+Math.floor(l.x)+ox;if(M.LG[j]&&M.laghi[M.LG[j]]&&M.laghi[M.LG[j]].grande){VenMappa.guarda(l.x,l.y);VenMappa.K.alt=12;return[l.x,l.y]}}}return null})()""")
+    lago = await pg.evaluate("""(()=>{const M=VenMappa.K.M,G=M.G;const lon=l=>Math.min(...M.luoghi.filter(o=>o!==l).map(o=>Math.hypot(o.x-l.x,o.y-l.y))),pr=M.luoghi.filter(l=>(l.tipo==='porto'||l.tipo==='citta')&&lon(l)>=4).sort((a,b)=>lon(b)-lon(a));for(const l of pr){const i=Math.floor(l.y)*G+Math.floor(l.x);for(let oy=-3;oy<=3;oy++)for(let ox=-3;ox<=3;ox++){const j=(Math.floor(l.y)+oy)*G+Math.floor(l.x)+ox;if(M.LG[j]&&M.laghi[M.LG[j]]&&M.laghi[M.LG[j]].grande){VenMappa.guarda(l.x,l.y);VenMappa.K.alt=18;return[l.x,l.y]}}}return null})()""")
     await pg.wait_for_timeout(2500)
+    check(lago is not None, 'esiste un porto o una città isolata (>= 4 celle dagli altri luoghi) su un lago grande')
     if lago:
         await pg.screenshot(path=os.path.join(d, 'p14-lago.png'))
     # pizzico al massimo: texture unica
@@ -72,7 +74,7 @@ async def sc_p14_mappa_grande_vista(b, srv):
     # nebbia dell'ignoto: le celle viste si ricordano nel telefono, il velo copre il resto
     ctx, pg = await _avvia(b, srv, srv.url + '?ven=mondo2', 'vasto', 'true')
     await pg.evaluate("(()=>{const s=Ven.V.s,tu=VEN.TU(s);const L=s.l.filter(l=>l.tipo==='citta'||l.tipo==='villaggio').sort((a,b)=>VEN.dist(b,tu)-VEN.dist(a,tu));for(const l of L){const r=VEN.ordina(s,{t:'entra',lid:l.id});if(r&&!r.err)break}Ven.V.vel=4})()")
-    await pg.wait_for_timeout(8000)
+    await pg.wait_for_timeout(8000); await pg.evaluate("window.dispatchEvent(new Event('pagehide'))")
     nb = await pg.evaluate("(()=>{const K=VenMappa.K,v=K.visto;let n=0;for(let i=0;i<v.length;i++)n+=v[i];return{n,tot:v.length,k:Object.keys(localStorage).filter(k=>k.indexOf('ven-visto-')===0).length,nebbia:K.nebbia,velo:!!K.velo}})()")
     check(nb['nebbia'] and nb['velo'] and 0 < nb['n'] < nb['tot'] // 2 and nb['k'] == 1, f'nebbia: solo le celle percorse sono viste e si ricordano: {nb}')
     await pg.screenshot(path=os.path.join(d, 'p14-nebbia.png'))
