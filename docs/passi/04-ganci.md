@@ -76,13 +76,20 @@ Dopo questo passo ogni novità del mondo vive in un file suo e si attacca con un
    | `battaglia(s,riep,out)` | in fondo a `esito` | memoria, esperienza |
    | `anteprima(s,a)` | in fondo a `VEN.anteprima` | aggiungere rango, stima, scelte |
    | `scelta(s,o)` | in `VEN.scegli`, per una scelta che il nucleo non conosce | gestirla; restituisce `{s}`, `{err}` o `undefined` |
+   | `azione(s,z)` | in `VEN.fai`, subito dopo il controllo «Prima rispondi» | se restituisce `{s}` o `{err}`, quello è il risultato (feudi, affari, eserciti) |
+   | `effetto(s,e)` | in `applicaVoce`, per un `e.k` che il nucleo non conosce | applicare un effetto nuovo delle scene; il nome entra in `VEN.EFF_VOCI` con `push` |
+   | `scontro(s,sc)` | in `oraNuova`, appena nasce uno scontro tra IA, dopo gli alleati | aggiungere id a `sc.a`/`sc.b` (e ricalcolare `fa`/`fb`) |
+   | `incontro(s,inc)` | dove nasce `s.incontro` di tipo `nemico` (`contatti`) | aggiungere id a `inc.pid`/`inc.all` |
+   | `luogo(s,l,ev)` | `ev:'razzia'` dove si mette `l.sacc` (IA e `fai`), `ev:'conquista'` in fondo a `conquista` | danni agli edifici, confische |
+   | `vedi(s)` | in fondo a `oraNuova` | eventi di strada che dipendono dalla posizione di chi gioca |
    Gli ascoltatori sono puri e ripetibili come il resto. Ognuno controlla da sé il suo interruttore (o `s.geo`), così a interruttori spenti non cambia nulla.
 2. **Punti d'estensione**: funzioni di `VEN` che il nucleo chiama **sempre** come `VEN.nome`, così un file successivo le può sostituire. Chi le sostituisce chiama la versione precedente e la compone: `const prima=VEN.molt;VEN.molt=(s,k,c)=>prima(s,k,c)*mio(s,k,c)`.
    - `VEN.mappaDi(s)` → `mappa(s.seme)`. Tutte le chiamate `mappa(s.seme)` di `28k*` diventano `VEN.mappaDi(s)`.
    - `VEN.regni(s)`, `VEN.rg(s,f)` (`{id,nome,breve,col,col2,re,cult}`) e `VEN.cult(s,f)`, costruiti sopra `fazioni`, `nomeF`, `colFaz`, `D.FAZ` e `D.REGNI`; oggi `cult(s,f)===f`. Tutte le letture dirette di `D.FAZ[…]` e `D.REGNI` nei motori e nelle viste `24hv` e `24hw*` passano da qui.
    - `VEN.molt(s,k,ctx)` → 1, moltiplicato nei punti `viveri` (consumo giornaliero, `{p}`), `marcia` (velocità, `{p,i}` con `i` cella: **0 vuol dire non percorribile**), `prezzo` (`{lid,m,compra}`), `paga`, `rendita` (`{lid}`), `reclute` (`{lid}`), `guerra` (probabilità che l'IA dichiari guerra) e `forza` (`{p}`, forza nei conti automatici tra IA). x·1 = x, quindi l'impronta non cambia.
    - `VEN.probCattura(s,riep)` → 0,5, la probabilità di oggi di catturare il signore vinto.
-   - `VEN.decidi(s,p)` → la meta di un gruppo dell'IA. Se oggi la logica è sparsa, raccoglila in questa funzione senza cambiarla.
+   - `VEN.decidi(s,p,M)` → la meta di un gruppo dell'IA: è l'intero corpo di oggi di `pensa` (carovane, predoni, rivale, signori), che `oraNuova` chiama sempre come `VEN.decidi`. Se oggi la logica è sparsa, raccoglila in questa funzione senza cambiarla.
+   - `VEN._` espone anche `leva`, `nuovaP`, `vicinoOk`, `vai`, `rimuovi`, `sconfitta`, `memSig`, `inCompagnia`, `gradDi` e `relaz`, che servono ai passi 40–44.
    - `VEN.vittoria(s)` resta il punto in cui si controllano le vittorie (chiamato come `VEN.vittoria`).
    - `VEN.opz(s)` → `s.opz` unito a `VDAT.OPZ0`. `VEN.opzione(s,{k,v})` è l'azione che cambia in partita un'opzione elencata in `VDAT.OPZ_PARTITA`.
    - `VEN.nuovo(seme,o)` accetta `o.opz` e lo salva in `s.opz`. Se `o.opz.geo===2`, oppure se `VDAT.ACCESO.mondo2` è acceso, mette `s.geo=2` **prima** di generare la mappa.
@@ -136,6 +143,8 @@ Impronta identica (`node tools/avventura/impronta.js --controlla`).
 - (f) `VDAT.ACCESO` è tutto falso;
 - (g) i salvataggi di `tests/fixture/ven/` si aprono e `VEN.opz(s)` dà i valori di base;
 - (h) `VEN.opzione` cambia `taglia` e rifiuta le altre chiavi;
+- (j) un ascoltatore di `azione` che risponde a `{a:'prova'}` dà `{s}`, senza ascoltatori `fai` dà «Azione sconosciuta»; un effetto `{t:'ven',k:'prova'}` aggiunto a `VEN.EFF_VOCI` arriva all'ascoltatore di `effetto`;
+- (k) `luogo` riceve `'razzia'` quando un signore dell'IA mette a sacco un villaggio e `'conquista'` da `VEN.conquista`;
 - (i) `scripts/struttura.js` fallisce su un file finto con `Math.pow` (scritto in una cartella temporanea e poi cancellato).
 
 Scenari `ventura`, `ventura_stanza` e `ventura_regno` verdi; con `?ven=grandi` nessun errore in console.
