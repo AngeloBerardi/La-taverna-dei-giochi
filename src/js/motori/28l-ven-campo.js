@@ -181,12 +181,30 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(dist<26||s.t>900){ia.f=1}}
   else{if(ia.m!==1){ia.m=1;o.c.fm='cuneo';if(nt>ne.filter(u=>u.c==='c').length&&!ne.some(u=>u.c==='c'))o.f.fm='larga'}
    o.f.t='carica';o.c.t='carica';if(dist<9||s.t>ia.t0+200)o.t.t='carica';if(!ia.t0)ia.t0=s.t}}
+ // ---------- griglia spaziale ----------
+ // Celle da CELLA passi, rifatta a ogni istante in array piatti (`ini` = inizio di ogni cella, `el` = indici nella `lista`, in ordine crescente).
+ // Le posizioni cambiano durante l'istante: i limiti tengono conto di uno spostamento fino a MARGINE.
+ const GRIGLIA={CELLA:5,MARGINE:2.5},VIC={d:0};
+ const cella=(v,n)=>Math.max(0,Math.min(n-1,Math.floor(v/GRIGLIA.CELLA)));
+ function riempi(lista,W,H){const cw=Math.ceil(W/GRIGLIA.CELLA)+1,ch=Math.ceil(H/GRIGLIA.CELLA)+1,ini=new Array(cw*ch+1).fill(0),el=new Array(lista.length),cc=new Array(lista.length);
+  for(let i=0;i<lista.length;i++){const c=cella(lista[i].y,ch)*cw+cella(lista[i].x,cw);cc[i]=c;ini[c+1]++}
+  for(let c=0;c<cw*ch;c++)ini[c+1]+=ini[c];
+  const pos=ini.slice(0,cw*ch);for(let i=0;i<lista.length;i++)el[pos[cc[i]]++]=i;
+  return{cw,ch,ini,el,lista}}
+ // il nemico più vicino (distanza + `pen` se sta dall'altra parte del muro); a pari distanza il primo della lista: come scorrere tutti
+ function piuVicino(g,u,muro){let m=null,md=1e9,mi=1e9;const cx=cella(u.x,g.cw),cy=cella(u.y,g.ch),pen=muro?6:0;
+  for(let r=0;r<=g.cw+g.ch;r++){if(r>1&&md<(r-1)*GRIGLIA.CELLA-GRIGLIA.MARGINE)break;
+   for(let yy=Math.max(0,cy-r);yy<=Math.min(g.ch-1,cy+r);yy++){const passo=(yy===cy-r||yy===cy+r)?1:2*r||1;
+    for(let xx=cx-r;xx<=cx+r;xx+=passo){if(xx<0||xx>=g.cw)continue;const c=yy*g.cw+xx;
+     for(let e=g.ini[c];e<g.ini[c+1];e++){const ix=g.el[e],q=g.lista[ix],d=d2(u,q)+(pen&&(q.y<muro)!==(u.y<muro)?pen:0);if(d<md||(d===md&&ix<mi)){md=d;m=q;mi=ix}}}}}
+  VIC.d=md;return m}
  // ---------- un istante ----------
  function istante(s){s.t++;const U=s.u;
   // frecce in arrivo
   if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=U.find(u=>u.id===v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,U.find(u=>u.id===v.da))}}s.voli=resto}
   if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
   const cap0=capU(s),vv=U.filter(u=>u.st==='vivo');
+  const GRI={a:riempi(vv.filter(u=>u.l==='a'),s.W,s.H),b:riempi(vv.filter(u=>u.l==='b'),s.W,s.H)};
   let spingono=0;const conta={a:{f:0,t:0,c:0},b:{f:0,t:0,c:0}},idx={};for(const u of vv)if(!u.cap){idx[u.id]=conta[u.l][u.c]++}
   for(const u of U){if(u.st==='ko')continue;u.px=u.x;u.py=u.y;if(u.cd>0)u.cd--;
    if(u.st==='fuga'){const ty=u.l==='a'?C.H+2:-2;const dy=ty-u.y;u.y+=(dy>0?1:-1)*u.vel*C.PASSO*1.15;u.fy=dy>0?1:-1;u.fx=0;if(u.y<=.2||u.y>=C.H-.2){u.st='via';s.fug[u.l]++}continue}
@@ -194,7 +212,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(u.sal){if(u.sal>s.t)continue;u.y=s.muro-.6;u.sal=0;u.scI=-1;u.cd=Math.max(u.cd,C.AS.FIATO)}// in cima alla scala: scende sul camminamento
    // bersaglio: ogni mezzo secondo si guarda intorno
    const nem=u.l==='a'?'b':'a',o=u.cap?null:s.ord[u.l][u.c];let b=u.b>=0?U.find(q=>q.id===u.b&&q.st==='vivo'):null;
-   if(!b||(s.t+u.id)%5===0){let m=null,md=1e9;for(const q of vv){if(q.l!==nem)continue;const d=d2(u,q)+(s.muro&&(q.y<s.muro)!==(u.y<s.muro)&&!u.git?6:0);if(d<md){md=d;m=q}}b=m;u.b=m?m.id:-1;u.bd=md}
+   if(!b||(s.t+u.id)%5===0){const m=piuVicino(GRI[nem],u,s.muro&&!u.git?s.muro:0),md=m?VIC.d:1e9;b=m;u.b=m?m.id:-1;u.bd=md}
    if(s.muro&&u.l==='a'&&u.y>s.muro){
     // al piede di una scala libera, chi può sale (lento: non si muove né colpisce finché sale)
     if(puoSalire(u)&&u.y>=s.muro+.4&&u.y<=s.muro+1&&b&&b.y<s.muro){const SC=s.scale||[];for(let i=0;i<SC.length;i++)if(Math.abs(u.x-SC[i])<.8&&s.scalaT[i]<=s.t){u.sal=s.t+C.AS.SCALA;u.scI=i;s.scalaT[i]=u.sal;s.ev.push({t:'scala',id:u.id,i});break}if(u.sal>s.t)continue}
@@ -226,9 +244,13 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(b&&(libero||!mt&&(db<=ingaggio||rad((b.x-ax)*(b.x-ax)+(b.y-ay)*(b.y-ay))<=ingaggio))){if(u.git&&libero&&db>gt){muovi(s,u,b.x,b.y)}else if(u.git&&libero){if(u.cd<=0)tiro(s,u,b,db)}else{const st=muovi(s,u,b.x,b.y);if(u.c==='c')u.ca=Math.min(1,u.ca+st*.12)}continue}
    const st=muovi(s,u,ax,ay);if(u.c==='c')u.ca=st>.2?Math.min(1,u.ca+st*.06):0;if(st<.02&&b){const dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d}}
   // non ci si sovrappone
-  for(let i=0;i<vv.length;i++){const a=vv[i];if(a.st!=='vivo')continue;for(let j=i+1;j<vv.length;j++){const b=vv[j];if(b.st!=='vivo')continue;const dx=b.x-a.x,dy=b.y-a.y;if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
-    const r0=(a.c==='c'||b.c==='c'||a.cav||b.cav)?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(a.l===b.l?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
-    a.x-=ox*k;a.y-=oy*k;b.x+=ox*k;b.y+=oy*k}}
+  {const gt=riempi(vv,s.W,s.H),vic=[];
+   for(let i=0;i<vv.length;i++){const a=vv[i];if(a.st!=='vivo')continue;vic.length=0;const cx=cella(a.x,gt.cw),cy=cella(a.y,gt.ch);
+    for(let yy=Math.max(0,cy-1);yy<=Math.min(gt.ch-1,cy+1);yy++)for(let xx=Math.max(0,cx-1);xx<=Math.min(gt.cw-1,cx+1);xx++){const c=yy*gt.cw+xx;for(let e=gt.ini[c];e<gt.ini[c+1];e++)if(gt.el[e]>i)vic.push(gt.el[e])}
+    vic.sort((x,y)=>x-y);
+    for(const j of vic){const b=vv[j];if(b.st!=='vivo')continue;const dx=b.x-a.x,dy=b.y-a.y;if(dx>1.3||dx<-1.3||dy>1.3||dy<-1.3)continue;
+     const r0=(a.c==='c'||b.c==='c'||a.cav||b.cav)?1.25:.95,q=dx*dx+dy*dy;if(q>=r0*r0)continue;const d=rad(q)||.01,k=(r0-d)*.5*(a.l===b.l?.5:.35),ox=d<.02?.1:dx/d,oy=d<.02?.07:dy/d;
+     a.x-=ox*k;a.y-=oy*k;b.x+=ox*k;b.y+=oy*k}}}
   if(s.tipo==='arena')for(const u of vv){const dx=u.x-C.W/2,dy=u.y-C.H/2,d=rad(dx*dx+dy*dy);if(d>C.ARENA){u.x=C.W/2+dx/d*C.ARENA;u.y=C.H/2+dy/d*C.ARENA}}
   if(s.muro)for(const u of vv){const m=s.muro;if(Math.abs(u.y-m)<.5&&!s.varchi.some(g=>u.x>g[0]&&u.x<g[1]))u.y=u.py<m?m-.5:m+.5;u.x=stretto(u.x,.5,C.W-.5);u.y=stretto(u.y,.5,C.H-.5)}
   // rinforzi, rotta, fine

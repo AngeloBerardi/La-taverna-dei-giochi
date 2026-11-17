@@ -9,9 +9,9 @@ const TAGLIE = D.TAGLIA || { piccola: { max: 40, W: 60, H: 100 }, media: { max: 
 const out = [];
 for (const k of Object.keys(TAGLIE)) for (const n of [60, 150, 300]) {
   const T = TAGLIE[k], s = C.nuovo({ seme: 7, a: righe(0, n, 'val'), b: righe(5, n, 'fer'), cap, faza: 'tu', fazb: 'fer', max: T.max, W: T.W, H: T.H }, { autoA: true });
-  const t0 = process.hrtime.bigint(); let i = 0;
+  const t0 = process.cpuUsage(); let i = 0;
   for (; i < 1500 && !s.fine; i++) C.passo(s, 1);
-  const us = Number(process.hrtime.bigint() - t0) / 1000 / Math.max(1, i);
+  const u1 = process.cpuUsage(t0), us = (u1.user + u1.system) / Math.max(1, i);
   const inCampo = C.vivi(s, 'a').length + C.vivi(s, 'b').length;
   out.push([k, 'max ' + T.max, n + ' per lato', us.toFixed(0) + ' us/passo', 'passi ' + i, 'vivi in campo alla fine ' + inCampo].join(' | '));
 }
