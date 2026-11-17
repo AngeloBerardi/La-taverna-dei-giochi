@@ -3673,6 +3673,10 @@ async def sc_render_stabile(b, srv):
     check(st == [0, False, True], f'finita l\'attesa: velo tolto, ridisegno ripreso {st}')
     check(not pg.errs, f'nessun errore JS {pg.errs[:2]}'); await ctx.close()
 
+# scenari per passo: tools/test-browser/scenari/pNN.py, caricati in ordine di nome
+for _f in sorted(__import__('glob').glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scenari', '*.py'))):
+    exec(open(_f, encoding='utf-8').read(), globals())
+
 SCENARI = [v for k, v in sorted(globals().items()) if k.startswith('sc_')]
 
 async def main():
