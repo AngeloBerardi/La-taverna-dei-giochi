@@ -24,14 +24,18 @@ Object.assign(VEN,(()=>{const{D,abil,giorno}=VEN._,R=VDAT.RANGO,lim=r=>Math.max(
  VEN.aggancia('battaglia',(s,riep)=>{if(!ESP_SEMPRE&&!attivo())return;const v=nemici(s);
   if(riep.vince==='a'){for(const p of v.all){const sg=sigDi(s,p);if(sg)sg.esp=(sg.esp|0)+1}}
   else for(const p of v.nem){const sg=sigDi(s,p);if(sg)sg.esp=(sg.esp|0)+2}});
- VEN.aggancia('giorno',s=>{if(!ESP_SEMPRE&&!attivo())return;if(giorno(s)%R.PRIGIONIA_GIORNI)return;for(const sg of s.sig)if(sg.prig!=null&&(sg.esp|0)>0)sg.esp--});
+ // -1 ogni 10 giorni dalla presa (sg.pgg = giorno della presa, scritto solo da qui)
+ VEN.aggancia('giorno',s=>{if(!ESP_SEMPRE&&!attivo())return;const g=giorno(s);for(const sg of s.sig){if(sg.prig==null||sg.prig===false){delete sg.pgg;continue}
+  if(sg.pgg==null){sg.pgg=g;continue}if(g>sg.pgg&&(g-sg.pgg)%R.PRIGIONIA_GIORNI===0&&(sg.esp|0)>0)sg.esp--}});
+ // il rango del nemico si fissa prima che VEN.sconfitta lo tolga dalla mappa (s.incontro.rg, azzerato con l'incontro)
+ const sconfitta=VEN.sconfitta;VEN.sconfitta=(s,p,da,preso)=>{if(attivo()&&s.incontro&&p){const r=VEN.rango(s,p).r;if(!(s.incontro.rg>=r))s.incontro.rg=r}return sconfitta(s,p,da,preso)};
  // solo con l'interruttore
- VEN.aggancia('premio',(s,riep,out)=>{if(!attivo()||riep.vince!=='a')return;const m=1+R.PREMIO*rangoNem(s,nemici(s)).r;if(m===1)return;
+ VEN.aggancia('premio',(s,riep,out)=>{if(!attivo()||riep.vince!=='a')return;const m=1+R.PREMIO*Math.max(s.incontro&&s.incontro.rg|0,rangoNem(s,nemici(s)).r);if(m===1)return;
   const f=Math.round(out.fama*m);s.fama+=f-out.fama;out.fama=f;out.xp=Math.round(out.xp*m);out.oro=Math.round(out.oro*m)});
  const cattura=VEN.probCattura;VEN.probCattura=(s,riep)=>attivo()?(riep&&riep.capoKo?R.CATTURA.capo:R.CATTURA.senza):cattura(s,riep);
  const molt=VEN.molt;VEN.molt=(s,k,c)=>{const x=molt(s,k,c);return attivo()&&k==='forza'&&c&&c.p?x*(1+R.FORZA*VEN.rango(s,c.p).r):x};
  VEN.aggancia('scheda',(s,sc)=>{if(!attivo())return;const v=nemici(s),n=rangoNem(s,v),sg=sigDi(s,v.nem[0]);
   sc.rango={a:VEN.rangoCap(s),b:n.r};sc.dott={a:'tu',b:VEN.cult(s,fazDi(v))};if(sg)sc.indole={b:(D.TRATTI[sg.tratto]||{}).nome};
-  sc.esplora={a:abil(s,'esplora'),b:n.r};if(sg&&sg.mem)sc.memo=sg.mem});
+  sc.esplora={a:abil(s,'esplora'),b:n.r};});   // sc.memo lo riempie il passo 30
  VEN.aggancia('anteprima',(s,a)=>{if(!attivo()||!a.loro)return;const v=nemici(s);a.loro.rango=rangoNem(s,v);a.loro.dott=VEN.cult(s,fazDi(v))});
  return{rango,rangoCap}})());

@@ -21,8 +21,10 @@ const riv = s.p.find(p => p.k === 'riv'); s.volpe = { tappa: 3 }; assert.strictE
 const sn = JSON.parse(J(s)); sn.opz = { nem: 1 }; assert.strictEqual(VEN.rango(sn, sig).r, 4); sn.opz = { nem: -1 }; assert.strictEqual(VEN.rango(sn, pre).r, 0);
 // rango del capitano dall'abilità comando
 assert.strictEqual(VEN.rangoCap(s), [1, 1, 2, 2, 3, 3, 4][Math.min(6, VEN._.abil(s, 'comando'))]);
-// prigionia: -1 ogni 10 giorni
-sg.prig = true; sg.esp = 6; s.t = 9 * 1440 + 8 * 60; assert.strictEqual(VEN._.giorno(s) % 10, 0); VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 5); s.t = 10 * 1440; VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 5); sg.prig = null; sg.esp = 6;
+// prigionia: -1 ogni 10 giorni dalla presa (non dal calendario)
+sg.prig = 'tu'; sg.esp = 6; s.t = 9 * 1440; const g0 = VEN._.giorno(s); VEN.ganci('giorno', s); assert.strictEqual(sg.pgg, g0); assert.strictEqual(sg.esp, 6);
+s.t = 10 * 1440; VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 6); s.t = 19 * 1440; VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 5);
+sg.prig = null; VEN.ganci('giorno', s); assert.strictEqual(sg.pgg, undefined); sg.esp = 6;
 // spento: nessuna esperienza accumulata; premi, scheda, anteprima e cattura come prima
 VDAT.ACCESO.consiglio = false; { const t = JSON.parse(J(s)); t.incontro = { tipo: 'nemico', pid: [pre.id], all: [sig.id] }; const e = t.sig[sig.sig].esp; VEN.ganci('battaglia', t, { vince: 'a' }, {}); assert.strictEqual(t.sig[sig.sig].esp, e); }
 const premio = (st, pid) => { st.incontro = { tipo: 'nemico', pid: [pid], all: [] }; const o = { fama: 10, xp: 100, oro: 100 }, f0 = st.fama; VEN.ganci('premio', st, { vince: 'a' }, o); return { o, df: st.fama - f0 } };
@@ -46,5 +48,15 @@ const an = VEN.anteprima(si); assert.strictEqual(an.loro.rango.r, 3); assert(an.
 // forza dei signori nei conti tra IA: +5% per rango
 const mf = VEN.molt(si, 'forza', { p: sig }); assert(Math.abs(mf - 1.15) < 1e-9);
 assert.strictEqual(VEN.molt(si, 'forza', { p: pre }), 1);
+// battaglia vera: il nemico e' tolto dalla mappa prima del premio, il moltiplicatore deve restare
+const vera = (acceso, mk) => { VDAT.ACCESO.consiglio = acceso; const w = JSON.parse(J(s)); const n = mk(w); w.incontro = { tipo: 'nemico', pid: [n.id], all: [] };
+  const r = VEN.esito(w, { vince: "a", cad: [] }); assert(!r.err, r.err); return r.out };
+const mkCar = w => { const q = JSON.parse(J(pre)); q.id = 9001; q.k = 'car'; q.oro = 100; q.casa = 0; w.p.push(q); return q };
+const mkSig = w => w.p.find(p => p.k === 'sig' && p.sig === sig.sig);
+for (const [nome, mk, r] of [['carovana', mkCar, 1], ['signore', mkSig, 3]]) {
+  const on = vera(true, mk), off = vera(false, mk), m = 1 + .2 * r;
+  assert(on.oro > off.oro && on.xp > off.xp && on.fama >= off.fama, nome + ': premio senza moltiplicatore ' + J([on.oro, off.oro]));
+  assert(Math.abs(on.xp / off.xp - m) < .05, nome + ' xp ' + on.xp + '/' + off.xp);
+}
 VDAT.ACCESO.consiglio = false;
 console.log('p12 ok');
