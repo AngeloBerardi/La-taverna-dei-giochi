@@ -10,6 +10,31 @@ const errori = [], avvisi = [];
 const GENERATI = ['src/js/app/12c-lobby-3d.js'];
 const ESTERNI = /src\/js\/vendor\//;
 
+// 0. i motori della Compagnia di ventura devono dare lo stesso risultato su ogni telefono (in compagnia ognuno simula da sé):
+// niente funzioni il cui ultimo bit cambia tra motori JavaScript. Vanno bene sqrt, floor, round, min, max, abs.
+// `node scripts/struttura.js --ripetibili <cartella>` controlla solo quella cartella (la usano i test).
+const VIETATE = /Math\.(pow|exp|expm1|log|log2|log10|log1p|sin|cos|tan|asin|acos|atan|atan2|sinh|cosh|tanh|asinh|acosh|atanh|hypot|cbrt)\b|\*\*/;
+function ripetibili(dir) {
+  const out = [];
+  if (!fs.existsSync(dir)) return out;
+  for (const n of fs.readdirSync(dir).sort()) {
+    if (!/^28[j-n].*-ven-.*\.js$/.test(n)) continue;
+    const t = fs.readFileSync(path.join(dir, n), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');
+    t.split('\n').forEach((riga, i) => { const m = riga.match(VIETATE); if (m) out.push(`${n}:${i + 1}: «${m[0]}» non è ripetibile su ogni telefono (usa solo + − × ÷, sqrt, floor, round, min, max, abs)`); });
+  }
+  return out;
+}
+{
+  const k = process.argv.indexOf('--ripetibili');
+  if (k > 0) {
+    const e = ripetibili(path.resolve(process.argv[k + 1] || '.'));
+    e.forEach(x => console.error('ERRORE:', x));
+    console.log(e.length ? 'RIPETIBILI: ERRORI' : 'RIPETIBILI OK');
+    process.exit(e.length ? 1 : 0);
+  }
+  ripetibili(path.join(root, 'src/js/motori')).forEach(x => errori.push(x));
+}
+
 // 1. file in src/ assenti dal manifest
 const tutti = [];
 (function giro(d) {

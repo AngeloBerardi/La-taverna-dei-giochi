@@ -4,6 +4,8 @@
    Tocchi: sul campo = il capitano va lì; su un nemico = lo attacca; trascina = sposta la visuale; pizzico = zoom.
    Bottega comune: `VenArte` (24ht). HUD e pulsanti: `Ven` (24hw). Piano: docs/VENTURA.md. */
 const VenCampo=(()=>{
+ // palette dei regni e delle fazioni: da `VEN.rg` (il mondo, se c'è, dice i colori dei regni; senza, valgono quelli di base)
+ const rg=f=>VEN.rg(typeof Ven!=='undefined'&&Ven.V?Ven.V.s:null,f);
  const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti'};
  const hh=(x,y,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
  function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;scena();
@@ -47,7 +49,7 @@ const VenCampo=(()=>{
   const d=new T.Object3D();for(const[nome,geo]of[['ciuffo',ciuffo],['pino',pino],['lati',lati],['sasso',sasso]]){const Ls=liste[nome];if(!Ls.length)continue;const me=new T.InstancedMesh(geo,A.matI,Ls.length);me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(Ls.length*3),3);
    Ls.forEach((p,k)=>{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,hh(k,10,semeD)*6.28,0);d.scale.setScalar(p[3]);d.updateMatrix();me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,p[4][0],p[4][1],p[4][2])});me.castShadow=nome!=='ciuffo';me.frustumCulled=false;sc.add(me)}
   // ---- assedio: mura merlate con i varchi, torri, mastio alle spalle ----
-  if(s.muro){const S=A.Solidi(),m=s.muro,p='#aaa49b',p2='#cfc8bc',F=VDAT.FAZ[scheda.fazb]||VDAT.FAZ.fer,PO=s.porta;
+  if(s.muro){const S=A.Solidi(),m=s.muro,p='#aaa49b',p2='#cfc8bc',F=rg(scheda.fazb||"fer"),PO=s.porta;
    // aperture del muro: la porta (chiusa dal portone finché regge) e le brecce già aperte all'inizio (macerie)
    const ap=s.varchi.map(v=>v.slice());if(PO&&!ap.some(v=>v[0]===PO.x0))ap.push([PO.x0,PO.x1]);ap.sort((a,b)=>a[0]-b[0]);
    let x=-12;const tratti=[];for(const v of ap){tratti.push([x,v[0]]);x=v[1]}tratti.push([x,C.W+12]);
@@ -88,7 +90,7 @@ const VenCampo=(()=>{
     S.box(.4,5,.4,x-5.5,y,z+4,'#5a4030');S.box(2.4,1.6,.2,x-5.5,y+3.4,z+4,'#e0b83a');S.box(4,1.6,2.4,x-7,y+.6,z-6,'#8a6a48');for(const o of[-1.4,1.4])S.cil(.9,.9,.3,8,x-7+o,y+.9,z-4.6,'#5a4030',{rx:1.5708});steccato(C.W+4,30,C.W+4,58);K.fuochi.push([x-4,y,z+7])}
    else if(vic.tipo==='monastero'){const x=cx0,z=-13,y=Math.max(0,alto(x,z));S.box(9,7,14,x,y,z,'#e6dcc4',{c2:'#fff8e6'});S.tetto(10.4,5,15,x,y+7,z,'#8a4a3a',{ry:0});S.box(4.4,16,4.4,x-8,y,z+2,'#e6dcc4',{c2:'#fff8e6'});S.cono(3.8,5.4,4,x-8,y+16,z+2,'#8a4a3a',{ry:.785});S.box(.4,2.4,.4,x-8,y+21.4,z+2,'#e8c35a');S.box(1.6,.4,.4,x-8,y+22.6,z+2,'#e8c35a');
     for(let k=0;k<9;k++)S.box(3.4,2.4,.8,6+k*6,Math.max(0,alto(6+k*6,-3)),-3,'#cfc6b0');for(let k=0;k<8;k++)S.box(.5,1.4+r(k)*.6,.2,C.W+6+r(k)*8,alto(C.W+10,20+k*3),20+k*3.2,'#b8b2a4')}
-   else if(vic.tipo==='citta'||vic.tipo==='castello'){const p='#aaa49b',p2='#cfc8bc',F=VDAT.FAZ[vic.faz]||VDAT.FAZ.neu,z=-17;S.box(C.W+50,6,2.4,cx0,alto(cx0,z),z,p,{c2:p2});for(let k=0;k<Math.floor((C.W+50)/2.4);k++)S.box(1.2,1,.8,-25+1+k*2.4,alto(cx0,z)+6,z+.8,p2);
+   else if(vic.tipo==='citta'||vic.tipo==='castello'){const p='#aaa49b',p2='#cfc8bc',F=rg(vic.faz||"neu"),z=-17;S.box(C.W+50,6,2.4,cx0,alto(cx0,z),z,p,{c2:p2});for(let k=0;k<Math.floor((C.W+50)/2.4);k++)S.box(1.2,1,.8,-25+1+k*2.4,alto(cx0,z)+6,z+.8,p2);
     for(const x of[-14,cx0-9,cx0+9,C.W+14]){S.cil(2.4,2.8,9.5,8,x,alto(x,z),z,p,{c2:p2});S.cono(3.2,3.6,8,x,alto(x,z)+9.5,z,F.col)}S.box(7,5,1,cx0,alto(cx0,z),z+1.4,'#5a4030');S.box(12,9,8,cx0+18,alto(cx0,z-12),z-12,p,{c2:p2});S.tetto(13,5,9,cx0+18,alto(cx0,z-12)+9,z-12,F.col)}
    else if(vic.tipo==='rovine'){const pr='#b8b2a4',pr2='#d8d2c2';for(let k=0;k<26;k++){const lato=k%3,x=lato===0?-3-r(k)*10:lato===1?C.W+3+r(k)*10:4+r(k)*(C.W-8),z=lato===2?-3-r(k+40)*12:r(k+40)*C.H,y=Math.max(0,alto(x,z)),h=1.5+r(k+60)*5;
      S.cil(.7,.8,h,7,x,y,z,pr,{c2:pr2,rz:r(k+80)<.2?.25:0});if(r(k+90)<.3)S.box(2.2,.7,2.2,x,y+h,z,pr2)}
@@ -99,7 +101,7 @@ const VenCampo=(()=>{
     for(const x of[cx0-6,cx0+6]){S.box(.4,7,.4,x,alto(x,4),4,lg);S.sfera(.6,x,alto(x,4)+7.3,4,'#e8e2d2');S.box(2,1.4,.2,x+1,alto(x,4)+5,4,'#3a3230')}K.fuochi.push([cx0-12,alto(cx0-12,-6),-6],[cx0+12,alto(cx0+12,-8),-8])}
    if(S.n)sc.add(S.mesh())}
   // ---- arena dei tornei: sabbia battuta, steccato tondo, gradoni con il pubblico a istanze, stendardi della città ----
-  if(s.tipo==='arena'){const S=A.Solidi(),F=VDAT.FAZ[scheda.fazb]||VDAT.FAZ.neu,cx=C.W/2,cz=C.H/2,R=C.ARENA+1.4,N=40,PI2=Math.PI*2,pt=(rr,a)=>[cx+Math.cos(a)*rr,cz+Math.sin(a)*rr];
+  if(s.tipo==='arena'){const S=A.Solidi(),F=rg(scheda.fazb||"neu"),cx=C.W/2,cz=C.H/2,R=C.ARENA+1.4,N=40,PI2=Math.PI*2,pt=(rr,a)=>[cx+Math.cos(a)*rr,cz+Math.sin(a)*rr];
    S.cil(R+.4,R+.4,.1,36,cx,.03,cz,'#d9c58e',{c2:'#c8b47a'});
    for(let k=0;k<N;k++){const a=k/N*PI2,am=(k+.5)/N*PI2,p=pt(R,a),m=pt(R,am),y=Math.max(0,alto(p[0],p[1]));S.box(.3,1.5,.3,p[0],y,p[1],'#6a4a2e');
     S.box(2*R*Math.sin(Math.PI/N)+.15,.14,.14,m[0],y+1.05,m[1],'#8a6a48',{ry:-(am+Math.PI/2)});S.box(2*R*Math.sin(Math.PI/N)+.15,.14,.14,m[0],y+.55,m[1],'#7a5a3a',{ry:-(am+Math.PI/2)})}
@@ -122,7 +124,7 @@ const VenCampo=(()=>{
   const anello=(c,r)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.16,22),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.95,depthTest:false}));m.rotation.x=-Math.PI/2;m.renderOrder=5;m.visible=false;sc.add(m);return m};
   K.anCap=anello('#ffd75a',.8);K.anMeta=anello('#fff2b0',.5);K.anBers=anello('#ff5a4a',.85);
 }
- const FAZ=(l)=>Object.assign({},VDAT.FAZ[l==='a'?(K.scheda.faza||'tu'):K.scheda.fazb]||VDAT.FAZ.pre,l==='a'?K.scheda.cola:K.scheda.colb);
+ const FAZ=(l)=>Object.assign({},rg((l==='a'?K.scheda.faza||'tu':K.scheda.fazb)||"pre"),l==='a'?K.scheda.cola:K.scheda.colb);
  function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);for(const e of ev){
    if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(b&&e.dan>0){b.lampo=K.t;if(ub){for(let k=0;k<(e.crit?5:2);k++)K.par.emetti(ub.x,1+Math.random()*.5,ub.y,{vx:(Math.random()-.5)*3,vy:2+Math.random()*2,vz:(Math.random()-.5)*3,g:9,s:.13,dur:.5,col:e.crit?'#ffe27a':'#ffffff'})}}
     const cap=mio;if(ub&&cap&&(e.da===cap.id||e.a===cap.id)&&e.dan>0&&K.numeri.length<7)K.numeri.push({x:ub.x,z:ub.y,v:e.dan,t:K.t,cls:e.a===cap.id?'male':e.crit?'crit':''});
@@ -145,10 +147,10 @@ const VenCampo=(()=>{
   for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;let q=K.U[u.id];if(!q)q=K.U[u.id]={f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9};
    const x=u.st==='ko'?u.x:u.px+(u.x-u.px)*al,z=u.st==='ko'?u.y:u.py+(u.y-u.py)*al,mosso=Math.hypot(u.x-u.px,u.y-u.py);
    if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(++caduti>46&&q.giu>=1)continue}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
-   const F=FAZ(u.l),tc=K.t-q.colpo,FT=VDAT.FAZ[(VDAT.TR[u.t]||{}).faz]||F,mioL=u.l==='a';
+   const F=FAZ(u.l),tc=K.t-q.colpo,tf=(VDAT.TR[u.t]||{}).faz,FT=tf?rg(tf):F,mioL=u.l==='a';
    // chi sale una scala: la quota va dal piede al camminamento in SCALA istanti
    const sal=u.sal>s.t?Math.min(1,Math.max(0,1-(u.sal-s.t-1+al)/C.AS.SCALA)):-1;
-   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&FT!==VDAT.FAZ.tu?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id});
+   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&tf!=="tu"?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id});
    if(u.st==='vivo'&&!u.cap){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}
    if(u.st==='fuga'&&Math.random()<dt*2)K.par.emetti(x,.1,z,{vy:.4,s:.16,dur:.6,col:'#d8c8a4',cresce:1});
    else if(mosso>.3&&Math.random()<dt*6)K.par.emetti(x,.1,z,{vy:.5,s:.18,dur:.7,col:K.scheda.bioma===1?'#ffffff':'#d8c8a4',cresce:1.2})}
