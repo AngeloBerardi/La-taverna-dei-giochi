@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,chiave,cultura,debiti,dist,dominante,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,vittoria,viva,vociDelGiorno}=VEN._;
+ const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,chiave,cultura,debiti,dist,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,viva,vociDelGiorno}=VEN._;
  // ---------- diplomazia (V3) ----------
  // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
  const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
@@ -129,7 +129,7 @@ Object.assign(VEN,(()=>{
   for(const k of Object.keys(s.alleanza||{})){const al=s.alleanza[k],x=k.split('|');
    if(s.cadute[x[0]]||s.cadute[x[1]])delete s.alleanza[k];
    else if(al.rompe&&g>=al.rompe&&g>=al.da+D.DIPL.MIN){delete s.alleanza[k];L(s,nomeF(s,x[0])+' e '+nomeF(s,x[1])+' non sono più alleati.','guerra')}}
-  if(g%4===0){const vivi=fazioni(s).filter(f=>viva(s,f)),reali=vivi.filter(f=>f!=='tu'),dom=dominante(s),X=D.DIPL.IA;for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]),amico=(vivi[i]==='tu'||vivi[j]==='tu')&&s.rel[vivi[i]==='tu'?vivi[j]:vivi[i]]>=D.REGNO.AMICO;
+  if(g%4===0){const vivi=fazioni(s).filter(f=>viva(s,f)),reali=vivi.filter(f=>f!=='tu'),dom=VEN.dominante(s),X=D.DIPL.IA;for(let i=0;i<vivi.length;i++)for(let j=i+1;j<vivi.length;j++){const k=chiave(vivi[i],vivi[j]),amico=(vivi[i]==='tu'||vivi[j]==='tu')&&s.rel[vivi[i]==='tu'?vivi[j]:vivi[i]]>=D.REGNO.AMICO;
     if(s.guerra[k]){if(r()<.16){faiPace(s,vivi[i],vivi[j]);L(s,nomeF(s,vivi[i])+' e '+nomeF(s,vivi[j])+' firmano la pace.','guerra')}}
     else if(r()<(dom&&(dom.f===vivi[i]||dom.f===vivi[j])?X.GUERRA_DOM:.14)&&!s.alleanza[k]&&!amico){s.guerra[k]=true;L(s,nomeF(s,vivi[i])+' dichiara guerra a '+nomeF(s,vivi[j])+'.','guerra')}}
    // ogni tanto due regni liberi si alleano contro chi vince troppo (mai a nome del tuo regno); ogni tanto un'alleanza matura si scioglie, con preavviso
@@ -143,5 +143,5 @@ Object.assign(VEN,(()=>{
   s.incarichi=s.incarichi.filter(q=>!(q.fatto||q.fallito)||g-q.scad<3);
   // contratto da mercenario
   if(s.servizio&&s.servizio.tipo==='mer'&&g>=s.servizio.fino){L(s,'Il contratto con '+D.FAZ[s.servizio.faz].breve+' è finito.');s.servizio=null}
-  vittoria(s);s.ev.push({t:'giorno',g})}
+  VEN.vittoria(s);s.ev.push({t:'giorno',g})}
  return{scioglieScontri,faiPace,nascePredoni,nasceCarovana,pensa,oraNuova,perdite,promuoviIA,sconfitta,rimuovi,giornoNuovo}})());

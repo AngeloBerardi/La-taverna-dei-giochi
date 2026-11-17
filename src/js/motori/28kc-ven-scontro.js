@@ -2,13 +2,13 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,L,MURA,P,SITO,TU,abil,aggiungi,avanzaInc,capi,cella,colFaz,confSig,conquista,dist,favoreSig,forza,forzaTr,giorno,gradDi,inCompagnia,inimica,lato,limita,limitePrig,mappa,memSig,notte,ogg,ostile,part,passaA,reagisci,relaz,rnd,somma,statCap,togliUomini,uomini,vicinoOk,xpLiv}=VEN._;
+ const{D,L,MURA,P,SITO,TU,abil,aggiungi,avanzaInc,capi,cella,colFaz,confSig,dist,favoreSig,forza,forzaTr,giorno,gradDi,inCompagnia,lato,limita,limitePrig,mappa,memSig,notte,ogg,ostile,part,reagisci,relaz,rnd,somma,statCap,togliUomini,uomini,vicinoOk,xpLiv}=VEN._;
  // assalto alle mura da parte di signori
  function assalto(s,l,r){const A=l.ass.pid.map(id=>part(s,id)).filter(Boolean),dentro=s.p.filter(p=>p.dentro===l.id&&p.k==='sig');let fa=A.reduce((x,p)=>x+forza(p),0),fd=(forzaTr(l.g)+dentro.reduce((x,p)=>x+forza(p),0))*P.MURA;const fa0=fa,fd0=fd;
   for(let k=0;k<8&&fa>fa0*.4&&fd>fd0*.3;k++){const qa=.16*fd/(fa+fd)*(.6+r()*.8),qd=.16*fa/(fa+fd)*(.6+r()*.8);for(const p of A)VEN.perdite(p.tr,qa,r);VEN.perdite(l.g,qd,r);for(const p of dentro)VEN.perdite(p.tr,qd,r);
    fa=A.reduce((x,p)=>x+forza(p),0);fd=(forzaTr(l.g)+dentro.reduce((x,p)=>x+forza(p),0))*P.MURA}
   const presa=fd<=fd0*.3&&fa>0,faz=l.ass.faz;l.ass=null;
-  if(presa){const capo=A.sort((a,b)=>forza(b)-forza(a))[0];for(const p of dentro)VEN.sconfitta(s,p,faz);conquista(s,l,faz,capo&&capo.k==='sig'?capo.sig:-1);
+  if(presa){const capo=A.sort((a,b)=>forza(b)-forza(a))[0];for(const p of dentro)VEN.sconfitta(s,p,faz);VEN.conquista(s,l,faz,capo&&capo.k==='sig'?capo.sig:-1);
    if(capo){const meta=capo.tr.filter(e=>e.n>=2);l.g=[];for(const e of meta){const k=Math.floor(e.n*.35);togliUomini(capo.tr,e.t,k);aggiungi(l.g,e.t,k)}}}
   else{L(s,l.nome+' respinge l\'assalto.','guerra');for(const p of A){p.ia.st='casa';p.via=[]}}}
  function schieramenti(s){const inc=s.incontro,tu=TU(s);let nem=[],all=[],luogo=null;
@@ -73,15 +73,15 @@ Object.assign(VEN,(()=>{
  const fasi=s=>({breccia:s.t-inizio(s.assedio)>=P.BRECCIA_ORE*60,ariete:!!s.assedio.ariete});
  function assedioStato(s){const a=s.assedio;if(!a)return null;const f=fasi(s),resta=inizio(a)+P.BRECCIA_ORE*60-s.t;return{scale:true,breccia:f.breccia,ariete:f.ariete,oreBreccia:Math.max(0,Math.ceil(resta/60))}}
  function scegli(s,v){if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};const inc=s.incontro,tu=TU(s),r=rnd(s);if(!inc)return{err:'Nessun incontro'};
-  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))inimica(s,p.faz);inc.pronto=true;return{s}}
+  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))VEN.inimica(s,p.faz);inc.pronto=true;return{s}}
    if(v==='lascia'){s.incontro=null;return{s}}if(!inc.pronto)return{err:'Scegli con chi stare'}}
   if(inc.tipo==='parla'){const p=part(s,inc.pid[0]);if(v==='lascia'||!p){s.incontro=null;return{s}}
    const sgp=p.k==='sig'?s.sig[p.sig]:null;if(sgp)confSig(s,sgp);
    if(sgp&&(v==='lettera'||v==='prestito'||v==='rendi')){const R=favoreSig(s,sgp,v);if(R)return R}
    if(v==='notizie'){if(inc.detto)return{err:'Non ha altro da dirti'};if(sgp){const R=favoreSig(s,sgp,'notizie');if(R)return R;memSig(sgp).g=giorno(s)}inc.detto=1;const x=s.l.filter(l=>l.noto===false&&l.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
     if(x){x.noto=true;inc.voce='«Si parla di '+x.nome+': '+(x.tipo==='covo'?'un nido di predoni':'pietre antiche, e chi ci va non sempre torna')+'. Te lo segno sulla mappa.»'}else inc.voce='«Niente che tu non sappia già, capitano.»';return{s}}
-   if(v.slice(0,6)==='passa:')return passaA(s,p,+v.slice(6));
-   if(v==='aggredisci'){if(sgp)memSig(sgp).trad++;if(D.REGNI.includes(p.faz)){inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
+   if(v.slice(0,6)==='passa:')return VEN.passaA(s,p,+v.slice(6));
+   if(v==='aggredisci'){if(sgp)memSig(sgp).trad++;if(D.REGNI.includes(p.faz)){VEN.inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
   if(inc.tipo==='assalto'&&v==='togli'){s.assedio=null;s.incontro=null;if(s.dentro!==inc.lid)s.davanti=inc.lid;return{s}}
   if(inc.tipo==='assalto'&&(v==='attendi'||v==='ariete')){const a=s.assedio;if(!a||a.lid!==inc.lid||!MURA[s.l[inc.lid].tipo])return{err:'Qui non c\'è un assedio'};
    // si rimanda l'assalto: paghe, viveri e soccorsi dei signori continuano a correre
@@ -121,7 +121,7 @@ Object.assign(VEN,(()=>{
     L(s,covo?luogo.nome+' è in cenere: le strade respirano.':'Le rovine tacciono. Quel che custodivano è vostro.','bene');if(covo)s.davanti=-1;
     for(const q of s.incarichi)if((q.tipo==='reliquia'||q.tipo==='taglia')&&q.a===luogo.id&&!q.fatto&&!q.fallito){q.fatto=true;tu.oro+=q.premio;out.oro+=q.premio;const da=s.l[q.da];da.inc=null;da.rel+=8;s.fama+=5;L(s,'Incarico compiuto: '+q.premio+' monete da '+da.nome+'.','bene')}}
    else if(luogo){for(const p of s.p.filter(p=>p.dentro===luogo.id&&p.k!=='sig'))p.dentro=-1;const srv=s.servizio;
-    if(srv){conquista(s,luogo,srv.faz,srv.tipo==='vas'?-2:-1);if(srv.tipo==='vas')L(s,'Il sovrano ti affida '+luogo.nome+'.','bene');else{tu.oro+=700;out.oro+=700}relaz(s,srv.faz,10)}else conquista(s,luogo,'tu',-2);
+    if(srv){VEN.conquista(s,luogo,srv.faz,srv.tipo==='vas'?-2:-1);if(srv.tipo==='vas')L(s,'Il sovrano ti affida '+luogo.nome+'.','bene');else{tu.oro+=700;out.oro+=700}relaz(s,srv.faz,10)}else VEN.conquista(s,luogo,'tu',-2);
     luogo.g=[];s.assedio=null;s.fama+=20;out.fama+=20;out.presa=luogo.id;s.dentro=luogo.id}
    if(inc.tipo==='mischia'){const sc=s.scontri.find(x=>x.id===inc.sc);if(sc){const i=s.scontri.indexOf(sc);s.scontri.splice(i,1)}}}
   else{s.stat.perse++;tu.mor=Math.max(0,tu.mor-15);s.slancio=0;out.xp=Math.round(valUcc*.7);

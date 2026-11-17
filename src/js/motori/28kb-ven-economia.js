@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,L,M0,MERCATO,MURA,OSTERIA,P,SITO,TU,abil,aggiungi,capDi,capi,chiave,dist,faiRegno,fondaRegno,forza,forzaTr,giorno,gradDi,inGuerra,limite,mappa,memSig,nemiche,nomeF,ogg,part,proposta,reagisci,relaz,rnd,togliUomini,uomini,vicinoOk}=VEN._;
+ const{D,L,M0,MERCATO,MURA,OSTERIA,P,SITO,TU,abil,aggiungi,capDi,capi,chiave,dist,forza,forzaTr,giorno,gradDi,inGuerra,limite,mappa,memSig,nemiche,nomeF,ogg,part,reagisci,relaz,rnd,togliUomini,uomini,vicinoOk}=VEN._;
  function prezzoOgg(s,o,verso){const c=abil(s,'commercio'),b=Math.max(20,o.prezzo);return Math.round(verso>0?b*(1.1-c*.02):b*.4*(1+c*.03))}
  // offerte del luogo: mercenari in taverna e incarichi
  function rinnova(s,l,r){const pesca=(a,n)=>{const c=a.slice(),o=[];while(o.length<n&&c.length)o.push(c.splice(Math.floor(r()*c.length),1)[0]);return o},g=giorno(s);
@@ -39,7 +39,7 @@ Object.assign(VEN,(()=>{
  function fai(s,z){if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};const tu=TU(s),r=rnd(s),lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null,c=capDi(s,z.seat);if(!c)return{err:'Capitano sconosciuto'};
   if(s.incontro&&s.incontro.tipo==='arena'&&!['ritira','equipa','togli','abilita'].includes(z.a))return{err:'Il duello ti aspetta'};
   // sempre possibili
-  if(['feudo','investi','aduna','dichiara','rompi'].includes(z.a)){if(!s.corona)return{err:'Non hai un regno'};return faiRegno(s,z)}
+  if(['feudo','investi','aduna','dichiara','rompi'].includes(z.a)){if(!s.corona)return{err:'Non hai un regno'};return VEN.faiRegno(s,z)}
   if(z.a==='abilita'){if(c.punti<1)return{err:'Nessun punto da spendere'};if(!(z.k in c.ab))return{err:'Abilità sconosciuta'};if(c.ab[z.k]>=10)return{err:'Già al massimo'};c.ab[z.k]++;c.punti--;return{s}}
   if(z.a==='promuovi'){const e=tu.tr.find(e=>e.t===z.t),T=e&&D.TR[e.t];if(!e||!T.su.includes(z.su))return{err:'Promozione non valida'};const n=Math.max(1,z.n||1),xp=D.XP_SU[T.t]*n,oro=D.PROMO[T.t]*n;
    if(e.n<n)return{err:'Non hai abbastanza uomini'};if((e.xp||0)<xp)return{err:'Non hanno ancora abbastanza esperienza'};if(tu.oro<oro)return{err:'Servono '+oro+' monete'};
@@ -57,7 +57,7 @@ Object.assign(VEN,(()=>{
    if(z.slot==='arma'||z.slot==='armatura')return{err:'Senza non si va in battaglia: scambiala con un\'altra'};if(!eq[z.slot])return{err:'Niente da togliere'};tu.zaino.push(eq[z.slot]);eq[z.slot]=null;return{s}}
   if(!l)return{err:'Devi essere in un luogo'};
   const dentro=s.dentro>=0,ost=l.faz!=='tu'&&nemiche(s,'tu',l.faz),mio=l.faz==='tu'||(l.sig===-2);
-  if(z.a==='fonda')return fondaRegno(s,z,l,dentro,mio);
+  if(z.a==='fonda')return VEN.fondaRegno(s,z,l,dentro,mio);
   if(z.a==='assalta'){if(!SITO[l.tipo])return{err:'Qui non c\'è nulla da assaltare'};if(!l.g.length)return{err:'Non c\'è più nessuno'};s.incontro={tipo:'assalto',lid:l.id};s.ev.push({t:'incontro'});return{s}}
   if(z.a==='assedia'){if(!ost||!MURA[l.tipo])return{err:'Non si può assediare'};s.assedio={lid:l.id,pronto:s.t+Math.max(4,P.ASSEDIO_ORE-abil(s,'comando'))*60,da:s.t,ariete:false};tu.ord={t:'aspetta',fino:s.assedio.pronto+60};L(s,'Cingete d\'assedio '+l.nome+': scale e arieti saranno pronti tra qualche ora.','guerra');return{s}}
   if(z.a==='razzia'){if(!ost||l.tipo!=='villaggio')return{err:'Non si può razziare'};if(l.sacc>giorno(s))return{err:'Non è rimasto nulla da prendere'};const oro=60+Math.round(l.prosp*2.2);tu.oro+=oro;tu.merci.grano=(tu.merci.grano||0)+6;
@@ -103,7 +103,7 @@ Object.assign(VEN,(()=>{
    if(s.l.some(x=>x.faz==='tu'))return{err:'Chi ha terre proprie non giura'};s.servizio={faz:l.faz,tipo:'vas'};const v=s.l.filter(x=>x.faz===l.faz&&x.tipo==='villaggio'&&x.sig!==-2).sort((a,b)=>a.prosp-b.prosp)[0];if(v){v.sig=-2;L(s,'Giuri fedeltà a '+D.FAZ[l.faz].re+': ti è dato in feudo '+v.nome+'.','bene')}return{s}}
   if(z.a==='lascia'){if(!s.servizio)return{err:'Non servi nessuno'};const f=s.servizio.faz;if(s.servizio.tipo==='vas')for(const sg of s.sig)if(sg.faz===f)memSig(sg).trad++;relaz(s,f,s.servizio.tipo==='vas'?-30:-8);for(const x of s.l)if(x.sig===-2&&x.faz===f)x.sig=x.capo>=0?s.l[x.capo].sig:-1;s.servizio=null;L(s,'Sciogli il tuo legame con '+D.FAZ[f].breve+'.');return{s}}
   if(z.a==='proponi'){const a=l.faz;if(!D.REGNI.includes(a)||l.tipo!=='citta')return{err:'Solo il re, nella sua capitale'};if(!dentro)return{err:'Devi essere dentro le mura'};
-   const b=s.corona&&!s.servizio?'tu':z.f,p=proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=nomeF(s,b);
+   const b=s.corona&&!s.servizio?'tu':z.f,p=VEN.proposta(s,z.tipo,a,b);if(p.err)return p;const k=chiave(a,b),g=giorno(s),A=D.FAZ[a].breve,B=nomeF(s,b);
    if(!p.ok)return{err:D.FAZ[a].re+' rifiuta: il conto dà '+p.tot+' (serve 0)'};
    if(z.tipo==='pace'){VEN.faiPace(s,a,b);relaz(s,a,3);L(s,'Per le tue parole '+A+' e '+B+' firmano la pace.','bene')}
    else if(z.tipo==='alleanza'){s.alleanza=s.alleanza||{};s.alleanza[k]={da:g,rompe:0};VEN.scioglieScontri(s,a,b);relaz(s,a,2);L(s,A+' e '+B+' stringono un\'alleanza, per le tue parole.','bene')}
