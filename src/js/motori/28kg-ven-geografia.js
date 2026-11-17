@@ -16,10 +16,16 @@ const VGEO=(()=>{
  const liscio=t=>t*t*(3-2*t);
  function rumore(x,y,s){const xi=M_floor(x),yi=M_floor(y),fx=liscio(x-xi),fy=liscio(y-yi);
   const a=h2(xi,yi,s),b=h2(xi+1,yi,s),c=h2(xi,yi+1,s),d=h2(xi+1,yi+1,s);return a+(b-a)*fx+(c-a)*fy+(a-b-c+d)*fx*fy}
- const fbm=(x,y,s)=>rumore(x,y,s)*.5+rumore(x*2,y*2,s+1)*.25+rumore(x*4,y*4,s+2)*.15+rumore(x*8,y*8,s+3)*.1;
+ // `rumore(x/scala,y/scala,s)·peso` su tutta la griglia G×G, sommato in `out`: i valori ai nodi si calcolano una volta sola (molto più svelto)
+ function campo(G,out,scala,s,peso){const n=M_floor((G-1)/scala)+2,tb=new Float64Array(n*n),xi=new Int32Array(G),fx=new Float64Array(G);
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++)tb[j*n+i]=h2(i,j,s);
+  for(let x=0;x<G;x++){const v=x/scala;xi[x]=M_floor(v);fx[x]=liscio(v-xi[x])}
+  for(let y=0;y<G;y++){const r0=xi[y]*n,r1=r0+n,fy=fx[y],o=y*G;
+   for(let x=0;x<G;x++){const k=xi[x],f=fx[x],a=tb[r0+k],b=tb[r0+k+1],c=tb[r1+k],d=tb[r1+k+1];out[o+x]+=peso*(a+(b-a)*f+(c-a)*fy+(a-b-c+d)*f*fy)}}
+  return out}
  const d2p=(x0,y0,x1,y1)=>M_sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0));
  const clamp=(v,a,b)=>v<a?a:v>b?b:v;
- const N8=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+ const OX=[1,-1,0,0,1,-1,1,-1],OY=[0,0,1,-1,1,1,-1,-1]; // i 4 vicini, poi le diagonali
  // coda di priorità: chiave più indice (1e-12 per cella) così gli spareggi sono sempre uguali
  function Coda(n){const k=new Float64Array(n+1),v=new Int32Array(n+1);let m=0;
   return{len:()=>m,vuota(){m=0},
@@ -34,8 +40,10 @@ const VGEO=(()=>{
   // ---------- 1. continente e isole ----------
   let A=new Float32Array(N);
   const isole=[];for(let k=0;k<1+M_floor(h2(seme,5,701)*3);k++)isole.push([G*(.12+.76*h2(k,1,seme+702)),G*(.12+.76*h2(k,2,seme+703)),G*(.035+.035*h2(k,3,seme+704))]);
+  const FB=new Float64Array(N),RR=campo(G,new Float64Array(N),20*sc,seme+740,1);
+  for(let o=0,s0=13*sc,p=[.5,.25,.15,.1];o<4;o++)campo(G,FB,s0/(1<<o),seme+o,p[o]);
   for(let y=0;y<G;y++)for(let x=0;x<G;x++){const i=y*G+x,e=M_min(x,y,G-1-x,G-1-y);
-   const dx=(x+.5-G/2)/(G/2),dy=(y+.5-G/2)/(G/2),rr=M_sqrt(dx*dx+dy*dy)*(1+(rumore(x/(20*sc),y/(20*sc),seme+740)-.5)*.7),rampa=liscio(clamp((1.02-rr)/.55,0,1)),base=fbm(x/(13*sc),y/(13*sc),seme);
+   const dx=(x+.5-G/2)/(G/2),dy=(y+.5-G/2)/(G/2),rr=M_sqrt(dx*dx+dy*dy)*(1+(RR[i]-.5)*.7),rampa=liscio(clamp((1.02-rr)/.55,0,1)),base=FB[i];
    let a=base*.55+rampa*.65;
    for(const o of isole){const d=((x-o[0])*(x-o[0])+(y-o[1])*(y-o[1]))/(o[2]*o[2]);if(d<1)a+=.4*(1-d)*(1-d)}
    A[i]=e<BORDO?-1:a}
@@ -48,16 +56,19 @@ const VGEO=(()=>{
   const bm=new Uint8Array(N);
   {const comp=new Int32Array(N).fill(-1);let nc=0,gr=0,gm=0;
    for(let i=0;i<N;i++){if(comp[i]>=0||A[i]<MARE)continue;const lista=[i];comp[i]=nc;
-    for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(comp[j]<0&&A[j]>=MARE){comp[j]=nc;lista.push(j)}}}
+    for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;for(let d=0;d<4;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(comp[j]<0&&A[j]>=MARE){comp[j]=nc;lista.push(j)}}}
     if(lista.length>gm){gm=lista.length;gr=nc}nc++}
    for(let i=0;i<N;i++)bm[i]=comp[i]===gr?1:0}
   const catene=[],R0=new Float32Array(N),nd=GEO.DORSALI[0]+M_floor(h2(seme,6,705)*(GEO.DORSALI[1]-GEO.DORSALI[0]+1)),larg=GEO.LARGO*sc;
   for(let t=0;t<80&&catene.length<nd;t++){
    let x=G*(.15+.7*h2(t,1,seme+710)),y=G*(.15+.7*h2(t,2,seme+711));if(!bm[M_floor(y)*G+M_floor(x)]||A[M_floor(y)*G+M_floor(x)]<MARE+.04)continue;
    let dx=h2(t,3,seme+712)-.5,dy=h2(t,4,seme+713)-.5;{const l=M_sqrt(dx*dx+dy*dy)||1;dx/=l;dy/=l}
-   const pt=[],lung=M_floor(G*(.4+.3*h2(t,5,seme+714)));
+   const pt=[],lung=M_floor(G*(.4+.3*h2(t,5,seme+714))),d0x=dx,d0y=dy;
+   // la dorsale piega col rumore ma resta vicina alla direzione di partenza (al più 60°): niente riccioli né «S»
    for(let k=0;k<lung;k++){const ci=M_floor(y)*G+M_floor(x);if(x<BORDO||y<BORDO||x>=G-BORDO||y>=G-BORDO||!bm[ci])break;pt.push([x,y]);
-    const w=(rumore(k/(9*sc),t*7.3,seme+715)-.5)*.5;const nx=dx-dy*w,ny=dy+dx*w,l=M_sqrt(nx*nx+ny*ny)||1;dx=nx/l;dy=ny/l;x+=dx;y+=dy}
+    const w=(rumore(k/(9*sc),t*7.3,seme+715)-.5)*.5;let nx=(dx-dy*w)*.85+d0x*.15,ny=(dy+dx*w)*.85+d0y*.15;const l=M_sqrt(nx*nx+ny*ny)||1;nx/=l;ny/=l;
+    if(nx*d0x+ny*d0y<.5){const lato=d0x*ny-d0y*nx<0?-1:1;nx=d0x*.5-d0y*.8660254*lato;ny=d0y*.5+d0x*.8660254*lato}
+    dx=nx;dy=ny;x+=dx;y+=dy}
    if(pt.length<24*sc)continue;
    const passi=[],n=pt.length,quanti=GEO.PASSI+1;
    for(let k=0;k<quanti;k++){const f=(k+.5)/quanti,j=clamp(M_floor(n*(f+(h2(t,k+7,seme+717)-.5)*.16)),2,n-3);passi.push(j)}
@@ -77,7 +88,7 @@ const VGEO=(()=>{
   const Q=new Float32Array(N),Dn=new Int32Array(N).fill(-1),vis=new Uint8Array(N),ordine=new Int32Array(N);let no=0;
   {const q=Coda(N);for(let i=0;i<N;i++)if(bordo(i)===0){vis[i]=1;Q[i]=A[i];q.metti(A[i],i)}
    while(q.len()){const c=q.togli();ordine[no++]=c;const cx=c%G,cy=(c-cx)/G;
-    for(const[ox,oy]of N8){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(vis[j])continue;vis[j]=1;Dn[j]=c;Q[j]=M_max(A[j],Q[c]);q.metti(Q[j],j)}}}
+    for(let d=0;d<8;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(vis[j])continue;vis[j]=1;Dn[j]=c;Q[j]=M_max(A[j],Q[c]);q.metti(Q[j],j)}}}
   const T=new Uint8Array(N),PS0=new Uint8Array(N);
   for(const c of catene)for(const p of c.passi)for(let oy=-2;oy<=2;oy++)for(let ox=-2;ox<=2;ox++)PS0[(p[1]+oy)*G+p[0]+ox]=1;
   for(let i=0;i<N;i++){const a=A[i];T[i]=a<MARE||(a>=MARE&&!PS0[i]&&Q[i]-a>GEO.PROFONDITA)?0:a>MONTE?4:a>COLLE?3:1}
@@ -85,14 +96,14 @@ const VGEO=(()=>{
   {const vi=new Uint8Array(N);let id=1;const comp=[];
    for(let i=0;i<N;i++){if(T[i]!==0||vi[i])continue;const lista=[i];vi[i]=1;let mare=false;
     for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;if(bordo(c)===0)mare=true;
-     for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(T[j]===0&&!vi[j]){vi[j]=1;lista.push(j)}}}
+     for(let d=0;d<4;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(T[j]===0&&!vi[j]){vi[j]=1;lista.push(j)}}}
     comp.push({lista,mare})}
    for(const c of comp){if(c.mare){laghi[0].n+=c.lista.length;continue}
     if(c.lista.length<GEO.LAGO_MIN){for(const i of c.lista){const a=A[i];T[i]=a<MARE?1:a>MONTE?4:a>COLLE?3:1;if(a<MARE)A[i]=MARE+.01}continue}
     for(const i of c.lista)LG[i]=id;laghi.push({id,n:c.lista.length,grande:c.lista.length>=GEO.LAGO_GRANDE});id++}}
   const acqua=i=>T[i]===0,navig=i=>T[i]===0&&laghi[LG[i]].grande;
   // ---------- 4. fiumi: accumulo del flusso sulle quote riempite ----------
-  const acc=new Float32Array(N);for(let i=0;i<N;i++)acc[i]=bordo(i)===0?0:.6+.8*rumore(i%G/(7*sc),M_floor(i/G)/(7*sc),seme+720);
+  const acc=new Float32Array(N),RA=campo(G,new Float64Array(N),7*sc,seme+720,1);for(let i=0;i<N;i++)acc[i]=bordo(i)===0?0:.6+.8*RA[i];
   for(let k=no-1;k>=0;k--){const c=ordine[k];if(Dn[c]>=0)acc[Dn[c]]+=acc[c]}
   const foci=[];for(let i=0;i<N;i++)if(!acqua(i)&&Dn[i]>=0&&acqua(Dn[i])&&navig(Dn[i])&&T[i]!==4)foci.push(i);
   foci.sort((a,b)=>acc[b]-acc[a]||a-b);
@@ -104,7 +115,7 @@ const VGEO=(()=>{
   const calcolaOk=()=>{const comp=new Int16Array(N).fill(-1);let nc=0,gr=0,gm=0;
    for(let i=0;i<N;i++){if(comp[i]>=0||T[i]===0||T[i]===4)continue;let n=0;const lista=[i];comp[i]=nc;
     for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;n++;
-     for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(comp[j]<0&&T[j]!==0&&T[j]!==4){comp[j]=nc;lista.push(j)}}}
+     for(let d=0;d<4;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(comp[j]<0&&T[j]!==0&&T[j]!==4){comp[j]=nc;lista.push(j)}}}
     if(n>gm){gm=n;gr=nc}nc++}
    for(let i=0;i<N;i++)ok[i]=comp[i]===gr?1:0};
   calcolaOk();
@@ -122,41 +133,51 @@ const VGEO=(()=>{
   // ---------- 5. climi: umidità vicino all'acqua, bosco, neve a nord, secco a sud ----------
   const B=new Uint8Array(N),dw=new Uint8Array(N).fill(255);
   {const lista=[];for(let i=0;i<N;i++)if(acqua(i)||F[i]>0){dw[i]=0;lista.push(i)}
-   for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;if(dw[c]>=8)continue;for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(dw[j]===255){dw[j]=dw[c]+1;lista.push(j)}}}}
+   for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;if(dw[c]>=8)continue;for(let d=0;d<4;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(dw[j]===255){dw[j]=dw[c]+1;lista.push(j)}}}}
   const umido=new Float32Array(N);
-  for(let y=0;y<G;y++)for(let x=0;x<G;x++){const i=y*G+x,h=.5*rumore(x/(6*sc),y/(6*sc),seme+730)+.5*(1-M_min(dw[i],8)/8),lat=y/G;umido[i]=h;
-   const nv=rumore(x/(9*sc),y/(9*sc),seme+731)-.5;
+  const RU=campo(G,new Float64Array(N),6*sc,seme+730,1),RN=campo(G,new Float64Array(N),9*sc,seme+731,1);
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){const i=y*G+x,h=.5*RU[i]+.5*(1-M_min(dw[i],8)/8),lat=y/G;umido[i]=h;
+   const nv=RN[i]-.5;
    B[i]=(lat<.22+nv*.1||(T[i]===4&&A[i]>.95))&&T[i]>=3?1:lat>.7+nv*.1&&h<.5?3:lat>.52&&h<.4?2:0;
    if(T[i]===1&&h>(lat<.3?.5:.62)+(lat>.7?.1:0))T[i]=2}
   // ---------- 6. luoghi ----------
   const M={seme,G,T,B,S:new Uint8Array(N),R:new Uint8Array(N),A,ok,F,LG,Q,D:Dn,PN:new Uint8Array(N),PS:new Uint8Array(N),P:[],catene,fiumi,laghi};
   for(const c of catene)for(const p of c.passi){const r=2;for(let oy=-r;oy<=r;oy++)for(let ox=-r;ox<=r;ox++){const i=(p[1]+oy)*G+p[0]+ox;if(T[i]===3)M.PS[i]=1}}
-  const vicini=(i,f)=>{const x=i%G,y=(i-x)/G;let n=0;for(const[ox,oy]of N8){const nx=x+ox,ny=y+oy;if(nx>=0&&ny>=0&&nx<G&&ny<G&&f(ny*G+nx))n++}return n};
-  const confl=new Uint8Array(N);for(let i=0;i<N;i++)if(F[i]>0){let n=0;const x=i%G,y=(i-x)/G;for(const[ox,oy]of N8){const nx=x+ox,ny=y+oy;if(nx>=0&&ny>=0&&nx<G&&ny<G){const j=ny*G+nx;if(Dn[j]===i&&F[j]>0)n++}}confl[i]=n>=2?1:0}
+  const confl=new Uint8Array(N);for(let i=0;i<N;i++)if(F[i]>0){let n=0;const x=i%G,y=(i-x)/G;for(let d=0;d<8;d++){const ox=OX[d],oy=OY[d];const nx=x+ox,ny=y+oy;if(nx>=0&&ny>=0&&nx<G&&ny<G){const j=ny*G+nx;if(Dn[j]===i&&F[j]>0)n++}}confl[i]=n>=2?1:0}
   const costa=new Uint8Array(N),riva=new Uint8Array(N),baia=new Uint8Array(N),foce=new Uint8Array(N);
-  for(let i=0;i<N;i++){if(acqua(i))continue;costa[i]=vicini(i,j=>T[j]===0&&laghi[LG[j]].grande)>0?1:0;riva[i]=vicini(i,j=>T[j]===0&&LG[j]>0&&laghi[LG[j]].grande)>0?1:0;baia[i]=vicini(i,j=>T[j]===0&&LG[j]===0)>=3?1:0;
+  for(let i=0;i<N;i++){if(acqua(i))continue;const x=i%G,y=(i-x)/G;let nc=0,nr=0,nb=0;
+   for(let d=0;d<8;d++){const nx=x+OX[d],ny=y+OY[d];if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(T[j]!==0)continue;const lg=LG[j];if(lg===0)nb++;if(laghi[lg].grande){nc++;if(lg>0)nr++}}
+   costa[i]=nc>0?1:0;riva[i]=nr>0?1:0;baia[i]=nb>=3?1:0;
    foce[i]=F[i]>0&&Dn[i]>=0&&acqua(Dn[i])?1:0}
   const L=[];
   const lontano=(x,y,d)=>{for(const l of L){const dx=x-l.x,dy=y-l.y;if(dx*dx+dy*dy<d*d)return false}return true};
   const rum=new Float32Array(N);for(let i=0;i<N;i++)rum[i]=h2(i%G,M_floor(i/G),seme+300)*.6;
   const cand=[],candF=[];for(let y=4;y<G-4;y++)for(let x=4;x<G-4;x++){const i=y*G+x;if(!ok[i])continue;candF.push(i);if(!(F[i]>0))cand.push(i)}
-  const cerca=(reg,okf,punti,anche)=>{let m=null,mv=-1e9;const lista=anche?candF:cand;for(let k=0;k<lista.length;k++){const i=lista[k];if(reg>=0&&M.R[i]!==reg)continue;const x=i%G,y=(i-x)/G;
+  // il candidato migliore (spareggio per indice di cella); per regione scorre solo le celle della regione (R non cambia più dopo le città)
+  let perReg=null;
+  const cerca=(reg,okf,punti,anche)=>{let m=null,mv=-1e9,lista=anche?candF:cand;
+   if(reg>=0){if(!perReg){perReg=REG.map(()=>[[],[]]);for(const i of cand)perReg[M.R[i]][0].push(i);for(const i of candF)perReg[M.R[i]][1].push(i)}lista=perReg[reg][anche?1:0]}
+   for(let k=0;k<lista.length;k++){const i=lista[k],x=i%G,y=(i-x)/G;
     const v=punti(x,y,i)+rum[i];if(v<=mv||!okf(x,y,i))continue;mv=v;m=[x,y]}return m};
+  // lo stesso, solo nel quadrato di lato 2r intorno a (cx,cy): stesse celle di `cand`, stesso ordine
+  const cercaVicino=(cx,cy,r,okf,punti)=>{let m=null,mv=-1e9;const y0=M_max(4,M_floor(cy-r)),y1=M_min(G-5,M_floor(cy+r)),x0=M_max(4,M_floor(cx-r)),x1=M_min(G-5,M_floor(cx+r));
+   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*G+x;if(!ok[i]||F[i]>0)continue;const v=punti(x,y,i)+rum[i];if(v<=mv||!okf(x,y,i))continue;mv=v;m=[x,y]}return m};
   const metti=(tipo,f,k,pos,capo)=>{if(!pos)return null;const NM=D.NOMI[tipo],nomi=tipo==='covo'?[D.CAPIBANDA[k%D.CAPIBANDA.length].banda]:f==='neu'||f==='pre'?NM:NM[f];
    const l={id:L.length,tipo,faz:f,nome:(tipo==='covo'?'Covo: ':'')+nomi[k%nomi.length]+(k>=nomi.length&&tipo==='castello'?' bis':''),x:pos[0]+.5,y:pos[1]+.5,capo:capo==null?-1:capo,k};L.push(l);
-   const i=pos[1]*G+pos[0];if(tipo==='citta'||tipo==='castello'){if(T[i]!==1)T[i]=3}else if(tipo!=='rovine'&&tipo!=='covo'&&tipo!=='monastero')T[i]=1;return l};
+   const i=pos[1]*G+pos[0];if(tipo==='citta'||tipo==='castello'){if(T[i]!==1)T[i]=3}else if(tipo!=='rovine'&&tipo!=='covo'&&tipo!=='monastero'){T[i]=1;if(B[i]===1)B[i]=0}return l}; // la neve resta sui rilievi
   // città: foci, confluenze, rive di lago grande, baie; una per regno, vicino al suo centro preferito e lontana dalle altre
   const minC=G/6,citta=[];
   REG.forEach((f,k)=>{const c=CENTRI[f],cx=c[0]*G,cy=c[1]*G,idoneo=(x,y,i)=>T[i]===1&&citta.every(q=>d2p(x,y,q[0],q[1])>=minC);
    const pt=(x,y,i)=>(foce[i]?3:0)+(confl[i]?2.5:0)+(riva[i]?2:0)+(baia[i]?1.5:0)+(f==='mar'&&costa[i]?3:0)+(dw[i]<=3?.8:0)-d2p(x,y,cx,cy)*(G>=192?.09:.12)/sc;
    const p=cerca(-1,idoneo,pt,true)||cerca(-1,(x,y,i)=>T[i]!==4&&T[i]!==0,pt,true);if(p)citta.push([p[0],p[1],k])});
   // regioni provvisorie: la città più vicina
-  for(let i=0;i<N;i++){const x=i%G,y=(i-x)/G;let b=0,bd=1e9;citta.forEach((q,k)=>{const d=d2p(x,y,q[0],q[1]);if(d<bd){bd=d;b=q[2]}});M.R[i]=b}
+  {const nc=citta.length;for(let i=0;i<N;i++){const x=i%G,y=(i-x)/G;let b=0,bd=1e18;for(let k=0;k<nc;k++){const q=citta[k],dx=x-q[0],dy=y-q[1],d=dx*dx+dy*dy;if(d<bd){bd=d;b=q[2]}}M.R[i]=b}}
   REG.forEach((f,k)=>{const q=citta.find(c=>c[2]===k);if(q)metti('citta',f,0,[q[0],q[1]])});
   const cittaDi=f=>L.find(l=>l.faz===f&&l.tipo==='citta');
-  const vicinoPasso=(x,y)=>{let b=1e9;for(const c of catene)for(const p of c.passi){const d=d2p(x,y,p[0]+.5,p[1]+.5);if(d<b)b=d}return b};
+  // celle a meno di 5 da un passo
+  const vp=new Uint8Array(N);for(const c of catene)for(const p of c.passi)for(let y=M_max(0,p[1]-5);y<=M_min(G-1,p[1]+6);y++)for(let x=M_max(0,p[0]-5);x<=M_min(G-1,p[0]+6);x++){const dx=x-p[0]-.5,dy=y-p[1]-.5;if(dx*dx+dy*dy<25)vp[y*G+x]=1}
   REG.forEach((f,reg)=>{const cit=cittaDi(f);if(!cit)return;for(let k=0;k<4;k++)
-   metti('castello',f,k,cerca(reg,(x,y)=>lontano(x+.5,y+.5,GEO.CASTELLO_DIST*sc),(x,y,i)=>(T[i]===3?1.5:0)+(M.PS[i]||vicinoPasso(x,y)<5?3:0)+(dw[i]<=2?.8:0)+(confl[i]?1.5:0)-M_abs(d2p(x,y,cit.x,cit.y)-15*sc)*.25)||cerca(-1,(x,y)=>lontano(x+.5,y+.5,6*sc),(x,y)=>-d2p(x,y,cit.x,cit.y)*.2),cit.id)});
+   metti('castello',f,k,cerca(reg,(x,y)=>lontano(x+.5,y+.5,GEO.CASTELLO_DIST*sc),(x,y,i)=>(T[i]===3?1.5:0)+(M.PS[i]||vp[i]?3:0)+(dw[i]<=2?.8:0)+(confl[i]?1.5:0)-M_abs(d2p(x,y,cit.x,cit.y)-15*sc)*.25)||cerca(-1,(x,y)=>lontano(x+.5,y+.5,6*sc),(x,y)=>-d2p(x,y,cit.x,cit.y)*.2),cit.id)});
   REG.forEach((f,reg)=>{const capi=L.filter(l=>l.faz===f&&(l.tipo==='citta'||l.tipo==='castello'));if(!capi.length)return;for(let k=0;k<8;k++){const capo=capi[k%capi.length];
    metti('villaggio',f,k,cerca(reg,(x,y,i)=>T[i]===1&&lontano(x+.5,y+.5,GEO.VILLAGGIO_DIST),(x,y,i)=>(dw[i]<=3?1.2:0)+(dw[i]===0?-5:0)-M_abs(d2p(x,y,capo.x,capo.y)-6*sc)*.5)||cerca(-1,(x,y,i)=>T[i]===1&&lontano(x+.5,y+.5,4),(x,y)=>-d2p(x,y,capo.x,capo.y)),capo.id)}});
   // porti: solo dove il vicino è mare o lago grande; a ≥ 6 celle da un altro porto
@@ -167,7 +188,7 @@ const VGEO=(()=>{
   const g=new Float32Array(N),da=new Int32Array(N),stampa=new Int32Array(N),chiuso=new Int32Array(N),coda=Coda(N*2);let giro=0;
   const COSTO=[9,1,1.45,1.35,9];
   function percorso(a,b){giro++;const bx=b%G,by=(b-bx)/G;coda.vuota();g[a]=0;da[a]=-1;stampa[a]=giro;coda.metti(0,a);   while(coda.len()){const c=coda.togli();if(chiuso[c]===giro)continue;chiuso[c]=giro;if(c===b)break;const cx=c%G,cy=(c-cx)/G;
-    for(const[ox,oy]of N8){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(!ok[j])continue;
+    for(let d=0;d<8;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(!ok[j])continue;
      if(ox&&oy&&(!ok[cy*G+nx]||!ok[ny*G+cx]))continue;
      const w=(M.S[j]?.5:COSTO[T[j]]+(T[j]===3?.6:0)+(F[j]>0?6:0)+M_abs(A[j]-A[c])*12)*(ox&&oy?1.4142:1),ng=g[c]+w;
      if(stampa[j]!==giro||ng<g[j]){stampa[j]=giro;g[j]=ng;da[j]=c;coda.metti(ng+d2p(nx,ny,bx,by)*.9,j)}}}
@@ -190,19 +211,23 @@ const VGEO=(()=>{
   const sorveglia=()=>{let n=0;const mire=M.P.map(p=>[p.x,p.y]);
    for(const c of catene){let b=null,bd=1e9;for(const p of c.passi){const d=guarda(p[0]+.5,p[1]+.5);if(d<bd){bd=d;b=[p[0]+.5,p[1]+.5]}}if(b)mire.push(b)}
    for(const m of mire){if(guarda(m[0],m[1])<=RAGGIO)continue;
-    const q=cerca(-1,(x,y,i)=>T[i]!==4&&lontano(x+.5,y+.5,3)&&d2p(x+.5,y+.5,m[0],m[1])<=RAGGIO*.85,(x,y,i)=>-d2p(x+.5,y+.5,m[0],m[1])+(T[i]===3?.5:0));if(!q)continue;
+    const q=cercaVicino(m[0],m[1],RAGGIO*.85,(x,y,i)=>T[i]!==4&&lontano(x+.5,y+.5,3)&&d2p(x+.5,y+.5,m[0],m[1])<=RAGGIO*.85,(x,y,i)=>-d2p(x+.5,y+.5,m[0],m[1])+(T[i]===3?.5:0));if(!q)continue;
     const f=REG[M.R[q[1]*G+q[0]]],cit=cittaDi(f);if(!cit)continue;const l=metti('castello',f,L.filter(z=>z.faz===f&&z.tipo==='castello').length,q,cit.id);if(l){lega(l,cit);n++}}
    return n};
-  for(let k=0;k<4&&sorveglia();k++);
-  for(const p of M.P){let cs=-1,cd=1e9;for(const l of L)if(l.tipo==='castello'){const d=d2p(l.x,l.y,p.x,p.y);if(d<cd){cd=d;cs=l.id}}p.castello=cs}
+  // un castello nuovo porta una strada nuova, e forse un ponte nuovo: si ripete finché tutto è guardato
+  const guardaTutto=()=>{for(let k=0;k<8&&sorveglia();k++);};
+  guardaTutto();
   // monasteri e locande lungo le strade; rovine e covi nei boschi e sui monti lontani
   const ds=new Uint8Array(N).fill(255);
   {const lista=[];for(let i=0;i<N;i++)if(M.S[i]){ds[i]=0;lista.push(i)}
-   for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;if(ds[c]>=12)continue;for(const[ox,oy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(ds[j]===255){ds[j]=ds[c]+1;lista.push(j)}}}}
+   for(let k=0;k<lista.length;k++){const c=lista[k],cx=c%G,cy=(c-cx)/G;if(ds[c]>=12)continue;for(let d=0;d<4;d++){const ox=OX[d],oy=OY[d];const nx=cx+ox,ny=cy+oy;if(nx<0||ny<0||nx>=G||ny>=G)continue;const j=ny*G+nx;if(ds[j]===255){ds[j]=ds[c]+1;lista.push(j)}}}}
   const C2=L.filter(l=>l.tipo==='citta'),piuVicina=l=>C2.slice().sort((p,q)=>d2p(l.x,l.y,p.x,p.y)-d2p(l.x,l.y,q.x,q.y))[0];
   for(let k=0;k<5;k++){const l=metti('monastero','neu',k,cerca(-1,(x,y,i)=>T[i]!==1&&lontano(x+.5,y+.5,8*sc),(x,y,i)=>(T[i]===3?1.5:0)-M_min(ds[i],12)*.4));if(l)lega(l,piuVicina(l))}
   for(let k=0;k<7;k++){const l=metti('locanda','neu',k,cerca(-1,(x,y,i)=>T[i]===1&&lontano(x+.5,y+.5,7*sc),(x,y,i)=>-M_min(ds[i],12)*.4));if(l)lega(l,piuVicina(l))}
-  const dcit=new Float32Array(N);for(let i=0;i<N;i++){if(!ok[i])continue;const x=(i%G)+.5,y=M_floor(i/G)+.5;let b=1e9;for(const c of C2){const d=d2p(x,y,c.x,c.y);if(d<b)b=d}dcit[i]=b}
+  // le strade di monasteri e locande possono aver aperto altri ponti
+  guardaTutto();
+  for(const p of M.P){let cs=-1,cd=1e9;for(const l of L)if(l.tipo==='castello'){const d=d2p(l.x,l.y,p.x,p.y);if(d<cd){cd=d;cs=l.id}}p.castello=cs}
+  const dcit=new Float32Array(N);for(let i=0;i<N;i++){if(!ok[i])continue;const x=(i%G)+.5,y=M_floor(i/G)+.5;let b=1e18;for(const c of C2){const d=(x-c.x)*(x-c.x)+(y-c.y)*(y-c.y);if(d<b)b=d}dcit[i]=M_sqrt(b)}
   const lonCitta=(x,y,i)=>dcit[i];
   for(let k=0;k<8;k++)metti('rovine','neu',k,cerca(-1,(x,y,i)=>T[i]!==1&&lontano(x+.5,y+.5,7*sc),(x,y,i)=>M_min(lonCitta(x,y,i),40*sc)*.1+(T[i]===2?1:0)));
   for(let k=0;k<6;k++)metti('covo','pre',k,cerca(-1,(x,y,i)=>T[i]!==1&&lontano(x+.5,y+.5,9*sc),(x,y,i)=>M_min(lonCitta(x,y,i),40*sc)*.1+(T[i]===3?1:0)));
