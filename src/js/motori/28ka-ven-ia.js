@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,assalto,chiave,chiudiTorneo,cultura,debiti,dist,dominante,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,vittoria,viva,vociDelGiorno}=VEN._;
+ const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,chiave,cultura,debiti,dist,dominante,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,vittoria,viva,vociDelGiorno}=VEN._;
  // ---------- diplomazia (V3) ----------
  // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
  const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
@@ -65,7 +65,7 @@ Object.assign(VEN,(()=>{
   // assedi degli altri
   for(const l of s.l){const a=l.ass;if(!a)continue;a.pid=a.pid.filter(id=>{const p=part(s,id);return p&&!p.sc&&p.dentro<0&&dist(p,l)<1.6});
    if(!a.pid.length||!nemiche(s,a.faz,l.faz==='tu'?'tu':l.faz)){l.ass=null;continue}
-   if(s.t-a.da>=P.ASSEDIO_IA_ORE*60)assalto(s,l,r)}
+   if(s.t-a.da>=P.ASSEDIO_IA_ORE*60)VEN.assalto(s,l,r)}
   // l'assedio di chi gioca
   if(s.assedio&&s.t>=s.assedio.pronto&&!s.incontro){const tu=TU(s);tu.ord=null;s.incontro={tipo:'assalto',lid:s.assedio.lid};s.ev.push({t:'incontro'})}
   // rovine e covi si scoprono passando vicino
@@ -92,7 +92,7 @@ Object.assign(VEN,(()=>{
   p.tr=leva(cultura(s,p),18+r()*12,r);p.oro=Math.max(60,Math.floor(p.oro*.4));p.x=casa.x;p.y=casa.y;p.dentro=casa.id;p.via=[];p.ia={st:'casa',t:s.t+P.GIORNO*(preso?5:2)};if(preso)sg.prig=preso}
  function rimuovi(s,p){const i=s.p.indexOf(p);if(i>0)s.p.splice(i,1);for(const q of s.incarichi)if(q.pid===p.id&&!q.fatto)q.pid=-1}
  function giornoNuovo(s){const r=rnd(s),tu=TU(s),g=giorno(s);
-  if(s.torneo&&s.torneo.giorno<g)chiudiTorneo(s,'Il torneo di '+s.l[s.torneo.lid].nome+' è finito');
+  if(s.torneo&&s.torneo.giorno<g)VEN.chiudiTorneo(s,'Il torneo di '+s.l[s.torneo.lid].nome+' è finito');
   // viveri
   if(!s.prigioniero){let serve=Math.ceil(uomini(tu)/6);const cibi=Object.keys(tu.merci).filter(m=>D.MERCI[m].cibo&&tu.merci[m]>0);let k=0;
    while(serve>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;serve--}}
