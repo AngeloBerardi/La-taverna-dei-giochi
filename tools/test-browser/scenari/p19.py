@@ -75,6 +75,7 @@ async def sc_p19_tavolo_schieramento(b, srv):
     piccoli = await pg.evaluate("[...document.querySelectorAll('.vt-bs button, .vt-bs .b')].filter(e=>e.offsetParent).map(e=>{const r=e.getBoundingClientRect();return[e.className,e.textContent.trim(),Math.round(r.width),Math.round(r.height)]}).filter(v=>v[2]<44||v[3]<44)")
     check(m and min(m) >= 44, f'carte e comandi: bersagli >= 44 px ({piccoli})')
     check(await pg.evaluate("[...document.querySelectorAll('.gold')].filter(e=>e.offsetParent).length") == 1, 'un solo ottone visibile (Pronto)')
+    check(await pg.evaluate("[...document.querySelectorAll('[data-v=cpausa]')].filter(e=>e.offsetParent).length") == 0, 'col tavolo niente bottone Pausa/Via')
     await pg.set_viewport_size({'width': 390, 'height': 844}); await pg.wait_for_timeout(500)
     # Pronto: i nemici si mostrano, dopo un secondo si parte
     await pg.click('[data-v="vpronto"]'); await pg.wait_for_timeout(2600)

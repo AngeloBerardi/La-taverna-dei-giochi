@@ -208,7 +208,7 @@ const VenCampo=(()=>{
    if(z.k==='ingresso'){const px=z.id==='fsx'?0:z.id==='fdx'?s.W:(z.x0+z.x1)/2,pz=z.id==='retro'?s.H:(z.y0+z.y1)/2,ix=z.id==='fsx'?4:z.id==='fdx'?-4:0,iz=z.id==='retro'?-4:0,p=P(px,pz),q=P(px+ix,pz+iz),dx=q.x-p.x,dy=q.y-p.y,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
     sv+=`<polygon class="ar" points="${f(p.x+ux*20)},${f(p.y+uy*20)} ${f(p.x-uy*11)},${f(p.y+ux*11)} ${f(p.x+uy*11)},${f(p.y-ux*11)}"/>`;continue}
    const c=[[z.x0,z.y0],[z.x1,z.y0],[z.x1,z.y1],[z.x0,z.y1]].map(q=>P(q[0],q[1])),m=P((z.x0+z.x1)/2,(z.y0+z.y1)/2);
-   sv+=`<polygon points="${c.map(p=>f(p.x)+','+f(p.y)).join(' ')}"/><text x="${f(m.x)}" y="${f(m.y)}">${NOMI[z.id.replace(/[0-9]+$/,'')]||z.id}</text>`}
+   sv+=`<polygon points="${c.map(p=>f(p.x)+','+f(p.y)).join(' ')}"/><text x="${f(m.x)}" y="${f(Math.min(...c.map(p=>p.y))+11)}">${NOMI[z.id.replace(/[0-9]+$/,'')]||z.id}</text>`}
   const ICO={f:'scudo',t:'freccia',c:'passi'};
   for(const l of['b','a']){const om=l==='b'&&!(s.primo==='b'||s.pronto.a),G={};
    for(const u of s.u){if(u.l!==l||u.cap||u.st!=='vivo')continue;const g=G[u.r]||(G[u.r]={x:0,y:0,n:0,c:u.c});g.x+=u.x;g.y+=u.y;g.n++}
