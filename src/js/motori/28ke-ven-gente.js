@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,L,TU,abil,giorno,mappa,relaz,togliUomini,uomini,vicinoOk}=VEN._;
+ const{D,L,TU,abil,giorno,relaz,togliUomini,uomini,vicinoOk}=VEN._;
  // ---------- gradimento dei compagni e memoria dei signori (V6a) ----------
  // I numeri stanno in VDAT.GRAD e VDAT.SIG. Niente dadi: tutto è un conto. s.grad[id]={g,avv,visto}: g 0..100, avv = giorno dell'avviso di partenza, visto = eventi già successi.
  const inCompagnia=s=>D.COMPAGNI.filter(c=>TU(s).tr.some(e=>e.t===c.id&&e.n>0));
@@ -33,7 +33,7 @@ Object.assign(VEN,(()=>{
  // giorno di paga: pagati +PAGA, in ritardo è un evento; servizio presso un regno; legami con chi è in compagnia
  function gradPaga(s,pagato){const G=D.GRAD,ci=inCompagnia(s);if(!ci.length)return;
   if(pagato)for(const c of ci){const gr=gradDi(s,c.id);gr.g=limita(gr.g+G.PAGA)}else reagisci(s,'pagatardi');
-  if(s.servizio&&D.REGNI.includes(s.servizio.faz))reagisci(s,'servi_'+s.servizio.faz);
+  if(s.servizio&&VEN.regni(s).includes(s.servizio.faz))reagisci(s,'servi_'+s.servizio.faz);
   for(const c of ci)if(c.lega&&ci.some(x=>x.id===c.lega.id)){const gr=gradDi(s,c.id);gr.g=limita(gr.g+(c.lega.n>0?G.INTESA:G.ANTIPATIA))}}
  // ---------- dialoghi (V6b) ----------
  // Le scene stanno in VVOC (28ja) e girano nel motore di racconto ARAC (27q): qui sta ciò che le lega al mondo. Se i due file non sono caricati non succede nulla.
@@ -41,14 +41,14 @@ Object.assign(VEN,(()=>{
  // Il gradimento resta di s.grad: la scena legge i fatti copiati in bandiere (fattiVoci) e scrive solo con gli effetti `ven` (EFF_VOCI) e `oro`.
  const RAC=()=>typeof ARAC!=='undefined'?ARAC:(typeof require!=='undefined'?require('./27q-avv-racconto.js'):null);
  const VOC=()=>typeof VVOC!=='undefined'?VVOC:(typeof require!=='undefined'?require('./28ja-ven-voci.js'):null);
- const EFF_VOCI=['grad','via','passo','premio','scontro','conf','tappa'];
+ const EFF_VOCI=['grad','via','passo','premio','scontro','conf','tappa','uomini','merce','viveri','gusto','adunata'];
  function voceInit(s){const R=RAC();if(!s.rac&&R)s.rac=R.nuovo('ventura',s.seme);if(!s.voci)s.voci=[];if(!s.volpe)s.volpe={tappa:0};if(s.vsig==null)s.vsig=-1}
  // un salvataggio più vecchio non rivive le tappe già passate della rivale
  function vociApri(s){const nuova=!s.volpe;voceInit(s);if(nuova){s.volpe.tappa=D.VOLPE.GIORNI.filter(x=>x<giorno(s)).length;if(s.rivVinta)s.volpe.dono=1}}
  function accoda(s,id,sig){const V=VOC();if(!V||!s.voci||!V.scene[id]||s.voci.some(x=>x.id===id&&x.sig===sig)||(s.rac&&s.rac.scena&&s.rac.scena.id===id))return false;
   if(s.voci.length>=12)return false;s.voci.push(sig==null?{id}:{id,sig});return true}
  function fattiVoci(s){const b={},ci=inCompagnia(s);for(const c of D.COMPAGNI){const k=c.id.slice(3),gr=(s.grad||{})[c.id];b['grad-'+k]=gr?gr.g:0;b['inc-'+k]=gr?gr.inc|0:0;b['con-'+k]=ci.includes(c)?1:0}
-  for(const f of D.REGNI)b['serve-'+f]=s.servizio&&s.servizio.faz===f?1:0;b.fama=s.fama|0;b.tappa=(s.volpe||{}).tappa|0;b.giorno=giorno(s);return b}
+  for(const f of VEN.regni(s))b['serve-'+f]=s.servizio&&s.servizio.faz===f?1:0;b.fama=s.fama|0;b.tappa=(s.volpe||{}).tappa|0;b.giorno=giorno(s);return b}
  const ctxVoci=s=>({oro:TU(s).oro,giorno:giorno(s),eroi:[]});
  const statoRac=s=>Object.assign({},s.rac,{bandiere:Object.assign({},s.rac.bandiere,fattiVoci(s))});
  // la scena aperta, come la mostra la vista (null se nessuno parla)
@@ -79,7 +79,8 @@ Object.assign(VEN,(()=>{
    case'premio':if(e.id==='rv_volpe'){if(!s.volpe.dono){s.volpe.dono=2;if(D.OGG[D.RIVALE.premio])tu.zaino.push(D.RIVALE.premio);L(s,'La Volpe Rossa ti lascia la sua cavalla.','bene')}}else if(c)premioComp(s,c);return;
    case'scontro':{const rv=s.p.find(p=>p.k==='riv');if(rv&&!s.incontro){rv.dentro=-1;rv.sc=0;tu.ord=null;tu.via=[];s.incontro={tipo:'nemico',pid:[rv.id],all:[],da:'tu'};s.ev.push({t:'incontro'})}return}
    case'conf':{const sg=s.vsig>=0?s.sig[s.vsig]:null;if(sg){memSig(sg).fav+=e.n|0;confSig(s,sg)}return}
-   case'tappa':s.volpe.tappa++;s.volpe.coda=0;return}}
+   case'tappa':s.volpe.tappa++;s.volpe.coda=0;return
+   default:VEN.ganci('effetto',s,e)}}
  function premioComp(s,c){if(!c.premio||!inCompagnia(s).includes(c))return;const gr=gradDi(s,c.id);if(gr.prem)return;gr.prem=1;
   if(c.premio.ogg&&D.OGG[c.premio.ogg])TU(s).zaino.push(c.premio.ogg);if(c.premio.abil)gr.piu=1;L(s,c.nome+(c.premio.ogg&&D.OGG[c.premio.ogg]?' ti dona '+D.OGG[c.premio.ogg].nome+'.':' ti ripaga: il suo aiuto conta di più.'),'bene')}
  // un signore che ti conosce di più ha qualcosa da dirti (una volta per livello)
@@ -98,18 +99,19 @@ Object.assign(VEN,(()=>{
   for(const c of inCompagnia(s)){const gr=gradDi(s,c.id);if(c.inc&&!gr.invito&&!gr.inc&&!gr.incA&&gr.g>=D.GRAD.FIDO&&accoda(s,c.id.slice(3)+'-inc-1'))gr.invito=1}
   const T=s.volpe.tappa,V=VOC();
   if(V&&!s.prigioniero&&!s.volpe.coda&&T<D.VOLPE.GIORNI.length&&g>=D.VOLPE.GIORNI[T]&&V.scene['volpe-'+(T+1)]){const rv=s.p.find(p=>p.k==='riv');
-   if(rv&&!rv.sc){const v=vicinoOk(mappa(s.seme),tu.x+1.5,tu.y+1);rv.x=v[0];rv.y=v[1];rv.via=[];rv.dentro=-1;rv.fermo=s.t+360;rv.ia={st:'giro',t:0};s.volpe.coda=T+1;accoda(s,'volpe-'+(T+1))}}}
+   if(rv&&!rv.sc){const v=vicinoOk(VEN.mappaDi(s),tu.x+1.5,tu.y+1);rv.x=v[0];rv.y=v[1];rv.via=[];rv.dentro=-1;rv.fermo=s.t+360;rv.ia={st:'giro',t:0};s.volpe.coda=T+1;accoda(s,'volpe-'+(T+1))}}}
  // confidenza di un signore verso chi gioca: 0..3, dalla sua memoria e dall'amicizia col suo regno
  function confidenza(s,sg){const m=memSig(sg),S=D.SIG.SOGLIE,pt=m.lib*3+m.fav*2+Math.floor(Math.max(0,s.rel[sg.faz]||0)/15)-m.sconf*2-m.trad*6;return pt>=S[2]?3:pt>=S[1]?2:pt>=S[0]?1:0}
  // favori di un signore nell'incontro (notizie, lettera, prestito) e il debito da rendere
  function favoreSig(s,sg,v){const S=D.SIG,m=memSig(sg),tu=TU(s),g=giorno(s),vuole=n=>confidenza(s,sg)<n?{err:'Non ti conosce abbastanza'}:null;
   if(v==='rendi'){const i=s.debiti.findIndex(d=>d.sig===sg.id);if(i<0)return{err:'Non gli devi nulla'};const d=s.debiti[i];if(tu.oro<d.oro)return{err:'Servono '+d.oro+' monete'};tu.oro-=d.oro;s.debiti.splice(i,1);L(s,'Rendi a '+sg.nome+' le '+d.oro+' monete: il conto è chiuso.','bene');return{s}}
   const e=vuole(v==='notizie'?1:2);if(e)return e;if(g-m.g<S.ATTESA)return{err:'Torna tra qualche giorno'};
-  if(v==='lettera'){if(!D.REGNI.includes(sg.faz))return{err:'Non scrive per nessun re'};s.lettere[sg.faz]=g+S.LETTERA;m.g=g;L(s,sg.nome+' scrive per te una lettera di raccomandazione ('+S.LETTERA+' giorni).','bene');return{s}}
+  if(v==='lettera'){if(!VEN.regni(s).includes(sg.faz))return{err:'Non scrive per nessun re'};s.lettere[sg.faz]=g+S.LETTERA;m.g=g;L(s,sg.nome+' scrive per te una lettera di raccomandazione ('+S.LETTERA+' giorni).','bene');return{s}}
   if(v==='prestito'){if(s.debiti.some(d=>d.sig===sg.id))return{err:'Gli devi già del denaro'};tu.oro+=S.PRESTITO;s.debiti.push({sig:sg.id,oro:S.RESA,scad:g+S.SCAD});m.g=g;L(s,sg.nome+' ti presta '+S.PRESTITO+' monete: ne vuole '+S.RESA+' entro '+S.SCAD+' giorni.');return{s}}
   return null}
  // debiti scaduti: se hai l'oro li paga la compagnia da sé, altrimenti il signore se ne ricorda
  function debiti(s){const tu=TU(s),g=giorno(s);for(const d of s.debiti.slice()){if(g<d.scad)continue;const sg=s.sig[d.sig];s.debiti.splice(s.debiti.indexOf(d),1);if(!sg)continue;
   if(tu.oro>=d.oro){tu.oro-=d.oro;L(s,'Il debito con '+sg.nome+' scade: gli sono rese '+d.oro+' monete.')}
   else{memSig(sg).trad++;relaz(s,sg.faz,-10);L(s,'Non rendi il denaro a '+sg.nome+': non lo dimenticherà.','male')}}}
+ Object.assign(VEN._,{memSig,inCompagnia,gradDi});
  return{inCompagnia,gradDi,memSig,limita,gradApri,umore,reagisci,parte,addii,gradPaga,EFF_VOCI,voceInit,vociApri,accoda,voce,avviaVoce,parla,confSig,avanzaInc,vociDelGiorno,confidenza,favoreSig,debiti}})());
