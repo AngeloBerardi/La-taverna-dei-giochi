@@ -2,7 +2,7 @@
 // Niente dadi: il gradimento è un conto. (La prova lunga col bot accorto è test_ven_personaggi_bot.js.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const ok = x => { assert(!x.err, x.err); return x; };
 const G = D.GRAD, S = D.SIG;
@@ -93,7 +93,7 @@ assert.strictEqual(V.umore(80), 'fedele'); assert.strictEqual(V.umore(60), 'cont
 
 // co-op: una partita in stanza salvata prima della scheda (senza grad, mem, talenti) si riapre, anche con più giocatori di prima
 {
-  const F2 = F.concat('28m-ven-stanza.js'), S2 = carica.multi(F2, 'VST'), V2 = carica.multi(F2, 'VEN');
+  const F2 = F, S2 = carica.multi(F2, 'VST'), V2 = carica.multi(F2, 'VEN');
   const G0 = S2.nuova(2, ['Ada', 'Bruno'], { seme: 5 }), sv = S2.salvabile(G0); const w = sv.w;
   delete w.grad; delete w.lettere; delete w.debiti; for (const sg of w.sig) delete sg.mem; for (const c of [w.cap].concat(w.soci)) for (const k of ['carisma', 'diplomazia', 'cavaliere']) delete c.ab[k];
   const r = S2.apri(JSON.parse(JSON.stringify(sv)), 3, ['Ada', 'Bruno', 'Carla']); assert(!r.err, r.err); const m = r.s ? r.s.w : r.w;

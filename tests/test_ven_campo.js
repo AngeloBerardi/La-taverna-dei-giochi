@@ -10,7 +10,7 @@ const scheda = (seme, a, b, o) => Object.assign({ seme, a, b, cap, faza: 'tu', f
 const pari = () => [T(0, { val_f2: 12, val_t2: 6, val_c3: 4 }), T(5, { val_f2: 12, val_t2: 6, val_c3: 4 })];
 
 // niente funzioni vietate nei motori
-for (const f of ['28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js']) {
+for (const f of carica.VEN_FILES.filter(f => /^28[j-l]/.test(f) && f !== '28ja-ven-voci.js')) {
   const src = fs.readFileSync(path.join(__dirname, '../src/js/motori', f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   assert(!/Math\.(random|sin|cos|tan|atan2?|hypot|pow|exp|log)\b|Date\.now|new Date/.test(src), f + ': funzione non ripetibile nel motore');
 }

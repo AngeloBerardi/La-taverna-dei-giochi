@@ -2,7 +2,7 @@
 // Se non regge si ritoccano PAGA e VINTA in VDAT.GRAD, non le soglie. (Test lento: escluso da `npm run verifica`; si lancia con `npm test -- ven_personaggi_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
+const F = carica.VEN_SENZA_VOCI;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const gioca = require('./bot_ven.js')(V, D);
 const TRE = ['co_berta', 'co_lapo', 'co_ghino'];

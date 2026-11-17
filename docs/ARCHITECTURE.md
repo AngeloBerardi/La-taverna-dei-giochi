@@ -217,7 +217,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/28j-ven-dati.js` | 34 | VDAT |
 | `js/motori/28ja-ven-voci.js` | 49 | VVOC |
-| `js/motori/28k-ven-mondo.js` | 108 | VEN, capi |
+| `js/motori/28k-ven-mondo.js` | 27 | VEN, capi |
+| `js/motori/28ka-ven-ia.js` | 19 |  |
+| `js/motori/28kb-ven-economia.js` | 20 |  |
+| `js/motori/28kc-ven-scontro.js` | 19 |  |
+| `js/motori/28kd-ven-corte.js` | 14 |  |
+| `js/motori/28ke-ven-gente.js` | 13 |  |
 | `js/motori/28l-ven-campo.js` | 29 | VCAM, k |
 | `js/motori/28m-ven-stanza.js` | 6 | VST |
 | `js/motori/28n-ven-audio.js` | 8 | VAUD |
@@ -324,7 +329,7 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
 | `js/app/24hv-ven-campo.js` | 29 | VenCampo |
-| `js/app/24hw-ventura.js` | 67 | Ven |
+| `js/app/24hw-ventura.js` | 68 | Ven |
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24hy-ven-audio.js` | 2 | VenAudio |
 | `js/app/24i-plancia.js` | 13 | Plancia |

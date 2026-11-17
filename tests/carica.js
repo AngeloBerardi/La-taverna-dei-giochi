@@ -7,3 +7,8 @@ module.exports.rng=seed=>()=>((seed=seed*16807%2147483647)/2147483647);
 // Carica più file nello stesso contesto (motore base + espansioni) e restituisce la costante globale.
 module.exports.multi=function(files,nome){const ctx={console,Math,JSON,module:undefined};vm.createContext(ctx);
  files.forEach(f=>vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/js/motori',f),'utf8'),ctx));vm.runInContext('this.__X='+nome+';',ctx);return ctx.__X};
+// File della Compagnia di ventura (dadi, dati, mondo e sue estensioni, campo, stanza, audio), nell'ordine del manifest:
+// un file nuovo di quella famiglia entra nei test da solo.
+module.exports.VEN_FILES=require('../src/manifest.json').filter(f=>f.startsWith('src/js/motori/')).map(f=>f.slice('src/js/motori/'.length)).filter(f=>/^(27a-avv-dadi|28[j-n])/.test(f));
+// Gli stessi senza i testi dei dialoghi (28ja): chi non carica anche il racconto (27q) li vuole fuori, come prima del passo 01.
+module.exports.VEN_SENZA_VOCI=module.exports.VEN_FILES.filter(f=>!f.startsWith('28ja'));
