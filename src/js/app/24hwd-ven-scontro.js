@@ -2,7 +2,7 @@
    Parte di `Ven` (24hw-ventura.js): legge stato e aiutanti da `Ven._`. Nomi e HTML come prima. CSS: css/39j*-ven-*.css. */
 const VenScontro=(()=>{
  const {D,V,bt,faz,inS,n0,oggH,pannello,riga,tu}=Ven._;
- function incontroH(){const s=V.s,inc=s.incontro;if(!inc)return'';const t=tu();
+ function incontroH(fascia){const s=V.s,inc=s.incontro;if(!inc)return'';const t=tu();
   if(inc.tipo==='parla'){const p=VEN.part(s,inc.pid[0]);if(!p)return pannello('Incontro',bt('Prosegui','scegli:lascia'),{fisso:1});
    const sg=p.k==='sig'?s.sig[p.sig]:null,tr=sg&&D.TRATTI[sg.tratto],riv=p.k==='riv';
    return pannello(esc(riv?D.RIVALE.nome.charAt(0).toUpperCase()+D.RIVALE.nome.slice(1):p.nome),`<p class="vn-p">${p.k==='car'?'I mercanti vi salutano guardinghi, la mano sulle borse.':riv?'«Guarda guarda, un collega.» '+esc(D.RIVALE.d)+' «Il mondo è grande abbastanza per due compagnie. Forse.»':tr?'Signore '+esc(tr.nome)+'. '+esc(tr.saluto):'Vi squadrano in silenzio.'} ${faz(p.faz)}</p><p class="vn-p">${VenGente.schieraH([p])}</p>${inc.voce?`<p class="vn-p vn-bene">${esc(inc.voce)}</p>`:''}
@@ -18,14 +18,15 @@ ${riga('',bt(ic('spada',16)+' Combatti','scegli:attacca',{cls:'gold'})+bt('Risol
   const A=VEN.anteprima(s),titolo=sito?esc(luogo.nome):luogo?'Assalto a '+esc(luogo.nome):nem.map(p=>esc(p.nome)).join(', ')||'Nemici';
   const sc=A.scelte,strat=sc.filter(x=>/^strat:/.test(x.k)),norm=sc.filter(x=>!/^strat:/.test(x.k));
   const bot=x=>`<span class="vn-sc">${bt(esc(x.tx),'scegli:'+x.k,{cls:x.k==='attacca'?'gold':'',no:x.ok===false})}${x.ok===false&&x.perche?`<small class="vn-fl2">${esc(x.perche)}</small>`:infoH(esc(x.info||''))}</span>`;
+  if(fascia)return pannello(titolo,`${strat.length?`<p class="vn-p"><small>Consiglio</small></p><div class="vn-sg">${strat.map(bot).join('')}</div>`:''}<div class="vn-sg">${norm.map(bot).join('')}</div>`,{fisso:1,cls:'vn-inc'});
   return pannello(titolo,`${A.avvisi.length?`<p class="vn-p vn-male vn-all">${A.avvisi.map(esc).join(' · ')}</p>`:''}<div class="vn-ff">${lato(A.noi,'Voi')}${lato(A.loro,'Loro')}</div>
 ${campoRiga(A)}<div class="vn-forze"><i style="width:${q.toFixed(0)}%"></i></div><small class="vn-fl"><span>Voi ${VEN.sani(t)}</span><span>${q>62?'In vantaggio':q>42?'Alla pari':q>28?'In svantaggio':'Disperata'}</span><span>Loro</span></small>
 ${luogo&&!sito?VenLuoghi.fasiH():''}${strat.length?`<p class="vn-p"><small>Consiglio</small></p><div class="vn-sg">${strat.map(bot).join('')}</div>`:''}<div class="vn-sg">${norm.map(bot).join('')}</div>`,{fisso:1,cls:'vn-inc'+(ui.tv?' vn-tvi':'')})}
  function lato(x,et){const n=x.stima?esc(x.stima):null,r=x.rango,rn=r&&typeof r==='object'?r.n:r,rt=r&&typeof r==='object'?r.nome:'',num=(i,v,l)=>`<span title="${l}">${ic(i,16)}<b>${n?'?':v}</b><small>${l}</small></span>`;
-  return`<div class="vn-lt"><div class="vn-stend" style="--a:${x.col};--b:${x.col2}"><b>${esc((x.nome||'?').charAt(0).toUpperCase())}</b></div><small>${et}</small><h4>${esc(x.nome)}</h4>
+  return`<div class="vn-fc"><div class="vn-stend" style="--a:${x.col};--b:${x.col2}"><b>${esc((x.nome||'?').charAt(0).toUpperCase())}</b></div><small>${et}</small><h4>${esc(x.nome)}</h4>
 ${x.capo?`<p class="vn-cp">${esc(x.capo)}${x.indole?' · '+esc(x.indole):''}</p>`:''}${rn!=null?`<p class="vn-rg">${[0,1,2,3,4].map(i=>`<i class="${i<rn?'on':''}"></i>`).join('')} ${esc(rt||'')}</p>`:''}
 ${n?`<p class="vn-cp">${n}</p>`:''}<div class="vn-nn">${num('scudo',x.f,'fanti')}${num('freccia',x.t,'tiratori')}${num('passi',x.c,'cavalieri')}</div></div>`}
- function campoRiga(A){const sn=A.scena||{},T={1:'pianura',2:'bosco',3:'colline',4:'monti'},h=Math.floor(A.ora*24)%24,o=h<6?'notte':h<12?'mattina':h<18?'pomeriggio':'sera',M={sereno:'sereno',pioggia:'pioggia',nebbia:'nebbia',neve:'neve'};
+ function campoRiga(A){const sn=A.scena||{},T={1:'pianura',2:'bosco',3:'colline',4:'monti'},h=Math.floor(A.ora)%24,o=h<6?'notte':h<12?'mattina':h<18?'pomeriggio':'sera',M={sereno:'sereno',pioggia:'pioggia',nebbia:'nebbia',neve:'neve'};
   const v=[[null,T[sn.terreno]||'pianura'],sn.strada?['passi','strada']:null,sn.costa?['freccia','costa']:null,[null,M[sn.meteo]||sn.meteo||'sereno'],[h>=6&&h<19?'sole':'luna',o]].filter(Boolean);
   return`<p class="vn-cmp">${v.map(([i,tx])=>`<span>${i?ic(i,14):''}${esc(tx)}</span>`).join('')}</p>`}
  function esitoH(){const o=V.s.ult;if(!o)return'';const v=o.vince==='a';

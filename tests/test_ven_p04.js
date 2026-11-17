@@ -189,7 +189,8 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   assert.strictEqual(V.scegli(s, 'danza').err, 'Scelta non valida', 'senza ascoltatori resta l\'errore di sempre');
   V.aggancia('scelta', (st, v) => v === 'danza' ? { s: st } : undefined);
   assert.strictEqual(V.scegli(s, 'danza').s, s); assert.strictEqual(V.scegli(s, 'altro').err, 'Scelta non valida');
-  eq(V.anteprima(s), {}); V.aggancia('anteprima', (st, a) => { a.rango = 3; }); eq(V.anteprima(s), { rango: 3 });
+  const inc = s.incontro; delete s.incontro;   // senza incontro l'anteprima è vuota e passa solo dai ganci (con l'incontro dà i dati del passo 09)
+  eq(V.anteprima(s), {}); V.aggancia('anteprima', (st, a) => { a.rango = 3; }); eq(V.anteprima(s), { rango: 3 }); s.incontro = inc;
   assert.strictEqual(V.probCattura(s, {}), .5); assert.strictEqual(typeof V.decidi, 'function'); assert.strictEqual(V.mappaDi(s), V.mappa(s.seme));
   for (const k of ['leva', 'nuovaP', 'vicinoOk', 'vai', 'rimuovi', 'sconfitta', 'memSig', 'inCompagnia', 'gradDi', 'relaz']) assert.strictEqual(typeof V._[k], 'function', 'VEN._.' + k);
 }
