@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,chiave,cultura,debiti,dist,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,viva,vociDelGiorno}=VEN._;
+ const{D,G,L,M0,MERCATO,MURA,P,TU,abil,aggiungi,alleate,alleatoDi,chiave,cultura,dist,fazioni,forza,forzaTr,giorno,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,viva}=VEN._;
  // ---------- diplomazia (V3) ----------
  // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
  const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
@@ -98,13 +98,13 @@ Object.assign(VEN,(()=>{
    while(serve>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;serve--}}
    const fame=serve>0,varia=cibi.length;let meta=50+abil(s,'comando')*2+somma(s,'morale')+varia*4+Math.min(20,s.slancio)-(fame?35:0)-Math.max(0,uomini(tu)-limite(s))*3-(s.corona&&s.corona.malc>=60?s.corona.malc/10:0);
    tu.mor=Math.round(tu.mor+(meta-tu.mor)*.3);s.slancio=Math.max(0,s.slancio-2);
-   if(fame){L(s,'La compagnia non ha da mangiare: il morale crolla.','male');reagisci(s,'fame')}
+   if(fame){L(s,'La compagnia non ha da mangiare: il morale crolla.','male');VEN.reagisci(s,'fame')}
    if(tu.mor<25&&uomini(tu)>1){const e=tu.tr.filter(e=>!D.TR[e.t].compagno).sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)[0];if(e){const k2=Math.max(1,Math.floor(e.n*.2));togliUomini(tu.tr,e.t,k2);L(s,k2+' uomini disertano nella notte.','male')}}
    const ad=abil(s,'addestra');if(ad)for(const e of tu.tr)if(D.TR[e.t].su.length)e.xp=(e.xp||0)+e.n*ad*.7;
    // paga ogni sette giorni
    if(g%P.PAGA_GIORNI===1&&g>1){const dovuto=VEN.paga(s),rendita=VEN.rendite(s);tu.oro+=rendita;if(rendita)L(s,'Rendite e soldo: +'+rendita+' monete.','bene');
-    if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.');gradPaga(s,true)}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male');gradPaga(s,false)}}}
-  debiti(s);addii(s);vociDelGiorno(s);
+    if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.');VEN.gradPaga(s,true)}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male');VEN.gradPaga(s,false)}}}
+  VEN.debiti(s);VEN.addii(s);VEN.vociDelGiorno(s);
   // economia e reclute
   for(const l of s.l){if(MERCATO[l.tipo]){const prod=D.PRODUCE[D.REGNI.includes(l.faz)?l.faz:M0(s,l)]||[],fermo=l.sacc>g;for(const m of Object.keys(D.MERCI)){const mio=prod.includes(m),cibo=D.MERCI[m].cibo;
      let d=mio||(l.tipo==='porto'&&m==='pesce')?(fermo?0:4):cibo&&l.tipo!=='citta'?(fermo?0:3):-1;l.scorte[m]=Math.max(0,Math.min(120,(l.scorte[m]||0)+d+(r()<.3?1:0)))}}

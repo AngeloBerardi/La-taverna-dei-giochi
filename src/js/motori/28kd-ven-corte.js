@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,L,M0,MURA,P,TU,abil,aggiungi,alleate,alleatoDi,chiave,confidenza,dist,fazioni,forza,forzaTr,giorno,inGuerra,leva,nomeF,nuovaP,part,relaz,rnd,togliUomini,viva}=VEN._;
+ const{D,L,M0,MURA,P,TU,abil,aggiungi,alleate,alleatoDi,chiave,dist,fazioni,forza,forzaTr,giorno,inGuerra,leva,nomeF,nuovaP,part,relaz,rnd,togliUomini,viva}=VEN._;
  // forza di un regno: guarnigioni (con le mura) e compagnie dei suoi signori; il dominante è chi tiene troppo (quota di luoghi dei regni o di forza)
  const forzaRegno=(s,f)=>s.l.filter(l=>l.faz===f).reduce((x,l)=>x+forzaTr(l.g)*(MURA[l.tipo]?P.MURA:1),0)+s.p.filter(p=>p.k==='sig'&&p.faz===f).reduce((x,p)=>x+forza(p),0)+(f==='tu'?forza(TU(s)):0);
  function dominante(s){const vivi=fazioni(s).filter(f=>viva(s,f));if(vivi.length<3)return null;const nl=vivi.map(f=>s.l.filter(l=>l.faz===f).length),fr=vivi.map(f=>forzaRegno(s,f)),tl=nl.reduce((a,b)=>a+b,0),tf=fr.reduce((a,b)=>a+b,0);let m=null,mq=0;
@@ -34,7 +34,7 @@ Object.assign(VEN,(()=>{
   aggiungi(tipo==='guerra'?'Forza relativa: '+(rel<0?'sei più forte':'sei più debole'):'Forza relativa',(tipo==='guerra'?-1:1)*X.FORZA*rel);
   aggiungi(tipo==='pace'?'Stanchezza di guerra':tipo==='guerra'?'Guerre già in corso':'Nemici da fronteggiare',X.GUERRE[tipo]*guerreDi(s,a));
   aggiungi('Diplomazia del capitano',.4*abil(s,'diplomazia'));
-  aggiungi('Sostegno dei signori',D.SIG.SOSTEGNO*Math.min(D.SIG.MAX_SOST,s.sig.filter(x=>x.faz===a&&confidenza(s,x)>=3).length));
+  aggiungi('Sostegno dei signori',D.SIG.SOSTEGNO*Math.min(D.SIG.MAX_SOST,s.sig.filter(x=>x.faz===a&&VEN.confidenza(s,x)>=3).length));
   const dom=dominante(s);
   if(tipo==='alleanza'){const c=fazioni(s).filter(x=>x!==a&&x!==b&&viva(s,x)&&inGuerra(s,a,x)&&inGuerra(s,b,x)).length;aggiungi('Nemico in comune',X.COMUNE*c);if(dom&&dom.f!==a&&dom.f!==b)aggiungi(nomeF(s,dom.f)+' vince troppo',X.DOMINANTE)}
   if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(nomeF(s,b)+' vince troppo',X.DOMINANTE);

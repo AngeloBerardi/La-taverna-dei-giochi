@@ -136,6 +136,7 @@
  "src/js/motori/28kb-ven-economia.js",
  "src/js/motori/28kc-ven-scontro.js",
  "src/js/motori/28kd-ven-corte.js",
+ "src/js/motori/28ke-ven-gente.js",
  "src/js/motori/28l-ven-campo.js",
  "src/js/motori/28m-ven-stanza.js",
  "src/js/motori/28n-ven-audio.js",
