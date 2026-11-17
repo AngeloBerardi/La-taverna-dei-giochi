@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,assalto,chiave,chiudiTorneo,cultura,debiti,dist,dominante,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,paga,part,reagisci,renditaL,rendite,rinnova,rnd,somma,titoloInc,togliUomini,uomini,via,vicinoOk,vista,vittoria,viva,vociDelGiorno}=VEN._;
+ const{D,G,L,M0,MERCATO,MURA,P,TU,abil,addii,aggiungi,alleate,alleatoDi,assalto,chiave,chiudiTorneo,cultura,debiti,dist,dominante,fazioni,forza,forzaTr,giorno,gradPaga,inGuerra,leva,limite,mappa,nemiche,nomeF,nuovaP,ostile,part,reagisci,rnd,somma,togliUomini,uomini,via,vicinoOk,vista,vittoria,viva,vociDelGiorno}=VEN._;
  // ---------- diplomazia (V3) ----------
  // chi soccorre un assedio: i signori del regno assediato, e gli alleati solo se sono in guerra con chi assedia (altrimenti resterebbero lì a guardare)
  const soccorre=(s,p,l)=>l.faz===p.faz||(alleate(s,l.faz,p.faz)&&!!l.ass&&nemiche(s,p.faz,l.ass.faz));
@@ -102,7 +102,7 @@ Object.assign(VEN,(()=>{
    if(tu.mor<25&&uomini(tu)>1){const e=tu.tr.filter(e=>!D.TR[e.t].compagno).sort((a,b)=>D.TR[a.t].t-D.TR[b.t].t)[0];if(e){const k2=Math.max(1,Math.floor(e.n*.2));togliUomini(tu.tr,e.t,k2);L(s,k2+' uomini disertano nella notte.','male')}}
    const ad=abil(s,'addestra');if(ad)for(const e of tu.tr)if(D.TR[e.t].su.length)e.xp=(e.xp||0)+e.n*ad*.7;
    // paga ogni sette giorni
-   if(g%P.PAGA_GIORNI===1&&g>1){const dovuto=paga(s),rendita=rendite(s);tu.oro+=rendita;if(rendita)L(s,'Rendite e soldo: +'+rendita+' monete.','bene');
+   if(g%P.PAGA_GIORNI===1&&g>1){const dovuto=VEN.paga(s),rendita=VEN.rendite(s);tu.oro+=rendita;if(rendita)L(s,'Rendite e soldo: +'+rendita+' monete.','bene');
     if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.');gradPaga(s,true)}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male');gradPaga(s,false)}}}
   debiti(s);addii(s);vociDelGiorno(s);
   // economia e reclute
@@ -112,11 +112,11 @@ Object.assign(VEN,(()=>{
    if(l.sacc<=g&&l.prosp<70&&r()<.3)l.prosp++;
    if(MURA[l.tipo]&&D.REGNI.includes(l.faz)&&!l.ass&&forzaTr(l.g)<(l.tipo==='citta'?300:170)&&r()<.5)aggiungi(l.g,l.faz+'_'+(r()<.5?'f2':r()<.6?'t2':'f1'),1);
    if((l.tipo==='citta'||l.tipo==='porto')&&l.carTorna&&g>=l.carTorna&&D.REGNI.includes(l.faz)){l.carTorna=0;nasceCarovana(s,l,r)}
-   if(g%7===0)rinnova(s,l,r)}
+   if(g%7===0)VEN.rinnova(s,l,r)}
   // signori: tasse e prigionieri che tornano
   for(const p of s.p.slice())if(p.k==='sig'){p.oro+=30;const sg=s.sig[p.sig];if(sg.prig&&sg.prig!=='tu'&&p.ia.t<=s.t)sg.prig=null;
    if(p.faz==='neu'&&sg.esilio&&g>=sg.esilio){rimuovi(s,p);sg.pid=-1;sg.esule=null;if(sg.comp){aggiungi(tu.tr,sg.comp,1);s.compagni[sg.comp]=-1;L(s,sg.nome+' rientra nella compagnia.');sg.comp=null}}}
-  for(const l of s.l)if(l.faz==='tu'&&l.sig>=0){const sg=s.sig[l.sig],p=sg&&part(s,sg.pid);if(p)p.oro+=Math.round(renditaL(l)/7)}
+  for(const l of s.l)if(l.faz==='tu'&&l.sig>=0){const sg=s.sig[l.sig],p=sg&&part(s,sg.pid);if(p)p.oro+=Math.round(VEN.renditaL(l)/7)}
   // predoni nuovi
   if(s.p.filter(p=>p.k==='pre').length<P.PRED_MAX-s.stat.covi*2&&r()<.7){const vivi=s.l.filter(l=>l.tipo==='covo'&&l.g.length);if(vivi.length){const c=vivi[Math.floor(r()*vivi.length)];nascePredoni(s,r,[c.x,c.y])}}
   {const x=r();s.meteo=x<.62?'sereno':x<.87?'pioggia':'nebbia'}
@@ -139,7 +139,7 @@ Object.assign(VEN,(()=>{
    for(const k of Object.keys(s.alleanza)){const al=s.alleanza[k];if(!al.rompe&&g>=al.da+D.DIPL.MIN&&r()<X.ROTTURA){const x=k.split('|');al.rompe=g+D.DIPL.PREAVVISO;L(s,nomeF(s,x[0])+' e '+nomeF(s,x[1])+' annunciano la fine dell\'alleanza.','guerra')}}}
   for(const f of D.REGNI)if(s.rel[f]<0&&g%3===0&&!(s.servizio&&inGuerra(s,s.servizio.faz,f)))s.rel[f]++;
   // incarichi scaduti
-  for(const q of s.incarichi)if(!q.fatto&&!q.fallito&&g>q.scad){q.fallito=true;const l=s.l[q.da];l.inc=null;l.rel-=3;L(s,'Incarico scaduto: '+titoloInc(s,q)+'.','male')}
+  for(const q of s.incarichi)if(!q.fatto&&!q.fallito&&g>q.scad){q.fallito=true;const l=s.l[q.da];l.inc=null;l.rel-=3;L(s,'Incarico scaduto: '+VEN.titoloInc(s,q)+'.','male')}
   s.incarichi=s.incarichi.filter(q=>!(q.fatto||q.fallito)||g-q.scad<3);
   // contratto da mercenario
   if(s.servizio&&s.servizio.tipo==='mer'&&g>=s.servizio.fino){L(s,'Il contratto con '+D.FAZ[s.servizio.faz].breve+' è finito.');s.servizio=null}
