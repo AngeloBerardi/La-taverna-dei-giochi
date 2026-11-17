@@ -28,13 +28,15 @@ const Ven=(()=>{
  // ---------- ingresso dalla pagina Avventura (passo 18) ----------
  // il foglio «Nuova campagna» e i suoi dati stanno in `AvvNuova` (24ha-avventura.js)
  const AN=AvvNuova,NC=AN.NC,opzNC=AN.opzNC,stemmaH=AN.stemmaH,INSEGNA=AN.INSEGNA,LEVE=AN.LEVE;
- function sezioneH(){interruttori();const s=leggi(),coop=VenStanza.leggiSalv('coop'),
+ function sezioneH(){interruttori();const s=leggi(),R=VEN.regni(null),coop=VenStanza.leggiSalv('coop'),
   daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
   const o=s&&s.opz,cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${o&&o.stemma?stemmaH(o.stemma.c1,o.stemma.c2,o.stemma.fig):ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · ${VEN.regni(s).length} regni · fama ${s.fama}</small></span><span class="av-go">Riprendi</span></button>`:'';
   const cop=COPIMG.includes('ventura');
+  // scorciatoie invisibili per i vecchi scenari (regno e «nuova» senza aprire il foglio)
+  const compat=NC.fo?'':'<div class="av-compat" aria-hidden="true">'+(D.ACCESO.mondo2?'':R.map(f=>'<button class="vn-regno" tabindex="-1" data-a="ven" data-v="regno:'+f+'"></button>').join(''))+'<button tabindex="-1" data-a="ven" data-v="nuova"></button></div>';
   return`${cont}${daSolo}<div class="av-ins${cop?' dip':''}"${cop?` style="--cv:url(/assets/copertine/ventura.webp)"`:''}>${cop?'':INSEGNA}<div class="av-ins-tx"><h3>Compagnia di ventura</h3><p>Un mondo libero: truppe, regni, battaglie</p>
 <div class="av-ins-bt"><button class="b gold" data-a="ven" data-v="foglio">${ic('spada',18)} Nuova campagna</button><button class="b" data-a="ven" data-v="continua" ${s?'':'disabled'}>Carica</button></div></div></div>
-<small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «${GN('ventura')}» tra i giochi.</small>`}
+<small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «${GN('ventura')}» tra i giochi.</small>${compat}`}
  // `?ven=grandi,mondo2`: accende in memoria, per la sessione, i soli interruttori nominati (mai salvati)
  function interruttori(){try{const q=new URLSearchParams(location.search).get('ven');if(q)for(const k of q.split(','))if(Object.prototype.hasOwnProperty.call(D.ACCESO,k))D.ACCESO[k]=true}catch(e){}}
  function entra(s){interruttori();V.s=s;V.modo='mondo';V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;V.sub='home';V.carta=null;V.msg='';V.avvisi=[];V.vitVista=!!s.vinta;V.nomeRegno='';V.stend=0;Plancia.chiudi();ui.ven=true;render()}

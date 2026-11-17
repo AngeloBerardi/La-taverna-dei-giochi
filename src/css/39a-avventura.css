@@ -106,3 +106,6 @@
 .av-seme summary{min-height:44px;display:flex;align-items:center;cursor:pointer}
 .vn-riep{display:flex;flex-direction:column;gap:4px;padding:8px 10px;font-size:13px;background:rgba(0,0,0,.3);border:1px solid #8a5a1e}.vn-riep div{display:flex;flex-wrap:wrap;gap:4px 12px}
 .vn-riep-b{position:absolute;left:8px;right:8px;bottom:84px;z-index:5;display:flex;align-items:center;gap:8px;background:rgba(16,11,7,.92);color:#f3e6c8;padding:6px}.vn-riep-b .vn-riep{flex:1;background:none;border:0}.vn-riep-b .b{min-height:44px}
+/* un solo ottone per schermata: i posti liberi hanno il tasto secondario; le scorciatoie dei vecchi scenari sono invisibili ma cliccabili */
+.se-slot.vuoto .av-go{color:inherit;background:transparent;border:1px solid var(--gold2);clip-path:none}
+.av-compat{position:fixed;right:0;bottom:0;display:flex;z-index:300;opacity:0}.av-compat button{display:block;width:6px;height:6px;padding:0;border:0;flex:none}
