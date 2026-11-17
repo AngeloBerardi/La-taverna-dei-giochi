@@ -84,7 +84,11 @@ Una terra più grande, che si capisce guardandola.
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+(Bozza, valida se la geografia nuova arriva come descritta.)
+- Nei mondi nuovi la terra è più grande e si legge a colpo d'occhio: catene di monti con qualche passo, fiumi che scendono al mare o ai laghi.
+- Le città sorgono sulle foci, alle confluenze e sulle rive dei laghi grandi; i porti solo dove l'acqua è davvero navigabile.
+- Un fiume si attraversa piano, a un guado o su un ponte; i castelli vigilano passi e ponti.
+- Le strade seguono le valli: viaggiare per strada è più svelto, i passi di montagna più lenti.
 
 ## Fuori scopo
 
