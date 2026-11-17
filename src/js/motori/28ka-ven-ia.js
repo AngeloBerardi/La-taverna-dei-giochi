@@ -28,13 +28,13 @@ Object.assign(VEN,(()=>{
   const mia=forza(p);let preda=null,pv=0,minaccia=null,mv=0;
   if(p.dentro<0)for(const q of s.p){if(q===p||q.dentro>=0||!ostile(s,p,q))continue;if(q.id===0&&s.prigioniero)continue;const d=dist(p,q);if(d>6.5)continue;const f=forza(q);
     const os=p.k==='sig'?((D.TRATTI[(s.sig[p.sig]||{}).tratto]||{}).osa||1):1;if(f>mia*1.25*os){if(d<4.5&&f>mv){mv=f;minaccia=q}}else if(f<mia*.85*os||q.k==='car'){const val=(q.k==='car'?2:1)*(7-d);if(val>pv){pv=val;preda=q}}}
-  if(p.k==='pre'||p.k==='riv'){if(minaccia&&!p.cov){ia.st='fuga';const M2=M,x=p.x+(p.x-minaccia.x)*2,y=p.y+(p.y-minaccia.y)*2;const v=vicinoOk(M2,Math.max(2,Math.min(G-2,x)),Math.max(2,Math.min(G-2,y)));vai(s,p,v[0],v[1],M);return}
+  if(p.k==='pre'||p.k==='riv'){if(minaccia&&!p.cov){ia.st='fuga';const G=M.G||128,M2=M,x=p.x+(p.x-minaccia.x)*2,y=p.y+(p.y-minaccia.y)*2;const v=vicinoOk(M2,Math.max(2,Math.min(G-2,x)),Math.max(2,Math.min(G-2,y)));vai(s,p,v[0],v[1],M);return}
    if(preda){ia.st='caccia';ia.b=preda.id;vai(s,p,preda.x,preda.y,M);return}
    if(ia.st==='caccia')ia.st='giro';if(!p.via.length){const c=p.cov||M.covi[Math.floor(r()*M.covi.length)];const v=vicinoOk(M,c[0]+(r()-.5)*12,c[1]+(r()-.5)*12);vai(s,p,v[0],v[1],M)}return}
   // signori
   const sg=s.sig[p.sig],casa=s.l[sg.casa],osa=(D.TRATTI[sg.tratto]||{}).osa||1;
   // esuli: senza terra né bandiera, girano finché l'esilio non scade; i signori radunati dal sovrano lo raggiungono
-  if(p.faz==='neu'){ia.st='esilio';if(!p.via.length&&p.dentro<0){const v=vicinoOk(M,Math.max(2,Math.min(G-2,p.x+(r()-.5)*8)),Math.max(2,Math.min(G-2,p.y+(r()-.5)*8)));vai(s,p,v[0],v[1],M)}return}
+  if(p.faz==='neu'){ia.st='esilio';if(!p.via.length&&p.dentro<0){const G=M.G||128,v=vicinoOk(M,Math.max(2,Math.min(G-2,p.x+(r()-.5)*8)),Math.max(2,Math.min(G-2,p.y+(r()-.5)*8)));vai(s,p,v[0],v[1],M)}return}
   if(p.faz==='tu'&&ia.st==='adunata'){if(s.t>=ia.fine){ia.st='giro';p.via=[]}else{p.dentro=-1;if(dist(p,tu)>1.4){if(!p.via.length||s.t%60<20)vai(s,p,tu.x,tu.y,M)}else p.via=[];return}}
   if(p.dentro>=0){const l=s.l[p.dentro];if(l.ass)return;const pieno=forza(p)>=(sg.re?170:110);
    if(!pieno&&p.oro>=20&&s.t%120<20){const t=cultura(s,p)+'_'+(r()<.5?'f1':r()<.5?'f2':'t2');aggiungi(p.tr,t,1);p.oro-=12}
