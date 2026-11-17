@@ -95,7 +95,7 @@ Object.assign(VEN,(()=>{
     for(const p of nem){p.fermo=s.t+150;p.ia.st='giro';p.via=[]}s.tregua=s.t+300;tu.mor=Math.max(0,tu.mor-6);s.incontro=null;L(s,via?'Vi sganciate lasciando indietro '+via+' uomini di retroguardia.':'Vi sganciate senza perdite.',via?'male':'');VEN.reagisci(s,'fuga');return{s}}}
   return null}
  // la scelta che il nucleo non conosce passa ai ganci `scelta`; se nessuno risponde resta l'errore di sempre
- function scegli(s,v){const r=scegliNucleo(s,v);if(r)return r;return VEN.ganci('scelta',s,v)||{err:'Scelta non valida'}}
+ function scegli(s,v){const r=scegliNucleo(s,v);if(r)return r;return VEN.chiedi('scelta',s,v)||{err:'Scelta non valida'}}
  // chiude una battaglia giocata o risolta: riep = { vince:'a'|'b', cad:[{p,t,n}], capKo, uccisi }
  function esitoBase(s,riep){const inc=s.incontro;if(!inc)return{err:'Nessun incontro'};if(inc.tipo==='arena')return esitoArena(s,riep);const{nem,all,luogo}=schieramenti(s),tu=TU(s),r=rnd(s),med=abil(s,'medicina');
   const out={vince:riep.vince,morti:0,feriti:0,oro:0,xp:0,prig:0,fama:0,bottino:[],oggetti:[],promo:false,presa:null,livello:false};const dona=id=>{if(D.OGG[id]){tu.zaino.push(id);out.oggetti.push(id)}};
@@ -139,8 +139,8 @@ Object.assign(VEN,(()=>{
   cresci(s,out);VEN.ganci('battaglia',s,riep,out);
   s.incontro=null;s.ult=out;s.ev.push({t:'esito',out});return{s,out}}
  // ganci: `scheda(s,sc)` in fondo a `campo` (aggiunge campi; se restituisce un oggetto, quello è la scheda) ed `esito(s,riep)` all'inizio di `esito` (se restituisce un risultato, l'esito normale non si fa)
- function campo(s){const sc=campoBase(s);if(!sc)return sc;const x=VEN.ganci('scheda',s,sc);return x&&typeof x==='object'?x:sc}
- function esito(s,riep){const x=VEN.ganci('esito',s,riep);if(x)return x;return esitoBase(s,riep)}
+ function campo(s){const sc=campoBase(s);if(!sc)return sc;const x=VEN.chiedi('scheda',s,sc);return x&&typeof x==='object'?x:sc}
+ function esito(s,riep){const x=VEN.chiedi('esito',s,riep);if(x)return x;return esitoBase(s,riep)}
  // risoluzione automatica: gioca la battaglia col motore del campo, senza grafica (VCAM è nel file dopo: esiste a runtime)
  function auto(s){const c=campo(s);if(!c)return{err:'Nessun incontro'};return esito(s,VCAM.risolvi(c))}
  return{assalto,schieramenti,torneoOggi,tornei,quando,premioTorneo,chiudiTorneo,avversariTorneo,statArena,campo,assedioStato,scegli,esito,auto}})());

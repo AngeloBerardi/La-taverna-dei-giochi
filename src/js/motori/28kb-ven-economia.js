@@ -38,7 +38,7 @@ Object.assign(VEN,(()=>{
  const titoloInc=(s,q)=>q.tipo==='reliquia'?'Ripulire '+s.l[q.a].nome:q.tipo==='taglia'?'Taglia: '+s.l[q.a].nome:q.tipo==='predoni'?'Caccia ai predoni presso '+s.l[q.da].nome:q.tipo==='consegna'?q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome:q.n+' soldati per '+s.l[q.da].nome;
  // un solo punto d'uscita: il corpo di `fai` sta in `faiNucleo`; prima si offre l'azione ai ganci `azione` (azioni nuove), dopo una riuscita si chiama `fatto`
  function fai(s,z){if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};
-  const x=VEN.ganci('azione',s,z);if(x&&(x.s||x.err))return x;
+  const x=VEN.chiedi('azione',s,z);if(x&&(x.s||x.err))return x;
   const rr=faiNucleo(s,z);if(rr&&rr.s)VEN.ganci('fatto',s,z,rr);return rr}
  function faiNucleo(s,z){const tu=TU(s),r=rnd(s),lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null,c=capDi(s,z.seat);if(!c)return{err:'Capitano sconosciuto'};
   if(s.incontro&&s.incontro.tipo==='arena'&&!['ritira','equipa','togli','abilita'].includes(z.a))return{err:'Il duello ti aspetta'};

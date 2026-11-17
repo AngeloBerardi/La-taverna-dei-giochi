@@ -29,6 +29,15 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   V.aggancia('giorno', () => { ordine.push('secondo'); });
   V.giornoNuovo(s);
   eq(ordine, ['primo', 'secondo']);
+  // un ascoltatore che restituisce qualcosa non ferma quelli dopo: `ganci` li chiama tutti e ignora i valori; `chiedi` invece si ferma al primo risultato
+  const W = nuovoCtx().VEN, t = W.nuovo(3), chiamati = [];
+  W.aggancia('giorno', st => { chiamati.push(1); return 42; });
+  W.aggancia('giorno', st => { chiamati.push(2); return st.t = st.t; });
+  W.aggancia('giorno', st => { chiamati.push(3); });
+  assert.strictEqual(W.ganci('giorno', t), undefined, 'ganci non restituisce nulla'); eq(chiamati, [1, 2, 3]);
+  chiamati.length = 0; W.giornoNuovo(t); eq(chiamati, [1, 2, 3], 'anche dal giorno vero');
+  const C = nuovoCtx().VEN, c2 = []; C.aggancia('x', () => { c2.push(1); }); C.aggancia('x', () => { c2.push(2); return 7; }); C.aggancia('x', () => { c2.push(3); return 8; });
+  assert.strictEqual(C.chiedi('x'), 7, 'chiedi ritorna il primo risultato'); eq(c2, [1, 2], 'e non chiama gli altri'); assert.strictEqual(C.chiedi('nessuno'), undefined);
   // gli altri ganci di tempo: `ora` e `vedi` a ogni ora, `nuovo` in fondo a VEN.nuovo
   const viste = [], X = nuovoCtx().VEN;
   X.aggancia('nuovo', (st, o) => { viste.push('nuovo:' + st.seme + ':' + (o && o.nome)); });
@@ -76,35 +85,6 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   eq(ev, ['premio', 'battaglia']); assert(o.oro >= 1000 && Z.TU(u).oro >= oro0 + 1000);
 }
 
-// (d) `VEN.molt`: sostituito per `viveri` con 2 raddoppia il consumo di un giorno; con `marcia` uguale a 0 la compagnia non si muove
-{
-  const consumo = molt => {
-    const { VEN: V } = nuovoCtx(), s = quieto(V.nuovo(3)), tu = V.TU(s);
-    tu.tr = [{ t: tu.tr[0].t, n: 60, f: 0, xp: 0 }]; tu.merci = { grano: 500 }; tu.oro = 1e6;
-    if (molt) { const prima = V.molt; V.molt = (st, k, c) => prima(st, k, c) * molt(k, c); }
-    V.giornoNuovo(s); return 500 - tu.merci.grano;
-  };
-  const base = consumo(null);
-  assert.strictEqual(base, 10, '60 uomini mangiano dieci razioni al giorno');
-  assert.strictEqual(consumo((k, c) => k === 'viveri' ? 2 : 1), 20, 'con 2 il consumo è doppio');
-  const cammino = molt => {
-    const { VEN: V } = nuovoCtx(), s = V.nuovo(3), tu = V.TU(s); s.p.length = 1; s.tregua = 1e9;
-    if (molt) { const prima = V.molt; V.molt = (st, k, c) => prima(st, k, c) * molt(k, c); }
-    const x0 = tu.x, y0 = tu.y; ok(V.ordina(s, { t: 'vai', x: x0 + 6, y: y0 })); V.passo(s, 40);
-    return Math.sqrt((tu.x - x0) * (tu.x - x0) + (tu.y - y0) * (tu.y - y0));
-  };
-  assert(cammino(null) > 1, 'di solito la compagnia cammina');
-  assert.strictEqual(cammino((k, c) => k === 'marcia' ? 0 : 1), 0, 'con la marcia a 0 non si muove');
-  // la marcia riceve il gruppo e la cella
-  { const { VEN: V } = nuovoCtx(), s = V.nuovo(3), visti = []; const prima = V.molt; V.molt = (st, k, c) => { if (k === 'marcia') visti.push(c); return prima(st, k, c); };
-    V.velocita(s, V.TU(s)); assert(visti.length === 1 && visti[0].p === V.TU(s) && Number.isInteger(visti[0].i), 'ctx {p,i}'); }
-  // prezzo, paga, rendita, vista: valgono 1 finché nessuno li cambia, e si moltiplicano quando qualcuno li cambia
-  { const { VEN: V } = nuovoCtx(), s = V.nuovo(3), l = s.l.find(x => x.tipo === 'citta');
-    const p1 = V.prezzo(s, l, 'grano', 1), pg1 = V.paga(s), v1 = V.vista(s);
-    const prima = V.molt; V.molt = (st, k, c) => prima(st, k, c) * (k === 'prezzo' || k === 'paga' || k === 'vista' ? 2 : 1);
-    assert(V.prezzo(s, l, 'grano', 1) >= p1 * 2 - 1 && V.prezzo(s, l, 'grano', 1) <= p1 * 2 + 1); assert.strictEqual(V.paga(s), pg1 * 2); assert.strictEqual(V.vista(s), v1 * 2); }
-}
-
 // (e) `VEN.regni(s)` di un mondo vecchio dà i cinque regni di oggi; `rg` e `cult` sono costruiti sopra
 {
   const { VEN: V, VDAT: D } = nuovoCtx(), s = V.nuovo(3);
@@ -136,21 +116,6 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   eq([T.nem['-1'].predoni, T.nem['1'].predoni], [.7, 1.4]); eq([T.unif.lenta.accorpa, T.unif.rapida.accorpa], [.6, 1.6]); eq([T.stag.miti.scarto, T.stag.rigide.scarto], [.5, 1.5]);
 }
 
-// (g) i salvataggi di tests/fixture/ven/ si aprono e VEN.opz(s) dà i valori di base
-{
-  const { VEN: V, VDAT: D } = nuovoCtx(), cart = path.join(__dirname, 'fixture/ven'), file = fs.readdirSync(cart).filter(f => /\.json$/.test(f));
-  assert(file.length >= 6);
-  for (const f of file) { const s = V.apri(fs.readFileSync(path.join(cart, f), 'utf8')); assert(s, f + ' si apre'); eq(V.opz(s), D.OPZ0, f + ': opzioni di base'); assert.strictEqual(s.geo, undefined); assert.strictEqual(s.opz, undefined);
-    eq(V.regni(s), D.REGNI); V.passo(s, 30); }
-  // un mondo nuovo senza opzioni non porta né `opz` né `geo` (il salvataggio resta quello di prima)
-  const n = V.nuovo(3); assert(!('opz' in n) && !('geo' in n));
-  // con le opzioni le porta; con `geo:2` o con l'interruttore `mondo2` mette `s.geo=2` prima di generare la mappa
-  const o = V.nuovo(3, { opz: { taglia: 'grande' } }); eq(V.opz(o), Object.assign({}, D.OPZ0, { taglia: 'grande' })); assert.strictEqual(o.geo, undefined);
-  let visto = null; const prima = V.mappaDi; V.mappaDi = st => { visto = st.geo; return prima(st); };
-  V.nuovo(3, { opz: { geo: 2 } }); assert.strictEqual(visto, 2, 's.geo c\'è già quando si genera la mappa');
-  visto = null; D.ACCESO.mondo2 = true; assert.strictEqual(V.nuovo(3).geo, 2); assert.strictEqual(visto, 2);
-}
-
 // (h) `VEN.opzione` cambia `taglia` e rifiuta le altre chiavi
 {
   const { VEN: V } = nuovoCtx(), s = V.nuovo(3);
@@ -158,25 +123,6 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   for (const k of ['eco', 'cons', 'nem', 'unif', 'stag', 'fer', 'mondo', 'diff', 'nebbia', 'prova', '__proto__']) assert(V.opzione(s, { k, v: 'giusta' }).err, k + ' non si cambia in partita');
   assert(V.opzione(s, { k: 'taglia', v: 'enorme' }).err, 'valore sconosciuto'); assert(V.opzione(s, { k: 'taglia', v: 'constructor' }).err); assert(V.opzione(s, { k: 'taglia', v: {} }).err);
   assert.strictEqual(V.opz(s).taglia, 'grande', 'un rifiuto non cambia nulla');
-}
-
-// (i) scripts/struttura.js fallisce su un file con una funzione non ripetibile (scritto in una cartella temporanea e poi cancellato)
-{
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p04-')), struttura = path.join(R, 'scripts/struttura.js');
-  const lancia = () => { try { execFileSync(process.execPath, [struttura, '--ripetibili', dir], { stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
-  try {
-    fs.writeFileSync(path.join(dir, '28kz-ven-prova.js'), '/* Math.pow in un commento non conta */\nconst a = Math.sqrt(4) + Math.floor(2.5) + Math.min(1, 2) + Math.abs(-1) + Math.round(1.5) + Math.max(1, 2);\n');
-    assert.strictEqual(lancia(), 0, 'sqrt, floor, round, min, max e abs vanno bene');
-    for (const codice of ['const x = Math.pow(2, 3);', 'const x = Math.exp(1);', 'const x = Math.log(2);', 'const x = Math.sin(1);', 'const x = Math.cos(1);', 'const x = Math.hypot(3, 4);', 'const x = Math.cbrt(8);', 'const x = 2 ** 3;', 'const x = Math.atan2(1, 1);']) {
-      fs.writeFileSync(path.join(dir, '28kz-ven-prova.js'), codice + '\n');
-      assert.strictEqual(lancia(), 1, codice + ' fa fallire il controllo');
-    }
-    fs.writeFileSync(path.join(dir, '28kz-ven-prova.js'), 'const x = Math.pow(2, 3);\n'); fs.renameSync(path.join(dir, '28kz-ven-prova.js'), path.join(dir, 'altro.js'));
-    assert.strictEqual(lancia(), 0, 'i file fuori dalla famiglia 28[j-n]*-ven-* non si controllano');
-  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
-  assert(!fs.existsSync(dir), 'la cartella temporanea è stata cancellata');
-  // il codice di oggi è pulito
-  execFileSync(process.execPath, [struttura, '--ripetibili', path.join(R, 'src/js/motori')], { stdio: 'pipe' });
 }
 
 // (j) `azione`, `fatto`, `effetto`

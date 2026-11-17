@@ -9,18 +9,20 @@
    Nucleo (questo file): mappa, tempo, movimento, `ordina`, `passo`, salvataggio. Le estensioni aggiungono le loro funzioni allo stesso oggetto
    (`Object.assign(VEN,…)`) e prendono gli aiutanti interni da `VEN._`: 28ka IA, 28kb economia e `fai`, 28kc scontri, 28kd corte, 28ke gente.
    Una funzione di un altro file si chiama sempre `VEN.nome(...)`. Piano: docs/VENTURA.md.
-   Ganci e punti d'estensione (passo 04): le novità si attaccano con `VEN.aggancia(nome,fn)` e il nucleo li chiama con `VEN.ganci(nome,...)`;
+   Ganci e punti d'estensione (passo 04): le novità si attaccano con `VEN.aggancia(nome,fn)` e il nucleo li chiama tutti con `VEN.ganci(nome,...)`, oppure col primo risultato con `VEN.chiedi(nome,...)` (scheda, esito, scelta, azione);
    `VEN.regni/rg/cult`, `VEN.mappaDi`, `VEN.molt`, `VEN.probCattura`, `VEN.decidi`, `VEN.opz` si possono sostituire componendo la versione precedente. */
 const VEN=(()=>{
  const D=VDAT,G=128,MURA={citta:1,castello:1},MERCATO={citta:1,villaggio:1,porto:1},SITO={rovine:1,covo:1},OSTERIA={citta:1,locanda:1,porto:1};
  const P={VEL:2.6,VISTA:8,ORA:60,GIORNO:1440,CONTATTO:.55,CAPIENZA:20,PRED_MAX:16,ASSEDIO_ORE:10,ASSEDIO_IA_ORE:36,BRECCIA_ORE:72,ARIETE_ORE:6,ARIETE_ORO:150,MURA:1.6,PAGA_GIORNI:7,
   FAMA_CONTRATTO:25,FAMA_VASSALLO:100,ORO0:320};
  // ---------- ganci ----------
- // Gli ascoltatori si chiamano nell'ordine di registrazione (cioè del manifest). `ganci` ritorna il primo risultato che non è `undefined` né `null` e allora si ferma:
- // i ganci che si limitano a modificare lo stato (giorno, ora, nuovo…) restituiscono `undefined` e li ascoltano tutti.
+ // Gli ascoltatori si chiamano nell'ordine di registrazione (cioè del manifest). `ganci` li chiama TUTTI e ignora ciò che restituiscono
+ // (giorno, ora, vedi, nuovo, luogo, fatto, premio, battaglia, effetto, scontro, incontro, anteprima).
+ // `chiedi` è per i ganci che rispondono (scheda, esito, scelta, azione): ritorna il primo risultato che non è `undefined` né `null` e allora si ferma.
  const GANCI={};
  function aggancia(nome,fn){(GANCI[nome]=GANCI[nome]||[]).push(fn)}
- function ganci(nome,...arg){const a=GANCI[nome];if(!a)return undefined;for(const fn of a){const r=fn(...arg);if(r!=null)return r}return undefined}
+ function ganci(nome,...arg){const a=GANCI[nome];if(a)for(const fn of a.slice())fn(...arg)}
+ function chiedi(nome,...arg){const a=GANCI[nome];if(!a)return undefined;for(const fn of a.slice()){const r=fn(...arg);if(r!=null)return r}return undefined}
  // ---------- regni: il solo punto da cui si leggono D.FAZ e D.REGNI ----------
  // `regni(s)`: gli id dei regni (non 'tu'); `rg(s,f)`: la scheda di un regno o di una fazione {id,nome,breve,col,col2,re,motto,cult}, `s` può mancare; `cult(s,f)`: la cultura delle sue truppe.
  const regni=s=>D.REGNI;
@@ -278,6 +280,6 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
  const salva=s=>JSON.stringify(Object.assign({},s,{ev:[]}));
  function apri(tx){try{const s=typeof tx==='string'?JSON.parse(tx):tx;if(!s||!s.p||!s.l)return null;if(s.v===1)return migra(s);if(s.v!==2)return null;if(!s.alleanza)s.alleanza={};VEN.gradApri(s);VEN.vociApri(s);s.ev=[];VEN.mappaDi(s);return s}catch(e){return null}}
  return{P,G,MURA,MERCATO,SITO,OSTERIA,MARE,COLLE,MONTE,ogg,indossa,somma,statCap,migra,capi,capDi,alt,mappa,via,libero,passa,cella,nuovo,ordina,passo,forza,forzaTr,uomini,sani,limite,limitePrig,velocita,vista,visibili,abil,xpLiv,giorno,ora,notte,nemiche,ostile,inGuerra,alleate,alleatoDi,lato,TU,part,traguardi,salva,apri,dist,nuovoCap,fazioni,nomeF,colFaz,
-  aggancia,ganci,regni,rg,cult,molt,probCattura,mappaDi,opz,opzione,
+  aggancia,ganci,chiedi,regni,rg,cult,molt,probCattura,mappaDi,opz,opzione,
   _:{D,G,L,M0,MERCATO,MURA,OSTERIA,P,SITO,TU,abil,aggiungi,alleate,alleatoDi,capDi,capi,cella,chiave,colFaz,cultura,dist,fazioni,forza,forzaTr,giorno,inGuerra,lato,leva,limite,limitePrig,mappa,nemiche,nomeF,notte,nuovaP,ogg,ostile,part,relaz,rnd,somma,statCap,togliUomini,uomini,via,vicinoOk,vista,viva,xpLiv}}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VEN;

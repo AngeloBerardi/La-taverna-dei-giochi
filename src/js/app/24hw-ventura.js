@@ -128,7 +128,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(c==='qta'){V.qta=+p[1]||1;return render()}
   if(c==='qual'){try{localStorage.setItem('ven-q',p[1])}catch(e){}VenArte.A.lento=0;VenArte.misura();return render()}
   if(c==='vel'){const v=V.vel===1?2:V.vel===2?4:1;if(inS()){const r=VenStanza.manda({t:'vel',v});if(r.err)avviso(r.err)}else V.vel=v;return render()}
-  if(c==='cartatocco'){const cv=document.querySelector('.vn-carta-cv'),e=V.ultimoClick;if(cv&&e){const r=cv.getBoundingClientRect(),G=VEN.mappa(s.seme).G;VenMappa.guarda((e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G);VenMappa.K.alt=Math.max(VenMappa.K.alt,22);V.pan=null}return render()}
+  if(c==='cartatocco'){const cv=document.querySelector('.vn-carta-cv'),e=V.ultimoClick;if(cv&&e){const r=cv.getBoundingClientRect(),G=VEN.mappaDi(s).G;VenMappa.guarda((e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G);VenMappa.K.alt=Math.max(VenMappa.K.alt,22);V.pan=null}return render()}
   if(c==='centra'){(V.modo==='campo'?VenCampo:VenMappa).centra();return}
   if(c==='ferma'){ordina({t:'ferma'});V.pan=s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
   if(c==='campo'){const r=ordina({t:'aspetta',ore:8});if(r.err)avviso(r.err);else V.pan='attesa';return render()}
