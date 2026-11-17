@@ -10,10 +10,12 @@ const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const dim = M => M.G;
 const impronta = M => crypto.createHash('sha1').update(Buffer.from(M.T.buffer)).update(Buffer.from(M.F.buffer)).update(Buffer.from(M.S.buffer)).update(JSON.stringify(M.luoghi)).update(JSON.stringify(M.P)).digest('hex');
 
-function verifica(semi) {
-for (const seme of semi) {
-  const M = VGEO.genera(seme, { mondo: 'ampio' }), G = dim(M), N = G * G, cell = l => Math.floor(l.y) * G + Math.floor(l.x);
-  assert.strictEqual(G, 192);
+const LATO = { ampio: 192, vasto: 240 };
+function verifica(semi, mondo = 'ampio') {
+for (const n of semi) {
+  const M = VGEO.genera(n, { mondo }), G = dim(M), N = G * G, cell = l => Math.floor(l.y) * G + Math.floor(l.x);
+  const seme = n + ' (' + mondo + ')', raggio = VGEO.GEO.GUARDIA * G / 128; // il seme nei messaggi; la distanza massima castello-ponte
+  assert.strictEqual(G, LATO[mondo]);
   // nessuna terra sulle 8 celle del bordo
   for (let i = 0; i < N; i++) { const x = i % G, y = (i - x) / G; if (Math.min(x, y, G - 1 - x, G - 1 - y) < 8) assert.strictEqual(M.T[i], 0, 'terra sul bordo, seme ' + seme); }
   // nessun luogo in acqua o su un monte
@@ -47,7 +49,10 @@ for (const seme of semi) {
   for (const f of M.fiumi) { assert(M.F[f.foce] > 0); assert.strictEqual(M.T[M.D[f.foce]], 0); }
   // ogni dorsale ha almeno 2 passi, percorribili
   assert(M.catene.length >= 3 && M.catene.length <= 5, 'catene: ' + M.catene.length);
-  for (const c of M.catene) { assert(c.passi.length >= 2, 'dorsale con meno di 2 passi'); for (const p of c.passi) { const i = p[1] * G + p[0]; assert(M.ok[i] && M.T[i] !== 0 && M.T[i] !== 4, 'passo non percorribile'); } }
+  // le dorsali corrono dritte, senza riccioli: tra il primo e l'ultimo punto almeno 0,6 volte la lunghezza
+  for (const c of M.catene) { const a = c.pt[0], b = c.pt[c.pt.length - 1]; let lun = 0; for (let k = 1; k < c.pt.length; k++) lun += Math.hypot(c.pt[k][0] - c.pt[k - 1][0], c.pt[k][1] - c.pt[k - 1][1]);
+    assert(Math.hypot(b[0] - a[0], b[1] - a[1]) >= .6 * lun, 'dorsale arricciata: ' + Math.hypot(b[0] - a[0], b[1] - a[1]).toFixed(0) + ' su ' + lun.toFixed(0) + ', seme ' + seme); }
+  for (const c of M.catene) { assert(c.passi.length >= 2, 'dorsale con meno di 2 passi, seme ' + seme); for (const p of c.passi) { const i = p[1] * G + p[0]; assert(M.ok[i] && M.T[i] !== 0 && M.T[i] !== 4, 'passo non percorribile'); } }
   const monti = M.T.reduce((n, t) => n + (t === 4), 0); assert(monti > 200, 'poche montagne: ' + monti);
   // ogni strada che attraversa un fiume ha un ponte o un guado; i ponti hanno il loro castello
   for (let i = 0; i < N; i++) if (M.S[i] && M.F[i] > 0) assert(M.PN[i] > 0, 'strada su un fiume senza ponte, seme ' + seme);
@@ -64,8 +69,8 @@ for (const seme of semi) {
   for (const [x, y] of [[20, 20], [G - 21, 20], [20, G - 21], [G - 21, G - 21]]) assert.strictEqual(M.T[y * G + x], 0, 'terra negli angoli, seme ' + seme);
   // i castelli guardano ponti e passi (almeno un passo per dorsale)
   const guardia = (x, y) => Math.min(...M.luoghi.filter(l => l.tipo === 'castello').map(l => Math.hypot(l.x - x, l.y - y)));
-  for (const p of M.P) assert(guardia(p.x, p.y) <= 8 * 1.5, 'ponte senza castello vicino: ' + guardia(p.x, p.y).toFixed(1) + ', seme ' + seme);
-  for (const ch of M.catene) assert(Math.min(...ch.passi.map(p => guardia(p[0] + .5, p[1] + .5))) <= 8 * 1.5, 'dorsale senza un passo guardato, seme ' + seme);
+  for (const p of M.P) assert(guardia(p.x, p.y) <= raggio, 'ponte senza castello vicino: ' + guardia(p.x, p.y).toFixed(1) + ', seme ' + seme);
+  for (const ch of M.catene) assert(Math.min(...ch.passi.map(p => guardia(p[0] + .5, p[1] + .5))) <= raggio, 'dorsale senza un passo guardato, seme ' + seme);
 }
 }
 module.exports = { verifica, impronta, nuovoCtx };
@@ -103,7 +108,11 @@ assert.strictEqual(VGEO.genera(1, { mondo: 'vasto' }).G, 240);
   const liscia = M.T.findIndex((t, i) => t === 1 && !M.F[i] && !M.S[i] && !M.PS[i]); const sc = .6 * 192 / 128;
   assert(Math.abs(m(liscia) - sc) < 1e-9);
   const fiume = M.F.findIndex((f, i) => f > 0 && !M.PN[i]); assert(Math.abs(m(fiume) - sc * .35) < 1e-9);
-  const ponte = M.PN.findIndex(v => v === 1 || v === 2); if (ponte >= 0) assert(Math.abs(m(ponte) - sc * .9 * .72) < 1e-9);
+  const ponte = M.PN.indexOf(1), guado = M.PN.indexOf(2);
+  assert(ponte >= 0, 'nel seme 100 c\'è almeno un ponte'); assert(guado >= 0, 'nel seme 100 c\'è almeno un guado');
+  assert(M.P.some(p => p.t === 'ponte') && M.P.some(p => p.t === 'guado'));
+  assert(Math.abs(m(ponte) - sc * .9 * .72) < 1e-9, 'ponte'); assert(Math.abs(m(guado) - sc * .9 * .72) < 1e-9, 'guado');
+  assert(m(ponte) > m(fiume) * 1.5, 'il ponte è più svelto del fiume');
   const passo = M.PS.findIndex(v => v); assert(Math.abs(m(passo) - sc * .7) < 1e-9);
   assert.strictEqual(VEN.molt({ seme: 100 }, 'marcia', { p: null, i: fiume }), 1, 'nei mondi vecchi nulla cambia');
 }
