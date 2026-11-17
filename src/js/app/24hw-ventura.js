@@ -15,7 +15,7 @@ const Ven=(()=>{
  const inS=()=>VenStanza.on(),posto=()=>inS()?Math.max(0,VenStanza.seat()):0,mio=()=>VEN.capDi(V.s,posto())||V.s.cap;
  const ordina=o=>{const r=inS()?VenStanza.manda({t:'ordina',o}):VEN.ordina(V.s,o);if(r&&!r.err)VenAudio.ordine(o);return r};
  const n0=x=>Math.round(x).toLocaleString('it-IT');
- const faz=f=>{const s=V.s;return`<span class="vn-fz" style="--fz:${s?VEN.colFaz(s,f).col:D.FAZ[f].col}">${esc(s?VEN.nomeF(s,f):D.FAZ[f].breve)}</span>`};
+ const faz=f=>{const r=VEN.rg(V.s,f);return`<span class="vn-fz" style="--fz:${r.col}">${esc(r.breve)}</span>`};
  const pips=t=>'<i class="vn-pip">'+'<b></b>'.repeat(t)+'</i>';
  const CLS={f:'Fanti',t:'Tiratori',c:'Cavalieri'};
  function doti(o){const x=[],piu=(v,tx)=>{if(v)x.push((v>0?'+':'')+v+' '+tx)};piu(o.dan,'danno');piu(o.att,'mira');piu(o.dif,'difesa');piu(o.pf,'vita');if(o.slot==='cavallo')x.push('passo '+o.vel);else piu(o.vel,'passo');
@@ -26,16 +26,18 @@ const Ven=(()=>{
  function avviso(tx,tipo){V.avvisi.push({tx,tipo:tipo||'',t:performance.now()});if(V.avvisi.length>3)V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}
  const avvisiH=()=>V.avvisi.map(a=>`<div class="vn-av ${a.tipo}">${esc(a.tx)}</div>`).join('');
  // ---------- ingresso dalla pagina Avventura ----------
- function sezioneH(){const s=leggi(),R=D.REGNI;
+ function sezioneH(){interruttori();const s=leggi(),R=VEN.regni(null);
   const coop=VenStanza.leggiSalv('coop'),
   daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
   const cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · fama ${s.fama}</small></span><span class="av-go">Continua</span></button>`:'';
   return`<div class="sh2">Compagnia di ventura ${infoH('Un mondo libero: tre regni in guerra, villaggi dove reclutare, città dove commerciare, castelli da prendere. Nessuna trama: la strada la scegli tu.')}</div>
 ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
-<div class="vn-regni vn-r5">${R.map(f=>`<button class="vn-regno${V.regno===f?' on':''}" style="--fz:${D.FAZ[f].col}" data-a="ven" data-v="regno:${f}"><b>${esc(D.FAZ[f].breve)}</b><small>${esc(D.FAZ[f].motto)}</small></button>`).join('')}</div>
+<div class="vn-regni vn-r5">${R.map(f=>`<button class="vn-regno${V.regno===f?' on':''}" style="--fz:${VEN.rg(null,f).col}" data-a="ven" data-v="regno:${f}"><b>${esc(VEN.rg(null,f).breve)}</b><small>${esc(VEN.rg(null,f).motto)}</small></button>`).join('')}</div>
 <button class="b ${s?'sm':'gold'} ecta" data-a="ven" data-v="nuova">${ic('spada',18)} ${s?'Nuova compagnia':'Leva la compagnia'}</button>
 <small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «Compagnia di ventura» tra i giochi.</small></div>`}
- function entra(s){V.s=s;V.modo='mondo';V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;V.sub='home';V.carta=null;V.msg='';V.avvisi=[];V.vitVista=!!s.vinta;V.nomeRegno='';V.stend=0;Plancia.chiudi();ui.ven=true;render()}
+ // `?ven=grandi,mondo2`: accende in memoria, per la sessione, i soli interruttori nominati (mai salvati)
+ function interruttori(){try{const q=new URLSearchParams(location.search).get('ven');if(q)for(const k of q.split(','))if(Object.prototype.hasOwnProperty.call(D.ACCESO,k))D.ACCESO[k]=true}catch(e){}}
+ function entra(s){interruttori();V.s=s;V.modo='mondo';V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;V.sub='home';V.carta=null;V.msg='';V.avvisi=[];V.vitVista=!!s.vinta;V.nomeRegno='';V.stend=0;Plancia.chiudi();ui.ven=true;render()}
  function esci(){salva();ui.ven=false;ui.avv=true;V.pan=null;ferma();VenArte.smonta();document.documentElement.classList.remove('vn-on');render()}
  // ---------- ciclo ----------
  function ferma(){if(V.raf){cancelAnimationFrame(V.raf);V.raf=0}}
@@ -112,7 +114,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(c==='rip')return VenStanza.scegli(p[1]);
   if(c==='dasolo'){if(!V.confSolo&&leggi()){V.confSolo=true;return render()}V.confSolo=false;if(VenStanza.perSolo()){const x=leggi();if(x)entra(x)}return}
   if(c==='continua'){const x=leggi();if(x)entra(x);return}
-  if(c==='nuova'){const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
+  if(c==='nuova'){interruttori();const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
   if(!s)return;
   if(c==='esci')return inS()?VenStanza.esci():esci();
   if(c==='riprova'){riprova();return}
@@ -126,7 +128,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
   if(c==='qta'){V.qta=+p[1]||1;return render()}
   if(c==='qual'){try{localStorage.setItem('ven-q',p[1])}catch(e){}VenArte.A.lento=0;VenArte.misura();return render()}
   if(c==='vel'){const v=V.vel===1?2:V.vel===2?4:1;if(inS()){const r=VenStanza.manda({t:'vel',v});if(r.err)avviso(r.err)}else V.vel=v;return render()}
-  if(c==='cartatocco'){const cv=document.querySelector('.vn-carta-cv'),e=V.ultimoClick;if(cv&&e){const r=cv.getBoundingClientRect(),G=VEN.mappa(s.seme).G;VenMappa.guarda((e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G);VenMappa.K.alt=Math.max(VenMappa.K.alt,22);V.pan=null}return render()}
+  if(c==='cartatocco'){const cv=document.querySelector('.vn-carta-cv'),e=V.ultimoClick;if(cv&&e){const r=cv.getBoundingClientRect(),G=VEN.mappaDi(s).G;VenMappa.guarda((e.clientX-r.left)/r.width*G,(e.clientY-r.top)/r.height*G);VenMappa.K.alt=Math.max(VenMappa.K.alt,22);V.pan=null}return render()}
   if(c==='centra'){(V.modo==='campo'?VenCampo:VenMappa).centra();return}
   if(c==='ferma'){ordina({t:'ferma'});V.pan=s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
   if(c==='campo'){const r=ordina({t:'aspetta',ore:8});if(r.err)avviso(r.err);else V.pan='attesa';return render()}

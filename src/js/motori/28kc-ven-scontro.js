@@ -2,7 +2,7 @@
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
 Object.assign(VEN,(()=>{
- const{D,L,MURA,P,SITO,TU,abil,aggiungi,capi,cella,colFaz,dist,forza,forzaTr,giorno,lato,limitePrig,mappa,notte,ogg,ostile,part,relaz,rnd,somma,statCap,togliUomini,uomini,vicinoOk,xpLiv}=VEN._;
+ const{D,L,MURA,P,SITO,TU,abil,aggiungi,capi,cella,colFaz,dist,forza,forzaTr,giorno,lato,limitePrig,notte,ogg,ostile,part,relaz,rnd,somma,statCap,togliUomini,uomini,vicinoOk,xpLiv}=VEN._;
  // assalto alle mura da parte di signori
  function assalto(s,l,r){const A=l.ass.pid.map(id=>part(s,id)).filter(Boolean),dentro=s.p.filter(p=>p.dentro===l.id&&p.k==='sig');let fa=A.reduce((x,p)=>x+forza(p),0),fd=(forzaTr(l.g)+dentro.reduce((x,p)=>x+forza(p),0))*P.MURA;const fa0=fa,fd0=fd;
   for(let k=0;k<8&&fa>fa0*.4&&fd>fd0*.3;k++){const qa=.16*fd/(fa+fd)*(.6+r()*.8),qd=.16*fa/(fa+fd)*(.6+r()*.8);for(const p of A)VEN.perdite(p.tr,qa,r);VEN.perdite(l.g,qd,r);for(const p of dentro)VEN.perdite(p.tr,qd,r);
@@ -57,7 +57,7 @@ Object.assign(VEN,(()=>{
  // il capitano cresce
  function cresci(s,out){for(const c of capi(s)){c.xp+=out.xp;while(c.xp>=xpLiv(c.liv)){c.xp-=xpLiv(c.liv);c.liv++;c.punti++;out.livello=true;L(s,c.nome+' sale al livello '+c.liv+'.','bene')}}}
  // la scheda della battaglia per VCAM: lato `a` = chi gioca e i suoi alleati
- function campo(s){const inc=s.incontro;if(!inc)return null;if(inc.tipo==='arena')return campoArena(s);const{nem,all,luogo}=schieramenti(s),tu=TU(s),M=mappa(s.seme),i=cella(M,tu.x,tu.y);
+ function campoBase(s){const inc=s.incontro;if(!inc)return null;if(inc.tipo==='arena')return campoArena(s);const{nem,all,luogo}=schieramenti(s),tu=TU(s),M=VEN.mappaDi(s),i=cella(M,tu.x,tu.y);
   const riga=(p,tr)=>tr.filter(e=>e.n-(e.f||0)>0).map(e=>({p,t:e.t,n:e.n-(e.f||0)}));
   let a=riga(0,tu.tr),b=[];for(const p of all)a=a.concat(riga(p.id,p.tr));for(const p of nem)b=b.concat(riga(p.id,p.tr));if(luogo)b=b.concat(riga(-1-luogo.id,luogo.g));
   const cs=capi(s).map(c=>feritoOggi(s,statCap(c)));
@@ -72,8 +72,8 @@ Object.assign(VEN,(()=>{
  const inizio=a=>a.da!=null?a.da:a.pronto-P.ASSEDIO_ORE*60;
  const fasi=s=>({breccia:s.t-inizio(s.assedio)>=P.BRECCIA_ORE*60,ariete:!!s.assedio.ariete});
  function assedioStato(s){const a=s.assedio;if(!a)return null;const f=fasi(s),resta=inizio(a)+P.BRECCIA_ORE*60-s.t;return{scale:true,breccia:f.breccia,ariete:f.ariete,oreBreccia:Math.max(0,Math.ceil(resta/60))}}
- function scegli(s,v){if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};const inc=s.incontro,tu=TU(s),r=rnd(s);if(!inc)return{err:'Nessun incontro'};
-  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&D.REGNI.includes(p.faz))VEN.inimica(s,p.faz);inc.pronto=true;return{s}}
+ function scegliNucleo(s,v){if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};const inc=s.incontro,tu=TU(s),r=rnd(s);if(!inc)return{err:'Nessun incontro'};
+  if(inc.tipo==='mischia'){if(v==='a'||v==='b'){inc.lato=v;const{nem}=schieramenti(s);for(const p of nem)if(!ostile(s,p,tu)&&VEN.regni(s).includes(p.faz))VEN.inimica(s,p.faz);inc.pronto=true;return{s}}
    if(v==='lascia'){s.incontro=null;return{s}}if(!inc.pronto)return{err:'Scegli con chi stare'}}
   if(inc.tipo==='parla'){const p=part(s,inc.pid[0]);if(v==='lascia'||!p){s.incontro=null;return{s}}
    const sgp=p.k==='sig'?s.sig[p.sig]:null;if(sgp)VEN.confSig(s,sgp);
@@ -81,7 +81,7 @@ Object.assign(VEN,(()=>{
    if(v==='notizie'){if(inc.detto)return{err:'Non ha altro da dirti'};if(sgp){const R=VEN.favoreSig(s,sgp,'notizie');if(R)return R;VEN.memSig(sgp).g=giorno(s)}inc.detto=1;const x=s.l.filter(l=>l.noto===false&&l.g.length).sort((a,b)=>dist(a,tu)-dist(b,tu))[0];
     if(x){x.noto=true;inc.voce='«Si parla di '+x.nome+': '+(x.tipo==='covo'?'un nido di predoni':'pietre antiche, e chi ci va non sempre torna')+'. Te lo segno sulla mappa.»'}else inc.voce='«Niente che tu non sappia già, capitano.»';return{s}}
    if(v.slice(0,6)==='passa:')return VEN.passaA(s,p,+v.slice(6));
-   if(v==='aggredisci'){if(sgp)VEN.memSig(sgp).trad++;if(D.REGNI.includes(p.faz)){VEN.inimica(s,p.faz);L(s,'Hai aggredito gente di '+D.FAZ[p.faz].breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return{err:'Scelta non valida'}}
+   if(v==='aggredisci'){if(sgp)VEN.memSig(sgp).trad++;if(VEN.regni(s).includes(p.faz)){VEN.inimica(s,p.faz);L(s,'Hai aggredito gente di '+VEN.rg(s,p.faz).breve+': ora ti sono nemici.','male')}inc.tipo='nemico';inc.da='tu';return{s}}return null}
   if(inc.tipo==='assalto'&&v==='togli'){s.assedio=null;s.incontro=null;if(s.dentro!==inc.lid)s.davanti=inc.lid;return{s}}
   if(inc.tipo==='assalto'&&(v==='attendi'||v==='ariete')){const a=s.assedio;if(!a||a.lid!==inc.lid||!MURA[s.l[inc.lid].tipo])return{err:'Qui non c\'è un assedio'};
    // si rimanda l'assalto: paghe, viveri e soccorsi dei signori continuano a correre
@@ -93,9 +93,11 @@ Object.assign(VEN,(()=>{
    if(v==='paga'){if(!capo||capo.k!=='pre')return{err:'Non trattano'};const q=Math.max(30,Math.floor(tu.oro*.25));if(tu.oro<q)return{err:'Non hai abbastanza monete'};tu.oro-=q;capo.oro+=q;for(const p of nem){p.fermo=s.t+240;p.ia.st='giro';p.via=[]}s.tregua=s.t+480;s.incontro=null;L(s,'Paghi '+q+' monete e i predoni vi lasciano passare.');VEN.reagisci(s,'tributo');return{s}}
    if(v==='fuggi'){const e=tu.tr.filter(e=>!D.TR[e.t].compagno&&e.n>0);const persi=inc.da==='tu'?0:Math.max(1,Math.floor(uomini(tu)*.12));let k=persi,via=0;while(k>0&&e.length){const x=e[Math.floor(r()*e.length)];if(togliUomini(tu.tr,x.t,1)){k--;via++}else e.splice(e.indexOf(x),1);if(!e.some(q=>q.n>0))break}
     for(const p of nem){p.fermo=s.t+150;p.ia.st='giro';p.via=[]}s.tregua=s.t+300;tu.mor=Math.max(0,tu.mor-6);s.incontro=null;L(s,via?'Vi sganciate lasciando indietro '+via+' uomini di retroguardia.':'Vi sganciate senza perdite.',via?'male':'');VEN.reagisci(s,'fuga');return{s}}}
-  return{err:'Scelta non valida'}}
+  return null}
+ // la scelta che il nucleo non conosce passa ai ganci `scelta`; se nessuno risponde resta l'errore di sempre
+ function scegli(s,v){const r=scegliNucleo(s,v);if(r)return r;return VEN.chiedi('scelta',s,v)||{err:'Scelta non valida'}}
  // chiude una battaglia giocata o risolta: riep = { vince:'a'|'b', cad:[{p,t,n}], capKo, uccisi }
- function esito(s,riep){const inc=s.incontro;if(!inc)return{err:'Nessun incontro'};if(inc.tipo==='arena')return esitoArena(s,riep);const{nem,all,luogo}=schieramenti(s),tu=TU(s),r=rnd(s),med=abil(s,'medicina');
+ function esitoBase(s,riep){const inc=s.incontro;if(!inc)return{err:'Nessun incontro'};if(inc.tipo==='arena')return esitoArena(s,riep);const{nem,all,luogo}=schieramenti(s),tu=TU(s),r=rnd(s),med=abil(s,'medicina');
   const out={vince:riep.vince,morti:0,feriti:0,oro:0,xp:0,prig:0,fama:0,bottino:[],oggetti:[],promo:false,presa:null,livello:false};const dona=id=>{if(D.OGG[id]){tu.zaino.push(id);out.oggetti.push(id)}};
   const fn=nem.reduce((x,p)=>x+forza(p),0)+(luogo?forzaTr(luogo.g)*(MURA[luogo.tipo]?P.MURA:1):0),fa=forza(tu)+all.reduce((x,p)=>x+forza(p),0);
   let valUcc=0;const prima=uomini(tu);
@@ -110,13 +112,13 @@ Object.assign(VEN,(()=>{
     for(const q of s.incarichi)if(q.tipo==='predoni'&&q.pid===p.id&&!q.fatto){q.fatto=true;const l=s.l[q.da];tu.oro+=q.premio;l.rel+=8;l.inc=null;relaz(s,l.faz,2);s.fama+=3;L(s,'Predoni dispersi: '+l.nome+' vi paga '+q.premio+' monete.','bene')}
     if(p.k==='sig'&&r()<.3){const B=D.BOTTEGA[p.faz];if(B)dona(B[Math.floor(r()*B.length)])}
     if(p.k==='riv'&&!s.rivVinta){s.rivVinta=giorno(s);const vv=s.volpe||(s.volpe={tappa:0});if(!vv.dono){vv.dono=1;dona(D.RIVALE.premio)}s.fama+=15;L(s,'La Volpe Rossa vi lascia il campo'+(vv.dono===1?', e la sua cavalla.':'.'),'bene')}
-    if(p.k==='sig'){VEN.memSig(s.sig[sgi]).sconf++;const preso=r()<.5;VEN.sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
+    if(p.k==='sig'){VEN.memSig(s.sig[sgi]).sconf++;const preso=r()<VEN.probCattura(s,riep);VEN.sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
     else{if(p.porta){out.bottino.push([p.porta.m,p.porta.q]);tu.merci[p.porta.m]=(tu.merci[p.porta.m]||0)+p.porta.q}VEN.sconfitta(s,p,'tu')}
     if(era==='pre'){for(const l of s.l)if(l.tipo==='villaggio'&&dist(l,tu)<6)l.rel+=1}}
-   out.oro+=Math.round(valUcc*.4);out.oro=Math.round(out.oro*(1+somma(s,'bottino')));tu.oro+=out.oro;
+   out.oro+=Math.round(valUcc*.4);out.oro=Math.round(out.oro*(1+somma(s,'bottino')));VEN.ganci('premio',s,riep,out);tu.oro+=out.oro;
    // esperienza alle truppe rimaste, in proporzione
    const tot=uomini(tu)||1;for(const e of tu.tr)if(D.TR[e.t].su.length){e.xp=(e.xp||0)+valUcc*.9*e.n/tot;if(e.xp>=D.XP_SU[D.TR[e.t].t])out.promo=true}
-   for(const p of all){p.sc=0;if(D.REGNI.includes(p.faz))relaz(s,p.faz,3);if(p.k==='sig'&&s.sig[p.sig]){s.sig[p.sig].am=(s.sig[p.sig].am||0)+4;VEN.memSig(s.sig[p.sig]).fav++}}
+   for(const p of all){p.sc=0;if(VEN.regni(s).includes(p.faz))relaz(s,p.faz,3);if(p.k==='sig'&&s.sig[p.sig]){s.sig[p.sig].am=(s.sig[p.sig].am||0)+4;VEN.memSig(s.sig[p.sig]).fav++}}
    if(luogo&&SITO[luogo.tipo]){const covo=luogo.tipo==='covo';VEN.reagisci(s,'sito');VEN.avanzaInc(s,'sito',luogo);luogo.g=[];luogo.vinto=giorno(s);if(luogo.tesoro){dona(luogo.tesoro);luogo.tesoro=null}s.stat[covo?'covi':'rovine']++;const pr=covo?260:120;tu.oro+=pr;out.oro+=pr;s.fama+=covo?12:6;out.fama+=covo?12:6;
     L(s,covo?luogo.nome+' è in cenere: le strade respirano.':'Le rovine tacciono. Quel che custodivano è vostro.','bene');if(covo)s.davanti=-1;
     for(const q of s.incarichi)if((q.tipo==='reliquia'||q.tipo==='taglia')&&q.a===luogo.id&&!q.fatto&&!q.fallito){q.fatto=true;tu.oro+=q.premio;out.oro+=q.premio;const da=s.l[q.da];da.inc=null;da.rel+=8;s.fama+=5;L(s,'Incarico compiuto: '+q.premio+' monete da '+da.nome+'.','bene')}}
@@ -132,10 +134,13 @@ Object.assign(VEN,(()=>{
    for(const e of tu.tr.slice()){if(D.TR[e.t].compagno){e.f=e.n;continue}const resta=Math.floor(e.n*(riep.capKo?.3:.6));togliUomini(tu.tr,e.t,e.n-resta);const e2=tu.tr.find(x=>x.t===e.t);if(e2)e2.f=Math.min(e2.n,Math.ceil(e2.n*.6))}
    s.assedio=null;
    if(riep.capKo){s.prigioniero={fino:s.t+(18+Math.floor(r()*30))*60,da:nem[0]?nem[0].nome:(luogo?luogo.nome:'i nemici')};tu.ord=null;tu.via=[];L(s,'Sei caduto e ti hanno preso: ti porteranno in catene finché non riesci a fuggire.','male')}
-   else{const M=mappa(s.seme),m=nem[0]||luogo;if(m){const v=vicinoOk(M,tu.x+(tu.x-m.x)*2+1.5,tu.y+(tu.y-m.y)*2+1.5);tu.x=v[0];tu.y=v[1]}L(s,'La compagnia è rotta e si ritira in disordine.','male')}
+   else{const M=VEN.mappaDi(s),m=nem[0]||luogo;if(m){const v=vicinoOk(M,tu.x+(tu.x-m.x)*2+1.5,tu.y+(tu.y-m.y)*2+1.5);tu.x=v[0];tu.y=v[1]}L(s,'La compagnia è rotta e si ritira in disordine.','male')}
    s.rotta=s.t+180;tu.ord=null;tu.via=[]}
-  cresci(s,out);
+  cresci(s,out);VEN.ganci('battaglia',s,riep,out);
   s.incontro=null;s.ult=out;s.ev.push({t:'esito',out});return{s,out}}
+ // ganci: `scheda(s,sc)` in fondo a `campo` (aggiunge campi; se restituisce un oggetto, quello è la scheda) ed `esito(s,riep)` all'inizio di `esito` (se restituisce un risultato, l'esito normale non si fa)
+ function campo(s){const sc=campoBase(s);if(!sc)return sc;const x=VEN.chiedi('scheda',s,sc);return x&&typeof x==='object'?x:sc}
+ function esito(s,riep){const x=VEN.chiedi('esito',s,riep);if(x)return x;return esitoBase(s,riep)}
  // risoluzione automatica: gioca la battaglia col motore del campo, senza grafica (VCAM è nel file dopo: esiste a runtime)
  function auto(s){const c=campo(s);if(!c)return{err:'Nessun incontro'};return esito(s,VCAM.risolvi(c))}
  return{assalto,schieramenti,torneoOggi,tornei,quando,premioTorneo,chiudiTorneo,avversariTorneo,statArena,campo,assedioStato,scegli,esito,auto}})());

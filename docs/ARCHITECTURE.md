@@ -142,7 +142,10 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `css/39g-stanza.css` | 4 |  |
 | `css/39h-scena3d.css` | 1 |  |
 | `css/39i-succo.css` | 7 |  |
-| `css/39j-ventura.css` | 16 |  |
+| `css/39j-ventura.css` | 2 |  |
+| `css/39ja-ven-barre.css` | 3 |  |
+| `css/39jb-ven-pannelli.css` | 4 |  |
+| `css/39jc-ven-campo.css` | 7 |  |
 | `css/40-legno-ottone.css` | 17 |  |
 | `css/41-regicide-tv.css` | 6 |  |
 | `css/42-catan-tv.css` | 5 |  |
@@ -217,13 +220,29 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/motori/28i-avv-succo.js` | 8 | ASUC |
 | `js/motori/28j-ven-dati.js` | 34 | VDAT |
 | `js/motori/28ja-ven-voci.js` | 49 | VVOC |
-| `js/motori/28k-ven-mondo.js` | 27 | VEN, capi |
+| `js/motori/28jb-ven-dati-campo.js` | 1 |  |
+| `js/motori/28jc-ven-dati-mondo.js` | 2 |  |
+| `js/motori/28k-ven-mondo.js` | 29 | VEN, capi |
 | `js/motori/28ka-ven-ia.js` | 19 |  |
 | `js/motori/28kb-ven-economia.js` | 20 |  |
-| `js/motori/28kc-ven-scontro.js` | 19 |  |
+| `js/motori/28kc-ven-scontro.js` | 20 |  |
 | `js/motori/28kd-ven-corte.js` | 14 |  |
 | `js/motori/28ke-ven-gente.js` | 13 |  |
+| `js/motori/28kf-ven-anteprima.js` | 1 |  |
+| `js/motori/28kg-ven-geografia.js` | 1 |  |
+| `js/motori/28kh-ven-stagioni.js` | 1 |  |
+| `js/motori/28ki-ven-regni.js` | 1 |  |
+| `js/motori/28kj-ven-rango.js` | 1 |  |
+| `js/motori/28kk-ven-strategia.js` | 1 |  |
+| `js/motori/28kl-ven-sfida.js` | 1 |  |
+| `js/motori/28km-ven-sorte.js` | 1 |  |
+| `js/motori/28kn-ven-eserciti.js` | 1 |  |
+| `js/motori/28ko-ven-feudi.js` | 1 |  |
+| `js/motori/28kp-ven-affari.js` | 1 |  |
+| `js/motori/28kq-ven-crocevia.js` | 1 |  |
+| `js/motori/28kr-ven-accensioni.js` | 1 |  |
 | `js/motori/28l-ven-campo.js` | 29 | VCAM, k |
+| `js/motori/28la-ven-consiglio.js` | 1 | VCONS |
 | `js/motori/28m-ven-stanza.js` | 6 | VST |
 | `js/motori/28n-ven-audio.js` | 8 | VAUD |
 | `js/motori/29-spie.js` | 8 | SPIE, RND, clone, TN, WORDS, L, nm |
@@ -329,7 +348,12 @@ Rigenerala con `npm run mappa` (`scripts/mappa-moduli.js`).
 | `js/app/24ht-ven-arte.js` | 23 | VenArte |
 | `js/app/24hu-ven-mappa.js` | 31 | VenMappa |
 | `js/app/24hv-ven-campo.js` | 29 | VenCampo |
-| `js/app/24hw-ventura.js` | 68 | Ven |
+| `js/app/24hw-ventura.js` | 22 | Ven |
+| `js/app/24hwa-ven-barre.js` | 5 | VenBarre |
+| `js/app/24hwb-ven-luoghi.js` | 23 | VenLuoghi |
+| `js/app/24hwc-ven-gente.js` | 10 | VenGente |
+| `js/app/24hwd-ven-scontro.js` | 9 | VenScontro |
+| `js/app/24hwe-ven-tv.js` | 1 | VenTv |
 | `js/app/24hx-ven-stanza.js` | 9 | VenStanza |
 | `js/app/24hy-ven-audio.js` | 2 | VenAudio |
 | `js/app/24i-plancia.js` | 13 | Plancia |

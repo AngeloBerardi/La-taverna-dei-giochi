@@ -14,11 +14,11 @@ Object.assign(VEN,(()=>{
   if(!srv)return{err:'Un capitano senza bandiera non ha voce presso i re'};
   if(sov&&(tipo==='guerra'||tipo==='rompi'))return{err:'Per la guerra e per le rotture usa le tue azioni'};
   if(!X.BASE.hasOwnProperty(tipo)&&tipo!=='rompi')return{err:'Proposta sconosciuta'};
-  if(!D.REGNI.includes(a)||!(D.REGNI.includes(b)||sov)||a===b)return{err:'Regno sconosciuto'};
+  if(!VEN.regni(s).includes(a)||!(VEN.regni(s).includes(b)||sov)||a===b)return{err:'Regno sconosciuto'};
   if(!sov&&srv.faz!==a)return{err:'Parli per chi servi: qui non hai voce'};
   if(!sov&&srv.tipo==='mer'&&tipo!=='pace')return{err:'Un mercenario a contratto può chiedere solo la pace'};
   if(s.cadute[a]||(!sov&&s.cadute[b]))return{err:'Quel regno è caduto'};
-  if(s.parola&&s.parola[a]>giorno(s))return{err:D.FAZ[a].re+' ti riceverà di nuovo il giorno '+s.parola[a]};
+  if(s.parola&&s.parola[a]>giorno(s))return{err:VEN.rg(s,a).re+' ti riceverà di nuovo il giorno '+s.parola[a]};
   const guerra=inGuerra(s,a,b),al=alleate(s,a,b);
   if(tipo==='pace'&&!guerra)return{err:'Non siete in guerra con '+nomeF(s,b)};
   if(tipo==='alleanza'){if(guerra)return{err:'Prima la pace: con '+nomeF(s,b)+' siete in guerra'};if(al)return{err:'Siete già alleati'};if(alleatoDi(s,a)||alleatoDi(s,b))return{err:'Uno dei due ha già un alleato'}}
@@ -40,12 +40,12 @@ Object.assign(VEN,(()=>{
   if(tipo==='guerra'&&dom&&dom.f===b)aggiungi(nomeF(s,b)+' vince troppo',X.DOMINANTE);
   const tot=Math.round(f.reduce((x,y)=>x+y.v,0)*10)/10;return{tipo,a,b,f,tot,ok:tot>=0}}
  function conquista(s,l,faz,sigId){const prima=l.faz,persi=prima==='tu'?[l,...s.l.filter(v=>v.capo===l.id&&!MURA[v.tipo])].map(v=>v.sig).filter(x=>x>=0):[];l.faz=faz;l.sig=sigId;l.ass=null;l.rel=0;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo]){v.faz=faz;v.sig=sigId}
-  L(s,l.nome+' cade: ora è '+(faz==='tu'?'tua':'di '+D.FAZ[faz].breve)+'.','guerra');s.ev.push({t:'conquista',lid:l.id,faz});
-  if(prima!=='tu'&&D.REGNI.includes(prima)&&!s.l.some(x=>x.faz===prima&&MURA[x.tipo])){s.cadute[prima]=giorno(s);L(s,D.FAZ[prima].nome+' non ha più mura: il regno è caduto.','guerra');
+  L(s,l.nome+' cade: ora è '+(faz==='tu'?'tua':'di '+VEN.rg(s,faz).breve)+'.','guerra');s.ev.push({t:'conquista',lid:l.id,faz});
+  if(prima!=='tu'&&VEN.regni(s).includes(prima)&&!s.l.some(x=>x.faz===prima&&MURA[x.tipo])){s.cadute[prima]=giorno(s);L(s,VEN.rg(s,prima).nome+' non ha più mura: il regno è caduto.','guerra');
    for(const sg of s.sig)if(sg.faz===prima){const p=part(s,sg.pid);if(sg.re||!p){if(p)VEN.rimuovi(s,p);sg.pid=-1}else daEsule(s,sg,p)}for(const v of s.l)if(v.faz===prima){v.faz=faz;v.sig=sigId}}
   if(prima==='tu'&&s.corona){if(s.l.some(x=>x.faz==='tu'&&MURA[x.tipo])){const sd=s.l[s.corona.sede];if(!sd||sd.faz!=='tu'){const n=s.l.find(x=>x.faz==='tu'&&MURA[x.tipo]);s.corona.sede=n.id}}else cadeCorona(s)}
   if(prima==='tu'&&s.corona)for(const id of new Set(persi))perdeFeudo(s,id);
-  vittoria(s)}
+  VEN.vittoria(s);VEN.ganci('luogo',s,l,'conquista')}
  // un signore senza più regno (o senza feudo) diventa esule: gira da neutrale e dopo ESILIO giorni sparisce, a meno che tu non lo convinca
  function daEsule(s,sg,p){sg.cult=sg.cult||sg.faz;sg.esule=sg.cult;sg.esilio=giorno(s)+D.REGNO.ESILIO;sg.faz='neu';if(p){p.faz='neu';p.dentro=-1;p.via=[];p.ia={st:'esilio',t:0}}}
  // la corona cade con l'ultima fortezza: guerre e alleanze del regno finiscono, i signori diventano esuli, i compagni investiti tornano con te
@@ -53,7 +53,7 @@ Object.assign(VEN,(()=>{
   for(const k of Object.keys(s.guerra))if(k.split('|').includes('tu'))delete s.guerra[k];for(const k of Object.keys(s.alleanza||{}))if(k.split('|').includes('tu'))delete s.alleanza[k];
   for(const sg of s.sig)if(sg.faz==='tu'||sg.comp){const p=part(s,sg.pid);if(sg.comp){if(p)VEN.rimuovi(s,p);sg.pid=-1;aggiungi(tu.tr,sg.comp,1);s.compagni[sg.comp]=-1;sg.faz='neu';sg.comp=null;sg.esilio=0;sg.esule=null}else daEsule(s,sg,p)}
   for(const l of s.l)if(l.faz==='tu'&&l.sig>=0)l.sig=-1;s.ev.push({t:'corona-cade'})}
- function confinanti(s){return D.REGNI.filter(f=>!s.cadute[f]&&s.l.some(l=>l.faz===f&&s.l.some(m=>m.faz==='tu'&&dist(l,m)<=D.REGNO.CONFINE)))}
+ function confinanti(s){return VEN.regni(s).filter(f=>!s.cadute[f]&&s.l.some(l=>l.faz===f&&s.l.some(m=>m.faz==='tu'&&dist(l,m)<=D.REGNO.CONFINE)))}
  // vittoria: tutte le capitali (le città) in mano tua con la corona, o del tuo re se sei vassallo; si scrive una volta sola e la partita continua
  function vittoria(s){if(s.vinta)return;const cap=s.l.filter(l=>l.tipo==='citta');if(!cap.length)return;let come=null;
   if(s.corona&&cap.every(l=>l.faz==='tu'))come='re';else if(s.servizio&&s.servizio.tipo==='vas'&&cap.every(l=>l.faz===s.servizio.faz))come='vassallo';
@@ -64,7 +64,7 @@ Object.assign(VEN,(()=>{
  function lealta(s,sid,lid){const sg=s.sig[sid],l=s.l[lid],P2=D.REGNO.PASSA;
   if(!s.corona)return{err:'Non hai un regno'};if(!sg||sg.faz==='tu')return{err:'Non è un signore da convincere'};if(sg.re)return{err:'Un sovrano non si piega così'};
   if(!l||l.faz!=='tu'||l.sig>=0)return{err:'Serve un tuo luogo tenuto da offrire in feudo'};if(l.id===s.corona.sede)return{err:'La sede del regno resta tua'};
-  const f=[],ag=(n,v)=>{v=Math.round(v*10)/10;if(v)f.push({n,v})},t=D.TRATTI[sg.tratto],reg=D.REGNI.includes(sg.faz);
+  const f=[],ag=(n,v)=>{v=Math.round(v*10)/10;if(v)f.push({n,v})},t=D.TRATTI[sg.tratto],reg=VEN.regni(s).includes(sg.faz);
   ag('Giuramento al suo signore',P2.BASE);if(sg.faz==='neu'&&sg.esule)ag('Senza più patria',P2.ESULE);if(t)ag('Indole ('+t.nome+')',t.passa||0);
   ag('Amicizia personale',(sg.am||0)/P2.AMICIZIA);ag('Fama della compagnia',Math.min(s.fama,P2.FAMA_MAX)/P2.FAMA);
   if(reg&&s.l.filter(x=>x.faz===sg.faz&&MURA[x.tipo]).length<=2)ag('Il suo regno è debole',P2.DEBOLE);if(reg&&inGuerra(s,sg.faz,'tu'))ag('In guerra col tuo regno',P2.GUERRA);
@@ -73,8 +73,8 @@ Object.assign(VEN,(()=>{
  function daiFeudo(s,l,sid){l.sig=sid;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo])v.sig=sid}
  // un signore passa a te nell'incontro: i suoi luoghi restano senza signore, lui prende il feudo offerto e porta con sé le sue truppe
  function passaA(s,p,lid){const sg=p.k==='sig'?s.sig[p.sig]:null;if(!sg)return{err:'Non è un signore'};const R=lealta(s,sg.id,lid);if(R.err)return R;if(!R.ok)return{err:sg.nome+' rifiuta: il conto dà '+R.tot+' (serve 0)'};
-  const l=s.l[lid],vecchia=sg.faz;sg.cult=sg.cult||(D.REGNI.includes(vecchia)?vecchia:sg.esule||vecchia);for(const x of s.l)if(x.sig===sg.id)x.sig=-1;
-  sg.faz=p.faz='tu';sg.esule=null;sg.esilio=0;sg.casa=lid;daiFeudo(s,l,sg.id);p.via=[];p.fermo=0;p.ia={st:'giro',t:0};if(D.REGNI.includes(vecchia))relaz(s,vecchia,-15);
+  const l=s.l[lid],vecchia=sg.faz;sg.cult=sg.cult||(VEN.regni(s).includes(vecchia)?vecchia:sg.esule||vecchia);for(const x of s.l)if(x.sig===sg.id)x.sig=-1;
+  sg.faz=p.faz='tu';sg.esule=null;sg.esilio=0;sg.casa=lid;daiFeudo(s,l,sg.id);p.via=[];p.fermo=0;p.ia={st:'giro',t:0};if(VEN.regni(s).includes(vecchia))relaz(s,vecchia,-15);
   L(s,sg.nome+' giura a '+s.corona.nome+' e riceve '+l.nome+'.','bene');s.ev.push({t:'passa',sid:sg.id});s.incontro=null;return{s}}
  // ---------- azioni nei luoghi ----------
  // regno (V4): fondare un regno nella propria fortezza (città o castello tuo, fama e monete) e le prime mosse dei confinanti
@@ -84,7 +84,7 @@ Object.assign(VEN,(()=>{
   if(s.fama<R.FAMA)return{err:'Serve fama '+R.FAMA};if(tu.oro<R.ORO)return{err:'Servono '+R.ORO+' monete'};
   const nome=String(z.nome==null?'':z.nome).trim().slice(0,24);if(!nome)return{err:'Dai un nome al regno'};const st=z.stend==null?0:z.stend|0;if(!(st>=0&&st<R.STENDARDI.length))return{err:'Stendardo sconosciuto'};
   tu.oro-=R.ORO;s.corona={nome,stend:st,da:g,sede:l.id,malc:0,minacce:{}};const conf=confinanti(s);
-  for(const f of D.REGNI){if(s.cadute[f])continue;const vic=conf.includes(f);
+  for(const f of VEN.regni(s)){if(s.cadute[f])continue;const vic=conf.includes(f);
    if(vic&&s.rel[f]>=R.AMICO){relaz(s,f,5);L(s,nomeF(s,f)+' propone pace a '+nome+'.','bene')}
    else if(s.rel[f]<=-25){s.guerra[chiave('tu',f)]=true;L(s,nomeF(s,f)+' ti dichiara guerra.','guerra')}
    else if(vic)s.corona.minacce[f]=g+1+Math.floor(r()*R.GUERRA_ENTRO)}
@@ -104,7 +104,7 @@ Object.assign(VEN,(()=>{
    L(s,co.nome+' è investito di '+l.nome+': ora è signore.','bene');return{s}}
   if(z.a==='aduna'){let n=0;for(const p of s.p)if(p.k==='sig'&&p.faz==='tu'){p.dentro=-1;p.via=[];p.ia={st:'adunata',t:0,fine:s.t+R.ADUNATA*P.GIORNO};n++}
    if(!n)return{err:'Non hai signori'};L(s,'Chiami a raccolta i tuoi signori: ti raggiungeranno ('+n+').');return{s}}
-  if(z.a==='dichiara'){const f=z.f;if(!D.REGNI.includes(f)||s.cadute[f])return{err:'Regno sconosciuto'};if(inGuerra(s,'tu',f))return{err:'Siete già in guerra'};if(alleate(s,'tu',f))return{err:'Sono tuoi alleati: rompi prima l\'alleanza'};
+  if(z.a==='dichiara'){const f=z.f;if(!VEN.regni(s).includes(f)||s.cadute[f])return{err:'Regno sconosciuto'};if(inGuerra(s,'tu',f))return{err:'Siete già in guerra'};if(alleate(s,'tu',f))return{err:'Sono tuoi alleati: rompi prima l\'alleanza'};
    s.guerra[chiave('tu',f)]=true;delete s.corona.minacce[f];relaz(s,f,-10);L(s,'Dichiari guerra a '+nomeF(s,f)+'.','guerra');return{s}}
   if(z.a==='rompi'){const al=s.alleanza&&s.alleanza[chiave('tu',z.f)];if(!al)return{err:'Non siete alleati'};if(al.rompe)return{err:'La rottura è già annunciata'};
    al.rompe=Math.max(g+D.DIPL.PREAVVISO,al.da+D.DIPL.MIN);L(s,'Annunci la rottura dell\'alleanza con '+nomeF(s,z.f)+': finirà il giorno '+al.rompe+'.','guerra');return{s}}
