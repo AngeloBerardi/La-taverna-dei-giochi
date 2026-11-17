@@ -147,6 +147,7 @@ Chat nuova · **Sonnet 5.5 · impegno basso** · scrivi:
 | 26 Grandi schiere nella vista | Sonnet 5.5 · medio | `/passo 26` | Opus 5.5 · basso: `/controllo 26` |
 | 27 L'unificazione dei regni | Sonnet 5.5 · alto | `/passo 27` | Opus 5.5 · alto: `/controllo 27` |
 | 28 Le doti dei compagni in campo (motore) | Sonnet 5.5 · medio | `/passo 28` | Haiku 5.5 · basso: `/controllo 28` |
+| 47 Il «Pronto» per posto in compagnia | Sonnet 5.5 · medio | `/passo 47` | Opus 5.5 · alto: `/controllo 47` |
 
 </details>
 
