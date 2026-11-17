@@ -458,5 +458,19 @@ const VVOC=(()=>{
    cede:['Indietro, tra le pietre! Lì si tiene.','Ripiegate sulle rovine. Le conosco.'],
    ferito:['Un taglio. Ne ho presi di peggio scavando.','Colpita. Le rovine fanno più male.'],
    vince:['Vinto. Ora vediamo cosa c\'è sotto.','Il campo è nostro. E anche quel che c\'è sotto.']}};
- return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO}})();
+ // aperture di una campagna nuova (passo 15): 6 agganci × 2 varianti; segnaposto {luogo} {regno} (nome breve) {uomini} {monete} {meta}; ≤ 3 frasi e 240 caratteri
+ const APERTURE={
+  covo:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} c\'è un covo di briganti con una taglia sopra. Qualcuno dovrà riscuoterla.',
+   'La sorte ha un debole per te: ti lascia a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. Si dice che a {meta} dormano dei tagliagole. Il prevosto paga a teste.'],
+  scorta:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} una carovana cerca spade per la strada. I mercanti pagano, se arrivano vivi.',
+   'A {luogo}, nelle terre di {regno}, la sorte ti posa con {uomini} uomini e {monete} monete. Un carovaniere a {meta} ha paura dei boschi. La paura altrui è il tuo mestiere.'],
+  recluta:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} un signore arruola chiunque sappia tenere una lancia. Tu ne sai tenere {uomini}.',
+   'A {luogo}, nelle terre di {regno}, la sorte ti lascia {uomini} uomini e {monete} monete, e niente padrone. Un signore a {meta} cerca compagnie. Il soldo è il soldo.'],
+  torneo:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. Fra tre giorni a {meta} si giostra davanti alla corte. La fama si vince anche cadendo bene.',
+   'A {luogo}, nelle terre di {regno}, la sorte ti molla con {uomini} uomini e {monete} monete. A {meta} preparano un torneo, e gli araldi cercano nomi nuovi. Il tuo non lo conosce nessuno: ancora.'],
+  villaggio:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. Il villaggio di {meta} ha visto fuochi sulle colline. Chiede aiuto, e offre quel che ha.',
+   'A {luogo}, nelle terre di {regno}, la sorte ti consegna {uomini} uomini e {monete} monete. A {meta} i contadini affilano le falci contro i predoni. Le falci da sole non bastano mai.'],
+  affare:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} un mercante sussurra di un affare sicuro. Gli affari sicuri sono i più pericolosi.',
+   'A {luogo}, nelle terre di {regno}, la sorte ti lascia {uomini} uomini e {monete} monete, poche davvero. Un mercante a {meta} ha un carico da spostare senza domande. Le domande costano, il silenzio paga.']};
+ return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO,APERTURE}})();
 if(typeof module!=='undefined')module.exports=VVOC;
