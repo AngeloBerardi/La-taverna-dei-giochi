@@ -78,7 +78,7 @@ Dopo questo passo ogni novità del mondo vive in un file suo e si attacca con un
    | `scelta(s,o)` | in `VEN.scegli`, per una scelta che il nucleo non conosce | gestirla; restituisce `{s}`, `{err}` o `undefined` |
    | `azione(s,z)` | in `VEN.fai`, subito dopo il controllo «Prima rispondi» | se restituisce `{s}` o `{err}`, quello è il risultato (azioni nuove di feudi e affari) |
    | `fatto(s,z,r)` | in `VEN.fai`, dopo un'azione del nucleo riuscita (`r.s`) | ritocchi dopo l'azione (`aduna`, `recluta`, `razzia`); il risultato non cambia. Per avere un solo punto d'uscita, il corpo di oggi di `fai` diventa una funzione interna e `fai` la avvolge |
-   | `effetto(s,e)` | in `applicaVoce`, per un `e.k` che il nucleo non conosce | applicare un effetto nuovo delle scene; il nome entra in `VEN.EFF_VOCI` con `push` |
+   | `effetto(s,e)` | in `applicaVoce`, per un `e.k` che il nucleo non conosce | applicare un effetto nuovo delle scene. `EFF_VOCI` contiene già, da qui, `uomini`, `merce`, `viveri`, `gusto` (passo 44) e `adunata` (passo 40): senza ascoltatore non fanno nulla, così i testi del passo 42 passano i controlli prima dei motori |
    | `scontro(s,sc)` | in `oraNuova`, appena nasce uno scontro tra IA, dopo gli alleati | aggiungere id a `sc.a`/`sc.b` (e ricalcolare `fa`/`fb`) |
    | `incontro(s,inc)` | dove nasce `s.incontro` di tipo `nemico` (`contatti`) | aggiungere id a `inc.pid`/`inc.all` |
    | `luogo(s,l,ev)` | `ev:'razzia'` dove si mette `l.sacc` (IA e `fai`), `ev:'conquista'` in fondo a `conquista` | danni agli edifici, confische |
@@ -145,7 +145,7 @@ Impronta identica (`node tools/avventura/impronta.js --controlla`).
 - (g) i salvataggi di `tests/fixture/ven/` si aprono e `VEN.opz(s)` dà i valori di base;
 - (h) `VEN.opzione` cambia `taglia` e rifiuta le altre chiavi;
 - (i) `scripts/struttura.js` fallisce su un file finto con `Math.pow` (scritto in una cartella temporanea e poi cancellato);
-- (j) un ascoltatore di `azione` che risponde a `{a:'prova'}` dà `{s}`, senza ascoltatori `fai` dà «Azione sconosciuta»; un ascoltatore di `fatto` riceve `{a:'riposa'}` riuscita e non `{a:'nulla'}`; un effetto `{t:'ven',k:'prova'}` aggiunto a `VEN.EFF_VOCI` arriva all'ascoltatore di `effetto`;
+- (j) un ascoltatore di `azione` che risponde a `{a:'prova'}` dà `{s}`, senza ascoltatori `fai` dà «Azione sconosciuta»; un ascoltatore di `fatto` riceve `{a:'riposa'}` riuscita e non `{a:'nulla'}`; un effetto `{t:'ven',k:'merce'}` arriva all'ascoltatore di `effetto` e, senza ascoltatori, la scena si chiude senza errori;
 - (k) `luogo` riceve `'razzia'` quando un signore dell'IA mette a sacco un villaggio e `'conquista'` da `VEN.conquista`.
 
 Scenari `ventura`, `ventura_stanza` e `ventura_regno` verdi; con `?ven=grandi` nessun errore in console.
