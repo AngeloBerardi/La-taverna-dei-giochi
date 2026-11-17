@@ -2,7 +2,7 @@
 // quello a caso quasi mai. (Test lento: ~3 minuti, escluso da `npm run verifica`; si lancia con `npm test -- ven_torneo_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
+const F = carica.VEN_FILES;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const gioca = require('./bot_ven.js')(V, D);
 {

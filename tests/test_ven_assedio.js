@@ -64,7 +64,7 @@ for (const as of [SCALE, ARIETE, TUTTO]) for (const seme of [2, 3]) {
 }
 // ---- 6. mondo: le fasi dell'assedio di chi gioca ----
 {
-  const FM = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js'], V = carica.multi(FM, 'VEN');
+  const FM = carica.VEN_FILES, V = carica.multi(FM, 'VEN');
   const ok = x => { assert(!x.err, x.err); return x; };
   const J = x => JSON.parse(JSON.stringify(x));
   // davanti a un castello nemico, con la guarnigione di sempre e nessun signore dentro

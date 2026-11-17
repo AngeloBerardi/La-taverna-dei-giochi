@@ -6,7 +6,9 @@
    Il tempo scorre solo dentro `passo`: un istante = un minuto di gioco. Lo stato è JSON; la mappa si rigenera dal seme.
    Mai `Math.random`, `Date.now` o trigonometria: solo + − × ÷ e radice, così telefoni diversi danno lo stesso mondo.
    Lo stato si modifica sul posto (come `ATEM` con `qui`). I numeri si ritoccano in `P` e in `VDAT` (28j).
-   Piano: docs/VENTURA.md. */
+   Nucleo (questo file): mappa, tempo, movimento, `ordina`, `passo`, salvataggio. Le estensioni aggiungono le loro funzioni allo stesso oggetto
+   (`Object.assign(VEN,…)`) e prendono gli aiutanti interni da `VEN._`: 28ka IA, 28kb economia e `fai`, 28kc scontri, 28kd corte, 28ke gente.
+   Una funzione di un altro file si chiama sempre `VEN.nome(...)`. Piano: docs/VENTURA.md. */
 const VEN=(()=>{
  const D=VDAT,G=128,MURA={citta:1,castello:1},MERCATO={citta:1,villaggio:1,porto:1},SITO={rovine:1,covo:1},OSTERIA={citta:1,locanda:1,porto:1};
  const P={VEL:2.6,VISTA:8,ORA:60,GIORNO:1440,CONTATTO:.55,CAPIENZA:20,PRED_MAX:16,ASSEDIO_ORE:10,ASSEDIO_IA_ORE:36,BRECCIA_ORE:72,ARIETE_ORE:6,ARIETE_ORO:150,MURA:1.6,PAGA_GIORNI:7,

@@ -2,7 +2,7 @@
 // Niente dadi: il gradimento è un conto. (La prova lunga col bot accorto è test_ven_personaggi_bot.js.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
+const F = carica.VEN_FILES;
 const V = carica.multi(F, 'VEN'), D = carica.multi(F, 'VDAT');
 const ok = x => { assert(!x.err, x.err); return x; };
 const G = D.GRAD, S = D.SIG;

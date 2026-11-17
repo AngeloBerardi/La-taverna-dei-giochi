@@ -3,7 +3,7 @@
 // V6c: ogni incarico personale si compie entro 40 giorni dall'apertura. (Test lento: `npm test -- ven_voci_bot`.)
 const assert = require('assert');
 const carica = require('./carica.js');
-const F = ['27-eroi.js', '27a-avv-dadi.js', '27p-avv-compagni.js', '27q-avv-racconto.js', '28j-ven-dati.js', '28ja-ven-voci.js', '28k-ven-mondo.js', '28l-ven-campo.js'];
+const F = ['27-eroi.js', '27p-avv-compagni.js', '27q-avv-racconto.js'].concat(carica.VEN_FILES);
 const X = carica.multi(F, '({ VEN, VDAT })'), V = X.VEN, D = X.VDAT;
 const gioca = require('./bot_ven.js')(V, D);
 const riassunto = [];

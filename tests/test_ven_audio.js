@@ -84,7 +84,7 @@ const TUTTI = new Set([...Object.keys(VAUD.SUONI), ...VAUD.ESISTENTI]);
   assert.deepStrictEqual(VAUD.PAUSA, { 'ven-cozzo': 120, 'ven-freccia': 180, 'ven-corno': 900, 'ven-passi': 400, 'ven-zoccoli': 400 }); }
 
 // ---- 4. copertura letta dal sorgente ----
-{ const MON = SRC('motori/28k-ven-mondo.js'), CAM = SRC('motori/28l-ven-campo.js');
+{ const MON = carica.VEN_FILES.filter(f => /^28k/.test(f)).map(f => SRC('motori/' + f)).join('\n'), CAM = SRC('motori/28l-ven-campo.js');
   const ev = (src) => new Set([...src.matchAll(/ev\.push\(\{t:'([a-z-]+)'/g)].map((m) => m[1]));
   const em = ev(MON), ec = ev(CAM), verbi = new Set([...MON.matchAll(/z\.a==='([a-z]+)'/g)].map((m) => m[1]));
   const corpo = MON.slice(MON.indexOf('function ordina('), MON.indexOf('\n', MON.indexOf('function ordina(') + 1500));

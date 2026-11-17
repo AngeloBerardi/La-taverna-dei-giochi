@@ -2,7 +2,7 @@
 // telefoni che fanno scorrere il tempo da soli e restano uguali, battaglia condivisa con un capitano a testa.
 const assert = require('assert'), fs = require('fs'), path = require('path');
 const carica = require('./carica.js');
-const F = ['27a-avv-dadi.js', '28j-ven-dati.js', '28k-ven-mondo.js', '28l-ven-campo.js', '28m-ven-stanza.js'];
+const F = carica.VEN_FILES;
 const S = carica.multi(F, 'VST'), V = carica.multi(F, 'VEN'), C = carica.multi(F, 'VCAM');
 const ok = r => { assert(!r.err, r.err); return r.s; };
 const J = x => JSON.stringify(x);
