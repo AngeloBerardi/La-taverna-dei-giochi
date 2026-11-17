@@ -60,6 +60,12 @@ Ogni comandante ha un rango da 0 a 5 che cresce con le battaglie vinte e si legg
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
 
+- Ogni comandante ha un rango, da sprovveduto a leggendario, che si legge prima dello scontro.
+- Un signore che vince si fa un nome e sale di rango; in prigionia lo perde poco a poco.
+- Più il rango del nemico è alto, più è duro da battere e più valgono fama, esperienza e bottino della vittoria.
+- Un comandante di rango alto, se lo abbatti, ha molte più probabilità di restare tuo prigioniero.
+- Il rango del tuo capitano dipende dalla sua abilità di comando.
+
 ## Fuori scopo
 
 Comportamento in battaglia (passi 21, 25 e 30), memoria delle tattiche (passo 30).
