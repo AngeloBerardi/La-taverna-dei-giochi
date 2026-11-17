@@ -68,6 +68,13 @@ Stato: `s.mr`, `u.fa`, `u.fr`, `s.capoB`. `VCAM.morali(s,l)` → `[{r,mor,fa,fr}
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
 
+**Morale, fatica e frecce.**
+- Ogni reparto ha un suo coraggio: cala quando cadono i compagni, quando lo si colpisce sul fianco o alle spalle, quando subisce una carica e quando un reparto vicino fugge; sale ogni volta che abbatte un nemico. Sotto una certa soglia il reparto scappa da solo, mentre gli altri possono ancora tenere.
+- Il Grido del capitano raduna un reparto in fuga, se torna almeno la metà dei suoi uomini. Se cade il comandante, tutti i suoi reparti vacillano.
+- Chi corre e combatte a lungo si stanca e colpisce e avanza peggio: un'ondata fresca travolge chi è già sfinito. Da fermi, e meglio ancora in schiera serrata, si riprende fiato.
+- Gli arcieri hanno le frecce contate: finite, combattono solo se il nemico è addosso, altrimenti corrono al carro e tornano con la faretra piena.
+- Abbattere il signore nemico, che sta dietro i suoi fanti, fa tremare tutta la sua schiera.
+
 ## Fuori scopo
 
 HUD dei morali (passo 22), voci (passi 10, 28 e 39), IA che sfrutta la fatica (passo 25).
