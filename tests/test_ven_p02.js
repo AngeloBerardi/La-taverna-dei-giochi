@@ -22,7 +22,8 @@ const ctx = { console, Math, JSON, Date, performance: { now: () => 1000 },
   VenAudio: new Proxy({ traccia: () => '' }, { get: (t, k) => (k in t ? t[k] : () => {}) }) };
 vm.createContext(ctx);
 const run = (f, extra) => vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8') + (extra || ''), ctx, { filename: f });
-['27a-avv-dadi.js', '28j-ven-dati.js', '28ja-ven-voci.js', '28k-ven-mondo.js', '28l-ven-campo.js'].forEach((f) => run('src/js/motori/' + f));
+run('src/js/motori/27a-avv-dadi.js');
+lista.filter((f) => /motori\/28/.test(f)).forEach((f) => run(f));
 vm.runInContext('this.VEN=VEN;this.VCAM=VCAM;this.VDAT=VDAT', ctx);
 vista.forEach((f) => run(f, /24hw-ventura/.test(f) ? '\n;this.Ven=Ven;' : ''));
 vm.runInContext('this.VM={VenBarre,VenLuoghi,VenGente,VenScontro,VenTv}', ctx);
