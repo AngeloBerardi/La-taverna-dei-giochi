@@ -74,6 +74,8 @@ L'anno gira e cambia il modo di giocare. In inverno si mangia di più, si marcia
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
 
+**Le stagioni.** L'anno ha quattro stagioni uguali e si parte a inizio primavera. In primavera si reclutano più uomini e i regni vanno in guerra più spesso; d'estate si marcia più svelti e si combatte; in autunno il grano costa poco, ed è il momento di fare scorta (un avviso ti dice quando l'inverno è vicino). D'inverno si mangia di più, si cammina piano, soprattutto nella neve, i passi del nord e dei monti si chiudono fino a primavera e i laghi del nord gelano: li attraversi a piedi, ma le navi restano ferme. Per svernare riposa in una città: paghi un giorno di soldo, i feriti guariscono più in fretta e il morale tiene; accampati all'aperto, invece, la truppa si scoraggia ogni giorno. In battaglia la neve rallenta i cavalli e il caldo di mezzogiorno stanca di più. La difficoltà «stagioni» (miti, normali, rigide) decide quanto pesano questi cambiamenti.
+
 ## Fatto quando
 
 Prove verdi e le «Regole per il giocatore» scritte in questo file («Le stagioni»).
