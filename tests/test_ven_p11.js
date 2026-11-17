@@ -70,22 +70,35 @@ const ids = (s, id) => C.settori(s, 'a').map(z => z.id).includes(id);
   assert.strictEqual(C.settori(nuovo(), 'a').find(z => z.id === 'cx').y0, 140 - 30);
   assert.strictEqual(JSON.stringify(['fsx', 'fdx', 'retro'].filter(i => ids(nuovo(), i))), JSON.stringify(['fsx', 'fdx', 'retro']));
   // altura nella propria metà, bosco nel terzo centrale solo con l'imboscata
-  const z = [{ k: 'altura', x: 20, y: 100, rx: 10, ry: 8, h: 1 }, { k: 'altura', x: 20, y: 30, rx: 10, ry: 8, h: 1 }, { k: 'bosco', x: 50, y: 100, rx: 8, ry: 6 }];
+  const z = [{ k: 'altura', x: 20, y: 100, rx: 10, ry: 8, h: 1 }, { k: 'altura', x: 20, y: 30, rx: 10, ry: 8, h: 1 }, { k: 'bosco', x: 20, y: 70, rx: 8, ry: 6 }, { k: 'bosco', x: 50, y: 110, rx: 8, ry: 6 }];
   const q = nuovo({ zone: z }); assert(ids(q, 'alt')); assert(!ids(q, 'alt2')); assert(!ids(q, 'imb'));
   const m = nuovo({ zone: z, imboscata: 'a' }); assert(ids(m, 'imb')); assert(!C.settori(m, 'b').some(x => x.id === 'imb'));
+  // il bosco conta nel terzo centrale in profondità (y), non in larghezza; la scatola non si taglia alla metà del campo
+  const im = C.settori(m, 'a').filter(x => x.k === 'imb'); assert.strictEqual(im.length, 1); assert.strictEqual(im[0].y0, 64); assert.strictEqual(im[0].y1, 76);
+  assert(!C.settori(nuovo({ zone: [{ k: 'bosco', x: 50, y: 100, rx: 8, ry: 6 }], imboscata: 'a' }), 'a').some(x => x.id === 'imb'), 'bosco fuori dal terzo centrale');
   // assedio: il difensore ha mura e cortile, l'attaccante solo il centro e l'ingresso dal retro
   const as = C.nuovo(scheda({ tipo: 'assedio', W: undefined, H: undefined, max: undefined }), { autoA: true });
   assert.strictEqual(JSON.stringify(C.settori(as, 'b').map(x => x.id)), JSON.stringify(['mura', 'cortile', 'retro']));
   assert.strictEqual(JSON.stringify(C.settori(as, 'a').map(x => x.id)), JSON.stringify(['cx', 'retro']));
+  // …anche con l'esplorazione migliore, un'altura e il bosco dell'imboscata: l'attaccante ha solo cx e retro
+  const as2 = C.nuovo(scheda({ tipo: 'assedio', W: undefined, H: undefined, max: undefined, esplora: { a: 2, b: 0 }, imboscata: 'a', zone: [{ k: 'altura', x: 20, y: as.H - 20, rx: 10, ry: 8, h: 1 }, { k: 'bosco', x: 50, y: as.H / 2, rx: 8, ry: 6 }] }), { autoA: true });
+  assert.strictEqual(JSON.stringify(C.settori(as2, 'a').map(x => x.id)), JSON.stringify(['cx', 'retro']));
+  assert.strictEqual(C.schiera(as2, { l: 'a', r: 0, x: as2.W / 2, y: as2.H - 40 }).err, 'Lì non puoi schierarti');
+  assert(!C.settori(as2, 'b').some(x => x.id === 'avan'));
   assert.strictEqual(JSON.stringify(C.settori(C.nuovo(scheda({ tipo: 'arena' })), 'a')), JSON.stringify([]));
 }
 
 // chi si schiera per primo: l'esplorazione minore (a parità, il lato a)
 {
   assert.strictEqual(nuovo({ esplora: { a: 1, b: 2 } }).primo, 'a'); assert.strictEqual(nuovo({ esplora: { a: 2, b: 1 } }).primo, 'b');
-  assert.strictEqual(nuovo({ esplora: { a: 1, b: 1 } }).primo, 'a'); assert.strictEqual(nuovo().primo, undefined);
+  assert.strictEqual(nuovo({ esplora: { a: 1, b: 1 } }).primo, 'a'); assert.strictEqual(nuovo().primo, 'a', 'esplora assente = 0: parità, primo il lato a'); assert.strictEqual(JSON.stringify(nuovo().pronto), '{"a":false,"b":false}');
+  assert.strictEqual(C.nuovo(scheda({ reparti: false, ondate: false }), {}).primo, undefined);
   const s = nuovo({ esplora: { a: 1, b: 2 } }); assert(!C.pronto(s, 'a').err); assert.strictEqual(s.pronto.a, true); assert.strictEqual(s.pronto.b, false);
   C.passo(s, 1); assert.strictEqual(C.pronto(s, 'b').err, 'La battaglia è già cominciata');
+  // dopo «Pronto» non si cambia più niente (schiera, dividi, unisci, ondate, formazione), ma l'altro lato sì
+  const p = nuovo(); assert(!C.dividi(p, { l: 'a', r: 0 }).err); C.pronto(p, 'a');
+  for (const m of [C.schiera(p, { l: 'a', r: 0, x: 50, y: 120 }), C.dividi(p, { l: 'a', r: 0 }), C.unisci(p, { l: 'a', r: 0, r2: 3 }), C.preparaOndata(p, { l: 'a', id: 1, tr: [{ t: 'val_f2', n: 2 }], ing: 'fsx' }), C.ordina(p, { l: 'a', r: 0, t: 'forma', f: 'cuneo' })]) assert.strictEqual(m.err, 'Hai già premuto Pronto');
+  assert(!C.dividi(p, { l: 'b', r: 0 }).err, 'chi non ha premuto può ancora schierare');
 }
 
 // ondate: a linea, entrano dal bordo sinistro nel primo istante in cui la linea scende sotto il 50% e non prima
@@ -137,6 +150,35 @@ const ids = (s, id) => C.settori(s, 'a').map(z => z.id).includes(id);
   assert(s.u.some(u => u.l === 'a' && u.r > 2 && u.x > 80), 'dal bordo destro');
   // il campo non si riempie oltre il tetto
   assert(C.vivi(s, 'a').length <= s.max);
+}
+
+// le doti delle truppe (`st`) restano nell'ondata, nel ritorno in riserva e quando entrano; i tetti dei reparti valgono anche per le ondate
+{
+  const dote = { nome: 'Prode', pf: 99, att: 30, dif: 20, dan: 20, git: 0, vel: 12 };
+  const sc = { a: T(0, { val_f2: 30, val_t2: 8 }).concat([{ p: 1, t: 'val_f1', n: 6, st: dote }]), b: T(5, { fer_f1: 4 }), max: 12, W: 100, H: 140 };
+  const s = nuovo(sc); assert(C.riserva(s, 'a') >= 6);
+  const rs = s.ris.a.filter(x => x.st), nr = rs.reduce((a, x) => a + x.n, 0); assert(nr >= 3, 'in riserva ci sono i prodi');
+  { const e = C.preparaOndata(s, { l: 'a', id: 'p', tr: [{ t: 'val_f1', n: nr }], ing: 'retro', quando: { k: 'comando' } }).err; assert(!e, e) }
+  assert(s.ond.a[0].tr.every(x => x.st && x.st.pf === 99), 'le righe dell ondata portano le doti');
+  assert(!C.preparaOndata(s, { l: 'a', id: 'p', tr: [{ t: 'val_f1', n: 2 }], ing: 'retro', quando: { k: 'comando' } }).err);
+  assert(s.ris.a.some(x => x.st && x.st.pf === 99), 'rifatta, la parte tornata in riserva ha ancora le doti');
+  s.max = 60; const id0 = s.uid; C.ondata(s, { l: 'a', id: 'p' }); C.passo(s, 3);
+  const nuovi = s.u.filter(u => u.l === 'a' && u.id >= id0 && u.t === 'val_f1');
+  assert(nuovi.length > 0 && nuovi.every(u => u.nome === 'Prode' && u.pf === 99 && u.att === 30), 'entrati con le doti');
+  // dal campo non si toglie chi ha doti proprie
+  const s3 = nuovo({ a: T(0, { val_f2: 10 }).concat([{ p: 1, t: 'val_f1', n: 10, st: dote }]), max: 60 }); assert.strictEqual(C.riserva(s3, 'a'), 0);
+  assert.strictEqual(C.preparaOndata(s3, { l: 'a', id: 1, tr: [{ t: 'val_f1', n: 3 }], ing: 'retro' }).err, 'Non ci sono più truppe da assegnare');
+}
+{
+  // sei reparti in campo: l'ondata si unisce al reparto base del tipo e non ne crea di nuovi
+  const s = nuovo({ a: T(0, { val_f2: 40, val_t2: 20, val_c3: 12 }), max: 100 });
+  for (const r of [0, 0, 1, 1, 2]) { const e = C.dividi(s, { l: 'a', r }); if (e.err) break }
+  while (C.reparti(s, 'a').filter(x => x.n > 0).length < 6) { const e = C.dividi(s, { l: 'a', r: 0 }); if (e.err) break }
+  const n0 = C.reparti(s, 'a').filter(x => x.n > 0).length; assert.strictEqual(n0, 6, 'sei reparti schierati');
+  assert.strictEqual(C.dividi(s, { l: 'a', r: 1 }).err, 'Troppi reparti');
+  s.ris.a.push({ p: 0, t: 'val_f2', n: 6 }); s.ris.a.push({ p: 0, t: 'val_c3', n: 4 }); s.ris.a.push({ p: 0, t: 'val_t2', n: 4 });
+  for (const [i, t] of ['val_f2', 'val_c3', 'val_t2'].entries()) assert(!C.preparaOndata(s, i < 2 ? { l: 'a', id: i, tr: [{ t, n: 4 }], ing: i ? 'fdx' : 'fsx', quando: { k: 'tempo', v: 1 } } : { l: 'a', id: i, tr: [{ t, n: 1 }], ing: 'retro' }).err || i === 2);
+  for (let i = 0; i < 30 && !s.fine; i++) { C.passo(s, 10); assert(C.reparti(s, 'a').filter(x => x.n > 0).length <= 6, 'mai più di sei reparti: ' + C.reparti(s, 'a').filter(x => x.n > 0).length) }
 }
 
 // pali: i cavalli rallentano, e nessuna carica parte da dentro

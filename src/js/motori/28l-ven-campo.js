@@ -53,7 +53,7 @@ const VCAM=(()=>{
   if(t===1&&s.bioma!==1&&!Z.some(q=>q.k==='altura')&&r()<1/6)metti({k:'acqua',x:30,y:50,rx:45,ry:3});
   return Z}
  function unita(s,l,riga,x,y){const T=D.TR[riga.t],u={id:s.uid++,l,p:riga.p,t:riga.t,c:T.c,x,y,px:x,py:y,pf:T.pf,pfm:T.pf,att:T.att,dif:T.dif,dan:T.dan,git:s.meteo==='nebbia'?Math.round(T.git*.7):T.git,vel:T.vel,cd:Math.floor(s.r()*10),b:-1,st:'vivo',
-   fx:0,fy:l==='a'?-1:1,ca:0,liv:T.t,col:0,buff:0,sal:0,scI:-1,r:GR.indexOf(T.c)};if(riga.st){Object.assign(u,riga.st);u.pfm=u.pf}
+   fx:0,fy:l==='a'?-1:1,ca:0,liv:T.t,col:0,buff:0,sal:0,scI:-1,r:GR.indexOf(T.c)};if(riga.st){Object.assign(u,riga.st);u.pfm=u.pf;u.sp=1}
    const M=s.mod&&s.mod[l]&&s.mod[l][u.c];if(M){for(const k of['vel','att','dif'])if(M[k]!=null)u[k]*=M[k];if(M.git!=null)u.git=Math.round(u.git*M.git)}
    s.u.push(u);return u}
  // posti di una schiera attorno a un'ancora: righe larghe, i più forti davanti
@@ -84,7 +84,7 @@ const VCAM=(()=>{
   s.mor={a:scheda.morale==null?55:scheda.morale,b:55};
   // grandi battaglie (tutto facoltativo): reparti da dividere, ondate permesse, esplorazione, imboscata, colonna ferma
   if(scheda.reparti)s.rep=true;if(scheda.ondate){s.ondOk=true;s.ond={a:[],b:[]}}
-  if(scheda.esplora){s.esp={a:+scheda.esplora.a||0,b:+scheda.esplora.b||0};s.primo=s.esp.b<s.esp.a?'b':'a';s.pronto={a:false,b:false}}
+  if(scheda.esplora||scheda.reparti||scheda.ondate){const ex=scheda.esplora||{};s.esp={a:+ex.a||0,b:+ex.b||0};s.primo=s.esp.b<s.esp.a?'b':'a';s.pronto={a:false,b:false}}   // esplorazione assente = 0: parità, si schiera per primo il lato a
   if(scheda.imboscata==='a'||scheda.imboscata==='b')s.imb=scheda.imboscata;
   if(scheda.colonna){const lc=scheda.colonna==='a'||scheda.colonna==='b'?scheda.colonna:s.imb?(s.imb==='a'?'b':'a'):null;if(lc){s.fermo={};s.fermo[lc]=C.REP.FERMO;for(const g of GR)s.ord[lc][g].fm='larga'}}
   if(s.fazb==='pre'){for(const g of GR)s.ord.b[g].t='carica'}
@@ -116,6 +116,7 @@ const VCAM=(()=>{
   for(const k of ks){const q=s.ord[l][k],g=repC(q,k);if(g==='t'&&o.f==='cuneo')continue;if(s.t<(q.fmT||0)){attesa++;continue}
    let n=o.f;if(n==null){const cur=q.fm||'larga';n=cur==='larga'?'serrata':cur==='serrata'?'cuneo':'larga';if(g==='t'&&n==='cuneo')n='larga'}fatti.push([q,n,k])}
   if(!fatti.length)return{err:'Il gruppo si sta ancora schierando'};
+  if(s.rep&&s.t===0&&s.pronto&&s.pronto[l])return{err:'Hai già premuto Pronto'};
   const subito=!!s.rep&&s.t===0;
   for(const[q,n,k]of fatti){q.fm=n;if(subito){q.fmT=0;rimetti(s,l,k)}else q.fmT=s.t+C.FM.ATTESA}
   const e={t:'ordine',l,g:o.g||'tutti',o:'forma',f:solo?fatti[0][1]:(o.f||null)};if(o.r!=null)e.r=o.r;s.ev.push(e);return{s}}
@@ -275,7 +276,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   separa(vv);// non ci si sovrappone
   if(s.tipo==='arena')for(const u of vv){const dx=u.x-s.W/2,dy=u.y-s.H/2,d=rad(dx*dx+dy*dy);if(d>C.ARENA){u.x=s.W/2+dx/d*C.ARENA;u.y=s.H/2+dy/d*C.ARENA}}
   if(s.muro)for(const u of vv){const m=s.muro;if(Math.abs(u.y-m)<.5&&!s.varchi.some(g=>u.x>g[0]&&u.x<g[1]))u.y=u.py<m?m-.5:m+.5;u.x=stretto(u.x,.5,s.W-.5);u.y=stretto(u.y,.5,s.H-.5)}
-  if(s.ond)VCAM.ondate(s);
+  if(s.ond&&VCAM.ondate)VCAM.ondate(s);   // `ondate` sta in 28m: senza quel file le ondate non entrano
   // rinforzi, rotta, fine
   if(s.t%10===0){for(const l of['a','b']){const n=vivi(s,l).length,ris=riserva(s,l);
     const mx=s.max||C.MAX;if(ris>0&&n<mx*.62){let k=Math.min(Math.max(C.ONDATA,Math.round(mx/4)),ris,mx-n),q=0;const y=l==='a'?s.H-2:2;while(k>0&&s.ris[l].length){const x=s.ris[l][0];unita(s,l,x,8+s.r()*(s.W-16),y+(l==='a'?-1:1)*s.r()*3);x.n--;if(x.n<=0)s.ris[l].shift();k--;q++}if(q)s.ev.push({t:'rinforzi',l,n:q})}
