@@ -1,3 +1,83 @@
+/* ---- Grandi battaglie, schieramento (passo 11): reparti, settori, ondate. Estende `VCAM` (28l) con le sue parti interne in `VCAM.int`. ----
+   Sta qui perché 28l ha già il tetto dei 35 KB. Motore puro: nessun Math.random, nessun Date.now. */
+(()=>{
+ const {GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda}=VCAM.int;
+ // ---------- reparti, settori, ondate (grandi battaglie; tutto facoltativo) ----------
+ // i settori di un lato, dal terreno e dalla scheda (mai salvati): [{id,x0,x1,y0,y1,k}], k = base | avan | alt | imb | mura | cortile | ingresso
+ function settori(s,l){if(s.tipo==='arena')return[];const W=s.W,H=s.H,a=l==='a',es=s.esp||{a:0,b:0},mio=es[l]||0,altro=es[a?'b':'a']||0,pr=mio>=3?C.REP.SETT_E:C.REP.SETT,out=[],y0=a?H-pr:0,y1=a?H:pr,B=C.REP.BORDO;
+  if(s.muro){if(l==='b')out.push({id:'mura',x0:0,x1:W,y0:s.muro-4,y1:s.muro,k:'mura'},{id:'cortile',x0:0,x1:W,y0:0,y1:s.muro-4,k:'cortile'});else out.push({id:'cx',x0:W/3,x1:2*W/3,y0,y1,k:'base'})}
+  else GR.forEach((_,i)=>out.push({id:['sx','cx','dx'][i],x0:i*W/3,x1:(i+1)*W/3,y0,y1,k:'base'}));
+  if(mio>altro&&!(s.muro&&l==='b'))out.push({id:'avan',x0:0,x1:W,y0:a?y0-C.REP.AVAN:y1,y1:a?y0:y1+C.REP.AVAN,k:'avan'});
+  const scatola=(z,id,k)=>out.push({id,x0:Math.max(0,z.x-z.rx),x1:Math.min(W,z.x+z.rx),y0:a?Math.max(H/2,z.y-z.ry):Math.max(0,z.y-z.ry),y1:a?Math.min(H,z.y+z.ry):Math.min(H/2,z.y+z.ry),k});
+  let na=0,ni=0;for(const z of ZONE(s)){if(z.k==='altura'&&(a?z.y>=H/2:z.y<=H/2))scatola(z,na++?'alt'+na:'alt','alt');else if(z.k==='bosco'&&s.imb===l&&z.x>=W/3&&z.x<=2*W/3)scatola(z,ni++?'imb'+(ni):'imb','imb')}
+  if(!s.muro)out.push({id:'fsx',x0:0,x1:B,y0:H/3,y1:2*H/3,k:'ingresso'},{id:'fdx',x0:W-B,x1:W,y0:H/3,y1:2*H/3,k:'ingresso'});
+  out.push({id:'retro',x0:0,x1:W,y0:a?H-B:0,y1:a?H:B,k:'ingresso'});return out}
+ const attivi=(s,l,k)=>s.u.filter(u=>u.l===l&&!u.cap&&u.st==='vivo'&&(k==null||chiave(u)===k));
+ const nReparti=(s,l)=>{const K={};for(const u of attivi(s,l))K[chiave(u)]=1;return Object.keys(K).length};
+ const prima=s=>s.fine?'La battaglia è finita':s.t>0?'La battaglia è già cominciata':null;
+ // il primo numero di reparto libero tra 3 e 7 (-1 se non c'è)
+ function liberoR(s,l){for(let r=3;r<8;r++)if(!s.ord[l][r])return r;return-1}
+ // toglie gli ordini dei reparti nuovi rimasti senza uomini (solo a battaglia non cominciata)
+ function pulisci(s,l){for(const k of chiavi(s.ord[l]))if(k>2&&!attivi(s,l,k).length)delete s.ord[l][k]}
+ // reparti per la vista: [{r,c,n,fm,mor}] (mor = il morale del lato, finché non c'è quello del reparto)
+ function reparti(s,l){l=l||'a';return chiavi(s.ord[l]).map(k=>{const q=s.ord[l][k];return{r:k>2?k:GR.indexOf(k),c:repC(q,k),n:attivi(s,l,k).length,fm:q.fm||'larga',mor:s.mor[l]}}).filter(x=>x.n>0||x.r<3)}
+ // schiera un reparto: solo prima del «Via» e dentro un settore valido
+ function schiera(s,o){const e=prima(s);if(e)return{err:e};const l=o.l||'a',k=keyR(o.r),q=s.ord[l]&&s.ord[l][k];if(!q)return{err:'Reparto sconosciuto'};
+  if(!settori(s,l).some(z=>z.k!=='ingresso'&&o.x>=z.x0&&o.x<=z.x1&&o.y>=z.y0&&o.y<=z.y1))return{err:'Lì non puoi schierarti'};
+  q.x=o.x;q.y=o.y;rimetti(s,l,k);s.ev.push({t:'schiera',l,r:o.r,x:o.x,y:o.y});return{s}}
+ // divide un reparto a metà (uno sì e uno no, così restano pari); il nuovo si mette accanto
+ function dividi(s,o){const e=prima(s);if(e)return{err:e};if(!s.rep)return{err:'I reparti non sono permessi'};const l=o.l||'a',k=keyR(o.r),q=s.ord[l]&&s.ord[l][k];if(!q)return{err:'Reparto sconosciuto'};
+  const L=attivi(s,l,k);if(L.length<2*C.REP.MIN)return{err:'Reparto troppo piccolo'};
+  const nr=liberoR(s,l);if(nReparti(s,l)>=C.REP.MAX||nr<0)return{err:'Troppi reparti'};
+  const g=repC(q,k),N=Object.assign({},q,{c:g,fmT:0}),w=Math.max(3,Math.ceil(rad(L.length*2.6))*passoFm(q.fm,g)/4),x=q.x;
+  q.x=stretto(x-w,2,s.W-2);N.x=stretto(x+w,2,s.W-2);s.ord[l][nr]=N;L.forEach((u,i)=>{if(i%2)u.r=nr});rimetti(s,l,k);rimetti(s,l,nr);
+  s.ev.push({t:'dividi',l,r:o.r,r2:nr});return{s}}
+ // unisce due reparti dello stesso tipo: il secondo entra nel primo
+ function unisci(s,o){const e=prima(s);if(e)return{err:e};if(!s.rep)return{err:'I reparti non sono permessi'};const l=o.l||'a',k=keyR(o.r),k2=keyR(o.r2),q=s.ord[l]&&s.ord[l][k],q2=s.ord[l]&&s.ord[l][k2];
+  if(!q||!q2||k===k2)return{err:'Reparto sconosciuto'};if(repC(q,k)!==repC(q2,k2))return{err:'Reparti di tipo diverso'};
+  for(const u of attivi(s,l,k2))u.r=o.r;if(k2>2)delete s.ord[l][k2];rimetti(s,l,k);s.ev.push({t:'unisci',l,r:o.r,r2:o.r2});return{s}}
+ // gli uomini sono ancora in fila e a posto: dopo aver tolto qualcuno dal campo gli id si rinumerano (restano in U[id-1])
+ function rinumera(s){const m={};s.u.forEach((u,i)=>{m[u.id]=i+1;u.id=i+1});s.uid=s.u.length+1;s.capi=s.capi.map(id=>m[id]);if(s.cap>0)s.cap=m[s.cap]}
+ // preleva le truppe per un'ondata: prima dalla riserva, poi dal campo (gli ultimi arrivati, mai chi ha doti sue); {err} o la lista delle righe
+ function preleva(s,l,tr){const need={},out=[];for(const x of tr){if(!x||!D.TR[x.t]||!(x.n>0))return{err:'Truppa sconosciuta'};need[x.t]=(need[x.t]||0)+Math.floor(x.n)}
+  const campo=t=>s.u.filter(u=>u.l===l&&u.t===t&&!u.cap&&u.st==='vivo'&&!u.sp);
+  for(const q of Object.keys(need))if(s.ris[l].reduce((a,x)=>a+(x.t===q?x.n:0),0)+campo(q).length<need[q])return{err:'Non ci sono più truppe da assegnare'};
+  let tolti=false;
+  for(const q of Object.keys(need)){let k=need[q];for(const x of s.ris[l])if(x.t===q&&k>0){const m=Math.min(k,x.n);x.n-=m;k-=m;out.push({p:x.p,t:q,n:m})}
+   s.ris[l]=s.ris[l].filter(x=>x.n>0);
+   if(k>0){const C2=campo(q).slice(-k);for(const u of C2){out.push({p:u.p,t:q,n:1});s.u.splice(s.u.indexOf(u),1);tolti=true}}}
+  if(tolti){rinumera(s);pulisci(s,l)}return{righe:out}}
+ // prepara (o rifà) un'ondata: solo prima del «Via», al massimo due per lato
+ function preparaOndata(s,o){const e=prima(s);if(e)return{err:e};if(!s.ondOk)return{err:'Le ondate non sono permesse'};const l=o.l||'a',W=s.ond[l];
+  if(['retro','fsx','fdx'].indexOf(o.ing)<0||(o.ing!=='retro'&&s.muro))return{err:'Da lì non si entra'};
+  const qd=o.quando||{k:'comando'};if(['comando','linea','tempo'].indexOf(qd.k)<0)return{err:'Momento sconosciuto'};
+  const od=o.ord==='tieni'||(o.ord==='segui'&&l==='a')?o.ord:'carica',vecchia=W.findIndex(w=>w.id===o.id);
+  if(vecchia<0&&W.length>=C.REP.ONDE)return{err:'Troppe ondate'};if(vecchia>=0&&W[vecchia].fatta)return{err:'Ondata già partita'};
+  if(vecchia>=0){for(const x of W[vecchia].tr)s.ris[l].push({p:x.p,t:x.t,n:x.n});W.splice(vecchia,1)}
+  const r=preleva(s,l,o.tr||[]);if(r.err)return r;
+  const w={id:o.id,tr:r.righe,ing:o.ing,quando:{k:qd.k,v:qd.v==null?0:qd.v},ord:od,fatta:false};
+  W.push(w);s.ev.push({t:'prepara',l,id:o.id});return{s}}
+ // lascia partire un'ondata al comando
+ function ondata(s,o){if(s.fine)return{err:'La battaglia è finita'};const l=o.l||'a',w=s.ond&&s.ond[l]&&s.ond[l].find(x=>x.id===o.id);if(!w)return{err:'Ondata sconosciuta'};if(w.fatta)return{err:'Ondata già partita'};
+  w.fatta=true;s.ev.push({t:'ondata',l,id:w.id,ing:w.ing});return{s}}
+ // «Pronto»: chi si schiera per ultimo (l'altro lato, a parità il lato a è primo) vede lo schieramento del primo; l'IA del lato b lo rifà dal passo 21 in poi
+ function pronto(s,l){const e=prima(s);if(e)return{err:e};l=l||'a';if(!s.pronto)s.pronto={a:false,b:false};s.pronto[l]=true;s.ev.push({t:'pronto',l});
+  if(l==='a'&&s.esp&&s.primo==='a'&&typeof VCONS!=='undefined'&&VCONS&&VCONS.schiera)VCONS.schiera(s,'b');return{s}}
+ // dove entra l'unità numero j di un'ondata, e l'ancora del suo reparto
+ function ingresso(s,w,l,j){const W=s.W,H=s.H,a=l==='a',f=((j*61)%100)/100;
+  if(w.ing==='fsx')return{x:2,y:H/3+f*H/3,ax:12,ay:H/2};if(w.ing==='fdx')return{x:W-2,y:H/3+f*H/3,ax:W-12,ay:H/2};
+  return{x:8+f*(W-16),y:a?H-2:2,ax:W/2,ay:a?H-10:10}}
+ function ondate(s){if(!s.ond)return;if(!s.in0)s.in0={a:attivi(s,'a').length,b:attivi(s,'b').length};
+  for(const l of['a','b']){for(const w of s.ond[l]){
+   if(!w.fatta){const q=w.quando,ora=q.k==='tempo'?s.t>=q.v:q.k==='linea'?attivi(s,l).length*100<q.v*s.in0[l]:false;if(!ora)continue;w.fatta=true;s.ev.push({t:'ondata',l,id:w.id,ing:w.ing})}
+   const resto=w.tr.reduce((a,x)=>a+x.n,0);if(!resto)continue;const mx=s.max||C.MAX;let k=Math.min(C.ONDATA,resto,mx-vivi(s,l).length);if(k<=0)continue;
+   if(!w.rp){w.rp={};w.dent=0}
+   while(k>0&&w.tr.length){const x=w.tr[0],g=D.TR[x.t].c,p=ingresso(s,w,l,w.dent++);
+    if(w.rp[g]==null){const r=liberoR(s,l);if(r<0)w.rp[g]=GR.indexOf(g);else{const q={c:g,t:w.ord,x:p.ax,y:p.ay,fm:g==='f'?'serrata':'larga',fmT:0};if(w.ord==='segui'){const cp=capU(s);q.seg=cp?cp.seat:null}s.ord[l][r]=q;w.rp[g]=r}}
+    const u=unita(s,l,{p:x.p,t:x.t},p.x,p.y);u.r=w.rp[g];if(w.ing!=='retro'){u.fx=w.ing==='fsx'?1:-1;u.fy=0}
+    x.n--;if(x.n<=0)w.tr.shift();k--}}}}
+ Object.assign(VCAM,{settori,schiera,dividi,unisci,preparaOndata,ondata,pronto,reparti,ondate});
+})();
 /* ---- Compagnia di ventura in compagnia (piano C2): la stanza. Motore puro, senza DOM né rete. ----
    Più capitani, una sola compagnia: lo stato della stanza `G` porta il mondo (`w`, di VEN) e, quando si combatte, la battaglia
    (`b.c`, di VCAM). È un gioco «simultaneo» (`sim`): ogni mossa porta il posto (`seat`) e si rigioca sullo stato nuovo.
@@ -46,6 +126,9 @@ const VST=(()=>{
    else if(a.t==='b-pausa')s.b.pausa=!!a.v;
    else if(a.t==='b-ord')r=VCAM.ordina(c,Object.assign({},a.o,{seat:a.seat,l:'a'}));
    else if(a.t==='b-cap')r=VCAM.capitano(c,Object.assign({},a.o,{seat:a.seat}));
+   else if(a.t==='b-schiera'||a.t==='b-dividi'||a.t==='b-unisci'||a.t==='b-prepara'||a.t==='b-ondata'||a.t==='b-pronto'){// grandi battaglie: schieramento prima del «Via», come gli altri ordini (chiunque schiera qualunque reparto)
+    const o=Object.assign({},a.o,{l:'a',seat:a.seat});
+    r=a.t==='b-schiera'?VCAM.schiera(c,o):a.t==='b-dividi'?VCAM.dividi(c,o):a.t==='b-unisci'?VCAM.unisci(c,o):a.t==='b-prepara'?VCAM.preparaOndata(c,o):a.t==='b-ondata'?VCAM.ondata(c,o):VCAM.pronto(c,'a')}
    else if(a.t==='b-fine'){if(!c.fine)return{err:'La battaglia non è finita'};r=VEN.esito(w,VCAM.riepilogo(c));if(!r.err){s.b=null;s.nb++}}
    else return{err:'Mossa sconosciuta'};
    if(r&&r.err)return{err:r.err}}
