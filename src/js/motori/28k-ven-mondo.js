@@ -18,17 +18,19 @@ const VEN=(()=>{
  // ---------- ganci ----------
  // Gli ascoltatori si chiamano nell'ordine di registrazione (cioè del manifest). `ganci` li chiama TUTTI e ignora ciò che restituiscono
  // (giorno, ora, vedi, nuovo, luogo, fatto, premio, battaglia, effetto, scontro, incontro, anteprima).
- // `chiedi` è per i ganci che rispondono (scheda, esito, scelta, azione): ritorna il primo risultato che non è `undefined` né `null` e allora si ferma.
+ // `chiedi` è per i ganci che rispondono (scheda, esito, scelta, azione): ritorna il primo risultato che non è `undefined` né `null` e allora si ferma; per `scheda` conta solo un oggetto (un `sc.x=1` restituito non ferma gli altri).
  const GANCI={};
  function aggancia(nome,fn){(GANCI[nome]=GANCI[nome]||[]).push(fn)}
  function ganci(nome,...arg){const a=GANCI[nome];if(a)for(const fn of a.slice())fn(...arg)}
- function chiedi(nome,...arg){const a=GANCI[nome];if(!a)return undefined;for(const fn of a.slice()){const r=fn(...arg);if(r!=null)return r}return undefined}
+ function chiedi(nome,...arg){const a=GANCI[nome];if(!a)return undefined;for(const fn of a.slice()){const r=fn(...arg);if(r!=null&&(nome!=='scheda'||typeof r==='object'))return r}return undefined}
  // ---------- regni: il solo punto da cui si leggono D.FAZ e D.REGNI ----------
  // `regni(s)`: gli id dei regni (non 'tu'); `rg(s,f)`: la scheda di un regno o di una fazione {id,nome,breve,col,col2,re,motto,cult}, `s` può mancare; `cult(s,f)`: la cultura delle sue truppe.
+ // Per un id che non è in D.FAZ né in `VEN.regni(s)` la scheda è quella di 'neu' con `ignota:true`: chi ha un suo ripiego (la vista del campo) lo riconosce da lì.
  const regni=s=>D.REGNI;
  const cult=(s,f)=>f;
  function rg(s,f){if(f==='tu'&&s&&s.corona){const t=D.REGNO.STENDARDI[s.corona.stend]||D.REGNO.STENDARDI[0];return{id:'tu',nome:s.corona.nome,breve:s.corona.nome,col:t.col,col2:t.col2,re:undefined,motto:undefined,cult:VEN.cult(s,f)}}
-  const x=D.FAZ[f]||D.FAZ.neu;return{id:f,nome:x.nome,breve:x.breve,col:x.col,col2:x.col2,re:x.re,motto:x.motto,cult:VEN.cult(s,f)}}
+  const x=D.FAZ[f]||D.FAZ.neu,r={id:f,nome:x.nome,breve:x.breve,col:x.col,col2:x.col2,re:x.re,motto:x.motto,cult:VEN.cult(s,f)};
+  if(!D.FAZ[f]&&!(s&&VEN.regni(s).includes(f)))r.ignota=true;return r}
  // ---------- punti d'estensione: i moltiplicatori valgono 1 finché nessuno li cambia ----------
  // k: viveri {p} · marcia {p,i} (0 = cella non percorribile) · prezzo {lid,m,compra} · paga · rendita {lid} · reclute {lid} · guerra {a,b} · forza {p} · vista
  const molt=(s,k,ctx)=>1;

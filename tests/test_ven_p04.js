@@ -53,8 +53,10 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   s.incontro = { tipo: 'nemico', pid: [pre.id], all: [], da: 'loro' };
   const base = V.campo(s);
   assert(base && base.a.length && base.b.length && base.prova === undefined);
+  V.aggancia('scheda', (st, sc) => sc.uno = 1);
   V.aggancia('scheda', (st, sc) => { sc.prova = 7; });
   assert.strictEqual(V.campo(s).prova, 7, 'il campo aggiunto è nella scheda');
+  assert.strictEqual(V.campo(s).uno, 1, 'un valore che non è un oggetto non ferma gli ascoltatori dopo');
   assert.strictEqual(V.campo(s).b.length, base.b.length, 'il resto della scheda non cambia');
   V.aggancia('scheda', () => ({ duello: true }));
   eq(V.campo(s), { duello: true }, 'un oggetto restituito sostituisce la scheda');
@@ -91,6 +93,10 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   eq(V.regni(s), ['val', 'sel', 'fer', 'mar', 'alt']); eq(V.regni(null), V.regni(s));
   eq(V.rg(s, 'val'), { id: 'val', nome: 'Regno di Valdoro', breve: 'Valdoro', col: D.FAZ.val.col, col2: D.FAZ.val.col2, re: 're Aldemaro', motto: D.FAZ.val.motto, cult: 'val' });
   for (const f of V.regni(s)) assert.strictEqual(V.cult(s, f), f);
+  // un id sconosciuto ha la scheda di 'neu' con `ignota` (la vista ci mette il suo ripiego); uno noto non ha `ignota`
+  assert.strictEqual(V.rg(s, 'xyz').ignota, true); assert.strictEqual(V.rg(s, 'xyz').col, D.FAZ.neu.col);
+  for (const f of ['tu', 'neu', 'pre', 'fer']) assert.strictEqual(V.rg(s, f).ignota, undefined, f);
+  { const pr = V.regni; V.regni = st => pr(st).concat(['nuo']); assert.strictEqual(V.rg(s, 'nuo').ignota, undefined, 'un regno nuovo di VEN.regni non è ignoto'); V.regni = pr; }
   assert.strictEqual(V.nomeF(s, 'sel'), 'Selvamara'); assert.strictEqual(V.nomeF(s, 'sel', true), 'Lega di Selvamara'); eq(V.colFaz(s, 'fer'), { col: D.FAZ.fer.col, col2: D.FAZ.fer.col2 });
   eq(V.fazioni(s), V.regni(s));
   // con la corona 'tu' è un regno tra gli altri
