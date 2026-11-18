@@ -67,6 +67,12 @@ Partire da un mosaico di piccoli stati, che poi si accorperanno (passo 27). La m
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
 
+- Nella nuova campagna la terra è divisa in tanti piccoli stati: signorie, marche, comuni, principati e libere città. Ognuno ha una sola città, il suo capoluogo, e prende il nome da lei.
+- Ogni stato appartiene a uno dei cinque popoli del mondo: ne arma le truppe, ne vende le merci e ne porta i colori, in una tinta tutta sua.
+- Castelli e villaggi seguono lo stato più vicino a strada: il confine passa dove è più faticoso marciare, tra monti, fiumi e mari.
+- Ogni stato ha il suo signore e pochi vassalli; i signori dello stesso popolo sono sparsi tra gli stati fratelli.
+- All'inizio nessuno ti conosce, e due coppie di vicini sono già in guerra tra loro.
+
 ## Fuori scopo
 
 L'unificazione (passo 27); disegno dei confini sulla mappa.
