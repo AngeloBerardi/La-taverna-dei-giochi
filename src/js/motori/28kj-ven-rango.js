@@ -7,10 +7,12 @@ Object.assign(VDAT,{RANGO:{BASE:{pre:0,capo:1,car:1,guar:1,mer:2,sig:2,mar:3,re:
 Object.assign(VEN,(()=>{const{D,abil,giorno}=VEN._,R=VDAT.RANGO,lim=r=>Math.max(0,Math.min(R.MAX,r));
  const attivo=()=>!!VDAT.ACCESO.consiglio;
  const sigDi=(s,p)=>p&&p.k==='sig'&&s.sig?s.sig[p.sig]:null;
+ // il re vale quanto il suo regno (solo nei mondi nuovi, si legge al momento da s.l): 2 con una città, 3 con due o tre, 4 da quattro in su; altrove resta 4
+ const reDi=(s,sg)=>{if(s.geo!==2||!s.rg)return R.BASE.re;let n=0;for(const l of s.l)if(l.tipo==='citta'&&l.faz===sg.faz)n++;return n>=4?4:n>=2?3:2};
  // base ed esperienza di una parte
  function baseDi(s,p){if(p.g&&p.tipo)return{b:R.BASE.guar,e:0};   // un luogo con la sua guarnigione
   if(p.k==='riv')return{b:Math.min(R.MAX,R.VOLPE+((s.volpe||{}).tappa|0)),e:0};
-  const sg=sigDi(s,p);if(sg)return{b:sg.mar?R.BASE.mar:sg.re?R.BASE.re:R.BASE.sig,e:sg.esp|0};
+  const sg=sigDi(s,p);if(sg)return{b:sg.mar?R.BASE.mar:sg.re?reDi(s,sg):R.BASE.sig,e:sg.esp|0};
   if(p.k==='mer')return{b:R.BASE.mer,e:0};if(p.k==='car')return{b:R.BASE.car,e:0};
   if(p.k==='pre'&&(p.tr||[]).some(e=>D.TR[e.t]&&D.TR[e.t].capo))return{b:R.BASE.capo,e:0};
   return{b:R.BASE.pre,e:0}}

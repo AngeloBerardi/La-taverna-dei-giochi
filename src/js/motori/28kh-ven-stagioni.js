@@ -71,6 +71,12 @@ Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MER
    case'reclute':return m*attenua(e.reclute,sc);
    case'guerra':return m*attenua(e.guerra,sc,0);
    default:return m}};
+ // ---------- leve di difficoltà (passo 27): valgono in tutti i mondi, perché il foglio «Nuova campagna» è già online ----------
+ // con `opz` assente, o con i valori di base, ogni moltiplicatore è 1 e non si tocca nulla (impronta identica)
+ const dif=(s,leva,campo)=>{const o=s.opz;if(!o)return 1;const d=(VDAT.DIFF[leva]||{})[o[leva]];return d&&d[campo]!=null?d[campo]:1};
+ const DIF={viveri:['cons','viveri'],prezzo:['eco','prezzo'],paga:['eco','paga'],rendita:['eco','rendita'],predoni:['nem','predoni']};
+ const molt1=VEN.molt;
+ VEN.molt=(s,k,c)=>{const m=molt1(s,k,c),d=DIF[k];if(!d||!s.opz)return m;const f=dif(s,d[0],d[1]);return f===1?m:m*f};
  // ---------- ganci ----------
  VEN.aggancia('nuovo',s=>{if(s.geo===2&&s.anno==null)s.anno=0});
  const sverna=s=>{if(s.dentro<0)return false;const l=s.l[s.dentro];return!!l&&(!!MURA[l.tipo]||l.tipo==='porto')};
@@ -83,7 +89,7 @@ Object.assign(VEN,(()=>{const{D,P,TU,L,rnd,giorno,abil,uomini,vicinoOk,cella,MER
   for(const p of s.p){if(p.dentro>=0||p.x==null||passa(M,p.x,p.y))continue;const v=vicinoOk(M,p.x,p.y);p.x=v[0];p.y=v[1];p.via=[];
    if(p.id===0&&!s.prigioniero)L(s,st.k==='inv'?'La neve ha chiuso il passo: la compagnia ripiega.':'Il ghiaccio cede: la compagnia torna a riva.','male')}
   // foraggio: i cavalli mangiano a parte (granaglie e viveri della scorta, dopo gli uomini); senza, la truppa si scoraggia
-  if(!s.prigioniero){const cav=cavalli(tu).cav,serve=Math.round(cav*ST.FORAGGIO_QUOTA/6*attenua(ST.EFF[st.k].foraggio,scartoDi(s)));let da=serve;
+  if(!s.prigioniero){const cav=cavalli(tu).cav,serve=Math.round(cav*ST.FORAGGIO_QUOTA/6*attenua(ST.EFF[st.k].foraggio,scartoDi(s))*dif(s,'cons','viveri'));let da=serve;
    if(da>0){const cibi=Object.keys(tu.merci).filter(m=>D.MERCI[m].cibo);let k=0;while(da>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;da--}}
     if(da>0){tu.mor=Math.max(0,tu.mor-ST.MORALE_FORAGGIO);L(s,'I cavalli non hanno foraggio: la truppa si scoraggia.','male')}}}
   // all'aperto d'inverno il morale scende; al chiuso (città, castelli, porti) no

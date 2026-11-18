@@ -14,7 +14,7 @@ Object.assign(VEN,(()=>{
  // chiude le guerre tra due regni: gli assedi dell'uno contro l'altro cadono
  function faiPace(s,a,b){delete s.guerra[chiave(a,b)];for(const l of s.l)if(l.ass&&(l.ass.faz===a||l.ass.faz===b))l.ass=null}
  function nascePredoni(s,r,vicinoA){const M=VEN.mappaDi(s),c=vicinoA||M.covi[Math.floor(r()*M.covi.length)],g=giorno(s),pos=vicinoOk(M,c[0]+(r()-.5)*3,c[1]+(r()-.5)*3);
-  const grossa=r()<.22,punti=(22+r()*30+Math.min(150,g*2.1))*(grossa?1.7:1);return nuovaP(s,'pre','pre',(grossa?'Masnada: ':'')+D.NOMI.bande[Math.floor(r()*D.NOMI.bande.length)],pos[0],pos[1],leva('pre',punti,r),{oro:20+Math.floor(r()*60)})}
+  const grossa=r()<.22,punti=(22+r()*30+Math.min(150,g*2.1))*(grossa?1.7:1)*VEN.molt(s,'predoni',{});return nuovaP(s,'pre','pre',(grossa?'Masnada: ':'')+D.NOMI.bande[Math.floor(r()*D.NOMI.bande.length)],pos[0],pos[1],leva('pre',punti,r),{oro:20+Math.floor(r()*60)})}
  function nasceCarovana(s,l,r){const p=nuovaP(s,'car',l.faz,'Carovana di '+l.nome,l.x,l.y,leva(VEN.cult(s,l.faz),38+r()*20,r),{oro:150+Math.floor(r()*200),casa:l.id,dentro:l.id});p.ia={st:'sosta',t:s.t+60+Math.floor(r()*600)};return p}
  // ---------- il cervello degli altri ----------
  function vai(s,p,x,y,M){p.via=via(M,p.x,p.y,x,y);p.ia.mx=x;p.ia.my=y}
@@ -121,7 +121,7 @@ Object.assign(VEN,(()=>{
    if(p.faz==='neu'&&sg.esilio&&g>=sg.esilio){rimuovi(s,p);sg.pid=-1;sg.esule=null;if(sg.comp){aggiungi(tu.tr,sg.comp,1);s.compagni[sg.comp]=-1;L(s,sg.nome+' rientra nella compagnia.');sg.comp=null}}}
   for(const l of s.l)if(l.faz==='tu'&&l.sig>=0){const sg=s.sig[l.sig],p=sg&&part(s,sg.pid);if(p)p.oro+=Math.round(VEN.renditaL(l)/7)}
   // predoni nuovi
-  if(s.p.filter(p=>p.k==='pre').length<P.PRED_MAX-s.stat.covi*2&&r()<.7){const vivi=s.l.filter(l=>l.tipo==='covo'&&l.g.length);if(vivi.length){const c=vivi[Math.floor(r()*vivi.length)];nascePredoni(s,r,[c.x,c.y])}}
+  if(s.p.filter(p=>p.k==='pre').length<P.PRED_MAX-s.stat.covi*2&&r()<.7*VEN.molt(s,'predoni',{})){const vivi=s.l.filter(l=>l.tipo==='covo'&&l.g.length);if(vivi.length){const c=vivi[Math.floor(r()*vivi.length)];nascePredoni(s,r,[c.x,c.y])}}
   {const x=r();s.meteo=x<.62?'sereno':x<.87?'pioggia':'nebbia'}
   if(g%7===0){const rv=s.p.find(p=>p.k==='riv');if(rv&&forza(rv)<420)for(const e of leva('mer',26,r))aggiungi(rv.tr,e.t,e.n)}
   // regno (V4): il malcontento sale con i luoghi tenuti oltre il tetto; i confinanti che non hanno firmato l'alleanza ti dichiarano guerra alla scadenza
