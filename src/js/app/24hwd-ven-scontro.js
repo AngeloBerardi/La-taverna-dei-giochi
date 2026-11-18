@@ -63,9 +63,14 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
 <p class="vt-et">Da dove entra</p><div class="vt-sg">${['retro','fsx','fdx'].map(i=>ch(ING[i],P+'ing:'+i,d.ing===i,!ok.has(i))).join('')}</div>
 <p class="vt-et">Quando</p><div class="vt-sg">${ch('Al mio segnale',P+'q:comando:0',d.k==='comando')}${ch('Quando la linea cede',P+'q:linea:50',d.k==='linea')}${ch('Dopo',P+'q:tempo:600',d.k==='tempo')}</div>${sub?`<div class="vt-sg">${sub}</div>`:''}
 <p class="vt-et">Che ordine ha</p><div class="vt-sg">${['carica','tieni','segui'].map(o=>ch(ORD[o],P+'o:'+o,d.ord===o)).join('')}</div></div></div>`}
+ // passo 47: con `grandi` e più capitani, ognuno preme il suo «Pronto» (n/m); solo il posto 0 può partire comunque. Un solo ottone.
+ const perPosti=b=>inS()&&VDAT.ACCESO.grandi&&b.capi&&b.capi.length>1;
+ function prontoH(b){if(!perPosti(b))return bt(ic('spada',18)+' Pronto','vpronto',{cls:'gold'});
+  const p=VCAM.pronti(b),mio=!!(b.pronti&&b.pronti[posto()]);
+  return(mio?bt(ic('spada',18)+' Pronto '+p.n+'/'+p.m,'vpronto',{cls:'gold',no:true}):bt(ic('spada',18)+' Pronto','vpronto',{cls:'gold'}))+(mio&&posto()===0&&!p.tutti?bt('Parti comunque','vpronto:forza'):'')}
  function tavoloBasso(b){const k=VenCampo.K,R=VCAM.reparti(b,'a').filter(x=>x.n>0),cnt={},on=nOnd(b);
   const carte=R.map(x=>{const n=(cnt[x.c]=(cnt[x.c]||0)+1),tot=R.filter(y=>y.c===x.c).length;return`<div class="vt-c${k.selR===x.r?' on':''}" data-r="${x.r}" data-c="${x.c}"><button class="vt-cm" data-a="ven" data-v="vrep:${x.r}">${ic(IC[x.c],18)}<b>${x.n}</b><small>${NT[x.c]}${tot>1?' '+n:''}</small></button><button class="vt-cb2" data-a="ven" data-v="vfm:${x.r}" aria-label="Formazione">${FM[x.fm]||x.fm}</button><button class="vt-cb2" data-a="ven" data-v="vdiv:${x.r}">Dividi</button></div>`}).join('');
-  return`<div class="vn-basso vt-bs"><p class="vt-h">${k.selR!=null?'Tocca il campo, dentro una zona, per metterlo':'Tocca un reparto, poi il campo'}</p><div class="vt-cs">${carte}</div><div class="vt-bb">${b.ondOk?bt('Ondate'+(on?' · '+on:''),'vond:apri'):''}${bt(ic('spada',18)+' Pronto','vpronto',{cls:'gold'})}</div></div>${k.fogOnd&&b.ondOk?foglioH(b):''}`}
+  return`<div class="vn-basso vt-bs"><p class="vt-h">${k.selR!=null?'Tocca il campo, dentro una zona, per metterlo':'Tocca un reparto, poi il campo'}</p><div class="vt-cs">${carte}</div><div class="vt-bb">${b.ondOk?bt('Ondate'+(on?' · '+on:''),'vond:apri'):''}${prontoH(b)}</div></div>${k.fogOnd&&b.ondOk?foglioH(b):''}`}
  function ondaMod(id,q){const k=VenCampo.K,b=k.s,w=b.ond.a.find(x=>x.id===id),bz=k.bz[id]||(k.bz[id]={ing:'retro',k:'comando',v:0,ord:'carica'}),d=w?{ing:w.ing,k:w.quando.k,v:w.quando.v,ord:w.ord}:Object.assign({},bz),m={};
   for(const x of w?w.tr:[])m[x.t]=(m[x.t]||0)+x.n;
   if(q[0]==='t'){const t=q[1],cur=m[t]||0,mx=cur+libere(b,t);m[t]=q[2]==='+'?Math.min(mx,cur+5):Math.max(0,cur-5)}
@@ -78,6 +83,7 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
   if(c==='vfm'){const r=inS()?VenStanza.manda({t:'b-ord',o:{r:+p[1],t:'forma'}}):VCAM.ordina(b,{r:+p[1],t:'forma'});if(r&&r.err)Ven.avviso(r.err);return render()}
   if(c==='vond'){if(p[1]==='apri'){k.fogOnd=!k.fogOnd;return render()}const id=+p[1];if(p.length===2){k.od=id;return render()}return ondaMod(id,p.slice(2))}
   if(c==='vondata'){manda('ondata',{id:+p[1]});return render()}
+  if(c==='vpronto'&&perPosti(b)){const r=VenStanza.manda({t:'b-pronto',o:p[1]==='forza'?{forza:true}:{}});if(r&&r.err)return Ven.avviso(r.err);k.fogOnd=false;k.selR=null;return render()}
   if(c==='vpronto'){const r=inS()?VenStanza.manda({t:'b-pronto',o:{}}):VCAM.pronto(b,'a');if(r&&r.err)return Ven.avviso(r.err);
    // i gettoni nemici si muovono nel loro schieramento per un secondo, poi si parte
    k.tvT=k.t+1.2;k.fogOnd=false;k.selR=null;setTimeout(()=>{const g=inS()?VenStanza.pausa():(k.pausa=false);if(g&&g.err)Ven.avviso(g.err);render()},1100);render()}}
@@ -94,7 +100,7 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
  function repDati(b){const mo=VCAM.morali?VCAM.morali(b,'a'):[],R=VCAM.reparti(b,'a').filter(x=>x.n>0).slice(0,6),cnt={};
   return R.map(x=>{const g=x.c,m=mo.find(y=>y.r===x.r)||{},n=(cnt[g]=(cnt[g]||0)+1);return{r:x.r,g,n:x.n,fm:x.fm,mor:m.mor!=null?m.mor:100,fa:m.fa||0,fr:m.fr,nome:NT[g]+(R.filter(y=>y.c===g).length>1?' '+n:'')}})}
  const moC=m=>m>60?3:m>30?2:1;
- function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';k._hud=0;const tv=VenCampo.tavolo(b),pr=b.ond?b.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando'&&w.tr.length):[],O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanza','freccia'],['arretra','Ripiega','indietro']];
+ function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';k._hud=0;if(perPosti(b)&&b.rep&&b.pronto&&b.pronto.a&&b.t<30&&k.tvT<0)k.tvT=k.t+1.2;const tv=VenCampo.tavolo(b),pr=b.ond?b.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando'&&w.tr.length):[],O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanza','freccia'],['arretra','Ripiega','indietro']];
   const fine=V.pan==='fine'?`<div class="vn-vela"><div><h3>${b.fine&&b.fine.vince==='a'?'Il campo è vostro':'La giornata è persa'}</h3><p>${b.fine&&b.fine.vince==='a'?'Il nemico volta le spalle.':'Chi può si mette in salvo.'}</p>${bt('Avanti','fine',{cls:'gold'})}</div></div>`:'';
   const cap=VCAM.capU(b,posto()),nome=esc((cap&&cap.nome)||"Capitano");
   const carte=tv?'':`<button class="vn-rc${k.gruppo==='tutti'?' on':''}" data-a="ven" data-v="cgr:tutti"><b>${ic('spada',18)}</b><small>Tutti</small></button>`+repDati(b).map(x=>`<button class="vn-rc${k.gruppo===x.g?' on':''} m${moC(x.mor)}${x.mor<=20?' rotto':''}" data-a="ven" data-v="cgr:${x.g}" data-g="${x.g}" data-r="${x.r}">${ic(IC[x.g],18)}<b id="vn-g${x.r<3?x.g:'r'+x.r}">${x.n}</b><span class="vn-fs">${fmSvg(x.fm)}</span><small>${x.nome}</small><small class="vn-fm" id="vn-fm${x.r<3?x.g:'r'+x.r}">${x.fm}</small><i class="vn-mo"><u style="width:${Math.max(4,x.mor)}%"></u></i><s class="vn-fa" style="height:${Math.min(80,x.fa)}%"></s>${x.fr!=null?`<em class="vn-fr">${ic('freccia',10)}${x.fr}</em>`:''}</button>`).join('')+pr.map(w=>`<button class="vn-rc vn-on" data-a="ven" data-v="vondata:${w.id}"><b>${w.tr.reduce((a,x)=>a+x.n,0)}</b><small>Ondata ${w.id}</small><small class="vn-ig">${ING[w.ing]||''}</small></button>`).join('');
