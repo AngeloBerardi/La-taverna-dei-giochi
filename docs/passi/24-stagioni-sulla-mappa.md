@@ -12,6 +12,8 @@ file:
   - src/js/app/24hu-ven-mappa.js
   - src/js/app/24hwa-ven-barre.js
   - src/css/39ja-ven-barre.css
+  - src/js/app/24hw-ventura.js
+  - src/js/app/01b-icone.js
 ---
 
 # Passo 24 — Le stagioni sulla mappa

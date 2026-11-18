@@ -1,7 +1,7 @@
 /* ---- Compagnia di ventura, vista: incontro, esito, attesa e HUD della battaglia. ----
    Parte di `Ven` (24hw-ventura.js): legge stato e aiutanti da `Ven._`. Nomi e HTML come prima. CSS: css/39j*-ven-*.css. */
 const VenScontro=(()=>{
- const {D,V,bt,faz,inS,n0,oggH,pannello,riga,tu}=Ven._;
+ const {D,V,bt,faz,inS,n0,oggH,pannello,posto,riga,tu}=Ven._;
  function incontroH(fascia){const s=V.s,inc=s.incontro;if(!inc)return'';const t=tu();
   if(inc.tipo==='parla'){const p=VEN.part(s,inc.pid[0]);if(!p)return pannello('Incontro',bt('Prosegui','scegli:lascia'),{fisso:1});
    const sg=p.k==='sig'?s.sig[p.sig]:null,tr=sg&&D.TRATTI[sg.tratto],riv=p.k==='riv';
@@ -87,11 +87,35 @@ ${riga('',bt('Avanti','chiudi',{cls:'gold'}))}`,{fisso:1,cls:'vn-inc'})}
   document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('.vt-cm');dr=c?{r:+c.parentNode.dataset.r,c:c.parentNode.dataset.c,x:e.clientX,y:e.clientY}:null},true);
   document.addEventListener('pointerup',e=>{const d=dr;dr=null;if(!d||Math.hypot(e.clientX-d.x,e.clientY-d.y)<14)return;const t=document.elementFromPoint(e.clientX,e.clientY),c2=t&&t.closest('.vt-c');
    if(c2&&+c2.dataset.r!==d.r&&c2.dataset.c===d.c){salta=true;setTimeout(()=>{salta=false},400);if(manda('unisci',{r:+c2.dataset.r,r2:d.r}))VenCampo.K.selR=null;render()}},true)}
- function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';const tv=VenCampo.tavolo(b),pr=b.ond?b.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando'&&w.tr.length):[],O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanti','freccia'],['arretra','Indietro','indietro']];
+ // formazione come piccolo segno: file serrate, punti sparsi, cuneo
+ const FMS={serrata:'<path d="M2 3h12M2 7h12M2 11h12" stroke-dasharray="1.6 1"/>',larga:'<path d="M3 3h1M9 3h1M14 3h0M5 7h1M11 7h1M2 11h1M8 11h1M14 11h0" stroke-dasharray="1 4"/>',cuneo:'<path d="M8 2v0M6 6h4M4 10h8M2 14h12" stroke-dasharray="1.6 1"/>'};
+ const fmSvg=f=>'<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-label="'+(FM[f]||f)+'">'+(FMS[f]||FMS.larga)+'</svg>';
+ // dati di ogni carta di reparto: chiave g (f/t/c), morale, fatica, frecce
+ function repDati(b){const mo=VCAM.morali?VCAM.morali(b,'a'):[],R=VCAM.reparti(b,'a').filter(x=>x.n>0).slice(0,6),cnt={};
+  return R.map(x=>{const g=x.c,m=mo.find(y=>y.r===x.r)||{},n=(cnt[g]=(cnt[g]||0)+1);return{r:x.r,g,n:x.n,fm:x.fm,mor:m.mor!=null?m.mor:100,fa:m.fa||0,fr:m.fr,nome:NT[g]+(R.filter(y=>y.c===g).length>1?' '+n:'')}})}
+ const moC=m=>m>60?3:m>30?2:1;
+ function campoH(){const k=VenCampo.K,b=k.s;if(!b)return'';k._hud=0;const tv=VenCampo.tavolo(b),pr=b.ond?b.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando'&&w.tr.length):[],O=[['carica','Carica','spada'],['tieni','Tieni','scudo'],['segui','Seguimi','passi'],['avanza','Avanza','freccia'],['arretra','Ripiega','indietro']];
   const fine=V.pan==='fine'?`<div class="vn-vela"><div><h3>${b.fine&&b.fine.vince==='a'?'Il campo è vostro':'La giornata è persa'}</h3><p>${b.fine&&b.fine.vince==='a'?'Il nemico volta le spalle.':'Chi può si mette in salvo.'}</p>${bt('Avanti','fine',{cls:'gold'})}</div></div>`:'';
-  return`<div class="vn-alto vn-ca"><div class="vn-barra"><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b></div>
-<div class="vn-capo"><span>${ic('cuore',14)}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel">×${k.vel}</button>${tv?'':`<button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button>`}</div>${tv?`<small class="vt-cnt">${conto(b)}</small>`:''}</div>
+  const cap=VCAM.capU(b,posto()),nome=esc((cap&&cap.nome)||"Capitano");
+  const carte=tv?'':`<button class="vn-rc${k.gruppo==='tutti'?' on':''}" data-a="ven" data-v="cgr:tutti"><b>${ic('spada',18)}</b><small>Tutti</small></button>`+repDati(b).map(x=>`<button class="vn-rc${k.gruppo===x.g?' on':''} m${moC(x.mor)}${x.mor<=20?' rotto':''}" data-a="ven" data-v="cgr:${x.g}" data-g="${x.g}" data-r="${x.r}">${ic(IC[x.g],18)}<b id="vn-g${x.r<3?x.g:'r'+x.r}">${x.n}</b><span class="vn-fs">${fmSvg(x.fm)}</span><small>${x.nome}</small><small class="vn-fm" id="vn-fm${x.r<3?x.g:'r'+x.r}">${x.fm}</small><i class="vn-mo"><u style="width:${Math.max(4,x.mor)}%"></u></i><s class="vn-fa" style="height:${Math.min(80,x.fa)}%"></s>${x.fr!=null?`<em class="vn-fr">${ic('freccia',10)}${x.fr}</em>`:''}</button>`).join('')+pr.map(w=>`<button class="vn-rc vn-on" data-a="ven" data-v="vondata:${w.id}"><b>${w.tr.reduce((a,x)=>a+x.n,0)}</b><small>Ondata ${w.id}</small><small class="vn-ig">${ING[w.ing]||''}</small></button>`).join('');
+  return`<div class="vn-alto vn-ca"><div class="vn-barra"><span class="vn-std a"></span><b id="vn-na"></b><div class="vn-forze"><i id="vn-ba"></i></div><b id="vn-nb"></b><span class="vn-std b"></span></div>
+<div class="vn-capo"><span>${ic('cuore',14)}</span><span class="vn-cn">${nome}</span><div class="vn-pfb"><i id="vn-pf"></i></div><button class="vn-ib" data-a="ven" data-v="cvel" aria-label="Velocità">×${k.vel}</button>${tv?'':`<button class="vn-ib ${k.pausa?'on':''}" data-a="ven" data-v="cpausa" aria-label="Pausa">${ic(k.pausa?'play':'pausa',18)}</button>`}<button class="vn-ib ${k.alt>60?'on':''}" data-a="ven" data-v="cvista" aria-label="Vista del comandante">${ic('mappa',18)}</button></div>${tv?`<small class="vt-cnt">${conto(b)}</small>`:''}<canvas id="vn-mm" class="vn-mm" width="72" height="120" aria-label="Mini-mappa"></canvas></div>
 ${k.pausa&&!tv&&!b.fine&&b.t===0&&!(b.rep&&b.pronto&&b.pronto.a)&&!(inS()&&ui.tv)?`<div class="vn-via"><p>${b.tipo==='arena'?'Tocca lo steccato per muovere il capitano, l\'avversario per attaccarlo. Qui conta solo la tua arma.':'Tocca il campo per muovere il capitano, un nemico per attaccarlo. Scegli un gruppo e dagli un ordine.'}</p>${bt(ic('spada',18)+' Via','cpausa',{cls:'gold'})}</div>`:''}
-${tv?tavoloBasso(b):`<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}">${pr.length?`<div class="vt-or">${pr.map(w=>bt('Ondata '+w.id+' · '+w.tr.reduce((a,x)=>a+x.n,0),'vondata:'+w.id)).join('')}</div>`:''}<div class="vn-gr">${[['tutti','Tutti'],['f','Fanti'],['t','Tiratori'],['c','Cavalieri']].map(([g,n])=>`<button class="vn-ch${k.gruppo===g?' on':''}" data-a="ven" data-v="cgr:${g}">${n}${g!=='tutti'?` <b id="vn-g${g}"></b><small class="vn-fm" id="vn-fm${g}">${VCAM.forme(b,'a')[g]}</small>`:''}</button>`).join('')}</div>
+${tv?tavoloBasso(b):`<div class="vn-basso vn-cb${b.tipo==='arena'?' vn-arena':''}"><div class="vn-rcs">${carte}</div>
 <div class="vn-or">${O.map(([o,n,i])=>`<button class="vn-bt" data-a="ven" data-v="cord:${o}">${ic(i,20)}<small>${n}</small></button>`).join('')}<button class="vn-bt vn-grido" id="vn-grido" data-a="ven" data-v="cgrido">${ic('megafono',20)}<small>Grido</small></button></div></div>`}${fine}`}
- return{incontroH,esitoH,attesaH,campoH,conto,schieraSu}})();
+ // mini-mappa 72x120, quattro volte al secondo: un puntino per gruppo (ambra i nostri, rosso scuro i loro), riquadro della telecamera
+ function minimappa(cv){const k=VenCampo.K,b=k.s;if(!cv||!b)return;const x=cv.getContext('2d'),W=b.W||VCAM.C.W,H=b.H||VCAM.C.H,w=cv.width,h=cv.height,sx=w/W,sy=h/H;
+  x.fillStyle='#2b3a1c';x.fillRect(0,0,w,h);x.strokeStyle='#b88a3c';x.lineWidth=2;x.strokeRect(1,1,w-2,h-2);
+  const G={};for(const u of b.u){if(u.st!=='vivo')continue;const q=u.l+(u.r!=null?u.r:u.c),c=G[q]||(G[q]={l:u.l,n:0,x:0,y:0});c.n++;c.x+=u.x;c.y+=u.y}
+  for(const q in G){const c=G[q];x.fillStyle=c.l==='a'?'#f0a830':'#7a1a14';const r=Math.max(2,Math.min(6,1+Math.sqrt(c.n)*.7));x.beginPath();x.arc(c.x/c.n*sx,c.y/c.n*sy,r,0,6.2832);x.fill()}
+  const A=VenArte,r=A.cv&&A.cv.getBoundingClientRect();if(r&&r.height){const vw=k.alt*r.width/r.height,vh=k.alt/(A.SE||1);x.strokeStyle='#fff2b0';x.lineWidth=1;x.strokeRect((k.fuoco.x-vw/2)*sx,(k.fuoco.z-vh/2)*sy,vw*sx,vh*sy)}}
+ // morale, fatica e frecce dei reparti aggiornati senza ridisegnare
+ function hudReparti(){const k=VenCampo.K,b=k.s;if(!b)return;for(const x of repDati(b)){const el=document.querySelector('.vn-rc[data-g="'+x.g+'"][data-r="'+x.r+'"]');if(!el)continue;const u=el.querySelector('.vn-mo u'),f=el.querySelector('.vn-fa');if(u)u.style.width=Math.max(4,x.mor)+'%';if(f)f.style.height=Math.min(80,x.fa)+'%';el.classList.remove('m1','m2','m3');el.classList.add('m'+moC(x.mor));el.classList.toggle('rotto',x.mor<=20)}}
+ // tocco lungo su una carta = tutti; tocco sulla mini-mappa = la telecamera va lì; vista del comandante = telecamera alta
+ {let lg=null,lungo=false;
+  document.addEventListener('pointerdown',e=>{const c=e.target.closest&&e.target.closest('.vn-rc:not(.vn-on)');clearTimeout(lg);if(c)lg=setTimeout(()=>{lungo=true;VenCampo.K.gruppo='tutti';render()},550)},true);
+  const ferma=()=>clearTimeout(lg);document.addEventListener('pointerup',ferma,true);document.addEventListener('pointercancel',ferma,true);
+  document.addEventListener('click',e=>{const t=e.target.closest?e.target:null;if(!t)return;if(lungo&&t.closest('.vn-rc')){lungo=false;e.stopPropagation();e.preventDefault();return}
+   const m=t.closest('#vn-mm');if(m){const r=m.getBoundingClientRect(),b=VenCampo.K.s;if(b)VenCampo.centra((e.clientX-r.left)/r.width*(b.W||VCAM.C.W),(e.clientY-r.top)/r.height*(b.H||VCAM.C.H));return}
+   if(t.closest('[data-v="cvista"]')){e.stopPropagation();e.preventDefault();const K=VenCampo.K;K.alt=K.alt>60?38:80;K.segue=K.alt<60;render()}},true)}
+ return{incontroH,esitoH,attesaH,campoH,conto,schieraSu,minimappa,hudReparti}})();

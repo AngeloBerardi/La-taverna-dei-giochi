@@ -127,7 +127,8 @@ const VenCampo=(()=>{
   K.fig=A.Schiera(sc,170);K.ste=A.Stendardi(sc,10);K.par=A.Particelle(sc,400);
   K.fre=new T.InstancedMesh(new T.BoxGeometry(.07,.07,1.1),new T.MeshBasicMaterial({color:'#f4ecd8'}),90);K.fre.count=0;K.fre.frustumCulled=false;sc.add(K.fre);
   const anello=(c,r)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.16,22),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.95,depthTest:false}));m.rotation.x=-Math.PI/2;m.renderOrder=5;m.visible=false;sc.add(m);return m};
-  K.anCap=anello('#ffd75a',.8);K.anMeta=anello('#fff2b0',.5);K.anBers=anello('#ff5a4a',.85);
+  K.anCap=anello('#ffd75a',.8);K.anMeta=anello('#fff2b0',.5);K.anBers=anello('#ff5a4a',.85);K.anGr=anello('#fff2b0',1);K.anGr.material.opacity=.55;K.anGr.geometry=new T.RingGeometry(.97,1,48);
+  {const pl=new T.Mesh(new T.BoxGeometry(.1,2.4,.1),new T.MeshBasicMaterial({color:'#e8dcc0'})),bn=new T.Mesh(new T.PlaneGeometry(1.1,.7),new T.MeshBasicMaterial({color:'#f0a830',side:T.DoubleSide}));bn.position.set(.55,2,0);K.band=new T.Group();K.band.add(pl,bn);pl.position.y=1.2;K.band.visible=false;sc.add(K.band)}
 }
  const FAZ=(l)=>Object.assign({},rg(l==='a'?K.scheda.faza||'tu':K.scheda.fazb,"pre"),l==='a'?K.scheda.cola:K.scheda.colb);
  function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);for(const e of ev){
@@ -168,7 +169,7 @@ const VenCampo=(()=>{
    const b=cap.ob>=0?s.u.find(u=>u.id===cap.ob&&u.st==='vivo'):null;if(b){K.anBers.visible=true;K.anBers.position.set(b.x,.09,b.y)}else K.anBers.visible=false;
    if(K.segue){const k=Math.min(1,dt*4);K.fuoco.x+=(cx-K.fuoco.x)*k;K.fuoco.z+=(cz-7-K.fuoco.z)*k}}
   else{K.anCap.visible=K.anMeta.visible=K.anBers.visible=false}
-  K.ste.fine();
+  hudGruppo(s);K.ste.fine();
   // frecce ad arco
   {const d=new T.Object3D();let n=0;for(let i=K.frecce.length-1;i>=0;i--){const f=K.frecce[i],q=(K.t-f.t0)/Math.max(.08,f.dur);if(q>=1){if(!f.ok)K.par.emetti(f.x1+(Math.random()-.5)*1.5,.1,f.z1+(Math.random()-.5)*1.5,{vy:.3,s:.1,dur:.4,col:'#cfc4a8'});K.frecce.splice(i,1);continue}
     if(n>=90)continue;const L=Math.hypot(f.x1-f.x0,f.z1-f.z0),hm=1.3+L*.16,x=f.x0+(f.x1-f.x0)*q,z=f.z0+(f.z1-f.z0)*q,y=1.3+4*hm*q*(1-q)-q*.4,vy=4*hm*(1-2*q);
@@ -195,7 +196,13 @@ const VenCampo=(()=>{
   if(K.selR!=null&&tavolo(s)){const g=A.aTerra(K.cam,px,py,0);VenScontro.schieraSu(K.selR,g.x,g.z);return null}
   for(const u of s.u){if(u.l!=='b'||u.st!=='vivo')continue;const c=A.aSchermo(K.cam,u.x,.9,u.y),d=Math.hypot(c.x-(px-r.left),c.y-(py-r.top));if(d<md){md=d;m=u}}
   if(m)return{b:m.id};const g=A.aTerra(K.cam,px,py,0);return{x:g.x,y:g.z}}
- const centra=()=>{K.segue=true};
+ const centra=(x,y)=>{if(x==null){K.segue=true;return}K.fit=false;K.segue=false;K.fuoco.x=x;K.fuoco.z=y-7};
+ // anello del gruppo scelto, bandierina dell'ordine «Tieni» e HUD (mini-mappa, morale) quattro volte al secondo
+ function hudGruppo(s){const g=K.gruppo,U=g==='tutti'?[]:s.u.filter(u=>u.l==='a'&&u.st==='vivo'&&!u.cap&&u.c===g);
+  if(U.length&&K.anGr){let cx=0,cy=0;for(const u of U){cx+=u.x;cy+=u.y}cx/=U.length;cy/=U.length;let m=0;for(const u of U)m=Math.max(m,Math.hypot(u.x-cx,u.y-cy));K.anGr.visible=true;K.anGr.position.set(cx,.07,cy);const q=Math.min(14,m+1.6);K.anGr.scale.set(q,q,q);
+   const o=s.ord&&s.ord.a&&s.ord.a[g];if(o&&o.t==='tieni'&&o.x!=null&&Math.hypot(o.x-cx,o.y-cy)>2.5){K.band.visible=true;K.band.position.set(o.x,0,o.y)}else K.band.visible=false}
+  else{if(K.anGr)K.anGr.visible=false;if(K.band)K.band.visible=false}
+  if(K.t-(K._hud||0)>=.25&&typeof VenScontro!=='undefined'){K._hud=K.t;const cv=document.getElementById('vn-mm');if(cv)VenScontro.minimappa(cv);VenScontro.hudReparti()}}
  // il tavolo: il campo intero entra nella parte libera dello schermo (sopra le barre, sotto i comandi)
  function fitta(){const s=K.s,A=VenArte;if(!K.cam||!A.cv)return;const r=A.cv.getBoundingClientRect();if(!r.width)return;const tvm=typeof ui!=='undefined'&&ui.tv,top=tvm?56:84,bot=tvm?60:200;
   const P=[[0,0],[s.W,0],[0,s.H],[s.W,s.H]].map(q=>A.aSchermo(K.cam,q[0],0,q[1])),xs=P.map(p=>p.x),ys=P.map(p=>p.y),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
