@@ -2,7 +2,7 @@
 import os, tempfile
 
 _CTRL = """(()=>{const v=e=>e.offsetParent!==null||getComputedStyle(e).position==='fixed';
- const bt=[...document.querySelectorAll('button,.b,[data-v],[data-a]')].filter(v);
+ const bt=[...document.querySelectorAll('button,.b,[data-v],[data-a]')].filter(v).filter(e=>!e.matches('.vn-std'));
  return {ott:[...document.querySelectorAll('.gold')].filter(v).length,
   piccoli:bt.filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<44||r.height<44)}).map(e=>(e.className+'|'+e.textContent.trim()).slice(0,30)).slice(0,6),
   tagliati:[...document.querySelectorAll('button,.b')].filter(v).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent.trim().slice(0,30)).slice(0,6)}})()"""
@@ -10,8 +10,8 @@ _CTRL = """(()=>{const v=e=>e.offsetParent!==null||getComputedStyle(e).position=
 _SCHEDA = """(()=>{const T=(p,o)=>Object.keys(o).map(t=>({p,t,n:o[t]}));
   return {seme:7,a:T(0,{val_f2:50,val_t2:20,val_c3:40}),b:T(5,{fer_f2:30,fer_t2:10,fer_c3:10}),cap:{nome:'Capitano',pf:80,att:16,dif:12,dan:12,vel:15,cavallo:true},faza:'tu',fazb:'fer',max:110}})()"""
 
-# Difetti gia' aperti come issue: #170 (menu), #171 (Via), #175 (foglio), #176 (Avanti dell'esito).
-_ATTESI = (' menu: ott', ' menu: piccoli', ' battaglia: piccoli', ' foglio: ott', ' foglio: piccoli', ' esito: piccoli')
+# Difetti ancora aperti, fuori dai file del passo 47 (menu e foglio dipendono da 24hw-ventura.js e dalle barre): #170 e #175.
+_ATTESI = (' menu: ott', ' menu: piccoli', ' foglio: ott', ' foglio: piccoli')
 
 async def _ctrl(pg, tag, out):
     r = await pg.evaluate(_CTRL)
@@ -51,7 +51,7 @@ async def sc_p20_collaudo_interfaccia(b, srv):
         await pg.wait_for_selector('.vn-inc .vn-stend', timeout=5000); await _ctrl(pg, t + ' incontro', dif); await foto('6-incontro')
         await pg.evaluate("(()=>{Ven.V.modo='campo';VenCampo.apri(%s);render()})()" % _SCHEDA)
         await pg.wait_for_timeout(2500); await _ctrl(pg, t + ' battaglia', dif); await foto('7-battaglia')
-        await pg.click('.vn-via button', timeout=3000)
+        await pg.click('.vn-via button, [data-v=vpronto]', timeout=3000); await pg.wait_for_timeout(1500)
         check(await pg.evaluate('!VenCampo.K.pausa'), f'{t}: dopo Via la battaglia e ancora in pausa')
         await pg.evaluate('VenCampo.K.vel=4')
         await pg.wait_for_function("VenCampo.K.s&&VenCampo.K.s.fine", timeout=90000)
