@@ -140,7 +140,7 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    V.msg='';if(!inS()){salva();if(s.incontro){V.pan='incontro';VenAudio.mondo([{t:'incontro'}])}}return render()}
   if(c==='scegli'){const sv=p.slice(1).join(':'),r=inS()?VenStanza.manda({t:'scegli',v:sv}):VEN.scegli(s,sv);if(r.err){V.msg=r.err;return render()}if(inS())return render();if(p[1]==='passa')avviso(s.log[s.log.length-1].tx,'bene');
    if(p[1]==='attacca')return inBattaglia(r.campo);if(p[1]==='auto'){VEN.auto(s);V.pan='esito';salva();return render()}
-   V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
+   V.pan=s.incontro?'incontro':(p[1]==='attendi'||p[1]==='ariete')&&tu().ord&&tu().ord.t==='aspetta'?'attesa':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
   if(c==='fai'){const a=p[1];let z={a};
    if(a==='recluta')z.n=+p[2]||1;else if(a==='compra'||a==='vendi'){z.m=p[2];z.n=a==='vendi'?Math.min(V.qta,tu().merci[p[2]]||0):Math.min(V.qta,s.l[s.dentro].scorte[p[2]]||0)}
    else if(a==='assolda'){z.t=p[2];z.n=1}else if(a==='compagno'||a==='compraogg')z.id=p[2];else if(a==='abilita')z.k=p[2];else if(a==='vendiogg'||a==='equipa')z.i=+p[2];else if(a==='togli'){z.slot=p[2];z.k=+p[3]||0}else if(a==='imbarca')z.lid=+p[2];else if(a==='liberasig')z.sig=+p[2];else if(a==='promuovi'){z.t=p[2];z.su=p[3];z.n=1}else if(a==='congeda'){z.t=p[2];z.n=1}
