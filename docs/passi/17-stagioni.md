@@ -39,6 +39,7 @@ L'anno gira e cambia il modo di giocare. In inverno si mangia di più, si marcia
    | reclute disponibili | ×1,4 | ×1 | ×1 | ×0,6 |
    | guerre nuove dell'IA | ×1,5 | ×1,2 | ×0,8 | ×0,3 |
    | meteo | piogge | sereno e caldo | nebbie | neve al nord e sui monti |
+   **Foraggio a parte** (deciso al controllo): i viveri contano gli uomini, e di un cavaliere solo metà razione; l'altra metà è il foraggio del cavallo, che si consuma separato (gancio `giorno`, dopo gli uomini, dalla stessa scorta di cibo) col suo moltiplicatore. Se manca, il morale scende di 2 al giorno. **Durata**: restano 28 giorni a stagione (anno di 112): multiplo di sette, come la paga e il rinnovo dei mercati, e abbastanza lungo perché un viaggio da un capo all'altro del mondo non scavalchi più di una stagione. **Fatica estiva**: tocca tutte le classi del campo (fanti, tiratori, cavalli, capitani).
 3. **Neve**: in inverno le celle sopra una quota, o oltre una certa latitudine (mondi `geo===2`), sono «innevate»; i passi oltre una quota si chiudono (non percorribili) fino a primavera. I laghi del nord gelano: si attraversano, ma i porti su quei laghi sono chiusi.
 4. **Svernare**: riposare in una città in inverno costa le paghe, ma il morale non scende e i feriti guariscono il doppio; accampati all'aperto in inverno il morale scende di 2 al giorno.
 5. **Battaglie**: la stagione dà la scena (neve: terreno bianco, cavalli −15% di velocità; estate: fatica +20% a mezzogiorno, con il passo 16).
@@ -67,12 +68,14 @@ L'anno gira e cambia il modo di giocare. In inverno si mangia di più, si marcia
 - senza `s.anno` l'impronta è identica;
 - con `s.anno`: il consumo di 10 uomini in inverno è 1,5× quello estivo; un passo alto non è percorribile in inverno e lo è in primavera;
 - le guerre nuove del bot in un anno sono più in primavera ed estate che in inverno;
-- bot di 2 anni (`tests/test_ven_p17_lento.js`) con Condottiero: nessun seme in rovina; con Leggenda + stagioni rigide almeno un seme su 6 soffre la fame (prova che la leva morde);
+- bot di 2 anni (`tests/test_ven_p17_lento.js`) con Condottiero: nessun seme in rovina; con Leggenda + stagioni rigide i giorni di fame sono più che nella stessa partita senza calendario (prova che la leva morde; il bot di prova fa scorta in ogni mercato, perché quello condiviso patisce la fame anche senza stagioni);
 - tutti i bot di questo passo girano su mondi `opz.geo=2`.
 
 ## Regole per il giocatore
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+
+**Le stagioni.** L'anno ha quattro stagioni uguali e si parte a inizio primavera. In primavera si reclutano più uomini e i regni vanno in guerra più spesso; d'estate si marcia più svelti e si combatte; in autunno il grano costa poco, ed è il momento di fare scorta (un avviso ti dice quando l'inverno è vicino). D'inverno si mangia di più (i cavalli, poi, vogliono il loro foraggio a parte: se manca, la truppa si scoraggia), si cammina piano, soprattutto nella neve, i passi del nord e dei monti si chiudono fino a primavera e i laghi del nord gelano: li attraversi a piedi, ma le navi restano ferme. Per svernare riposa in una città: paghi un giorno di soldo, i feriti guariscono più in fretta e il morale tiene; accampati all'aperto, invece, la truppa si scoraggia ogni giorno. In battaglia la neve rallenta i cavalli e il caldo di mezzogiorno stanca di più. La difficoltà «stagioni» (miti, normali, rigide) decide quanto pesano questi cambiamenti.
 
 ## Fatto quando
 

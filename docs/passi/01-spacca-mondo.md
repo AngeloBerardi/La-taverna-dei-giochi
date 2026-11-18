@@ -18,7 +18,21 @@ file:
   - src/manifest.json
   - tests/carica.js
   - tests/tutti.js
-  - tests/test_ven_*.js
+  - tests/test_ven_assedio.js
+  - tests/test_ven_audio.js
+  - tests/test_ven_campo.js
+  - tests/test_ven_diplomazia.js
+  - tests/test_ven_diplomazia_bot.js
+  - tests/test_ven_mondo.js
+  - tests/test_ven_personaggi.js
+  - tests/test_ven_personaggi_bot.js
+  - tests/test_ven_regno.js
+  - tests/test_ven_regno_bot.js
+  - tests/test_ven_stanza.js
+  - tests/test_ven_tattica.js
+  - tests/test_ven_torneo_bot.js
+  - tests/test_ven_voci.js
+  - tests/test_ven_voci_bot.js
   - tests/bot_ven.js
   - tools/avventura/*.js
   - tests/fixture/ven/*

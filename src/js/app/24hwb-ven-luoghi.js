@@ -2,6 +2,21 @@
    Parte di `Ven` (24hw-ventura.js): legge stato e aiutanti da `Ven._`. Nomi e HTML come prima. CSS: css/39j*-ven-*.css. */
 const VenLuoghi=(()=>{
  const {CLS,D,TIPO,V,bt,faz,mio,mio2,n0,oggH,pannello,pips,riga,tu}=Ven._;
+
+ // Icone delle merci: due toni (ottone e legno), disegnate per questo mercato
+ const O='#f0c166',L='#8a5a2b',S='#3c2614',C='#f3e6c8',R='#b0463a',VD='#6f9a3c';
+ const IM={
+  grano:`<path d="M16 28V9" stroke="${O}" stroke-width="2"/><g fill="${O}" stroke="${S}" stroke-width="1"><path d="M16 4l3 4-3 4-3-4z"/><path d="M16 11l5 2-2 4-4-1z"/><path d="M16 11l-5 2 2 4 4-1z"/><path d="M16 17l5 2-2 4-4-1z"/><path d="M16 17l-5 2 2 4 4-1z"/></g>`,
+  carne:`<path d="M5 18c0-6 6-10 13-9 6 1 9 5 8 10-1 4-6 6-12 5-6-1-9-3-9-6z" fill="${R}" stroke="${S}" stroke-width="1.5"/><circle cx="21" cy="14" r="3" fill="${C}" stroke="${S}"/><path d="M9 16c3 1 6 0 8-3" stroke="${C}" stroke-width="1.5" fill="none"/>`,
+  pesce:`<path d="M4 16c4-6 11-8 17-3l6-4v14l-6-4c-6 5-13 3-17-3z" fill="#7c95a0" stroke="${S}" stroke-width="1.5"/><circle cx="9" cy="15" r="1.4" fill="${S}"/><path d="M13 12v8M17 12v8" stroke="${C}" stroke-width="1"/>`,
+  vino:`<path d="M12 3h8v5l3 5v13a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V13l3-5z" fill="#6d2a3c" stroke="${S}" stroke-width="1.5"/><rect x="12" y="2" width="8" height="3" fill="${O}" stroke="${S}"/><rect x="9" y="16" width="14" height="7" fill="${C}" stroke="${S}"/>`,
+  lana:`<g fill="${C}" stroke="${S}" stroke-width="1.5"><circle cx="11" cy="13" r="5"/><circle cx="19" cy="12" r="5"/><circle cx="15" cy="19" r="6"/></g><path d="M9 25c2 2 10 2 12 0" stroke="${L}" stroke-width="2" fill="none"/>`,
+  sale:`<path d="M6 12h20l-2 16H8z" fill="${C}" stroke="${S}" stroke-width="1.5"/><path d="M6 12c0-6 20-6 20 0" fill="#fff8e8" stroke="${S}" stroke-width="1.5"/><path d="M12 18l2 2 4-4" stroke="${L}" stroke-width="1.5" fill="none"/>`,
+  ferro:`<path d="M3 19l4-7h18l4 7z" fill="#8d97a3" stroke="${S}" stroke-width="1.5"/><path d="M5 19h22v5H5z" fill="#5d6671" stroke="${S}" stroke-width="1.5"/><path d="M8 14h14" stroke="${C}" stroke-width="1.5"/>`,
+  attrezzi:`<path d="M6 26L20 12" stroke="${L}" stroke-width="4"/><path d="M15 5l9 3-2 6-8-3z" fill="#8d97a3" stroke="${S}" stroke-width="1.5"/><path d="M5 12l5-5 3 3-5 5z" fill="${O}" stroke="${S}" stroke-width="1.2"/><path d="M12 24l8-8" stroke="${S}" stroke-width="1"/>`,
+  velluto:`<path d="M4 8h24v6H4zM6 14h20v13H6z" fill="#5a2a6a" stroke="${S}" stroke-width="1.5"/><path d="M4 11h24" stroke="${O}" stroke-width="1.5"/><path d="M6 24h20" stroke="${O}" stroke-width="2"/>`,
+  spezie:`<path d="M7 12h18l-1 15H8z" fill="${L}" stroke="${S}" stroke-width="1.5"/><path d="M6 12c1-5 19-5 20 0z" fill="${R}" stroke="${S}" stroke-width="1.5"/><circle cx="16" cy="19" r="3" fill="${O}" stroke="${S}"/><path d="M13 4c1 3 5 3 6 0" stroke="${VD}" stroke-width="2" fill="none"/>`};
+ const icMerce=m=>`<svg class="ico-m" width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">${IM[m]||''}</svg>`;
  function truppaH(e,azioni){const T=D.TR[e.t];return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]||''} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.compagno?' · compagno':''}</small>`,azioni||'')}
  function luogoH(){const s=V.s,lid=s.dentro>=0?s.dentro:s.davanti,l=s.l[lid];if(!l)return'';const t=tu(),fuori=s.davanti>=0,mio=l.faz==='tu'||l.sig===-2,g=VEN.giorno(s),sito=VEN.SITO[l.tipo],mura=VEN.MURA[l.tipo];
   const testa=`<div class="vn-lt" style="--fz:${VEN.colFaz(s,l.faz).col}"><small>${TIPO[l.tipo]} ${mio?'· tuo':''}</small>${sito||l.faz==='neu'?'':faz(l.faz)}<small>${sito?'':l.oste?'Vi accoglie '+esc(l.oste):'Prosperità '+l.prosp}${l.sacc>g?' · saccheggiato':''}${l.ass?' · sotto assedio':''}</small></div>`;
@@ -12,9 +27,17 @@ const VenLuoghi=(()=>{
   if(fuori){const ass=s.assedio&&s.assedio.lid===l.id;return pannello(esc(l.nome),testa+`<p class="vn-p">Le porte sono sbarrate: ${esc(VEN.nomeF(s,l.faz))} vi è nemica.</p>`+
     (l.tipo==='villaggio'?riga('<b>Razzia</b><small>Monete e grano, ma il regno non dimentica.</small>',bt('Saccheggia','fai:razzia',{cls:'gold'})):mura?
      riga(`<b>Assedio</b><small>Dietro le mura ${uom} uomini, ${giud}.${ass&&!VEN.assedioStato(s).breccia?' Breccia tra '+VEN.assedioStato(s).oreBreccia+' ore.':''}</small>`,bt(ass?'In corso':'Assedia','fai:assedia',{cls:'gold',no:ass})):'')+riga('',bt('Via di qui','fai:esci')),{chiudi:'fai:esci'})}
-  if(V.sub==='mercato'){const righe=Object.keys(D.MERCI).map(m=>{const sc=l.scorte[m]||0,pc=VEN.prezzo(s,l,m,1),pv=VEN.prezzo(s,l,m,-1),ho=t.merci[m]||0,med=VEN.prezzoMedio(s,m),nm=D.MERCI[m].nome;
-    return`<div class="vn-bn"><span class="vn-bi">${ic(D.MERCI[m].cibo?'ingr':'borsa',24)}</span><b class="vn-bm">${esc(nm)}</b><span class="vn-bh" aria-label="Ne hai ${ho}">${ho}</span><span class="vn-bp ${pc<med?'vn-bene':pc>med?'vn-male':''}" aria-label="Compri a ${pc}">${pc}</span><button class="vn-wd" data-a="ven" data-v="fai:compra:${m}" ${sc?'':'disabled'} aria-label="Compra ${esc(nm)}">${ic('plus',22)}</button><button class="vn-wd" data-a="ven" data-v="fai:vendi:${m}" ${ho?'':'disabled'} aria-label="Vendi ${esc(nm)}">${ic('meno',22)}</button><span class="vn-bp" aria-label="Vendi a ${pv}">${pv}</span></div>`}).join('');
-   return pannello('Mercato di '+esc(l.nome),`<div class="vn-bq"><span>Carico <b>${VEN.carico(t)}/${VEN.caricoMax(s)}</b></span><span>Monete <b>${n0(t.oro)}</b></span></div><div class="vn-qta"><small>Quantità</small>${[1,5,20].map(q=>`<button class="vn-ch${V.qta===q?' on':''}" data-a="ven" data-v="qta:${q}">×${q}</button>`).join('')}</div><div class="vn-bc">${righe}</div>`,{chiudi:'sub:home'})}
+  if(V.sub==='mercato'){const q=V.qta,altri=s.l.filter(x=>x.noto&&x.id!==l.id&&VEN.MERCATO[x.tipo]);
+   const somma=(m,verso,n)=>{const c={...l,scorte:{...l.scorte}};let tot=0;for(let k=0;k<n;k++){tot+=VEN.prezzo(s,c,m,verso);c.scorte[m]=(c.scorte[m]||0)+(verso>0?-1:1)}return tot};
+   let guad=0,spesa=0;
+   const righe=Object.keys(D.MERCI).map(m=>{const sc=l.scorte[m]||0,pc=VEN.prezzo(s,l,m,1),pv=VEN.prezzo(s,l,m,-1),ho=t.merci[m]||0,base=D.MERCI[m].base,nm=D.MERCI[m].nome;
+    let mig=null;for(const x of altri){const v=VEN.prezzo(s,x,m,-1);if(!mig||v>mig.v)mig={v,n:x.nome}}
+    const pct=Math.round((pc/base-1)*100),giu=pct<=-12?'bene':pct>=12?'male':'',vm=mig&&mig.v>pv+Math.max(2,pv*.1);
+    const nc=Math.min(q,sc),nv=Math.min(q,ho),cc=nc?somma(m,1,nc):0,cv=nv?somma(m,-1,nv):0;
+    const verd=giu==='bene'?'Conviene':giu==='male'?'Caro':'Nella media';
+    return`<div class="vn-bn"><span class="vn-bi">${icMerce(m)}</span><div class="vn-bx"><b class="vn-bm">${esc(nm)}</b><small class="vn-bs">Base ${base} · <span class="vn-bg ${giu}">${verd}${pct?' '+(pct>0?'+':'')+pct+'%':''}</span>${vm?' · <span class="vn-bene">altrove vendi a '+mig.v+' ('+esc(mig.n)+')</span>':''}</small></div><span class="vn-bh" aria-label="Ne hai ${ho}">${ho}</span>
+     <button class="vn-wd vn-wv" data-a="ven" data-v="fai:vendi:${m}" ${ho?'':'disabled'} aria-label="Vendi ${esc(nm)}, ${nv} a ${cv} monete">${ic('meno',20)}<small>${ho?pv:'-'}</small></button><button class="vn-wd vn-wc ${giu}" data-a="ven" data-v="fai:compra:${m}" ${sc&&t.oro>=pc?'':'disabled'} aria-label="Compra ${esc(nm)}, ${nc} a ${cc} monete">${ic('plus',20)}<small>${sc?pc:'-'}</small></button></div>`}).join('');
+   return pannello('Mercato di '+esc(l.nome),`<div class="vn-bq"><span>Carico <b>${VEN.carico(t)}/${VEN.caricoMax(s)}</b></span><span>Monete <b>${n0(t.oro)}</b></span></div><div class="vn-qta"><small>Quantità</small>${[1,5,20].map(x=>`<button class="vn-ch${q===x?' on':''}" data-a="ven" data-v="qta:${x}">×${x}</button>`).join('')}</div><p class="vn-leg">Il numero sotto − è quanto incassi per pezzo, quello sotto + quanto spendi. Verde: sotto la base, conviene comprare.</p><div class="vn-bc">${righe}</div>`,{chiudi:'sub:home'})}
   if(V.sub==='taverna'){const merc=l.merc.map(e=>truppaH(e,bt(D.INGAGGIO[D.TR[e.t].t]+' m.','fai:assolda:'+e.t,{cls:'vn-wd2'}))).join('')||'<p class="vn-p">Nessun mercenario cerca lavoro, oggi.</p>';
    const comp=D.COMPAGNI.filter(c=>s.compagni[c.id]===l.id).map(c=>riga(`<b>${esc(c.nome)}</b><small>${esc(c.d)}</small><small class="vn-bene">+2 a ${esc(D.ABIL[c.abil].nome)}, e combatte al vostro fianco.</small>`,bt(c.costo+' m.','fai:compagno:'+c.id,{cls:'vn-wd2'}))).join('');
    return pannello(l.tipo==='monastero'?'Foresteria':'Taverna',`${comp?'<div class="sh2">Gente fuori dal comune</div>'+comp:''}${l.tipo==='monastero'?'':'<div class="sh2">Gente di ventura</div>'+merc}`,{chiudi:'sub:home'})}

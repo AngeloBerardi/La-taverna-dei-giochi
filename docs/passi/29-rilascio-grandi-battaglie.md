@@ -3,7 +3,7 @@ passo: 29
 titolo: Rilascio 2: grandi battaglie
 fase: 8
 area: rilascio
-dopo: [06, 11, 16, 19, 22, 26, 28]
+dopo: [06, 11, 16, 19, 22, 26, 28, 47]
 agente: programmer
 modello: sonnet
 impegno: medio
@@ -28,7 +28,7 @@ Girare l'interruttore e provare l'insieme come lo vedrà il giocatore. È un pas
 
 ## Leggi prima
 
-`docs/passi/LEGGIMI.md` (sezione «Rilasci»); i «Fatto quando» e le «Regole per il giocatore» dei passi 06, 11, 16, 19, 22, 26, 28.
+`docs/passi/LEGGIMI.md` (sezione «Rilasci»); i «Fatto quando» e le «Regole per il giocatore» dei passi 06, 11, 16, 19, 22, 26, 28, 47.
 
 ## Decisioni
 
@@ -38,7 +38,7 @@ Girare l'interruttore e provare l'insieme come lo vedrà il giocatore. È un pas
    - aggiunge `reparti:true` e `ondate:true`;
    - mette `capoB` se il primo nemico è un signore o la Volpe, con i numeri del passo 16.
    In compagnia la taglia è quella del mondo, cioè dell'oste.
-3. **Regole**: copia in `docs/rules/ventura.md`, una sezione per passo e senza riscrivere le altre, e in `RULES.ventura` (`07d-regole.js`, voci brevi) le «Regole per il giocatore» dei passi 06, 11, 16, 19, 22, 26, 28.
+3. **Regole**: copia in `docs/rules/ventura.md`, una sezione per passo e senza riscrivere le altre, e in `RULES.ventura` (`07d-regole.js`, voci brevi) le «Regole per il giocatore» dei passi 06, 11, 16, 19, 22, 26, 28, 47.
 4. `docs/moduli/ventura.md`: aggiorna lo stato. `docs/rilasci.md`: una sezione «Rilascio 2: grandi battaglie» con cosa cambia per chi gioca (5–8 righe), da usare come nota del rilascio.
 5. **Impronta accesa**: `node tools/avventura/impronta.js --acceso grandi > docs/passi/impronte/grandi.txt`. Da qui in poi `--controlla` verifica anche questa.
 
