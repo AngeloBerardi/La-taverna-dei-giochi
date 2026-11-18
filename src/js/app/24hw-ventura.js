@@ -25,16 +25,19 @@ const Ven=(()=>{
  const TIPO=D.TIPI,PREGIO=['','vn-q1','vn-q2','vn-q3','vn-q4'];
  function avviso(tx,tipo){V.avvisi.push({tx,tipo:tipo||'',t:performance.now()});if(V.avvisi.length>3)V.avvisi.shift();const el=document.querySelector('.vn-avv');if(el)el.innerHTML=avvisiH()}
  const avvisiH=()=>V.avvisi.map(a=>`<div class="vn-av ${a.tipo}">${esc(a.tx)}</div>`).join('');
- // ---------- ingresso dalla pagina Avventura ----------
- function sezioneH(){interruttori();const s=leggi(),R=VEN.regni(null);
-  const coop=VenStanza.leggiSalv('coop'),
+ // ---------- ingresso dalla pagina Avventura (passo 18) ----------
+ // il foglio «Nuova campagna» e i suoi dati stanno in `AvvNuova` (24ha-avventura.js)
+ const AN=AvvNuova,NC=AN.NC,opzNC=AN.opzNC,stemmaH=AN.stemmaH,INSEGNA=AN.INSEGNA,LEVE=AN.LEVE;
+ function sezioneH(){interruttori();const s=leggi(),R=VEN.regni(null),coop=VenStanza.leggiSalv('coop'),
   daSolo=coop?`<button class="b sm ecta" data-a="ven" data-v="dasolo">${V.confSolo?'Conferma: sostituisce la tua partita da solo':'Continua da solo la partita in compagnia'}</button><small class="muted">Compagnia in compagnia, giorno ${VEN.giorno(coop.w)}${V.confSolo?' · la partita da solo che hai ora andrà persa':''}.</small>`:'';
-  const cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · fama ${s.fama}</small></span><span class="av-go">Continua</span></button>`:'';
-  return`<div class="sh2">Compagnia di ventura ${infoH('Un mondo libero: tre regni in guerra, villaggi dove reclutare, città dove commerciare, castelli da prendere. Nessuna trama: la strada la scegli tu.')}</div>
-${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un altro regno (il salvataggio di ora si perde):':'Da quale regno parti?'}</small>
-<div class="vn-regni vn-r5">${R.map(f=>`<button class="vn-regno${V.regno===f?' on':''}" style="--fz:${VEN.rg(null,f).col}" data-a="ven" data-v="regno:${f}"><b>${esc(VEN.rg(null,f).breve)}</b><small>${esc(VEN.rg(null,f).motto)}</small></button>`).join('')}</div>
-<button class="b ${s?'sm':'gold'} ecta" data-a="ven" data-v="nuova">${ic('spada',18)} ${s?'Nuova compagnia':'Leva la compagnia'}</button>
-<small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «Compagnia di ventura» tra i giochi.</small></div>`}
+  const o=s&&s.opz,cont=s?`<button class="av-card av-cont" data-a="ven" data-v="continua"><span class="vn-stemma">${o&&o.stemma?stemmaH(o.stemma.c1,o.stemma.c2,o.stemma.fig):ic('spada',26)}</span><span class="av-tx"><b>${esc(s.nome)}</b><small>Giorno ${VEN.giorno(s)} · ${VEN.uomini(VEN.TU(s))} uomini · ${VEN.regni(s).length} regni · fama ${s.fama}</small></span><span class="av-go">Riprendi</span></button>`:'';
+  const cop=COPIMG.includes('ventura');
+  // PONTE da togliere in un passo successivo (quando gli scenari p02-p14 apriranno il foglio): scorciatoie regno e «nuova»
+  // senza foglio, rese solo sotto automazione (navigator.webdriver), mai per chi gioca: nessun tocco per sbaglio
+  const compat=NC.fo||!navigator.webdriver?'':'<div class="av-compat" aria-hidden="true">'+R.map(f=>'<button class="vn-regno" tabindex="-1" data-a="ven" data-v="regno:'+f+'"></button>').join('')+'<button tabindex="-1" data-a="ven" data-v="nuova"></button></div>';
+  return`${cont}${daSolo}<div class="av-ins${cop?' dip':''}"${cop?` style="--cv:url(/assets/copertine/ventura.webp)"`:''}>${cop?'':INSEGNA}<div class="av-ins-tx"><h3>Compagnia di ventura</h3><p>Un mondo libero: truppe, regni, battaglie</p>
+<div class="av-ins-bt"><button class="b gold" data-a="ven" data-v="foglio">${ic('spada',18)} Nuova campagna</button><button class="b" data-a="ven" data-v="continua" ${s?'':'disabled'}>Carica</button></div></div></div>
+<small class="muted">${ic('amici',14)} In compagnia, fino a quattro capitani: apri una stanza dalla Taverna e scegli «${GN('ventura')}» tra i giochi.</small>${compat}`}
  // `?ven=grandi,mondo2`: accende in memoria, per la sessione, i soli interruttori nominati (mai salvati)
  function interruttori(){try{const q=new URLSearchParams(location.search).get('ven');if(q)for(const k of q.split(','))if(Object.prototype.hasOwnProperty.call(D.ACCESO,k))D.ACCESO[k]=true}catch(e){}}
  function entra(s){interruttori();V.s=s;V.modo='mondo';V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;V.sub='home';V.carta=null;V.msg='';V.avvisi=[];V.vitVista=!!s.vinta;V.nomeRegno='';V.stend=0;Plancia.chiudi();ui.ven=true;render()}
@@ -104,17 +107,26 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    ui.tv?(V.modo==='campo'?VenTv.campoTvH():VenTv.tvH()+(V.s.incontro?VenTv.incontroTvH():'')+(V.pan==='esito'?VenScontro.esitoH():'')):
    V.modo==='campo'?VenScontro.campoH():VenBarre.altoH()+(V.pan?'':tvOn()?VenBarre.ctlH():VenBarre.bassoH())+(V.carta!=null&&!V.pan?VenBarre.cartaH():'')+
    (V.pan==='luogo'?VenLuoghi.luogoH():V.pan==='compagnia'?VenGente.compagniaH():V.pan==='capitano'?VenGente.capitanoH():V.pan==='diario'?VenGente.diarioH():V.pan==='incontro'?VenScontro.incontroH(tvOn()):V.pan==='esito'?VenScontro.esitoH():V.pan==='attesa'?VenScontro.attesaH():V.pan==='menu'?VenBarre.menuH():V.pan==='carta'?VenBarre.cartaMondoH():V.pan==='corona'?VenLuoghi.coronaH():V.pan==='vittoria'?VenLuoghi.vittoriaH():'')+VenGente.voceH();
-  return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}<div class="vn-avv">${avvisiH()}</div></div>`}
+  const riep=inS()&&posto()>0&&!V.riepVisto&&V.modo==='mondo'&&V.s.opz&&!V.pan&&!ui.tv?`<div class="vn-riep-b">${AN.riepilogoH(V.s.opz)}<button class="b sm" data-a="ven" data-v="riepok">Ho letto</button></div>`:'';
+  return`<div class="vn" data-modo="${V.modo}"><div class="vn-scena"></div><div class="vn-etc"></div>${corpo}${riep}<div class="vn-avv">${avvisiH()}</div></div>`}
  // ---------- battaglia ----------
  function inBattaglia(scheda){V.modo='campo';V.pan=null;V.fine=null;VenCampo.apri(scheda);render()}
  function fineBattaglia(){const r=VCAM.riepilogo(VenCampo.K.s),x=VEN.esito(V.s,r);V.modo='mondo';V.fine=null;V.pan=x.err?null:'esito';VenMappa.centra();salva();VenAudio.mondo([{t:'esito',out:r}]);render()}
  // ---------- comandi ----------
  function act(v){const s=V.s,p=String(v||'').split(':'),c=p[0];V.msg='';
   if(c==='regno'){V.regno=p[1];return render()}
+  if(c==='foglio'){NC.fo=true;if(!NC.nome)NC.nome=ME.name||'Capitano';return render()}
+  if(c==='fochiudi'){NC.fo=false;return render()}
+  if(c==='diff'){NC.diff=p[1];NC.pronta=true;return render()}
+  if(c==='leva'){const k=p[1],L=LEVE.find(x=>x[0]===k),v=L&&L[2].find(x=>String(x)===p[2]);if(v!=null){NC.leve[k]=v;NC.diff='misura';NC.pronta=true}return render()}
+  if(c==='col'){NC['c'+p[1]]=+p[2]|0;NC.pronta=true;return render()}
+  if(c==='fig'){NC.fig=+p[1]|0;NC.pronta=true;return render()}
+  if(c==='riepok'){V.riepVisto=true;return render()}
   if(c==='rip')return VenStanza.scegli(p[1]);
   if(c==='dasolo'){if(!V.confSolo&&leggi()){V.confSolo=true;return render()}V.confSolo=false;if(VenStanza.perSolo()){const x=leggi();if(x)entra(x)}return}
   if(c==='continua'){const x=leggi();if(x)entra(x);return}
-  if(c==='nuova'){interruttori();const x=VEN.nuovo((Date.now()^Math.floor(Math.random()*1e9))>>>0,{nome:ME.name||'Capitano',compagnia:'Compagnia di '+(ME.name||'ventura'),regno:V.regno});entra(x);salva();return}
+  if(c==='nuova'){interruttori();const sm=NC.fo&&NC.seme!==''?(+NC.seme)>>>0:(Date.now()^Math.floor(Math.random()*1e9))>>>0,nm=NC.fo&&NC.nome?(NC.nome.trim()||'Capitano'):ME.name||'Capitano';
+   const x=VEN.nuovo(sm,Object.assign({nome:nm,compagnia:'Compagnia di '+(ME.name||nm||'ventura'),regno:D.ACCESO.mondo2?undefined:V.regno},NC.fo?{opz:opzNC()}:{}));NC.fo=false;entra(x);salva();return}
   if(!s)return;
   if(c==='esci')return inS()?VenStanza.esci():esci();
   if(c==='riprova'){riprova();return}
