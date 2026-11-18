@@ -54,6 +54,20 @@ Solo vista. `K.lod`, `VenArte.Schiera` con `livello(n)`. Funzione pura `blocchi(
 
 Regia (passo 31), effetti (passo 37).
 
+## Correzioni dalla revisione delle fasi 1–6
+
+Da `docs/passi/REVISIONE-1-6.md` (P2-6, P2-10). Stessi file, commit a parte.
+1. **Il campo parla.** In `eventi` (`24hv`) gli eventi del passo 16 e del passo 21 diventano avvisi (`Ven.avviso`), al più due insieme, in quest'ordine di precedenza:
+   - `stendardo`: «Lo stendardo nemico è caduto!» oppure «Il tuo stendardo è caduto!»;
+   - `rotta-r`: «Cede il reparto di sinistra!», con il nome del settore o del tipo;
+   - `ondata`: «Entra l'ondata dal fianco destro»;
+   - `piano`: solo la prima manovra di ogni reparto nemico, con una frase per manovra in una tabella `FRASI` in testa a `24hv` (es. `tieni` «I loro fanti serrano i ranghi», `debole` «Puntano sul tuo reparto più provato», `attendi` «I loro cavalieri aspettano di lato»);
+   - `carro`: «I balestrieri corrono al carro»;
+   - `raduno`: «Il Grido raduna i fanti».
+   Le frasi sono in parole nostre, senza numeri. Così chi gioca *vede* la dottrina del nemico.
+2. **Il tavolo si legge.** Alture e boschi del campo hanno il nome scritto sul terreno, anche fuori dai settori. I gettoni dei reparti nello stesso settore stanno affiancati e non si coprono mai (almeno 44 px tra i centri sullo schermo).
+3. **Prove in più** (`scenari/p26.py`): forzando ognuno dei sei eventi l'avviso compare entro 300 ms; con 6 reparti nello stesso settore i rettangoli dei gettoni sono disgiunti.
+
 ## Fatto quando
 
 Lo scenario passa e gli screenshot sono guardati.

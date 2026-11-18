@@ -11,6 +11,8 @@ controllo: forte+visivo
 file:
   - src/js/motori/28jc-ven-dati-mondo.js
   - src/js/app/24ha-avventura.js
+  - src/js/app/24ht-ven-arte.js
+  - src/js/app/24hwd-ven-scontro.js
   - docs/rules/ventura.md
   - src/js/app/07d-regole.js
   - docs/moduli/ventura.md
@@ -49,6 +51,14 @@ Girare l'interruttore e provare l'insieme come lo vedrà il giocatore. È un pas
 ## Se qualcosa non va
 
 Si spegne di nuovo l'interruttore nella stessa PR e si apre una issue GitHub che indica il passo da correggere. Qui non si corregge.
+
+## Correzioni dalla revisione delle fasi 1–6
+
+Da `docs/passi/REVISIONE-1-6.md` (P2-9). **Lo stemma della Compagnia**: oggi la figura scelta diventa la sua iniziale (Leone e Lupo danno entrambe «L») e lo stemma si vede solo nella carta «Riprendi».
+1. In `24ht-ven-arte.js` una funzione `VenArte.stemma({c1,c2,fig},px)` → SVG: scudo partito nei due colori e **le 12 figure disegnate**, piatte, a sagoma, nello stile degli stendardi dei regni (niente lettere). La usano `24ha` (foglio e carta «Riprendi»), lo stendardo della compagnia sulla mappa, l'incontro e la barra della battaglia (`24hwd`, al posto della «C»).
+2. Senza `s.opz.stemma` (partite vecchie) si usa lo stemma di base della compagnia di oggi.
+3. **Prove in più**: le 12 figure danno 12 SVG diversi; nell'incontro, a sinistra, c'è lo stemma scelto nel foglio. Uno screenshot del foglio e uno dell'incontro a 390 px.
+4. Se il lavoro supera il rilascio, si sposta in un passo a sé dello stesso modello: lo si dice nella PR.
 
 ## Fatto quando
 

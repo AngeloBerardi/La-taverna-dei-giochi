@@ -29,6 +29,8 @@ Tutti i prompt, anche quelli per lavorare a mano un passo per volta, sono in `PR
 6. **Ganci, non modifiche al nucleo.** Le novità del mondo vivono nel loro file (`28kf`–`28kr`) e si attaccano ai ganci del passo 04 (`VEN.aggancia`), oppure sostituiscono un punto d'estensione **componendo** la versione precedente.
 7. **Regole per il giocatore**: le scrivi nel tuo file (3–6 righe, parole nostre). Le copia nelle regole il passo del rilascio.
 8. Se una decisione non regge (una funzione che non esiste, un contratto impossibile), **fermati** e scrivilo: non improvvisare.
+9. **Prima chi gioca, poi la regola.** Nei passi di vista, prima di toccare una schermata scrivi nella PR le domande a cui deve rispondere («quanto pago?», «cosa rischio?», «entro quando?», «chi ho davanti?»). Le regole d'interfaccia (un ottone, 44 px, niente frasi fisse) servono queste risposte, non le sostituiscono: **un tocco che spende o promette mostra prima il prezzo**. Se una regola del passo toglie un'informazione che serve per decidere, fermati e chiedi (vedi `REVISIONE-1-6.md`).
+10. **Ciò che produci, qualcuno lo usa.** Un campo, una funzione, un evento o una leva nuovi hanno un consumatore nel tuo passo o in un passo nominato. Se leggi un dato di un altro passo, controllane la forma nel codice, non nel testo del passo.
 
 ## Controlli
 Ogni PR ha un controllo, fatto da un'altra chat che legge solo il passo e il diff. Il verdetto, «APPROVATO» o «DA CORREGGERE», arriva come commento sulla PR.
@@ -39,6 +41,10 @@ Ogni PR ha un controllo, fatto da un'altra chat che legge solo il passo e il dif
 | **forte** | Opus 5.5 · alto | il leggero, più: rilancia i test del passo e l'impronta; motori puri e ripetibili; interruttori spenti → nulla cambia; salvataggi vecchi; compagnia (mosse con `seat`, due telefoni uguali); i numeri delle prove sono quelli chiesti |
 | **visivo** | Opus 5.5 · basso | `npm run build`, lancia lo scenario del passo con `SCHERMATE_DIR`, guarda al massimo 3 screenshot: un ottone, bersagli ≥ 44 px, niente testo tagliato o sovrapposto, coerenza con `docs/STYLE.md` e col passo. Il codice lo apre solo per un dubbio preciso |
 | **forte+visivo** | Opus 5.5 · alto | i due insieme (rilasci, geografia) |
+
+Il controllo **visivo** guarda anche le domande della regola 9: se da uno screenshot non si capisce cosa si accetta o si paga, è «DA CORREGGERE», anche con un ottone solo e i bersagli giusti.
+
+**Cucitura a fine fase** (Opus · alto, dopo l'ultima unione e prima della fase dopo): una partita vera di 20 minuti a 390 px, con gli interruttori della fase accesi via `?ven=`; il controllo che le forme dei dati tra motore e vista coincidano (anteprima, eventi del campo, opzioni); l'elenco di ciò che è nato senza consumatore. Ogni rilievo diventa una correzione in un passo futuro che tocca già quei file, come in `REVISIONE-1-6.md`, oppure una issue. Un difetto noto entra in una lista d'eccezioni di uno scenario solo se un passo nominato lo chiude prima del rilascio successivo.
 
 ## Se qualcosa va storto (scala dei modelli)
 1. Se le prove non passano dopo due tentativi, si riprova con lo stesso modello a impegno **alto**.
