@@ -13,12 +13,12 @@ for (const f of [...vista, ...lista.filter((f) => /css\/39j/.test(f))]) assert(f
 const ls = new Map();
 const ctx = { console, Math, JSON, Date, performance: { now: () => 1000 },
   localStorage: { getItem: (k) => (ls.has(k) ? ls.get(k) : null), setItem: (k, v) => ls.set(k, String(v)), removeItem: (k) => ls.delete(k) },
-  document: { getElementById: () => null, querySelector: () => null, documentElement: { classList: { toggle() {}, remove() {} } } },
+  document: { addEventListener() {}, getElementById: () => null, querySelector: () => null, documentElement: { classList: { toggle() {}, remove() {} } } },
   requestAnimationFrame: () => 1, cancelAnimationFrame() {}, esc: (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'),
   ic: (n, s) => `<i data-ic="${n}" data-s="${s}"></i>`, render() {}, ui: {}, R: { on: false }, infoH: () => '<i></i>', G: null, ME: { name: 'Tester' }, Plancia: { chiudi() {} },
   VenStanza: { on: () => false, X: { era: false }, seat: () => -1, sync() {}, manda: () => ({}) },
   VenArte: { A: { pronta: true, fallita: false, errore: '' }, persa: () => false, qual: () => 'alta', cv: { style: {} }, smonta() {} },
-  VenMappa: { K: {}, centra() {}, passo() {} }, VenCampo: { K: {}, apri(sc) { this.K.s = ctx.VCAM.nuovo(sc); this.K.pausa = true; this.K.scheda = sc; }, tocco() {} },
+  VenMappa: { K: {}, centra() {}, passo() {} }, VenCampo: { K: {}, tavolo: () => false, apri(sc) { this.K.s = ctx.VCAM.nuovo(sc); this.K.pausa = true; this.K.scheda = sc; }, tocco() {} },
   VenAudio: new Proxy({ traccia: () => '' }, { get: (t, k) => (k in t ? t[k] : () => {}) }) };
 vm.createContext(ctx);
 const run = (f, extra) => vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8') + (extra || ''), ctx, { filename: f });
