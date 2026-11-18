@@ -8,13 +8,16 @@ const VenCampo=(()=>{
  // `rip` è il ripiego per un id sconosciuto (`ignota` di VEN.rg; come prima: assedio `fer`, campo `pre`, arena e mura `neu`); 'tu' resta quello di base, senza lo stendardo della corona.
  const rg0=f=>VEN.rg(f==='tu'||typeof Ven==='undefined'||!Ven.V?null:Ven.V.s,f);
  const rg=(f,rip)=>{const x=rg0(f);return x.ignota?rg0(rip||'neu'):x};
- const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti'};
+ const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti',tvT:-1,selR:null,gt:{},od:1,bz:{},fogOnd:false,dt:0,fit:true};
+ // tavolo dello schieramento (passo 19): solo vista, vero a t===0 se la battaglia ha i reparti (`s.rep`); riparte da zero a ogni battaglia
+ const rz=()=>{K.tvT=-1;K.selR=null;K.gt={};K.fogOnd=false;K.od=1;K.bz={};K._tv=false;K.fit=true;K.sigO=undefined};
+ const tavolo=s=>!!(s&&s.rep&&s.t===0&&!s.fine&&s.pronto&&!s.pronto.a);
  const hh=(x,y,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
- function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;scena();
+ function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;rz();scena();
   const c=VCAM.capU(K.s);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=scheda.ora>=0?scheda.ora:scheda.notte?22.5:10+hh((scheda.seme|0)&1023,1,2)*6;return K.s}
  // in compagnia (VenStanza) lo stato arriva da fuori e il tempo lo fa scorrere la stanza: qui si disegna soltanto
  function usa(s,batt){const nuova=K.batt!==batt||!K.scene||!K.esterno;K.s=s;K.batt=batt;K.esterno=true;if(!nuova)return;
-  K.scheda={seme:s.seme0,bioma:s.bioma,terreno:s.terreno,notte:s.notte,faza:s.faza,fazb:s.fazb,cola:s.cola,colb:s.colb,scena:s.scena,ora:s.ora};K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;scena();
+  K.scheda={seme:s.seme0,bioma:s.bioma,terreno:s.terreno,notte:s.notte,faza:s.faza,fazb:s.fazb,cola:s.cola,colb:s.colb,scena:s.scena,ora:s.ora};K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;rz();scena();
   const c=VCAM.capU(s,K.seat||0);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=s.ora>=0?s.ora:s.notte?22.5:10+hh((s.seme0|0)&1023,1,2)*6}
  const CAPC=['#d98a1f','#2f9bd6','#b455c8','#3fb968'];
  // la scena si può rifare a battaglia in corso (contesto grafico perso): lo stato della battaglia non si tocca
@@ -141,12 +144,13 @@ const VenCampo=(()=>{
    else if(e.t==='cap-ko')Ven.avviso(e.seat===(K.seat||0)?'Sei caduto: gli uomini combattono senza di te':'Un capitano è caduto!','male');
    else if(e.t==='fine')K.finita=true}
   if(ev.length)VenAudio.campo(ev)}
- function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;
+ function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;K.dt=dt;
+  {const tv=tavolo(s);if(tv!==K._tv){K._tv=tv;if(tv){K.segue=false;K.fit=true;K.selR=null}else if(typeof ui!=='undefined'&&ui.tv){K.alt=80;K.fuoco.x=30;K.fuoco.z=50}else{K.segue=true;K.alt=38}render()}if(tv&&K.fit)fitta()}
   if(K.portone){const su=!!(s.porta&&s.porta.pf>0);K.portone.visible=su;K.abbattuto.visible=!su}
   if(!K.esterno&&!K.pausa&&!s.fine){K.acc+=dt*10*K.vel;let n=0;while(K.acc>=1&&n++<6){K.acc-=1;eventi(VCAM.passo(s,1))}if(K.acc>1)K.acc=0}
   const al=s.fine||K.pausa?1:Math.min(1,K.acc),cap=VCAM.capU(s,K.seat||0);
   K.fig.inizio();K.ste.inizio();const cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};let caduti=0;
-  for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;let q=K.U[u.id];if(!q)q=K.U[u.id]={f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9};
+  for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;if(u.l==='b'&&s.primo==='a'&&s.rep&&(K._tv||K.t<K.tvT))continue;let q=K.U[u.id];if(!q)q=K.U[u.id]={f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9};
    const x=u.st==='ko'?u.x:u.px+(u.x-u.px)*al,z=u.st==='ko'?u.y:u.py+(u.y-u.py)*al,mosso=Math.hypot(u.x-u.px,u.y-u.py);
    if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(++caduti>46&&q.giu>=1)continue}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
    const F=FAZ(u.l),tc=K.t-q.colpo,tf=(VDAT.TR[u.t]||{}).faz,xt=tf&&rg0(tf),FT=xt&&!xt.ignota?xt:F,mioL=u.l==='a';
@@ -180,14 +184,36 @@ const VenCampo=(()=>{
   const sx=K.scossa>0?(Math.random()-.5)*K.scossa*2:0;
   if(K.acqua)K.acqua.uniforms.luce.value=1-L.notte*.5;
   A.disegna(K.scene,K.cam,{x:K.fuoco.x+sx,y:0,z:K.fuoco.z+sx},K.alt,{notte:L.notte,lampo:K.lampo*.5,nebbia:met==='nebbia'?.5:met==='pioggia'?.2:0,tinta:met==='pioggia'?[.9,.94,1]:K.ora>17.5&&K.ora<20.5?[1.06,.97,.9]:null});
+  {const sg=s.ond?s.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando').map(w=>w.id+':'+w.tr.reduce((a,x)=>a+x.n,0)).join():'';if(K.sigO!==undefined&&sg!==K.sigO)render();K.sigO=sg}
   numeri()}
- function numeri(){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte;let h='';K.numeri=K.numeri.filter(n=>K.t-n.t<.8);
+ function numeri(){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte;let h=tavoloH();K.numeri=K.numeri.filter(n=>K.t-n.t<.8);
   for(const n of K.numeri){const q=(K.t-n.t)/.8,p=A.aSchermo(K.cam,n.x,2.2+q*2.4,n.z);h+='<i class="vn-num '+n.cls+'" style="left:'+Math.round(p.x)+'px;top:'+Math.round(p.y)+'px;opacity:'+(1-q*q).toFixed(2)+'">'+n.v+'</i>'}
   if(host._h!==h){host.innerHTML=h;host._h=h}}
- function trascina(dx,dy){const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
- function pizzico(f){K.alt=Math.max(24,Math.min(80,K.alt/f))}
+ function trascina(dx,dy){K.fit=false;const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
+ function pizzico(f){K.fit=false;K.alt=Math.max(24,Math.min(K._tv?220:80,K.alt/f))}
  function tocco(px,py){const A=VenArte,s=K.s;if(!s||s.fine)return null;const r=A.cv.getBoundingClientRect();let m=null,md=26;
+  if(K.selR!=null&&tavolo(s)){const g=A.aTerra(K.cam,px,py,0);VenScontro.schieraSu(K.selR,g.x,g.z);return null}
   for(const u of s.u){if(u.l!=='b'||u.st!=='vivo')continue;const c=A.aSchermo(K.cam,u.x,.9,u.y),d=Math.hypot(c.x-(px-r.left),c.y-(py-r.top));if(d<md){md=d;m=u}}
   if(m)return{b:m.id};const g=A.aTerra(K.cam,px,py,0);return{x:g.x,y:g.z}}
  const centra=()=>{K.segue=true};
- return{K,CAPC,apri,usa,scena,eventi,passo,trascina,pizzico,tocco,centra}})();
+ // il tavolo: il campo intero entra nella parte libera dello schermo (sopra le barre, sotto i comandi)
+ function fitta(){const s=K.s,A=VenArte;if(!K.cam||!A.cv)return;const r=A.cv.getBoundingClientRect();if(!r.width)return;const tvm=typeof ui!=='undefined'&&ui.tv,top=tvm?56:84,bot=tvm?60:200;
+  const P=[[0,0],[s.W,0],[0,s.H],[s.W,s.H]].map(q=>A.aSchermo(K.cam,q[0],0,q[1])),xs=P.map(p=>p.x),ys=P.map(p=>p.y),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const f=Math.min((r.width-10)/Math.max(1,x1-x0),(r.height-top-bot)/Math.max(1,y1-y0));K.alt=Math.max(24,Math.min(220,K.alt*Math.pow(1/f,.6)));
+  const u=K.alt/r.height;K.fuoco.z-=(top+(r.height-top-bot)/2-(y0+y1)/2)*u/A.SE*.6;K.fuoco.x-=(r.width/2-(x0+x1)/2)*u*.6}
+ // settori, frecce degli ingressi e gettoni dei reparti, disegnati sopra il campo (sola visione: i tocchi passano al campo)
+ function tavoloH(){const s=K.s,A=VenArte;if(!s||!s.rep||!(tavolo(s)||K.t<K.tvT)||!K.cam)return'';const P=(x,z)=>A.aSchermo(K.cam,x,0,z),f=n=>n.toFixed(0);let sv='',gt='';
+  const NOMI={sx:'Sinistra',cx:'Centro',dx:'Destra',avan:'Avanguardia',alt:'Altura',imb:'Imboscata',mura:'Mura',cortile:'Cortile'};
+  if(tavolo(s))for(const z of VCAM.settori(s,'a')){
+   if(z.k==='ingresso'){const px=z.id==='fsx'?0:z.id==='fdx'?s.W:(z.x0+z.x1)/2,pz=z.id==='retro'?s.H:(z.y0+z.y1)/2,ix=z.id==='fsx'?4:z.id==='fdx'?-4:0,iz=z.id==='retro'?-4:0,p=P(px,pz),q=P(px+ix,pz+iz),dx=q.x-p.x,dy=q.y-p.y,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
+    sv+=`<polygon class="ar" points="${f(p.x+ux*20)},${f(p.y+uy*20)} ${f(p.x-uy*11)},${f(p.y+ux*11)} ${f(p.x+uy*11)},${f(p.y-ux*11)}"/>`;continue}
+   const c=[[z.x0,z.y0],[z.x1,z.y0],[z.x1,z.y1],[z.x0,z.y1]].map(q=>P(q[0],q[1])),m=P((z.x0+z.x1)/2,(z.y0+z.y1)/2);
+   sv+=`<polygon points="${c.map(p=>f(p.x)+','+f(p.y)).join(' ')}"/><text x="${f(m.x)}" y="${f(Math.min(...c.map(p=>p.y))+11)}">${NOMI[z.id.replace(/[0-9]+$/,'')]||z.id}</text>`}
+  const ICO={f:'scudo',t:'freccia',c:'passi'};
+  for(const l of['b','a']){const om=l==='b'&&!(s.primo==='b'||s.pronto.a),G={};
+   for(const u of s.u){if(u.l!==l||u.cap||u.st!=='vivo')continue;const g=G[u.r]||(G[u.r]={x:0,y:0,n:0,c:u.c});g.x+=u.x;g.y+=u.y;g.n++}
+   for(const r of Object.keys(G)){const g=G[r];let x=g.x/g.n,y=g.y/g.n;
+    if(l==='b'){const e=K.gt[r]||(K.gt[r]={x,y});e.x+=(x-e.x)*Math.min(1,K.dt*5);e.y+=(y-e.y)*Math.min(1,K.dt*5);x=e.x;y=e.y}
+    const p=P(x,y);gt+=`<i class="vt-g${l==='b'?' ne':''}${om?' om':''}${l==='a'&&K.selR===+r?' on':''}" style="left:${f(p.x)}px;top:${f(p.y)}px">${om?'':ic(ICO[g.c]||'scudo',14)+'<b>'+g.n+'</b>'}</i>`}}
+  return`<svg class="vt-sv">${sv}</svg>${gt}`}
+ return{K,CAPC,apri,usa,scena,eventi,passo,trascina,pizzico,tocco,centra,tavolo}})();

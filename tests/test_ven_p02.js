@@ -18,7 +18,7 @@ const ctx = { console, Math, JSON, Date, performance: { now: () => 1000 },
   ic: (n, s) => `<i data-ic="${n}" data-s="${s}"></i>`, render() {}, ui: {}, R: { on: false }, infoH: () => '<i></i>', G: null, ME: { name: 'Tester' }, Plancia: { chiudi() {} },
   VenStanza: { on: () => false, X: { era: false }, seat: () => -1, sync() {}, manda: () => ({}) },
   VenArte: { A: { pronta: true, fallita: false, errore: '' }, persa: () => false, qual: () => 'alta', cv: { style: {} }, smonta() {} },
-  VenMappa: { K: {}, centra() {}, passo() {} }, VenCampo: { K: {}, apri(sc) { this.K.s = ctx.VCAM.nuovo(sc); this.K.pausa = true; this.K.scheda = sc; }, tocco() {} },
+  VenMappa: { K: {}, centra() {}, passo() {} }, VenCampo: { K: {}, tavolo: () => false, apri(sc) { this.K.s = ctx.VCAM.nuovo(sc); this.K.pausa = true; this.K.scheda = sc; }, tocco() {} },
   VenAudio: new Proxy({ traccia: () => '' }, { get: (t, k) => (k in t ? t[k] : () => {}) }) };
 vm.createContext(ctx);
 const run = (f, extra) => vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8') + (extra || ''), ctx, { filename: f });
