@@ -24,5 +24,5 @@
 .vn-ct{display:flex;align-items:center;gap:8px}.vn-ct b{flex:1;font:800 18px var(--f-d);color:#f0c166}
 .vn-fz{display:inline-block;padding:1px 8px;font:800 12px var(--f-d);color:#fff;background:var(--fz,#666);border:1px solid rgba(0,0,0,.6)}
 /* stagione accanto al giorno (solo mondi con anno) */
-.vn-stag{display:inline-flex;align-items:center;gap:3px;min-height:44px;padding:0 6px;background:rgba(0,0,0,.35);border:1px solid rgba(184,138,60,.45);font:800 11px var(--f-b);cursor:pointer}
+.vn-stag{display:inline-flex;align-items:center;gap:3px;min-height:44px;min-width:36px;justify-content:center;padding:0 4px;background:rgba(0,0,0,.35);border:1px solid rgba(184,138,60,.45);font:800 11px var(--f-b);cursor:pointer}
 .vn-st-prim{color:#a8dc7a}.vn-st-est{color:#f4d160}.vn-st-aut{color:#e08a4a}.vn-st-inv{color:#bfe0f2}
