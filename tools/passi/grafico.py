@@ -17,7 +17,7 @@ CORTO = {'01':'Spezza il motore\ndel mondo','02':'Spezza la vista','03':'Complet
  '29':'Rilascio 2\nGrandi battaglie','30':'Maestro di guerra\nrango 5','31':'Regia della\nbattaglia','32':'Strategia prima\ndella battaglia','33':'La sorte:\npartenza a caso',
  '34':'Rilascio 3\nComandanti','35':'Sfida al capo','36':'Economia\ndel mondo','37':'Peso della\nmischia',
  '38':'Rilascio 4\nNuova campagna','39':'Voci sullo\nschermo','40':'Eserciti\ne adunate','41':'Feudi vivi\n(motore)','42':'Testi: incontri\ndel crocevia',
- '43':'Affari: botteghe\ne carovane','44':'Incontri del\ncrocevia (motore)','45':'Feudi e affari\nnella vista','46':'Rilascio 5\nEserciti'}
+ '43':'Affari: botteghe\ne carovane','44':'Incontri del\ncrocevia (motore)','45':'Feudi e affari\nnella vista','46':'Rilascio 5\nEserciti','47':'Pronto per posto\nin compagnia'}
 BG='#1b1410'; CARTA='#2a1f18'; OT='#d9a441'; TX='#f1e6cf'; GR='#a39684'
 AREA = {'fondamenta':('#d9a441','Fondamenta'), 'battaglia':('#d0603f','Battaglia'), 'mondo':('#57a866','Mondo e campagna'),
         'viste':('#4b93d1','Viste'), 'testi':('#a77ad1','Testi'), 'progetto':('#9aa0a6','Progetto'), 'rilascio':('#f0c75a','Rilascio')}
