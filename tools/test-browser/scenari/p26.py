@@ -21,6 +21,9 @@ async def _avvia(b, srv):
     await pg.wait_for_function("VenMappa.K.scene", timeout=30000); await pg.wait_for_timeout(800)
     return ctx, pg
 
+# la camera sul proprio capitano, come quando si gioca: è l'inquadratura con più uomini in vista
+_CAPO = "(()=>{const K=VenCampo.K,c=VCAM.capU(K.s,0);K.fuoco.x=c.x;K.fuoco.z=c.y-9;K.segue=false})()"
+
 async def _campo(pg, scheda, alt=38, pausa=False):
     await pg.evaluate("(()=>{Ven.V.modo='campo';VenCampo.apri(%s);VenCampo.K.fit=false;VenCampo.K.alt=%s;VenCampo.K.pausa=%s;render()})()" % (scheda, alt, 'true' if pausa else 'false'))
     await pg.wait_for_timeout(700)
@@ -34,25 +37,26 @@ async def sc_p26_livelli(b, srv):
     """150 contro 150 su un campo grande: fps vicini a quelli di una battaglia piccola, draw call costanti, vista del comandante a blocchi."""
     d = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
     ctx, pg = await _avvia(b, srv)
-    # fps: battaglia piccola e battaglia grande, stessa qualità (media), stesso browser, stessa altezza di camera
+    # fps: battaglia piccola e battaglia grande, stessa qualità (media), stesso browser, stessa altezza di camera, camera sul capitano
     ps, gs, ls = [], [], []
-    for _ in range(3):   # a battaglia ferma (conta il disegno, non la simulazione, che sta nel motore); misure alternate (la prima è di riscaldamento), mediana: il rendering software è rumoroso
-        await _campo(pg, _scheda(20, False), 38, True); ps.append(await pg.evaluate(_FPS))
-        await _campo(pg, _scheda(20), 38, True); ls.append(await pg.evaluate(_FPS))
-        await _campo(pg, _scheda(150), 38, True); gs.append(await pg.evaluate(_FPS))
-    f_p, f_g = sorted(ps[1:])[len(ps[1:]) // 2], sorted(gs[1:])[len(gs[1:]) // 2]
+    for _ in range(4):   # a battaglia ferma (conta il disegno, non la simulazione, che sta nel motore); misure alternate (la prima è di riscaldamento), mediana: il rendering software è rumoroso
+        for sch, out in ((_scheda(20, False), ps), (_scheda(20), ls), (_scheda(150), gs)):
+            await _campo(pg, sch, 38, True); await pg.evaluate(_CAPO); out.append(await pg.evaluate(_FPS))
+    med = lambda v: sorted(v[1:])[len(v[1:]) // 2]
+    f_p, f_g = med(ps), med(gs)
     st = await pg.evaluate("({lod:VenCampo.K.lod,n:VenCampo.K.s.u.length,W:VenCampo.K.s.W,H:VenCampo.K.s.H})")
     check(st['n'] >= 300 and st['W'] == 100 and st['H'] == 140, f'campo grande con 150 contro 150: {st}')
-    # misure in rendering software (SwiftShader): piccola 60x100 con 40 uomini, grande 100x140 vuota, grande con 300. Il traguardo 0,9 x non regge qui: soglia di non regressione 0,45 x, vedi la PR
-    check(f_g >= .45 * f_p, f'fps con 150 contro 150 ({f_g:.1f}; campo grande vuoto {sorted(ls[1:])[-1]:.1f}) almeno 0,45 x battaglia piccola ({f_p:.1f})')
-    # draw call: stesse tra 40 e 220 uomini (vicino)
-    await _campo(pg, _scheda(20), 30, True); c40 = await pg.evaluate(_CALLS)
-    await _campo(pg, _scheda(150), 30, True); c220 = await pg.evaluate(_CALLS)
-    lv = await pg.evaluate("VenCampo.K.lod")
-    check(c40 == c220 and c40 > 0 and lv == 0, f'draw call uguali tra 40 e 300 uomini (qualità media, tetto superato): {c40} / {c220} (lod {lv})')
+    vis = await pg.evaluate("(()=>{const P=VenCampo.K.fig.P;return{intere:P.corpo.count,omini:P.omino.count}})()")
+    # traguardo del passo: 0,9 x. In rendering software (SwiftShader) ogni istanza ha un costo fisso: misure e opzioni nella PR #180
+    check(f_g >= .9 * f_p, f'fps con 150 contro 150 ({f_g:.1f}; in vista {vis}; campo grande vuoto {med(ls):.1f}) almeno 0,9 x battaglia piccola ({f_p:.1f})')
+    # draw call: stesse tra 40 e 300 uomini (vicino, camera sul capitano: col tetto superato una parte delle figure sono omini)
+    await _campo(pg, _scheda(20), 30, True); await pg.evaluate(_CAPO); c40 = await pg.evaluate(_CALLS)
+    await _campo(pg, _scheda(150), 30, True); await pg.evaluate(_CAPO); c220 = await pg.evaluate(_CALLS)
+    lv = await pg.evaluate("[VenCampo.K.lod,VenCampo.K.fig.P.omino.count]")
+    check(c40 == c220 and c40 > 0 and lv[0] == 0 and lv[1] > 1, f'draw call uguali tra 40 e 300 uomini (qualità media, tetto superato: {lv[1]} omini): {c40} / {c220}')
     # livello medio: figure senza armi, ma con corpo e testa; la camera a metà
     await pg.evaluate("VenCampo.K.alt=60;VenCampo.passo(.016);VenCampo.passo(.016)")
-    md = await pg.evaluate("(()=>{const P=VenCampo.K.fig.P;return{lod:VenCampo.K.lod,corpo:P.corpo.count,spada:P.spada.count+P.lancia.count+P.arco.count}})()")
+    md = await pg.evaluate("(()=>{const P=VenCampo.K.fig.P,n=k=>P[k].count===1&&P[k].instanceMatrix.array[0]===0?0:P[k].count;return{lod:VenCampo.K.lod,corpo:n('corpo'),spada:n('spada')+n('lancia')+n('arco')}})()")   # un pezzo vuoto ha un'istanza schiacciata
     check(md['lod'] == 1 and md['corpo'] > 100 and md['spada'] <= 1, f'livello medio: figure intere ma senza armi: {md}')
     # schermata della mischia vicina
     await _campo(pg, _scheda(150), 34); await pg.evaluate("VenCampo.K.fit=false"); await pg.wait_for_timeout(5000)
