@@ -2,7 +2,7 @@
    Due schiere su un campo W×H (passi), in tempo reale (un istante = 100 ms, `passo(s, n)`): ogni soldato è un'unità; chi gioca guida il capitano
    (`capitano`) e dà ordini ai gruppi (`ordina`). Il lato `a` parte dal basso, il `b` dall'alto; gli altri arrivano a ondate. Negli assedi un muro taglia il campo.
    `risolvi(scheda)` gioca tutta la battaglia senza grafica. Mai `Math.random`, `Date.now` o trigonometria. Numeri delle truppe in `VDAT` (28j), del campo in `C`;
-   morale dei reparti, fatica, frecce e comandante nemico (passo 16) in 28jb. Piano: docs/VENTURA.md. */
+   morale dei reparti, fatica, frecce e comandante nemico (passo 16) in 28jb; consiglio di guerra in 28la. Piano: docs/VENTURA.md. */
 const VCAM=(()=>{
  const D=VDAT;
  const C={W:60,H:100,ARENA:17,MAX:34,ONDATA:10,PASSO:.03,MISCHIA:1.5,RITMO:12,RITMO_T:24,VOLO:.55,ROTTA:.22,TMAX:7000,DANNO:.5,GRIDO:320,GRIDO_DUR:90,MURO:34,
@@ -87,6 +87,7 @@ const VCAM=(()=>{
   if(scheda.imboscata==='a'||scheda.imboscata==='b')s.imb=scheda.imboscata;
   if(scheda.colonna){const lc=scheda.colonna==='a'||scheda.colonna==='b'?scheda.colonna:s.imb?(s.imb==='a'?'b':'a'):null;if(lc){s.fermo={};s.fermo[lc]=C.REP.FERMO;for(const g of GR)s.ord[lc][g].fm='larga'}}
   if(s.fazb==='pre'){for(const g of GR)s.ord.b[g].t='carica'}
+  if(scheda.rango)VCONS.avvia(s,scheda);
   return s}
  const vivi=(s,l)=>s.u.filter(u=>u.l===l&&u.st==='vivo');
  const riserva=(s,l)=>s.ris[l].reduce((a,x)=>a+x.n,0);
@@ -235,7 +236,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
  function istante(s){s.t++;const U=s.u;if(s.rep)P.inizio(s);
   // frecce in arrivo
   if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=perId(U,v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,perId(U,v.da))}}s.voli=resto}
-  if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
+  if(s.rango)VCONS.turno(s);else if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
   const cap0=capU(s),vv=U.filter(u=>u.st==='vivo');
   const per={a:[],b:[]};for(const u of vv)per[u.l].push(u);
   let spingono=0;const conta={a:{f:0,t:0,c:0},b:{f:0,t:0,c:0}},idx={};for(const u of vv)if(!u.cap){const k=chiave(u);idx[u.id]=conta[u.l][k]|0;conta[u.l][k]=idx[u.id]+1}
@@ -288,11 +289,10 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   if(s.t%10===0){for(const l of['a','b']){const n=vivi(s,l).length,ris=riserva(s,l);
     const mx=s.max||C.MAX;if(ris>0&&n<mx*.62){let k=Math.min(Math.max(C.ONDATA,Math.round(mx/4)),ris,mx-n),q=0;const y=l==='a'?s.H-2:2;while(k>0&&s.ris[l].length){const x=s.ris[l][0];unita(s,l,x,8+s.r()*(s.W-16),y+(l==='a'?-1:1)*s.r()*3);x.n--;if(x.n<=0)s.ris[l].shift();k--;q++}if(q)s.ev.push({t:'rinforzi',l,n:q})}
     const val=s.u.reduce((a,u)=>a+(u.l===l&&u.st==='vivo'&&!u.cap?D.valore(u.t):0),0)+s.ris[l].reduce((a,x)=>a+x.n*D.valore(x.t),0)+valOnda(s,l),fr=val/Math.max(1,s.v0[l]);
-    const soglia=C.ROTTA+(55-s.mor[l])*.004;
-    if(fr<soglia&&!(l==='b'&&s.muro)&&s.tipo!=='arena'){for(const u of s.u)if(u.l===l&&u.st==='vivo'&&!u.cap){if(u.sal>s.t&&u.scI>=0)s.scalaT[u.scI]=0;u.sal=0;u.st='fuga'}s.ris[l]=[];if(s.ond)s.ond[l]=[];s.ev.push({t:'rotta',l});if(l==='a'&&s.autoA)chiudi(s,'b')}}
+    if(fr<C.ROTTA+(55-s.mor[l])*.004+(s.indole?VCONS.soglia(s,l):0)&&!(l==='b'&&s.muro)&&s.tipo!=='arena'){for(const u of s.u)if(u.l===l&&u.st==='vivo'&&!u.cap){if(u.sal>s.t&&u.scI>=0)s.scalaT[u.scI]=0;u.sal=0;u.st='fuga'}s.ris[l]=[];if(s.ond)s.ond[l]=[];s.ev.push({t:'rotta',l});if(l==='a'&&s.autoA)chiudi(s,'b')}}
    const na=vivi(s,'a').length+riserva(s,'a')+inOnda(s,'a'),nb=vivi(s,'b').length-P.capoVivo(s)+riserva(s,'b')+inOnda(s,'b');const soloCap=vivi(s,'a').every(u=>u.cap);
    if(nb===0)chiudi(s,'a');else if(na===0||(soloCap&&riserva(s,'a')===0&&inOnda(s,'a')===0&&nb>3&&s.tipo!=='arena'))chiudi(s,'b');
-   else if(s.t>=C.TMAX){const va=s.u.reduce((a,u)=>a+(u.l==='a'&&u.st==='vivo'?1:0),0)/Math.max(1,s.n0.a),vb=s.u.reduce((a,u)=>a+(u.l==='b'&&u.st==='vivo'?1:0),0)/Math.max(1,s.n0.b);chiudi(s,s.tipo==='arena'?(pfRes(s,'a')>=pfRes(s,'b')?'a':'b'):va>=vb&&!s.muro?'a':'b')}}}
+   else if(s.t>=C.TMAX){const va=vivi(s,'a').length/Math.max(1,s.n0.a),vb=vivi(s,'b').length/Math.max(1,s.n0.b);chiudi(s,s.tipo==='arena'?(pfRes(s,'a')>=pfRes(s,'b')?'a':'b'):va>=vb&&!s.muro?'a':'b')}}}
  // in arena, a tempo scaduto vince chi ha più vita rimasta in proporzione
  const pfRes=(s,l)=>{let a=0,b=0;for(const u of s.u)if(u.l===l){a+=u.st==='ko'?0:u.pf;b+=u.pfm}return a/Math.max(1,b)};
  function chiudi(s,l){if(s.fine)return;s.fine={vince:l,t:s.t};s.ev.push({t:'fine',vince:l})}
@@ -307,5 +307,5 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
  function forme(s,l){const o=s.ord[l||'a'],f={};for(const g of GR)f[g]=(o[g]&&o[g].fm)||'larga';return f}
  // misure del campo per taglia della battaglia (senza taglia nota: il campo di sempre)
  function taglia(k){const T=(D.TAGLIA||{})[k];return T?{max:T.max,W:T.W,H:T.H}:{max:C.MAX,W:C.W,H:C.H}}
- return{morali:P.morali,int:{GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
+ return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VCAM;
