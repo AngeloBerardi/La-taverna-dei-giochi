@@ -64,7 +64,18 @@
  function ondata(s,o){if(s.fine)return{err:'La battaglia è finita'};const l=o.l||'a',w=s.ond&&s.ond[l]&&s.ond[l].find(x=>x.id===o.id);if(!w)return{err:'Ondata sconosciuta'};if(w.fatta)return{err:'Ondata già partita'};
   w.fatta=true;s.ev.push({t:'ondata',l,id:w.id,ing:w.ing});return{s}}
  // «Pronto»: chi si schiera per ultimo (l'altro lato, a parità il lato a è primo) vede lo schieramento del primo; l'IA del lato b lo rifà dal passo 21 in poi
- function pronto(s,l){const e=prima(s);if(e)return{err:e};l=l||'a';if(!s.pronto)s.pronto={a:false,b:false};s.pronto[l]=true;s.ev.push({t:'pronto',l});
+ // Passo 47: con `grandi` e più capitani il lato a è pronto solo quando lo sono tutti i posti (`s.pronti`, facoltativo); altrimenti il flag unico di sempre
+ const perPosto=(s,l)=>!!(typeof VDAT!=='undefined'&&VDAT.ACCESO&&VDAT.ACCESO.grandi&&s.capi&&s.capi.length>1&&(l||'a')==='a');
+ function pronti(s){const m=Math.max(1,(s.capi||[]).length);let n=0;if(s.pronto&&s.pronto.a)n=m;else if(s.pronti)for(let i=0;i<m;i++)if(s.pronti[i])n++;return{n,m,tutti:n>=m}}
+ function attesa(s){if(!perPosto(s,'a')||!s.pronto||s.t!==0||s.pronto.a)return null;const p=pronti(s);return'Aspettate gli altri: Pronto '+p.n+'/'+p.m}
+ function pronto(s,l,seat,forza){const e=prima(s);if(e)return{err:e};l=l||'a';
+  if(perPosto(s,l)){seat=seat|0;const m=s.capi.length;if(seat<0||seat>=m)return{err:'Non hai un capitano in campo'};if(forza&&seat!==0)return{err:'Solo il capo della compagnia può partire senza gli altri'};
+   if(s.pronto&&s.pronto.a)return{err:'Hai già premuto Pronto'};if(!forza&&s.pronti&&s.pronti[seat])return{err:'Hai già premuto Pronto'};
+   if(!s.pronto)s.pronto={a:false,b:false};if(!s.pronti){s.pronti=[];for(let i=0;i<m;i++)s.pronti.push(false)}
+   if(forza)for(let i=0;i<m;i++)s.pronti[i]=true;else s.pronti[seat]=true;
+   const p=pronti(s);if(p.tutti)s.pronto.a=true;s.ev.push({t:'pronto',l,seat,n:p.n,m:p.m});
+   if(p.tutti&&s.esp&&s.primo==='a'&&typeof VCONS!=='undefined'&&VCONS&&VCONS.schiera)VCONS.schiera(s,'b');return{s}}
+  if(!s.pronto)s.pronto={a:false,b:false};s.pronto[l]=true;s.ev.push({t:'pronto',l});
   if(l==='a'&&s.esp&&s.primo==='a'&&typeof VCONS!=='undefined'&&VCONS&&VCONS.schiera)VCONS.schiera(s,'b');return{s}}
  // dove entra l'unità numero j di un'ondata, e l'ancora del suo reparto
  function ingresso(s,w,l,j){const W=s.W,H=s.H,a=l==='a',f=((j*61)%100)/100;
@@ -79,7 +90,7 @@
     if(w.rp[g]==null){const r=liberoR(s,l);if(r<0||nReparti(s,l)>=C.REP.MAX)w.rp[g]=GR.indexOf(g);else{const q={c:g,t:w.ord,x:p.ax,y:p.ay,fm:g==='f'?'serrata':'larga',fmT:0};if(w.ord==='segui'){const cp=capU(s);q.seg=cp?cp.seat:null}s.ord[l][r]=q;w.rp[g]=r}}
     const u=unita(s,l,{p:x.p,t:x.t,st:x.st},p.x,p.y);u.r=w.rp[g];if(w.ing!=='retro'){u.fx=w.ing==='fsx'?1:-1;u.fy=0}
     x.n--;if(x.n<=0)w.tr.shift();k--}}}}
- Object.assign(VCAM,{settori,schiera,dividi,unisci,preparaOndata,ondata,pronto,reparti,ondate});
+ Object.assign(VCAM,{settori,schiera,dividi,unisci,preparaOndata,ondata,pronto,pronti,attesa,reparti,ondate});
 })();
 /* ---- Compagnia di ventura in compagnia (piano C2): la stanza. Motore puro, senza DOM né rete. ----
    Più capitani, una sola compagnia: lo stato della stanza `G` porta il mondo (`w`, di VEN) e, quando si combatte, la battaglia
@@ -125,13 +136,13 @@ const VST=(()=>{
    else{r=VEN.scegli(w,a.v);if(!r.err&&a.v==='attacca')s.b={c:VCAM.nuovo(r.campo),via:false,pausa:false};else if(!r.err&&a.v==='auto')r=VEN.auto(w)}
    if(r.err)return{err:r.err}}
   else if(a.t&&a.t.slice(0,2)==='b-'){if(!s.b)return{err:'Nessuna battaglia in corso'};avanzaB(s,fino);const c=s.b.c;
-   if(a.t==='b-via')s.b.via=true;
+   if(a.t==='b-via'){const at=VCAM.attesa(c);if(at)return{err:at};s.b.via=true}
    else if(a.t==='b-pausa')s.b.pausa=!!a.v;
    else if(a.t==='b-ord')r=VCAM.ordina(c,Object.assign({},a.o,{seat:a.seat,l:'a'}));
    else if(a.t==='b-cap')r=VCAM.capitano(c,Object.assign({},a.o,{seat:a.seat}));
    else if(a.t==='b-schiera'||a.t==='b-dividi'||a.t==='b-unisci'||a.t==='b-prepara'||a.t==='b-ondata'||a.t==='b-pronto'){// grandi battaglie: schieramento prima del «Via», come gli altri ordini (chiunque schiera qualunque reparto)
     const o=Object.assign({},a.o,{l:'a',seat:a.seat});
-    r=a.t==='b-schiera'?VCAM.schiera(c,o):a.t==='b-dividi'?VCAM.dividi(c,o):a.t==='b-unisci'?VCAM.unisci(c,o):a.t==='b-prepara'?VCAM.preparaOndata(c,o):a.t==='b-ondata'?VCAM.ondata(c,o):VCAM.pronto(c,'a')}
+    r=a.t==='b-schiera'?VCAM.schiera(c,o):a.t==='b-dividi'?VCAM.dividi(c,o):a.t==='b-unisci'?VCAM.unisci(c,o):a.t==='b-prepara'?VCAM.preparaOndata(c,o):a.t==='b-ondata'?VCAM.ondata(c,o):VCAM.pronto(c,'a',a.seat,o.forza);if(a.t==='b-pronto'&&r&&!r.err&&c.pronti&&c.pronto&&c.pronto.a)s.b.via=true}
    else if(a.t==='b-fine'){if(!c.fine)return{err:'La battaglia non è finita'};r=VEN.esito(w,VCAM.riepilogo(c));if(!r.err){s.b=null;s.nb++}}
    else return{err:'Mossa sconosciuta'};
    if(r&&r.err)return{err:r.err}}
