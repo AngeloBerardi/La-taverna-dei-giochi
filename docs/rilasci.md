@@ -9,6 +9,6 @@ Cosa cambia per chi gioca:
 - Il menu Avventura mette in primo piano la Compagnia di ventura, con il foglio «Nuova campagna» e le difficoltà.
 - Tutto provato a 390×844 e 360×640, senza errori in console.
 
-Difetti trovati (non corretti qui): #170 (ottoni multipli e bersagli piccoli nel menu), #171 (bottone Via sotto i 44 px).
+Difetti trovati (non corretti qui): #170 (ottoni multipli e bersagli piccoli nel menu), #171 (bottone Via sotto i 44 px), #175 (foglio Nuova campagna: sei ottoni, ? e + piccoli), #176 (bottone Avanti dell'esito sotto i 44 px). La prova fallisce su ogni difetto non in questo elenco.
 
-Limite: la prova non arriva all'esito della battaglia (dopo Via non finisce entro 60 s).
+La prova avvia la battaglia con Via, la porta a termine (velocità x4) e fotografa il velo di fine.
