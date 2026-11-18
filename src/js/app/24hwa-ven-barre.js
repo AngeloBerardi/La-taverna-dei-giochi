@@ -10,12 +10,16 @@ const VenBarre=(()=>{
   if(k==='uom')return VEN.uomini(t)+' uomini in compagnia, il limite è '+VEN.limite(s)+'.';
   if(k==='cibo')return'Viveri per '+VEN.giorniViveri(s)+' giorni di marcia: sotto i 3 si rischia la fame.';
   if(k==='mor')return'Morale '+t.mor+' su 100: sotto 30 gli uomini disertano e combattono male.';
+  if(k==='stag'){const x=VEN.stagione(s),N=VDAT.STAG,i=N.ORDINE.indexOf(x.k);return'Giorno '+(x.g+i*N.GIORNI)+' dell\'anno '+x.anno+': '+N.NOMI[x.k]+', tra '+(N.GIORNI-x.g+1)+' giorni arriva '+N.NOMI[N.ORDINE[(i+1)%4]]+'.'}
   return'Fama '+s.fama+': apre porte, incarichi e ingaggi.'}
+ const stagH=()=>{const s=V.s;if(s.anno==null)return'';const k=VEN.stagione(s).k,n=VDAT.STAG.NOMI[k];return`<button class="vn-stag vn-st-${k}" data-a="ven" data-v="rq:stag" data-k="${k}" aria-label="Stagione: ${n}" title="${n}">${ic(k==='inv'?'fiocco':'sole',16)}</button>`}
+ // al cambio di stagione il bottone si rifà da solo, senza ridisegnare la barra (lo chiama hudVivo)
+ const stagVivo=()=>{const el=document.querySelector('.vn-stag'),s=V.s;if(!el||!s||s.anno==null)return;const k=VEN.stagione(s).k;if(el.dataset.k!==k)el.outerHTML=stagH()};
  const giorniPaga=s=>(1-VEN.giorno(s)%7+7)%7||7;
  const rqAll=()=>{const s=V.s,t=tu();return{oro:n0(t.oro),uom:VEN.uomini(t)+'/'+VEN.limite(s),cibo:VEN.giorniViveri(s)+' g',mor:String(t.mor),fama:String(s.fama)}};
  const rqAllarme=k=>{const s=V.s,t=tu();return k==='cibo'?VEN.giorniViveri(s)<=2:k==='mor'?t.mor<30:k==='oro'?giorniPaga(s)<=1&&t.oro<VEN.paga(s):false};
  function altoH(){const a=rqAll();return`<div class="vn-alto"><div class="vn-r1"><button class="vn-ib" data-a="ven" data-v="pan:menu" aria-label="Menu">${ic('menu',20)}</button>
-<div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small></div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
+<div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small>${stagH()}</div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
 <div class="vn-tm"><button class="vn-ib" data-a="ven" data-v="pausa" aria-label="${V.pausa?'Avanti':'Pausa'}">${ic(V.pausa?'play':'pausa',20)}</button><button class="vn-ib" data-a="ven" data-v="vel" aria-label="Velocità">×${V.vel}</button></div></div>
 <div class="vn-ris">${RQ.map(([k,i,n])=>`<button class="vn-rq${rqAllarme(k)?' vn-all':''}" data-a="ven" data-v="rq:${k}" aria-label="${n}">${ic(i,16)}<b id="vn-${k}">${a[k]}</b><small>${n}</small></button>`).join('')}</div>
 ${V.rq?`<div class="vn-rqi" role="status">${esc(rqInfo(V.rq))}</div>`:''}</div>`}
@@ -38,4 +42,4 @@ ${V.rq?`<div class="vn-rqi" role="status">${esc(rqInfo(V.rq))}</div>`:''}</div>`
 ${inS()&&!ui.tv?riga('<b>Mappa sulla TV</b><small>La mappa va sul televisore, i telefoni diventano comandi.</small>',`<button class="vn-ch${G.tv?' on':''}" data-a="ven" data-v="tv">${G.tv?'accesa':'spenta'}</button>`):''}
 ${D.ACCESO.grandi?riga('<b>Grandezza delle battaglie</b><small>Quanti uomini per lato.</small>',['piccola','media','grande'].map(q=>`<button class="vn-ch${(V.s.opz&&V.s.opz.taglia||'media')===q?' on':''}" data-a="ven" data-v="taglia:${q}">${q[0].toUpperCase()+q.slice(1)}</button>`).join('')):''}
 ${riga('<b>Regole</b><small>Come si gioca, in breve.</small>',bt('Leggi','regole'))}${inS()?riga('<b>Torna al tavolo</b><small>Chiude la partita per tutta la compagnia.</small>',bt('Chiudi','esci')):riga('<b>Salva ed esci</b><small>La partita resta su questo telefono.</small>',bt('Esci','esci',{cls:'gold'}))}`)}
- return{altoH,tastiH,bassoH,ctlH,cartaH,cartaMondoH,menuH}})();
+ return{altoH,stagVivo,tastiH,bassoH,ctlH,cartaH,cartaMondoH,menuH}})();

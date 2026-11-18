@@ -79,7 +79,7 @@ const Ven=(()=>{
    const pf=document.getElementById('vn-pf');if(pf&&c)pf.style.width=Math.max(0,c.pf/c.pfm*100).toFixed(0)+'%';const gr=document.getElementById('vn-grido');if(gr){const r=Math.max(0,((b.gridi[posto()]||0)-b.t)/VCAM.C.GRIDO);gr.style.setProperty('--r',r.toFixed(2));gr.classList.toggle('no',r>0)}return}
   const t=tu(),h=VEN.ora(s),m=s.t%60;q('vn-ora','Giorno '+VEN.giorno(s)+' · '+String(h).padStart(2,'0')+':'+String(m-m%10).padStart(2,'0'));q('vn-oro',n0(t.oro));
   q('vn-uom',VEN.uomini(t)+'/'+VEN.limite(s));q('vn-cibo',VEN.giorniViveri(s)+' g');q('vn-mor',String(t.mor));q('vn-fama',String(s.fama));q('vn-meteo',s.meteo==='pioggia'?'pioggia':s.meteo==='nebbia'?'nebbia':'');
-  const lu=document.getElementById('vn-luna');if(lu){const nt=VEN.notte(s);if(lu.dataset.n!==String(nt)){lu.dataset.n=String(nt);lu.innerHTML=ic(nt?'luna':'sole',16)}}}
+  const lu=document.getElementById('vn-luna');if(lu){const nt=VEN.notte(s);if(lu.dataset.n!==String(nt)){lu.dataset.n=String(nt);lu.innerHTML=ic(nt?'luna':'sole',16)}}VenBarre.stagVivo()}
  // ---------- gesti sul canvas ----------
  function gesti(){V.gesti=true;const cv=VenArte.cv,sc=()=>V.modo==='campo'?VenCampo:VenMappa;cv.style.touchAction='none';
   cv.addEventListener('pointerdown',e=>{try{cv.setPointerCapture(e.pointerId)}catch(x){}V.pt[e.pointerId]={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now(),mosso:false};V.pin=0});
