@@ -48,8 +48,8 @@ class Shared:
             out = {'rows': [{'id': k.split('/')[-1], 'd': v} for k, v in self.d.items() if k.startswith(c + '/') and len(k.split('/')) == n]}
         await route.fulfill(status=200, content_type='application/json', body=json.dumps(out))
 
-async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None, dpr=1):
-    ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=dpr, service_workers='allow' if sw else 'block')
+async def new_context(b, port, name='Tester', sw=False, auth_error=None, extra_init='', shared=None, dpr=1, touch=False):
+    ctx = await b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=dpr, service_workers='allow' if sw else 'block', **({'has_touch': True, 'is_mobile': True} if touch else {}))
     init = "localStorage.setItem('rg-lb','iso');if(!localStorage.getItem('avv-3d'))localStorage.setItem('avv-3d','no');" + (f"localStorage.setItem('rg-name',{name!r});localStorage.setItem('rg-intro','1');" if name else '')  # falò: il 3D in software rallenta i test
     if auth_error: init += f"window.__stubAuthError={auth_error!r};"
     if shared: init += 'window.__stubShared=true;'

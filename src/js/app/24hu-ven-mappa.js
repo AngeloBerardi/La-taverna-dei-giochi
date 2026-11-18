@@ -8,8 +8,10 @@ const VenMappa=(()=>{
  const K={s:null,seme:-1,scene:null,cam:null,fuoco:{x:32,y:0,z:32},alt:13,segue:true,t:0,P:{},lu:[],M:null};
  const SEN=Math.sin(52*Math.PI/180);
  function aspetto(){const A=VenArte;return A.rw&&A.rh?(A.rw-2)/(A.rh-2):.5}
- function altMax(G,asp){return Math.max(8,Math.max(G/(2*asp),G*SEN/2))}
- function limita(f,alt,G,asp){const R=(h)=>{const m=h-6;return m>=G/2?G/2:m},mx=R(alt*asp),mz=R(alt/SEN);return{x:Math.max(mx,Math.min(G-mx,f.x)),z:Math.max(mz,Math.min(G-mz,f.z))}}
+ // striscia di mare oltre la terra che si può ancora guardare (cresce con il mondo)
+ function margine(G){return Math.max(8,G/20)}
+ function altMax(G,asp){const e=G/2+margine(G);return Math.max(8,Math.max(e/asp,e*SEN))}
+ function limita(f,alt,G,asp){const R=(h)=>{const m=h-margine(G);return m>=G/2?G/2:m},mx=R(alt*asp),mz=R(alt/SEN);return{x:Math.max(mx,Math.min(G-mx,f.x)),z:Math.max(mz,Math.min(G-mz,f.z))}}
  function quotaA(a){const m=VEN.MARE;if(a<m)return Math.max(-1.3,(a-m)*7);let h=(a-m)*5;if(a>VEN.COLLE)h+=(a-VEN.COLLE)*13;if(a>VEN.MONTE)h+=(a-VEN.MONTE)*44;return h+(Math.round(h*2)/2-h)*.4+.06}
  // i luoghi stanno su un ripiano: attorno a ognuno il terreno si spiana alla sua quota
  function piano(x,y,base){const L=K.pianiG[(Math.max(0,Math.min(K.M.G-1,y))>>3)*(K.M.G>>3)+(Math.max(0,Math.min(K.M.G-1,x))>>3)];if(!L)return base;for(const f of L){const dx=x-f.x,dy=y-f.y;if(dx>f.r||dx<-f.r||dy>f.r||dy<-f.r)continue;const d=Math.sqrt(dx*dx+dy*dy);if(d<f.r){const t=Math.min(1,(f.r-d)/(f.r*.42)),u=t*t*(3-2*t);base+=(f.h-base)*u}}return base}

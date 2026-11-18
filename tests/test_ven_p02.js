@@ -22,7 +22,7 @@ const ctx = { console, Math, JSON, Date, performance: { now: () => 1000 },
   VenAudio: new Proxy({ traccia: () => '' }, { get: (t, k) => (k in t ? t[k] : () => {}) }) };
 vm.createContext(ctx);
 const run = (f, extra) => vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8') + (extra || ''), ctx, { filename: f });
-run('src/js/motori/27a-avv-dadi.js');
+lista.filter((f) => /motori\/27/.test(f)).forEach((f) => run(f)); // il 28 usa i moduli 27: senza, cade su require
 lista.filter((f) => /motori\/28/.test(f)).forEach((f) => run(f));
 vm.runInContext('this.VEN=VEN;this.VCAM=VCAM;this.VDAT=VDAT', ctx);
 vista.forEach((f) => run(f, /24hw-ventura/.test(f) ? '\n;this.Ven=Ven;' : ''));

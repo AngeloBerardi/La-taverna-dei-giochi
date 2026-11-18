@@ -10,7 +10,7 @@ async def sc_p05_mappa_nei_limiti(b, srv):
     r = await pg.evaluate("""(()=>{const L=VenMappa.limita,G=64,o=[];
       o.push(L({x:-500,z:-500},13,G,.5));o.push(L({x:900,z:900},13,G,.5));
       o.push(L({x:5,z:5},60,G,2));o.push(L({x:5,z:5},8,G,.01));return o})()""")
-    check(r[0]['x'] >= -6 and r[0]['z'] >= -6 and r[1]['x'] <= 70 and r[1]['z'] <= 70, f'limita: estremi dentro i limiti {r[:2]}')
+    check(r[0]['x'] >= -8 and r[0]['z'] >= -8 and r[1]['x'] <= 72 and r[1]['z'] <= 72, f'limita: estremi dentro i limiti {r[:2]}')
     check(r[2]['x'] == 32 and r[2]['z'] == 32, f'limita: vista piu larga della mappa -> centrata {r[2]}')
     check(all(isinstance(v, (int, float)) and v == v for p in r for v in p.values()), 'limita: nessun NaN')
     # trascinamento ripetuto verso l'alto a sinistra

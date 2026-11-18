@@ -1,6 +1,6 @@
 # I passi del piano «Il Condottiero»
 
-Il piano della prossima major release delle Cronache del Crocevia (perché e visione: `docs/VENTURA-2.md`) è diviso in **46 passi numerati in sequenza**, raggruppati in **12 fasi**.
+Il piano della prossima major release delle Cronache del Crocevia (perché e visione: `docs/VENTURA-2.md`) è diviso in **47 passi numerati in sequenza**, raggruppati in **12 fasi**. Il numero è l'ordine di creazione; l'ordine di lavoro lo dà la fase (il passo 47 sta nella fase 7, prima del rilascio 29).
 - Un passo è un file (`docs/passi/NN-nome.md`), una chat, un ramo e una PR.
 - I passi di una fase lavorano **in parallelo** e non toccano mai lo stesso file: lo garantisce `npm run passi`.
 - Una fase parte quando la precedente è tutta unita in `main`.

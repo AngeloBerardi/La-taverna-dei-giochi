@@ -140,18 +140,19 @@ ${cont}${daSolo}<div class="vn-nuova"><small class="muted">${s?'Ricomincia da un
    V.msg='';if(!inS()){salva();if(s.incontro){V.pan='incontro';VenAudio.mondo([{t:'incontro'}])}}return render()}
   if(c==='scegli'){const sv=p.slice(1).join(':'),r=inS()?VenStanza.manda({t:'scegli',v:sv}):VEN.scegli(s,sv);if(r.err){V.msg=r.err;return render()}if(inS())return render();if(p[1]==='passa')avviso(s.log[s.log.length-1].tx,'bene');
    if(p[1]==='attacca')return inBattaglia(r.campo);if(p[1]==='auto'){VEN.auto(s);V.pan='esito';salva();return render()}
-   V.pan=s.incontro?'incontro':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
+   V.pan=s.incontro?'incontro':(p[1]==='attendi'||p[1]==='ariete')&&tu().ord&&tu().ord.t==='aspetta'?'attesa':s.dentro>=0||s.davanti>=0?'luogo':null;return render()}
   if(c==='fai'){const a=p[1];let z={a};
    if(a==='recluta')z.n=+p[2]||1;else if(a==='compra'||a==='vendi'){z.m=p[2];z.n=a==='vendi'?Math.min(V.qta,tu().merci[p[2]]||0):Math.min(V.qta,s.l[s.dentro].scorte[p[2]]||0)}
    else if(a==='assolda'){z.t=p[2];z.n=1}else if(a==='compagno'||a==='compraogg')z.id=p[2];else if(a==='abilita')z.k=p[2];else if(a==='vendiogg'||a==='equipa')z.i=+p[2];else if(a==='togli'){z.slot=p[2];z.k=+p[3]||0}else if(a==='imbarca')z.lid=+p[2];else if(a==='liberasig')z.sig=+p[2];else if(a==='promuovi'){z.t=p[2];z.su=p[3];z.n=1}else if(a==='congeda'){z.t=p[2];z.n=1}
    else if(a==='pace')z.f=p[2];else if(a==='proponi'){z.tipo=p[2];z.f=p[3]}else if(a==='guarnigione'){z.t=p[2];z.verso=+p[3];z.n=1}
    else if(a==='fonda'){nomeRegno();z.nome=V.nomeRegno||'';z.stend=V.stend|0}else if(a==='feudo'){z.lid=+p[2];z.sid=+p[3]}else if(a==='investi'){z.t=p[2];z.lid=+p[3]}else if(a==='dichiara'||a==='rompi')z.f=p[2];
-   const r=inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r.err){V.msg=r.err;Snd.play('err');return render()}
+   const sp=a==='compra'||a==='vendi'?document.querySelector('.vn-pc'):null,y=sp?sp.scrollTop:0,ri=()=>{render();if(sp){const n=document.querySelector('.vn-pc');if(n)n.scrollTop=y}};
+   const r=inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r.err){V.msg=r.err;Snd.play('err');return ri()}
    if(a==='proponi'){V.msg='';avviso(s.log[s.log.length-1].tx,'bene')}
    if(a==='fonda'){V.pan='corona';V.sub='home';V.nomeRegno='';avviso(s.log[s.log.length-1].tx,'bene')}else if(a==='feudo'||a==='investi'||a==='aduna'||a==='dichiara'||a==='rompi'){V.sub='home';avviso(s.log[s.log.length-1].tx,a==='dichiara'?'guerra':'bene')}
    if(a==='esci'){V.pan=null;V.sub='home'}else if(a==='riposa'||a==='assedia'||a==='imbarca'){V.pan='attesa';V.sub='home'}else if(a==='razzia'){V.pan=null}else if(a==='assalta'||a==='lizza'){V.pan='incontro'}else if(a==='ritira'){V.pan='luogo'}else if(a==='voci'){avviso(r.lid!=null?'Segnato sulla carta: '+s.l[r.lid].nome:s.log[s.log.length-1].tx,'bene')}
    VenAudio.fai(a);
-   salva();return render()}
+   salva();return ri()}
   // battaglia
   const k=VenCampo.K;
   if(c==='cpausa'){if(inS()){const r=VenStanza.pausa();if(r&&r.err)avviso(r.err)}else k.pausa=!k.pausa;return render()}
