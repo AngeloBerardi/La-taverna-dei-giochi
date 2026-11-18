@@ -1,11 +1,11 @@
-// Passo 02: la vista della Ventura è spezzata in sei file. Ogni pannello si disegna (senza errori) in molti stati, i file sono sotto i 25 KB,
+// Passo 02: la vista della Ventura è spezzata in sette file. Ogni pannello si disegna (senza errori) in molti stati, i file sono sotto i 25 KB,
 // ogni modulo mette a disposizione i nomi promessi e nessuno ridefinisce un aiutante del nucleo.
 const assert = require('assert'), fs = require('fs'), vm = require('vm'), path = require('path');
 const R = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(R, 'src/manifest.json'), 'utf8'));
 const lista = Array.isArray(manifest) ? manifest : manifest.files || Object.values(manifest).flat();
 const vista = lista.filter((f) => /app\/24hw/.test(f));
-assert.deepStrictEqual(vista.map((f) => path.basename(f)), ['24hw-ventura.js', '24hwa-ven-barre.js', '24hwb-ven-luoghi.js', '24hwc-ven-gente.js', '24hwd-ven-scontro.js', '24hwe-ven-tv.js'], 'ordine dei file della vista nel manifest');
+assert.deepStrictEqual(vista.map((f) => path.basename(f)), ['24hw-ventura.js', '24hwa-ven-barre.js', '24hwaa-ven-regno.js', '24hwb-ven-luoghi.js', '24hwc-ven-gente.js', '24hwd-ven-scontro.js', '24hwe-ven-tv.js'], 'ordine dei file della vista nel manifest');
 const css = lista.filter((f) => /css\/39j/.test(f)).map((f) => path.basename(f));
 assert.deepStrictEqual(css, ['39j-ventura.css', '39ja-ven-barre.css', '39jb-ven-pannelli.css', '39jc-ven-campo.css'], 'ordine del CSS della Ventura');
 for (const f of [...vista, ...lista.filter((f) => /css\/39j/.test(f))]) assert(fs.statSync(path.join(R, f)).size < 25 * 1024, f + ': oltre 25 KB');
@@ -26,9 +26,10 @@ lista.filter((f) => /motori\/27/.test(f)).forEach((f) => run(f)); // il 28 usa i
 lista.filter((f) => /motori\/28/.test(f)).forEach((f) => run(f));
 vm.runInContext('this.VEN=VEN;this.VCAM=VCAM;this.VDAT=VDAT', ctx);
 vista.forEach((f) => run(f, /24hw-ventura/.test(f) ? '\n;this.Ven=Ven;' : ''));
-vm.runInContext('this.VM={VenBarre,VenLuoghi,VenGente,VenScontro,VenTv}', ctx);
+vm.runInContext('this.VM={VenBarre,VenRegno,VenLuoghi,VenGente,VenScontro,VenTv}', ctx);
 
 const NOMI = { VenBarre: ['altoH', 'tastiH', 'bassoH', 'ctlH', 'menuH', 'cartaH', 'cartaMondoH'],
+  VenRegno: ['contoH', 'diploH', 'fondaH', 'sovranoH', 'passaH', 'coronaH', 'vittoriaH'],
   VenLuoghi: ['luogoH', 'contoH', 'torneoH', 'truppaH', 'diploH', 'fondaH', 'sovranoH', 'passaH', 'coronaH', 'vittoriaH', 'fasiH'],
   VenGente: ['compagniaH', 'capitanoH', 'diarioH', 'gradH', 'confH', 'incH', 'voceH', 'schieraH'],
   VenScontro: ['incontroH', 'esitoH', 'attesaH', 'campoH'], VenTv: ['tvH', 'campoTvH'] };
