@@ -105,7 +105,7 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
 {
   const sc = rg => C.nuovo({ seme: 3, a: T(0, { val_f2: 40, val_t2: 20 }), b: T(5, { fer_f2: 60, fer_t2: 30 }), faza: 'tu', fazb: 'fer', reparti: true, ondate: true, max: 40, rango: { a: 2, b: rg } }, { autoA: true });
   for (const rg of [0, 1, 2]) { const s = sc(rg); assert.strictEqual(s.ond.b.length, 1); const w = s.ond.b[0]; assert.strictEqual(w.ing, 'retro'); assert.strictEqual(J(w.quando), J({ k: 'linea', v: 60 })); assert(w.tr.reduce((a, x) => a + x.n, 0) > 0); assert.strictEqual(s.ris.b.length, 0) }
-  assert.strictEqual(sc(3).ond.b.length, 0);
+  assert.strictEqual(sc(3).ond.b.length, 2);   // dal passo 25 il rango 3 ha due ondate (la seconda a comando)
 }
 
 // ripetibile e salvabile: due partite uguali danno lo stesso stato; un salvataggio a metà e ripreso continua uguale
@@ -118,7 +118,7 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
 
 // il consiglio sceglie davvero: nel corso della battaglia ogni reparto cambia manovra e ogni manovra conosciuta al suo rango è tra le dieci
 {
-  assert.strictEqual(K.MANOVRE.length, 10);
+  assert.strictEqual(K.MANOVRE.filter(m => m.rango <= 2).length, 10);   // le manovre dei ranghi 3-4 sono del passo 25
   assert.strictEqual(K.MANOVRE.filter(m => m.rango === 0).map(m => m.id).join(), 'carica');
   assert.strictEqual(K.MANOVRE.filter(m => m.rango === 1).map(m => m.id).join(), 'avanza,tieni,tiro');
   assert.strictEqual(K.MANOVRE.filter(m => m.rango === 2).map(m => m.id).join(), 'contro,ripiega,debole,copri,insegui,attendi');
