@@ -10,12 +10,14 @@ const VenBarre=(()=>{
   if(k==='uom')return VEN.uomini(t)+' uomini in compagnia, il limite è '+VEN.limite(s)+'.';
   if(k==='cibo')return'Viveri per '+VEN.giorniViveri(s)+' giorni di marcia: sotto i 3 si rischia la fame.';
   if(k==='mor')return'Morale '+t.mor+' su 100: sotto 30 gli uomini disertano e combattono male.';
+  if(k==='stag'){const x=VEN.stagione(s),N=VDAT.STAG,i=N.ORDINE.indexOf(x.k);return'Giorno '+(x.g+i*N.GIORNI)+' dell\'anno '+x.anno+': '+N.NOMI[x.k]+', tra '+(N.GIORNI-x.g+1)+' giorni arriva '+N.NOMI[N.ORDINE[(i+1)%4]]+'.'}
   return'Fama '+s.fama+': apre porte, incarichi e ingaggi.'}
+ const stagH=()=>{const s=V.s;if(s.anno==null)return'';const x=VEN.stagione(s),n=VDAT.STAG.NOMI[x.k];return`<button class="vn-stag vn-st-${x.k}" data-a="ven" data-v="rq:stag" aria-label="Stagione: ${n}">${ic(x.k==='inv'?'luna':'sole',14)}<span>${n}</span></button>`}
  const giorniPaga=s=>(1-VEN.giorno(s)%7+7)%7||7;
  const rqAll=()=>{const s=V.s,t=tu();return{oro:n0(t.oro),uom:VEN.uomini(t)+'/'+VEN.limite(s),cibo:VEN.giorniViveri(s)+' g',mor:String(t.mor),fama:String(s.fama)}};
  const rqAllarme=k=>{const s=V.s,t=tu();return k==='cibo'?VEN.giorniViveri(s)<=2:k==='mor'?t.mor<30:k==='oro'?giorniPaga(s)<=1&&t.oro<VEN.paga(s):false};
  function altoH(){const a=rqAll();return`<div class="vn-alto"><div class="vn-r1"><button class="vn-ib" data-a="ven" data-v="pan:menu" aria-label="Menu">${ic('menu',20)}</button>
-<div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small></div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
+<div class="vn-tempo"><span id="vn-luna"></span><b id="vn-ora"></b><small id="vn-meteo"></small>${stagH()}</div><button class="vn-ib" data-a="ven" data-v="centra" aria-label="Torna sulla compagnia">${ic('mirino',20)}</button>
 <div class="vn-tm"><button class="vn-ib" data-a="ven" data-v="pausa" aria-label="${V.pausa?'Avanti':'Pausa'}">${ic(V.pausa?'play':'pausa',20)}</button><button class="vn-ib" data-a="ven" data-v="vel" aria-label="Velocità">×${V.vel}</button></div></div>
 <div class="vn-ris">${RQ.map(([k,i,n])=>`<button class="vn-rq${rqAllarme(k)?' vn-all':''}" data-a="ven" data-v="rq:${k}" aria-label="${n}">${ic(i,16)}<b id="vn-${k}">${a[k]}</b><small>${n}</small></button>`).join('')}</div>
 ${V.rq?`<div class="vn-rqi" role="status">${esc(rqInfo(V.rq))}</div>`:''}</div>`}

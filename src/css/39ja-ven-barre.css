@@ -23,3 +23,6 @@
 .vn-carta{position:absolute;left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom,0px));display:grid;gap:5px;padding:10px 12px;background:linear-gradient(180deg,#3a2616,#24160c);border:2px solid #b88a3c;box-shadow:0 6px 18px rgba(0,0,0,.6);animation:vn-su .2s ease-out both}
 .vn-ct{display:flex;align-items:center;gap:8px}.vn-ct b{flex:1;font:800 18px var(--f-d);color:#f0c166}
 .vn-fz{display:inline-block;padding:1px 8px;font:800 12px var(--f-d);color:#fff;background:var(--fz,#666);border:1px solid rgba(0,0,0,.6)}
+/* stagione accanto al giorno (solo mondi con anno) */
+.vn-stag{display:inline-flex;align-items:center;gap:3px;min-height:44px;padding:0 6px;background:rgba(0,0,0,.35);border:1px solid rgba(184,138,60,.45);font:800 11px var(--f-b);cursor:pointer}
+.vn-st-prim{color:#a8dc7a}.vn-st-est{color:#f4d160}.vn-st-aut{color:#e08a4a}.vn-st-inv{color:#bfe0f2}

@@ -63,6 +63,17 @@ const VenMappa=(()=>{
   const larg=f=>.16+.52*Math.min(1,Math.sqrt(f/Fmax));
   K.acqua=geo2?new T.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:.9,depthWrite:false,side:T.DoubleSide}):null;
   const PONTI={};if(geo2)for(const p of M.P){const k=(Math.floor(p.y/CH))*NC+Math.floor(p.x/CH);(PONTI[k]||(PONTI[k]=[])).push(p)}
+  // le stagioni (solo con s.anno): tinta del terreno, neve, laghi gelati. I colori di base restano in userData e si rifanno al cambio di stagione
+  const STT={prim:[.95,1.1,.92],est:[1.08,1.04,.82],aut:[1.12,.88,.72],inv:[.88,.98,1.1]},NEVE=[.93,.96,.98],GHIACCIO=[.78,.9,.96];
+  const stagTessera=gr=>{const st=K.stag;if(!st||!K.s)return;for(const me of gr.children){const u=me.userData;if(!u.terreno&&!u.lago)continue;
+    const c=me.geometry.attributes.color,p=me.geometry.attributes.position,b=u.base||(u.base=c.array.slice()),m=STT[st.k],n=c.count;
+    for(let v=0;v<n;v++){const o=v*3;let r=b[o]*m[0],g=b[o+1]*m[1],bl=b[o+2]*m[2],w=0,X;
+     if(u.terreno){const q=v-v%3;const cx=Math.floor(p.getX(q)+.1),cz=Math.floor(p.getZ(q)+.1);if(VEN.innevata(K.s,cz*K.M.G+cx)){w=.7;X=NEVE}}
+     else{const q=v-v%6;const px=p.getX(q),pz=p.getZ(q);if(px===Math.floor(px)&&pz===Math.floor(pz)&&VEN.lagoGelato(K.s,pz*K.M.G+px)){w=.85;X=GHIACCIO}else{r=b[o];g=b[o+1];bl=b[o+2]}}
+     if(w){r+=(X[0]-r)*w;g+=(X[1]-g)*w;bl+=(X[2]-bl)*w}
+     c.array[o]=Math.min(1.2,r);c.array[o+1]=Math.min(1.2,g);c.array[o+2]=Math.min(1.2,bl)}
+    c.needsUpdate=true}};
+  K.stagTessera=stagTessera;
   // un tassello: terreno, strade, boschi e rocce, acqua, ponti e guadi, velo dell'ignoto. Restituisce un gruppo, da liberare con K.libera
   function tessera(ci,cj){const gr=new T.Group(),pos=[],col=[],x0t=ci*CH,y0t=cj*CH,x1t=Math.min(G,x0t+CH),y1t=Math.min(G,y0t+CH);
    for(let j=cj*CH*R;j<Math.min(N,(cj+1)*CH*R);j++)for(let i=ci*CH*R;i<Math.min(N,(ci+1)*CH*R);i++){const k=j*(N+1)+i,a4=(AL[k]+AL[k+1]+AL[k+N+1]+AL[k+N+2])/4;if(a4<VEN.MARE-.2)continue;
@@ -70,7 +81,7 @@ const VenMappa=(()=>{
     if((i+j)%2)pos.push(x0,h0,z0,x0,h2,z1,x1,h1,z0, x1,h1,z0,x0,h2,z1,x1,h3,z1);else pos.push(x0,h0,z0,x0,h2,z1,x1,h3,z1, x0,h0,z0,x1,h3,z1,x1,h1,z0);
     for(let v=0;v<6;v++){const q=v<3?1:sc2;col.push(c.r*q,c.g*q,c.b*q)}}
    if(pos.length){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.computeVertexNormals();g.computeBoundingSphere();
-    const me=new T.Mesh(g,A.mat);me.receiveShadow=true;me.castShadow=true;gr.add(me);
+    const me=new T.Mesh(g,A.mat);me.receiveShadow=true;me.castShadow=true;me.userData.terreno=1;gr.add(me);
     // velo dell'ignoto: la stessa forma, appena sopra, con la trama delle celle viste
     if(K.nebbia){const uv=[];for(let v=0;v<pos.length;v+=3)uv.push(pos[v]/G,pos[v+2]/G);const g2=new T.BufferGeometry();g2.setAttribute('position',g.attributes.position);g2.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g2.boundingSphere=g.boundingSphere;
      const ve=new T.Mesh(g2,K.velo);ve.position.y=.06;ve.renderOrder=3;gr.add(ve)}}
@@ -102,7 +113,7 @@ const VenMappa=(()=>{
       wa=larg(f)/2,wb=larg(M.F[dn]>0?M.F[dn]:f)/2,ha=quota(ax,ay)+.07,hb=quota(bx,by)+.07,
       P=[[ax+nx*wa,ha,ay+ny*wa,0],[ax,ha+.01,ay,1],[ax-nx*wa,ha,ay-ny*wa,0],[bx+nx*wb,hb,by+ny*wb,0],[bx,hb+.01,by,1],[bx-nx*wb,hb,by-ny*wb,0]];
      for(const t of[[0,1,3],[1,4,3],[1,2,4],[2,5,4]])for(const v of t){const p=P[v],c=p[3]?ce:ci0;wp.push(p[0],p[1],p[2]);wc.push(c.r,c.g,c.b)}}
-    if(wp.length){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(wp,3));g.setAttribute('color',new T.Float32BufferAttribute(wc,3));g.computeBoundingSphere();const me=new T.Mesh(g,K.acqua);me.renderOrder=1;gr.add(me)}
+    if(wp.length){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(wp,3));g.setAttribute('color',new T.Float32BufferAttribute(wc,3));g.computeBoundingSphere();const me=new T.Mesh(g,K.acqua);me.renderOrder=1;me.userData.lago=1;gr.add(me)}
     // ponti (legno o pietra) e guadi (sassi nel letto)
     const S=A.Solidi();for(const p of PONTI[cj*NC+ci]||[]){const dn=M.D[p.i],fx0=dn>=0?(dn%G+.5)-(p.i%G+.5):1,fy0=dn>=0?Math.floor(dn/G)+.5-(Math.floor(p.i/G)+.5):0,fl=Math.hypot(fx0,fy0)||1,fx=fx0/fl,fy=fy0/fl,px=-fy,py=fx,ry=Math.atan2(px,py),
       hy=Math.max(quota(p.x,p.y),quota(p.x+px*.9,p.y+py*.9),quota(p.x-px*.9,p.y-py*.9))+.08;
@@ -113,7 +124,7 @@ const VenMappa=(()=>{
     // passi: un mucchio di sassi e un palo con la bandierina
     for(let y=y0t;y<y1t;y++)for(let x=x0t;x<x1t;x++){if(!M.PS[y*G+x]||(x+y)%3)continue;const px=x+.5,py=y+.5,h=quota(px,py);S.sfera(.2,px,h+.08,py,'#8d8782');S.sfera(.14,px+.12,h+.24,py,'#a39e97');S.box(.04,.7,.04,px-.12,h,py-.1,'#6e4d30');S.box(.2,.12,.02,px-.02,h+.56,py-.1,'#d9553f')}
     if(S.n)gr.add(S.mesh({ombra:false}))}
-   sc.add(gr);return gr}
+   stagTessera(gr);sc.add(gr);return gr}
   K.tessera=tessera;K.NC=NC;K.CH=CH;
   K.libera=gr=>{sc.remove(gr);gr.traverse(o=>{if(o.geometry)o.geometry.dispose()})};
   K.tess={};K.nTess=0;
@@ -250,6 +261,8 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   x.fillStyle='#d98a1f';x.beginPath();x.arc(me.x*k,me.y*k,5,0,6.283);x.fill();x.stroke();
   x.fillStyle='rgba(20,14,8,.7)';x.beginPath();x.arc(16,18,13,0,6.283);x.fill();x.fillStyle='#f4e9c8';x.beginPath();x.moveTo(16,6);x.lineTo(21,19);x.lineTo(11,19);x.fill();x.font='800 12px sans-serif';x.textAlign='center';x.fillText('N',16,32)}
  function vistaGrande(dt,s,L,lm){gestisci();const nt=L.notte,r=lm*(1-nt*.25),g=lm*(1-nt*.1),b=Math.min(1,lm+nt*.1);K.acqua.color.setRGB(r,g,b);K.far.material.color.setRGB(r,g,b);
+  const sg=s.anno!=null?VEN.stagione(s):null,sk=sg?sg.k:'';if(K.stagK!==sk){K.stagK=sk;K.stag=sg;for(const k in K.tess)stagTessera(K.tess[k])}
+  if(sg){const m=STT[sg.k];K.far.material.color.multiply(new VenArte.T.Color(m[0],m[1],m[2]))}
   const gi=VEN.giorno(s);if(K.gBordi!==gi){K.gBordi=gi;confini(s);K.sporco=1;salvaVisto()}
   if(K.nebbia)esplora(dt,s);
   if(K.sporco&&(!K.cvOk||K.t-K.tUlt>.5)){K.sporco=0;K.tUlt=K.t;ridisegna()}
