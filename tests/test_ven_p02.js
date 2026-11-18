@@ -13,7 +13,7 @@ for (const f of [...vista, ...lista.filter((f) => /css\/39j/.test(f))]) assert(f
 const ls = new Map();
 const ctx = { console, Math, JSON, Date, performance: { now: () => 1000 },
   localStorage: { getItem: (k) => (ls.has(k) ? ls.get(k) : null), setItem: (k, v) => ls.set(k, String(v)), removeItem: (k) => ls.delete(k) },
-  document: { getElementById: () => null, querySelector: () => null, documentElement: { classList: { toggle() {}, remove() {} } } },
+  document: { addEventListener() {}, getElementById: () => null, querySelector: () => null, documentElement: { classList: { toggle() {}, remove() {} } } },
   requestAnimationFrame: () => 1, cancelAnimationFrame() {}, esc: (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'),
   ic: (n, s) => `<i data-ic="${n}" data-s="${s}"></i>`, render() {}, ui: {}, R: { on: false }, infoH: () => '<i></i>', G: null, ME: { name: 'Tester' }, Plancia: { chiudi() {} },
   VenStanza: { on: () => false, X: { era: false }, seat: () => -1, sync() {}, manda: () => ({}) },
@@ -25,7 +25,8 @@ const run = (f, extra) => vm.runInContext(fs.readFileSync(path.join(R, f), 'utf8
 lista.filter((f) => /motori\/27/.test(f)).forEach((f) => run(f)); // il 28 usa i moduli 27: senza, cade su require
 lista.filter((f) => /motori\/28/.test(f)).forEach((f) => run(f));
 vm.runInContext('this.VEN=VEN;this.VCAM=VCAM;this.VDAT=VDAT', ctx);
-vista.forEach((f) => run(f, /24hw-ventura/.test(f) ? '\n;this.Ven=Ven;' : ''));
+run('src/js/app/24ha-avventura.js', '\n;this.AvvNuova=AvvNuova;'); // passo 18: la Ventura legge il foglio «Nuova campagna» da AvvNuova
+vista.forEach((f) => run(f,/24hw-ventura/.test(f) ? '\n;this.Ven=Ven;' : ''));
 vm.runInContext('this.VM={VenBarre,VenRegno,VenLuoghi,VenGente,VenScontro,VenTv}', ctx);
 
 const NOMI = { VenBarre: ['altoH', 'tastiH', 'bassoH', 'ctlH', 'menuH', 'cartaH', 'cartaMondoH'],
