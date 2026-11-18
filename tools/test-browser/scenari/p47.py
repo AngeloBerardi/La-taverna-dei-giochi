@@ -21,8 +21,10 @@ async def _tocca_campo(pg, x, z):
     await pg.mouse.click(p[0], p[1])
 
 
-_STUB = """(seat)=>{VenStanza.on=()=>!/cfgH/.test((new Error().stack||'').split(String.fromCharCode(10))[2]||'');VenStanza.sync=()=>{};VenStanza.giro=()=>{};VenStanza.seat=()=>seat;
-  VenStanza.manda=a=>{const s=VenCampo.K.s;if(a.t==='b-pronto')return VCAM.pronto(s,'a',seat,a.o&&a.o.forza);return{}}}"""
+# Stanza simulata: ogni mossa passa da VST.act su uno stato di stanza (come in compagnia); l'ordine dello stack serve solo perche' cfgH deve vedere la partita come «solitario» per disegnarla.
+_STUB = """(seat)=>{
+  VenStanza.on=()=>!/cfgH/.test((new Error().stack||'').split(String.fromCharCode(10))[2]||'');VenStanza.sync=()=>{};VenStanza.giro=()=>{};VenStanza.seat=()=>seat;
+  VenStanza.manda=a=>{if(!window.__G){const G=VST.nuova(3,['A','B','C']);G.b={c:VenCampo.K.s,via:false,pausa:true};window.__G=G}a.seat=seat;a.fino=VST.tempo(window.__G);const r=VST.act(window.__G,a);if(!r.err){window.__G=r.s;VenCampo.K.s=r.s.b.c;VenCampo.K.pausa=!VST.corre(r.s)}return r}}"""
 _BT = "[...document.querySelectorAll('.vt-bb button,.vt-cs button')].filter(e=>e.offsetParent).map(e=>{const r=e.getBoundingClientRect();return[e.textContent.trim(),Math.round(r.width),Math.round(r.height)]})"
 
 async def sc_p47_pronto_per_posto(b, srv):
@@ -43,13 +45,17 @@ async def sc_p47_pronto_per_posto(b, srv):
     check(st['via'] and not st['forza'], f'il tavolo resta aperto e il posto 1 non vede «Parti comunque»: {st}')
     await pg.screenshot(path=os.path.join(d, 'p47-pronto.png'))
     # il posto 0, dopo il suo Pronto, vede «Parti comunque»
-    await pg.evaluate("(()=>{(%s)(0);const s=VenCampo.K.s;VCAM.pronto(s,'a',0);render()})()" % _STUB)
+    await pg.evaluate("(()=>{(%s)(0);VenStanza.manda({t:'b-pronto',o:{}});render()})()" % _STUB)
     await pg.wait_for_timeout(300)
     f = await pg.evaluate("[...document.querySelectorAll('.vt-bb button')].map(e=>e.textContent.trim())")
     check('Parti comunque' in f and 'Pronto 2/3' in f, f'il posto 0 vede «Parti comunque»: {f}')
     for nome, w, h in await pg.evaluate(_BT):
         check(w >= 44 and h >= 44, f'bersaglio da 44 px: {nome} {w}x{h}')
     await pg.click('.vt-bb >> text=Parti comunque'); await pg.wait_for_timeout(300)
-    check(await pg.evaluate("VenCampo.K.s.pronto.a===true"), '«Parti comunque»: tutti pronti')
+    st = await pg.evaluate("({a:VenCampo.K.s.pronto.a,via:window.__G.b.via,tvT:VenCampo.K.tvT,t:VenCampo.K.t})")
+    check(st['a'] and st['via'], f'«Parti comunque»: tutti pronti e la mossa ha dato il via: {st}')
+    await pg.wait_for_timeout(300)
+    st = await pg.evaluate("({tvT:VenCampo.K.tvT,t:VenCampo.K.t})")
+    check(st['tvT'] > 0, f'i nemici si muovono per un secondo (tvT): {st}')
     check(not pg.errs and not pg.cons, f'nessun errore: {pg.errs[:3]} {pg.cons[:3]}')
     await ctx.close()

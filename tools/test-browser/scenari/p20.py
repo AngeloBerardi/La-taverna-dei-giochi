@@ -2,7 +2,7 @@
 import os, tempfile
 
 _CTRL = """(()=>{const v=e=>e.offsetParent!==null||getComputedStyle(e).position==='fixed';
- const bt=[...document.querySelectorAll('button,.b,[data-v],[data-a]')].filter(v).filter(e=>!e.matches('.vn-std'));
+ const bt=[...document.querySelectorAll('button,.b,[data-v],[data-a]')].filter(v).filter(e=>!e.matches('.vn-std'));/* .vn-std: stendardo decorativo della barra (span con classe «b» di colore, non un bottone) */
  return {ott:[...document.querySelectorAll('.gold')].filter(v).length,
   piccoli:bt.filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.width<44||r.height<44)}).map(e=>(e.className+'|'+e.textContent.trim()).slice(0,30)).slice(0,6),
   tagliati:[...document.querySelectorAll('button,.b')].filter(v).filter(e=>e.scrollWidth>e.clientWidth+1).map(e=>e.textContent.trim().slice(0,30)).slice(0,6)}})()"""

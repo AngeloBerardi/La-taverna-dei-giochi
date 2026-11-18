@@ -2,7 +2,7 @@
 const assert = require('assert');
 const carica = require('./carica.js');
 const F = carica.VEN_FILES;
-const X = carica.multi(F, '({ VCAM, VST, VDAT })'), C = X.VCAM, S = X.VST, D = X.VDAT;
+const X = carica.multi(F, '({ VCAM, VST, VDAT, VEN })'), C = X.VCAM, S = X.VST, D = X.VDAT, V = X.VEN;
 const J = JSON.stringify;
 const T = (p, o) => Object.keys(o).map(t => ({ p, t, n: o[t] }));
 const cap = n => ({ nome: 'Capitano ' + n, pf: 80, att: 16, dif: 12, dan: 12, vel: 15, cavallo: true });
@@ -51,5 +51,26 @@ D.ACCESO.grandi = false;
   let G = stanza(3); G = mossa(G, 'b-pronto', 1).s;
   assert.strictEqual(G.b.c.pronto.a, true); assert.strictEqual(G.b.c.pronti, undefined); assert.strictEqual(G.b.via, false);
   assert(!mossa(G, 'b-via', 1).err);
+}
+
+// prove in più delle correzioni: anteprima con `consiglio` (rango `{r,nome}`, dottrina) e pedaggio con 10 monete
+{
+  D.ACCESO.consiglio = true;
+  const s = V.nuovo(3); s.tregua = 1e9; s.dentro = -1; s.davanti = -1;
+  const sig = s.p.find(p => p.k === 'sig' && !s.sig[p.sig].re), pre = s.p.find(p => p.k === 'pre');
+  s.incontro = { tipo: 'nemico', pid: [sig.id], all: [] };
+  const an = V.anteprima(s);
+  assert(an.loro.rango && an.loro.rango.r >= 0 && typeof an.loro.rango.nome === 'string', 'il rango è {r,nome}');
+  assert(an.loro.dott && V.dottrina(an.loro.dott).length > 0, 'la dottrina ha una frase');
+  const t = JSON.parse(J(s)); t.incontro = { tipo: 'nemico', pid: [pre.id], all: [] }; V.TU(t).oro = 10;
+  const pg = V.anteprima(t).scelte.find(x => x.k === 'paga');
+  assert(pg && pg.ok === false && pg.perche && pg.oro === 30, 'con 10 monete il pedaggio non si paga: ' + J(pg));
+  V.TU(t).oro = 400; const p2 = V.anteprima(t).scelte.find(x => x.k === 'paga'); assert(p2.ok && p2.oro === 100, 'un quarto delle monete');
+  D.ACCESO.consiglio = false;
+}
+// i salvataggi di tests/fixture/ven/ si aprono e il Pronto vecchio vale «tutti pronti»
+{
+  const fs = require('fs'), path = require('path'), dir = path.join(__dirname, 'fixture/ven');
+  for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.json'))) assert(V.apri(fs.readFileSync(path.join(dir, f), 'utf8')), f + ': si apre');
 }
 console.log('p47 ok');
