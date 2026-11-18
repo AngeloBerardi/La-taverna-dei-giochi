@@ -1,8 +1,6 @@
-/* ---- Compagnia di ventura (piano C): la battaglia campale. Motore puro, senza DOM né rete. ----
-   Due schiere su un campo W×H (passi), in tempo reale (un istante = 100 ms, `passo(s, n)`): ogni soldato è un'unità; chi gioca guida il capitano
-   (`capitano`) e dà ordini ai gruppi (`ordina`). Il lato `a` parte dal basso, il `b` dall'alto; gli altri arrivano a ondate. Negli assedi un muro taglia il campo.
-   `risolvi(scheda)` gioca tutta la battaglia senza grafica. Mai `Math.random`, `Date.now` o trigonometria. Numeri delle truppe in `VDAT` (28j), del campo in `C`;
-   morale dei reparti, fatica, frecce e comandante nemico (passo 16) in 28jb. Piano: docs/VENTURA.md. */
+/* ---- Compagnia di ventura (piano C): la battaglia campale. Motore puro, senza DOM né rete (mai Math.random né Date.now). ----
+   Due schiere su un campo W×H, in tempo reale (un istante = 100 ms, `passo(s, n)`): chi gioca guida il capitano e dà ordini ai gruppi; gli altri arrivano a ondate.
+   `risolvi(scheda)` gioca tutta la battaglia senza grafica. Numeri delle truppe in `VDAT` (28j), del campo in `C`; morale, fatica e frecce in 28jb; consiglio di guerra in 28la. Piano: docs/VENTURA.md. */
 const VCAM=(()=>{
  const D=VDAT;
  const C={W:60,H:100,ARENA:17,MAX:34,ONDATA:10,PASSO:.03,MISCHIA:1.5,RITMO:12,RITMO_T:24,VOLO:.55,ROTTA:.22,TMAX:7000,DANNO:.5,GRIDO:320,GRIDO_DUR:90,MURO:34,
@@ -20,7 +18,7 @@ const VCAM=(()=>{
  const rad=Math.sqrt,d2=(a,b)=>rad((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
  const stretto=(v,a,b)=>v<a?a:v>b?b:v;
  const GR=['f','t','c'],FORME=['larga','serrata','cuneo'],ASTA={picca:1,alabarda:1,lancia:1};
- // reparti: i tre di base (0 f, 1 t, 2 c) hanno per chiave la lettera del tipo; gli altri (3..7) il numero e il tipo in `c`
+ // reparti: chiave f, t, c per i tre di base; 3..7 gli altri (il tipo in `c`)
  const chiave=u=>u.r>2?u.r:u.c,keyR=r=>r>2?r:GR[r],repC=(q,k)=>q.c||k;
  const chiavi=ord=>GR.concat(Object.keys(ord).filter(k=>GR.indexOf(k)<0).map(Number).sort((a,b)=>a-b));
  // ---------- terreno: zone ellittiche (altura, bosco, case, acqua), per il motore e per la vista ----------
@@ -38,7 +36,7 @@ const VCAM=(()=>{
  // la formazione di un'unità: capitani e arena non ne hanno; negli stati vecchi senza `fm` vale `larga`
  const forma=(s,u)=>{if(u.cap||s.tipo==='arena')return null;const q=s.ord[u.l][chiave(u)];return q&&q.fm||'larga'};
  const passoFm=(fm,c)=>C.FM[fm].p+(c==='c'?C.FM.CAV:0);
- // zone di una battaglia: dalla scheda o dal seme (coordinate fisse del campo 60×100: sui campi più grandi vanno scalate, passo 29)
+ // zone di una battaglia: dalla scheda o dal seme (coordinate del campo 60×100)
  function zoneNuove(s,scheda){if(Array.isArray(scheda.zone))return scheda.zone.map(z=>Object.assign({},z));if(s.tipo==='arena'||s.tipo==='assedio')return[];
   const r=s.r,Z=[],sc=scheda.scena||{},t=s.terreno,al=(a,b)=>Math.round((a+r()*(b-a))*10)/10;
   const metti=z=>{if(!Z.some(q=>rad((q.x-z.x)*(q.x-z.x)+(q.y-z.y)*(q.y-z.y))<10))Z.push(z)};
@@ -87,6 +85,7 @@ const VCAM=(()=>{
   if(scheda.imboscata==='a'||scheda.imboscata==='b')s.imb=scheda.imboscata;
   if(scheda.colonna){const lc=scheda.colonna==='a'||scheda.colonna==='b'?scheda.colonna:s.imb?(s.imb==='a'?'b':'a'):null;if(lc){s.fermo={};s.fermo[lc]=C.REP.FERMO;for(const g of GR)s.ord[lc][g].fm='larga'}}
   if(s.fazb==='pre'){for(const g of GR)s.ord.b[g].t='carica'}
+  if(scheda.rango)VCONS.avvia(s,scheda);
   return s}
  const vivi=(s,l)=>s.u.filter(u=>u.l===l&&u.st==='vivo');
  const riserva=(s,l)=>s.ris[l].reduce((a,x)=>a+x.n,0);
@@ -124,7 +123,7 @@ const VCAM=(()=>{
   if(o.b!=null){const b=s.u.find(q=>q.id===o.b&&q.l==='b'&&q.st==='vivo');if(!b)return{err:'Bersaglio non valido'};u.ob=b.id;u.vx=null;return{s}}
   if(o.x!=null){u.vx=stretto(o.x,1,s.W-1);u.vy=stretto(o.y,1,s.H-1);u.ob=-1;return{s}}
   return{err:'Ordine sconosciuto'}}
- // ---------- grandi battaglie: reparti e ondate (settori, schiera, dividi, unisci, ondate: in 28m, `VCAM.int`) ----------
+ // ---------- grandi battaglie: reparti e ondate (in 28m) ----------
  // la schiera di un reparto rimessa in fila attorno alla sua ancora (come alla nascita)
  function rimetti(s,l,k){const q=s.ord[l][k],g=repC(q,k),ver=l==='a'?1:-1,L=s.u.filter(u=>u.l===l&&!u.cap&&u.st==='vivo'&&chiave(u)===k);
   L.forEach((u,i)=>{const pt=posto(i,L.length,s.tipo==='arena'?4:passoFm(q.fm,g),s.muro&&l==='b'&&g==='t'?26:10,q.fm);u.x=u.px=stretto(q.x+pt[0],2,s.W-2);u.y=u.py=stretto(q.y+ver*pt[1],.5,s.H-.5)})}
@@ -214,8 +213,8 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(dist<26||s.t>900){ia.f=1}}
   else{if(ia.m!==1){ia.m=1;o.c.fm='cuneo';if(nt>ne.filter(u=>u.c==='c').length&&!ne.some(u=>u.c==='c'))o.f.fm='larga'}
    o.f.t='carica';o.c.t='carica';if(dist<9||s.t>ia.t0+200)o.t.t='carica';if(!ia.t0)ia.t0=s.t}}
- // ---------- appoggi per l'istante (stessi risultati del codice semplice, meno lavoro) ----------
- // l'unità con quell'id: gli id nascono in fila e `s.u` non perde nessuno, quindi sta in U[id-1]; altrimenti si cerca
+ // ---------- appoggi per l'istante ----------
+ // l'unità con quell'id: di solito sta in U[id-1]
  const perId=(U,id)=>{const q=U[id-1];return q&&q.id===id?q:U.find(x=>x.id===id)};
  // passo 16 (28jb); senza quel file restano gli stub
  const P=D.CAMPO16?D.CAMPO16({C,D,stretto,d2,GR,chiavi,unita,perId,forma,muovi:(...a)=>muovi(...a),mischia:(...a)=>mischia(...a),muroTra:(...a)=>muroTra(...a)}):{capoVivo:()=>0,riep:(s,R)=>R},hoFr=u=>u.fr==null||u.fr>0;
@@ -235,7 +234,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
  function istante(s){s.t++;const U=s.u;if(s.rep)P.inizio(s);
   // frecce in arrivo
   if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=perId(U,v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,perId(U,v.da))}}s.voli=resto}
-  if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
+  if(s.rango)VCONS.turno(s);else if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
   const cap0=capU(s),vv=U.filter(u=>u.st==='vivo');
   const per={a:[],b:[]};for(const u of vv)per[u.l].push(u);
   let spingono=0;const conta={a:{f:0,t:0,c:0},b:{f:0,t:0,c:0}},idx={};for(const u of vv)if(!u.cap){const k=chiave(u);idx[u.id]=conta[u.l][k]|0;conta[u.l][k]=idx[u.id]+1}
@@ -288,7 +287,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   if(s.t%10===0){for(const l of['a','b']){const n=vivi(s,l).length,ris=riserva(s,l);
     const mx=s.max||C.MAX;if(ris>0&&n<mx*.62){let k=Math.min(Math.max(C.ONDATA,Math.round(mx/4)),ris,mx-n),q=0;const y=l==='a'?s.H-2:2;while(k>0&&s.ris[l].length){const x=s.ris[l][0];unita(s,l,x,8+s.r()*(s.W-16),y+(l==='a'?-1:1)*s.r()*3);x.n--;if(x.n<=0)s.ris[l].shift();k--;q++}if(q)s.ev.push({t:'rinforzi',l,n:q})}
     const val=s.u.reduce((a,u)=>a+(u.l===l&&u.st==='vivo'&&!u.cap?D.valore(u.t):0),0)+s.ris[l].reduce((a,x)=>a+x.n*D.valore(x.t),0)+valOnda(s,l),fr=val/Math.max(1,s.v0[l]);
-    const soglia=C.ROTTA+(55-s.mor[l])*.004;
+    const soglia=C.ROTTA+(55-s.mor[l])*.004+(s.indole?VCONS.soglia(s,l):0);
     if(fr<soglia&&!(l==='b'&&s.muro)&&s.tipo!=='arena'){for(const u of s.u)if(u.l===l&&u.st==='vivo'&&!u.cap){if(u.sal>s.t&&u.scI>=0)s.scalaT[u.scI]=0;u.sal=0;u.st='fuga'}s.ris[l]=[];if(s.ond)s.ond[l]=[];s.ev.push({t:'rotta',l});if(l==='a'&&s.autoA)chiudi(s,'b')}}
    const na=vivi(s,'a').length+riserva(s,'a')+inOnda(s,'a'),nb=vivi(s,'b').length-P.capoVivo(s)+riserva(s,'b')+inOnda(s,'b');const soloCap=vivi(s,'a').every(u=>u.cap);
    if(nb===0)chiudi(s,'a');else if(na===0||(soloCap&&riserva(s,'a')===0&&inOnda(s,'a')===0&&nb>3&&s.tipo!=='arena'))chiudi(s,'b');
@@ -307,5 +306,5 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
  function forme(s,l){const o=s.ord[l||'a'],f={};for(const g of GR)f[g]=(o[g]&&o[g].fm)||'larga';return f}
  // misure del campo per taglia della battaglia (senza taglia nota: il campo di sempre)
  function taglia(k){const T=(D.TAGLIA||{})[k];return T?{max:T.max,W:T.W,H:T.H}:{max:C.MAX,W:C.W,H:C.H}}
- return{morali:P.morali,int:{GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
+ return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VCAM;
