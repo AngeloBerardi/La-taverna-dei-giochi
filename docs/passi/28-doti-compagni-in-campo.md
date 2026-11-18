@@ -45,6 +45,7 @@ I compagni non sono più soldati qualunque. Le frasi le ha scritte il passo 10; 
 2. **Solo con `s.reparti`**: senza reparti nessuna dote, così l'impronta resta identica.
 3. Un solo punto di calcolo: `aura(s,u,k)` restituisce vero se un compagno vivo con quella dote è entro il raggio. Si chiama solo nei punti indicati, con una cache per istante (`s._aura`, non salvata).
 4. **Grida**: il motore emette `{t:'grida',chi,k}` con `k` tra `carica`, `rotta`, `cede`, `ferito` e `vince`, al massimo una volta ogni 40 istanti per tutta la battaglia (`s.ultGrida`). Il capitano del giocatore non grida.
+
 ## Prove
 
 - `tests/test_ven_p28.js`: per ogni dote una scheda minima che ne mostra l'effetto (per Brando: in 200 istanti i suoi `tiro` sono circa il doppio di quelli di un balestriere uguale).
