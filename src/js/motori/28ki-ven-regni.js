@@ -104,7 +104,7 @@ VDAT.UNIF={OGNI:7,VASSALLO:{FORZA:.5,GUERRA:20,STANCHEZZA:90,MAX:.95,PROB:.7},MA
   const X=s.rg[a];if(X&&s.l.filter(l=>l.tipo==='citta'&&l.faz===a).length>U.NOME&&!/^Regno di /.test(X.nome))X.nome='Regno di '+X.breve;
   const nA=VEN.rg(s,a).nome;
   L(s,come==='vassallo'?'«'+nome+'» giura fedeltà a «'+nA+'».':come==='matrimonio'?'«'+nome+'» e «'+nA+'» si uniscono per matrimonio dinastico.':'«'+nome+'» è assorbito da «'+nA+'».','guerra');
-  s.ev.push({t:'unione',da,a,come});VEN.accoda(s,'unione-'+come)}
+  VEN.accoda(s,'unione-'+come)}   // l'evento del mondo è la riga del diario (L); la scena `unione-…` la porterà il passo dei testi, se esiste
  // un regno cade per conquista: segna la fine e una parte dei suoi signori passa al vincitore
  VEN.aggancia('regno-cade',(s,prima,faz,suoi)=>{const R=s.rg&&s.rg[prima];if(!R)return;R.vivo=false;R.fuso={a:faz,g:giorno(s),come:'conquista'};
   for(const p of s.p)if(p.faz===prima)p.faz=s.l[p.casa]?s.l[p.casa].faz:faz;   // le carovane del regno caduto seguono la loro casa

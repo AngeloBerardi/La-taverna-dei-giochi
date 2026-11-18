@@ -46,7 +46,7 @@ for (const seme of [3, 11, 58]) {
   assert(lDebole.every(id => s.l[id].faz === forte), 'luoghi non passati, ' + dove);
   assert(sigDebole.every(id => s.sig[id].faz === forte && !s.sig[id].re), 'signori non passati o ancora re, ' + dove);
   assert.strictEqual(s.sig.filter(g => g.faz === forte && g.re).length, 1, 'più di un re, ' + dove);
-  assert(s.log.some(x => x.tx.includes('giura fedeltà')) && s.ev.some(e => e.t === 'unione' && e.da === debole), 'diario e eventi, ' + dove);
+  assert(s.log.some(x => x.tx.includes('giura fedeltà')) && s.ev.some(e => e.t === 'log' && e.tx.includes('giura fedeltà')), 'diario e eventi, ' + dove);
   assert.strictEqual(s.l.filter(l => l.tipo === 'citta' && l.faz === forte).length, citteForte + 1);
   invarianti(s, dove, n0);
   JSON.parse(v.salva(s));
