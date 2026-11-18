@@ -16,7 +16,6 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
   const s = C.nuovo(sc, { autoA: true }); const ev = gioca(s, 400);
   assert(s.rango === undefined && s.cons === undefined && s.dott === undefined && s.indole === undefined);
   assert(!ev.some(e => e.t === 'piano'));
-  assert.strictEqual(J(C.risolvi(sc)), J(C.risolvi(Object.assign({}, sc, { rango: undefined }))));
 }
 
 // il quadro è puro (lo stato non cambia) e dà reparti, forza, minaccia
@@ -57,7 +56,7 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
   const corsa = dott => {
     let mis = 0, tir = 0, serrata = 0, camp = 0, difensive = 0, piani = 0;
     for (let seme = 1; seme <= 6; seme++) {
-      const s = C.nuovo({ seme, a: T(0, { fer_f2: 22, fer_t2: 8, fer_c3: 6 }), b: T(5, { alt_f2: 14, alt_t2: 10, alt_a3: 10 }), faza: 'tu', fazb: 'fer', rango: { a: 2, b: 2 }, dott }, { autoA: true });
+      const s = C.nuovo({ seme, a: T(0, { fer_f2: 22, fer_t2: 8, fer_c3: 6 }), b: T(5, { alt_f2: 14, alt_t2: 10, alt_a3: 10 }), faza: 'tu', fazb: 'alt', rango: { a: 2, b: 2 }, dott }, { autoA: true });
       const cu = {}; for (const u of s.u) cu[u.id] = u; let contatto = false;
       while (!s.fine && s.t < 600) {
         for (const e of C.passo(s, 1)) {

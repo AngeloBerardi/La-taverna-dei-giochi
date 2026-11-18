@@ -79,7 +79,7 @@ Scheda: `rango:{a,b}`, `dott:{a,b}`, `indole:{a,b}`. Stato: `s.rango`, `s.dott`,
 
 ### Come pensa il nemico
 
-- Ogni comandante nemico ha un **rango** da 0 a 5. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, a far tirare gli arcieri e a scegliere la manovra giusta per ogni reparto.
+- Ogni comandante nemico ha un **rango**, dal novellino al maestro di guerra. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, a far tirare gli arcieri e a scegliere la manovra giusta per ogni reparto.
 - Più alto è il rango, più spesso il nemico ci ripensa e meno sbaglia: un maestro di guerra cambia piano appena il campo cambia, un novellino resta fermo sul suo errore.
 - Ogni regno ha la sua **dottrina**: gli arcieri di Altavento restano a distanza e non si fanno prendere in mischia, la Marca di Ferropietra si chiude in blocchi di picche, i predoni si buttano avanti senza pensarci.
 - Il **carattere** del signore pesa sulle scelte: il prode carica, il prudente aspetta e si ritira prima, il crudele si accanisce sui più deboli, l'avido insegue chi fugge.
