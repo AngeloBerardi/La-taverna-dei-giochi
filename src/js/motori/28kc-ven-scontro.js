@@ -110,7 +110,7 @@ Object.assign(VEN,(()=>{
    out.xp=Math.round(valUcc*1.4+10);
    for(const p of nem){VEN.avanzaInc(s,'vinci',p);out.oro+=Math.floor(p.oro*.6)+Math.round(forza(p)*.2);const era=p.k,sgi=p.sig;
     for(const q of s.incarichi)if(q.tipo==='predoni'&&q.pid===p.id&&!q.fatto){q.fatto=true;const l=s.l[q.da];tu.oro+=q.premio;l.rel+=8;l.inc=null;relaz(s,l.faz,2);s.fama+=3;L(s,'Predoni dispersi: '+l.nome+' vi paga '+q.premio+' monete.','bene')}
-    if(p.k==='sig'&&r()<.3){const B=D.BOTTEGA[p.faz];if(B)dona(B[Math.floor(r()*B.length)])}
+    if(p.k==='sig'&&r()<.3){const B=D.BOTTEGA[VEN.cult(s,p.faz)];if(B)dona(B[Math.floor(r()*B.length)])}
     if(p.k==='riv'&&!s.rivVinta){s.rivVinta=giorno(s);const vv=s.volpe||(s.volpe={tappa:0});if(!vv.dono){vv.dono=1;dona(D.RIVALE.premio)}s.fama+=15;L(s,'La Volpe Rossa vi lascia il campo'+(vv.dono===1?', e la sua cavalla.':'.'),'bene')}
     if(p.k==='sig'){VEN.memSig(s.sig[sgi]).sconf++;const preso=r()<VEN.probCattura(s,riep);VEN.sconfitta(s,p,'tu',preso?'tu':null);if(preso){s.sig[sgi].am=(s.sig[sgi].am||0)-10;s.prig.push({sig:sgi,n:1,t:'sig'});L(s,s.sig[sgi].nome+' è tuo prigioniero.','bene')}relaz(s,p.faz,-4)}
     else{if(p.porta){out.bottino.push([p.porta.m,p.porta.q]);tu.merci[p.porta.m]=(tu.merci[p.porta.m]||0)+p.porta.q}VEN.sconfitta(s,p,'tu')}
