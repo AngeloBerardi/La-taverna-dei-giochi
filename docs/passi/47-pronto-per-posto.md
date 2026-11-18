@@ -7,10 +7,14 @@ dopo: [11, 19]
 agente: programmer
 modello: sonnet
 impegno: medio
-controllo: forte
+controllo: forte+visivo
 file:
   - src/js/motori/28m-ven-stanza.js
   - src/js/app/24hwd-ven-scontro.js
+  - src/js/motori/28kf-ven-anteprima.js
+  - src/js/app/24ha-avventura.js
+  - src/css/39jc-ven-campo.css
+  - tools/test-browser/scenari/p20.py
 ---
 
 # Passo 47 — Il «Pronto» per posto in compagnia
@@ -72,7 +76,21 @@ Ogni capitano preme il suo «Pronto» quando ha finito di schierare. Il bottone 
 
 Annullare il Pronto, il tavolo sulla TV, il Pronto dell'IA (passo 21), tempo massimo di attesa.
 
+## Correzioni dalla revisione delle fasi 1–6
+
+Da `docs/passi/REVISIONE-1-6.md` (P1-3, P2-7, P2-8, P2-10, P3 e i difetti del rilascio 1). Sono i file della battaglia e del menu che nessun altro passo della fase 7 tocca. Tre commit a parte: incontro, tavolo, debiti.
+1. **Incontro** (`24hwd`, `28kf`):
+   - il rango si legge da `loro.rango.r` (il passo 12 scrive `{r,nome}`; il commento in testa a `28kf` va corretto);
+   - sotto il comandante, una riga di dottrina in parole nostre da `loro.dott`, con una frase per cultura in `28kf` (es. Ferropietra «si chiude in blocchi di picche», Altavento «tira a cavallo e non accetta la mischia»), solo se c'è `dott`;
+   - il nome del comandante non si ripete quando è anche il nome della schiera;
+   - la barra delle forze mostra «Loro N» come «Voi N»;
+   - «Paga il pedaggio» porta la cifra (`oro`, lo stesso conto di `28kc`: 25% delle monete, minimo 30) e `ok:false` con il `perche` se non basta;
+   - i pulsanti «i» passano ai colori della tavolozza (`docs/STYLE.md`), niente azzurro.
+2. **Tavolo** (`24hwd`): la formazione sulla carta del reparto è un segno, non una parola; un solo ottone («Pronto»). In alto, una riga col nemico noto dall'incontro: tipi, rango, dottrina.
+3. **Debiti del rilascio 1**: chiudere #170 e #175 (`24ha`: ottoni e bersagli del menu e del foglio «Nuova campagna»), #171 e #176 (`24hwd`/`39jc`: «Via» e «Avanti» ≥ 44 px), e togliere le voci corrispondenti da `_ATTESI` in `scenari/p20.py`. Nel foglio, la leva «Ferite del capitano» si nasconde finché un passo non la progetta (decisione dell'utente); i preset non la nominano.
+4. **Prove in più**: contro un signore con l'interruttore `consiglio` acceso compaiono i pallini del rango e la riga di dottrina; con 10 monete il pedaggio è grigio e dice perché; `p20` passa senza voci in `_ATTESI`.
+
 ## Fatto quando
 
 - [ ] Il test e lo scenario passano; l'impronta a interruttori spenti è identica a `main`.
-- [ ] Solo `28m` e `24hwd` toccati, oltre ai file propri.
+- [ ] Solo i file del campo `file:` toccati, oltre ai file propri.

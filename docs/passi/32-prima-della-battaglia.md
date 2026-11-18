@@ -48,7 +48,7 @@ La battaglia si vince anche prima di combattere: sapere chi hai davanti, sceglie
 ## Stato e contratti
 
 Tutto in `28kk-ven-strategia.js`, attaccato ai ganci:
-- `anteprima` → `scelte` e `stima`;
+- `anteprima` → `scelte` e `stima`; in più, dalla revisione delle fasi 1–6, la scelta `auto` («Risolvi») porta nell'`info` le perdite attese a parole («perderete circa un uomo su cinque»), dalla stessa stima;
 - `scelta` → `k` che cominciano con `strat:`;
 - `scheda` → `scena`, `ora`, `imboscata`, `zone` con i pali, `fatica0`, `mod` (notte: `git` ×0,6 per tutti), `esplora`, `morIni`.
 `s.incontro.strat` è facoltativo. Le zone `pali` e `imb` e la `colonna` le gestisce già il motore (passo 11). Errori in italiano per ogni scelta non possibile.

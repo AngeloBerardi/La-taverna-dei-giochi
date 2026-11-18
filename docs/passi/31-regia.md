@@ -23,13 +23,13 @@ La telecamera racconta lo scontro: inquadra sempre dove si combatte con entrambe
 
 ## Leggi prima
 
-`app/24hv-ven-campo.js`: `K` (`fuoco`, `alt`, `segue`), `passo`, `eventi`, `tocco`, `trascina`, `pizzico`, `centra`; `app/24hwe-ven-tv.js` (TV: `campoTvH`). Dipende dal passo 16 (eventi `rotta-g`, `stendardo`) e il passo 22 (mini-mappa e barra alta).
+`app/24hv-ven-campo.js`: `K` (`fuoco`, `alt`, `segue`), `passo`, `eventi`, `tocco`, `trascina`, `pizzico`, `centra`; `app/24hwe-ven-tv.js` (TV: `campoTvH`). Dipende dal passo 16 (eventi `rotta-r`, `stendardo`) e il passo 22 (mini-mappa e barra alta).
 
 ## Decisioni
 
 1. `K.cam` ∈ `regia` (predefinita) · `capitano` · `libera`. Tasto nella barra alta (icona occhio) che gira tra le tre; la TV (`24hwe-ven-tv.js`) è sempre `regia`.
 2. **Regia**: bersaglio = media pesata delle unità che hanno colpito o sono state colpite negli ultimi 30 istanti (peso 3) e di tutte le vive (peso 1); altezza tale che il rettangolo delle unità vive dei due lati stia nell'80% della vista, tra `K.ALT_MIN` 30 e `K.ALT_MAX` 92. Avvicinamento morbido (0,08 per fotogramma, indipendente dai fotogrammi: usare `1-Math.pow(0.92,dt*60)`).
-3. **Stacchi**: su `carica` con ≥ 3 colpi di carica nello stesso istante, `rotta-g`, `stendardo`, `cap-ko`, `porta`: la camera va sul punto ad altezza 26 per 1,6 s, poi torna alla regia. Un nuovo stacco non interrompe quello in corso; minimo 6 s tra due stacchi.
+3. **Stacchi**: su `carica` con ≥ 3 colpi di carica nello stesso istante, `rotta-r`, `stendardo`, `cap-ko`, `porta`: la camera va sul punto ad altezza 26 per 1,6 s, poi torna alla regia. Un nuovo stacco non interrompe quello in corso; minimo 6 s tra due stacchi.
 4. **Rallentatore** solo in solitario e solo per `stendardo` e `cap-ko`: velocità della vista ×0,35 per 0,7 s (si rallenta l'accumulo dei passi del motore, non il motore). In compagnia mai: il tempo è comune.
 5. Il giocatore comanda sempre: tocco sul campo per muovere il capitano → camera `capitano` per 4 s, poi torna a `regia`; trascinare o pizzicare → `libera` finché non si preme l'occhio.
 6. Lo schieramento (passo 19) usa la vista del campo intero; al «Via» parte la regia.

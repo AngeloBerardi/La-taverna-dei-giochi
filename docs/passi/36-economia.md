@@ -12,6 +12,8 @@ file:
   - src/js/motori/28kb-ven-economia.js
   - src/js/app/24hwb-ven-luoghi.js
   - src/js/app/24hwc-ven-gente.js
+  - src/css/39jb-ven-pannelli.css
+  - src/js/app/01b-icone.js
 ---
 
 # Passo 36 — L'economia del mondo
@@ -65,6 +67,16 @@ I prezzi raccontano il mondo.
 ## Regole per il giocatore
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+
+## Correzioni dalla revisione delle fasi 1–6
+
+Da `docs/passi/REVISIONE-1-6.md` (P1-1, P1-2, P2-11, P2-12). Decisione dell'utente: **scheda dei termini**. Commit a parte; valgono in tutti i mondi.
+1. **Regola**: un tocco che spende o promette mostra prima il prezzo. Le tessere del luogo che costano o impegnano (Incarico, Consegna, Reclute, Tutti, Torneo, Riposo, Infermeria, Benedizione, Voci) **non agiscono più al primo tocco**: aprono una **scheda dei termini** dentro il foglio. La scheda dice cosa si fa, quanto costa o rende, entro quando, cosa si rischia e cosa cambia (es. per «Tutti»: «6 uomini, 60 monete; i viveri scendono da 4 a 2 giorni»). Ha un solo ottone («Accetta», «Arruola», «Paga») e «Indietro». I `data-v` di oggi restano sull'ottone della scheda, così gli scenari non cambiano.
+2. **La tessera porta il numero che conta**, in piccolo sotto il nome: «439 m · 12 g» per l'incarico, «6 × 10 m» per le reclute, l'iscrizione per il torneo, il costo per il riposo. Una tessera spenta mostra il perché in una riga («Torneo tra 3 giorni», «Nessun ferito»).
+3. **I segnali segnalano novità.** «Incarico» compare solo se il premio è almeno 1,3 volte la media degli incarichi noti (`VEN.segnali`, pura). Torneo, compagno, pezzo unico e assedio restano come oggi.
+4. `VEN.prezzoMedio` diventa il riferimento del mercato al posto del prezzo base («Conviene» e «Caro» rispetto alla media dei luoghi noti), oppure si toglie: niente funzioni senza chi le usa.
+5. L'icona dell'Armaiolo diventa un'incudine o un elmo (`01b-icone.js`), non una veste.
+6. **Prove in più** (`scenari/p36.py`): al primo tocco su «Incarico» gli incarichi presi restano 0 e la scheda mostra premio, giorni e meta; dopo «Accetta» sono 1. Lo stesso per «Tutti» (le monete non cambiano al primo tocco). In città resta al più un ottone visibile.
 
 ## Fatto quando
 

@@ -11,6 +11,9 @@ controllo: forte
 file:
   - src/js/motori/28ki-ven-regni.js
   - src/js/motori/28kd-ven-corte.js
+  - src/js/motori/28kj-ven-rango.js
+  - src/js/motori/28kh-ven-stagioni.js
+  - src/js/motori/28ka-ven-ia.js
 ---
 
 # Passo 27 — L'unificazione dei regni
@@ -51,6 +54,17 @@ Una mappa politica che cambia sotto gli occhi del giocatore, e un traguardo nuov
 ## Regole per il giocatore
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+
+## Correzioni dalla revisione delle fasi 1–6
+
+Da `docs/passi/REVISIONE-1-6.md` (P1-4 e i re). Decisioni dell'utente del 18 novembre 2026. Due commit a parte.
+1. **Il re vale quanto il suo regno** (`28kj`, solo nei mondi `s.geo===2`). La base del re è 2 con una città, 3 con due o tre città, 4 da quattro in su. Si legge al momento da `s.l` (nessun campo salvato), quindi sale da sola quando il regno si accorpa. Nei mondi vecchi il re resta 4: impronta identica.
+2. **Le leve della difficoltà mordono** (`28kh`, che già compone `VEN.molt` per le stagioni). Valgono in **tutti** i mondi, perché il foglio «Nuova campagna» è già online:
+   - `cons`: `molt('viveri')` × `VDAT.DIFF.cons[..].viveri`, foraggio compreso;
+   - `eco`: `molt('prezzo')`, `molt('paga')` e `molt('rendita')` con i numeri di `VDAT.DIFF.eco`;
+   - `nem`: un punto `VEN.molt(s,'predoni',{})` nuovo in `28ka` (riga dove nascono le bande, `punti` e probabilità) × `VDAT.DIFF.nem[..].predoni`.
+   Con le opzioni di base i moltiplicatori valgono 1: impronta identica. Il passo 36 compone sopra questi senza raddoppiarli.
+3. **Prove in più** in `tests/test_ven_p27.js`: a parità di seme e di bot, Leggenda dà più giorni di fame e meno monete di Condottiero, e Recluta il contrario; con `opz` assente tutto è come oggi; un regno di una città ha il re di rango 2, e dopo due accorpamenti che lo portano a quattro città il re è di rango 4.
 
 ## Fatto quando
 
