@@ -53,8 +53,10 @@ const VenCampo=(()=>{
    for(let k=0;k<n*8&&messi<n;k++){const x=zb.x+(hh(k,zi+11,semeD)*2-1)*zb.rx,z=zb.y+(hh(k,zi+12,semeD)*2-1)*zb.ry;if(VCAM.copre(s,x,z)!=='bosco')continue;
     const q=hh(k,zi+13,semeD),tipo=bio===1?'pino':q<.45?'pino':'lati';liste[tipo].push([x,alto(x,z)-.05,z,.8+q*.9,bio===1?[.9,1.05,1.08]:bio===2?[1,.92,.6]:[.85+q*.3,.95,.8+q*.2]]);messi++}});
   for(let k=0;k<Math.round((monte?90:40)*ar);k++){const x=hh(k,7,semeD)*(C.W+50)-25,z=hh(k,8,semeD)*(C.H+50)-25;if(alto(x,z)<-.1)continue;liste.sasso.push([x,alto(x,z),z,.5+hh(k,9,semeD)*1.4,[1,1,1]])}
-  const d=new T.Object3D();for(const[nome,geo]of[['ciuffo',ciuffo],['pino',pino],['lati',lati],['sasso',sasso]]){const Ls=liste[nome];if(!Ls.length)continue;const me=new T.InstancedMesh(geo,A.matI,Ls.length);me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(Ls.length*3),3);
-   Ls.forEach((p,k)=>{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,hh(k,10,semeD)*6.28,0);d.scale.setScalar(p[3]);d.updateMatrix();me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,p[4][0],p[4][1],p[4][2])});me.castShadow=nome!=='ciuffo';me.frustumCulled=false;sc.add(me)}
+  // erba, alberi e sassi a istanze; tutte le istanze stanno in `K.sce`, nel buffer solo quelle vicine alla camera (vedi `ritaglia`): il campo grande costa come il piccolo
+  const d=new T.Object3D();K.sce=[];K._rq=null;for(const[nome,geo]of[['ciuffo',ciuffo],['pino',pino],['lati',lati],['sasso',sasso]]){const Ls=liste[nome];if(!Ls.length)continue;const me=new T.InstancedMesh(geo,A.matI,Ls.length);me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(Ls.length*3),3);
+   Ls.forEach((p,k)=>{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,hh(k,10,semeD)*6.28,0);d.scale.setScalar(p[3]);d.updateMatrix();me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,p[4][0],p[4][1],p[4][2])});me.castShadow=nome!=='ciuffo';me.frustumCulled=false;sc.add(me);
+   K.sce.push({me,M:me.instanceMatrix.array.slice(),Cc:me.instanceColor.array.slice(),X:Ls.map(p=>p[0]),Z:Ls.map(p=>p[2])})}
   // ---- assedio: mura merlate con i varchi, torri, mastio alle spalle ----
   if(s.muro){const S=A.Solidi(),m=s.muro,p='#aaa49b',p2='#cfc8bc',F=rg(scheda.fazb,"fer"),PO=s.porta;
    // aperture del muro: la porta (chiusa dal portone finché regge) e le brecce già aperte all'inizio (macerie)
@@ -164,6 +166,17 @@ const VenCampo=(()=>{
    else if(e.t==='cap-ko')Ven.avviso(e.seat===(K.seat||0)?'Sei caduto: gli uomini combattono senza di te':'Un capitano è caduto!','male');
    else if(e.t==='fine')K.finita=true}
   if(ev.length)VenAudio.campo(ev)}
+ // il rettangolo di terreno che la camera vede, allargato di `m` (le cose alte e le loro ombre entrano dal bordo)
+ const visto=m=>{const A=VenArte.A,asp=A.rw>2?(A.rw-2)/(A.rh-2):.5,hx=K.alt*asp/2+m,hz=K.alt/2/VenArte.SE+m;return[K.fuoco.x-hx,K.fuoco.x+hx,K.fuoco.z-hz,K.fuoco.z+hz]};
+ // erba, alberi e sassi: nel buffer solo le istanze attorno alla camera; si rifà quando la camera esce dal rettangolo già pronto o lo vede molto più piccolo
+ function ritaglia(){const v=visto(6),w=visto(18),r=K._rq;if(!K.sce||(r&&v[0]>=r[0]&&v[1]<=r[1]&&v[2]>=r[2]&&v[3]<=r[3]&&r[0]>=w[0]&&r[1]<=w[1]&&r[2]>=w[2]&&r[3]<=w[3]))return;const q=K._rq=visto(12);
+  for(const o of K.sce){const M=o.me.instanceMatrix.array,Cc=o.me.instanceColor.array;let n=0;
+   for(let k=0;k<o.X.length;k++){const x=o.X[k],z=o.Z[k];if(x<q[0]||x>q[1]||z<q[2]||z>q[3])continue;M.set(o.M.subarray(k*16,k*16+16),n*16);Cc.set(o.Cc.subarray(k*3,k*3+3),n*3);n++}
+   o.me.count=n;o.me.instanceMatrix.needsUpdate=o.me.instanceColor.needsUpdate=true}}
+ // tetto delle figure intere per lato (qualità): le più vicine al centro dell'inquadratura restano intere, le altre diventano omini (livello 2). Torna il quadrato della distanza limite
+ function tetto(s,V,bud){const D={a:[],b:[]},fx=K.fuoco.x,fz=K.fuoco.z,lim={a:1e9,b:1e9};if(bud>=1e9)return lim;
+  for(const u of s.u){if(u.cap||u.st==='via'||u.x<V[0]||u.x>V[1]||u.y<V[2]||u.y>V[3])continue;D[u.l].push((u.x-fx)*(u.x-fx)+(u.y-fz)*(u.y-fz))}
+  for(const l of['a','b'])if(D[l].length>bud)lim[l]=bud>0?D[l].sort((p,q)=>p-q)[bud-1]:-1;return lim}
  function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;K.dt=dt;
   {const tv=tavolo(s);if(tv!==K._tv){K._tv=tv;if(tv){K.segue=false;K.fit=true;K.selR=null}else if(typeof ui!=='undefined'&&ui.tv){K.alt=80;K.fuoco.x=s.W/2;K.fuoco.z=s.H/2}else{K.segue=true;K.alt=38}render()}if(tv&&K.fit)fitta()}
   if(K.portone){const su=!!(s.porta&&s.porta.pf>0);K.portone.visible=su;K.abbattuto.visible=!su}
@@ -175,14 +188,16 @@ const VenCampo=(()=>{
   const salta=lod===1&&K._lodP===1&&cen&&(K._fr=(K._fr|0)+1)%2===1;K._lodP=lod;
   if(lod===2){K.fig.inizio();K.fig.fine();K._dtA=0}
   else if(salta)K._dtA=dF;   // al livello medio le figure si aggiornano un fotogramma su due
-  else{K._dtA=0;cen=K._cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};K.fig.inizio();K.fig.livello(lod?1:0);{const dt=dF,nb={a:0,b:0};let caduti=0;
+  else{K._dtA=0;cen=K._cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};K.fig.inizio();K.fig.livello(lod?1:0);{const dt=dF,V=visto(4),lim=tetto(s,V,bud);let caduti=0;
   for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;if(u.l==='b'&&s.primo==='a'&&s.rep&&(K._tv||K.t<K.tvT))continue;let q=K.U[u.id];if(!q)q=K.U[u.id]={f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9};
    const x=u.st==='ko'?u.x:u.px+(u.x-u.px)*al,z=u.st==='ko'?u.y:u.py+(u.y-u.py)*al,mosso=Math.hypot(u.x-u.px,u.y-u.py);
    if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(++caduti>46&&q.giu>=1)continue}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
    const F=FAZ(u.l),tc=K.t-q.colpo,tf=(VDAT.TR[u.t]||{}).faz,xt=tf&&rg0(tf),FT=xt&&!xt.ignota?xt:F,mioL=u.l==='a';
    // chi sale una scala: la quota va dal piede al camminamento in SCALA istanti
    const sal=u.sal>s.t?Math.min(1,Math.max(0,1-(u.sal-s.t-1+al)/C.AS.SCALA)):-1;
-   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&tf!=="tu"?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id,liv:u.cap?0:lod?1:++nb[u.l]>bud?2:0});
+   // fuori dall'inquadratura la figura non si disegna (e non conta nel tetto delle figure intere): conta solo per lo stendardo del reparto
+   const fuori=!u.cap&&(x<V[0]||x>V[1]||z<V[2]||z>V[3]);if(fuori){if(u.st==='vivo'){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}continue}
+   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&tf!=="tu"?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id,liv:u.cap?0:(x-K.fuoco.x)*(x-K.fuoco.x)+(z-K.fuoco.z)*(z-K.fuoco.z)>lim[u.l]?2:lod?1:0});
    if(u.st==='vivo'&&!u.cap){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}
    if(u.st==='fuga'&&Math.random()<dt*2)K.par.emetti(x,.1,z,{vy:.4,s:.16,dur:.6,col:'#d8c8a4',cresce:1});
    else if(mosso>.3&&Math.random()<dt*6)K.par.emetti(x,.1,z,{vy:.5,s:.18,dur:.7,col:K.scheda.bioma===1?'#ffffff':'#d8c8a4',cresce:1.2})}
@@ -210,7 +225,7 @@ const VenCampo=(()=>{
   const L=K.luce.ora(K.ora,{x:(s.W||C.W)/2,y:0,z:K.fuoco.z},48);if(L.notte>.3){K.luce.amb.intensity+=.62*L.notte;K.luce.sole.intensity+=.5*L.notte}K.lampo=Math.max(0,K.lampo-dt*1.6);K.scossa=Math.max(0,K.scossa-dt);
   const sx=K.scossa>0?(Math.random()-.5)*K.scossa*2:0;
   if(K.acqua)K.acqua.uniforms.luce.value=1-L.notte*.5;
-  A.disegna(K.scene,K.cam,{x:K.fuoco.x+sx,y:0,z:K.fuoco.z+sx},K.alt,{notte:L.notte,lampo:K.lampo*.5,nebbia:met==='nebbia'?.5:met==='pioggia'?.2:0,tinta:met==='pioggia'?[.9,.94,1]:K.ora>17.5&&K.ora<20.5?[1.06,.97,.9]:null});
+  ritaglia();A.disegna(K.scene,K.cam,{x:K.fuoco.x+sx,y:0,z:K.fuoco.z+sx},K.alt,{notte:L.notte,lampo:K.lampo*.5,nebbia:met==='nebbia'?.5:met==='pioggia'?.2:0,tinta:met==='pioggia'?[.9,.94,1]:K.ora>17.5&&K.ora<20.5?[1.06,.97,.9]:null});
   {const sg=s.ond?s.ond.a.filter(w=>!w.fatta&&w.quando.k==='comando').map(w=>w.id+':'+w.tr.reduce((a,x)=>a+x.n,0)).join():'';if(K.sigO!==undefined&&sg!==K.sigO)render();K.sigO=sg}
   numeri()}
  function numeri(){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte;let h=tavoloH()+lontanoH();K.numeri=K.numeri.filter(n=>K.t-n.t<.8);
