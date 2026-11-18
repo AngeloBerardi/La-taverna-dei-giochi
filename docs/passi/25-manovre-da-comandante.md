@@ -67,7 +67,13 @@ I comandanti esperti giocano davvero.
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+### I comandanti esperti
+
+- Un comandante di buon rango legge il campo: porta i tiratori su un'altura o in un bosco della sua metà, si schiera guardando come ti sei schierato e mette le picche davanti alla tua cavalleria.
+- Tiene dietro una parte dell'esercito e la fa entrare quando hai speso la tua ultima ondata o quando un tuo reparto cede, dall'ingresso più vicino. Dà il cambio ai reparti stanchi con quelli freschi e non si butta in acqua o nel bosco sotto le frecce.
+- I maestri tendono trappole: un reparto debole avanza da solo per attirarti, la cavalleria nascosta ti prende di fianco appena lo insegui; i fanti ti inchiodano mentre i cavalieri girano alle tue spalle; se il tuo capitano resta scoperto, i cavalieri gli danno la caccia.
+- Quando la battaglia è persa, un comandante prudente non aspetta la rotta: ripiega in ordine, coperto da un reparto in serrata, e salva più uomini.
+- Impari a leggerli dai segni in campo («si spostano verso l'altura», «la loro cavalleria gira a sinistra»); le trappole non danno nessun segno.
 
 ## Fuori scopo
 
