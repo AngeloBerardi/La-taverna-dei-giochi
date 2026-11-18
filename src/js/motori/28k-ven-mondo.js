@@ -159,7 +159,7 @@ const VEN=(()=>{
  const nomeF=(s,f,lungo)=>{const r=VEN.rg(s,f);return lungo?r.nome:r.breve};
  const colFaz=(s,f)=>{const r=VEN.rg(s,f);return{col:r.col,col2:r.col2}};
  // la cultura delle truppe di un signore: quella d'origine se è passato a un altro stendardo
- const cultura=(s,p)=>(s.sig[p.sig]||{}).cult||p.faz;
+ const cultura=(s,p)=>(s.sig[p.sig]||{}).cult||VEN.cult(s,p.faz);
  function nemiche(s,fa,fb){if(fa===fb)return false;if(fa==='pre'||fb==='pre')return true;if(fa==='mer'||fb==='mer')return false;
   if(fa==='tu'||fb==='tu'){const f=fa==='tu'?fb:fa;if(s.corona)return inGuerra(s,'tu',f);if(s.servizio){if(s.servizio.faz===f)return false;if(inGuerra(s,s.servizio.faz,f))return true}return(s.rel[f]||0)<=-25}
   return inGuerra(s,fa,fb)}
@@ -274,7 +274,7 @@ const capi=s=>{const c=[s.cap].concat(s.soci||[]);return s.attivi>0?c.slice(0,s.
       tu.ord=null;tu.via=[];s.incontro={tipo:'nemico',pid:[p.id].concat(amici.filter(q=>ostile(s,q,tu)&&!ostile(s,q,p)).map(q=>q.id)),all:amici.filter(q=>!ostile(s,q,tu)&&ostile(s,q,p)&&q.k==='sig').map(q=>q.id),da:cerco?'tu':'loro'};
       VEN.ganci('incontro',s,s.incontro);s.ev.push({t:'incontro'});return}}
    else if(cerco){tu.ord=null;tu.via=[];s.incontro={tipo:'parla',pid:[p.id],all:[]};s.ev.push({t:'incontro'});return}}}
- const M0=(s,l)=>VEN.regni(s)[VEN.mappaDi(s).R[cella(VEN.mappaDi(s),l.x,l.y)]];
+ const M0=(s,l)=>regni(s)[VEN.mappaDi(s).R[cella(VEN.mappaDi(s),l.x,l.y)]];
  // traguardi: danno una direzione senza imporre una trama
  function traguardi(s){const mie=s.l.filter(l=>l.faz==='tu'||l.sig===-2);return[
   ['Venti uomini sotto lo stendardo',uomini(TU(s))>=20],['Fama 25: un contratto di ventura',s.fama>=25],['Cinque battaglie vinte',s.stat.vinte>=5],

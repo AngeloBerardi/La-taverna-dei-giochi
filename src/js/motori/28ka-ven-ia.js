@@ -15,7 +15,7 @@ Object.assign(VEN,(()=>{
  function faiPace(s,a,b){delete s.guerra[chiave(a,b)];for(const l of s.l)if(l.ass&&(l.ass.faz===a||l.ass.faz===b))l.ass=null}
  function nascePredoni(s,r,vicinoA){const M=VEN.mappaDi(s),c=vicinoA||M.covi[Math.floor(r()*M.covi.length)],g=giorno(s),pos=vicinoOk(M,c[0]+(r()-.5)*3,c[1]+(r()-.5)*3);
   const grossa=r()<.22,punti=(22+r()*30+Math.min(150,g*2.1))*(grossa?1.7:1);return nuovaP(s,'pre','pre',(grossa?'Masnada: ':'')+D.NOMI.bande[Math.floor(r()*D.NOMI.bande.length)],pos[0],pos[1],leva('pre',punti,r),{oro:20+Math.floor(r()*60)})}
- function nasceCarovana(s,l,r){const p=nuovaP(s,'car',l.faz,'Carovana di '+l.nome,l.x,l.y,leva(l.faz,38+r()*20,r),{oro:150+Math.floor(r()*200),casa:l.id,dentro:l.id});p.ia={st:'sosta',t:s.t+60+Math.floor(r()*600)};return p}
+ function nasceCarovana(s,l,r){const p=nuovaP(s,'car',l.faz,'Carovana di '+l.nome,l.x,l.y,leva(VEN.cult(s,l.faz),38+r()*20,r),{oro:150+Math.floor(r()*200),casa:l.id,dentro:l.id});p.ia={st:'sosta',t:s.t+60+Math.floor(r()*600)};return p}
  // ---------- il cervello degli altri ----------
  function vai(s,p,x,y,M){p.via=via(M,p.x,p.y,x,y);p.ia.mx=x;p.ia.my=y}
  function rifugio(s,p){let m=null,md=1e9;for(const l of s.l){if(!MURA[l.tipo]||l.faz!==p.faz||l.ass)continue;const d=dist(l,p);if(d<md){md=d;m=l}}return m}
@@ -109,11 +109,11 @@ Object.assign(VEN,(()=>{
     if(tu.oro>=dovuto){tu.oro-=dovuto;if(dovuto)L(s,'Giorno di paga: '+dovuto+' monete agli uomini.');VEN.gradPaga(s,true)}else{tu.oro=0;tu.mor=Math.max(0,tu.mor-25);L(s,'Non hai di che pagare gli uomini: malcontento.','male');VEN.gradPaga(s,false)}}}
   VEN.debiti(s);VEN.addii(s);VEN.vociDelGiorno(s);
   // economia e reclute
-  for(const l of s.l){if(MERCATO[l.tipo]){const prod=D.PRODUCE[VEN.regni(s).includes(l.faz)?l.faz:M0(s,l)]||[],fermo=l.sacc>g;for(const m of Object.keys(D.MERCI)){const mio=prod.includes(m),cibo=D.MERCI[m].cibo;
+  for(const l of s.l){if(MERCATO[l.tipo]){const prod=D.PRODUCE[VEN.regni(s).includes(l.faz)?VEN.cult(s,l.faz):M0(s,l)]||[],fermo=l.sacc>g;for(const m of Object.keys(D.MERCI)){const mio=prod.includes(m),cibo=D.MERCI[m].cibo;
      let d=mio||(l.tipo==='porto'&&m==='pesce')?(fermo?0:4):cibo&&l.tipo!=='citta'?(fermo?0:3):-1;l.scorte[m]=Math.max(0,Math.min(120,(l.scorte[m]||0)+d+(r()<.3?1:0)))}}
    if(l.tipo==='villaggio'&&l.sacc<=g)l.rec=Math.min(Math.floor((8+Math.floor(l.rel/10))*VEN.molt(s,"reclute",{lid:l.id})),l.rec+(r()<.5+l.prosp/200?1:0)+(l.rel>20?1:0));
    if(l.sacc<=g&&l.prosp<70&&r()<.3)l.prosp++;
-   if(MURA[l.tipo]&&VEN.regni(s).includes(l.faz)&&!l.ass&&forzaTr(l.g)<(l.tipo==='citta'?300:170)&&r()<.5)aggiungi(l.g,l.faz+'_'+(r()<.5?'f2':r()<.6?'t2':'f1'),1);
+   if(MURA[l.tipo]&&VEN.regni(s).includes(l.faz)&&!l.ass&&forzaTr(l.g)<(l.tipo==='citta'?300:170)&&r()<.5)aggiungi(l.g,VEN.cult(s,l.faz)+'_'+(r()<.5?'f2':r()<.6?'t2':'f1'),1);
    if((l.tipo==='citta'||l.tipo==='porto')&&l.carTorna&&g>=l.carTorna&&VEN.regni(s).includes(l.faz)){l.carTorna=0;nasceCarovana(s,l,r)}
    if(g%7===0)VEN.rinnova(s,l,r)}
   // signori: tasse e prigionieri che tornano
