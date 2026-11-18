@@ -74,7 +74,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
  // ---------- solidi a facce piatte con colore per vertice ----------
  function Solidi(){const pos=[],nor=[],col=[],m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),v=new T.Vector3(),n=new T.Vector3(),c=new T.Color(),c2=new T.Color();
   const S={n:0,
-   agg(geo,x,y,z,colore,o){o=o||{};const g=geo.index?geo.toNonIndexed():geo;g.computeVertexNormals();e.set(o.rx||0,o.ry||0,o.rz||0);q.setFromEuler(e);
+   agg(geo,x,y,z,colore,o){o=o||{};const g=geo.index?geo.toNonIndexed():geo;g.computeVertexNormals();e.set(o.rx||0,o.ry||0,o.rz||0,o.ord||'XYZ');q.setFromEuler(e);
     m.compose(v.set(x,y,z),q,new T.Vector3(o.sx||1,o.sy||1,o.sz||1));const nm=new T.Matrix3().getNormalMatrix(m),P=g.attributes.position,N=g.attributes.normal;c.set(colore);if(o.c2!=null)c2.set(o.c2);
     let y0=1e9,y1=-1e9;if(o.c2!=null)for(let i=0;i<P.count;i++){const yy=P.getY(i);if(yy<y0)y0=yy;if(yy>y1)y1=yy}
     for(let i=0;i<P.count;i++){v.fromBufferAttribute(P,i);const ty=o.c2!=null?(v.y-y0)/Math.max(1e-6,y1-y0):0;v.applyMatrix4(m);pos.push(v.x,v.y,v.z);n.fromBufferAttribute(N,i).applyMatrix3(nm).normalize();nor.push(n.x,n.y,n.z);
@@ -84,8 +84,8 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    cil(r1,r2,h,seg,x,y,z,colore,o){return S.agg(new T.CylinderGeometry(r1,r2,h,seg),x,y+h/2,z,colore,o)},
    cono(r,h,seg,x,y,z,colore,o){return S.agg(new T.ConeGeometry(r,h,seg),x,y+h/2,z,colore,o)},
    sfera(r,x,y,z,colore,o){return S.agg(new T.IcosahedronGeometry(r,0),x,y,z,colore,o)},
-   // tetto a due falde: prisma triangolare lungo z
-   tetto(w,h,d,x,y,z,colore,o){const g=new T.CylinderGeometry(w*.5774,w*.5774,d,3);return S.agg(g,x,y+h*.33,z,colore,Object.assign({rx:-Math.PI/2,sy:1,sz:h/(w*.866)},o||{}))},
+   // tetto a due falde: prisma triangolare lungo z; ord 'YXZ' = prima si inclina il prisma, poi lo si gira (ry) attorno alla verticale come le scatole
+   tetto(w,h,d,x,y,z,colore,o){const g=new T.CylinderGeometry(w*.5774,w*.5774,d,3);return S.agg(g,x,y+h*.33,z,colore,Object.assign({rx:-Math.PI/2,ord:'YXZ',sy:1,sz:h/(w*.866)},o||{}))},
    geo(){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('normal',new T.Float32BufferAttribute(nor,3));g.setAttribute('color',new T.Float32BufferAttribute(col,3));return g},
    mesh(o){const me=new T.Mesh(S.geo(),matToon);me.castShadow=!(o&&o.ombra===false);me.receiveShadow=true;return me}};return S}
  // ---------- schiere di figure a istanze ----------
