@@ -264,6 +264,7 @@
  "src/js/app/24hv-ven-campo.js",
  "src/js/app/24hw-ventura.js",
  "src/js/app/24hwa-ven-barre.js",
+ "src/js/app/24hwaa-ven-regno.js",
  "src/js/app/24hwb-ven-luoghi.js",
  "src/js/app/24hwc-ven-gente.js",
  "src/js/app/24hwd-ven-scontro.js",
