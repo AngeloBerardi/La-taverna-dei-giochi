@@ -98,7 +98,8 @@ assert.strictEqual(D.COMPAGNI.map(c => c.campo.k).sort().join(), 'alfiere,benedi
       n += C.passo(s, 1).filter(e => e.t === 'tiro' && e.da === b.id).length }
     return n;
   };
-  const brando = conta('co_brando'), norm = conta(D.TR.co_brando.arch === 't3' ? 'val_t3' : 'val_t2');
+  const brando = conta('co_brando'), norm = conta('val_t3');
+  assert(D.TR.val_t3.c === 't' && D.TR.val_t3.git > 0 && D.TR.co_brando.arch === 't3', 'il termine di paragone è un balestriere dello stesso tipo');
   assert(norm > 3, 'il balestriere tira: ' + norm); assert(brando >= norm * 1.7 && brando <= norm * 2.3, `Brando ${brando} contro ${norm}`);
 }
 
@@ -131,5 +132,20 @@ assert.strictEqual(D.COMPAGNI.map(c => c.campo.k).sort().join(), 'alfiere,benedi
   while (!s.fine && s.t < 7001) C.passo(s, 50);
   assert(s.fine); assert.strictEqual(s.u.length + s.ris.a.reduce((a, x) => a + x.n, 0) + s.ris.b.reduce((a, x) => a + x.n, 0), n0);
   assert(!JSON.stringify(s).includes('_aura'), 'la cache non si salva');
+}
+
+// ogni doppio tiro di Brando costa due quadrelli (uno per tiro)
+{
+  const s = nuovo({ a: T(0, { co_brando: 1 }), b: T(5, { fer_f2: 6 }) }); s.autoA = false; s.ord.a.t.t = 'carica';
+  const b = di(s, 'co_brando'), nem = s.u.filter(u => u.l === 'b'); let n = 0; const f0 = b.fr;
+  for (let i = 0; i < 120 && !s.fine; i++) { b.x = 30; b.y = 80; b.pf = b.pfm = 999; nem.forEach((u, k) => { u.x = 30 + k; u.y = 66; u.pf = u.pfm = 999; u.st = 'vivo'; u.att = 0; u.dan = 1; u.vel = 0 });
+    n += C.passo(s, 1).filter(e => e.t === 'tiro' && e.da === b.id).length; }
+  assert(n > 2 && n % 2 === 0 && f0 - b.fr === n, `tiri ${n}, frecce usate ${f0 - b.fr}`);
+}
+
+// senza reparti la battaglia resta quella di sempre: impronta identica a main
+{
+  const o = require('child_process').execFileSync(process.execPath, [require('path').join(__dirname, '../tools/avventura/impronta.js'), '--controlla'], { encoding: 'utf8' });
+  assert(/Impronta identica/.test(o), o);
 }
 console.log('test_ven_p28 ok');

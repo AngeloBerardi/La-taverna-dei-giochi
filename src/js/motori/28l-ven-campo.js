@@ -129,6 +129,7 @@ const VCAM=(()=>{
  // la schiera di un reparto rimessa in fila attorno alla sua ancora (come alla nascita)
  function rimetti(s,l,k){const q=s.ord[l][k],g=repC(q,k),ver=l==='a'?1:-1,L=s.u.filter(u=>u.l===l&&!u.cap&&u.st==='vivo'&&chiave(u)===k);
   L.forEach((u,i)=>{const pt=posto(i,L.length,s.tipo==='arena'?4:passoFm(q.fm,g),s.muro&&l==='b'&&g==='t'?26:10,q.fm);u.x=u.px=stretto(q.x+pt[0],2,s.W-2);u.y=u.py=stretto(q.y+ver*pt[1],.5,s.H-.5)})}
+ // ondate: truppe tenute fuori dal campo, che entrano da un ingresso quando scatta il loro momento
  const inOnda=(s,l)=>{let n=0;if(s.ond&&s.ond[l])for(const w of s.ond[l])for(const x of w.tr)n+=x.n;return n};
  const valOnda=(s,l)=>{let n=0;if(s.ond&&s.ond[l])for(const w of s.ond[l])for(const x of w.tr)n+=x.n*D.valore(x.t);return n};
  // ---------- movimento ----------
@@ -185,7 +186,9 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   const colpito=r()<p,vt=Math.max(2,Math.round(d*C.VOLO)),dan=colpito?Math.max(1,Math.round(armatura(u.dan*(.75+r()*.5),dif*.8*(1-(u.perf||0)))*C.DANNO*(fb==='larga'?C.FM.larga.danT:1)*Q.dan(s,u))):0;
   s.voli.push({at:s.t+vt,a:b.id,dan,da:u.id});s.ev.push({t:'tiro',da:u.id,a:b.id,x0:u.x,y0:u.y,x1:b.x,y1:b.y,vt,colpito});if(!bis&&Q.bis(s,u,b)&&hoFr(u))tiro(s,u,b,d,1)}
  // ---------- il comandante avversario (e il tuo, nella risoluzione automatica) ----------
+ // mura intere: i fanti di chi difende si dividono tra le scale (e la porta, se c'è l'ariete) sul camminamento
  const guardie=s=>{const g=(s.scale||[]).slice();if(s.porta&&s.porta.ariete)g.push((s.porta.x0+s.porta.x1)/2);return g.length?g:[s.W/2]};
+ // ogni fante di chi difende va a un passaggio: uno a testa, il resto dove premono di più gli assalitori
  function presidi(s,ne,n){const G2=guardie(s),m=s.muro,w=G2.map(x=>{let k=0;for(const u of ne)if(Math.abs(u.x-x)<6&&u.y>m-4&&u.y<m+10)k++;return k});const out=[];
   const quota0=G2.map(()=>n>=G2.length?1:0);let resto=n-quota0.reduce((a,b)=>a+b,0);const tot=w.reduce((a,b)=>a+b,0);
   if(resto>0){const q=G2.map((_,i)=>tot?resto*w[i]/tot:resto/G2.length),f=q.map(Math.floor);let r=resto-f.reduce((a,b)=>a+b,0);const ord=q.map((v,i)=>[v-f[i],i]).sort((a,b)=>b[0]-a[0]||a[1]-b[1]);for(let j=0;j<r;j++)f[ord[j][1]]++;for(let i=0;i<G2.length;i++)quota0[i]+=f[i]}
@@ -299,11 +302,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   for(const c of cad){const mio=c.p===0||s.u.some(u=>u.p===c.p&&u.l==='a');if(mio)ub+=c.n*D.valore(c.t);else ua+=c.n*D.valore(c.t)}
   return P.riep(s,{vince:s.fine?s.fine.vince:'b',cad,capKo:s.capKo,ko:(s.ko||[]).slice(),uccisi:{a:Math.round(ua),b:Math.round(ub)},durata:s.t,fuggiti:s.fug})}
  function risolvi(scheda){const s=nuovo(scheda,{autoA:true});while(!s.fine)passo(s,50);return riepilogo(s)}
- // quanti ne restano per gruppo (per i bottoni della vista)
- function gruppi(s,l){const g={f:0,t:0,c:0};for(const u of s.u)if(u.l===(l||'a')&&u.st==='vivo'&&!u.cap)g[u.c]++;return g}
- // la formazione di ogni gruppo (per i bottoni della vista)
- function forme(s,l){const o=s.ord[l||'a'],f={};for(const g of GR)f[g]=(o[g]&&o[g].fm)||'larga';return f}
  // misure del campo per taglia della battaglia (senza taglia nota: il campo di sempre)
  function taglia(k){const T=(D.TAGLIA||{})[k];return T?{max:T.max,W:T.W,H:T.H}:{max:C.MAX,W:C.W,H:C.H}}
- return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
+ return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,vivi,riserva,capU,quota,copre,acqua,forme:Q.forme,gruppi:Q.gruppi}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VCAM;

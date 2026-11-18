@@ -280,6 +280,9 @@ VDAT.CAMPO28=K=>{const {D,d2,chiave}=K,CC={};for(const c of D.COMPAGNI)if(c.camp
   // moltiplicatori: attacco ai fanti (furia), danno dei tiratori (occhio), velocità dei cavalieri (steppa)
   att:(s,u)=>u.c==='f'&&aura(s,u,'furia')?1.15:1,
   dan:(s,u)=>u.c==='t'&&aura(s,u,'occhio')?1.1:1,
+  // quanti ne restano per gruppo e la formazione di ogni gruppo (per i bottoni della vista)
+  gruppi(s,l){const g={f:0,t:0,c:0};for(const u of s.u)if(u.l===(l||'a')&&u.st==='vivo'&&!u.cap)g[u.c]++;return g},
+  forme(s,l){const o=s.ord[l||'a'],f={};for(const g of['f','t','c'])f[g]=(o[g]&&o[g].fm)||'larga';return f},
   ar:(s,u)=>aura(s,u,'macchine')?2:1,sc:(s,u)=>aura(s,u,'macchine')?.75:1,bis:(s,u,b)=>b.st!=='ko'&&aura(s,u,'seicolpi'),
   vel:(s,u)=>(u.c==='c'||u.cav)&&aura(s,u,'steppa')?1.1:1,
   // le perdite di morale dei reparti con l'alfiere valgono il 70%: `f` toglie il morale, qui si rimette la differenza
