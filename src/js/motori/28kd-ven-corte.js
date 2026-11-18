@@ -42,7 +42,9 @@ Object.assign(VEN,(()=>{
  function conquista(s,l,faz,sigId){const prima=l.faz,persi=prima==='tu'?[l,...s.l.filter(v=>v.capo===l.id&&!MURA[v.tipo])].map(v=>v.sig).filter(x=>x>=0):[];l.faz=faz;l.sig=sigId;l.ass=null;l.rel=0;for(const v of s.l)if(v.capo===l.id&&!MURA[v.tipo]){v.faz=faz;v.sig=sigId}
   L(s,l.nome+' cade: ora è '+(faz==='tu'?'tua':'di '+VEN.rg(s,faz).breve)+'.','guerra');s.ev.push({t:'conquista',lid:l.id,faz});
   if(prima!=='tu'&&VEN.regni(s).includes(prima)&&!s.l.some(x=>x.faz===prima&&MURA[x.tipo])){s.cadute[prima]=giorno(s);L(s,VEN.rg(s,prima).nome+' non ha più mura: il regno è caduto.','guerra');
-   for(const sg of s.sig)if(sg.faz===prima){const p=part(s,sg.pid);if(sg.re||!p){if(p)VEN.rimuovi(s,p);sg.pid=-1}else daEsule(s,sg,p)}for(const v of s.l)if(v.faz===prima){v.faz=faz;v.sig=sigId}}
+   const suoi=s.sig.filter(sg=>sg.faz===prima);
+   for(const sg of s.sig)if(sg.faz===prima){const p=part(s,sg.pid);if(sg.re||!p){if(p)VEN.rimuovi(s,p);sg.pid=-1}else daEsule(s,sg,p)}for(const v of s.l)if(v.faz===prima){v.faz=faz;v.sig=sigId}
+   VEN.ganci('regno-cade',s,prima,faz,suoi)}
   if(prima==='tu'&&s.corona){if(s.l.some(x=>x.faz==='tu'&&MURA[x.tipo])){const sd=s.l[s.corona.sede];if(!sd||sd.faz!=='tu'){const n=s.l.find(x=>x.faz==='tu'&&MURA[x.tipo]);s.corona.sede=n.id}}else cadeCorona(s)}
   if(prima==='tu'&&s.corona)for(const id of new Set(persi))perdeFeudo(s,id);
   VEN.vittoria(s);VEN.ganci('luogo',s,l,'conquista')}
@@ -57,7 +59,8 @@ Object.assign(VEN,(()=>{
  // vittoria: tutte le capitali (le città) in mano tua con la corona, o del tuo re se sei vassallo; si scrive una volta sola e la partita continua
  function vittoria(s){if(s.vinta)return;const cap=s.l.filter(l=>l.tipo==='citta');if(!cap.length)return;let come=null;
   if(s.corona&&cap.every(l=>l.faz==='tu'))come='re';else if(s.servizio&&s.servizio.tipo==='vas'&&cap.every(l=>l.faz===s.servizio.faz))come='vassallo';
-  if(!come)return;s.vinta={g:giorno(s),come};L(s,come==='re'?'Tutte le capitali sono tue: '+s.corona.nome+' unifica le terre.':'Il tuo sovrano tiene tutte le capitali: le terre sono unite.','bene');s.ev.push({t:'vittoria',come})}
+  if(!come)return;s.vinta={g:giorno(s),come};if(s.geo===2)s.vinta.unif=true;   // nei mondi a molti regni è l'«Unificatore»
+  L(s,come==='re'?'Tutte le capitali sono tue: '+s.corona.nome+' unifica le terre.':'Il tuo sovrano tiene tutte le capitali: le terre sono unite.','bene');s.ev.push({t:'vittoria',come})}
  // aggredire gente di un regno: l'opinione crolla e, con la corona, è guerra (cade l'eventuale alleanza)
  function inimica(s,f){relaz(s,f,Math.min(-30-s.rel[f],-30));if(s.corona){delete s.alleanza[chiave('tu',f)];s.guerra[chiave('tu',f)]=true;delete s.corona.minacce[f]}}
  // lealtà di un signore che valuta di passare a te in cambio del feudo `lid`: un conto con i fattori in chiaro, senza dadi ({f,tot,ok} oppure {err})
