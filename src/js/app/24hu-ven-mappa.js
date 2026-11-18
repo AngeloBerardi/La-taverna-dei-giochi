@@ -52,12 +52,25 @@ const VenMappa=(()=>{
    if(a>VEN.MONTE-.02||pend>1.5)c.lerp(cl(n<.5?'#8d8782':'#77726e'),Math.min(1,Math.max((a-VEN.MONTE+.02)*14,(pend-1.5)*.9)));
    if(h>7.4||(b===1&&h>4.6))c.lerp(cl('#fbfdff'),Math.min(1,(h-(b===1?4.6:7.4))*.9));return c};
   // alberi e rocce: la forma, una volta sola
-  const occ=new Uint8Array(G*G);for(const l of M.luoghi){const rg=l.tipo==='citta'?3:l.tipo==='villaggio'||l.tipo==='locanda'?1:2;for(let oy=-rg;oy<=rg;oy++)for(let ox=-rg;ox<=rg;ox++)if(ox*ox+oy*oy<=rg*rg+1)occ[cellaDi(l.x+ox,l.y+oy)]=1}
+  const occ=new Uint8Array(G*G);for(const l of M.luoghi){const rg=l.tipo==='citta'?4:l.tipo==='castello'||l.tipo==='porto'?3:2;for(let oy=-rg;oy<=rg;oy++)for(let ox=-rg;ox<=rg;ox++)if(ox*ox+oy*oy<=rg*rg+1)occ[cellaDi(l.x+ox,l.y+oy)]=1}
   const GEO={pino:A.Solidi().cil(.05,.07,.3,5,0,0,0,'#6b4a2e').cono(.34,.5,6,0,.22,0,'#3f7a3a',{c2:'#4f9247'}).cono(.26,.44,6,0,.52,0,'#478743',{c2:'#5aa14f'}).cono(.17,.38,6,0,.8,0,'#52964b',{c2:'#73b862'}).geo(),
    pinoN:A.Solidi().cil(.05,.07,.3,5,0,0,0,'#5a4030').cono(.34,.5,6,0,.22,0,'#3c6e52',{c2:'#dfeef2'}).cono(.26,.44,6,0,.52,0,'#4a7c5e',{c2:'#f2f8fa'}).cono(.17,.38,6,0,.8,0,'#cfe2e8',{c2:'#ffffff'}).geo(),
    lati:A.Solidi().cil(.06,.08,.34,5,0,0,0,'#6e4d30').sfera(.36,0,.62,0,'#5fa046').sfera(.27,.2,.86,.08,'#74b653').sfera(.24,-.2,.8,-.1,'#69aa4c').geo(),
-   sasso:A.Solidi().sfera(.3,0,.12,0,'#9a948c').sfera(.2,.22,.08,.1,'#857f78').geo()};
+   sasso:A.Solidi().sfera(.3,0,.12,0,'#9a948c').sfera(.2,.22,.08,.1,'#857f78').geo(),
+   // strutture sparse per il paesaggio (forma una volta sola; dove stanno lo decide `strutt`)
+   fattoria:A.Solidi().box(.5,.3,.38,0,0,0,'#d8ccb4',{c2:'#fff7e0'}).tetto(.6,.27,.44,0,.3,0,'#8a6a4a').box(.1,.3,.1,.14,.3,-.08,'#6e6258').box(.3,.2,.26,.46,0,.12,'#8a5a3a',{c2:'#a8743e'}).tetto(.38,.16,.3,.46,.2,.12,'#6e5540').box(.09,.16,.03,0,0,.2,'#5a4030').geo(),
+   pagliaio:A.Solidi().cono(.2,.3,6,0,0,0,'#e0c45a').cono(.16,.24,6,.4,0,.12,'#d9b24a').cono(.14,.2,6,.18,0,-.3,'#e6cf6a').geo(),
+   menhir:A.Solidi().box(.14,.7,.1,0,0,0,'#9a948c',{c2:'#b5aea3',ry:.3}).box(.12,.46,.1,.26,0,.12,'#8d8782',{c2:'#a8a29a',ry:-.4,rz:.08}).box(.13,.52,.1,-.22,0,.16,'#9a948c',{c2:'#b5aea3',ry:.9}).box(.1,.36,.09,.02,0,-.28,'#857f78',{c2:'#9a948c',ry:1.9}).geo(),
+   torretta:A.Solidi().cil(.2,.26,.9,7,0,0,0,'#b5aea3',{c2:'#d6cfc2'}).cil(.3,.26,.12,7,0,.9,0,'#8a6a4a').cono(.32,.34,7,0,1.02,0,'#8a4a3a').box(.08,.16,.03,0,0,.25,'#5a4030').box(.1,.13,.03,0,.55,.23,'#ffd98a').geo(),
+   capanna:A.Solidi().box(.4,.24,.34,0,0,0,'#7a5a3a',{c2:'#9a7a52'}).tetto(.5,.22,.4,0,.24,0,'#5a4030').box(.3,.07,.07,.34,0,-.2,'#6e4d30').box(.3,.07,.07,.34,.07,-.2,'#7a5a3a').box(.3,.07,.07,.34,.14,-.2,'#6e4d30').geo(),
+   capitello:A.Solidi().box(.16,.2,.16,0,0,0,'#b5aea3',{c2:'#d6cfc2'}).tetto(.22,.14,.2,0,.2,0,'#8a4a3a').box(.03,.16,.03,0,.34,0,'#e8c35a').geo()};
   const d=new T.Object3D(),CH=32,NC=Math.ceil(G/CH),CB=16;
+  // strutture sparse: fattorie e pagliai in pianura, torrette, capanne e menhir sulle colline, capitelli in pianura; mai su strade, fiumi, laghi, pendii o luoghi
+  const strutt=(x,y,t,b,i)=>{if(t===4||M.S[i]||(geo2&&(M.F[i]>0||M.LG[i])))return null;const sd=(K.seme|0)*31,q=hh(x,y,201+sd);let nome=null;
+   if(t===1){if(b===1)nome=q<.0012?'menhir':null;else if(b===2)nome=q<.0010?'menhir':null;else nome=q<.0012?'fattoria':q<.0034?'pagliaio':q<.0046?'menhir':q<.0054?'capitello':null}
+   else if(t===3)nome=q<.0040?'torretta':q<.0085?'capanna':q<.0130?'menhir':null;
+   if(!nome)return null;const px=x+.25+hh(x,y,202+sd)*.5,py=y+.25+hh(x,y,203+sd)*.5,a=AF(px,py);if(a<VEN.MARE+.03||a>VEN.MONTE)return null;
+   if(Math.abs(quota(px+.4,py)-quota(px-.4,py))+Math.abs(quota(px,py+.4)-quota(px,py-.4))>.45)return null;return{nome,px,py}};
   // acqua dei mondi nuovi: laghi e mare restano d'acqua piatta, i fiumi sono nastri larghi quanto la portata, con il filo centrale più chiaro
   let Fmax=1;if(geo2)for(let i=0;i<G*G;i++)if(M.F[i]>Fmax)Fmax=M.F[i];
   const larg=f=>.16+.52*Math.min(1,Math.sqrt(f/Fmax));
@@ -105,8 +118,9 @@ const VenMappa=(()=>{
        if(ox&&oy&&(M.S[y*G+nx]||M.S[ny*G+x]))continue;nastro(x+.5,y+.5,nx+.5,ny+.5)}}
     if(S.n)gr.add(S.mesh({ombra:false}))}
    // boschi e rocce, a blocchi da 16 caselle con la loro sfera: in r128 le maglie a istanze nascono senza scarto fuori campo, va acceso a mano
-   for(let cj2=cj*CH/CB;cj2<Math.min(G/CB,(cj+1)*CH/CB);cj2++)for(let ci2=ci*CH/CB;ci2<Math.min(G/CB,(ci+1)*CH/CB);ci2++){const lista={pino:[],pinoN:[],lati:[],sasso:[]},ox0=ci2*CB+CB/2,oz0=cj2*CB+CB/2;
+   for(let cj2=cj*CH/CB;cj2<Math.min(G/CB,(cj+1)*CH/CB);cj2++)for(let ci2=ci*CH/CB;ci2<Math.min(G/CB,(ci+1)*CH/CB);ci2++){const lista={pino:[],pinoN:[],lati:[],sasso:[],fattoria:[],pagliaio:[],menhir:[],torretta:[],capanna:[],capitello:[]},ox0=ci2*CB+CB/2,oz0=cj2*CB+CB/2;
     for(let y=Math.max(1,cj2*CB);y<Math.min(G-1,(cj2+1)*CB);y++)for(let x=Math.max(1,ci2*CB);x<Math.min(G-1,(ci2+1)*CB);x++){const i=y*G+x,t=M.T[i],b=M.B[i];if(occ[i]||t===0||(geo2&&(M.PN[i]||M.PN[i-1]||M.PN[i+1]||M.PN[i-G]||M.PN[i+G]||M.PN[i-G-1]||M.PN[i-G+1]||M.PN[i+G-1]||M.PN[i+G+1])))continue;
+     const stx=strutt(x,y,t,b,i);if(stx){lista[stx.nome].push([stx.px-ox0,quota(stx.px,stx.py)-.02,stx.py-oz0,.9+hh(x,y,204)*.3,[1,1,1],hh(x,y,205)*6.28,1]);continue}
      const quanti=t===2?3:t===3?(hh(x,y,11)<.4?1:0):t===1?(hh(x,y,12)<(b===3?.03:.09)?1:0):0;
      for(let k=0;k<quanti;k++){const px=x+.14+hh(x*7+k,y*5,13)*.72,py=y+.14+hh(x*3,y*9+k,14)*.72;if(M.S[i]&&Math.abs(px-x-.5)<.3&&Math.abs(py-y-.5)<.3)continue;if(geo2&&M.F[i]>0&&Math.abs(px-x-.5)<.42&&Math.abs(py-y-.5)<.42)continue;const a=AF(px,py);if(a<VEN.MARE+.015||a>VEN.MONTE+.03)continue;
       const q=hh(x+k*31,y,15),tipo=b===1?'pinoN':b===2?(q<.3?'pino':'lati'):(q<.42?'pino':'lati'),sc0=(.8+hh(x,y*3+k,16)*.65)*(t===2?1.1:1);
@@ -115,7 +129,7 @@ const VenMappa=(()=>{
     for(const nome of Object.keys(lista)){const Ls=lista[nome];if(!Ls.length)continue;const g=GEO[nome].clone();g.boundingSphere=new T.Sphere(new T.Vector3(0,3,0),CB*.8);const me=new T.InstancedMesh(g,A.matI,Ls.length);me.position.set(ox0,0,oz0);
      me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(Ls.length*3),3);
      Ls.forEach((p,k)=>{d.position.set(p[0],p[1],p[2]);d.rotation.set(0,p[5],0);d.scale.set(p[3],p[3]*p[6],p[3]);d.updateMatrix();me.setMatrixAt(k,d.matrix);me.instanceColor.setXYZ(k,p[4][0],p[4][1],p[4][2])});
-     me.castShadow=true;me.receiveShadow=nome==='sasso';me.frustumCulled=true;gr.add(me)}}
+     me.name=nome;me.castShadow=true;me.receiveShadow=nome==='sasso';me.frustumCulled=true;gr.add(me)}}
    if(geo2){
     // laghi: una lastra piatta per cella, al livello del lago
     const wp=[],wc=[],ci0=new T.Color('#4aa0b4'),ci1=new T.Color('#3f93a8'),ce=new T.Color('#9bd6df');
@@ -171,19 +185,44 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
     K.velo=new T.MeshBasicMaterial({map:K.fogT,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})}}
   // ---- luoghi ----
   K.lu=[];const fin=A.Solidi(),SL=1.5;K.pale=[];K.camini=[];K.fuochi=[];
-  for(const b of M.luoghi){const S=A.Solidi(),h0=quota(b.x,b.y),bio=M.B[cellaDi(b.x,b.y)],r=(k)=>hh(b.id*13+k,b.id*7,31),st=STILE[b.faz]||STILE.neu,muro=st.muro,tetto=st.tetto,p='#aaa49b',p2='#c8c2b8';
+  for(const b of M.luoghi){const S=A.Solidi(),h0=quota(b.x,b.y),bio=M.B[cellaDi(b.x,b.y)],r=(k)=>hh(b.id*13+k,b.id*7+(s.seme|0)*17,31),st=STILE[b.faz]||STILE.neu,muro=st.muro,tetto=st.tetto,p='#aaa49b',p2='#c8c2b8';
    const lume=(x,y,z,ry)=>fin.box(.1,.13,.03,b.x+x*SL,h0+y*SL,b.y+z*SL,'#ffd98a',{ry:ry||0});
-   const casa=(x,z,w,dd,hc,ry,tc)=>{if(st.tende){S.cil(w*.62,w*.66,hc*.8,8,x,0,z,muro,{c2:'#fff7e0'});S.cono(w*.74,hc*.7,8,x,hc*.8,z,tc||tetto);S.box(.08,.14,.03,x+Math.sin(ry)*w*.64,0,z+Math.cos(ry)*w*.64,'#5a4030',{ry})}
-     else{S.box(w,hc,dd,x,0,z,muro,{ry,c2:'#fff7e0'});S.tetto(w*1.16,hc*.9,dd*1.1,x,hc,z,tc||tetto,{ry});if(b.faz==='sel')S.box(w*1.02,.05,dd*1.02,x,hc*.5,z,'#5a4030',{ry})}
-    if(bio===1)S.tetto(w*1.0,hc*.5,dd*1.12,x,hc+hc*.46,z,'#f4f8fa',{ry});
-    lume(x+Math.sin(ry)*dd*.52,hc*.45,z+Math.cos(ry)*dd*.52,ry);if(r(x*9+z)<.6)K.camini.push([b.x+x*SL,h0+hc*1.7*SL,b.y+z*SL,b.id])};
-   const campi=(n)=>{for(let k=0;k<n;k++){const an=r(k+40)*6.28,rd=1.25+r(k+50)*.7,fx=Math.cos(an)*rd,fz=Math.sin(an)*rd;if(altG(b.x+fx*SL,b.y+fz*SL)<VEN.MARE+.03)continue;const hf=(quota(b.x+fx*SL,b.y+fz*SL)-h0)/SL;
+   const casa=(x,z,w,dd,hc,ry,tc)=>{
+    if(st.tende){S.cil(w*.62,w*.66,hc*.8,8,x,0,z,muro,{c2:'#fff7e0'});S.cono(w*.74,hc*.7,8,x,hc*.8,z,tc||tetto);S.box(.08,.14,.03,x+Math.sin(ry)*w*.64,0,z+Math.cos(ry)*w*.64,'#5a4030',{ry});
+     if(r(x*9+z)<.6)K.camini.push([b.x+x*SL,h0+hc*1.55*SL,b.y+z*SL,b.id])}
+    else{S.box(w,hc,dd,x,0,z,muro,{ry,c2:'#fff7e0'});S.tetto(w*1.16,hc*.9,dd*1.1,x,hc,z,tc||tetto,{ry});if(b.faz==='sel')S.box(w*1.02,.05,dd*1.02,x,hc*.5,z,'#5a4030',{ry});
+     // neve: cappuccio che segue la falda (parte da un terzo dell'altezza del tetto e non sporge)
+     if(bio===1)S.tetto(w*.78,hc*.58,dd*1.16,x,hc*1.315,z,'#f4f8fa',{ry});
+     // fumaiolo sulla falda posteriore, fumo dalla sua bocca
+     if(r(x*9+z)<.6){const u=w*.22,zo=-dd*.2,qx=x+u*Math.cos(ry)+zo*Math.sin(ry),qz=z-u*Math.sin(ry)+zo*Math.cos(ry),cb=hc*(1+.9*(1-u/(w*.58)))-.02,top=hc*1.9+.03;
+      S.box(.05,top-cb,.05,qx,cb,qz,'#6e6258',{ry});K.camini.push([b.x+qx*SL,h0+(top+.04)*SL,b.y+qz*SL,b.id])}}
+    lume(x+Math.sin(ry)*dd*.52,hc*.45,z+Math.cos(ry)*dd*.52,ry)};
+   const campi=(n,av)=>{for(let k=0;k<n;k++){const an=r(k+40)*6.28,rd=1.25+r(k+50)*.7,fx=Math.cos(an)*rd,fz=Math.sin(an)*rd;if(altG(b.x+fx*SL,b.y+fz*SL)<VEN.MARE+.03||(av&&Math.hypot(fx-av[0],fz-av[1])<.85))continue;const hf=(quota(b.x+fx*SL,b.y+fz*SL)-h0)/SL;
       for(let q=0;q<4;q++)S.box(.62,.04,.13,fx,hf+.02,fz+(q-1.5)*.15,[bio===2?'#e6c64e':'#b9c552','#8fae45','#d9b24a','#a6803e'][(q+k)%4],{ry:an})}};
    let alto=1.1;
-   if(b.tipo==='villaggio'){for(let k=0;k<5;k++){const an=k*1.26+r(k)*.6,rd=.42+r(k+9)*.34;casa(Math.cos(an)*rd,Math.sin(an)*rd,.32+r(k+3)*.1,.3,.24+r(k+5)*.08,an+1.57)}
-    S.cil(.09,.09,.1,7,0,0,0,'#9a948c');
+   if(b.tipo==='villaggio'){const nc=4+Math.floor(r(60)*4),off=r(61)*6.283;
+    for(let k=0;k<nc;k++){const an=off+k*6.283/nc+(r(k)-.5)*.5,rd=.4+r(k+9)*.3,cx=Math.cos(an)*rd,cz=Math.sin(an)*rd;casa(cx,cz,.32+r(k+3)*.1,.3,.24+r(k+5)*.08,Math.atan2(-cx,-cz)+(r(k+12)-.5)*.7)}
+    // al centro: pozzo col tettuccio, albero della piazza o croce di pietra
+    const pz=Math.floor(r(62)*3);
+    if(pz===0){S.cil(.09,.09,.1,7,0,0,0,'#9a948c');S.box(.03,.22,.03,-.1,.1,0,'#6e4d30');S.box(.03,.22,.03,.1,.1,0,'#6e4d30');S.tetto(.2,.08,.12,0,.3,0,'#8a6a4a',{ry:1.5708})}
+    else if(pz===1){S.cil(.04,.05,.3,5,0,0,0,'#6e4d30');S.sfera(.2,0,.46,0,'#5fa046');S.sfera(.14,.1,.62,.04,'#74b653')}
+    else{S.cil(.1,.12,.06,7,0,0,0,'#9a948c');S.box(.05,.3,.05,0,.06,0,'#b5aea3')}
     if(b.faz==='alt'){for(let k=0;k<4;k++)S.box(.05,.16,.5,-.9+k*.02,0,.4+k*.01,'#7a5a3a',{ry:k*1.57});S.box(.3,.2,.14,-.85,.02,.5,'#6e4a2e');S.box(.3,.2,.14,-.95,.02,.2,'#b89468')}
-    else{S.cono(.14,.2,5,.2,0,.1,'#e0c45a');S.cono(.12,.17,5,-.9,0,.5,'#e0c45a');S.cil(.14,.2,.62,7,.95,0,-.35,muro,{c2:'#fff7e0'});S.cono(.22,.26,7,.95,.62,-.35,tetto);K.pale.push([b.x+.95*SL,h0+.6*SL,b.y+(-.35+.22)*SL]);campi(5)}}
+    else{const ai=r(70)*6.283,rm=1.12+r(71)*.12,mx=Math.sin(ai)*rm,mz=Math.cos(ai)*rm,sv=r(63),ci=Math.atan2(-mx,-mz),pa=ai+2.2+r(72)*1.5;
+     S.cono(.14,.2,5,.2,0,.1,'#e0c45a');S.cono(.12,.17,5,Math.sin(pa)*1.0,0,Math.cos(pa)*1.0,'#e0c45a');
+     if(sv<.55){const a=Math.atan2(mx,mz),qx=mx+Math.sin(a)*.26,qz=mz+Math.cos(a)*.26;
+      // mulino: torre, tetto, porta, asse e pale (il mozzo delle pale sta davanti all'asse, al centro del "+")
+      S.cil(.14,.2,.62,7,mx,0,mz,muro,{c2:'#fff7e0'});S.cono(.22,.26,7,mx,.62,mz,tetto);S.box(.07,.14,.03,mx+Math.sin(a+.9)*.19,0,mz+Math.cos(a+.9)*.19,'#5a4030',{ry:a+.9});
+      S.box(.05,.05,.16,mx+Math.sin(a)*.17,.575,mz+Math.cos(a)*.17,'#5a4030',{ry:a});K.pale.push([b.x+qx*SL,h0+.6*SL,b.y+qz*SL,a])}
+     else if(sv<.8){const a=ci,rt=(u,v)=>[mx+u*Math.cos(a)+v*Math.sin(a),mz-u*Math.sin(a)+v*Math.cos(a)],tw=rt(0,-.26),dr=rt(0,.215);
+      // cappella: navata, tetto, campanile con cuspide, porta e finestra accesa
+      S.box(.26,.28,.42,mx,0,mz,muro,{ry:a,c2:'#fff7e0'});S.tetto(.32,.2,.46,mx,.28,mz,st.t2,{ry:a});S.box(.12,.5,.12,tw[0],0,tw[1],muro,{ry:a,c2:'#fff7e0'});S.cono(.1,.2,4,tw[0],.5,tw[1],st.t2,{ry:a+.785});
+      S.box(.07,.13,.03,dr[0],0,dr[1],'#5a4030',{ry:a});lume(dr[0],.15,dr[1],a)}
+     else{const a=ci;
+      // fienile con recinto
+      S.box(.42,.22,.3,mx,0,mz,'#8a5a3a',{ry:a,c2:'#a8743e'});S.tetto(.5,.2,.34,mx,.22,mz,st.t2,{ry:a});
+      for(let k=0;k<9;k++){const an=a+.5+k*.7;S.box(.03,.1,.03,mx+Math.sin(an)*.38,0,mz+Math.cos(an)*.38,'#7a5a3a')}}
+     campi(2+Math.floor(r(64)*5),[mx,mz])}}
    else if(b.tipo==='castello'){alto=2.1;S.cil(1.0,1.25,.3,9,0,-.3,0,'#8b8680');
     if(b.faz==='alt'||b.faz==='sel'){const lg='#7a5a3a';for(let k=0;k<14;k++){const an=k/14*6.283;S.box(.24,.7,.12,Math.cos(an)*.95,0,Math.sin(an)*.95,lg,{ry:-an+1.5708,c2:'#9a7a52'})}
      S.box(.7,.6,.7,0,0,0,b.faz==='alt'?'#e6d8b8':'#8f7150');S.tetto(.86,.5,.8,0,.6,0,'#ffffff');S.box(.3,.9,.3,.5,0,-.4,lg);S.cono(.28,.3,4,.5,.9,-.4,'#ffffff',{ry:.785})}
@@ -191,16 +230,20 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
      S.box(.5,.5,.5,0,.9,0,p,{c2:p2});S.tetto(.6,.36,.56,0,1.4,0,'#ffffff');
      for(let k=0;k<4;k++){const ox=(k%2?1:-1)*.78,oz=(k<2?1:-1)*.78;S.cil(.2,.23,1.0,8,ox,0,oz,p,{c2:p2});S.cono(.28,.36,8,ox,1.0,oz,'#ffffff')}
      for(let k=0;k<4;k++){const ry=k*Math.PI/2;S.box(1.56,.6,.12,Math.sin(ry)*.78,0,Math.cos(ry)*.78,p,{ry,c2:p2})}S.box(.3,.42,.16,0,0,.8,'#5a4030')}
-    lume(-.15,.55,.41);lume(.15,.55,.41);lume(0,1.15,.26)}
+    lume(-.15,.55,.41);lume(.15,.55,.41);lume(0,1.15,.26);
+    for(let k=0,nd=1+Math.floor(r(110)*3);k<nd;k++){const an=r(111+k)*6.283,cx=Math.cos(an)*1.65,cz=Math.sin(an)*1.65;if(cz>.9&&Math.abs(cx)<.6)continue;casa(cx,cz,.3+r(112+k)*.08,.26,.22+r(113+k)*.06,Math.atan2(-cx,-cz)+(r(114+k)-.5)*.6)}}
    else if(b.tipo==='citta'){alto=2.5;const pm=b.faz==='mar'?'#e8e2d2':b.faz==='alt'?'#b89468':'#b5aea3',pm2=b.faz==='mar'?'#fbf7ec':b.faz==='alt'?'#d2b488':'#d6cfc2',RC=1.55;S.cil(RC+.25,RC+.5,.24,12,0,-.24,0,'#9c968c');
     for(let k=0;k<10;k++){const an=k/10*6.283,nx=Math.cos(an),nz=Math.sin(an);if(k!==2)S.box(1.0,.5,.12,nx*RC,0,nz*RC,pm,{ry:-an+1.5708,c2:pm2});const a2=an+.314;S.cil(.15,.17,.76,7,Math.cos(a2)*RC*1.03,0,Math.sin(a2)*RC*1.03,pm,{c2:pm2});S.cono(.2,.26,7,Math.cos(a2)*RC*1.03,.76,Math.sin(a2)*RC*1.03,'#ffffff')}
-    const TC=[tetto,st.t2,tetto,'#9a4a3a'];for(let k=0;k<17;k++){const an=r(k)*6.283,rd=.25+Math.sqrt(r(k+20))*1.05;casa(Math.cos(an)*rd,Math.sin(an)*rd,.26+r(k+3)*.12,.26,.26+r(k+6)*.2,r(k+8)*3,TC[k%4])}
+    const TC=[tetto,st.t2,tetto,'#9a4a3a'],nCasa=14+Math.floor(r(90)*7),pl=[];
+    for(let k=0;k<nCasa;k++){for(let t=0;t<8;t++){const an=r(k*8+t+100)*6.283,rd=.72+Math.sqrt(r(k*8+t+300))*.62,cx=Math.cos(an)*rd,cz=Math.sin(an)*rd;
+     if(pl.some(q=>Math.hypot(q[0]-cx,q[1]-cz)<.4)||(cx>.3&&cx<1.1&&cz>.4&&cz<.9)||(Math.abs(cx-.5)<.3&&Math.abs(cz+.3)<.3))continue;
+     pl.push([cx,cz]);casa(cx,cz,.24+r(k+3)*.1,.26,.26+r(k+6)*.2,Math.atan2(-cx,-cz)+(r(k+8)-.5)*.8,TC[k%4]);break}}
     if(b.faz==='mar'){S.box(.5,.8,.5,0,0,0,pm2);S.sfera(.3,0,.9,0,'#ffffff');S.box(.2,1.5,.2,.5,0,-.3,pm2);S.sfera(.14,.5,1.56,-.3,'#ffffff')}
     else if(b.faz==='alt'){S.cil(.5,.54,.6,10,0,0,0,'#e6d8b8');S.cono(.62,.6,10,0,.6,0,'#ffffff');S.box(.06,1.4,.06,.6,0,-.2,'#6b4a2c')}
     else{S.box(.42,1.0,.6,0,0,0,pm2,{c2:'#fffaf0'});S.tetto(.5,.4,.66,0,1.0,0,st.t2);S.box(.26,1.7,.26,0,0,-.42,pm2);S.cono(.24,.6,4,0,1.7,-.42,'#ffffff',{ry:.785})}
     for(let k=0;k<3;k++)S.box(.2,.14,.16,.5+k*.26,0,.62,['#c94a3a','#3a78c9','#e0b83a'][k]);lume(0,.6,.31);lume(0,1.3,-.28)}
    else if(b.tipo==='porto'){alto=1.6;let ax=0,az=1;for(const[ox,oz]of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]])if(M.T[cellaDi(b.x+ox*2,b.y+oz*2)]===0){ax=ox;az=oz;break}
-    const ln=Math.hypot(ax,az),ux=ax/ln,uz=az/ln,ry=Math.atan2(ux,uz);for(let k=0;k<6;k++){const an=ry+3.14+(k-2.5)*.5,rd=.5+r(k)*.4;casa(Math.sin(an)*rd,Math.cos(an)*rd,.3+r(k+3)*.1,.28,.26+r(k+5)*.1,an)}
+    const ln=Math.hypot(ax,az),ux=ax/ln,uz=az/ln,ry=Math.atan2(ux,uz);for(let k=0,np=5+Math.floor(r(95)*4);k<np;k++){const an=ry+3.14+(k-(np-1)/2)*.5,rd=.5+r(k)*.4;casa(Math.sin(an)*rd,Math.cos(an)*rd,.3+r(k+3)*.1,.28,.26+r(k+5)*.1,an+3.14+(r(k+9)-.5)*.4)}
     for(const off of[-.4,.4]){S.box(.22,.08,2.0,ux*1.5-uz*off,-.14,uz*1.5+ux*off,'#8a6a48',{ry});for(let k=0;k<3;k++)S.box(.07,.3,.07,ux*(1+k*.5)-uz*off,-.34,uz*(1+k*.5)+ux*off,'#5a4030')}
     S.box(.36,.14,.9,ux*2.3-uz*.9,-.2,uz*2.3+ux*.9,'#7a5230',{ry});S.box(.05,.8,.05,ux*2.3-uz*.9,-.1,uz*2.3+ux*.9,'#5a4030');S.box(.04,.5,.5,ux*2.3-uz*.9,.14,uz*2.3+ux*.9,'#f4f0e2',{ry});
     S.box(.3,.12,.7,ux*2.0+uz*1.0,-.2,uz*2.0-ux*1.0,'#8a5a34',{ry:ry+.4});
@@ -220,7 +263,9 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
    K.lu.push({id:b.id,me,h0,x:b.x,y:b.y,tipo:b.tipo,faz:null,alto:alto*SL})}
   K.fin=new T.Mesh(fin.geo(),new T.MeshBasicMaterial({vertexColors:true}));K.fin.visible=false;K.fin.frustumCulled=false;sc.add(K.fin);
   // pale dei mulini
-  {const S=A.Solidi();for(let k=0;k<4;k++)S.box(.07,.5,.02,0,0,0,'#efe6cf',{rz:k*Math.PI/2});K.palaGeo=S.geo();K.palaMe=K.pale.map(p=>{const m=new T.Mesh(K.palaGeo,A.mat);m.position.set(p[0],p[1],p[2]);m.scale.setScalar(SL);sc.add(m);return m})}
+  {const S=A.Solidi(),as='#8a6a48',ve='#efe6cf';S.box(.08,.08,.06,0,-.04,0,as);
+   for(let k=0;k<4;k++){const a=k*Math.PI/2,dx=-Math.sin(a),dy=Math.cos(a);S.agg(new T.BoxGeometry(.05,.56,.02),dx*.28,dy*.28,0,as,{rz:a});S.agg(new T.BoxGeometry(.14,.3,.012),dx*.36+Math.cos(a)*.08,dy*.36+Math.sin(a)*.08,.014,ve,{rz:a})}
+   K.palaGeo=S.geo();K.palaMe=K.pale.map((p,n)=>{const m=new T.Mesh(K.palaGeo,A.mat);m.position.set(p[0],p[1],p[2]);m.rotation.y=p[3];m.userData.v=.9+hh(n,5,61)*.5;m.userData.f=hh(n,6,62)*6.28;m.scale.setScalar(SL);sc.add(m);return m})}
   // nuvole: non si vedono, fanno solo ombra
   {const S=A.Solidi();S.sfera(2.6,0,0,0,'#fff',{sy:.3});S.sfera(2,2.2,0,.6,'#fff',{sy:.3});S.sfera(1.7,-2,0,-.8,'#fff',{sy:.3});const gm=new T.MeshBasicMaterial({colorWrite:false,depthWrite:false});
    K.nuvole=[];for(let k=0;k<26;k++){const m=new T.Mesh(S.geo(),gm);m.castShadow=true;m.position.set(hh(k,1,40)*G,26,hh(k,2,41)*G);m.scale.setScalar(.8+hh(k,3,42)*1.2);m.userData.v=.5+hh(k,4,43)*.5;sc.add(m);K.nuvole.push(m)}}
@@ -319,7 +364,7 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
   for(const sc of s.scontri){if(Math.random()<dt*10)K.par.emetti(sc.x+(Math.random()-.5)*.6,quota(sc.x,sc.y)+.1,sc.y+(Math.random()-.5)*.6,{vy:.5,s:.13,dur:.9,col:'#d9c9a6',cresce:1.2});etc.push({id:'s'+sc.id,x:sc.x,y:quota(sc.x,sc.y)+1,z:sc.y,tx:'Battaglia',cls:'scontro'})}
   // pioggia: stille che cadono attorno allo sguardo
   if(s.meteo==='pioggia')for(let k=0;k<Math.min(8,Math.ceil(dt*220));k++)K.par.emetti(K.fuoco.x+(Math.random()-.5)*K.alt*.9,K.fuoco.y+5+Math.random()*3,K.fuoco.z+(Math.random()-.4)*K.alt*1.3,{vy:-11,vx:-1.2,s:.045,dur:.55,col:'#cfe2f6'});
-  K.par.passo(dt);for(const m of K.palaMe)m.rotation.z=K.t*1.1;for(const n of K.nuvole){n.position.x+=dt*n.userData.v*(s.meteo==='sereno'?1:2);if(n.position.x>K.M.G+8)n.position.x=-8}
+  K.par.passo(dt);for(const m of K.palaMe)m.rotation.z=m.userData.f+K.t*m.userData.v;for(const n of K.nuvole){n.position.x+=dt*n.userData.v*(s.meteo==='sereno'?1:2);if(n.position.x>K.M.G+8)n.position.x=-8}
   // meta e orme della via
   const via=tu.via||[];if(via.length&&!s.prigioniero){const m=via[via.length-1];K.anello.visible=true;K.anello.position.set(m[0],quota(m[0],m[1])+.08,m[1]);const sp=1+Math.sin(K.t*5)*.15;K.anello.scale.set(sp,sp,sp);
    const d=new T.Object3D();let n=0,px=tu.x,py=tu.y,resto=.3;for(const w of via){let dl=Math.hypot(w[0]-px,w[1]-py);while(dl>resto&&n<60){px+=(w[0]-px)/dl*resto;py+=(w[1]-py)/dl*resto;dl-=resto;resto=.45;d.position.set(px,quota(px,py)+.06,py);d.rotation.y=.785;d.updateMatrix();K.orme.setMatrixAt(n++,d.matrix)}resto-=dl;px=w[0];py=w[1]}
