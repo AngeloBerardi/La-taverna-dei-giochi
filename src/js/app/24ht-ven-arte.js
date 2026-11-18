@@ -128,19 +128,22 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    .box(.16,.74,.18,-.19,0,-.58,'#d8d8d8').box(.16,.74,.18,.19,0,-.58,'#d8d8d8').box(.12,.6,.12,0,.6,-.82,'#5a5a5a',{rx:.4}).box(.6,.14,.7,0,1.3,-.05,'#b0b0b0'));
   P.barda=pezzo(So().box(.64,.5,1.34,0,.78,-.04,'#ffffff',{c2:'#e2e2e2'}).box(.4,.32,.32,0,1.16,.72,'#f0f0f0',{rx:-.5}),false);
   const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#e6e0d4','#6e4a2e'],COR=[null,'#8a5a34','#98a2ad','#e2e8ef'],ELMO={paglia:'paglia',cappuccio:'cappuccio',berretto:'berretto',pelliccia:'pelliccia',cervelliera:'cervelliera',bacinetto:'bacinetto',crestato:'bacinetto',piuma:'cappello',corna:'corna'};
+  let LV=0;   // livello di dettaglio di base
   const m=(k,r,g,b,mat)=>{const me=P[k],i=n[k];if(i>=max)return;me.setMatrixAt(i,mat||d.matrix);me.instanceColor.setXYZ(i,r,g,b);n[k]=i+1};
   return{P,
+   // 0 figure intere, 1 senza armi, scudi e parti piccole (i pezzi a istanze restano gli stessi: le draw call non cambiano)
+   livello(v){LV=v|0},
    inizio(){for(const k of ord)n[k]=0},
    // f: {x,y,z,yaw,sc,col,col2,asp,cav,fase,colpo,giu,lampo,seme}
-   metti(f){const sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0;
+   metti(f){const lv=f.liv!=null?f.liv:LV,sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0;
     col.set(f.col||'#888');c2.set(f.col2||'#ccc');c3.set(a.col||f.col||'#888');if(!a.col)c3.multiplyScalar(.72);const yb=f.y+(cav?.78*sc:0)+bob*sc;
     d.position.set(f.x,yb-giu*(cav?.5:.05)*sc,f.z);d.rotation.set(0,0,0);d.rotation.order='YXZ';d.rotation.y=f.yaw;d.rotation.x=giu*1.45+aff*.22+(cav?0:sw*.03);d.rotation.z=cav?0:sw*.05;d.scale.set(sc,sc*(1-giu*.2),sc);d.updateMatrix();
     if(f.base&&giu<.5){const kb=new T.Color(f.base),mb=new T.Matrix4().compose(new T.Vector3(f.x,f.y,f.z),new T.Quaternion(),new T.Vector3(sc*(cav?1.5:1),sc,sc*(cav?1.5:1)));m('base',kb.r,kb.g,kb.b,mb)}
     m('corpo',L||col.r,L||col.g,L||col.b);m('testa',L||1,L||1,L||1);
-    if(a.cor>0){const k=new T.Color(COR[a.cor]);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3)m('spall',L||k.r,L||k.g,L||k.b)}
-    const el=ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto';m(el,L||(tinto?c3.r:1),L||(tinto?c3.g:1),L||(tinto?c3.b:1));if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}
-    if(a.mant)m('mantello',L||c3.r,L||c3.g,L||c3.b);
-    if(giu<.5){const arma=a.arma||'spada';
+    if(a.cor>0){const k=new T.Color(COR[a.cor]);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3&&!lv)m('spall',L||k.r,L||k.g,L||k.b)}
+    const el=ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto';m(el,L||(tinto?c3.r:1),L||(tinto?c3.g:1),L||(tinto?c3.b:1));if(!lv){if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}}
+    if(a.mant&&!lv)m('mantello',L||c3.r,L||c3.g,L||c3.b);
+    if(giu<.5&&!lv){const arma=a.arma||'spada';
      if(arma==='arco'||arma==='balestra')m(arma,1,1,1);
      else{d2.position.copy(d.position);d2.rotation.copy(d.rotation);d2.rotation.x+=aff*1.1;d2.scale.copy(d.scale);if(arma==='picca')d2.scale.y*=1.3;d2.updateMatrix();m(arma==='picca'?'lancia':P[arma]?arma:'spada',1,1,1,d2.matrix)}
      if(a.scudo&&P[a.scudo])m(a.scudo,c2.r,c2.g,c2.b)}
