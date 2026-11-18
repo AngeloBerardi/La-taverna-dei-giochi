@@ -10,6 +10,10 @@ const VGEO=(()=>{
  // i numeri del passo 07
  const GEO=D.GEO={BORDO:8,TERRA:.54,COLLINA:.84,CRESTA:.6,LARGO:5.2,DORSALI:[3,5],PASSI:2,LAGO_GRANDE:40,LAGO_MIN:8,PROFONDITA:.012,FIUMI:[6,10],
   PORTO_DIST:6,VILLAGGIO_DIST:4.5,CASTELLO_DIST:9,GUARDIA:8,SCALA_VIAGGIO:.6,K_FIUME:.35,K_PONTE:.9,K_PASSO:.7,CACHE:4};
+ // passo 23: città oltre le cinque di zona (estratte dal seme tra i due numeri), e i loro nomi per zona
+ GEO.CITTA_PIU={ampio:[4,5],vasto:[6,7]};
+ GEO.NOMI_CITTA={val:['Campodoro','Vignalta','Pratoregio','Montelieto'],sel:['Querciaia','Fontebosco','Ombrosa','Selvalunga'],fer:['Pietralta','Rocciaferma','Valgelo','Montebrina'],
+  mar:['Marenza','Salinella','Ondalunga','Corallina'],alt:['Tendarossa','Erbamara','Pianolargo','Ventosa']};
  const MARE=VEN.MARE,COLLE=VEN.COLLE,MONTE=VEN.MONTE;
  const CENTRI={val:[.72,.48],sel:[.3,.74],fer:[.45,.2],mar:[.7,.8],alt:[.2,.4]};
  const h2=(x,y,s)=>{let n=M_imul(x,374761393)^M_imul(y,668265263)^M_imul(s,1274126177);n=M_imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
@@ -173,6 +177,12 @@ const VGEO=(()=>{
   // regioni provvisorie: la città più vicina
   {const nc=citta.length;for(let i=0;i<N;i++){const x=i%G,y=(i-x)/G;let b=0,bd=1e18;for(let k=0;k<nc;k++){const q=citta[k],dx=x-q[0],dy=y-q[1],d=dx*dx+dy*dy;if(d<bd){bd=d;b=q[2]}}M.R[i]=b}}
   REG.forEach((f,k)=>{const q=citta.find(c=>c[2]===k);if(q)metti('citta',f,0,[q[0],q[1]])});
+  // città in più (passo 23): le zone a turno da seme%5; in ogni zona la cella migliore col punteggio di sopra, a ≥ G/8 da ogni città
+  {const piu=GEO.CITTA_PIU[(opz&&opz.mondo)||D.OPZ0.mondo]||GEO.CITTA_PIU.ampio,n=piu[0]+M_floor(h2(seme,8,706)*(piu[1]-piu[0]+1)),minP=G/8;
+   for(let j=0;j<n;j++){const z=(seme+j)%REG.length,f0=REG[z],c=CENTRI[f0],cx=c[0]*G,cy=c[1]*G,idoneo=(x,y,i)=>T[i]===1&&citta.every(q=>d2p(x,y,q[0],q[1])>=minP);
+    const pt=(x,y,i)=>(foce[i]?3:0)+(confl[i]?2.5:0)+(riva[i]?2:0)+(baia[i]?1.5:0)+(f0==='mar'&&costa[i]?3:0)+(dw[i]<=3?.8:0)-d2p(x,y,cx,cy)*(G>=192?.09:.12)/sc;
+    const p=cerca(z,idoneo,pt,true)||cerca(-1,idoneo,pt,true);if(!p)continue;const zr=M.R[p[1]*G+p[0]],f=REG[zr];citta.push([p[0],p[1],zr]);
+    const k=L.filter(l=>l.tipo==='citta'&&l.faz===f).length,l=metti('citta',f,k,p),NC=GEO.NOMI_CITTA[f];l.nome=NC[(k-1)%NC.length]+(k>NC.length?' Nuova':'')}}
   const cittaDi=f=>L.find(l=>l.faz===f&&l.tipo==='citta');
   // celle a meno di 5 da un passo
   const vp=new Uint8Array(N);for(const c of catene)for(const p of c.passi)for(let y=M_max(0,p[1]-5);y<=M_min(G-1,p[1]+6);y++)for(let x=M_max(0,p[0]-5);x<=M_min(G-1,p[0]+6);x++){const dx=x-p[0]-.5,dy=y-p[1]-.5;if(dx*dx+dy*dy<25)vp[y*G+x]=1}

@@ -3,7 +3,7 @@ const assert = require('assert'), crypto = require('crypto');
 const carica = require('./carica.js');
 const F = ['27-eroi.js'].concat(carica.VEN_FILES.slice(0, 1), ['27p-avv-compagni.js', '27q-avv-racconto.js'], carica.VEN_FILES.slice(1));
 const nuovoCtx = () => carica.multi(F, '({ VEN, VGEO, VDAT })');
-const { VEN, VGEO } = nuovoCtx();
+const { VEN, VGEO, VDAT } = nuovoCtx();
 // 20 semi: 6 qui, gli altri 14 e il tempo di generazione in test_ven_p07_lento.js
 const SEMI = Array.from({ length: 20 }, (_, i) => 100 + i * 37);
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
@@ -21,7 +21,11 @@ for (const n of semi) {
   // nessun luogo in acqua o su un monte
   for (const l of M.luoghi) { const t = M.T[cell(l)]; assert(t !== 0 && t !== 4, l.tipo + ' in acqua o su un monte, seme ' + seme); assert(M.ok[cell(l)], 'luogo fuori dalla terra principale'); }
   const tipi = {}; M.luoghi.forEach(l => tipi[l.tipo] = (tipi[l.tipo] || 0) + 1);
-  assert.strictEqual(tipi.citta, 5, 'una città per regno'); assert(tipi.castello >= 16 && tipi.villaggio >= 32 && tipi.porto >= 5, JSON.stringify(tipi));
+  // passo 23: le cinque città di zona più 4–5 (ampio) o 6–7 (vasto); ogni zona di cultura ha almeno una città
+  const CITTA = { ampio: [9, 10], vasto: [11, 12] }[mondo];
+  assert(tipi.citta >= CITTA[0] && tipi.citta <= CITTA[1], 'città: ' + tipi.citta + ', seme ' + seme);
+  for (const f of VDAT.REGNI) assert(M.luoghi.some(l => l.tipo === 'citta' && l.faz === f), 'zona ' + f + ' senza città, seme ' + seme);
+  assert(tipi.castello >= 16 && tipi.villaggio >= 32 && tipi.porto >= 5, JSON.stringify(tipi));
   // tutte le città sono raggiungibili tra loro (sulla terra percorribile) e legate da strade
   {
     const vis = new Uint8Array(N), c0 = M.luoghi.find(l => l.tipo === 'citta'), q = [cell(c0)]; vis[q[0]] = 1;
