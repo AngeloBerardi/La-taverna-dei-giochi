@@ -86,7 +86,7 @@ const VenMappa=(()=>{
       if(cx>=0&&cz>=0&&cx<Gd&&cz<Gd&&VEN.innevata(K.s,cz*Gd+cx)){a[o]=x;a[o+1]=2+Math.random()*4;a[o+2]=z;break}}
      if(a[o+1]<0)a[o+1]=-99}}
    f.geometry.attributes.position.needsUpdate=true}
-  K.fiocchiFn=fiocchi;
+  K.fiocchiFn=fiocchi;K.fiocchi=null;K.STT=STT;
   // un tassello: terreno, strade, boschi e rocce, acqua, ponti e guadi, velo dell'ignoto. Restituisce un gruppo, da liberare con K.libera
   function tessera(ci,cj){const gr=new T.Group(),pos=[],col=[],x0t=ci*CH,y0t=cj*CH,x1t=Math.min(G,x0t+CH),y1t=Math.min(G,y0t+CH);
    for(let j=cj*CH*R;j<Math.min(N,(cj+1)*CH*R);j++)for(let i=ci*CH*R;i<Math.min(N,(ci+1)*CH*R);i++){const k=j*(N+1)+i,a4=(AL[k]+AL[k+1]+AL[k+N+1]+AL[k+N+2])/4;if(a4<VEN.MARE-.2)continue;
@@ -276,8 +276,8 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
  function vistaGrande(dt,s,L,lm){gestisci();const nt=L.notte,r=lm*(1-nt*.25),g=lm*(1-nt*.1),b=Math.min(1,lm+nt*.1);K.acqua.color.setRGB(r,g,b);K.far.material.color.setRGB(r,g,b);
   const sg=s.anno!=null?VEN.stagione(s):null,sk=sg?sg.k:'';if(K.stagK!==sk){K.stagK=sk;K.stag=sg;}
   K.stagSync();
-  fiocchi(dt,!!sg&&sg.k==='inv'&&!K.lontano);
-  if(sg){const m=STT[sg.k];K.far.material.color.multiply(new VenArte.T.Color(m[0],m[1],m[2]))}
+  K.fiocchiFn(dt,!!sg&&sg.k==='inv'&&!K.lontano);
+  if(sg){const m=K.STT[sg.k];K.far.material.color.multiply((K.cStag||(K.cStag=new VenArte.T.Color())).setRGB(m[0],m[1],m[2]))}
   const gi=VEN.giorno(s);if(K.gBordi!==gi){K.gBordi=gi;confini(s);K.sporco=1;salvaVisto()}
   if(K.nebbia)esplora(dt,s);
   if(K.sporco&&(!K.cvOk||K.t-K.tUlt>.5)){K.sporco=0;K.tUlt=K.t;ridisegna()}

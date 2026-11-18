@@ -13,6 +13,9 @@ async def _avvia(b, srv, url):
     return ctx, pg
 
 _SALTA = "(g=>{const s=Ven.V.s;s.t=(g-1)*1440+8*60;render()})(%d)"
+_SALTA_VIVO = "(g=>{Ven.V.s.t=(g-1)*1440+8*60})(%d)"  # senza render(): la barra deve aggiornarsi da sola
+_SEGNA = "window.__p24=1;document.querySelector('.vn-alto').dataset.p24=1"
+_SEGNATO = "window.__p24===1&&document.querySelector('.vn-alto').dataset.p24==='1'"
 _COL = "(()=>{const a=[];VenMappa.K.scene.traverse(o=>{if(o.userData&&o.userData.terreno&&o.userData.base)a.push(o)});if(!a.length)return null;const R=[],B=[];for(const m of a){const c=m.geometry.attributes.color.array,k=m.userData.base;for(let i=0;i<c.length;i+=3){if(k[i]>.05)R.push(c[i]/k[i]);if(k[i+2]>.05)B.push(c[i+2]/k[i+2])}}const md=x=>x.sort((p,q)=>p-q)[x.length>>1];return[md(R),0,md(B)]})()"  # rapporto mediano tinta/colore base: i tasselli diversi e la neve contano poco
 
 async def sc_p24_stagioni_mappa(b, srv):
@@ -29,7 +32,9 @@ async def sc_p24_stagioni_mappa(b, srv):
     await pg.wait_for_function("VenMappa.K.stagK==='est'", timeout=15000); await pg.evaluate('VenMappa.K.stagSync()'); await pg.wait_for_timeout(300)
     ce = await pg.evaluate(_COL)
     await pg.screenshot(path=os.path.join(d, 'p24-estate.png'))
-    await pg.evaluate(_SALTA % (a + 1 + 3 * 28 + 3)); await pg.wait_for_timeout(1500)
+    await pg.evaluate(_SEGNA); await pg.evaluate(_SALTA_VIVO % (a + 1 + 3 * 28 + 3))
+    await pg.wait_for_function("(document.querySelector('.vn-stag')||{}).dataset.k==='inv'", timeout=5000)
+    vivo = await pg.evaluate(_SEGNATO)
     inv = await pg.evaluate("(document.querySelector('.vn-stag')||{}).title")
     await pg.wait_for_function("VenMappa.K.stagK==='inv'", timeout=15000); await pg.evaluate('VenMappa.K.stagSync()'); await pg.wait_for_timeout(300)
     ci = await pg.evaluate(_COL)
@@ -37,9 +42,12 @@ async def sc_p24_stagioni_mappa(b, srv):
     info = await pg.evaluate("(document.querySelector('.vn-rqi')||{}).textContent")
     h = await pg.evaluate("document.querySelector('.vn-stag').getBoundingClientRect().height")
     await pg.screenshot(path=os.path.join(d, 'p24-inverno.png'))
+    giro = await pg.evaluate("[!!Ven.V.raf, ERR.b.filter(e=>e.dove==='ventura').map(e=>e.m)]")
     check(est and 'estate' in est and inv and 'inverno' in inv, f'nome della stagione nella barra: {est} / {inv}')
+    check(vivo, 'icona aggiornata senza ricaricare la pagina né ridisegnare la barra')
     check(ce and ci and abs(ce[0] - ci[0]) + abs(ce[2] - ci[2]) > 0.1, f'tinta del terreno diversa: {ce} / {ci}')
     check(info and 'anno' in info and 'primavera' in info, f'infobox: {info}')
     check(h >= 44, f'bersaglio stagione {h}px')
+    check(giro[0] and not giro[1], f'ciclo del mondo vivo, nessun errore catturato: {giro}')
     check(not pg.cons, f'nessun errore in console: {pg.cons[:3]}')
     await ctx.close()
