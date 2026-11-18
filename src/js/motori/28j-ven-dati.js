@@ -290,8 +290,8 @@ VDAT.CAMPO28=K=>{const {D,d2,chiave}=K,CC={};for(const c of D.COMPAGNI)if(c.camp
    const p=L.map(e=>s.mr[e.u.l][e.u.r]);f();L.forEach((e,i)=>{const m=s.mr[e.u.l],d=p[i]-m[e.u.r];if(d>0)m[e.u.r]=p[i]-d*.7})},
   // le grida: una ogni 40 istanti per tutta la battaglia, un momento una volta per compagno
   grida(s){const a=A(s);if(!a||!s.mr||!libera(s))return;
-   for(const e of a.l){const u=e.u;if(u.st==='ko')continue;const nem=u.l==='a'?'b':'a',g=u.gr|0,v=u.st==='vivo',m=s.mr[u.l][u.r];
-    const k=!(g&1)&&s.rf&&Object.keys(s.rf[nem]).length?'rotta':!(g&4)&&v&&u.pf<u.pfm*.4?'ferito':!(g&2)&&m!=null&&m<30?'cede':!(g&8)&&v&&u.r>=0&&(u.ca>.6||(s.ord[u.l][chiave(u)].t==='carica'&&u.bd<14))?'carica':null;
+   for(const e of a.l){const u=e.u;if(u.st==='ko')continue;const nem=u.l==='a'?'b':'a',g=u.gr|0,v=u.st==='vivo',m=s.mr[u.l][u.r],o=s.ord[u.l],q=o&&o[chiave(u)];
+    const k=!(g&1)&&s.rf&&Object.keys(s.rf[nem]).length?'rotta':!(g&4)&&v&&u.pf<u.pfm*.4?'ferito':!(g&2)&&m!=null&&m<30?'cede':!(g&8)&&v&&u.r>=0&&(u.ca>.6||(q&&q.t==='carica'&&u.bd<14))?'carica':null;
     if(k){emetti(s,u,k);return}}},
   vince(s,l){const a=A(s);if(!a||!libera(s))return;for(const e of a.l)if(e.u.l===l&&e.u.st==='vivo'){emetti(s,e.u,'vince');return}}}};
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;

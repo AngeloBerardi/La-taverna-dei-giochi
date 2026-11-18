@@ -65,11 +65,28 @@ assert.strictEqual(D.COMPAGNI.map(c => c.campo.k).sort().join(), 'alfiere,benedi
   assert(senza > 0 && con > senza * 1.6, `con ${con} senza ${senza}`);
 }
 
-// macchine: lo si vede dai ganci (spinta ×2 e scale −25%) tramite l'aura
+// macchine: all'assedio, con Ulfredo vicino ogni colpo d'ariete toglie il doppio alla porta e la scala si sale in 3/4 del tempo
 {
-  const s = prima(nuovo({ a: T(0, { val_f2: 6, co_ulf: 1 }) }));
-  const u = di(s, 'co_ulf'), f = s.u.find(q => q.l === 'a' && q.t === 'val_f2'); f.x = u.x + 3; f.y = u.y; s._aura.m = {};
-  assert(Q.aura(s, f, 'macchine')); f.x = u.x + 40; s._aura.m = {}; assert(!Q.aura(s, f, 'macchine'));
+  const assedio = ux => {
+    const s = C.nuovo(scheda({ tipo: 'assedio', assedio: { breccia: false, ariete: true }, a: T(0, { val_f2: 2, co_ulf: 1 }), b: T(5, { fer_f2: 4 }) })); s.autoA = false;
+    const [ar, sc] = s.u.filter(u => u.l === 'a' && u.t === 'val_f2'), ul = di(s, 'co_ulf'), nem = s.u.filter(u => u.l === 'b'), M = C.C.MURO;
+    const cali = [], sal = []; let pf = s.porta.pf;
+    for (let i = 0; i < 400 && !s.fine && s.porta.pf > 0; i++) {
+      ar.x = 30; ar.y = M + 1.2; sc.x = 21; sc.y = M + .7; ul.x = ux; ul.y = M + 3; ul.cd = 99;   // uno all'ariete, uno al piede della scala
+      [ul, ar, sc].forEach(u => { u.pf = u.pfm = 999 });
+      nem.forEach((u, k) => { u.x = 15 + 3 * k; u.y = 10; u.pf = u.pfm = 999; u.st = 'vivo'; u.att = 0; u.dan = 1; u.vel = 0; u.git = 0 });
+      for (const e of C.passo(s, 1)) {
+        if (e.t === 'ariete' && e.id === ar.id) { cali.push(pf - e.pf); pf = e.pf }
+        if (e.t === 'scala' && e.id === sc.id) sal.push(sc.sal - s.t);
+      }
+    }
+    return { cali, sal };
+  };
+  const con = assedio(26), senza = assedio(58), S = C.C.AS;
+  assert(con.cali.length > 5 && con.cali.every(x => x === S.SPINTA * 2), 'spinta doppia: ' + con.cali);
+  assert(senza.cali.length > 5 && senza.cali.every(x => x === S.SPINTA), 'spinta normale: ' + senza.cali);
+  assert(con.sal.length > 2 && con.sal.every(x => x === Math.round(S.SCALA * .75)), 'salita −25%: ' + con.sal);
+  assert(senza.sal.length > 2 && senza.sal.every(x => x === S.SCALA), 'salita normale: ' + senza.sal);
 }
 
 // alfiere: le perdite di morale del reparto valgono il 70%
@@ -103,12 +120,22 @@ assert.strictEqual(D.COMPAGNI.map(c => c.campo.k).sort().join(), 'alfiere,benedi
   assert(norm > 3, 'il balestriere tira: ' + norm); assert(brando >= norm * 1.7 && brando <= norm * 2.3, `Brando ${brando} contro ${norm}`);
 }
 
-// notte: i tiratori vicini a Fosca non perdono la mira di notte (la penalità c'è per gli altri)
+// notte: nella stessa scena, con Fosca vicina i tiratori colpiscono di notte come di giorno; con Fosca lontana meno
 {
-  const s = prima(nuovo({ notte: true, a: T(0, { val_t2: 4, co_fosca: 1 }) }));
-  const fo = di(s, 'co_fosca'), t = s.u.find(u => u.l === 'a' && u.t === 'val_t2'), lont = s.u.filter(u => u.l === 'a' && u.t === 'val_t2')[1];
-  t.x = fo.x + 3; t.y = fo.y; lont.x = fo.x + 40; s._aura.m = {};
-  assert(Q.aura(s, t, 'notte')); assert(!Q.aura(s, lont, 'notte'));
+  const mira = (notte, fy) => {
+    const s = nuovo({ notte, a: T(0, { val_t2: 4, co_fosca: 1 }), b: T(5, { fer_f2: 6 }) }); s.autoA = false; s.ord.a.t.t = 'carica';
+    const tt = s.u.filter(u => u.l === 'a' && u.t === 'val_t2'), fo = di(s, 'co_fosca'), nem = s.u.filter(u => u.l === 'b'); const h = [];
+    for (let i = 0; i < 1500 && !s.fine; i++) {
+      tt.forEach((u, k) => { u.x = 27 + 2 * k; u.y = 80; u.fr = 99; u.pf = u.pfm = 999 }); fo.x = 30; fo.y = fy; fo.pf = fo.pfm = 999;
+      nem.forEach((u, k) => { u.x = 25 + 2 * k; u.y = 66; u.pf = u.pfm = 999; u.st = 'vivo'; u.att = 0; u.dan = 1; u.vel = 0 });
+      for (const e of C.passo(s, 1)) if (e.t === 'tiro') h.push(e.colpito ? 1 : 0);
+    }
+    return h;
+  };
+  const somma = h => h.reduce((a, x) => a + x, 0), notteCon = mira(true, 82), giornoCon = mira(false, 82), notteSenza = mira(true, 98);
+  assert(notteCon.length > 100 && notteCon.join('') === giornoCon.join(''), 'con Fosca vicina la notte non pesa');
+  const pc = somma(notteCon) / notteCon.length, ps = somma(notteSenza) / notteSenza.length;
+  assert(pc - ps > .05, `colpi a segno di notte: con Fosca ${pc.toFixed(2)}, senza ${ps.toFixed(2)}`);
 }
 
 // grida: al massimo 15 in 600 istanti, una ogni 40, solo tra i momenti noti, mai dal capitano
