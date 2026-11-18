@@ -54,7 +54,12 @@ I compagni non sono più soldati qualunque. Le frasi le ha scritte il passo 10; 
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nelle grandi battaglie ogni compagno porta in campo una dote, che vale per i tuoi uomini vicini a lui.
+- Berta rende i fanti più duri in mischia; Isabetta fa più male ai tiratori; Temu spinge più veloci i cavalieri.
+- Lapo rimargina piano le ferite di chi gli sta attorno; Fosca toglie ai tiratori vicini l'impaccio del buio.
+- Ghino, Diamante e Suor Nera lavorano sul loro reparto: niente rallentamenti nell'acqua, perdite di coraggio più leggere, un animo più saldo all'inizio.
+- Ulfredo fa sfondare i portoni e salire le scale più in fretta; Brando scocca due quadrelli per volta.
+- Se il compagno cade, la sua dote finisce: tienili lontani dai guai. Ogni tanto gridano, e li senti.
 
 ## Fatto quando
 
