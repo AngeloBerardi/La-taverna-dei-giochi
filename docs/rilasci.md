@@ -15,7 +15,11 @@ La prova avvia la battaglia con Via, la porta a termine (velocità x4) e fotogra
 
 ## Rilascio 2: grandi battaglie (in attesa, interruttore spento)
 
-Il passo 29 ha preparato l'accensione (`VDAT.ACCESO.grandi`, gancio `scheda` in `28kr`, impronta `docs/passi/impronte/grandi.txt`) ma l'interruttore resta spento: con i bot a 60 giorni i semi 3 e 5 vanno in rovina (0 uomini; nei semi 11 e 29 e a interruttore spento no). Nelle battaglie perse (anche senza comandante nemico) la partita si chiude con zero caduti per parte. Le regole dei passi 06, 11, 16, 19, 22, 26, 28, 47 non sono ancora copiate in `docs/rules/ventura.md` né in `RULES.ventura`: si fa all'accensione.
+Il passo 29 ha preparato l'accensione (`VDAT.ACCESO.grandi`, gancio `scheda` in `28kr`, impronta `docs/passi/impronte/grandi.txt`) ma l'interruttore resta spento: con i bot a 60 giorni i semi 3 e 5 vanno in rovina (0 uomini), mentre 11, 29 e 7 reggono. Casi separati, dettagli e riproduzione nell'issue #187.
+- Seme 5: due battaglie perse, anche senza comandante nemico, che finiscono con zero caduti per parte.
+- Seme 3: la compagnia muore di fame dopo l'ultima vittoria (forse solo rumore del bot).
+
+Le regole dei passi 06, 11, 16, 19, 22, 26, 28, 47 non sono ancora copiate in `docs/rules/ventura.md` né in `RULES.ventura`: si fa all'accensione.
 
 Quando si accende, per chi gioca cambia:
 - fino a 110 uomini per lato (70 con la taglia media) e campo più largo;

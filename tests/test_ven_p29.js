@@ -23,11 +23,11 @@ function prova(seme, acceso, giorni, bravo) {
   assert(spento.battaglie > 0 && spento.grandi === 0 && spento.capo === 0, 'spento: nessuna scheda cambia');
   assert(acceso.grandi > 0 && acceso.piccole === 0, 'acceso: ogni battaglia del giocatore è grande');
   const caso = prova(11, true, 8, false);
-  assert(caso.s.t > 0, 'il bot casuale gioca senza errori con le battaglie grandi');
+  assert(caso.s.t > 0 && caso.grandi > 0 && caso.piccole === 0, 'il bot casuale gioca solo battaglie grandi, senza errori');
 }
 if (process.env.P29_ACCESA) {
   const GIORNI = +(process.env.GIORNI_P29 || 60);
-  for (const seme of [3, 11, 29]) {
+  for (const seme of [3, 5, 11, 29]) {
     const prima = prova(seme, false, GIORNI, true), dopo = prova(seme, true, GIORNI, true);
     console.log('seme', seme, GIORNI + 'gg', 'spento', prima.uomini, 'uomini', prima.stat, '| acceso', dopo.uomini, 'uomini', dopo.stat);
     assert(dopo.uomini > 0, 'seme ' + seme + ': il bot accorto non va in rovina');
