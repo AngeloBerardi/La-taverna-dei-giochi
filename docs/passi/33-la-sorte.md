@@ -46,7 +46,7 @@ Non si sceglie il regno. Il gioco getta la compagnia in un punto a caso, ma gioc
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nei mondi nuovi non scegli il regno: la sorte ti getta in un villaggio o in una locanda lontani dai covi, in un regno ancora in pace, con una città non troppo lontana. Il diario ti racconta dove sei e ti indica subito una cosa da fare vicino: una taglia, una carovana da scortare, un signore che arruola, un torneo, un villaggio minacciato o un mercante con un affare. Gli uomini che hai sono della gente del posto, e chi arruoli della stessa gente costa un po' meno. Più la difficoltà è dura, meno monete hai in tasca.
 
 ## Fatto quando
 
