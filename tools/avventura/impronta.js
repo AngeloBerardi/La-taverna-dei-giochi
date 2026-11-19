@@ -24,7 +24,7 @@ const SCHEDE = [
 // Lavori indipendenti (ognuno in un processo suo, in parallelo): 3 capitani accorti, 1 sconsiderato, 5 battaglie.
 const LAVORI = [3, 11, 29].map(seme => ({ seme, bravo: true })).concat([{ seme: 29, bravo: false }], SCHEDE.map((c, i) => ({ scheda: i })));
 function lavoro(n, acceso) {
-  const V = carica.multi(carica.VEN_FILES, 'VEN'), D = carica.multi(carica.VEN_FILES, 'VDAT'), C = carica.multi(carica.VEN_FILES, 'VCAM'), j = LAVORI[n];
+  const X = carica.multi(carica.VEN_FILES, '({ VEN, VDAT, VCAM })'), V = X.VEN, D = X.VDAT, C = X.VCAM, j = LAVORI[n];   // un solo contesto: l'interruttore deve raggiungere anche il mondo
   if (D.ACCESO) for (const k of Object.keys(D.ACCESO)) D.ACCESO[k] = k === acceso;
   else if (acceso) throw new Error('Nessun interruttore: VDAT.ACCESO non esiste ancora');
   if (j.scheda != null) return 'battaglia ' + (j.scheda + 1) + ' ' + sha(JSON.stringify(C.risolvi(SCHEDE[j.scheda])));
