@@ -66,7 +66,12 @@ Tutto in `28kk-ven-strategia.js`, attaccato ai ganci:
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+**Prima della battaglia.** Quanto vedi del nemico dipende dagli esploratori: se la tua Esplorazione supera il suo grado di comando vedi tutto (uomini per tipo, modo di combattere, rinforzi); se lo eguaglia, i numeri sono a spanne; se è minore, sai solo «circa tanti uomini».
+- **Il campo**: se esplori abbastanza, o se ti attaccano mentre sei fermo, puoi scegliere tra due terreni.
+- **Alba**: aspetti il mattino; un nemico poco accorto può andarsene, altra gente può unirsi a lui.
+- **Notte**: attacchi nel buio, i tiratori vedono meno per tutti; i nemici meno accorti sono in disordine.
+- **Imboscata** (bosco o colline, nemico in arrivo, esplori più di lui): lo prendi in colonna e impreparato. **Pali**: un'ora e dieci razioni, i cavalli rallentano e la carica non riesce.
+- **Retroguardia**: lasci un reparto a coprire la fuga; se perde, non torna. Dopo una lunga marcia si arriva stanchi, e i comandanti accorti scelgono loro il momento.
 
 ## Fuori scopo
 
