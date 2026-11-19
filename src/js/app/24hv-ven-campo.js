@@ -182,13 +182,16 @@ const VenCampo=(()=>{
  const tvOn=()=>typeof ui!=='undefined'&&!!ui.tv;
  // dove guardare: media pesata delle unità che hanno colpito o sono state colpite negli ultimi 30 istanti (peso 3) e di tutte le vive (peso 1); altezza tale che le vive dei due lati stiano nell'80% della vista
  function inquadra(s){const A=VenArte.A,asp=A&&A.rw>2?(A.rw-2)/(A.rh-2):.5,V=s.u.filter(u=>u.st==='vivo');if(!V.length)return{x:K.fuoco.x,z:K.fuoco.z,alt:K.alt,grande:false};
-  const H=K.hot.filter(h=>h.t>=s.t-30);let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,sx=0,sz=0,w=0;
-  for(const u of V){x0=Math.min(x0,u.x);x1=Math.max(x1,u.x);z0=Math.min(z0,u.y);z1=Math.max(z1,u.y);sx+=u.x;sz+=u.y;w++}
+  const H=K.hot.filter(h=>h.t>=s.t-30);let sx=0,sz=0,w=0;
+  // il rettangolo esclude gli isolati (ritardatari, arcieri lontani): dal 8° al 92° percentile di ogni asse
+  const XS=V.map(u=>u.x).sort((p,q)=>p-q),ZS=V.map(u=>u.y).sort((p,q)=>p-q),i0=Math.floor((V.length-1)*.08),i1=Math.ceil((V.length-1)*.92),x0=XS[i0],x1=XS[i1],z0=ZS[i0],z1=ZS[i1];
+  for(const u of V){sx+=u.x;sz+=u.y;w++}
   for(const h of H){sx+=3*h.x;sz+=3*h.z;w+=3}
-  let x=sx/w,z=sz/w;const hw=Math.max(x-x0,x1-x)+3,hz=Math.max(z-z0,z1-z)+3,alt=Math.max(2*hw/(.8*asp),2*hz*VenArte.SE/.8);
+  const cx=(x0+x1)/2,cz=(z0+z1)/2,mx=(x1-x0)/2*.15,mz=(z1-z0)/2*.15;   // il baricentro pesato sposta il centro al più del 15% del mezzo-rettangolo: il resto è fuori vista
+  let x=cx+Math.max(-mx,Math.min(mx,sx/w-cx)),z=cz+Math.max(-mz,Math.min(mz,sz/w-cz));const hw=Math.max(x-x0,x1-x)+2,hz=Math.max(z-z0,z1-z)+2,alt=Math.max(2*hw/(.8*asp),2*hz*VenArte.SE/.8);
   if(alt>K.ALT_MAX){   // battaglia grande: il fronte più caldo, cioè la cella da 20 passi con più colpi recenti
    const C={};let b=null;for(const h of H){const k=Math.floor(h.x/20)+','+Math.floor(h.z/20),c=C[k]||(C[k]={n:0,x:0,z:0});c.n++;c.x+=h.x;c.z+=h.z;if(!b||c.n>b.n)b=c}
-   if(b){x=b.x/b.n;z=b.z/b.n}return{x,z,alt:K.ALT_MAX,grande:true}}
+   if(b){x=b.x/b.n;z=b.z/b.n}return{x,z,alt:K.ALT_MAX,grande:true,r:[x0,x1,z0,z1,alt]}}
   return{x,z,alt:Math.max(K.ALT_MIN,alt),grande:false}}
  const cen=(s,f)=>{let n=0,x=0,z=0;for(const u of s.u)if(f(u)){x+=u.x;z+=u.y;n++}return n?{x:x/n,z:z/n}:null};
  function stacca(p){if(!p||(K.ripr!=='regia'&&!tvOn())||(K.stacco&&K.t<K.stacco.fino)||K.t-K.ultStacco<6)return;K.stacco={x:p.x,z:p.z,fino:K.t+1.6};K.ultStacco=K.t}

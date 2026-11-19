@@ -32,8 +32,13 @@ async def sc_p31_regia(b, srv):
     await pg.wait_for_timeout(7000)
     c8 = await pg.evaluate(_CENTRI)
     check(c8['a'] and c8['b'], f'dopo 8 s i centri delle due schiere sono nello schermo: {c8}')
+    # la mischia: attendo i primi colpi in corpo a corpo, poi la camera si avvicina e lo screenshot mostra le figure a contatto
+    await pg.wait_for_function("VenCampo.K.hot.some(h=>h.t>=VenCampo.K.s.t-30)", timeout=60000)
+    await pg.wait_for_timeout(2500)
+    mi = await pg.evaluate("(()=>{const K=VenCampo.K,q=VenCampo.inquadra(K.s);return{alt:K.alt,qalt:q.alt,grande:q.grande,lod:K.lod,r:q.r,asp:VenArte.A.rw/VenArte.A.rh,SE:VenArte.SE}})()")
+    check(mi['qalt'] < 92 and not mi['grande'], f'in mischia la regia non sta a ALT_MAX: {mi}')
     await pg.screenshot(path=os.path.join(d, 'p31-mischia.png'))
-    await pg.wait_for_timeout(6000)
+    await pg.wait_for_timeout(3000)
     c14 = await pg.evaluate(_CENTRI)
     check(c14['a'] and c14['b'], f'dopo 14 s i centri delle due schiere sono nello schermo: {c14}')
     # pura: inquadra(s) non cambia lo stato e sta tra i limiti
@@ -56,6 +61,11 @@ async def sc_p31_regia(b, srv):
     sol = await pg.evaluate("(()=>{const K=VenCampo.K;K.esterno=false;K.lento=0;VenCampo.eventi([{t:'stendardo',l:'b'}]);return K.lento})()")
     com = await pg.evaluate("(()=>{const K=VenCampo.K;K.esterno=true;K.lento=0;VenCampo.eventi([{t:'stendardo',l:'b'}]);const v=K.lento;K.esterno=false;return v})()")
     check(sol > 0 and com == 0, f'rallentatore solo in solitario ({sol} / {com})')
+    # in compagnia vera la partita non gira nella vista: VenCampo.usa(stato, id) e gli eventi arrivano dalla stanza (come in specchia())
+    ec = await pg.evaluate("""(()=>{const K=VenCampo.K;Ven.V.modo='campo';VenCampo.usa(VCAM.nuovo(%s),'p31-stanza');K.s.pronto={a:true,b:true};K.pausa=false;K.ultStacco=-99;K.stacco=null;K.lento=0;
+      VenCampo.eventi([{t:'stendardo',l:'b'}]);let t30=null,t=0;for(let i=0;i<90;i++){VenCampo.passo(1/60);t+=1/60;if(t30===null&&K.alt<30)t30=t}
+      return{esterno:K.esterno,lento:K.lento,t30,alt:K.alt,ripr:K.ripr,sc:!!K.scene,st:K.stacco,tv:VenCampo.tavolo(K.s),fine:K.s.fine}})()""" % _SCHEDA)
+    check(ec['esterno'] and ec['lento'] == 0 and ec['t30'] is not None, f'stanza (usa): nessun rallentatore, lo stacco parte: {ec}')
     # tocco sul campo: capitano per 4 s, poi di nuovo regia
     await pg.evaluate("(()=>{const K=VenCampo.K;K.pausa=false;K.stacco=null;K.ripr='regia';K.lod=0;const r=VenArte.cv.getBoundingClientRect();VenCampo.tocco(r.left+r.width/2,r.top+r.height/2)})()")
     check(await pg.evaluate("VenCampo.K.ripr") == 'capitano', 'il tocco passa alla camera capitano')
