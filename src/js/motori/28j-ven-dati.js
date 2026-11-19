@@ -196,6 +196,10 @@ const VDAT=(()=>{
   co_brando:{inc:[{tipo:'luogo',tipoL:'porto',d:'Chiedere di Tano in un porto.'},{tipo:'sito',tipoL:'rovine',d:'Liberare Tano dalle rovine dei briganti.'},{tipo:'porta',tipoL:'porto',oro:200,d:'Pagare il debito di Tano in un porto (200 monete).'}],premio:{ogg:'u_seicolpi'}},
   co_fosca:{inc:[{tipo:'sito',tipoL:'rovine',d:'Ripulire le rovine dove il maestro vide la lanterna.'},{tipo:'luogo',tipoL:'locanda',d:'Trovare l\'oste che comprò la lanterna.'},{tipo:'sito',tipoL:'covo',d:'Riprendere la lanterna da un covo.'}],premio:{ogg:'u_lanterna'}}};
  for(const c of COMPAGNI){const x=INC[c.id];if(x){c.inc=x.inc;c.premio=x.premio}}
+ // doti in campo (passo 28, solo con i reparti): k = dote, r = raggio in passi sulle unità dello stesso lato, a = ambito ('rep' il suo reparto, 'sol' solo lui)
+ const CAMPO_C={co_berta:{k:'furia',r:12},co_lapo:{k:'cerusico',r:10},co_ghino:{k:'guado',r:0,a:'rep'},co_isa:{k:'occhio',r:12},co_ulf:{k:'macchine',r:14},
+  co_dia:{k:'alfiere',r:0,a:'rep'},co_temu:{k:'steppa',r:14},co_nera:{k:'benedizione',r:0,a:'rep'},co_brando:{k:'seicolpi',r:0,a:'sol'},co_fosca:{k:'notte',r:12}};
+ for(const c of COMPAGNI)c.campo=CAMPO_C[c.id];
  for(const c of COMPAGNI)extra(c.id,c.nome,'tu',c.arch,{pf:ARCH[c.arch].pf+30,att:ARCH[c.arch].att+4,dif:ARCH[c.arch].dif+3,paga:ARCH[c.arch].paga+8,compagno:c.abil,asp:c.asp});
  // capibanda: uno per covo. Chi li stana trova il loro tesoro
  const CAPIBANDA=[
@@ -255,4 +259,39 @@ const VDAT=(()=>{
  // cosa produce ogni regno: le scorte tendono a salire dove si produce
  const PRODUCE={val:['grano','vino','velluto'],sel:['carne','lana','attrezzi'],fer:['ferro','sale','attrezzi'],mar:['pesce','spezie','velluto'],alt:['carne','lana','sale']};
  return{FAZ,REGNI,ARCH,TR,SU,INGAGGIO,PROMO,XP_SU,valore,aspetto,MERCI,OGG,SLOT,PREGIO,BOTTEGA,UNICA,TORNEO,COMUNI,BOTTINO_ROVINE,ABIL,COMPAGNI,GRAD,SIG,CAPIBANDA,RIVALE,VOLPE,TRATTI,TRATTI_ID,DIPL,REGNO,TIPI,NOMI,PRODUCE}})();
+// Passo 28: le doti dei compagni in campo. `VDAT.CAMPO28(K)` riceve gli attrezzi del motore (28l) e restituisce i ganci che il campo chiama. Tutto vive solo con `s.rep`.
+// `s._aura` (non enumerabile, mai salvato) tiene per l'istante i compagni vivi e le risposte già date.
+VDAT.CAMPO28=K=>{const {D,d2,chiave}=K,CC={};for(const c of D.COMPAGNI)if(c.campo)CC[c.id]=c.campo;
+ const A=s=>s._aura&&s._aura.t===s.t&&s._aura.l.length?s._aura:null;
+ // vero se un compagno vivo con quella dote è entro il raggio (o nel reparto, o è lui)
+ function aura(s,u,k){const a=A(s);if(!a)return false;const m=a.m[k]||(a.m[k]={});if(m[u.id]!==undefined)return m[u.id];let v=false;
+  for(const e of a.l){const c=e.u;if(e.k!==k||c.st!=='vivo'||c.l!==u.l)continue;
+   if(e.a==='sol'?c===u:e.a==='rep'?!u.cap&&u.r===c.r:d2(u,c)<=e.r){v=true;break}}
+  return m[u.id]=v}
+ const emetti=(s,u,k)=>{u.gr=(u.gr|0)|({rotta:1,cede:2,ferito:4,carica:8}[k]||0);s.ultGrida=s.t;s.ev.push({t:'grida',chi:u.t,k})};
+ const libera=s=>s.ultGrida==null||s.t-s.ultGrida>=40;
+ return{aura,
+  // a ogni istante: l'elenco dei compagni, il morale di partenza e le cure
+  inizio(s){let a=s._aura;if(!a){a={t:0,l:[],m:{}};Object.defineProperty(s,'_aura',{value:a,writable:true,enumerable:false,configurable:true})}
+   a.t=s.t;a.m={};a.l=[];for(const u of s.u){const c=CC[u.t];if(c&&u.st!=='ko'&&!u.cap)a.l.push({u,k:c.k,r:c.r,a:c.a})}
+   for(const e of a.l){if(e.u.st!=='vivo')continue;
+    if(s.t===1&&e.k==='benedizione'&&s.mr&&s.mr[e.u.l]&&s.mr[e.u.l][e.u.r]!=null)s.mr[e.u.l][e.u.r]=Math.min(100,s.mr[e.u.l][e.u.r]+10);
+    if(e.k==='cerusico'&&s.t%30===0)for(const q of s.u)if(q.l===e.u.l&&q.st==='vivo'&&q.pf<q.pfm&&d2(q,e.u)<=e.r)q.pf=Math.min(q.pfm,q.pf+1)}},
+  // moltiplicatori: attacco ai fanti (furia), danno dei tiratori (occhio), velocità dei cavalieri (steppa)
+  att:(s,u)=>u.c==='f'&&aura(s,u,'furia')?1.15:1,
+  dan:(s,u)=>u.c==='t'&&aura(s,u,'occhio')?1.1:1,
+  // quanti ne restano per gruppo e la formazione di ogni gruppo (per i bottoni della vista)
+  gruppi(s,l){const g={f:0,t:0,c:0};for(const u of s.u)if(u.l===(l||'a')&&u.st==='vivo'&&!u.cap)g[u.c]++;return g},
+  forme(s,l){const o=s.ord[l||'a'],f={};for(const g of['f','t','c'])f[g]=(o[g]&&o[g].fm)||'larga';return f},
+  ar:(s,u)=>aura(s,u,'macchine')?2:1,sc:(s,u)=>aura(s,u,'macchine')?.75:1,bis:(s,u,b)=>b.st!=='ko'&&aura(s,u,'seicolpi'),
+  vel:(s,u)=>(u.c==='c'||u.cav)&&aura(s,u,'steppa')?1.1:1,
+  // le perdite di morale dei reparti con l'alfiere valgono il 70%: `f` toglie il morale, qui si rimette la differenza
+  scudo(s,f){const a=A(s);if(!a||!s.mr)return f();const L=a.l.filter(e=>e.k==='alfiere'&&e.u.st==='vivo'&&e.u.r>=0&&s.mr[e.u.l][e.u.r]!=null);if(!L.length)return f();
+   const p=L.map(e=>s.mr[e.u.l][e.u.r]);f();L.forEach((e,i)=>{const m=s.mr[e.u.l],d=p[i]-m[e.u.r];if(d>0)m[e.u.r]=p[i]-d*.7})},
+  // le grida: una ogni 40 istanti per tutta la battaglia, un momento una volta per compagno
+  grida(s){const a=A(s);if(!a||!s.mr||!libera(s))return;
+   for(const e of a.l){const u=e.u;if(u.st==='ko')continue;const nem=u.l==='a'?'b':'a',g=u.gr|0,v=u.st==='vivo',m=s.mr[u.l][u.r],o=s.ord[u.l],q=o&&o[chiave(u)];
+    const k=!(g&1)&&s.rf&&Object.keys(s.rf[nem]).length?'rotta':!(g&4)&&v&&u.pf<u.pfm*.4?'ferito':!(g&2)&&m!=null&&m<30?'cede':!(g&8)&&v&&u.r>=0&&(u.ca>.6||(q&&q.t==='carica'&&u.bd<14))?'carica':null;
+    if(k){emetti(s,u,k);return}}},
+  vince(s,l){const a=A(s);if(!a||!libera(s))return;for(const e of a.l)if(e.u.l===l&&e.u.st==='vivo'){emetti(s,e.u,'vince');return}}}};
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VDAT;

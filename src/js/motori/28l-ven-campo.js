@@ -147,8 +147,8 @@ const VCAM=(()=>{
   if(!best)return!sopra&&cavaliere(u)?[u.x,m+12]:[u.x,u.y];// nessun passaggio: i cavalieri aspettano a distanza, gli altri restano
   const cx=stretto(u.x,best[0]+.7,best[1]-.7);if(u.x>best[0]+.5&&u.x<best[1]-.5)return[cx,ty];return[(best[0]+best[1])/2,m+(sopra?-1.6:1.6)]}
  function muovi(s,u,tx,ty,k){const w=versoVarco(s,u,tx,ty);tx=w[0];ty=w[1];const dx=tx-u.x,dy=ty-u.y,d=rad(dx*dx+dy*dy);if(d<.05)return 0;
-  let v=u.vel*C.PASSO*(k||1);if(s.bioma===1)v*=.92;if(u.buff>s.t)v*=1.12;if(forma(s,u)==='serrata')v*=C.FM.serrata.vel;if(u.fa!=null)v*=P.fm(u);
-  const zz=ZONE(s).length>0;if(zz){if(acqua(s,u.x,u.y))v*=C.TER.ACQUA;if((u.c==='c'||u.cav)&&copre(s,u.x,u.y))v*=C.TER.BOSCO_CAV;if((u.c==='c'||u.cav)&&pali(s,u.x,u.y))v*=C.TER.PALI}
+  let v=u.vel*C.PASSO*(k||1);if(s.bioma===1)v*=.92;if(u.buff>s.t)v*=1.12;v*=Q.vel(s,u);if(forma(s,u)==='serrata')v*=C.FM.serrata.vel;if(u.fa!=null)v*=P.fm(u);
+  const zz=ZONE(s).length>0;if(zz){if(acqua(s,u.x,u.y)&&!Q.aura(s,u,'guado'))v*=C.TER.ACQUA;if((u.c==='c'||u.cav)&&copre(s,u.x,u.y))v*=C.TER.BOSCO_CAV;if((u.c==='c'||u.cav)&&pali(s,u.x,u.y))v*=C.TER.PALI}
   let st=Math.min(d,v),nx=u.x+dx/d*st,ny=u.y+dy/d*st;
   if(zz){const qn=quota(s,nx,ny);if(qn>0&&qn>quota(s,u.x,u.y)){st=Math.min(d,v*C.TER.SALITA);nx=u.x+dx/d*st;ny=u.y+dy/d*st}}// salire rallenta
   if(s.muro){const m=s.muro,dentro=s.varchi.some(g=>nx>g[0]+.4&&nx<g[1]-.4);if(!dentro&&(u.y-m)*(ny-m)<=0)ny=u.y<m?m-.5:m+.5;
@@ -160,7 +160,7 @@ const VCAM=(()=>{
   if(b.pf<=0){b.pf=0;b.st='ko';b.kt=s.t;if(b.sal>s.t){if(b.scI>=0)s.scalaT[b.scI]=0;b.sal=0}// cade mentre sale: la scala si libera
 const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b.seat||0]=true;s.capKo=s.ko.every(x=>x)}
    s.mor[b.l]-=(b.cap?18:60/Math.max(8,s.n0[b.l]));const o=b.l==='a'?'b':'a';s.mor[o]=Math.min(100,s.mor[o]+20/Math.max(8,s.n0[o]));
-   if(s.mr)P.ko(s,b,da);
+   if(s.mr)Q.scudo(s,()=>P.ko(s,b,da));
    s.ev.push({t:'ko',id:b.id,da:da?da.id:-1,cap:!!b.cap,seat:b.seat});if(b.cap&&b.l==='a'){s.ev.push({t:'cap-ko',seat:b.seat||0,tutti:s.capKo});if(s.capKo)for(const g of chiavi(s.ord.a))if(s.ord.a[g].t==='segui')s.ord.a[g].t='carica'}}}
  function armatura(dan,dif){return Math.max(1,dan*(1-dif/(dif+34)))}
  function mischia(s,u,b){if(muroTra(s,u,b))return;const r=s.r,fa=forma(s,u),fb=forma(s,b),dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d;
@@ -170,21 +170,21 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
   // fanti serrati con l'asta: la carica si spezza sulle punte e chi carica si fa male prima del suo colpo
   if(fb==='serrata'&&u.ca>0&&b.c==='f'&&ASTA[D.aspetto(b.t).arma]){if(u.ca>.6){const rb=Math.max(1,Math.round(armatura(b.dan*C.FM.RIMBALZO,u.dif)*C.DANNO));s.ev.push({t:'colpo',da:b.id,a:u.id,dan:rb});ferisci(s,u,rb,b)}u.ca=0;if(u.st==='ko')return}
   const fianco=fb==='cuneo'&&u.fx*b.fx+u.fy*b.fy>-.3,dif=b.dif*(fb==='serrata'?C.FM.serrata.dif:1)*(fianco?C.FM.cuneo.fianco:1);
-  const att=u.att*(u.buff>s.t?1.2:1)*(u.c==='t'?.7:1)*(piuAlto(s,u,b)?1+C.TER.MISCHIA:1)*(fa==='cuneo'?C.FM.cuneo.att:1)*(u.fa!=null?P.fm(u):1),p=stretto(.5+(att-dif)/40,.15,.93);u.cd=(u.rit||(u.c==='c'||u.cav?C.RITMO+2:C.RITMO))+Math.floor(r()*3);
+  const att=u.att*(u.buff>s.t?1.2:1)*(u.c==='t'?.7:1)*(piuAlto(s,u,b)?1+C.TER.MISCHIA:1)*(fa==='cuneo'?C.FM.cuneo.att:1)*(u.fa!=null?P.fm(u):1)*Q.att(s,u),p=stretto(.5+(att-dif)/40,.15,.93);u.cd=(u.rit||(u.c==='c'||u.cav?C.RITMO+2:C.RITMO))+Math.floor(r()*3);
   if(u.fa!=null||b.fa!=null)P.colpo(s,u,b);
   if(r()>p){s.ev.push({t:'colpo',da:u.id,a:b.id,dan:0});u.ca=0;return}
   let ca=u.ca;if(fa==='cuneo')ca*=C.FM.cuneo.carica;if(fb==='serrata'||fb==='larga')ca*=C.FM[fb].carica;
   let dan=u.dan*(.7+r()*.6)*(1+ca*(.9+(u.car||0)));const crit=r()<.08+(u.cap?.08:0);if(crit)dan*=1.8;dan=Math.max(1,Math.round(armatura(dan,dif*(1-(u.perf||0)))*C.DANNO));
   if(ca>.6){b.cd=Math.max(b.cd,8);b.x=stretto(b.x+u.fx*.9,.5,s.W-.5);b.y=stretto(b.y+u.fy*.9,.5,s.H-.5)}
-  if(s.mr)P.colpito(s,u,b,ca);
+  if(s.mr)Q.scudo(s,()=>P.colpito(s,u,b,ca));
   s.ev.push({t:'colpo',da:u.id,a:b.id,dan,crit,carica:ca>.6});u.ca=0;ferisci(s,b,dan,u)}
- function tiro(s,u,b,d){const r=s.r;if(u.fr!=null)u.fr--;u.cd=(u.cap&&u.rit?u.rit:C.RITMO_T)+Math.floor(r()*6);const dx=b.x-u.x,dy=b.y-u.y;u.fx=dx/(d||1);u.fy=dy/(d||1);
+ function tiro(s,u,b,d,bis){const r=s.r;if(u.fr!=null)u.fr--;u.cd=(u.cap&&u.rit?u.rit:C.RITMO_T)+Math.floor(r()*6);const dx=b.x-u.x,dy=b.y-u.y;u.fx=dx/(d||1);u.fy=dy/(d||1);
   const fb=forma(s,b),dif=b.dif*(fb==='cuneo'&&u.fx*b.fx+u.fy*b.fy>-.3?C.FM.cuneo.fianco:1);
-  let p=.42+(u.att-dif*.5)/40-d/gittata(s,u,b)*.22;if(s.notte)p-=.1;if(s.meteo==='pioggia')p-=.1;if(s.muro&&b.y<s.muro&&u.y>s.muro)p-=.2;if(b.sal>s.t)p+=C.AS.SALE_P;if(b.c==='c'||b.cav)p-=.06;p=stretto(p,.08,.9);
+  let p=.42+(u.att-dif*.5)/40-d/gittata(s,u,b)*.22;if(s.notte&&!Q.aura(s,u,'notte'))p-=.1;if(s.meteo==='pioggia')p-=.1;if(s.muro&&b.y<s.muro&&u.y>s.muro)p-=.2;if(b.sal>s.t)p+=C.AS.SALE_P;if(b.c==='c'||b.cav)p-=.06;p=stretto(p,.08,.9);
   if(ZONE(s).length&&copre(s,b.x,b.y))p*=C.TER.COPRE;// chi sta tra gli alberi o le case è più difficile da colpire
   if(fb==='serrata')p*=D.aspetto(b.t).scudo?C.FM.serrata.scudo:C.FM.serrata.nudo;
-  const colpito=r()<p,vt=Math.max(2,Math.round(d*C.VOLO)),dan=colpito?Math.max(1,Math.round(armatura(u.dan*(.75+r()*.5),dif*.8*(1-(u.perf||0)))*C.DANNO*(fb==='larga'?C.FM.larga.danT:1))):0;
-  s.voli.push({at:s.t+vt,a:b.id,dan,da:u.id});s.ev.push({t:'tiro',da:u.id,a:b.id,x0:u.x,y0:u.y,x1:b.x,y1:b.y,vt,colpito})}
+  const colpito=r()<p,vt=Math.max(2,Math.round(d*C.VOLO)),dan=colpito?Math.max(1,Math.round(armatura(u.dan*(.75+r()*.5),dif*.8*(1-(u.perf||0)))*C.DANNO*(fb==='larga'?C.FM.larga.danT:1)*Q.dan(s,u))):0;
+  s.voli.push({at:s.t+vt,a:b.id,dan,da:u.id});s.ev.push({t:'tiro',da:u.id,a:b.id,x0:u.x,y0:u.y,x1:b.x,y1:b.y,vt,colpito});if(!bis&&Q.bis(s,u,b)&&hoFr(u))tiro(s,u,b,d,1)}
  // ---------- il comandante avversario (e il tuo, nella risoluzione automatica) ----------
  // mura intere: i fanti di chi difende si dividono tra le scale (e la porta, se c'è l'ariete) sul camminamento
  const guardie=s=>{const g=(s.scale||[]).slice();if(s.porta&&s.porta.ariete)g.push((s.porta.x0+s.porta.x1)/2);return g.length?g:[s.W/2]};
@@ -220,6 +220,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
  const perId=(U,id)=>{const q=U[id-1];return q&&q.id===id?q:U.find(x=>x.id===id)};
  // passo 16 (28jb); senza quel file restano gli stub
  const P=D.CAMPO16?D.CAMPO16({C,D,stretto,d2,GR,chiavi,unita,perId,forma,muovi:(...a)=>muovi(...a),mischia:(...a)=>mischia(...a),muroTra:(...a)=>muroTra(...a)}):{capoVivo:()=>0,riep:(s,R)=>R},hoFr=u=>u.fr==null||u.fr>0;
+ const Q=D.CAMPO28({D,d2,chiave});// passo 28: doti dei compagni (28j)
  // il nemico più vicino in `lista` (+6 se oltre il muro); a pari distanza il primo
  const VIC={d:0};
  function piuVicino(lista,u,muro){let m=null,md=1e9;for(let i=0;i<lista.length;i++){const q=lista[i],d=d2(u,q)+(muro&&(q.y<muro)!==(u.y<muro)?6:0);if(d<md){md=d;m=q}}VIC.d=md;return m}
@@ -233,7 +234,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
     X[i]-=ox*k;Y[i]-=oy*k;X[j]+=ox*k;Y[j]+=oy*k}}
   for(let i=0;i<n;i++)if(V[i]){const u=vv[i];u.x=X[i];u.y=Y[i]}}
  // ---------- un istante ----------
- function istante(s){s.t++;const U=s.u;if(s.rep)P.inizio(s);
+ function istante(s){s.t++;const U=s.u;if(s.rep){P.inizio(s);Q.inizio(s)}
   // frecce in arrivo
   if(s.voli.length){const resto=[];for(const v of s.voli){if(v.at>s.t){resto.push(v);continue}const b=perId(U,v.a);if(b&&b.st!=='ko'&&v.dan>0){s.ev.push({t:'colpo',da:v.da,a:b.id,dan:v.dan,freccia:true});ferisci(s,b,v.dan,perId(U,v.da))}}s.voli=resto}
   if(s.rango)VCONS.turno(s);else if(s.t%20===1){comanda(s,'b');if(s.autoA)comanda(s,'a')}
@@ -249,10 +250,10 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(!b||(s.t+u.id)%5===0){const m=piuVicino(per[nem],u,s.muro&&!u.git?s.muro:0),md=m?VIC.d:1e9;b=m;u.b=m?m.id:-1;u.bd=md}
    if(s.muro&&u.l==='a'&&u.y>s.muro){
     // al piede di una scala libera, chi può sale (lento: non si muove né colpisce finché sale)
-    if(puoSalire(u)&&u.y>=s.muro+.4&&u.y<=s.muro+1&&b&&b.y<s.muro){const SC=s.scale||[];for(let i=0;i<SC.length;i++)if(Math.abs(u.x-SC[i])<.8&&s.scalaT[i]<=s.t){u.sal=s.t+C.AS.SCALA;u.scI=i;s.scalaT[i]=u.sal;s.ev.push({t:'scala',id:u.id,i});break}if(u.sal>s.t)continue}
+    if(puoSalire(u)&&u.y>=s.muro+.4&&u.y<=s.muro+1&&b&&b.y<s.muro){const SC=s.scale||[];for(let i=0;i<SC.length;i++)if(Math.abs(u.x-SC[i])<.8&&s.scalaT[i]<=s.t){u.sal=s.t+Math.round(C.AS.SCALA*Q.sc(s,u));u.scI=i;s.scalaT[i]=u.sal;s.ev.push({t:'scala',id:u.id,i});break}if(u.sal>s.t)continue}
     // il portone: fino a SPINGONO fanti davanti alla porta, senza nemico in mischia, la spingono con l'ariete a ogni loro ritmo
     const P0=s.porta;if(P0&&P0.ariete&&P0.pf>0&&!u.cap&&u.c==='f'&&spingono<C.AS.SPINGONO&&Math.abs(u.x-(P0.x0+P0.x1)/2)<2.4&&u.y>=s.muro+.4&&u.y<=s.muro+2.4&&!(b&&d2(u,b)<=C.MISCHIA+.3&&!muroTra(s,u,b))){
-     spingono++;if(u.cd<=0){u.cd=(u.rit||C.RITMO)+Math.floor(s.r()*3);P0.pf-=C.AS.SPINTA;s.ev.push({t:'ariete',id:u.id,pf:Math.max(0,P0.pf)});
+     spingono++;if(u.cd<=0){u.cd=(u.rit||C.RITMO)+Math.floor(s.r()*3);P0.pf-=C.AS.SPINTA*Q.ar(s,u);s.ev.push({t:'ariete',id:u.id,pf:Math.max(0,P0.pf)});
       if(P0.pf<=0){P0.pf=0;s.varchi.push([P0.x0,P0.x1]);s.ev.push({t:'porta'})}}continue}}
    if(s.fermo&&s.t<=(s.fermo[u.l]||0)&&!u.cap){// colonna presa di sorpresa: non si muove, ma si difende da chi arriva
     const db=b?d2(u,b):1e9;if(b&&!muroTra(s,u,b)){if(db<=C.MISCHIA+(u.c==='c'?.4:0)){if(u.cd<=0)mischia(s,u,b)}else if(u.git&&hoFr(u)&&db>3&&db<=gittata(s,u,b)&&u.cd<=0)tiro(s,u,b,db)}continue}
@@ -281,7 +282,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    if(b&&(libero||!mt&&(db<=ingaggio||rad((b.x-ax)*(b.x-ax)+(b.y-ay)*(b.y-ay))<=ingaggio))){if(u.git&&hoFr(u)&&libero&&db>gt){muovi(s,u,b.x,b.y)}else if(u.git&&hoFr(u)&&libero){if(u.cd<=0)tiro(s,u,b,db)}else{const st=muovi(s,u,b.x,b.y);if(u.c==='c')u.ca=Math.min(1,u.ca+st*.12)}continue}
    const st=muovi(s,u,ax,ay);if(u.c==='c')u.ca=st>.2?Math.min(1,u.ca+st*.06):0;if(st<.02&&b){const dx=b.x-u.x,dy=b.y-u.y,d=rad(dx*dx+dy*dy)||1;u.fx=dx/d;u.fy=dy/d}}
   separa(vv);// non ci si sovrappone
-  if(s.rep)P.fine(s,vv);
+  if(s.rep){Q.scudo(s,()=>P.fine(s,vv));Q.grida(s)}
   if(s.tipo==='arena')for(const u of vv){const dx=u.x-s.W/2,dy=u.y-s.H/2,d=rad(dx*dx+dy*dy);if(d>C.ARENA){u.x=s.W/2+dx/d*C.ARENA;u.y=s.H/2+dy/d*C.ARENA}}
   if(s.muro)for(const u of vv){const m=s.muro;if(Math.abs(u.y-m)<.5&&!s.varchi.some(g=>u.x>g[0]&&u.x<g[1]))u.y=u.py<m?m-.5:m+.5;u.x=stretto(u.x,.5,s.W-.5);u.y=stretto(u.y,.5,s.H-.5)}
   if(s.ond&&VCAM.ondate)VCAM.ondate(s);   // `ondate` sta in 28m: senza quel file le ondate non entrano
@@ -295,17 +296,13 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
    else if(s.t>=C.TMAX){const va=vivi(s,'a').length/Math.max(1,s.n0.a),vb=vivi(s,'b').length/Math.max(1,s.n0.b);chiudi(s,s.tipo==='arena'?(pfRes(s,'a')>=pfRes(s,'b')?'a':'b'):va>=vb&&!s.muro?'a':'b')}}}
  // in arena, a tempo scaduto vince chi ha più vita rimasta in proporzione
  const pfRes=(s,l)=>{let a=0,b=0;for(const u of s.u)if(u.l===l){a+=u.st==='ko'?0:u.pf;b+=u.pfm}return a/Math.max(1,b)};
- function chiudi(s,l){if(s.fine)return;s.fine={vince:l,t:s.t};s.ev.push({t:'fine',vince:l})}
+ function chiudi(s,l){if(s.fine)return;s.fine={vince:l,t:s.t};if(s.rep)Q.vince(s,l);s.ev.push({t:'fine',vince:l})}
  function passo(s,n){s.ev=[];if(!s.r)s.r=ADADI.gen(s);for(let k=0;k<(n||1)&&!s.fine;k++)istante(s);return s.ev}
  function riepilogo(s){const cad=Object.keys(s.cad).map(k=>{const i=k.indexOf('|');return{p:+k.slice(0,i),t:k.slice(i+1),n:s.cad[k]}});let ua=0,ub=0;
   for(const c of cad){const mio=c.p===0||s.u.some(u=>u.p===c.p&&u.l==='a');if(mio)ub+=c.n*D.valore(c.t);else ua+=c.n*D.valore(c.t)}
   return P.riep(s,{vince:s.fine?s.fine.vince:'b',cad,capKo:s.capKo,ko:(s.ko||[]).slice(),uccisi:{a:Math.round(ua),b:Math.round(ub)},durata:s.t,fuggiti:s.fug})}
  function risolvi(scheda){const s=nuovo(scheda,{autoA:true});while(!s.fine)passo(s,50);return riepilogo(s)}
- // quanti ne restano per gruppo (per i bottoni della vista)
- function gruppi(s,l){const g={f:0,t:0,c:0};for(const u of s.u)if(u.l===(l||'a')&&u.st==='vivo'&&!u.cap)g[u.c]++;return g}
- // la formazione di ogni gruppo (per i bottoni della vista)
- function forme(s,l){const o=s.ord[l||'a'],f={};for(const g of GR)f[g]=(o[g]&&o[g].fm)||'larga';return f}
  // misure del campo per taglia della battaglia (senza taglia nota: il campo di sempre)
  function taglia(k){const T=(D.TAGLIA||{})[k];return T?{max:T.max,W:T.W,H:T.H}:{max:C.MAX,W:C.W,H:C.H}}
- return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,gruppi,vivi,riserva,capU,quota,copre,acqua,forme}})();
+ return{morali:P.morali,int:{comanda,GR,D,C,ZONE,posto,passoFm,unita,vivi,capU,rad,stretto,chiave,keyR,repC,chiavi,rimetti,inOnda},C,taglia,nuovo,passo,ordina,capitano,riepilogo,risolvi,vivi,riserva,capU,quota,copre,acqua,forme:Q.forme,gruppi:Q.gruppi}})();
 if(typeof module!=='undefined'&&module&&module.exports)module.exports=VCAM;
