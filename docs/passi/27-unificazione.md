@@ -53,7 +53,11 @@ Una mappa politica che cambia sotto gli occhi del giocatore, e un traguardo nuov
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+- I regni non restano fermi: ogni settimana un regno debole, in guerra da tempo con un vicino molto più forte, può giurargli fedeltà e sparire dalla mappa.
+- Due regni della stessa cultura, in pace da mesi e amici tra loro, possono unirsi con un matrimonio; è un fatto raro.
+- Se un regno perde tutte le sue fortezze, finisce: i suoi signori passano a chi ha vinto oppure fuggono, e un altro regno può accoglierli.
+- Chi mette insieme più di due città su cinque si trova contro gli altri regni. Il re vale quanto il suo regno: più città ha, più è temibile.
+- Vince l'Unificatore: tutte le città sotto un solo regno, il tuo o quello di cui sei maresciallo. Anche il tuo regno può ricevere vassalli.
 
 ## Correzioni dalla revisione delle fasi 1–6
 
