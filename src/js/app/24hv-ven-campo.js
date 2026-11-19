@@ -8,16 +8,16 @@ const VenCampo=(()=>{
  // `rip` è il ripiego per un id sconosciuto (`ignota` di VEN.rg; come prima: assedio `fer`, campo `pre`, arena e mura `neu`); 'tu' resta quello di base, senza lo stendardo della corona.
  const rg0=f=>VEN.rg(f==='tu'||typeof Ven==='undefined'||!Ven.V?null:Ven.V.s,f);
  const rg=(f,rip)=>{const x=rg0(f);return x.ignota?rg0(rip||'neu'):x};
- const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti',tvT:-1,selR:null,gt:{},od:1,bz:{},fogOnd:false,dt:0,fit:true,lod:0,bl:null,piani:{}};
+ const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti',tvT:-1,selR:null,gt:{},od:1,bz:{},fogOnd:false,dt:0,fit:true,lod:0,bl:null,piani:{},ripr:'regia',stacco:null,ultStacco:-99,lento:0,hot:[],tCap:0,lont:0,ultLont:0,grande:false,ALT_MIN:30,ALT_MAX:92};
  // tavolo dello schieramento (passo 19): solo vista, vero a t===0 se la battaglia ha i reparti (`s.rep`); riparte da zero a ogni battaglia
  const rz=()=>{K.tvT=-1;K.selR=null;K.gt={};K.fogOnd=false;K.od=1;K.bz={};K.piani={};K._cen=null;K._lodP=-1;K._tv=false;K.fit=true;K.sigO=undefined};
  const tavolo=s=>!!(s&&s.rep&&s.t===0&&!s.fine&&s.pronto&&!s.pronto.a);
  const hh=(x,y,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
- function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;rz();scena();
+ function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.ripr='regia';K.stacco=null;K.hot=[];K.ultStacco=-99;K.lento=0;K.tCap=0;K.finita=false;rz();scena();
   const c=VCAM.capU(K.s);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=scheda.ora>=0?scheda.ora:scheda.notte?22.5:10+hh((scheda.seme|0)&1023,1,2)*6;return K.s}
  // in compagnia (VenStanza) lo stato arriva da fuori e il tempo lo fa scorrere la stanza: qui si disegna soltanto
  function usa(s,batt){const nuova=K.batt!==batt||!K.scene||!K.esterno;K.s=s;K.batt=batt;K.esterno=true;if(!nuova)return;
-  K.scheda={seme:s.seme0,bioma:s.bioma,terreno:s.terreno,notte:s.notte,faza:s.faza,fazb:s.fazb,cola:s.cola,colb:s.colb,scena:s.scena,ora:s.ora};K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.finita=false;rz();scena();
+  K.scheda={seme:s.seme0,bioma:s.bioma,terreno:s.terreno,notte:s.notte,faza:s.faza,fazb:s.fazb,cola:s.cola,colb:s.colb,scena:s.scena,ora:s.ora};K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.ripr='regia';K.stacco=null;K.hot=[];K.ultStacco=-99;K.lento=0;K.tCap=0;K.finita=false;rz();scena();
   const c=VCAM.capU(s,K.seat||0);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=s.ora>=0?s.ora:s.notte?22.5:10+hh((s.seme0|0)&1023,1,2)*6}
  const CAPC=['#d98a1f','#2f9bd6','#b455c8','#3fb968'];
  // la scena si può rifare a battaglia in corso (contesto grafico perso): lo stato della battaglia non si tocca
@@ -152,7 +152,7 @@ const VenCampo=(()=>{
    if(tx)P.push({p,tx})}
   P.sort((a,b)=>a.p-b.p);for(const q of P.slice(0,2))Ven.avviso(q.tx)}
  const FAZ=(l)=>Object.assign({},rg(l==='a'?K.scheda.faza||'tu':K.scheda.fazb,"pre"),l==='a'?K.scheda.cola:K.scheda.colb);
- function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);parlano(ev);for(const e of ev){
+ function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);parlano(ev);regiaEv(ev,s);for(const e of ev){
    if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(b&&e.dan>0){b.lampo=K.t;if(ub){for(let k=0;k<(e.crit?5:2);k++)K.par.emetti(ub.x,1+Math.random()*.5,ub.y,{vx:(Math.random()-.5)*3,vy:2+Math.random()*2,vz:(Math.random()-.5)*3,g:9,s:.13,dur:.5,col:e.crit?'#ffe27a':'#ffffff'})}}
     const cap=mio;if(ub&&cap&&(e.da===cap.id||e.a===cap.id)&&e.dan>0&&K.numeri.length<7)K.numeri.push({x:ub.x,z:ub.y,v:e.dan,t:K.t,cls:e.a===cap.id?'male':e.crit?'crit':''});
     if(cap&&e.a===cap.id&&e.dan>0){K.scossa=.25}}
@@ -177,11 +177,55 @@ const VenCampo=(()=>{
  function tetto(s,V,bud){const D={a:[],b:[]},fx=K.fuoco.x,fz=K.fuoco.z,lim={a:1e9,b:1e9};if(bud>=1e9)return lim;
   for(const u of s.u){if(u.cap||u.st==='via'||u.x<V[0]||u.x>V[1]||u.y<V[2]||u.y>V[3])continue;D[u.l].push((u.x-fx)*(u.x-fx)+(u.y-fz)*(u.y-fz))}
   for(const l of['a','b'])if(D[l].length>bud)lim[l]=bud>0?D[l].sort((p,q)=>p-q)[bud-1]:-1;return lim}
+
+ // ---- la regia: la camera inquadra dove si combatte, con le due schiere in vista, e stacca sui momenti decisivi (solo vista). K.ripr ∈ regia · capitano · libera (K.cam è la camera 3D) ----
+ const tvOn=()=>typeof ui!=='undefined'&&!!ui.tv;
+ // dove guardare: media pesata delle unità che hanno colpito o sono state colpite negli ultimi 30 istanti (peso 3) e di tutte le vive (peso 1); altezza tale che le vive dei due lati stiano nell'80% della vista
+ function inquadra(s){const A=VenArte.A,asp=A&&A.rw>2?(A.rw-2)/(A.rh-2):.5,V=s.u.filter(u=>u.st==='vivo');if(!V.length)return{x:K.fuoco.x,z:K.fuoco.z,alt:K.alt,grande:false};
+  const H=K.hot.filter(h=>h.t>=s.t-30);let sx=0,sz=0,w=0;
+  // il rettangolo esclude gli isolati (ritardatari, arcieri lontani): dal 8° al 92° percentile di ogni asse
+  const XS=V.map(u=>u.x).sort((p,q)=>p-q),ZS=V.map(u=>u.y).sort((p,q)=>p-q),i0=Math.floor((V.length-1)*.08),i1=Math.ceil((V.length-1)*.92),x0=XS[i0],x1=XS[i1],z0=ZS[i0],z1=ZS[i1];
+  for(const u of V){sx+=u.x;sz+=u.y;w++}
+  for(const h of H){sx+=3*h.x;sz+=3*h.z;w+=3}
+  const cx=(x0+x1)/2,cz=(z0+z1)/2,mx=(x1-x0)/2*.15,mz=(z1-z0)/2*.15;   // il baricentro pesato sposta il centro al più del 15% del mezzo-rettangolo: il resto è fuori vista
+  let x=cx+Math.max(-mx,Math.min(mx,sx/w-cx)),z=cz+Math.max(-mz,Math.min(mz,sz/w-cz));const hw=Math.max(x-x0,x1-x)+2,hz=Math.max(z-z0,z1-z)+2,alt=Math.max(2*hw/(.8*asp),2*hz*VenArte.SE/.8);
+  if(alt>K.ALT_MAX){   // battaglia grande: il fronte più caldo, cioè la cella da 20 passi con più colpi recenti
+   const C={};let b=null;for(const h of H){const k=Math.floor(h.x/20)+','+Math.floor(h.z/20),c=C[k]||(C[k]={n:0,x:0,z:0});c.n++;c.x+=h.x;c.z+=h.z;if(!b||c.n>b.n)b=c}
+   if(b){x=b.x/b.n;z=b.z/b.n}return{x,z,alt:K.ALT_MAX,grande:true,r:[x0,x1,z0,z1,alt]}}
+  return{x,z,alt:Math.max(K.ALT_MIN,alt),grande:false}}
+ const cen=(s,f)=>{let n=0,x=0,z=0;for(const u of s.u)if(f(u)){x+=u.x;z+=u.y;n++}return n?{x:x/n,z:z/n}:null};
+ function stacca(p){if(!p||(K.ripr!=='regia'&&!tvOn())||(K.stacco&&K.t<K.stacco.fino)||K.t-K.ultStacco<6)return;K.stacco={x:p.x,z:p.z,fino:K.t+1.6};K.ultStacco=K.t}
+ function regiaEv(ev,s){let M=null,car=0,cx=0,cz=0;
+  for(const e of ev){
+   if(e.t==='colpo'){M=M||new Map(s.u.map(u=>[u.id,u]));const a=M.get(e.da),b=M.get(e.a);for(const u of[a,b])if(u)K.hot.push({t:s.t,x:u.x,z:u.y});if(e.carica&&b){car++;cx+=b.x;cz+=b.y}}
+   else if(e.t==='rotta-r')stacca(cen(s,u=>u.l===e.l&&u.r===e.r));
+   else if(e.t==='stendardo'||e.t==='cap-ko'){const c=e.t==='cap-ko'?VCAM.capU(s,e.seat||0):null,p=c?{x:c.x,z:c.y}:cen(s,u=>u.l===e.l&&VDAT.TR[u.t]&&VDAT.TR[u.t].capo)||cen(s,u=>u.l===e.l&&u.st==='vivo');stacca(p);if(!K.esterno)K.lento=.7}
+   else if(e.t==='porta'&&s.porta)stacca({x:(s.porta.x0+s.porta.x1)/2,z:s.muro});
+   else if(e.t==='ondata'){const W=s.W,H=s.H,a=e.l==='a';stacca(e.ing==='fsx'?{x:2,z:H/2}:e.ing==='fdx'?{x:W-2,z:H/2}:{x:W/2,z:a?H-2:2})}
+   else if(e.t==='piano'){if(e.m==='aggira'||e.m==='esca'||e.m==='caccia')stacca(cen(s,u=>u.l===e.l&&u.r===e.r));
+    if(e.l==='b'&&K.grande&&K.t-K.ultLont>=2){K.lont=K.t+2;K.ultLont=K.t}}}
+  if(car>=3)stacca({x:cx/car,z:cz/car});
+  if(K.hot.length>400)K.hot.splice(0,K.hot.length-400)}
+ // un passo di regia per fotogramma; avvicinamento indipendente dai fotogrammi
+ function regia(s,dt){if(tavolo(s))return;const m=tvOn()?'regia':K.ripr;K.segue=m==='capitano';
+  if(K.tCap&&K.t>=K.tCap){K.tCap=0;if(K.ripr==='capitano')K.ripr='regia'}
+  if(K.lento>0)K.lento-=dt;
+  if(m!=='regia')return;
+  const q=inquadra(s);K.grande=q.grande;let T=q;
+  if(K.stacco&&K.t<K.stacco.fino)T={x:K.stacco.x,z:K.stacco.z,alt:26};
+  else{K.stacco=null;if(q.grande&&K.t-K.ultLont>=12){K.lont=K.t+2;K.ultLont=K.t}if(K.lont>K.t)T={x:s.W/2,z:s.H/2,alt:150}}
+  const k=1-Math.pow(T===q?.92:.85,Math.min(dt,.1)*60);K.fuoco.x+=(T.x-K.fuoco.x)*k;K.fuoco.z+=(T.z-K.fuoco.z)*k;K.alt+=(T.alt-K.alt)*k;K.fit=false}
+ // il tasto «occhio» nella barra alta: regia, capitano, libera
+ const OCC={regia:'Regia',capitano:'Capitano',libera:'Libera'};
+ function occhio(){if(tvOn())return;const h=document.querySelector('.vn-alto .vn-capo');if(!h)return;let b=h.querySelector('.vn-occ');
+  if(!b){b=document.createElement('button');b.className='vn-ib vn-occ';b.type='button';b.innerHTML='<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+   b.addEventListener('click',e=>{e.stopPropagation();K.ripr=K.ripr==='regia'?'capitano':K.ripr==='capitano'?'libera':'regia';K.tCap=0;K.stacco=null;occhio()});h.appendChild(b)}
+  b.setAttribute('aria-label','Camera: '+OCC[K.ripr]);b.classList.toggle('on',K.ripr!=='regia')}
  function passo(dt){const s=K.s;if(!s||!K.scene)return;const T=VenArte.T,A=VenArte,C=VCAM.C;K.t+=dt;K.dt=dt;
   {const tv=tavolo(s);if(tv!==K._tv){K._tv=tv;if(tv){K.segue=false;K.fit=true;K.selR=null}else if(typeof ui!=='undefined'&&ui.tv){K.alt=80;K.fuoco.x=s.W/2;K.fuoco.z=s.H/2}else{K.segue=true;K.alt=38}render()}if(tv&&K.fit)fitta()}
   if(K.portone){const su=!!(s.porta&&s.porta.pf>0);K.portone.visible=su;K.abbattuto.visible=!su}
-  if(!K.esterno&&!K.pausa&&!s.fine){K.acc+=dt*10*K.vel;let n=0;while(K.acc>=1&&n++<6){K.acc-=1;eventi(VCAM.passo(s,1))}if(K.acc>1)K.acc=0}
-  const al=s.fine||K.pausa?1:Math.min(1,K.acc),cap=VCAM.capU(s,K.seat||0);
+  if(!K.esterno&&!K.pausa&&!s.fine){K.acc+=dt*10*K.vel*(K.lento>0?.35:1);let n=0;while(K.acc>=1&&n++<6){K.acc-=1;eventi(VCAM.passo(s,1))}if(K.acc>1)K.acc=0}
+  regia(s,dt);const al=s.fine||K.pausa?1:Math.min(1,K.acc),cap=VCAM.capU(s,K.seat||0);
   // livello di dettaglio dall'altezza della camera: 0 vicino (<45), 1 medio, 2 lontano (>=80: vista del comandante). Al tavolo e sulla TV si vedono sempre le figure
   const lod=K.lod=(l=>tavolo(s)||(typeof ui!=='undefined'&&ui.tv)?Math.min(l,1):l)(K.alt<45?0:K.alt<80?1:2),bud={bassa:70,media:110}[VenArte.qual()]||1e9;
   K.ste.inizio();const dF=dt+(K._dtA||0);let cen=K._cen;
@@ -231,8 +275,8 @@ const VenCampo=(()=>{
  function numeri(){const host=document.querySelector('.vn-etc');if(!host)return;const A=VenArte;let h=tavoloH()+lontanoH();K.numeri=K.numeri.filter(n=>K.t-n.t<.8);
   for(const n of K.numeri){const q=(K.t-n.t)/.8,p=A.aSchermo(K.cam,n.x,2.2+q*2.4,n.z);h+='<i class="vn-num '+n.cls+'" style="left:'+Math.round(p.x)+'px;top:'+Math.round(p.y)+'px;opacity:'+(1-q*q).toFixed(2)+'">'+n.v+'</i>'}
   if(host._h!==h){host.innerHTML=h;host._h=h}}
- function trascina(dx,dy){K.fit=false;const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
- function pizzico(f){K.fit=false;K.alt=Math.max(24,Math.min(K._tv?220:Math.max(130,((K.s&&K.s.W)||60)*2.3),K.alt/f))}
+ function trascina(dx,dy){K.ripr='libera';K.fit=false;const A=VenArte,r=A.cv.getBoundingClientRect(),u=K.alt/r.height;K.fuoco.x-=dx*u;K.fuoco.z-=dy*u/A.SE;K.segue=false}
+ function pizzico(f){K.ripr='libera';K.fit=false;K.alt=Math.max(24,Math.min(K._tv?220:Math.max(130,((K.s&&K.s.W)||60)*2.3),K.alt/f))}
  // vista del comandante: toccare un blocco tuo sceglie il suo gruppo, uno nemico lo attacca (bersaglio largo almeno 44 px)
  function toccoBlocco(px,py,r){const A=VenArte,x=px-r.left,y=py-r.top;let m=null,md=1e9;
   for(const b of K.bl||[]){const c=[[b.x-b.w/2,b.y-b.h/2],[b.x+b.w/2,b.y-b.h/2],[b.x-b.w/2,b.y+b.h/2],[b.x+b.w/2,b.y+b.h/2]].map(q=>A.aSchermo(K.cam,q[0],0,q[1])),xs=c.map(q=>q.x),ys=c.map(q=>q.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2,hw=Math.max(22,(Math.max(...xs)-Math.min(...xs))/2),hy=Math.max(22,(Math.max(...ys)-Math.min(...ys))/2);
@@ -241,17 +285,19 @@ const VenCampo=(()=>{
   if(m.l==='a'){K.gruppo=m.c;K.selR=null;render();return{}}
   const u=K.s.u.find(u=>u.l==='b'&&u.r===m.r&&!u.cap&&u.st==='vivo');return u?{b:u.id}:{}}
  function tocco(px,py){const A=VenArte,s=K.s;if(!s||s.fine)return null;const r=A.cv.getBoundingClientRect();let m=null,md=26;
-  if(K.lod===2){const o=toccoBlocco(px,py,r);if(o)return o.b!=null?o:null}
+  const cp=()=>{if(K.ripr==='regia'&&!tvOn()&&!tavolo(s)){K.ripr='capitano';K.tCap=K.t+4}};
+  if(K.lod===2){const o=toccoBlocco(px,py,r);if(o){if(o.b!=null){cp();return o}return null}}
   if(K.selR!=null&&tavolo(s)){const g=A.aTerra(K.cam,px,py,0);VenScontro.schieraSu(K.selR,g.x,g.z);return null}
   for(const u of s.u){if(u.l!=='b'||u.st!=='vivo')continue;const c=A.aSchermo(K.cam,u.x,.9,u.y),d=Math.hypot(c.x-(px-r.left),c.y-(py-r.top));if(d<md){md=d;m=u}}
+  cp();
   if(m)return{b:m.id};const g=A.aTerra(K.cam,px,py,0);return{x:g.x,y:g.z}}
- const centra=(x,y)=>{if(x==null){K.segue=true;return}K.fit=false;K.segue=false;K.fuoco.x=x;K.fuoco.z=y-7};
+ const centra=(x,y)=>{if(x==null){K.ripr='capitano';K.segue=true;return}K.ripr='libera';K.fit=false;K.segue=false;K.fuoco.x=x;K.fuoco.z=y-7};
  // anello del gruppo scelto, bandierina dell'ordine «Tieni» e HUD (mini-mappa, morale) quattro volte al secondo
  function hudGruppo(s){const g=K.gruppo,U=g==='tutti'?[]:s.u.filter(u=>u.l==='a'&&u.st==='vivo'&&!u.cap&&u.c===g);
   if(U.length&&K.anGr){let cx=0,cy=0;for(const u of U){cx+=u.x;cy+=u.y}cx/=U.length;cy/=U.length;let m=0;for(const u of U)m=Math.max(m,Math.hypot(u.x-cx,u.y-cy));K.anGr.visible=true;K.anGr.position.set(cx,.07,cy);const q=Math.min(14,m+1.6);K.anGr.scale.set(q,q,q);
    const o=s.ord&&s.ord.a&&s.ord.a[g];if(o&&o.t==='tieni'&&o.x!=null&&Math.hypot(o.x-cx,o.y-cy)>2.5){K.band.visible=true;K.band.position.set(o.x,0,o.y)}else K.band.visible=false}
   else{if(K.anGr)K.anGr.visible=false;if(K.band)K.band.visible=false}
-  if(K.t-(K._hud||0)>=.25&&typeof VenScontro!=='undefined'){K._hud=K.t;const cv=document.getElementById('vn-mm');if(cv)VenScontro.minimappa(cv);VenScontro.hudReparti()}}
+  if(K.t-(K._hud||0)>=.25&&typeof VenScontro!=='undefined'){K._hud=K.t;const cv=document.getElementById('vn-mm');if(cv)VenScontro.minimappa(cv);VenScontro.hudReparti();occhio()}}
  // il tavolo: il campo intero entra nella parte libera dello schermo (sopra le barre, sotto i comandi)
  function fitta(){const s=K.s,A=VenArte;if(!K.cam||!A.cv)return;const r=A.cv.getBoundingClientRect();if(!r.width)return;const tvm=typeof ui!=='undefined'&&ui.tv,top=tvm?56:84,bot=tvm?60:200;
   const P=[[0,0],[s.W,0],[0,s.H],[s.W,s.H]].map(q=>A.aSchermo(K.cam,q[0],0,q[1])),xs=P.map(p=>p.x),ys=P.map(p=>p.y),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
@@ -305,4 +351,4 @@ const VenCampo=(()=>{
   separa(IT,A.cv.getBoundingClientRect().width);   // i gettoni dello stesso settore stanno affiancati e non si coprono
   for(const i of IT){const{l,r,om,g}=i;gt+=`<i class="vt-g${l==='b'?' ne':''}${om?' om':''}${l==='a'&&K.selR===+r?' on':''}" style="left:${f(i.x)}px;top:${f(i.y)}px">${om?'':ic(ICO[g.c]||'scudo',14)+'<b>'+g.n+'</b>'}</i>`}
   return`<svg class="vt-sv">${sv}</svg>${gt}`}
- return{K,CAPC,apri,usa,scena,eventi,passo,trascina,pizzico,tocco,centra,tavolo,blocchi,vista:on=>{K.fit=false;K.alt=on?Math.max(90,K.alt):38;K.segue=!on}}})();
+ return{K,CAPC,inquadra,apri,usa,scena,eventi,passo,trascina,pizzico,tocco,centra,tavolo,blocchi,vista:on=>{K.ripr=on?'libera':'regia';K.fit=false;K.alt=on?Math.max(90,K.alt):38;K.segue=!on}}})();
