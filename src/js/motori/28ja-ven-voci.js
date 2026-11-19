@@ -458,6 +458,13 @@ const VVOC=(()=>{
    cede:['Indietro, tra le pietre! Lì si tiene.','Ripiegate sulle rovine. Le conosco.'],
    ferito:['Un taglio. Ne ho presi di peggio scavando.','Colpita. Le rovine fanno più male.'],
    vince:['Vinto. Ora vediamo cosa c\'è sotto.','Il campo è nostro. E anche quel che c\'è sotto.']}};
+ // contromosse del maestro di guerra (passo 30): una frase per abitudine di chi gioca, scritta nella cronaca dopo la battaglia; {chi} = il comandante nemico
+ const CONTRO={
+  cavPrima:'{chi} aveva imparato le tue cariche: dietro l\'esca aspettavano le picche, serrate.',
+  alt:'{chi} conosceva il tuo amore per le alture: è rimasto fuori tiro e ti ha mandato i cavalli alle spalle.',
+  fianco:'{chi} sapeva da che parte entrano le tue ondate, e lì aveva lasciato un reparto ad aspettarle.',
+  capAvanti:'{chi} sa che combatti in prima fila: ti ha cercato apposta, con i cavalli e con un\'ondata.',
+  ondataPresto:'{chi} ha lasciato sfogare la tua prima ondata, poi l\'ha presa stanca con la sua riserva.'};
  // aperture di una campagna nuova (passo 15): 6 agganci × 2 varianti; segnaposto {luogo} {regno} (nome breve) {uomini} {monete} {meta}; ≤ 3 frasi e 240 caratteri
  const APERTURE={
   covo:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} c\'è un covo di briganti con una taglia sopra. Qualcuno dovrà riscuoterla.',
@@ -472,5 +479,5 @@ const VVOC=(()=>{
    'A {luogo}, nelle terre di {regno}, la sorte ti consegna {uomini} uomini e {monete} monete. A {meta} i contadini affilano le falci contro i predoni. Le falci da sole non bastano mai.'],
   affare:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} un mercante sussurra di un affare sicuro. Gli affari sicuri sono i più pericolosi.',
    'A {luogo}, nelle terre di {regno}, la sorte ti lascia {uomini} uomini e {monete} monete, poche davvero. Un mercante a {meta} ha un carico da spostare senza domande. Le domande costano, il silenzio paga.']};
- return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO,APERTURE}})();
+ return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO,APERTURE,CONTRO}})();
 if(typeof module!=='undefined')module.exports=VVOC;

@@ -65,6 +65,11 @@ I grandi comandanti (re, marescialli leggendari, la Volpe alla fine) ti conoscon
 
 Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
 
+- I grandi comandanti (re, marescialli, la Volpe nelle ultime tappe) ricordano come li hai combattuti: cavalleria per prima, tiratori sull'altura, ondate dal fianco o mandate presto, capitano in prima fila.
+- Se un'abitudine torna in almeno metà delle battaglie contro di loro, si preparano: picche nascoste dietro un'esca, linea fuori tiro dall'altura, un reparto di guardia sul fianco, la caccia al tuo capitano, la riserva tenuta per la tua ondata stanca.
+- Dopo la battaglia la cronaca ti dice quale contromossa ti hanno giocato: cambiare abitudini è il modo di sorprenderli.
+- Un maestro di guerra inganna anche: un suo reparto può fingere la rotta per tirarti giù da un'altura, quando si schiera per primo ti mostra solo una parte delle truppe (i cavalieri restano nascosti nelle ondate), e le sue ondate arrivano quando i tuoi sono stanchi.
+
 ## Fuori scopo
 
 Altre forme di memoria (diplomazia).

@@ -46,6 +46,8 @@ const VCONS=(()=>{
   const cn=s.u.find(u=>u.l===nl&&u.cap&&u.st==='vivo');Q.cap=cn?!Q.nem.some(e=>d2(cn,e)<=K.CACCIA_ESP):false;Q.cx=cn?{x:cn.x,y:cn.y}:null;
   Q.xi=Q.rep.length?Q.rep.reduce((a,m)=>a+m.x*m.n,0)/Q.rep.reduce((a,m)=>a+m.n,0):s.W/2;
   Q.rg=s.rango&&s.rango[l]!=null?s.rango[l]|0:0;Q.mr=!!s.mr;
+  // la finta rotta del nemico (passo 30): finché corre via, chi non è un maestro di guerra la vede col morale a terra (è la preda più debole)
+  const fr=s.cons&&s.cons[nl]&&s.cons[nl].fr;if(fr&&Q.rg<5&&s.t-fr.t0<K5.FINTA_T)for(const e of Q.nem)if(e.k===fr.k)e.mo=Math.min(e.mo,K5.FINTA_MO);
   if(Q.rg>=3)alti(s,Q);
   return Q}
  // dati dei ranghi 3-4: zone da prendere, reparto nemico più impegnato, coppie per il cambio di fatica, miglior reparto di cavalieri
@@ -137,7 +139,7 @@ const VCONS=(()=>{
     delete sr[m.k]}},
   // le ondate della riserva entrano quando è entrata l'ultima ondata nemica o un reparto nemico cede (o, per non restare fermi, a linea calata o a tempo scaduto); dall'ingresso più vicino a quel reparto
   {id:'riserva',rango:3,tipo:[],
-   globale:(s,l,Q,c)=>{if(!s.ond||!s.ond[l])return;const nl=l==='a'?'b':'a',W=s.ond[l].filter(w=>!w.fatta&&w.id==='riserva');if(!W.length)return;
+   globale:(s,l,Q,c)=>{if(!s.ond||!s.ond[l])return;const nl=l==='a'?'b':'a',W=s.ond[l].filter(w=>!w.fatta&&w.id==='riserva');if(!W.length)return;if(Q.rg>=5&&M5)return M5.riserva5(s,l,Q,W);
     const nem=s.ond[nl]||[];let deb=null;for(const e of Q.nem)if(e.mo<K.RISERVA_MOR&&(!deb||e.mo<deb.mo))deb=e;
     const fine=nem.length>0&&nem.every(w=>w.fatta),linea=s.in0&&I.vivi(s,l).length*100<K.RISERVA_LINEA*s.in0[l];
     if(!(fine||deb||linea||s.t>=K.RISERVA_T))return;
@@ -166,6 +168,8 @@ const VCONS=(()=>{
     for(const w of s.ond[l]){if(w.fatta){if(w.fi===1&&!w.fe){w.fe=1;s.ev.push({t:'piano',l,r:-1,m:'fianco'})}continue}if(w.fi===2)continue;w.ing=ing;w.fi=1}}},
   // forze sotto la metà delle nemiche, riserve comprese, e nessuna ondata rimasta: tutti ripiegano in ordine verso il proprio bordo, coperti da un reparto in serrata (`ritira`)
   {id:'ritirata',rango:4,tipo:[]}];
+ // il rango 5 (passo 30): memoria, contromosse e inganni stanno in 28kj (VDAT.MAESTRO); senza quel file il rango 5 è un rango 4 più svelto
+ const M5=D.MAESTRO?D.MAESTRO({K,I,C,D,d2,stretto,chiave,chiavi,repC,tieni,giro,ingressoVicino,fiancoDebole}):null,K5=D.CONS5;if(M5)for(const m of M5.MANOVRE)MANOVRE.push(m);
  const FILTRI=MANOVRE.filter(m=>m.filtra),GLOBALI=MANOVRE.filter(m=>m.globale);
  // zona migliore per un reparto di tiratori (l'altura vale più del bosco)
  function zonaDi(Q,m){let b=null,bd=1e9;for(const z of Q.zone||[]){const d=d2(m,z)-(z.k==='altura'?8:0);if(d<bd){bd=d;b=z}}return b}
@@ -192,12 +196,14 @@ const VCONS=(()=>{
   if(rg>=3)rotazioni(s,Q,c);
   if(rg>=4&&ritira(s,l,Q,c,ind))return;
   if(rg>=4)pianifica(s,l,Q,c,dot,ind);
+  // rango 5: le abitudini di chi gioca che il comandante ricorda (solo il lato b) e gli inganni
+  Q.ab=rg>=5&&l==='b'&&s.ab?s.ab:null;if(rg>=5&&M5)M5.inganna(s,l,Q,c);const cac=Q.ab&&Q.ab.capAvanti?2:1;
   const nuovi={};
   for(const m of Q.rep){let best=null,bs=-1e9;
    for(const mv of MANOVRE){if(mv.rango>rg||mv.tipo.indexOf(m.c)<0)continue;const v=mv.vale(Q,m,s,c);if(!(v>0))continue;
-    const sc=v*peso(dot,mv.id)*peso(ind,mv.id)+s.r()*K.ERR[rg]+(c.man[m.k]===mv.id?K.ISTERESI:0);
+    const sc=v*peso(dot,mv.id)*peso(ind,mv.id)*(mv.id==='caccia'?cac:1)+s.r()*K.ERR[rg]+(c.man[m.k]===mv.id?K.ISTERESI:0);
     if(sc>bs){bs=sc;best=mv}}
-   if(best){nuovi[m.k]=best;Q.man[m.k]=best.id;m.nuova=c.man[m.k]!==best.id}}
+   if(best){nuovi[m.k]=best;Q.man[m.k]=best.id;m.nuova=c.man[m.k]!==best.id;if(cac>1&&best.id==='caccia')M5.usa(s,'capAvanti')}}
   for(const m of Q.rep){const mv=nuovi[m.k];if(!mv)continue;mv.ordina(s,l,m,Q,c);
    if(m.nuova){c.man[m.k]=mv.id;if(!mv.muta)s.ev.push({t:'piano',l,r:m.r,m:mv.id})}
    if(rg>=3)for(const f of FILTRI)f.filtra(s,l,m,Q,c)}
@@ -240,9 +246,10 @@ const VCONS=(()=>{
    if(v>bs){bs=v;best={m:'incudine',k:fm.k,tg:tg.k,t0:s.t,mi:null,col:0}}}
   return best}
  // un istante di comando per i due lati: col rango decide il consiglio (negli assedi e in lizza resta il `comanda` di sempre), senza rango il `comanda`
- function turno(s){for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
+ function turno(s){if(M5&&s.tipo!=='arena')M5.osserva(s);for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
  // all'avvio della battaglia: rango, dottrina e indole dalla scheda, poi lo schieramento dell'IA (se il lato `a` schiera da sé, `Pronto` fa rischierare il `b`: 28m)
  function avvia(s,scheda){s.rango=Object.assign({},scheda.rango);if(scheda.dott)s.dott=Object.assign({},scheda.dott);if(scheda.indole)s.indole=Object.assign({},scheda.indole);
+  if(M5&&scheda.memo&&(s.rango.b|0)>=5){const ab=M5.abitudini(scheda.memo);if(Object.keys(ab).length)s.ab=ab}
   if(!(s.esp&&s.primo==='a')||s.autoA)schiera(s,'b');if(s.autoA)schiera(s,'a')}
  // soglia di rotta: l'indole del signore la sposta
  const soglia=(s,l)=>(D.INDOLE[s.indole&&s.indole[l]]||{}).rotta||0;
@@ -251,7 +258,7 @@ const VCONS=(()=>{
  function schiera(s,l){if(!s.rango||s.rango[l]==null||(l==='a'&&!s.autoA)||s.tipo==='arena'||s.muro||s.t>0)return;const rg=s.rango[l]|0,o=s.ord[l],ver=l==='a'?1:-1,cx=s.W/2;
   if(rg<=1){for(const k of chiavi(o)){o[k].x=cx;if(repC(o[k],k)==='c')o[k].y=o.f.y+ver*2}}
   else if(rg===2){let lato=1;for(const k of chiavi(o)){const g=repC(o[k],k);if(g==='t'){o[k].x=cx;o[k].y=o.f.y+ver*7}else if(g==='c'){o[k].x=cx+lato*K.LATO;o[k].y=o.f.y+ver*2;lato=-lato}}}
-  else{const fl=schieraAlto(s,l);if(s.ondOk&&s.ond[l]&&!s.ond[l].length)ondateAlto(s,l,rg,fl)}
+  else{const fl=schieraAlto(s,l);if(s.ondOk&&s.ond[l]&&!s.ond[l].length)ondateAlto(s,l,rg,fl);if(rg>=5&&l==='b'&&s.ab)M5.contromosse(s,l)}
   for(const k of chiavi(o))I.rimetti(s,l,k);
   // le ondate dell'IA (se la battaglia le permette): tutta la riserva entra dal retro quando la linea cala al 60%
   if(s.ondOk&&rg<=2&&s.ond[l]&&!s.ond[l].length){const tr=[];for(const x of s.ris[l])tr.push({t:x.t,n:x.n,p:x.p});
@@ -276,14 +283,19 @@ const VCONS=(()=>{
  // Rango 3: la prima entra dal retro a linea calata al 60%; rango 4: all'istante ONDA_T dal fianco debole del nemico
  function ondateAlto(s,l,rg,fl){const cnt={};for(const u of s.u)if(u.l===l&&!u.cap&&u.st==='vivo'&&!u.sp)cnt[u.t]=(cnt[u.t]||0)+1;for(const x of s.ris[l])cnt[x.t]=(cnt[x.t]||0)+x.n;
   const tipi=Object.keys(cnt).sort();let tot=0;for(const t of tipi)tot+=cnt[t];if(!tot)return;
-  const q=Math.min(tot,Math.max(Math.round(tot*K.ONDE_Q),s.ris[l].reduce((a,x)=>a+x.n,0))),quota={};let ass=0;
-  for(const t of tipi){quota[t]=Math.floor(cnt[t]*q/tot);ass+=quota[t]}
+  // rango 5, le ombre: chi si schiera per primo mostra solo OMBRE delle truppe, e i cavalieri sono i primi a restare nascosti
+  const ombre=rg>=5&&!!M5&&(s.primo||'a')===l;
+  const q=Math.min(tot,Math.max(Math.round(tot*(ombre?Math.max(K.ONDE_Q,1-K5.OMBRE):K.ONDE_Q)),s.ris[l].reduce((a,x)=>a+x.n,0))),quota={};let ass=0;
+  if(ombre)for(const t of tipi)if(D.TR[t].c==='c'){quota[t]=Math.min(cnt[t],q-ass);ass+=quota[t]}
+  const resto=q-ass,altri=tipi.filter(t=>quota[t]==null),ta=altri.reduce((a,t)=>a+cnt[t],0);
+  for(const t of altri){quota[t]=ta?Math.floor(cnt[t]*resto/ta):0;ass+=quota[t]}
   for(let i=0;ass<q;i=(i+1)%tipi.length)if(quota[tipi[i]]<cnt[tipi[i]]){quota[tipi[i]]++;ass++}
   const w1=[],w2=[];for(const t of tipi){const a=Math.ceil(quota[t]/2);if(a>0)w1.push({t,n:a});if(quota[t]-a>0)w2.push({t,n:quota[t]-a})}
   const mk=(id,tr,ing,quando)=>{if(tr.length)VCAM.preparaOndata(s,{l,id,tr,ing,quando,ord:'carica'})};
-  mk('ia',w1,rg>=4&&!s.muro?(fl||'fsx'):'retro',rg>=4?{k:'tempo',v:K.ONDA_T}:K.ONDA3_T?{k:'tempo',v:K.ONDA3_T}:{k:'linea',v:60});
+  mk('ia',w1,rg>=4&&!s.muro?(fl||'fsx'):'retro',rg>=5?{k:'comando'}:rg>=4?{k:'tempo',v:K.ONDA_T}:K.ONDA3_T?{k:'tempo',v:K.ONDA3_T}:{k:'linea',v:60});
   mk('riserva',w2,'retro',{k:'comando'})}
  // `riepilogo` porta `ordinata` se un lato ha ripiegato in ordine; `risolvi` lo rifà con quello nuovo (28l lo ha chiuso in sé)
- {const rie=VCAM.riepilogo;VCAM.riepilogo=s=>{const R=rie(s);if(s.ordinata)R.ordinata=true;return R};
+ // passo 30: con il consiglio porta anche le tattiche di chi gioca (`tat`) e le contromosse usate dal nemico (`contro`)
+ {const rie=VCAM.riepilogo;VCAM.riepilogo=s=>{const R=rie(s);if(s.ordinata)R.ordinata=true;if(s.tat&&M5)R.tat=M5.tattiche(s);if(s.cm&&s.cm.length)R.contro=s.cm.slice();return R};
   VCAM.risolvi=scheda=>{const s=VCAM.nuovo(scheda,{autoA:true});while(!s.fine)VCAM.passo(s,50);return VCAM.riepilogo(s)}}
- const API={quadro,decidi,turno,avvia,schiera,soglia,MANOVRE,peso};return API})();
+ const API={quadro,decidi,turno,avvia,schiera,soglia,MANOVRE,peso,tattiche:M5&&M5.tattiche,abitudini:M5&&M5.abitudini,ABIT:M5&&M5.ABIT};return API})();
