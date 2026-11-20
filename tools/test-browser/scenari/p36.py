@@ -1,0 +1,56 @@
+# Passo 36 (correzioni P1-1, P1-2): un tocco che spende o promette mostra prima la scheda dei termini. Incarico, Tutti, Riposo: al primo tocco non cambia nulla,
+# la scheda dice cosa si fa, quanto costa o rende, entro quando; solo l'ottone della scheda agisce. In città al più un ottone visibile.
+import os, tempfile
+
+async def sc_p36_termini(b, srv):
+    """Ventura: Incarico e Tutti aprono una scheda (premio, giorni, meta, prezzo) e agiscono solo sull'ottone; un solo ottone visibile; bersagli >= 44 px."""
+    d = os.environ.get('SCHERMATE_DIR', tempfile.gettempdir())
+    ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
+    await pg.set_viewport_size({'width': 390, 'height': 844})
+    await pg.evaluate("localStorage.removeItem('ven-salv')"); await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
+    await pg.click('[data-a=ven][data-v="regno:sel"]'); await pg.click('[data-a=ven][data-v=nuova]')
+    await pg.wait_for_function("VenArte.A.pronta||VenArte.A.fallita", timeout=30000)
+    await pg.wait_for_function("VenMappa.K.scene&&document.getElementById('vn-ora')&&document.getElementById('vn-ora').textContent", timeout=30000)
+    # città amica con un incarico di consegna (premio 300, 6 giorni, meta un'altra città)
+    meta = await pg.evaluate("""(()=>{const s=Ven.V.s,c=s.l.filter(l=>l.tipo==='citta'),l=c.find(l=>l.faz==='tu')||c[0],a=c.find(x=>x.id!==l.id);s.incontro=null;s.davanti=-1;s.dentro=l.id;l.noto=true;s.incarichi=[];
+      l.inc={tipo:'consegna',bene:'grano',n:5,a:a.id,premio:300,giorni:6};Ven.V.pan='luogo';Ven.V.sub='home';render();return a.nome})()""")
+    await pg.wait_for_selector('.vn-pan .vn-sr', timeout=5000)
+    check(await pg.locator('.vn-pan .b.gold:visible').count() == 1, 'in città un solo ottone')
+    pic = await pg.evaluate("[...document.querySelectorAll('.vn-sv')].filter(e=>{const r=e.getBoundingClientRect();return r.width<44||r.height<44}).length")
+    check(pic == 0, f'tutte le tessere >= 44 px ({pic} piccole)')
+    check('300 m' in await pg.locator('[data-v="sub:term:incarico"]').inner_text(), 'la tessera Incarico porta il premio sotto il nome')
+    if os.environ.get('SCHERMATE_DIR'): await pg.screenshot(path=os.path.join(d, 'p36-citta.png'))
+    # primo tocco: nessun incarico preso, la scheda mostra premio, giorni e meta
+    await pg.click('[data-v="sub:term:incarico"]'); await pg.wait_for_selector('.vn-term', timeout=5000)
+    check(await pg.evaluate("Ven.V.s.incarichi.length") == 0, 'al primo tocco su Incarico non se ne prende nessuno')
+    tx = await pg.inner_text('.vn-pan')
+    check('300 monete' in tx and '6 giorni' in tx and meta in tx, f'la scheda mostra premio, giorni e meta ({meta}): {tx[:160]!r}')
+    check(await pg.locator('.vn-pan .b.gold:visible').count() == 1 and await pg.locator('[data-v="fai:incarico"].gold').count() == 1, 'nella scheda un solo ottone: Accetta')
+    check(await pg.locator('[data-v="sub:home"]').count() >= 1, 'c\'è Indietro')
+    pic = await pg.evaluate("[...document.querySelectorAll('.vn-pan button')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&(r.width<44||r.height<44)}).length")
+    check(pic == 0, f'bersagli della scheda >= 44 px ({pic} piccoli)')
+    if os.environ.get('SCHERMATE_DIR'): await pg.screenshot(path=os.path.join(d, 'p36-scheda-incarico.png'))
+    await pg.click('[data-v="sub:home"]'); await pg.wait_for_selector('.vn-pan .vn-sr', timeout=5000)
+    check(await pg.evaluate("Ven.V.s.incarichi.length") == 0, 'Indietro non prende l\'incarico')
+    await pg.click('[data-v="sub:term:incarico"]'); await pg.click('[data-v="fai:incarico"]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("Ven.V.s.incarichi.length") == 1, 'dopo Accetta gli incarichi sono 1')
+    check(await pg.locator('.vn-term').count() == 0, 'presa l\'offerta, la scheda si chiude da sola')
+    # un villaggio con sei volontari: «Tutti» costa 60 monete e i viveri scendono; al primo tocco le monete non cambiano
+    await pg.evaluate("""(()=>{const s=Ven.V.s,v=s.l.find(l=>l.tipo==='villaggio'&&l.faz!=='pre'),t=VEN.TU(s);s.incontro=null;s.davanti=-1;s.dentro=v.id;v.noto=true;v.rec=6;t.oro=1000;Ven.V.pan='luogo';Ven.V.sub='home';render()})()""")
+    await pg.wait_for_selector('[data-v="sub:term:tutti"]', timeout=5000)
+    check('60 m' in await pg.locator('[data-v="sub:term:tutti"]').inner_text(), 'la tessera Tutti porta il costo (60 m)')
+    oro0 = await pg.evaluate("VEN.TU(Ven.V.s).oro"); u0 = await pg.evaluate("VEN.uomini(VEN.TU(Ven.V.s))")
+    await pg.click('[data-v="sub:term:tutti"]'); await pg.wait_for_selector('.vn-term', timeout=5000)
+    check(await pg.evaluate("VEN.TU(Ven.V.s).oro") == oro0, 'al primo tocco su Tutti le monete non cambiano')
+    tx = await pg.inner_text('.vn-pan')
+    check('60 monete' in tx and 'viveri' in tx and f'a {u0 + 6}' in tx, f'la scheda dice 6 uomini, 60 monete e i viveri: {tx[:200]!r}')
+    check(await pg.locator('.vn-pan .b.gold:visible').count() == 1, 'nella scheda un solo ottone')
+    await pg.click('[data-v="fai:recluta:6"]'); await pg.wait_for_timeout(200)
+    check(await pg.evaluate("VEN.TU(Ven.V.s).oro") == oro0 - 60 and await pg.evaluate("VEN.uomini(VEN.TU(Ven.V.s))") == u0 + 6, 'dopo Arruola: 60 monete in meno e 6 uomini in più')
+    # il Riposo in città mostra il prezzo prima di spendere
+    await pg.evaluate("""(()=>{const s=Ven.V.s,l=s.l.find(l=>l.tipo==='citta'&&l.faz!=='tu')||s.l.find(l=>l.tipo==='citta');s.incontro=null;s.davanti=-1;s.dentro=l.id;l.noto=true;Ven.V.pan='luogo';Ven.V.sub='home';render()})()""")
+    await pg.wait_for_selector('[data-v="sub:term:riposa"]', timeout=5000)
+    t0 = await pg.evaluate("Ven.V.s.t"); await pg.click('[data-v="sub:term:riposa"]'); await pg.wait_for_selector('.vn-term', timeout=5000)
+    check(await pg.evaluate("Ven.V.s.t") == t0, 'al primo tocco su Riposo il tempo non passa')
+    check(not pg.errs, f'nessun errore di pagina: {pg.errs[:3]}')
+    await ctx.close()
