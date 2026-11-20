@@ -66,7 +66,7 @@ I prezzi raccontano il mondo.
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+**L'economia.** Nel mondo nuovo i prezzi seguono la scorta: i villaggi producono, le città consumano, e dove una merce scarseggia costa di più. Una razzia o un assedio fanno salire il pane in tutta la regione, per qualche settimana; la pace e un buon raccolto d'autunno lo fanno scendere. Una freccia nel mercato dice come è andato il prezzo negli ultimi sette giorni, e la «media» è quella dei mercati che conosci. Più grande è la compagnia, più cara costa ogni testa; le truppe scelte chiedono anche una parte del bottino. Prima di spendere o promettere (incarichi, reclute, riposo, torneo, offerte) una scheda ti dice quanto costa, entro quando e cosa rischi.
 
 ## Correzioni dalla revisione delle fasi 1–6
 

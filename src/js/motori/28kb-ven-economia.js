@@ -1,6 +1,27 @@
 /* ---- Compagnia di ventura, Economia e azioni nei luoghi: prezzi e mercato, paga e viveri, rendite, botteghe (`rinnova`), incarichi e `fai`. Motore puro, senza DOM né rete. ----
    Estensione di VEN (28k): aggiunge le sue funzioni allo stesso oggetto; gli aiutanti del nucleo arrivano da `VEN._`,
    le funzioni degli altri file si chiamano `VEN.nome(...)`. Piano: docs/passi/01-spacca-mondo.md. */
+// Passo 36, l'economia del mondo (solo mondi `s.geo===2`): tutti i numeri qui. Niente Math.pow/exp/log: la curva dei prezzi è una tabella.
+VDAT.ECO={
+ RIF:40,            // scorta di riferimento: con tanta merce in magazzino il prezzo è quello base
+ // CURVA[i] ≈ q^0,6 con q = 0,3 + i/10 (0,3 … 3,0), calcolata una volta e scritta qui; q = RIF / scorta, arrotondato a 0,1
+ CURVA:[.486,.577,.66,.736,.807,.875,.939,1,1.059,1.116,1.17,1.224,1.275,1.326,1.375,1.423,1.47,1.516,1.561,1.605,1.648,1.691,1.733,1.774,1.815,1.855,1.894,1.933],
+ MIN:.4,MAX:3,      // il prezzo (curva × rialzo di guerra) resta tra queste due volte la base
+ // al giorno, per luogo, con k = prosperità/60: [produce, non produce, consuma] (cibo e altre merci). Scorta di equilibrio = RIF × produzione / consumo
+ TASSI:{villaggio:{c:[2.4,1.8,1.4],a:[1,.5,.7]},citta:{c:[2.4,2.4,3],a:[1.8,.8,1.2]},porto:{c:[3,2.2,2.5],a:[1.6,.6,1]}},
+ STAG:{prim:1,est:1.1,aut:1.5,inv:.5},   // quanto producono i villaggi nelle stagioni (il raccolto è in autunno)
+ TETTO:120,         // scorta massima di un luogo
+ RAGGIO:15,         // mercato regionale: luoghi entro quante celle si scambiano scorte...
+ QUOTA:.05,         // ...e ogni settimana si pareggia il 5% della differenza
+ SETT:3,            // giorno della settimana (giorno % 7) in cui si pareggia
+ RAGGIO_GUERRA:30,  // razzia e assedio fanno salire il cibo in tutti i luoghi entro tante celle
+ RIALZO:.35,        // di quanto sale il cibo al momento dell'evento: poi cala in linea retta...
+ DURATA:21,         // ...e dopo tanti giorni è finito
+ FERMO:14,          // giorni senza produzione per un villaggio razziato
+ FAME:.05,          // quota di guarnigione che muore ogni giorno di assedio senza cibo (almeno uno)
+ PAGA_SOGLIA:40,PAGA_OLTRE:.02,   // la paga per truppa sale del 2% per ogni uomo oltre i 40 (sta dentro `paga` del nucleo e riguarda solo le truppe, non le guarnigioni dei feudi: deroga alla decisione 7 del passo)
+ BOTTINO:{4:.003,5:.006},BOTTINO_COMP:.4,BOTTINO_MAX:.2,   // quota di bottino chiesta dalle truppe di grado alto (per uomo); i compagni la chiedono al 40%
+ STORIA:8};         // prezzi degli ultimi giorni tenuti per la freccia della tendenza (il più vecchio è di 7 giorni fa)
 Object.assign(VEN,(()=>{
  const{D,L,M0,MERCATO,MURA,OSTERIA,P,SITO,TU,abil,aggiungi,capDi,capi,chiave,dist,forza,forzaTr,giorno,inGuerra,limite,nemiche,nomeF,ogg,part,relaz,rnd,togliUomini,uomini,vicinoOk}=VEN._;
  function prezzoOgg(s,o,verso){const c=abil(s,'commercio'),b=Math.max(20,o.prezzo);return Math.round(verso>0?b*(1.1-c*.02):b*.4*(1+c*.03))}
@@ -24,16 +45,17 @@ Object.assign(VEN,(()=>{
  const caricoMax=s=>30+uomini(TU(s))*2+capi(s).reduce((a,c)=>a+(c.eq.cavallo?12:0),0);
  // giorni di viveri: razioni diviso il consumo giornaliero (una razione ogni sei uomini, almeno una)
  const giorniViveri=s=>{const t=TU(s);return Math.floor(razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))};
- const paga=s=>{const x=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
+ const paga=s=>{const tr=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0),x=(s.geo===2?Math.round(tr*(1+VDAT.ECO.PAGA_OLTRE*Math.max(0,uomini(TU(s))-VDAT.ECO.PAGA_SOGLIA))):tr)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
  // prezzo di una merce in un luogo: sale quando la scorta è bassa. verso = 1 compri, -1 vendi
- function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
+ function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=s.geo===2?VEN.curvaEco(s,l,m):Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
   return Math.max(1,Math.round(D.MERCI[m].base*k*(verso>0?1.12-c*.02:.88+c*.02)*VEN.molt(s,'prezzo',{lid:l.id,m,compra:verso>0})))}
  // prezzo d'acquisto medio di una merce nei luoghi noti con mercato (pura); se nessuno la tratta vale il prezzo base
  function prezzoMedio(s,m){const v=s.l.filter(l=>l.noto&&MERCATO[l.tipo]).map(l=>prezzo(s,l,m,1));return v.length?Math.round(v.reduce((a,x)=>a+x,0)/v.length):D.MERCI[m].base}
  // novità di un luogo, al più tre, in quest'ordine: torneo, incarico, compagno, pezzo unico, assedio
  function segnali(s,lid){const l=s.l[lid];if(!l)return[];const o=[],g=giorno(s);
   if(VEN.torneoOggi(s,l))o.push({k:'torneo',tx:'Torneo oggi'});
-  if(l.inc&&!l.inc.preso)o.push({k:'incarico',tx:'Incarico'});
+  // l'incarico è una novità solo se paga almeno 1,3 volte la media di quelli che conosci (quelli già presi o appena chiusi); senza riferimento si segnala sempre
+  if(l.inc&&!l.inc.preso){const nt=s.incarichi.map(q=>q.premio),md=nt.length?nt.reduce((a,x)=>a+x,0)/nt.length:0;if(!md||l.inc.premio>=1.3*md)o.push({k:'incarico',tx:'Incarico'})}
   if(D.COMPAGNI.some(c=>s.compagni[c.id]===l.id))o.push({k:'compagno',tx:'Compagno in taverna'});
   if(l.unica)o.push({k:'unico',tx:'Pezzo unico dall\'armaiolo'});
   if(l.ass||(s.assedio&&s.assedio.lid===l.id))o.push({k:'assedio',tx:'Assedio in vista'});
@@ -130,3 +152,77 @@ Object.assign(VEN,(()=>{
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
  return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,prezzo,prezzoMedio,segnali,renditaL,rendite,libera,titoloInc,fai}})());
+// ---------- Passo 36: l'economia del mondo (solo `s.geo===2`) ----------
+// Ogni giorno, per ogni luogo col mercato e per ogni merce: scorta += produzione − consumo × scorta/RIF (il resto frazionario sta in `l.prod.r`, così le scorte restano intere
+// e il conto non usa il caso). Il nucleo (28ka) ritocca ancora le scorte alla sua maniera: nei mondi nuovi il ritocco si annulla (`giornoNuovo` qui sotto) e vale solo questo.
+// `l.prod` (facoltativo): {t: merci del terreno, r: resti, fermo: fine della razzia, gu: giorno dell'ultimo evento di guerra, h: prezzi degli ultimi giorni}.
+Object.assign(VEN,(()=>{
+ const{D,L,M0,MERCATO,TU,dist,giorno,togliUomini,uomini,P}=VEN._,E=VDAT.ECO,CIBI=Object.keys(D.MERCI).filter(m=>D.MERCI[m].cibo);
+ const culturaL=(s,l)=>VEN.regni(s).includes(l.faz)?VEN.cult(s,l.faz):M0(s,l);
+ const sotto=(s,l)=>!!(l.ass||(s.assedio&&s.assedio.lid===l.id));
+ // cosa dà la terra attorno a un villaggio (sette celle per lato): pesce sull'acqua, ferro sui monti, attrezzi (legname lavorato) nel bosco, altrimenti grano
+ function terreno(s,l){const M=VEN.mappaDi(s),G=M.G||128,cx=Math.floor(l.x),cy=Math.floor(l.y);let ac=0,bo=0,mo=0;
+  for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=G||y>=G)continue;const t=M.T[y*G+x];if(t===0)ac++;else if(t===2)bo++;else if(t>=3)mo++}
+  return ac>=3?'pesce':mo>=8?'ferro':bo>=8?'attrezzi':'grano'}
+ // le merci che un luogo produce: la cultura, più il terreno (villaggi) o il porto (pesce); le città lavorano in attrezzi il ferro dei villaggi vicini
+ function producono(s,l){const p=l.prod||(l.prod={});
+  if(!p.t){p.t=[];if(l.tipo==='villaggio')p.t=[terreno(s,l)];else if(l.tipo==='citta'&&s.l.some(v=>v.tipo==='villaggio'&&v.prod&&v.prod.t&&v.prod.t[0]==='ferro'&&dist(v,l)<=12))p.t=['attrezzi']}
+  return(D.PRODUCE[culturaL(s,l)]||[]).concat(p.t,l.tipo==='porto'?['pesce']:[])}
+ const tasso=(l,m,prod)=>{const T=E.TASSI[l.tipo][D.MERCI[m].cibo?'c':'a'];return{P:prod?T[0]:T[1],C:T[2]}};
+ const consF=s=>{const d=VDAT.DIFF.cons[(s.opz&&s.opz.cons)||VDAT.OPZ0.cons];return d?d.viveri:1};
+ const arr=x=>Math.round(x*1000)/1000;
+ // scorta di partenza di un mondo nuovo: l'equilibrio del luogo, ritoccato da una variazione fissa (nessun caso)
+ function nuovo(s){if(s.geo!==2)return;const nm=Object.keys(D.MERCI);
+  for(const l of s.l.filter(x=>x.tipo==='villaggio').concat(s.l.filter(x=>x.tipo!=='villaggio'))){if(!MERCATO[l.tipo])continue;const pr=producono(s,l);   // prima i villaggi: le città guardano il loro terreno
+   nm.forEach((m,i)=>{const t=tasso(l,m,pr.includes(m)),eq=E.RIF*t.P/t.C,v=eq*(.9+.2*((l.id*7+i*3)%10)/10);l.scorte[m]=Math.max(0,Math.min(E.TETTO,Math.round(v)))})}}
+ // rialzo del cibo per razzie e assedi vicini: subito RIALZO, poi cala in linea retta fino a zero in DURATA giorni
+ // (l'elenco dei luoghi con un evento di guerra si tiene per il giorno: i prezzi si chiedono migliaia di volte)
+ let ev={s:null,g:-1,l:[]};
+ const eventi=s=>{const g=giorno(s);if(ev.s!==s||ev.g!==g){ev={s,g,l:s.l.filter(x=>x.prod&&x.prod.gu!=null&&g-x.prod.gu<E.DURATA)}}return ev.l};
+ function rialzo(s,l,m){if(!D.MERCI[m].cibo)return 0;const g=giorno(s);let r=0;
+  for(const x of eventi(s)){const e=g-x.prod.gu;if(e<0||dist(x,l)>E.RAGGIO_GUERRA)continue;r=Math.max(r,E.RIALZO*(1-e/E.DURATA))}
+  return r}
+ // la curva del prezzo: base × questo (tra MIN e MAX)
+ function curvaEco(s,l,m){const sc=l.scorte[m]||0,q=sc<=0?30:Math.max(3,Math.min(30,Math.round(10*E.RIF/sc)));return Math.max(E.MIN,Math.min(E.MAX,E.CURVA[q-3]*(1+rialzo(s,l,m))))}
+ // le strade della mappa (`M.S`, una per cella): a quale tratto di strada appartiene ogni cella (8 direzioni), calcolato una volta per mappa
+ let rete={S:null,lab:null,G:0};
+ function reteStrade(s){const M=VEN.mappaDi(s);if(rete.S===M.S)return rete;const G=M.G||128,lab=new Int32Array(G*G),pila=[];let n=0;
+  for(let i=0;i<G*G;i++){if(!M.S[i]||lab[i])continue;lab[i]=++n;pila.push(i);
+   while(pila.length){const c=pila.pop(),cx=c%G,cy=(c-cx)/G;for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const x=cx+ox,y=cy+oy;if(x<0||y<0||x>=G||y>=G)continue;const j=y*G+x;if(M.S[j]&&!lab[j]){lab[j]=n;pila.push(j)}}}}
+  rete={S:M.S,lab,G};return rete}
+ const collegati=(R,a,b)=>{const G=R.G,ia=Math.floor(a.y)*G+Math.floor(a.x),ib=Math.floor(b.y)*G+Math.floor(b.x);return R.lab[ia]>0&&R.lab[ia]===R.lab[ib]};
+ // ---------- il giorno ----------
+ let snap=null;
+ function giornoEco(s){const g=giorno(s),cf=consF(s),st=VEN.stagione&&VEN.stagione(s),ps=st?E.STAG[st.k]:1,mk=[];
+  if(snap){s.l.forEach((l,i)=>{if(snap[i])l.scorte=snap[i]});snap=null}   // via il ritocco del nucleo
+  for(const l of s.l){if(!MERCATO[l.tipo])continue;mk.push(l);const p=l.prod||(l.prod={}),r=p.r||(p.r={}),pr=producono(s,l),k=Math.max(.3,l.prosp/60),ass=sotto(s,l),fermo=p.fermo>g,vill=l.tipo==='villaggio';
+   if(ass){p.gu=g;ev.s=null}
+   for(const m of Object.keys(D.MERCI)){const prod=pr.includes(m),t=tasso(l,m,prod),S=l.scorte[m]||0,pro=ass||(vill&&prod&&fermo)?0:t.P*k*(vill&&prod?ps:1),tot=S+pro-(ass?0:t.C*k*cf*S/E.RIF)+(r[m]||0),n=Math.max(0,Math.min(E.TETTO,Math.floor(tot)));
+    l.scorte[m]=n;r[m]=n===0||n===E.TETTO?0:arr(tot-n)}
+   // assedio: la città non produce né consuma come al solito (il commercio si ferma): mangia soltanto la guarnigione, e senza cibo muore di fame
+   if(ass&&l.g.length){let serve=Math.ceil(uomini({tr:l.g})/6),j=0;while(serve>0&&CIBI.some(m=>l.scorte[m]>0)){const m=CIBI[j++%CIBI.length];if(l.scorte[m]>0){l.scorte[m]--;serve--}}
+    if(serve>0){const e=l.g.slice().sort((a,b)=>b.n-a.n)[0],x=togliUomini(l.g,e.t,Math.max(1,Math.floor(uomini({tr:l.g})*E.FAME)));if(x&&s.assedio&&s.assedio.lid===l.id)L(s,'La fame stringe '+l.nome+': '+x+' difensori muoiono tra gli stenti.','guerra')}}}
+  // mercato regionale: una volta alla settimana si pareggia il 5% della differenza tra luoghi vicini e collegati da una strada (non quelli assediati)
+  if(g%7===E.SETT){const lib=mk.filter(l=>!sotto(s,l)),rete=reteStrade(s);
+   for(let i=0;i<lib.length;i++)for(let j=i+1;j<lib.length;j++){const a=lib[i],b=lib[j];if(dist(a,b)>E.RAGGIO||!collegati(rete,a,b))continue;
+    for(const m of Object.keys(D.MERCI)){const d=Math.trunc(E.QUOTA*((a.scorte[m]||0)-(b.scorte[m]||0)));if(d){a.scorte[m]-=d;b.scorte[m]=(b.scorte[m]||0)+d}}}}
+  // la memoria dei prezzi, per la freccia della tendenza
+  for(const l of mk){const h=l.prod.h||(l.prod.h={});for(const m of Object.keys(D.MERCI)){const a=h[m]||(h[m]=[]);a.push(VEN.prezzo(s,l,m,1));if(a.length>E.STORIA)a.shift()}}}
+ VEN.aggancia('nuovo',nuovo);
+ VEN.aggancia('giorno',s=>{if(s.geo===2)giornoEco(s);snap=null});
+ // razzia: il villaggio smette di produrre e il cibo sale in tutta la regione
+ VEN.aggancia('luogo',(s,l,k)=>{if(s.geo!==2||k!=='razzia'||!l)return;const p=l.prod||(l.prod={}),g=giorno(s);p.fermo=g+E.FERMO;p.gu=g;ev.s=null});
+ // il nucleo ritocca le scorte nel suo giornoNuovo: nei mondi nuovi si tiene l'istantanea di prima e `giornoEco` la rimette
+ const gn0=VEN.giornoNuovo;
+ const giornoNuovo=s=>{snap=s.geo===2?s.l.map(l=>MERCATO[l.tipo]?Object.assign({},l.scorte):null):null;try{gn0(s)}finally{snap=null}};
+ // freccia del mercato: -1 se il prezzo di oggi è sceso di oltre il 5% rispetto a sette giorni fa, 1 se è salito, 0 altrimenti (e nei mondi vecchi)
+ function tendenza(s,lid,m){const l=s.l[lid],h=l&&l.prod&&l.prod.h&&l.prod.h[m];if(!h||h.length<2)return 0;const a=h[0],b=VEN.prezzo(s,l,m,1);return b>a*1.05?1:b<a*.95?-1:0}
+ // quanto costa al giorno tenere la compagnia: paghe in monete, viveri (con la razione in più dei cavalieri) e foraggio (la parte dei cavalli) in razioni. Il foraggio ricopia la formula di 28kh (`giorno`, parte «foraggio»): se cambia là, va cambiata anche qui; test_ven_p36 li confronta
+ function costoGiorno(s){const t=TU(s),U=uomini(t),mv=VEN.molt(s,'viveri',{p:t}),paghe=Math.round(VEN.paga(s)/P.PAGA_GIORNI),viveri=Math.ceil(U/6*mv);let foraggio=0;
+  if(s.anno!=null&&VEN.stagione&&!s.prigioniero){const st=VEN.stagione(s),sc=((VDAT.DIFF.stag||{})[(s.opz&&s.opz.stag)||VDAT.OPZ0.stag]||{scarto:1}).scarto,cav=t.tr.reduce((a,e)=>a+(D.TR[e.t].c==='c'?e.n:0),0);
+   foraggio=Math.round(cav*VDAT.STAG.FORAGGIO_QUOTA/6*Math.max(.05,1+(VDAT.STAG.EFF[st.k].foraggio-1)*sc)*consF(s))}
+  return{paghe,viveri,foraggio}}
+ // quota di bottino che le truppe di grado alto chiedono (0–BOTTINO_MAX); i compagni ne chiedono meno
+ function quotaBottino(s){let q=0;for(const e of TU(s).tr){const T=D.TR[e.t];q+=e.n*(E.BOTTINO[T.t]||0)*(T.compagno?E.BOTTINO_COMP:1)}return Math.min(E.BOTTINO_MAX,q)}
+ VEN.aggancia('premio',(s,riep,out)=>{if(s.geo!==2||!out||!(out.oro>0))return;const x=Math.floor(out.oro*quotaBottino(s));if(x>0){out.oro-=x;out.quota=x;L(s,'Le truppe scelte chiedono la loro parte del bottino: '+x+' monete.')}});
+ return{giornoNuovo,curvaEco,tendenza,costoGiorno,quotaBottino}})());
