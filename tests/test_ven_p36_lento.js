@@ -3,13 +3,15 @@
 //  - con «avara + duri» il capitano accorto guadagna almeno il 30% in meno che con Condottiero (somma sui 6 semi, patrimonio = monete + merci al prezzo base);
 //  - il bot mercante (compra dove costa poco, vende dove costa molto, non combatte) non guadagna più del 50% del capitano accorto: niente rendita infinita;
 //  - l'impronta a interruttori spenti è identica a `main` (`tools/avventura/impronta.js --controlla`).
-// I semi sono quelli in cui il capitano accorto sopravvive con la partenza povera della sorte (250 monete, 7 uomini): su dieci semi provati (3, 5, 7, 11, 13, 21, 29, 42, 77, 100)
-// cade solo il 77; con l'economia di prima, che arricchiva col commercio, non cadeva nessuno di quei dieci (cadeva il 58, che qui non c'è). Il bot mercante sta qui: congeda gli uomini e viaggia da solo; ogni volta che è in un mercato vende tutto, tiene i viveri per dieci giorni, compra la merce che più rende nel mercato noto più conveniente
+// I semi sono i primi sei numeri (1-6), fissati prima di guardare i risultati e mai cambiati dopo: niente semi scelti perché «vanno bene».
+// Aiuto al bot: il capitano accorto di bot_ven.js compra viveri solo per caso e patisce la fame anche senza economia nuova (lo nota anche test_ven_p17_lento.js); qui, come lì,
+// in ogni mercato fa scorta per 14 giorni (`rifornisci`). È un difetto noto del bot, non del mondo: con `P36_SENZA_AIUTO=1` l'aiuto si spegne e si vede cosa succede.
+// Il bot mercante sta qui: congeda gli uomini e viaggia da solo; ogni volta che è in un mercato vende tutto, tiene i viveri per dieci giorni, compra la merce che più rende nel mercato noto più conveniente
 // (entro 60 celle) fino a che il margine dura, e ci va. Negli incontri paga o fugge. `P36_SEMI` e `P36_GIORNI` cambiano semi e durata.
 const assert = require('assert'), path = require('path'), os = require('os');
 const { execFile } = require('child_process');
 const PROVA = path.join(__dirname, '..');
-const SEMI = process.env.P36_SEMI ? process.env.P36_SEMI.split(',').map(Number) : [3, 5, 7, 11, 21, 29], GIORNI = +process.env.P36_GIORNI || 112;
+const SEMI = process.env.P36_SEMI ? process.env.P36_SEMI.split(',').map(Number) : [1, 2, 3, 4, 5, 6], GIORNI = +process.env.P36_GIORNI || 112;
 
 if (process.argv[2] === '--lavora') {
   const carica = require('./carica.js');
@@ -34,7 +36,7 @@ if (process.argv[2] === '--lavora') {
     scorta = true; try { const serve = Math.ceil(VEN.uomini(tu) / 6) * 14; let g = 0;
       while (g++ < 300 && VEN.razioni(tu) < serve && tu.oro > 400) { const m = ['grano', 'pesce', 'carne'].sort((a, b) => VEN.prezzo(st, l, a, 1) - VEN.prezzo(st, l, b, 1)).find(m => (l.scorte[m] || 0) > 0); if (!m || VEN.fai(st, { a: 'compra', m, n: 1 }).err) break; } } finally { scorta = false; }
   };
-  VEN.aggancia('fatto', (st, z) => { if (z.a === 'compra' || z.a === 'vendi') rifornisci(st); }); VEN.aggancia('giorno', rifornisci);
+  if (!process.env.P36_SENZA_AIUTO) { VEN.aggancia('fatto', (st, z) => { if (z.a === 'compra' || z.a === 'vendi') rifornisci(st); }); VEN.aggancia('giorno', rifornisci); }
   let minimo = 1e9; VEN.aggancia('giorno', st => { if (st === s) minimo = Math.min(minimo, VEN.uomini(VEN.TU(s))); });
 
   function mercante(giorni) {
