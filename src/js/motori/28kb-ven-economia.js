@@ -19,7 +19,7 @@ VDAT.ECO={
  DURATA:21,         // ...e dopo tanti giorni è finito
  FERMO:14,          // giorni senza produzione per un villaggio razziato
  FAME:.05,          // quota di guarnigione che muore ogni giorno di assedio senza cibo (almeno uno)
- PAGA_SOGLIA:40,PAGA_OLTRE:.02,   // la paga per truppa sale del 2% per ogni uomo oltre i 40
+ PAGA_SOGLIA:40,PAGA_OLTRE:.02,   // la paga per truppa sale del 2% per ogni uomo oltre i 40 (sta dentro `paga` del nucleo e riguarda solo le truppe, non le guarnigioni dei feudi: deroga alla decisione 7 del passo)
  BOTTINO:{4:.003,5:.006},BOTTINO_COMP:.4,BOTTINO_MAX:.2,   // quota di bottino chiesta dalle truppe di grado alto (per uomo); i compagni la chiedono al 40%
  STORIA:8};         // prezzi degli ultimi giorni tenuti per la freccia della tendenza (il più vecchio è di 7 giorni fa)
 Object.assign(VEN,(()=>{
@@ -184,20 +184,27 @@ Object.assign(VEN,(()=>{
   return r}
  // la curva del prezzo: base × questo (tra MIN e MAX)
  function curvaEco(s,l,m){const sc=l.scorte[m]||0,q=sc<=0?30:Math.max(3,Math.min(30,Math.round(10*E.RIF/sc)));return Math.max(E.MIN,Math.min(E.MAX,E.CURVA[q-3]*(1+rialzo(s,l,m))))}
+ // le strade della mappa (`M.S`, una per cella): a quale tratto di strada appartiene ogni cella (8 direzioni), calcolato una volta per mappa
+ let rete={S:null,lab:null,G:0};
+ function reteStrade(s){const M=VEN.mappaDi(s);if(rete.S===M.S)return rete;const G=M.G||128,lab=new Int32Array(G*G),pila=[];let n=0;
+  for(let i=0;i<G*G;i++){if(!M.S[i]||lab[i])continue;lab[i]=++n;pila.push(i);
+   while(pila.length){const c=pila.pop(),cx=c%G,cy=(c-cx)/G;for(let oy=-1;oy<=1;oy++)for(let ox=-1;ox<=1;ox++){const x=cx+ox,y=cy+oy;if(x<0||y<0||x>=G||y>=G)continue;const j=y*G+x;if(M.S[j]&&!lab[j]){lab[j]=n;pila.push(j)}}}}
+  rete={S:M.S,lab,G};return rete}
+ const collegati=(R,a,b)=>{const G=R.G,ia=Math.floor(a.y)*G+Math.floor(a.x),ib=Math.floor(b.y)*G+Math.floor(b.x);return R.lab[ia]>0&&R.lab[ia]===R.lab[ib]};
  // ---------- il giorno ----------
  let snap=null;
  function giornoEco(s){const g=giorno(s),cf=consF(s),st=VEN.stagione&&VEN.stagione(s),ps=st?E.STAG[st.k]:1,mk=[];
   if(snap){s.l.forEach((l,i)=>{if(snap[i])l.scorte=snap[i]});snap=null}   // via il ritocco del nucleo
   for(const l of s.l){if(!MERCATO[l.tipo])continue;mk.push(l);const p=l.prod||(l.prod={}),r=p.r||(p.r={}),pr=producono(s,l),k=Math.max(.3,l.prosp/60),ass=sotto(s,l),fermo=p.fermo>g,vill=l.tipo==='villaggio';
    if(ass){p.gu=g;ev.s=null}
-   for(const m of Object.keys(D.MERCI)){const prod=pr.includes(m),t=tasso(l,m,prod),S=l.scorte[m]||0,pro=ass||(vill&&prod&&fermo)?0:t.P*k*(vill&&prod?ps:1),tot=S+pro-t.C*k*cf*S/E.RIF+(r[m]||0),n=Math.max(0,Math.min(E.TETTO,Math.floor(tot)));
+   for(const m of Object.keys(D.MERCI)){const prod=pr.includes(m),t=tasso(l,m,prod),S=l.scorte[m]||0,pro=ass||(vill&&prod&&fermo)?0:t.P*k*(vill&&prod?ps:1),tot=S+pro-(ass?0:t.C*k*cf*S/E.RIF)+(r[m]||0),n=Math.max(0,Math.min(E.TETTO,Math.floor(tot)));
     l.scorte[m]=n;r[m]=n===0||n===E.TETTO?0:arr(tot-n)}
-   // assedio: la guarnigione mangia le scorte; senza cibo muore di fame
+   // assedio: la città non produce né consuma come al solito (il commercio si ferma): mangia soltanto la guarnigione, e senza cibo muore di fame
    if(ass&&l.g.length){let serve=Math.ceil(uomini({tr:l.g})/6),j=0;while(serve>0&&CIBI.some(m=>l.scorte[m]>0)){const m=CIBI[j++%CIBI.length];if(l.scorte[m]>0){l.scorte[m]--;serve--}}
     if(serve>0){const e=l.g.slice().sort((a,b)=>b.n-a.n)[0],x=togliUomini(l.g,e.t,Math.max(1,Math.floor(uomini({tr:l.g})*E.FAME)));if(x&&s.assedio&&s.assedio.lid===l.id)L(s,'La fame stringe '+l.nome+': '+x+' difensori muoiono tra gli stenti.','guerra')}}}
-  // mercato regionale: una volta alla settimana si pareggia il 5% della differenza tra luoghi vicini (non quelli assediati)
-  if(g%7===E.SETT){const lib=mk.filter(l=>!sotto(s,l));
-   for(let i=0;i<lib.length;i++)for(let j=i+1;j<lib.length;j++){const a=lib[i],b=lib[j];if(dist(a,b)>E.RAGGIO)continue;
+  // mercato regionale: una volta alla settimana si pareggia il 5% della differenza tra luoghi vicini e collegati da una strada (non quelli assediati)
+  if(g%7===E.SETT){const lib=mk.filter(l=>!sotto(s,l)),rete=reteStrade(s);
+   for(let i=0;i<lib.length;i++)for(let j=i+1;j<lib.length;j++){const a=lib[i],b=lib[j];if(dist(a,b)>E.RAGGIO||!collegati(rete,a,b))continue;
     for(const m of Object.keys(D.MERCI)){const d=Math.trunc(E.QUOTA*((a.scorte[m]||0)-(b.scorte[m]||0)));if(d){a.scorte[m]-=d;b.scorte[m]=(b.scorte[m]||0)+d}}}}
   // la memoria dei prezzi, per la freccia della tendenza
   for(const l of mk){const h=l.prod.h||(l.prod.h={});for(const m of Object.keys(D.MERCI)){const a=h[m]||(h[m]=[]);a.push(VEN.prezzo(s,l,m,1));if(a.length>E.STORIA)a.shift()}}}
@@ -210,7 +217,7 @@ Object.assign(VEN,(()=>{
  const giornoNuovo=s=>{snap=s.geo===2?s.l.map(l=>MERCATO[l.tipo]?Object.assign({},l.scorte):null):null;try{gn0(s)}finally{snap=null}};
  // freccia del mercato: -1 se il prezzo di oggi è sceso di oltre il 5% rispetto a sette giorni fa, 1 se è salito, 0 altrimenti (e nei mondi vecchi)
  function tendenza(s,lid,m){const l=s.l[lid],h=l&&l.prod&&l.prod.h&&l.prod.h[m];if(!h||h.length<2)return 0;const a=h[0],b=VEN.prezzo(s,l,m,1);return b>a*1.05?1:b<a*.95?-1:0}
- // quanto costa al giorno tenere la compagnia: paghe in monete, viveri e foraggio in razioni (il foraggio è la parte dei cavalli, che il passo 17 conta già a parte)
+ // quanto costa al giorno tenere la compagnia: paghe in monete, viveri (con la razione in più dei cavalieri) e foraggio (la parte dei cavalli) in razioni. Il foraggio ricopia la formula di 28kh (`giorno`, parte «foraggio»): se cambia là, va cambiata anche qui; test_ven_p36 li confronta
  function costoGiorno(s){const t=TU(s),U=uomini(t),mv=VEN.molt(s,'viveri',{p:t}),paghe=Math.round(VEN.paga(s)/P.PAGA_GIORNI),viveri=Math.ceil(U/6*mv);let foraggio=0;
   if(s.anno!=null&&VEN.stagione&&!s.prigioniero){const st=VEN.stagione(s),sc=((VDAT.DIFF.stag||{})[(s.opz&&s.opz.stag)||VDAT.OPZ0.stag]||{scarto:1}).scarto,cav=t.tr.reduce((a,e)=>a+(D.TR[e.t].c==='c'?e.n:0),0);
    foraggio=Math.round(cav*VDAT.STAG.FORAGGIO_QUOTA/6*Math.max(.05,1+(VDAT.STAG.EFF[st.k].foraggio-1)*sc)*consF(s))}
