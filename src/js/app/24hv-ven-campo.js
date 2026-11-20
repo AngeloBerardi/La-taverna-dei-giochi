@@ -8,9 +8,9 @@ const VenCampo=(()=>{
  // `rip` è il ripiego per un id sconosciuto (`ignota` di VEN.rg; come prima: assedio `fer`, campo `pre`, arena e mura `neu`); 'tu' resta quello di base, senza lo stendardo della corona.
  const rg0=f=>VEN.rg(f==='tu'||typeof Ven==='undefined'||!Ven.V?null:Ven.V.s,f);
  const rg=(f,rip)=>{const x=rg0(f);return x.ignota?rg0(rip||'neu'):x};
- const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti',tvT:-1,selR:null,gt:{},od:1,bz:{},fogOnd:false,dt:0,fit:true,lod:0,bl:null,piani:{},ripr:'regia',stacco:null,ultStacco:-99,lento:0,hot:[],tCap:0,lont:0,ultLont:0,grande:false,ALT_MIN:30,ALT_MAX:92};
+ const K={s:null,scene:null,cam:null,fuoco:{x:30,y:0,z:80},alt:38,segue:true,acc:0,pausa:false,vel:1,t:0,U:{},frecce:[],numeri:[],lampo:0,scossa:0,gruppo:'tutti',tvT:-1,selR:null,gt:{},od:1,bz:{},fogOnd:false,dt:0,fit:true,lod:0,bl:null,piani:{},ripr:'regia',stacco:null,ultStacco:-99,lento:0,hot:[],tCap:0,lont:0,ultLont:0,grande:false,ALT_MIN:30,ALT_MAX:92,colpi:[],piantate:[],caduti:0,_st:[],ultTapp:-9};
  // tavolo dello schieramento (passo 19): solo vista, vero a t===0 se la battaglia ha i reparti (`s.rep`); riparte da zero a ogni battaglia
- const rz=()=>{K.tvT=-1;K.selR=null;K.gt={};K.fogOnd=false;K.od=1;K.bz={};K.piani={};K._cen=null;K._lodP=-1;K._tv=false;K.fit=true;K.sigO=undefined};
+ const rz=()=>{K.ultTapp=-9;K.colpi=[];K.piantate=[];K.caduti=0;K._st=[];K.tvT=-1;K.selR=null;K.gt={};K.fogOnd=false;K.od=1;K.bz={};K.piani={};K._cen=null;K._lodP=-1;K._tv=false;K.fit=true;K.sigO=undefined};
  const tavolo=s=>!!(s&&s.rep&&s.t===0&&!s.fine&&s.pronto&&!s.pronto.a);
  const hh=(x,y,s)=>{let n=Math.imul(x|0,374761393)^Math.imul(y|0,668265263)^Math.imul(s|0,1274126177);n=Math.imul(n^(n>>>13),1274126177);n^=n>>>16;return(n>>>0)/4294967296};
  function apri(scheda,o){K.esterno=false;K.batt=null;K.seat=0;K.s=VCAM.nuovo(scheda,o);K.scheda=scheda;K.U={};K.frecce=[];K.numeri=[];K.acc=0;K.pausa=true;K.vel=1;K.t=0;K.gruppo='tutti';K.segue=true;K.ripr='regia';K.stacco=null;K.hot=[];K.ultStacco=-99;K.lento=0;K.tCap=0;K.finita=false;rz();scena();
@@ -21,7 +21,7 @@ const VenCampo=(()=>{
   const c=VCAM.capU(s,K.seat||0);if(c){K.fuoco.x=c.x;K.fuoco.z=c.y-9}K.ora=s.ora>=0?s.ora:s.notte?22.5:10+hh((s.seme0|0)&1023,1,2)*6}
  const CAPC=['#d98a1f','#2f9bd6','#b455c8','#3fb968'];
  // la scena si può rifare a battaglia in corso (contesto grafico perso): lo stato della battaglia non si tocca
- function scena(){const T=VenArte.T,A=VenArte,scheda=K.scheda;K.frecce=[];
+ function scena(){const T=VenArte.T,A=VenArte,scheda=K.scheda;K.frecce=[];K.piantate=[];
   // il campo può essere più grande di 60×100 (taglie della battaglia): terreno, alberi e bordi leggono `s.W`, `s.H`
   const C=Object.assign(Object.create(VCAM.C),{W:K.s.W||VCAM.C.W,H:K.s.H||VCAM.C.H}),ar=Math.max(1,(C.W+50)*(C.H+50)/(110*150));K.portone=K.abbattuto=null;
   if(K.scene)K.scene.traverse(q=>{if(q.geometry)q.geometry.dispose()});
@@ -152,10 +152,21 @@ const VenCampo=(()=>{
    if(tx)P.push({p,tx})}
   P.sort((a,b)=>a.p-b.p);for(const q of P.slice(0,2))Ven.avviso(q.tx)}
  const FAZ=(l)=>Object.assign({},rg(l==='a'?K.scheda.faza||'tu':K.scheda.fazb,"pre"),l==='a'?K.scheda.cola:K.scheda.colb);
- function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);parlano(ev);regiaEv(ev,s);for(const e of ev){
-   if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(b&&e.dan>0){b.lampo=K.t;if(ub){for(let k=0;k<(e.crit?5:2);k++)K.par.emetti(ub.x,1+Math.random()*.5,ub.y,{vx:(Math.random()-.5)*3,vy:2+Math.random()*2,vz:(Math.random()-.5)*3,g:9,s:.13,dur:.5,col:e.crit?'#ffe27a':'#ffffff'})}}
+ // polvere sotto cariche e cavalieri (passo 37): colore del terreno schiarito; in pioggia schizzi; con qualità bassa niente
+ const piove=()=>!!(K.sn&&K.sn.meteo==='pioggia');
+ function polvere(x,z,n){if(VenArte.qual()==='bassa')return;const R=Math.random,pi=piove(),c=pi?'#cfe2f6':K.scheda.bioma===1?'#ffffff':K.scheda.bioma===2?'#efe0a0':'#e6d8b4';
+  for(let k=0;k<n;k++)K.par.emetti(x+(R()-.5)*1.2,.1,z+(R()-.5)*1.2,pi?{vy:1.6,vx:(R()-.5)*2,vz:(R()-.5)*2,g:9,s:.1,dur:.35,col:c}:{vy:.5,s:.2,dur:.7,col:c,cresce:1.2})}
+ if(typeof Snd!=='undefined')for(const k of Object.keys(VAUD.TAPPETO))Snd.fx(k,VAUD.TAPPETO[k]);
+ const nuovoQ=u=>({f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9});
+ function eventi(ev){const s=K.s,mio=VCAM.capU(s,K.seat||0);parlano(ev);regiaEv(ev,s);
+  const forte=ev.filter(e=>e.t==='colpo'&&e.carica&&e.dan>0).length>=3;   // lampo e scossa solo per cariche da almeno 3 colpi
+  for(const e of ev){
+   if(e.t==='colpo'){const a=K.U[e.da],b=K.U[e.a],ub=s.u.find(u=>u.id===e.a);if(a&&!e.freccia)a.colpo=K.t;if(e.dan>0)K.colpi.push(K.t);
+    if(b&&e.dan>0){b.lampo=K.t;if(ub){
+     if(e.crit)for(let k=0;k<3;k++)K.par.emetti(ub.x+(Math.random()-.5)*.6,1.1+Math.random()*.5,ub.y+(Math.random()-.5)*.6,{vx:(Math.random()-.5)*4,vy:1+Math.random()*2,vz:(Math.random()-.5)*4,g:9,s:.3,dur:.034,col:'#ffffff'});   // scintilla bianca di 2 fotogrammi
+     if(e.carica)polvere(ub.x,ub.y,6)}}
     const cap=mio;if(ub&&cap&&(e.da===cap.id||e.a===cap.id)&&e.dan>0&&K.numeri.length<7)K.numeri.push({x:ub.x,z:ub.y,v:e.dan,t:K.t,cls:e.a===cap.id?'male':e.crit?'crit':''});
-    if(cap&&e.a===cap.id&&e.dan>0){K.scossa=.25}}
+    if(cap&&e.a===cap.id&&e.dan>0&&forte){K.scossa=.25}}
    else if(e.t==='tiro'){K.frecce.push({x0:e.x0,z0:e.y0,x1:e.x1,z1:e.y1,t0:K.t,dur:e.vt/10/K.vel,ok:e.colpito});const a=K.U[e.da];if(a)a.colpo=K.t}
    else if(e.t==='ko'){const u=s.u.find(u=>u.id===e.id);if(u){for(let k=0;k<6;k++)K.par.emetti(u.x+(Math.random()-.5),.2,u.y+(Math.random()-.5),{vy:.8,s:.22,dur:.8,col:'#d8c8a4',cresce:1.3});if(e.cap)K.lampo=.5}}
    else if(e.t==='grido'){K.lampo=.25;for(let k=0;k<26;k++){const an=k/26*6.28;K.par.emetti(e.x,.4,e.y,{vx:Math.cos(an)*7,vz:Math.sin(an)*7,vy:.4,s:.24,dur:.7,col:'#ffe27a'})}}
@@ -165,7 +176,9 @@ const VenCampo=(()=>{
    else if(e.t==='rotta')Ven.avviso(e.l==='a'?'I tuoi uomini sono in rotta!':'Il nemico è in rotta!');
    else if(e.t==='cap-ko')Ven.avviso(e.seat===(K.seat||0)?'Sei caduto: gli uomini combattono senza di te':'Un capitano è caduto!','male');
    else if(e.t==='fine')K.finita=true}
-  if(ev.length)VenAudio.campo(ev)}
+  if(forte)K.lampo=Math.max(K.lampo,.25);
+  if(ev.length){K.colpi=K.colpi.filter(t=>K.t-t<1);const lv=VAUD.livelloMischia(K.colpi.length),ora=K.t-K.ultTapp>=.9||K.t<K.ultTapp;   // il tappeto riparte al più ogni 0,9 s (la sua durata)
+   if(lv&&ora)K.ultTapp=K.t;VenAudio.campo(lv&&ora?ev.concat([{t:'mischia',liv:lv}]):ev)}}
  // il rettangolo di terreno che la camera vede, allargato di `m` (le cose alte e le loro ombre entrano dal bordo)
  const visto=m=>{const A=VenArte.A,asp=A.rw>2?(A.rw-2)/(A.rh-2):.5,hx=K.alt*asp/2+m,hz=K.alt/2/VenArte.SE+m;return[K.fuoco.x-hx,K.fuoco.x+hx,K.fuoco.z-hz,K.fuoco.z+hz]};
  // erba, alberi e sassi: nel buffer solo le istanze attorno alla camera; si rifà quando la camera esce dal rettangolo già pronto o lo vede molto più piccolo
@@ -229,25 +242,29 @@ const VenCampo=(()=>{
   // livello di dettaglio dall'altezza della camera: 0 vicino (<45), 1 medio, 2 lontano (>=80: vista del comandante). Al tavolo e sulla TV si vedono sempre le figure
   const lod=K.lod=(l=>tavolo(s)||(typeof ui!=='undefined'&&ui.tv)?Math.min(l,1):l)(K.alt<45?0:K.alt<80?1:2),bud={bassa:70,media:110}[VenArte.qual()]||1e9;
   K.ste.inizio();const dF=dt+(K._dtA||0);let cen=K._cen;
+  // i caduti restano a terra, al più 80: i più vecchi oltre il limite svaniscono in 1 s (`sv`)
+  {const kq=[];for(const u of s.u)if(u.st==='ko'){const q=K.U[u.id]||(K.U[u.id]=nuovoQ(u));if(q.koT==null)q.koT=K.t;kq.push(q)}
+   if(kq.length>80){kq.sort((a,b)=>b.koT-a.koT);for(let i=80;i<kq.length;i++)if(kq[i].sv==null)kq[i].sv=K.t}
+   K.caduti=kq.reduce((n,q)=>n+(q.sv==null?1:0),0)}
   const salta=lod===1&&K._lodP===1&&cen&&(K._fr=(K._fr|0)+1)%2===1;K._lodP=lod;
   if(lod===2){K.fig.inizio();K.fig.fine();K._dtA=0}
   else if(salta)K._dtA=dF;   // al livello medio le figure si aggiornano un fotogramma su due
-  else{K._dtA=0;cen=K._cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};K.fig.inizio();K.fig.livello(lod?1:0);{const dt=dF,V=visto(4),lim=tetto(s,V,bud);let caduti=0;
-  for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;if(u.l==='b'&&s.primo==='a'&&s.rep&&(K._tv||K.t<K.tvT))continue;let q=K.U[u.id];if(!q)q=K.U[u.id]={f:Math.random(),yaw:u.l==='a'?Math.PI:0,giu:0,colpo:-9,lampo:-9};
+  else{K._dtA=0;cen=K._cen={a:{f:[0,0,0],t:[0,0,0],c:[0,0,0]},b:{f:[0,0,0],t:[0,0,0],c:[0,0,0]}};K.fig.inizio();K.fig.livello(lod?1:0);{const dt=dF,V=visto(4),lim=tetto(s,V,bud),st=K._st=[],pS={};for(const u of s.u)if(u.st==='vivo'&&!u.cap&&pS[u.l+u.c]==null)pS[u.l+u.c]=u.id;   // la prima unità viva di ogni gruppo porta lo stendardo
+  for(let i=s.u.length-1;i>=0;i--){const u=s.u[i];if(u.st==='via')continue;if(u.l==='b'&&s.primo==='a'&&s.rep&&(K._tv||K.t<K.tvT))continue;let q=K.U[u.id];if(!q)q=K.U[u.id]=nuovoQ(u);
    const x=u.st==='ko'?u.x:u.px+(u.x-u.px)*al,z=u.st==='ko'?u.y:u.py+(u.y-u.py)*al,mosso=Math.hypot(u.x-u.px,u.y-u.py);
-   if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(++caduti>46&&q.giu>=1)continue}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
+   let fd=1;if(u.st==='ko'){q.giu=Math.min(1,q.giu+dt*3.2);if(q.sv!=null){fd=1-(K.t-q.sv);if(fd<=0)continue}}else{if(mosso>.02)q.f+=dt*(u.c==='c'||u.cav?3.2:2.6)*K.vel*(K.pausa?0:1);const ya=Math.atan2(u.fx,u.fy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*12)}
    const F=FAZ(u.l),tc=K.t-q.colpo,tf=(VDAT.TR[u.t]||{}).faz,xt=tf&&rg0(tf),FT=xt&&!xt.ignota?xt:F,mioL=u.l==='a';
    // chi sale una scala: la quota va dal piede al camminamento in SCALA istanti
    const sal=u.sal>s.t?Math.min(1,Math.max(0,1-(u.sal-s.t-1+al)/C.AS.SCALA)):-1;
    // fuori dall'inquadratura la figura non si disegna (e non conta nel tetto delle figure intere): conta solo per lo stendardo del reparto
    const fuori=!u.cap&&(x<V[0]||x>V[1]||z<V[2]||z>V[3]);if(fuori){if(u.st==='vivo'){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}continue}
-   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&tf!=="tu"?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id,liv:u.cap?0:(x-K.fuoco.x)*(x-K.fuoco.x)+(z-K.fuoco.z)*(z-K.fuoco.z)>lim[u.l]?2:lod?1:0});
-   if(u.st==='vivo'&&!u.cap){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++}
+   K.fig.metti({x,y:sal>=0?sal*C.AS.MURO_Q*C.TER.ALTO+.2:Math.max(-.4,K.alto(x,z)),z:sal>=0?z+.6-sal*1.4:z,yaw:q.yaw,sc:(u.cap||s.tipo==='arena'?1.75:VDAT.TR[u.t]&&VDAT.TR[u.t].capo?1.8:1.48)*fd,scuro:u.st==='ko'?.35:0,base:u.cap?null:mioL?'#f0a030':'#7a1c1c',col:u.cap?CAPC[u.seat||0]:mioL&&tf!=="tu"?FT.col:F.col,col2:u.cap?'#fff4d6':mioL?'#f0a030':F.col2,asp:u.cap?(u.asp||{}):u.asp||VDAT.aspetto(u.t),cav:u.cav||u.c==='c',fase:mosso>.02&&u.st!=='ko'?q.f:0,colpo:tc<.32?tc/.32:0,giu:q.giu,lampo:K.t-q.lampo<.09,seme:u.id,liv:u.cap?0:Math.max(u.st==='ko'?1:0,(x-K.fuoco.x)*(x-K.fuoco.x)+(z-K.fuoco.z)*(z-K.fuoco.z)>lim[u.l]?2:lod?1:0)});
+   if(u.st==='vivo'&&!u.cap){const g=cen[u.l][u.c];g[0]+=x;g[1]+=z;g[2]++;if(pS[u.l+u.c]===u.id)st.push([x,z,u.l,u.c,0]);if(u.l==='b'&&VDAT.TR[u.t]&&VDAT.TR[u.t].capo)st.push([x,z,u.l,u.c,1])}   // stendardo del gruppo; il comandante nemico lo ha grande
    if(u.st==='fuga'&&Math.random()<dt*2)K.par.emetti(x,.1,z,{vy:.4,s:.16,dur:.6,col:'#d8c8a4',cresce:1});
-   else if(mosso>.3&&Math.random()<dt*6)K.par.emetti(x,.1,z,{vy:.5,s:.18,dur:.7,col:K.scheda.bioma===1?'#ffffff':'#d8c8a4',cresce:1.2})}
+   else if(u.st==='vivo'&&(u.cav||u.c==='c')&&mosso>.3){q.pol=(q.pol||0)+dt*10*K.vel;if(q.pol>=6){q.pol=0;polvere(x,z,1)}}}   // un sbuffo ogni 6 istanti
   }K.fig.fine()}
   if(lod===2){K.bl=blocchi(s);blocchiMesh(K.bl);for(const b of K.bl)K.ste.metti(b.x,0,b.y,FAZ(b.l).col,3.2,K.t,b.r+(b.l==='a'?0:9))}
-  else{K.bl=null;blocchiMesh(null);if(cen)for(const l of['a','b'])for(const g of['f','t','c']){const c=cen[l][g];if(c[2]>1)K.ste.metti(c[0]/c[2],0,c[1]/c[2]+(l==='a'?1.2:-1.2),FAZ(l).col,1.8,K.t,g.charCodeAt(0)+(l==='a'?0:9))}}
+  else{K.bl=null;blocchiMesh(null);for(const q of K._st)K.ste.metti(q[0]-.7,Math.max(0,K.alto(q[0],q[1])),q[1]+.5,FAZ(q[2]).col,q[4]?2.8:1.5,K.t,q[3].charCodeAt(0)+(q[2]==='a'?0:9))}
   for(const id of s.capi){const q=s.u.find(u=>u.id===id);if(q&&q.st==='vivo'&&q!==cap)K.ste.metti(q.px+(q.x-q.px)*al-.9,0,q.py+(q.y-q.py)*al+.6,CAPC[q.seat||0],2.1,K.t,5+q.seat)}
   if(cap&&cap.st==='vivo'){const cx=cap.px+(cap.x-cap.px)*al,cz=cap.py+(cap.y-cap.py)*al;K.ste.metti(cx-.9,0,cz+.6,CAPC[cap.seat||0],2.3,K.t,3);K.anCap.visible=true;K.anCap.position.set(cx,.08,cz);
    if(cap.vx!=null){K.anMeta.visible=true;K.anMeta.position.set(cap.vx,.08,cap.vy);const sp=1+Math.sin(K.t*6)*.2;K.anMeta.scale.set(sp,sp,sp)}else K.anMeta.visible=false;
@@ -256,9 +273,12 @@ const VenCampo=(()=>{
   else{K.anCap.visible=K.anMeta.visible=K.anBers.visible=false}
   hudGruppo(s);K.ste.fine();
   // frecce ad arco
-  {const d=new T.Object3D();let n=0;for(let i=K.frecce.length-1;i>=0;i--){const f=K.frecce[i],q=(K.t-f.t0)/Math.max(.08,f.dur);if(q>=1){if(!f.ok)K.par.emetti(f.x1+(Math.random()-.5)*1.5,.1,f.z1+(Math.random()-.5)*1.5,{vy:.3,s:.1,dur:.4,col:'#cfc4a8'});K.frecce.splice(i,1);continue}
-    if(n>=90)continue;const L=Math.hypot(f.x1-f.x0,f.z1-f.z0),hm=1.3+L*.16,x=f.x0+(f.x1-f.x0)*q,z=f.z0+(f.z1-f.z0)*q,y=1.3+4*hm*q*(1-q)-q*.4,vy=4*hm*(1-2*q);
-    d.position.set(x,y,z);d.rotation.set(0,0,0);d.lookAt(x+(f.x1-f.x0),y+vy,z+(f.z1-f.z0));d.updateMatrix();K.fre.setMatrixAt(n++,d.matrix)}K.fre.count=n;K.fre.instanceMatrix.needsUpdate=true}
+  {const d=new T.Object3D();let n=0;for(let i=K.frecce.length-1;i>=0;i--){const f=K.frecce[i],q=(K.t-f.t0)/Math.max(.08,f.dur);if(q>=1){if(!f.ok&&VenArte.qual()!=='bassa'){K.par.emetti(f.x1+(Math.random()-.5)*1.5,.1,f.z1+(Math.random()-.5)*1.5,{vy:.3,s:.1,dur:.4,col:'#cfc4a8'});if(K.piantate.length>=30)K.piantate.shift();K.piantate.push({x:f.x1,z:f.z1,t:K.t,yaw:Math.atan2(f.x1-f.x0,f.z1-f.z0)})}K.frecce.splice(i,1);continue}
+    if(n>=60)continue;const L=Math.hypot(f.x1-f.x0,f.z1-f.z0),hm=1.3+L*.16,x=f.x0+(f.x1-f.x0)*q,z=f.z0+(f.z1-f.z0)*q,y=1.3+4*hm*q*(1-q)-q*.4,vy=4*hm*(1-2*q);
+    d.position.set(x,y,z);d.rotation.set(0,0,0);d.lookAt(x+(f.x1-f.x0),y+vy,z+(f.z1-f.z0));d.updateMatrix();K.fre.setMatrixAt(n++,d.matrix)}
+   // quelle mancate restano piantate a terra per 4 s
+   for(let i=K.piantate.length-1;i>=0;i--){const p=K.piantate[i];if(K.t-p.t>=4){K.piantate.splice(i,1);continue}if(n>=90)break;d.position.set(p.x,K.alto(p.x,p.z)+.3,p.z);d.rotation.set(.95,p.yaw,0,'YXZ');d.updateMatrix();K.fre.setMatrixAt(n++,d.matrix)}
+   K.fre.count=n;K.fre.instanceMatrix.needsUpdate=true}
   // fuochi, pioggia, neve
   for(const f of K.fuochi)if(Math.random()<dt*14)K.par.emetti(f[0]+(Math.random()-.5)*.6,f[1]+.4,f[2]+(Math.random()-.5)*.6,{vy:2.2,s:.42,dur:.8,col:'#ffd45a',col2:'#d8421c'});
   K.luci.forEach((p,i)=>{p.intensity=1.5+Math.sin(K.t*9+i*2)*.25});
