@@ -27,3 +27,14 @@ Quando si accende, per chi gioca cambia:
 - morale per reparto, fatica e frecce contate;
 - un signore o la Volpe portano in campo il loro comandante;
 - ogni compagno porta una dote ai suoi uomini vicini; in compagnia ogni capitano preme il suo «Pronto».
+
+## Rilascio 3: comandanti (in attesa, interruttore spento)
+
+Il passo 34 ha preparato l'accensione (`VDAT.ACCESO.consiglio`, impronta `docs/passi/impronte/consiglio.txt`, `tools/avventura/torneo-comandanti.js`) ma l'interruttore resta spento: acceso, falliscono quattro test e il torneo esce dai limiti (scala 1>0 78%, 2>1 55%, 3>2 57%, 4>3 52%; diagonale in regola). Dettagli nell'issue del rilascio.
+
+Le regole dei passi 12, 21, 25, 30, 32 si copiano in `docs/rules/ventura.md` e `RULES.ventura` all'accensione.
+
+Quando si accende, per chi gioca cambia:
+- rango dei comandanti (da sprovveduto a leggendario) visibile prima dello scontro;
+- nemici che pensano per rango, dottrina e carattere: alture, riserve, rotazioni, trappole, memoria delle tue abitudini;
+- prima della battaglia: esploratori, scelta del campo, alba, notte, imboscata, pali, retroguardia.
