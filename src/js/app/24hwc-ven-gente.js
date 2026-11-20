@@ -44,7 +44,7 @@ const VenGente=(()=>{
   else if(k==='benedizione'){if(l.tipo!=='monastero')return null;ti='Benedizione';
    R=[['Cosa','Una benedizione per tutta la compagnia.'],['Costo',mn(80)+' di offerta; ne hai '+n0(oro)+'.'],['Entro quando','Vale subito; si può chiedere di nuovo tra sette giorni.'],['Cosa rischi','Niente: l\'offerta non si restituisce.'],['Cosa cambia','Il morale sale, lo slancio anche; monete da '+n0(oro)+' a '+n0(Math.max(0,oro-80))+'.']];
    ok={t:'Paga · 80 m',v:'fai:benedizione',no:l.bened>g||oro<80,p:l.bened>g?'Già benedetti: tornate tra '+(l.bened-g)+' giorni':oro<80?'Servono 80 monete':''}}
-  else if(k==='voci'){if(l.tipo!=='locanda')return null;ti='Voci';
+  else if(k==='voci'){if(l.tipo!=='locanda'||!s.l.some(q=>q.noto===false&&q.g.length))return null;ti='Voci';   // senza luoghi nascosti l'oste non ha niente da dire: la scheda si chiude da sola
    R=[['Cosa','Un giro di vino, e '+(l.oste?l.oste:'l\'oste')+' racconta dove andare.'],['Costo',mn(25)+'; ne hai '+n0(oro)+'.'],['Entro quando','Subito.'],['Cosa rischi','Può non avere storie nuove: il vino si paga lo stesso.'],['Cosa cambia','Un posto nascosto finisce sulla carta, e sai quando è il prossimo torneo.']];
    ok={t:'Paga · 25 m',v:'fai:voci',no:oro<25,p:oro<25?'Servono 25 monete':''}}
   else return null;

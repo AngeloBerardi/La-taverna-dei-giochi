@@ -78,7 +78,7 @@ const VenLuoghi=(()=>{
   if(mio&&mura)T.push(tes('scudo','Guarnigione','sub:guarn',{d:uom+' uomini a guardia'}));
   if(l.tipo==='porto')T.push(tes('globo','Rotte','sub:navi',{d:'Un passaggio per mare verso un altro porto'}));
   if(l.tipo==='monastero'){T.push(tes('cuore','Infermeria','sub:term:cura',{no:!fer,s:fer?fer*4+' m':'Nessun ferito',d:fer?fer+' feriti: '+fer*4+' monete di offerta':'Nessun ferito da curare'}));T.push(tes('sole','Benedizione','sub:term:benedizione',{no:l.bened>g,s:l.bened>g?'Tra '+(l.bened-g)+' giorni':'80 m',d:l.bened>g?'Già ricevuta: tornate tra qualche giorno':'Ottanta monete di offerta'}))}
-  if(l.tipo==='locanda')T.push(tes('chat','Voci','sub:term:voci',{s:'25 m',d:'Un giro di vino (25 monete) e l\'oste racconta dove andare'}));
+  if(l.tipo==='locanda'){const nasc=s.l.some(q=>q.noto===false&&q.g.length);T.push(tes('chat','Voci','sub:term:voci',{no:!nasc,s:nasc?'25 m':'Niente di nuovo',d:nasc?'Un giro di vino (25 monete) e l\'oste racconta dove andare':'L\'oste non ha più storie da raccontare'}))}
   if(cons)T.push(tes('pin','Consegna','sub:term:consegna',{dot:1,s:cons.premio+' m',d:VEN.titoloInc(s,cons)+', '+cons.premio+' monete'}));
   if(q&&!q.preso)T.push(tes('diario','Incarico','sub:term:incarico',{dot:ha('incarico'),s:q.premio+' m · '+q.giorni+' g',d:VenGente.descInc(s,q)+'. '+q.premio+' monete, '+q.giorni+' giorni'}));
   if(!(l.tipo==='villaggio'&&!mio))T.push(tes('letto','Riposo','sub:term:riposa',{s:mio?'Gratis':VenGente.costoRiposo(s,l)+' m',d:'Otto ore: metà dei feriti torna in piedi.'+(mio?'':' '+Math.ceil(VEN.uomini(t)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5))+' monete.')}));
