@@ -31,6 +31,7 @@ Prima di una battaglia contro un signore, un capobanda o la Volpe, il capitano p
 3. Il duello è una battaglia `tipo:'arena'` con un solo avversario: il capitano che sfida (statistiche di `statArena`) contro il capo (`VDAT.SIG_CAMPO`, capibanda e Volpe dai loro dati), stessa resa dei tornei.
 4. **Esiti**: vinto → `s.incontro.sfida='vinta'`: fama +5, e alla battaglia morale nemico −20 e il capo parte ferito al 50%; contro **predoni** la banda si arrende: niente battaglia, metà bottino come una vittoria (`esito` con una battaglia vinta senza caduti) e il capobanda prigioniero. Perso → capitano al 50% fino a sera (`s.ferito`, come in lizza) e morale proprio −15; si torna all'incontro (puoi ancora ritirarti o pagare).
 5. In compagnia sfida il capitano del telefono che tocca (`seat`); gli altri vedono il duello.
+   **Limite attuale:** la scelta non porta il posto (`VenStanza.act` chiama `VEN.scegli(w,v)` senza `seat`, e il duello ha un solo posto). Finché un passo nominato non lo cambia, c'è un solo bottone (capitano 0) e il motore capisce già `sfida:K`.
 
 ## Stato e contratti
 
@@ -57,7 +58,8 @@ Nuovo `tests/test_ven_p35.js`: prudente rifiuta; avido chiede la posta; capitano
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Prima di una battaglia contro un signore, un capobanda o la Volpe, il tuo capitano può sfidarne il capo a duello, a piedi e davanti alle schiere. Non tutti accettano: il prode non rifiuta mai, il crudele solo se non sei più forte di lui, l'avido vuole cento monete in palio (le paghi solo se perdi), il prudente rifiuta, e un capobanda accetta sempre. Chi rifiuta davanti ai suoi perde un po' di coraggio.
+Se vinci, guadagni fama e la schiera nemica entra in battaglia tremante, col capo ferito; contro i predoni la banda getta le armi, ti lascia metà del bottino e il capobanda finisce in catene. Se perdi, il capitano combatte ferito fino a sera e le tue schiere partono scoraggiate, ma torni alla scelta: puoi ancora ritirarti o pagare. Si sfida una volta sola per incontro e mai durante un assedio.
 
 ## Fuori scopo
 
