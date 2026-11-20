@@ -1,14 +1,14 @@
 // Passo 35: la sfida al capo (accetta?, duello, resa dei predoni, morale e capo ferito, capitano del telefono che tocca, simulazione).
 const assert = require('assert'), carica = require('./carica.js');
 const F = ['27-eroi.js'].concat(carica.VEN_FILES.slice(0, 1), ['27p-avv-compagni.js', '27q-avv-racconto.js'], carica.VEN_FILES.slice(1));
-const { VEN, VDAT, VCAM } = carica.multi(F, '({ VEN, VDAT, VCAM })');
+const { VEN, VDAT, VCAM, VST } = carica.multi(F, '({ VEN, VDAT, VCAM, VST })');
 const J = x => JSON.stringify(x), K = x => JSON.parse(J(x)), S = VDAT.SFIDA;
 VDAT.ACCESO.consiglio = true;
 const base = VEN.nuovo(3); base.tregua = 1e9; base.dentro = -1; base.davanti = -1;
 const BEN = { arma: 'spadone', armatura: 'maglia', scudo: null, elmo: 'bacinetto' };
 // un incontro con un signore (tratto voluto) o con una banda di predoni; il capitano può avere livello e armi
 function mk(o) {
-  o = o || {}; const s = K(base), tu = VEN.TU(s), cap = VEN.capi(s)[0];
+  o = o || {}; const s = o.w || K(base), tu = VEN.TU(s), cap = VEN.capi(s)[0];
   if (o.liv != null) cap.liv = o.liv; if (o.pr != null) cap.ab.prodezza = o.pr; if (o.eq) Object.assign(cap.eq, o.eq);
   const p = s.p.find(q => q.k === 'sig'); p.dentro = -1; p.x = tu.x + .3; p.y = tu.y; p.via = []; p.sc = 0;
   if (o.tratto) s.sig[p.sig].tratto = o.tratto;
@@ -62,7 +62,7 @@ const sfide = a => a.scelte.filter(x => /^sfida/.test(x.k));
   assert.strictEqual(s.ferito, VEN.giorno(s)); assert.strictEqual(s.ult, r.out); assert.strictEqual(r.out.morti, 0, 'nessun uomo cade in duello');
   assert.strictEqual(VEN.campo(s).tipo, 'campo', 'dopo il duello la battaglia è quella vera'); assert.strictEqual(sfide(VEN.anteprima(s)).length, 0);
   // il capitano ferito combatte a metà
-  const m = VEN.campo(s); assert.strictEqual(m.cap.pf, Math.max(1, Math.round(VEN.statCap ? VEN.statCap(cap).pf * .5 : 0)));
+  const m = VEN.campo(s); assert.strictEqual(m.cap.pf, Math.max(1, Math.round(VEN.statCap(cap).pf * .5)));
   // puoi ancora ritirarti
   assert(VEN.scegli(s, 'fuggi').s); assert.strictEqual(s.incontro, null);
 }
@@ -94,12 +94,13 @@ const sfide = a => a.scelte.filter(x => /^sfida/.test(x.k));
 
 // ---- vittoria contro i predoni: la banda si arrende, niente battaglia
 {
-  const { s, tu, p } = mk({ pre: 1 }), v0 = s.stat.vinte, o0 = tu.oro, f0 = s.fama, pid = p.id, nPrig = s.prig.length; VEN.scegli(s, 'sfida');
+  const { s, tu, p } = mk({ pre: 1 }); tu.merci.grano = 0; p.porta = { m: 'grano', q: 9 }; const v0 = s.stat.vinte, o0 = tu.oro, f0 = s.fama, pid = p.id, nPrig = s.prig.length; VEN.scegli(s, 'sfida');
   // il bottino intero, per confronto: stessa partita con una vittoria normale
-  const w = mk({ pre: 1 }); w.s.incontro.sfida = 'vinta'; const intero = VEN.esito(w.s, { vince: 'a', cad: [] }).out.oro;
+  const w = mk({ pre: 1 }); w.s.incontro.sfida = 'vinta'; const wi = VEN.esito(w.s, { vince: 'a', cad: [] }).out, intero = wi.oro, famaIntera = wi.fama;
   const r = VEN.esito(s, { vince: 'a', cad: [] }); assert(r.s); assert.strictEqual(r.out.sfida, 'resa'); assert.strictEqual(s.incontro, null, 'nessuna battaglia');
   assert.strictEqual(s.stat.vinte, v0 + 1); assert.strictEqual(r.out.oro, intero - Math.floor(intero * .5)); assert.strictEqual(tu.oro, o0 + r.out.oro);
-  assert(s.fama >= f0 + S.FAMA * 2, 'fama del duello e della vittoria'); assert(s.prig.length > nPrig, 'il capobanda è prigioniero'); assert(!s.p.some(q => q.id === pid && q.tr.length), 'i predoni sono dispersi');
+  assert.strictEqual(s.fama, f0 + famaIntera + S.FAMA, 'fama: vittoria normale più quella del duello, una volta sola'); assert.strictEqual(r.out.fama, famaIntera + S.FAMA, 'il riepilogo dice quanto è entrato');
+  assert.strictEqual(r.out.bottino.length, 1); assert.strictEqual(r.out.bottino[0][1], 9 - Math.floor(9 * .5), 'metà anche delle merci'); assert.strictEqual(tu.merci.grano, r.out.bottino[0][1]); assert(s.prig.length > nPrig, 'il capobanda è prigioniero'); assert(!s.p.some(q => q.id === pid && q.tr.length), 'i predoni sono dispersi');
   assert(s.prig.some(e => /^cb_/.test(e.t)));
 }
 // il covo: il capobanda è dentro e la sfida lo butta fuori senza assalto
@@ -116,14 +117,22 @@ const sfide = a => a.scelte.filter(x => /^sfida/.test(x.k));
   const sc = VEN.campo(s); assert.strictEqual(sc.b[0].st.pf, VDAT.VOLPE_CAMPO.pf); assert.strictEqual(sc.nomb, 'La Volpe Rossa');
 }
 
-// ---- compagnia: sfida il capitano del telefono che tocca
+// ---- compagnia: un solo bottone (capitano 0) finché la scelta non porta il posto; `sfida:K` resta nel motore; i due telefoni vedono lo stesso stato
 {
   const { s } = mk({ tratto: 'prode' }); s.soci = [VEN.nuovoCap('Bruno')]; s.soci[0].liv = 3;
-  const a = VEN.anteprima(s), b = sfide(a); eq(b.map(x => x.k), ['sfida', 'sfida:1']); assert(/Bruno/.test(b[1].tx));
+  eq(sfide(VEN.anteprima(s)).map(x => x.k), ['sfida'], 'nessun bottone per il capitano di un altro telefono');
   assert(VEN.scegli(s, 'sfida:1').s); assert.strictEqual(s.incontro.sfk, 1); const sc = VEN.campo(s); assert.strictEqual(sc.cap.nome, 'Bruno'); assert.strictEqual(sc.capi.length, 1);
   const t = mk({ tratto: 'crudele', liv: 5 }); t.s.soci = [VEN.nuovoCap('Bruno')]; t.s.soci[0].liv = 9;   // il crudele accetta il primo capitano e rifiuta il secondo
   assert(VEN.scegli(t.s, 'sfida:1').s); assert.strictEqual(t.s.incontro.sfida, 'rifiutata');
   const u = mk({ tratto: 'crudele', liv: 5 }); u.s.soci = [VEN.nuovoCap('Bruno')]; u.s.soci[0].liv = 9; assert(VEN.scegli(u.s, 'sfida').s); assert.strictEqual(u.s.incontro.sfida, 'duello');
+  // dalla stanza: la stessa mossa su due copie dello stato dà lo stesso stato, dal posto 0 come dal posto 1
+  const G = VST.nuova(2, ['Alba', 'Bruno'], { seme: 3 }); G.w.tregua = 1e9; G.w.dentro = -1; G.w.davanti = -1; mk({ w: G.w, tratto: 'prode' });
+  const m = (g, seat, a) => VST.act(g, Object.assign({ seat, fino: G.w.t }, a));
+  for (const seat of [0, 1]) {
+    const x = m(K(G), seat, { t: 'scegli', v: 'sfida' }), y = m(K(G), seat, { t: 'scegli', v: 'sfida' }); assert(!x.err, x.err); eq(x.s, y.s); assert.strictEqual(x.s.w.incontro.sfida, 'duello');
+    const z = m(x.s, seat, { t: 'scegli', v: 'attacca' }), z2 = m(K(x.s), seat, { t: 'scegli', v: 'attacca' }); assert(!z.err, z.err); eq(z.s, z2.s); assert.strictEqual(z.s.b.c.tipo, 'arena');
+    const c = m(z.s, 0, { t: 'b-cap', o: { x: 50, y: 20 } }); assert(!c.err, c.err); eq(c.s, m(K(z.s), 0, { t: 'b-cap', o: { x: 50, y: 20 } }).s);
+  }
 }
 
 // ---- equilibrio: un capitano di livello 8 ben armato batte un capobanda, uno di livello 1 no (30 semi)

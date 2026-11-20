@@ -6,7 +6,7 @@
    `VEN.sfidaOk(s,{posta,k})` → {ok,f:[{n,v}],tx,err?}: il conto in chiaro dell'accettazione, senza dadi.
    Motore puro: niente Math.random, Date.now, pow/exp/log né trigonometria. */
 Object.assign(VDAT,{SFIDA:{
- POSTA:100,LIV_CRUDELE:5,FAMA:5,                    // l'avido accetta se metti in palio 100 monete (le paga chi perde); il crudele conta per sé il livello 5
+ POSTA:100,LIV_CRUDELE:5,FAMA:5,                    // l'avido accetta se metti in palio 100 monete (le paghi solo se perdi); il crudele conta per sé il livello 5
  MOR_VINTA:-20,MOR_PERSA:-15,MOR_RIFIUTO:-10,       // morale iniziale: del nemico dopo un duello vinto, del tuo dopo uno perso, del nemico se rifiuta davanti ai suoi
  CAPO_FERITO:.5,PERSA_PF:.5,                        // il capo sconfitto parte con la metà della vita; chi perde combatte a metà fino a sera
  BANDA_RESA:.5}});                                  // contro i predoni la banda si arrende: metà del bottino di una vittoria
@@ -32,7 +32,7 @@ Object.assign(VEN,(()=>{const{D,L,MURA,P,TU,aggiungi,capi,giorno,limitePrig}=VEN
   if(t==='prode')return{ok:true,f:[{n:'Prode: non rifiuta una sfida',v:1}],tx:'«Una sfida! Era ora.»'};
   if(t==='crudele'){const suo=c.sg.liv!=null?c.sg.liv:S.LIV_CRUDELE;f.push({n:'Livello suo',v:suo},{n:'Livello di '+cap.nome,v:-cap.liv});const ok=suo>=cap.liv;
    return{ok,f,tx:ok?'«Ti spezzo davanti a tutti.»':'«Non perdo tempo con chi ne sa più di me.»'}}
-  if(t==='avido'){const ok=!!o.posta;return{ok,f:[{n:'Posta in palio (la paga chi perde)',v:ok?S.POSTA:0},{n:'Posta chiesta',v:-S.POSTA}],tx:ok?'«Cento monete? Affare fatto.»':'«Per l\'onore non mi muovo. Metti cento monete sul tavolo e ne parliamo.»',posta:S.POSTA}}
+  if(t==='avido'){const ok=!!o.posta;return{ok,f:[{n:'Posta in palio (la paghi solo se perdi)',v:ok?S.POSTA:0},{n:'Posta chiesta',v:-S.POSTA}],tx:ok?'«Cento monete? Affare fatto.»':'«Per l\'onore non mi muovo. Metti cento monete sul tavolo e ne parliamo.»',posta:S.POSTA}}
   return{ok:false,f:[{n:'Prudente: non rischia la testa',v:-1}],tx:'«Non rischio la testa per il tuo orgoglio.»'}}   // prudente (e ogni indole che non conosciamo)
  // ---------- il duello: la scheda dell'arena ----------
  function statCapo(s,c){const base=c.k==='sig'?VDAT.SIG_CAMPO:c.k==='riv'?VDAT.VOLPE_CAMPO:c.cb?D.TR[c.cb.id]:null,r=VEN.rg(s,c.faz);
@@ -50,9 +50,11 @@ Object.assign(VEN,(()=>{const{D,L,MURA,P,TU,aggiungi,capi,giorno,limitePrig}=VEN
    if(inc.sfida==='duello')for(const x of a.scelte){if(x.k==='attacca'){x.tx='Combatti il duello';x.info='Davanti alle schiere, a piedi, uno contro uno.'}else if(x.k==='auto'){x.tx='Risolvi il duello';x.info='Lasci decidere ai dadi.'}}
    return}
   const c=capoDi(s);if(!c||c.assedio)return;const cs=capi(s),oro=TU(s).oro;
-  cs.forEach((cap,k)=>{const o=sfidaOk(s,{k,posta:c.k==='sig'&&c.sg.tratto==='avido'}),posta=c.k==='sig'&&c.sg.tratto==='avido';
-   const tx=(cs.length>1?'Sfida con '+cap.nome:'Sfida il capo');const conto=o.f.map(x=>x.n+(x.v?' ('+(x.v>0?'+':'')+x.v+')':'')).join(' · ');
-   const info='Duello a piedi, davanti alle schiere. '+(posta?'Metti in palio '+S.POSTA+' monete: le paga chi perde. ':'')+conto+'.';
+  // un solo bottone, per il capitano 0: la scelta non porta il posto di chi tocca (`VenStanza.act` chiama `VEN.scegli(w,v)` senza `seat`), quindi non si può dare a ogni telefono il suo.
+  // `sfida:K` resta pronto nella scelta per quando il posto arriverà (vedi la PR del passo 35).
+  cs.slice(0,1).forEach((cap,k)=>{const o=sfidaOk(s,{k,posta:c.k==='sig'&&c.sg.tratto==='avido'}),posta=c.k==='sig'&&c.sg.tratto==='avido';
+   const tx='Sfida il capo';const conto=o.f.map(x=>x.n+(x.v?' ('+(x.v>0?'+':'')+x.v+')':'')).join(' · ');
+   const info='Duello a piedi, davanti alle schiere. '+(posta?'Metti in palio '+S.POSTA+' monete: le paghi solo se perdi. ':'')+conto+'.';
    const ok=!posta||oro>=S.POSTA;a.scelte.push({k:['sfida'].concat(posta?['p']:[],k?[k]:[]).join(':'),tx,info,ok,perche:ok?undefined:'Servono '+S.POSTA+' monete',oro:posta?S.POSTA:undefined})})});
  // ---------- la scelta ----------
  VEN.aggancia('scelta',(s,v)=>{if(typeof v!=='string'||v.split(':')[0]!=='sfida'||!attivo())return;if(s.rac&&s.rac.scena)return{err:'Prima rispondi'};
@@ -63,7 +65,8 @@ Object.assign(VEN,(()=>{const{D,L,MURA,P,TU,aggiungi,capi,giorno,limitePrig}=VEN
   if(!o.ok){inc.sfida='rifiutata';L(s,c.nome+' rifiuta la sfida: '+o.tx,'male');return{s}}
   inc.sfida='duello';inc.sfk=k;inc.posta=posta?S.POSTA:0;L(s,cap.nome+' sfida '+c.nome+' davanti alle schiere: '+o.tx,'guerra');return{s}});
  // ---------- la scheda: il duello, poi la battaglia vera ----------
- // `capoB` ferito: 28kr lo assegna dopo di noi (con `true` o `'volpe'`); per non farci sovrascrivere lo teniamo come proprietà che ignora le riassegnazioni
+ // `capoB` ferito: 28kr lo assegna dopo di noi (con `true` o `'volpe'`); per non farci sovrascrivere lo teniamo come proprietà che ignora le riassegnazioni.
+ // VINCOLO: dipende da come 28kr scrive `sc.capoB` (una semplice assegnazione); chi tocca 28kr deve rileggere questo punto (e il test p35 «anche se 28kr gli riassegna `capoB`»)
  function capoFerito(s,sc,c){if(!VDAT.ACCESO.grandi||!c||c.k==='pre')return;const base=c.k==='riv'?VDAT.VOLPE_CAMPO:VDAT.SIG_CAMPO,v=Object.assign({},c.k==='riv'?base:null,{pf:Math.max(1,Math.round(base.pf*S.CAPO_FERITO))});
   Object.defineProperty(sc,'capoB',{get:()=>v,set:()=>{},enumerable:true,configurable:true})}
  VEN.aggancia('scheda',(s,sc)=>{if(!attivo()||!sc||!s.incontro)return;const inc=s.incontro;if(inc.tipo==='arena')return;
@@ -78,7 +81,10 @@ Object.assign(VEN,(()=>{const{D,L,MURA,P,TU,aggiungi,capi,giorno,limitePrig}=VEN
   if(vinto){inc.sfida='vinta';s.fama+=S.FAMA;out.fama=S.FAMA;s.stat.sfide=(s.stat.sfide||0)+1;
    if(c.k==='pre'){   // la banda getta le armi: una vittoria senza caduti, con metà del bottino, e il capobanda in catene
     L(s,cap.nome+' batte '+c.nome+': i predoni gettano le armi.','bene');const r=VEN.esito(s,{vince:'a',cad:[]});if(r.err)return r;
-    const o=r.out,meta=Math.floor(o.oro*(1-S.BANDA_RESA));tu.oro-=meta;o.oro-=meta;s.fama+=S.FAMA;o.fama+=S.FAMA;o.sfida='resa';
+    const o=r.out,tolto=q=>Math.floor(q*(1-S.BANDA_RESA)),meta=tolto(o.oro);tu.oro-=meta;o.oro-=meta;o.fama+=S.FAMA;o.sfida='resa';   // la fama del duello è già in `s.fama` (riga sopra): qui solo nel riepilogo
+    for(const b of o.bottino){const g=tolto(b[1]);b[1]-=g;tu.merci[b[0]]=Math.max(0,(tu.merci[b[0]]||0)-g)}   // metà anche delle merci e degli oggetti
+    for(let n=tolto(o.oggetti.length);n>0;n--){const id=o.oggetti.pop(),i=tu.zaino.lastIndexOf(id);if(i>=0)tu.zaino.splice(i,1)}
+    o.bottino=o.bottino.filter(b=>b[1]>0);
     if(s.prig.reduce((x,e)=>x+e.n,0)<limitePrig(s)){aggiungi(s.prig,c.cb.id,1);o.prig++;L(s,c.nome+' è tuo prigioniero.','bene')}
     return r}
    L(s,cap.nome+' batte '+c.nome+' in duello (+'+S.FAMA+' fama): la sua schiera trema.','bene')}
