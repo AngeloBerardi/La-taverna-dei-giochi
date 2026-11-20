@@ -3,8 +3,9 @@
 //  - la curva dei prezzi (28 valori ≈ q^0,6) è crescente e il prezzo resta tra 0,4× e 3× la base;
 //  - scorte intere e limitate, stesso risultato su due copie (ripetibile), salvataggio che si riapre;
 //  - una razzia fa salire il grano della città vicina di almeno il 20% entro 7 giorni, e dopo 30 giorni di pace il prezzo è tornato entro il 10%;
-//  - in autunno il grano costa meno che in inverno, in 6 semi su 6;
-//  - un esercito da 150 costa al giorno più di 3 volte uno da 50; la quota di bottino delle truppe scelte; la fame dell'assedio;
+//  - in autunno le scorte di grano dei villaggi sono più alte (la curva dei prezzi più bassa) che in inverno, in 6 semi su 6, senza il moltiplicatore di stagione dei prezzi;
+//  - un esercito da 150 costa al giorno più di 3 volte uno da 50; `costoGiorno` coincide con i consumi veri di un giorno (cavalieri e fanti, in tutte le stagioni); la quota di bottino delle truppe scelte;
+//  - assedio: la città non consuma più al ritmo normale (solo la guarnigione mangia) e senza cibo la guarnigione muore di fame; il mercato regionale scambia solo tra luoghi collegati da strada;
 //  - la freccia della tendenza e il segnale «Incarico» (solo se paga almeno 1,3 volte la media di quelli che conosci).
 const assert = require('assert');
 const carica = require('./carica.js');
@@ -78,12 +79,14 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   avanza(t, 22, 40); assert(V.tendenza(t, c.id, 'grano') <= 0, 'finito il rialzo di guerra il prezzo non sale più');
 }
 
-// ---- stagioni: il grano costa meno in autunno che in inverno ----
+// ---- stagioni: i villaggi producono di più in autunno che in inverno ----
+// Si confrontano le scorte e la curva dei prezzi (`curvaEco`), che non contiene il moltiplicatore di stagione dei prezzi (grano ×0,7 in autunno, ×1,4 in inverno, passo 17):
+// prova quindi la produzione stagionale del passo 36 (`E.STAG`), non quel moltiplicatore.
 {
   for (const seme of [3, 5, 11, 29, 58, 77]) {
-    const s = mondo(seme), cit = s.l.filter(l => l.tipo === 'citta'), media = () => cit.reduce((a, l) => a + V.prezzo(s, l, 'grano', 1), 0) / cit.length;
-    avanza(s, 2, 70); const aut = media(); avanza(s, 71, 100); const inv = media();
-    assert(aut < inv, 'seme ' + seme + ': grano in autunno ' + aut.toFixed(1) + ' contro inverno ' + inv.toFixed(1));
+    const s = mondo(seme), vil = s.l.filter(l => l.tipo === 'villaggio'), media = () => vil.reduce((a, l) => a + V.curvaEco(s, l, 'grano'), 0) / vil.length, scorta = () => vil.reduce((a, l) => a + l.scorte.grano, 0) / vil.length;
+    avanza(s, 2, 84); const aut = media(), sa = scorta(); avanza(s, 85, 112); const inv = media(), si = scorta();
+    assert(sa > si && aut < inv, 'seme ' + seme + ': a fine autunno scorte ' + sa.toFixed(1) + ' e curva ' + aut.toFixed(3) + ', a fine inverno scorte ' + si.toFixed(1) + ' e curva ' + inv.toFixed(3));
   }
 }
 
@@ -97,9 +100,15 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   assert(c150.c.paghe > 3 * c50.c.paghe, 'le paghe crescono più che in proporzione');
   assert.strictEqual(V.paga(s), Math.round(150 * D.TR[t2].paga * 2 * (1 + .02 * 110)), 'paga per truppa × (1 + 0,02 × uomini oltre i 40)');
   tu.tr = [{ t: t2, n: 40, f: 0, xp: 0 }]; assert.strictEqual(V.paga(s), 40 * D.TR[t2].paga * 2, 'fino a 40 uomini nessun aumento');
-  // i cavalieri: la parte dei cavalli sta a parte
+  // i cavalieri: la parte dei cavalli sta a parte (passo 17: in tutto una razione per cavaliere, metà sua e metà del cavallo; il «doppio» della decisione 4 è in sospeso, vedi la PR)
   tu.tr = [{ t: cav, n: 60, f: 0, xp: 0 }]; const cc = V.costoGiorno(s); assert(cc.foraggio > 0 && cc.viveri > 0, 'cavalieri: viveri e foraggio ' + JSON.stringify(cc));
-  tu.tr = [{ t: t2, n: 60, f: 0, xp: 0 }]; assert.strictEqual(V.costoGiorno(s).foraggio, 0, 'a piedi niente foraggio');
+  tu.tr = [{ t: t2, n: 60, f: 0, xp: 0 }]; const cf = V.costoGiorno(s); assert.strictEqual(cf.foraggio, 0, 'a piedi niente foraggio');
+  // `costoGiorno` coincide con ciò che si consuma davvero in un giorno (viveri e foraggio tolti dalla scorta), in tutte le stagioni
+  const mangia = (s0, t, n) => { const x = copia(s0), p = V.TU(x); x.dentro = -1; x.davanti = -1; x.prigioniero = null; p.tr = [{ t, n, f: 0, xp: 0 }]; p.merci = { grano: 500 }; p.mor = 100; x.tregua = 1e9;
+    const c = V.costoGiorno(x); giorno(x, V.giorno(x) + 1); V.giornoNuovo(x); return { vero: 500 - (p.merci.grano || 0), conto: c.viveri + c.foraggio }; };
+  for (const g of [10, 40, 70, 100]) { const x = mondo(3); giorno(x, g);
+    for (const [t, n] of [[cav, 60], [t2, 60], [cav, 7]]) { const r = mangia(x, t, n); assert(Math.abs(r.vero - r.conto) <= 1, 'giorno ' + g + ', ' + t + ' x' + n + ': consumo vero ' + r.vero + ' contro costoGiorno ' + r.conto); } }
+
   // le leve: avara paga di più, generosa di meno
   const gen = mondo(3, { eco: 'generosa' }), ava = mondo(3, { eco: 'avara' });
   for (const x of [gen, ava]) { V.TU(x).tr = [{ t: t2, n: 60, f: 0, xp: 0 }]; for (const l of x.l) if (l.faz === 'tu') l.faz = 'neu'; }
@@ -125,6 +134,17 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   assert.strictEqual(c.scorte.grano, 0, 'sotto assedio non si produce');
   const d = mondo(3), e = d.l.find(l => l.tipo === 'citta' && V.uomini({ tr: l.g }) > 20); d.assedio = { lid: e.id, pronto: d.t + 99999, da: d.t, ariete: false }; for (const m of ['grano', 'carne', 'pesce']) e.scorte[m] = 30;
   const m0 = V.uomini({ tr: e.g }); avanza(d, 2, 6); assert.strictEqual(V.uomini({ tr: e.g }), m0, 'con le scorte nessuno muore'); assert(['grano', 'carne', 'pesce'].reduce((a, m) => a + e.scorte[m], 0) < 90, 'ma la guarnigione le mangia');
+  // il consumo non conta due volte: sotto assedio le scorte calano solo di ciò che mangia la guarnigione (una razione ogni sei uomini al giorno), le altre merci non si muovono
+  { const f = mondo(3), h = f.l.find(l => l.tipo === 'citta' && V.uomini({ tr: l.g }) > 20), CIBI = ['grano', 'carne', 'pesce'], altre = Object.keys(D.MERCI).filter(m => !D.MERCI[m].cibo);
+    f.assedio = { lid: h.id, pronto: f.t + 99999, da: f.t, ariete: false }; for (const m of Object.keys(D.MERCI)) h.scorte[m] = 60;
+    const razione = Math.ceil(V.uomini({ tr: h.g }) / 6), somma = () => CIBI.reduce((a, m) => a + h.scorte[m], 0), prima = somma(), a0 = altre.map(m => h.scorte[m]); avanza(f, 2, 6);
+    assert.strictEqual(prima - somma(), 5 * razione, 'sotto assedio i cibi calano di 5 giorni di razioni della guarnigione (' + razione + ' al giorno), non di più: ' + (prima - somma()));
+    assert.deepStrictEqual(altre.map(m => h.scorte[m]), a0, 'le altre merci sotto assedio non si muovono'); }
+  // il mercato regionale scambia solo tra luoghi collegati da una strada: senza strade (M.S azzerata per la prova) le scorte restano più distanti
+  { const M = V.mappaDi(mondo(3)), S0 = M.S;
+    const corsa = () => { const w = mondo(3); for (const l of w.l) if (V.MERCATO[l.tipo]) l.scorte.grano = l.id % 2 ? 100 : 0; avanza(w, 2, 11); const q = w.l.filter(l => V.MERCATO[l.tipo]), m = q.reduce((a, l) => a + l.scorte.grano, 0) / q.length; return q.reduce((a, l) => a + (l.scorte.grano - m) * (l.scorte.grano - m), 0); };
+    const conStrade = corsa(); M.S = new Uint8Array(S0.length); let senza; try { senza = corsa(); } finally { M.S = S0; }
+    assert(conStrade < senza, 'con le strade le scorte si pareggiano di più (' + conStrade.toFixed(0) + ' contro ' + senza.toFixed(0) + ' senza)'); }
 }
 
 // ---- i segnali: «Incarico» solo se vale la pena ----
