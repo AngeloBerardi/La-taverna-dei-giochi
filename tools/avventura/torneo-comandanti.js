@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // Torneo dei comandanti (passo 34): i ranghi 0-5 giocano tra loro a truppe pari su 6 terreni, a metà dei semi dal lato a e a metà dal b.
 // Stampa la tabella (percentuale di vittorie della riga contro la colonna) e controlla: diagonale 40-60%, ogni rango batte il precedente 58-75%.
-//   node tools/avventura/torneo-comandanti.js [--semi 12]   (semi per terreno e per lato)
+//   node tools/avventura/torneo-comandanti.js [--semi 30]   (semi per terreno e per lato; con 12 il rumore porta un rango fuori dai limiti)
 const path = require('path'), carica = require(path.join(__dirname, '../../tests/carica.js'));
 const X = carica.multi(carica.VEN_FILES, '({ VCAM, VDAT })'), C = X.VCAM, D = X.VDAT;
-const i = process.argv.indexOf('--semi'), SEMI = i > 0 ? +process.argv[i + 1] : 12;
+const i = process.argv.indexOf('--semi'), SEMI = i > 0 ? +process.argv[i + 1] : 30;
 const T = (p, pre, k) => [{ p, t: pre + '_f2', n: 24 * k }, { p, t: pre + '_t2', n: 10 * k }, { p, t: pre + '_c3', n: 8 * k }];
 const Z = (k, x, y) => ({ k, x, y, rx: 11, ry: 8, h: 1 });
 const TERRENI = [[], [Z('altura', 30, 24)], [Z('bosco', 30, 24)], [Z('case', 30, 24)], [Z('acqua', 30, 24)], [Z('altura', 24, 20), Z('bosco', 38, 30)]];

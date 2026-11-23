@@ -34,5 +34,6 @@ Acceso con `VDAT.ACCESO.consiglio=true`. Impronta accesa `docs/passi/impronte/co
 
 Per chi gioca cambia:
 - rango dei comandanti (da sprovveduto a leggendario) visibile prima dello scontro;
-- nemici che pensano per rango, dottrina e carattere: alture, riserve, rotazioni, trappole, memoria delle tue abitudini;
+- nemici che pensano per rango, dottrina e carattere: alture, riserve, rotazioni, trappole, memoria delle tue abitudini; sotto le frecce aspettano solo se i loro tiratori reggono lo scambio;
+- a tempo scaduto gli uomini in riserva contano come vivi: l'esercito più grande non perde più una battaglia senza scontri;
 - prima della battaglia: esploratori, scelta del campo, alba, notte, imboscata, pali, retroguardia.

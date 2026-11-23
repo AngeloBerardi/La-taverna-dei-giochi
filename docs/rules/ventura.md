@@ -76,8 +76,9 @@ Tre modi di entrare in una città o in un castello nemico:
 ## Il consiglio di guerra (passo 21)
 #### Come pensa il nemico
 
-- Ogni comandante nemico ha un **rango**, dal novellino al maestro di guerra. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, ad aspettare che sia il nemico a venire sotto le frecce, a far tirare gli arcieri da fermi e a scegliere la manovra giusta per ogni reparto.
-- Più alto è il rango, più spesso il nemico ci ripensa e meno sbaglia: un maestro di guerra cambia piano appena il campo cambia, un novellino resta fermo sul suo errore.
+- Ogni comandante nemico ha un **rango**, da sprovveduto a leggendario. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, ad aspettare che sia il nemico a venire sotto le frecce, a far tirare gli arcieri da fermi e a scegliere la manovra giusta per ogni reparto.
+- Più alto è il rango, più spesso il nemico ci ripensa e meno sbaglia: un comandante leggendario cambia piano appena il campo cambia, uno sprovveduto resta fermo sul suo errore.
+- Sotto le frecce un comandante accorto apre le file e aspetta solo se i suoi tiratori reggono lo scambio (più arcieri dei tuoi e il nemico a tiro); altrimenti manda i fanti addosso ai tuoi tiratori.
 - Ogni regno ha la sua **dottrina**: gli arcieri di Altavento restano a distanza e non si fanno prendere in mischia, la Marca di Ferropietra si chiude in blocchi di picche, i predoni si buttano avanti senza pensarci.
 - Il **carattere** del signore pesa sulle scelte: il prode carica, il prudente aspetta e si ritira prima, il crudele si accanisce sui più deboli, l'avido insegue chi fugge.
 - Il tuo capitano conta anche quando la battaglia si risolve da sola: la sua abilità di comando decide il rango dei tuoi.
