@@ -37,11 +37,13 @@ Il nemico non segue più un copione unico: guarda il campo, valuta un elenco di 
    | Rango | Manovre |
    |---|---|
    | 0 | `carica` (tutti verso il nemico più vicino) |
-   | 1 | `avanza` (in linea, al passo del più lento), `tieni` (fermi in serrata), `tiro` (i tiratori a gittata ×0,9, fermi) |
-   | 2 | `contro` (serrata se arrivano cavalli entro 15, larga sotto le frecce), `ripiega` (tiratori indietro di 10 se un nemico è a 9), `debole` (tutti i reparti su quello nemico con il morale più basso), `copri` (cavalieri tra i tiratori e la minaccia), `insegui` (cavalieri sui fuggitivi), `attendi` (cavalieri di lato, fermi) |
+   | 1 | `avanza` (in linea, al passo del più lento), `tieni` (fermi in serrata) |
+   | 2 | `tiro` (i tiratori a gittata ×0,9, fermi; dal rango 1 spostato qui con la correzione dell'issue #195), `contro` (serrata se arrivano cavalli entro 15, larga sotto le frecce), `ripiega` (tiratori indietro di 10 se un nemico è a 9), `debole` (tutti i reparti su quello nemico con il morale più basso), `copri` (cavalieri tra i tiratori e la minaccia), `insegui` (cavalieri sui fuggitivi), `attendi` (cavalieri di lato, fermi) |
 4. **Decidere** (`VCONS.decidi(s,l)`):
    - ogni `RIFL[rango]` istanti (60/40/30/20/15/10, dal rango 0 al 5), calcola il quadro;
-   - per ogni coppia (manovra conosciuta, reparto adatto) calcola `vale × peso dottrina × peso indole + rumore`, con rumore = `s.r()` × `ERR[rango]` (0,6/0,45/0,3/0,18/0,1/0,04);
+   - per ogni coppia (manovra conosciuta, reparto adatto) calcola `vale × peso dottrina × peso indole + rumore`, con rumore = `s.r()` × `ERR[rango]` (0,6/0,35/0,25/0,18/0,12/0,08);
+   - **pazienza** (correzione, issue #195): `tieni` vale di più lontano dal nemico fino all'istante `PAZIENZA[rango]` (360/360/440/520/600/650). È la leva principale della scala: chi aspetta di più fa venire l'altro sotto le frecce e contro la serrata;
+   - `debole` conta solo se i reparti hanno morale proprio (`s.mr`) o se il nemico cede davvero (morale < 45): con un morale per lato il «più debole» sarebbe solo il gruppo più piccolo, e inseguirlo scompone la linea (in prova toglieva al rango 2 ogni vantaggio sul rango 1);
    - assegna in modo goloso (il valore più alto, poi il successivo tra i reparti liberi). Un reparto cambia manovra solo se la nuova vale almeno `ISTERESI` (0,15) in più: niente ripensamenti nervosi;
    - evento `{t:'piano',l,r,m}` quando un reparto cambia manovra.
 5. **Dottrine** = pesi in `VDAT.DOTTRINE`, in testa a `28la`. Esempi:
@@ -69,7 +71,7 @@ Scheda: `rango:{a,b}`, `dott:{a,b}`, `indole:{a,b}`. Stato: `s.rango`, `s.dott`,
 ## Prove
 
 `tests/test_ven_p21.js` (casi rapidi; `tests/test_ven_p21_lento.js` per la scala):
-- **Scala**: a truppe pari e senza capitani, rango 1 contro 0 e rango 2 contro 1 vincono tra il 58 e il 75% su 40 semi.
+- **Scala**: a truppe pari e senza capitani, rango 1 contro 0 e rango 2 contro 1 vincono tra il 58 e il 75% su 40 semi; la stessa scala deve reggere anche nel torneo dei comandanti (`tools/avventura/torneo-comandanti.js`, passo 34: truppe di Valdoro contro Ferropietra, sei terreni, senza reparti).
 - `contro`: al rango 2, i fanti passano in serrata entro 30 istanti da quando i cavalli nemici sono a 15; al rango 0 mai.
 - `ripiega`: al rango 2 l'ancora dei tiratori arretra quando un nemico arriva a 9.
 - Dottrine: Ferropietra contro Altavento, con le loro truppe tipiche e rango 2 entrambi, si distinguono (Altavento: meno del 15% dei colpi dei cavalieri in mischia prima dell'istante 600; Ferropietra: i fanti restano in serrata fino al contatto).
@@ -79,7 +81,7 @@ Scheda: `rango:{a,b}`, `dott:{a,b}`, `indole:{a,b}`. Stato: `s.rango`, `s.dott`,
 
 ### Come pensa il nemico
 
-- Ogni comandante nemico ha un **rango**, dal novellino al maestro di guerra. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, a far tirare gli arcieri e a scegliere la manovra giusta per ogni reparto.
+- Ogni comandante nemico ha un **rango**, dal novellino al maestro di guerra. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, ad aspettare che sia il nemico a venire sotto le frecce, a far tirare gli arcieri da fermi e a scegliere la manovra giusta per ogni reparto.
 - Più alto è il rango, più spesso il nemico ci ripensa e meno sbaglia: un maestro di guerra cambia piano appena il campo cambia, un novellino resta fermo sul suo errore.
 - Ogni regno ha la sua **dottrina**: gli arcieri di Altavento restano a distanza e non si fanno prendere in mischia, la Marca di Ferropietra si chiude in blocchi di picche, i predoni si buttano avanti senza pensarci.
 - Il **carattere** del signore pesa sulle scelte: il prode carica, il prudente aspetta e si ritira prima, il crudele si accanisce sui più deboli, l'avido insegue chi fugge.

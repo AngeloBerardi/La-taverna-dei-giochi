@@ -55,7 +55,9 @@ let g = S.nuova(3, ['Angelo', 'Bea', 'Ciro'], { seme: 7, regno: 'val' });
   { const m = ok(S.act(g, { t: 'b-ord', seat: 1, o: { g: 'f', t: 'forma', f: 'cuneo' }, fino: 15 })); assert.strictEqual(m.b.c.ord.a.f.fm, 'cuneo', 'la formazione passa da b-ord');
     assert(Array.isArray(m.b.c.zone), 'il terreno è nello stato della battaglia'); assert.strictEqual(S.act(m, { t: 'b-ord', seat: 0, o: { g: 'f', t: 'forma' }, fino: 16 }).err, 'Il gruppo si sta ancora schierando', 'subito dopo non si cambia di nuovo');
     const m2 = ok(S.act(m, { t: 'b-ord', seat: 0, o: { g: 'c', t: 'forma', f: 'serrata' }, fino: 20 })); const a2 = S.copia(m2), b2 = S.copia(m2); S.avanzaB(a2, 140); for (let k = 21; k <= 140; k++) S.avanzaB(b2, k);
-    assert.strictEqual(J(a2.b.c), J(b2.b.c), 'due telefoni, stessa battaglia con terreno e formazioni'); }
+    // `ev` sono gli eventi dell'ultimo `passo` (si azzera a ogni chiamata): con un passo solo o con tanti piccoli è diverso per costruzione
+    const senzaEv = c => J(Object.assign({}, c, { ev: null }));
+    assert.strictEqual(senzaEv(a2.b.c), senzaEv(b2.b.c), 'due telefoni, stessa battaglia con terreno e formazioni'); }
   g = ok(S.act(g, { t: 'b-ord', seat: 2, o: { g: 'tutti', t: 'segui' }, fino: 20 })); assert(g.b.c.ord.a.f.t === 'segui' && g.b.c.ord.a.f.seg === 2, '«Seguimi» segue chi lo dice');
   g = ok(S.act(g, { t: 'b-pausa', seat: 0, v: true, fino: 30 })); const tp = g.b.c.t; assert.strictEqual(ok(S.act(g, { t: 'tempo', seat: 1, fino: 400 })).b.c.t, tp, 'chiunque mette in pausa');
   g = ok(S.act(g, { t: 'b-pausa', seat: 1, v: false })); g = ok(S.act(g, { t: 'b-ord', seat: 0, o: { g: 'tutti', t: 'carica' } }));

@@ -4,14 +4,14 @@
    Motore puro: nessun Math.random, Date.now o trigonometria. Dopo 28l (VCAM), prima di 28m. */
 // RIFL = istanti tra due decisioni, ERR = rumore sul valore, ISTERESI = quanto deve valere di più una manovra nuova per scalzare quella in corso, AV = passo dell'avanzata,
 // MINACCIA = raggio entro cui un nemico pesa, GITT = quota della gittata a cui tirano i tiratori, RIPIEGA/CONTRO/INDIETRO = distanze di `ripiega` e `contro`, LATO = scarto dei cavalieri sul fianco.
-// Valori delle manovre: PAZIENZA = fino a quale istante conviene aspettare il nemico, ASPETTA/CAVTI = valore di `tieni` lontano dal nemico (fanti e tiratori / cavalieri),
+// Valori delle manovre: PAZIENZA = fino a quale istante conviene aspettare il nemico, per rango (chi aspetta di più fa venire l'altro sotto le frecce: è la leva principale della scala), ASPETTA/CAVTI = valore di `tieni` lontano dal nemico (fanti e tiratori / cavalieri),
 // CAVAV = `avanza` dei cavalieri, CAVATT = `attendi`, FIANCO = bonus di `carica` dei cavalieri quando i fanti sono già in mischia. Tarati con la scala dei ranghi (tests/test_ven_p21_lento.js).
 // Ranghi 3-4 (passo 25): DIVIDI = quanti fanti servono perché l'IA li schieri in due reparti (reparti piccoli perdono il morale più in fretta), PRENDI_AV/PRENDI_D = quanto oltre i fanti e a che distanza i tiratori vanno a prendere un'altura, AGGIRA/AGGIRA_V = scarto largo dal fianco nemico e valore del giro (pari alla carica: lo preferiscono le dottrine che lo amano), ROT_FA/ROT_FRESCO/ROT_D/ROT_ARR = fatica per dare il cambio, chi lo prende e a che distanza, quanto arretra chi esce;
 // SERRA_T = istanti massimi di attesa davanti ad acqua o bosco sotto il tiro; RISERVA_T/RISERVA_MOR/RISERVA_LINEA = quando le riserve entrano comunque (istante, morale di un reparto nemico, linea rimasta);
 // ESCA_AV/ESCA_OLTRE/ESCA_D/ESCA_COLPO = quanto avanza l'esca, di quanto deve inseguire oltre la sua linea, a che distanza e da che distanza il nascosto carica; INC_T/INC_D = istanti di mischia dei fanti prima del colpo alle spalle e distanza a cui i fanti devono avere il nemico perché l'incudine parta;
 // PIANO_T/PIANO_PAUSA = durata massima di una trappola e pausa tra due; CACCIA_MAX/CACCIA_PAUSA = tetto della caccia al capitano; RIT_R/RIT_MAX/RIT_DA/RIT_T = ritirata (forze, tetto con l'indole, istante minimo, istanti per ripiegare);
 // ONDA_T = istante della prima ondata di rango 4, ONDE_Q = quota di truppe tenuta in ondate dai ranghi alti.
-VDAT.CONS={RIFL:[60,40,30,20,15,10],ERR:[.6,.45,.3,.18,.1,.04],ISTERESI:.15,AV:12,MINACCIA:15,GITT:.9,RIPIEGA:9,CONTRO:15,INDIETRO:10,LATO:17,PAZIENZA:360,ASPETTA:.72,CAVTI:.72,CAVAV:.5,CAVATT:.6,FIANCO:.3,
+VDAT.CONS={RIFL:[60,40,30,20,15,10],ERR:[.6,.35,.25,.18,.12,.08],ISTERESI:.15,AV:12,MINACCIA:15,GITT:.9,RIPIEGA:9,CONTRO:15,INDIETRO:10,LATO:17,PAZIENZA:[360,360,440,520,600,650],ASPETTA:.72,CAVTI:.72,CAVAV:.5,CAVATT:.6,FIANCO:.3,
  DIVIDI:30,PRENDI_AV:6,PRENDI_D:28,AGGIRA:12,AGGIRA_V:1,ROT_FA:65,ROT_FRESCO:40,ROT_D:25,ROT_ARR:10,SERRA_T:150,RISERVA_T:900,RISERVA_MOR:35,RISERVA_LINEA:40,ESCA_AV:16,ESCA_OLTRE:10,ESCA_D:16,ESCA_COLPO:8,INC_T:40,INC_D:24,PIANO_T:450,PIANO_PAUSA:300,
  CACCIA_MAX:120,CACCIA_PAUSA:120,CACCIA_ESP:8,RIT_R:.5,RIT_MAX:.7,RIT_DA:150,RIT_T:160,ONDA_T:300,ONDA3_T:0,ONDE_Q:.3};
 // pesi delle manovre per regno (`*` = tutte le altre); la compagnia di chi gioca (`tu`), i mercenari e i regni senza voce pesano 1
@@ -82,9 +82,9 @@ const VCONS=(()=>{
     let lento=1e9;for(const q of Q.rep)if(Q.man[q.k]==='avanza'){const v=prog(Q,q.y)-(OFF[q.c]||0);if(v<lento)lento=v}
     const p=Math.min(prog(Q,m.y)+K.AV,lento+K.AV+(OFF[m.c]||0));tieni(s,l,m,Q,o.x,daProg(Q,p))}},
   {id:'tieni',rango:1,tipo:['f','t','c'],
-   vale:(Q,m)=>(m.nm&&m.nm.d>9&&Q.t<K.PAZIENZA?(m.c==='c'?K.CAVTI:K.ASPETTA):.4)+(m.qu>C.TER.DISL?.2:0)+(Q.R<.8?.2:0),
+   vale:(Q,m)=>(m.nm&&m.nm.d>9&&Q.t<K.PAZIENZA[Q.rg]?(m.c==='c'?K.CAVTI:K.ASPETTA):.4)+(m.qu>C.TER.DISL?.2:0)+(Q.R<.8?.2:0),
    ordina:(s,l,m,Q)=>{const o=s.ord[l][m.k];if(m.nuova||o.t!=='tieni')tieni(s,l,m,Q,m.x,m.y,m.c==='f'?'serrata':null)}},
-  {id:'tiro',rango:1,tipo:['t','c'],
+  {id:'tiro',rango:2,tipo:['t','c'],
    vale:(Q,m)=>m.ti<.5||m.fr===0||!m.nm?0:m.nm.d<=m.git*1.1?1:.95,
    ordina:(s,l,m,Q)=>{const e=m.nm,g=m.git*K.GITT,o=s.ord[l][m.k];if(!e)return;
     if(e.d<=g){if(m.nuova||o.t!=='tieni')tieni(s,l,m,Q,m.x,m.y);return}
@@ -99,7 +99,8 @@ const VCONS=(()=>{
    vale:(Q,m)=>m.nm&&m.nm.d<=K.RIPIEGA&&m.ti>.5&&!Q.rep.some(q=>q.c!=='t'&&d2(q,m.nm)<m.nm.d)?1.5:0,
    ordina:(s,l,m,Q)=>{tieni(s,l,m,Q,m.x,m.y-Q.ver*K.INDIETRO)}},
   {id:'debole',rango:2,tipo:['f','t','c'],
-   vale:(Q,m)=>{const e=bersaglio(Q);return e?.4+(100-e.mo)/100*(e.mo<45?1.2:.4):0},
+   // senza reparti il morale è uno per lato: il «più debole» sarebbe solo il gruppo più piccolo, e inseguirlo scompone la linea. Conta solo se cede davvero
+   vale:(Q,m)=>{const e=bersaglio(Q);return e&&(Q.mr||e.mo<45)?.4+(100-e.mo)/100*(e.mo<45?1.2:.4):0},
    ordina:(s,l,m,Q)=>{const e=bersaglio(Q);if(e)tieni(s,l,m,Q,e.x,e.y)}},
   {id:'copri',rango:2,tipo:['c'],
    vale:(Q,m)=>{const t=Q.rep.filter(q=>q.c==='t'&&q.min>0);return t.length?1.3:0},

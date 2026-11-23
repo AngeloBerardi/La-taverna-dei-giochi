@@ -20,7 +20,7 @@ const riv = s.p.find(p => p.k === 'riv'); s.volpe = { tappa: 3 }; assert.strictE
 // opzione nem
 const sn = JSON.parse(J(s)); sn.opz = { nem: 1 }; assert.strictEqual(VEN.rango(sn, sig).r, 4); sn.opz = { nem: -1 }; assert.strictEqual(VEN.rango(sn, pre).r, 0);
 // rango del capitano dall'abilità comando
-assert.strictEqual(VEN.rangoCap(s), [1, 1, 2, 2, 3, 3, 4][Math.min(6, VEN._.abil(s, 'comando'))]);
+assert.strictEqual(VEN.rangoCap(s), [2, 2, 3, 3, 4, 4, 4][Math.min(6, VEN._.abil(s, 'comando'))]);
 // prigionia: -1 ogni 10 giorni dalla presa (non dal calendario)
 sg.prig = 'tu'; sg.esp = 6; s.t = 9 * 1440; const g0 = VEN._.giorno(s); VEN.ganci('giorno', s); assert.strictEqual(sg.pgg, g0); assert.strictEqual(sg.esp, 6);
 s.t = 10 * 1440; VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 6); s.t = 19 * 1440; VEN.ganci('giorno', s); assert.strictEqual(sg.esp, 5);

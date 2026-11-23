@@ -17,7 +17,7 @@ const scala = (alto, basso, extra) => {
 const dentro = (p, nome) => { assert(p >= 0.58 && p <= 0.75, nome + ': ' + Math.round(p * 100) + '%'); console.log(nome, Math.round(p * 100) + '%') };
 dentro(scala(1, 0), 'rango 1 contro 0');
 dentro(scala(2, 1), 'rango 2 contro 1');
-assert(scala(2, 0) > 0.7, 'il rango 2 batte il rango 0 con ampio margine');
+{ const p = scala(2, 0); assert(p >= 0.7, 'il rango 2 batte il rango 0 con ampio margine: ' + Math.round(p * 100) + '%'); console.log('rango 2 contro 0', Math.round(p * 100) + '%') }
 
 // grandi battaglie (reparti, ondate, fino a 110 per lato): finiscono, nessun uomo si perde, il rango vince ancora più spesso che perdere
 {

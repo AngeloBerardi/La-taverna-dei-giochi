@@ -3,7 +3,7 @@
    `VEN.rangoCap(s)` → il rango del tuo capitano (dall'abilità comando). L'esperienza si accumula sempre; premi, cattura, forza dei signori e scheda
    cambiano solo con `VDAT.ACCESO.consiglio`. Dopo 28ke, prima di 28l. */
 Object.assign(VDAT,{RANGO:{BASE:{pre:0,capo:1,car:1,guar:1,mer:2,sig:2,mar:3,re:4},VOLPE:2,PASSO_ESP:6,MAX:5,PREMIO:.2,FORZA:.05,CATTURA:{capo:.8,senza:.3},
- NOMI:['sprovveduto','accorto','esperto','astuto','maestro di guerra','leggendario'],COMANDO:[1,1,2,2,3,3,4],PRIGIONIA_GIORNI:10}});
+ NOMI:['sprovveduto','accorto','esperto','astuto','maestro di guerra','leggendario'],COMANDO:[2,2,3,3,4,4,4],PRIGIONIA_GIORNI:10}});
 Object.assign(VEN,(()=>{const{D,L,abil,giorno}=VEN._,R=VDAT.RANGO,lim=r=>Math.max(0,Math.min(R.MAX,r));
  const attivo=()=>!!VDAT.ACCESO.consiglio;
  const sigDi=(s,p)=>p&&p.k==='sig'&&s.sig?s.sig[p.sig]:null;
