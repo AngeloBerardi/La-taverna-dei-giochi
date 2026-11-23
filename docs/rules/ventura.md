@@ -66,6 +66,45 @@ Tre modi di entrare in una città o in un castello nemico:
 - **Porta**: «Costruisci l'ariete» (150 monete, pronto 6 ore dopo). In battaglia fino a 6 fanti spingono il portone (60 colpi in tutto); senza ariete la porta non cede mai.
 - Chi difende sta sul camminamento (più in alto: tira più lontano e colpisce meglio), presidia le scale dove si preme di più e non va in rotta. Attraverso il muro non si combatte corpo a corpo.
 
+## I comandanti e il loro rango (passo 12)
+- Ogni comandante ha un rango, da sprovveduto a leggendario, che si legge prima dello scontro.
+- Un signore che vince si fa un nome e sale di rango; in prigionia lo perde poco a poco.
+- Più il rango del nemico è alto, più è duro da battere e più valgono fama, esperienza e bottino della vittoria.
+- Un comandante di rango alto, se lo abbatti, ha molte più probabilità di restare tuo prigioniero.
+- Il rango del tuo capitano dipende dalla sua abilità di comando.
+
+## Il consiglio di guerra (passo 21)
+#### Come pensa il nemico
+
+- Ogni comandante nemico ha un **rango**, dal novellino al maestro di guerra. Chi ha poca esperienza lancia tutti all'attacco; col rango impara ad avanzare in linea, a tenere il terreno, ad aspettare che sia il nemico a venire sotto le frecce, a far tirare gli arcieri da fermi e a scegliere la manovra giusta per ogni reparto.
+- Più alto è il rango, più spesso il nemico ci ripensa e meno sbaglia: un maestro di guerra cambia piano appena il campo cambia, un novellino resta fermo sul suo errore.
+- Ogni regno ha la sua **dottrina**: gli arcieri di Altavento restano a distanza e non si fanno prendere in mischia, la Marca di Ferropietra si chiude in blocchi di picche, i predoni si buttano avanti senza pensarci.
+- Il **carattere** del signore pesa sulle scelte: il prode carica, il prudente aspetta e si ritira prima, il crudele si accanisce sui più deboli, l'avido insegue chi fugge.
+- Il tuo capitano conta anche quando la battaglia si risolve da sola: la sua abilità di comando decide il rango dei tuoi.
+
+## Le manovre dei comandanti (passo 25)
+#### I comandanti esperti
+
+- Un comandante di buon rango legge il campo: porta i tiratori su un'altura o in un bosco della sua metà, si schiera guardando come ti sei schierato e mette le picche davanti alla tua cavalleria.
+- Tiene dietro una parte dell'esercito e la fa entrare quando hai speso la tua ultima ondata o quando un tuo reparto cede, dall'ingresso più vicino. Dà il cambio ai reparti stanchi con quelli freschi e non si butta in acqua o nel bosco sotto le frecce.
+- I maestri tendono trappole: un reparto debole avanza da solo per attirarti, la cavalleria nascosta ti prende di fianco appena lo insegui; i fanti ti inchiodano mentre i cavalieri girano alle tue spalle; se il tuo capitano resta scoperto, i cavalieri gli danno la caccia.
+- Quando la battaglia è persa, un comandante prudente non aspetta la rotta: ripiega in ordine, coperto da un reparto in serrata, e salva più uomini.
+- Impari a leggerli dai segni in campo («si spostano verso l'altura», «la loro cavalleria gira a sinistra»); le trappole non danno nessun segno.
+
+## Il maestro di guerra (passo 30)
+- I grandi comandanti (re, marescialli, la Volpe nelle ultime tappe) ricordano come li hai combattuti: cavalleria per prima, tiratori sull'altura, ondate dal fianco o mandate presto, capitano in prima fila.
+- Se un'abitudine torna in almeno metà delle battaglie contro di loro, si preparano: picche nascoste dietro un'esca, linea fuori tiro dall'altura, un reparto di guardia sul fianco, la caccia al tuo capitano, la riserva tenuta per la tua ondata stanca.
+- Dopo la battaglia la cronaca ti dice quale contromossa ti hanno giocato: cambiare abitudini è il modo di sorprenderli.
+- Un maestro di guerra inganna anche: un suo reparto può fingere la rotta per tirarti giù da un'altura, quando si schiera per primo ti mostra solo una parte delle truppe (i cavalieri restano nascosti nelle ondate), e le sue ondate arrivano quando i tuoi sono stanchi.
+
+## Prima della battaglia (passo 32)
+**Prima della battaglia.** Quanto vedi del nemico dipende dagli esploratori: se la tua Esplorazione supera il suo grado di comando vedi tutto (uomini per tipo, modo di combattere, rinforzi); se lo eguaglia, i numeri sono a spanne; se è minore, sai solo «circa tanti uomini».
+- **Il campo**: se esplori abbastanza, o se ti attaccano mentre sei fermo, puoi scegliere tra due terreni.
+- **Alba**: aspetti il mattino; un nemico poco accorto può andarsene, altra gente può unirsi a lui.
+- **Notte**: attacchi nel buio, i tiratori vedono meno per tutti; i nemici meno accorti sono in disordine.
+- **Imboscata** (bosco o colline, nemico in arrivo, esplori più di lui): lo prendi in colonna e impreparato. **Pali**: un'ora e dieci razioni, i cavalli rallentano e la carica non riesce.
+- **Retroguardia**: lasci un reparto a coprire la fuga; se perde, non torna. Dopo una lunga marcia si arriva stanchi, e i comandanti accorti scelgono loro il momento.
+
 ## Sul televisore (V7)
 - La TV si unisce alla stanza come per gli altri giochi e **guarda soltanto**: mappa larga con la compagnia al centro, in alto nome della compagnia, giorno e ora, monete, uomini, viveri e codice della stanza; a destra la cronaca (ultime sei righe); in basso i capitani con il livello. In battaglia mostra il campo intero con la barra delle forze e il tempo.
 - I telefoni non trovano la TV da soli: un capitano la accende dal menu con «Mappa sulla TV». Da quel momento sui telefoni la mappa si stringe in alto e sotto compaiono tasti grandi (gli stessi della barra, più «Luogo»); in battaglia gruppi e ordini sulla stessa griglia. Si spegne dallo stesso interruttore; non entra nel salvataggio.

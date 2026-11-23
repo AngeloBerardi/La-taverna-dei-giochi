@@ -16,5 +16,5 @@ Il terreno su cui lavorano i passi del piano «Il Condottiero» (`docs/passi/`):
 - **Interruttori**: `VDAT.ACCESO={grandi,consiglio,mondo2,eserciti}` tutti `false`; in prova `?ven=grandi,mondo2` li accende in memoria (`entra`, `24hw`), mai salvati e solo su quel telefono: le prove in compagnia vogliono lo stesso `?ven=` su tutti i telefoni (`mondo2` finisce in `s.geo` e resta uguale ovunque). Opzioni e difficoltà: `VDAT.OPZ0`, `OPZ_PARTITA`, `DIFF`, `PRESET` (`28jc`).
 - **Ripetibilità**: i motori `28[j-n]*-ven-*` non usano `Math.pow/exp/log*/sin/cos…/hypot/cbrt` né `**` (`npm run struttura`, prova `test_ven_p04`).
 
-## Stato: Rilascio 3, comandanti (passo 34, in attesa)
-`VDAT.ACCESO.consiglio` resta `false` (`28jc`): con l'interruttore acceso falliscono `test_ven_p04`, `p09`, `stanza` e `diplomazia`, e il torneo dei comandanti esce dai limiti. Pronti: impronta accesa `docs/passi/impronte/consiglio.txt` (`impronta.js --controlla` la verifica) e `node tools/avventura/torneo-comandanti.js` (ranghi 0-5, truppe pari, 6 terreni). Dettagli nell'issue del rilascio.
+## Stato: Rilascio 3, comandanti (passo 34, acceso)
+`VDAT.ACCESO.consiglio` è `true` (`28jc`). Impronta accesa `docs/passi/impronte/consiglio.txt` (`impronta.js --controlla` la verifica); torneo `node tools/avventura/torneo-comandanti.js` (ranghi 0-5, truppe pari, 6 terreni); scenario `p34.py`.

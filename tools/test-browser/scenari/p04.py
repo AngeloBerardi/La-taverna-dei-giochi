@@ -20,5 +20,5 @@ async def sc_p04_ven_interruttori(b, srv):
     ctx = await new_context(b, srv.port); pg = await page(ctx, srv.url)
     await pg.click('#plancia [data-v=avventura]'); await pg.wait_for_timeout(300)
     ac = await pg.evaluate("JSON.stringify(VDAT.ACCESO)")
-    check(ac == '{"grandi":false,"consiglio":false,"mondo2":false,"eserciti":false}', f'senza ?ven= tutti spenti: {ac}')
+    check(ac == '{"grandi":false,"consiglio":true,"mondo2":false,"eserciti":false}', f'senza ?ven= solo il consiglio è acceso (passo 34): {ac}')
     await ctx.close()

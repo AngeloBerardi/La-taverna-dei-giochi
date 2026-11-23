@@ -111,7 +111,7 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
 {
   const { VDAT: D } = nuovoCtx();
   eq(Object.keys(D.ACCESO).sort(), ['consiglio', 'eserciti', 'grandi', 'mondo2']);
-  assert(Object.values(D.ACCESO).every(v => v === false), 'tutti spenti');
+  assert(D.ACCESO.consiglio === true && D.ACCESO.grandi === false && D.ACCESO.mondo2 === false && D.ACCESO.eserciti === false, 'dal passo 34 acceso solo il consiglio');
   eq(D.OPZ0, { diff: 'condottiero', eco: 'giusta', cons: 'normali', nem: 0, unif: 'normale', stag: 'normali', fer: 'normali', mondo: 'ampio', taglia: 'media', nebbia: false });
   eq(D.OPZ_PARTITA, ['taglia']);
   eq(Object.keys(D.PRESET), ['recluta', 'condottiero', 'leggenda']);
@@ -183,7 +183,7 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
 
 // altri ganci: `scelta`, `scontro`, `incontro`, `anteprima`; `probCattura`, `decidi`, `mappaDi`
 {
-  const { VEN: V } = nuovoCtx(), s = quieto(V.nuovo(3));
+  const { VEN: V, VDAT: D } = nuovoCtx(), s = quieto(V.nuovo(3));
   assert.strictEqual(V.scegli(s, 'x').err, 'Nessun incontro');
   const pre = s.p.find(p => p.k === 'pre'); s.incontro = { tipo: 'nemico', pid: [pre.id], all: [], da: 'loro' };
   assert.strictEqual(V.scegli(s, 'danza').err, 'Scelta non valida', 'senza ascoltatori resta l\'errore di sempre');
@@ -191,7 +191,7 @@ const quieto = s => { s.tregua = 1e9; s.dentro = -1; s.davanti = -1; return s; }
   assert.strictEqual(V.scegli(s, 'danza').s, s); assert.strictEqual(V.scegli(s, 'altro').err, 'Scelta non valida');
   const inc = s.incontro; delete s.incontro;   // senza incontro l'anteprima è vuota e passa solo dai ganci (con l'incontro dà i dati del passo 09)
   eq(V.anteprima(s), {}); V.aggancia('anteprima', (st, a) => { a.rango = 3; }); eq(V.anteprima(s), { rango: 3 }); s.incontro = inc;
-  assert.strictEqual(V.probCattura(s, {}), .5); assert.strictEqual(typeof V.decidi, 'function'); assert.strictEqual(V.mappaDi(s), V.mappa(s.seme));
+  assert.strictEqual(V.probCattura(s, {}), D.ACCESO.consiglio ? .3 : .5); assert.strictEqual(typeof V.decidi, 'function'); assert.strictEqual(V.mappaDi(s), V.mappa(s.seme));
   for (const k of ['leva', 'nuovaP', 'vicinoOk', 'vai', 'rimuovi', 'sconfitta', 'memSig', 'inCompagnia', 'gradDi', 'relaz']) assert.strictEqual(typeof V._[k], 'function', 'VEN._.' + k);
 }
 {

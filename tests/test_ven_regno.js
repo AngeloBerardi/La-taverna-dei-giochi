@@ -241,7 +241,7 @@ const scorri = (s, giorni) => { const fine = s.t + giorni * 1440; let g = 0; whi
   for (const l of cap.slice(0, 4)) { l.faz = 'tu'; l.sig = -2; } scorri(s, 3); assert(!s.vinta, 'quattro su cinque non bastano');
   cap[4].faz = 'tu'; cap[4].sig = -2; let ev = 0; const fine = s.t + 10 * 1440; while (s.t < fine) { if (s.incontro) { V.auto(s); continue; } for (const e of V.passo(s, 60)) if (e.t === 'vittoria') ev++; }
   assert.strictEqual(ev, 1, 'un solo evento di vittoria: ' + ev); assert(s.vinta && s.vinta.come === 're' && s.vinta.g >= 1); const g = s.vinta.g; scorri(s, 5); assert.strictEqual(s.vinta.g, g, 'scritta una volta sola');
-  assert(s.t > 0 && !s.over, 'la partita continua: il tempo scorre ancora'); const t0 = s.t; V.passo(s, 120); assert(s.t > t0);
+  assert(s.t > 0 && !s.over, 'la partita continua: il tempo scorre ancora'); const t0 = s.t; for (let k = 0; k < 20 && s.t <= t0; k++) { if (s.incontro) V.auto(s); else V.passo(s, 120) } assert(s.t > t0);
   assert(V.traguardi(s).find(x => x[0] === 'Un regno tuo')[1] && V.traguardi(s).find(x => x[0] === 'Tutte le capitali')[1]);
   const v = V.nuovo(3); assert(!V.traguardi(v).find(x => x[0] === 'Un regno tuo')[1] && !V.traguardi(v).find(x => x[0] === 'Tutte le capitali')[1]);
 }
