@@ -158,7 +158,7 @@ for (const seme of [1, 7, 2026]) {
   for (const seme of semi) {
     const a = gioca(V.nuovo(seme), 22, true, carica.rng(seme + 1)), b = gioca(V.nuovo(seme), 22, false, carica.rng(seme + 1));
     const va2 = V.forza(V.TU(a)) + V.TU(a).oro / 20 + a.fama, vb = V.forza(V.TU(b)) + V.TU(b).oro / 20 + b.fama;
-    if (a.stat.vinte >= 4 && a.fama >= 15 && (V.uomini(V.TU(a)) >= 16 || V.TU(a).oro >= 1000) && a.stat.vinte > a.stat.perse) bravi++;   // (consiglio acceso: i nemici graduati costano uomini, ma il capitano accorto ha le monete per rimpiazzarli)
+    if (a.stat.vinte >= 4 && a.fama >= 15 && V.uomini(V.TU(a)) >= 16 && a.stat.vinte > a.stat.perse) bravi++;
     assert(va2 > vb * 2, 'seme ' + seme + ': accorto ' + va2.toFixed(0) + ', sconsiderato ' + vb.toFixed(0)); assert(b.stat.perse > b.stat.vinte, 'chi attacca tutti perde più di quanto vince');
     for (const s of [a, b]) { for (const p of s.p) { assert(V.passa(V.mappa(s.seme), p.x, p.y) || p.dentro >= 0, p.nome + ' fuori dalla terra'); for (const e of p.tr) assert(e.n > 0 && (e.f || 0) <= e.n && D.TR[e.t]); } assert(V.TU(s).oro >= 0); }
     if (a.log.some(x => x.tipo === 'guerra')) guerre++; if (a.l.some((l, i) => l.faz !== V.mappa(seme).luoghi[i].faz) || a.l.some(l => l.sacc > 0)) cambi++;
