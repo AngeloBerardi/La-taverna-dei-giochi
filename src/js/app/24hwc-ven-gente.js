@@ -18,7 +18,6 @@ const VenGente=(()=>{
   return pannello(esc(v.chi.nome||'La compagnia'),`<p class="vn-p vn-dl">${esc(v.testo)}</p>${v.continua?bt(esc(v.continua),'parla:c',{cls:'gold',no:tv}):sc}`,{fisso:1,cls:'vn-voce'})}
  // descrizione di un incarico offerto (in breve, senza premio e scadenza)
  const descInc=(s,q)=>q.tipo==='predoni'?'Una banda infesta i dintorni':q.tipo==='consegna'?'Portate '+q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome:q.tipo==='reliquia'?'Liberate le rovine di '+s.l[q.a].nome:q.tipo==='taglia'?'Una taglia su '+s.l[q.a].nome:'Servono '+q.n+' soldati addestrati';
- const costoRiposo=(s,l)=>Math.ceil(VEN.uomini(tu())*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5));
  // scheda dei termini: un tocco che spende o promette mostra prima cosa si fa, quanto costa o rende, entro quando, cosa si rischia e cosa cambia. Un solo ottone e «Indietro»
  function termH(s,l,k){const t=tu(),g=VEN.giorno(s),ING=D.INGAGGIO[1],mio=l.faz==='tu'||l.sig===-2,U=VEN.uomini(t),oro=t.oro,fer=t.tr.reduce((a,e)=>a+(e.f||0),0),mn=x=>x+(x===1?' moneta':' monete');
   let ti,R,ok;
@@ -35,7 +34,7 @@ const VenGente=(()=>{
   else if(k==='torneo'){const T=D.TORNEO,posta=VEN.capi(s).reduce((a,c)=>a+T.posta*c.liv,0);if(l.tipo!=='citta'||!VEN.torneoOggi(s,l)||s.torneo)return null;const usato=!!s.torneoUsato&&s.torneoUsato[l.id]===g;ti='Torneo';
    R=[['Cosa','Tre duelli a piedi e senza arco: sfidante, campione, gran campione.'],['Costo','Iscrizione '+mn(posta)+'; ne hai '+n0(oro)+'.'],['Rende','Il premio matura a ogni duello vinto ('+T.mol.map(x=>x+'×').join(', ')+' l\'iscrizione); vincendoli tutti '+T.mol[2]*posta+' monete, '+T.fama[2]+' fama e un oggetto di pregio.'],['Entro quando','Oggi: il torneo finisce a sera.'],['Cosa rischi','Perdendo il primo duello la posta è persa; dopo puoi ritirarti col premio maturato.'],['Cosa cambia','Monete da '+n0(oro)+' a '+n0(oro-posta)+'.']];
    ok={t:'Iscriviti · '+posta+' m',v:'fai:torneo',no:usato||oro<posta,p:usato?'Hai già partecipato al torneo di oggi':oro<posta?'Servono '+posta+' monete':''}}
-  else if(k==='riposa'){if(l.tipo==='villaggio'&&!mio)return null;const c=mio?0:costoRiposo(s,l),sana=t.tr.reduce((a,e)=>a+Math.min(e.f||0,Math.ceil(e.n*.5)),0);ti='Riposo';
+  else if(k==='riposa'){if(l.tipo==='villaggio'&&!mio)return null;const c=VEN.costoRiposo(s,l),sana=t.tr.reduce((a,e)=>a+Math.min(e.f||0,Math.ceil(e.n*.5)),0);ti='Riposo';
    R=[['Cosa','La compagnia dorme otto ore sotto un tetto.'],['Costo',c?mn(c)+'; ne hai '+n0(oro)+'.':'Niente: è terra vostra.'],['Entro quando','Otto ore: poi si riparte.'],['Cosa rischi','Il tempo passa: paghe e viveri corrono, e chi vi cerca vi trova fermi.'],['Cosa cambia','Feriti da '+fer+' a '+(fer-sana)+'; il morale sale un poco.']];
    ok={t:'Riposa'+(c?' · '+c+' m':''),v:'fai:riposa',no:oro<c,p:oro<c?'Servono '+c+' monete':''}}
   else if(k==='cura'){if(l.tipo!=='monastero')return null;const c=fer*4;ti='Infermeria';
@@ -79,4 +78,4 @@ ${inS()?'<div class="sh2">Capitani della compagnia</div>'+VEN.capi(s).map((x,i)=
   const tip='Cresce se liberi i suoi prigionieri, lo aiuti in battaglia, consegni merci nei suoi luoghi e con l\'amicizia del suo regno; cala se lo sconfiggi o lo tradisci. Da fiducia 2 scrive lettere e presta denaro; da 3 sostiene le tue proposte al re. Un favore ogni '+S.ATTESA+' giorni.';
   return riga(`<b>${FIDUCIA[c]}</b>${infoH(esc(tip))}<small>${att&&c>=1?'Gli hai già chiesto un favore da poco.':c<1?'Servono tempo e buone azioni.':'Può farti un favore.'}${deb?' Gli devi '+deb.oro+' monete entro il giorno '+deb.scad+'.':''}</small>`,
    (c>=2&&regno?bt('Una lettera ('+S.LETTERA+' gg)','scegli:lettera',{no:att||(s.lettere[sg.faz]||0)>=VEN.giorno(s)}):'')+(c>=2?bt('Prestito '+S.PRESTITO,'scegli:prestito',{no:att||!!deb}):'')+(deb?bt('Rendi '+deb.oro,'scegli:rendi'):''))}
- return{termH,descInc,costoRiposo,EVN,evNome,gradH,incH,voceH,compagniaH,capitanoH,diarioH,schieraH,FIDUCIA,confH}})();
+ return{termH,descInc,EVN,evNome,gradH,incH,voceH,compagniaH,capitanoH,diarioH,schieraH,FIDUCIA,confH}})();

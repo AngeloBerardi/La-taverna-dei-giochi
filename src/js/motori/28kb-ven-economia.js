@@ -46,7 +46,9 @@ Object.assign(VEN,(()=>{
  const caricoMax=s=>30+uomini(TU(s))*2+capi(s).reduce((a,c)=>a+(c.eq.cavallo?12:0),0);
  // giorni di viveri: razioni diviso il consumo giornaliero (una razione ogni sei uomini, almeno una)
  const giorniViveri=s=>{const t=TU(s);return Math.floor(razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))};
- const paga=s=>{const tr=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0),x=tr+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
+ const paga=s=>{const x=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
+ // prezzo del riposo in un luogo (pura): gratis in casa propria, a testa altrove
+ const costoRiposo=(s,l)=>l.faz==='tu'||l.sig===-2?0:Math.ceil(uomini(TU(s))*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5));
  // prezzo di una merce in un luogo: sale quando la scorta è bassa. verso = 1 compri, -1 vendi
  function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=s.geo===2?VEN.curvaEco(s,l,m):Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
   return Math.max(1,Math.round(D.MERCI[m].base*k*(verso>0?1.12-c*.02:.88+c*.02)*VEN.molt(s,'prezzo',{lid:l.id,m,compra:verso>0})))}
@@ -126,7 +128,7 @@ Object.assign(VEN,(()=>{
    // il torneo si sa sempre; un posto nascosto solo finché ce n'è qualcuno da raccontare
    tu.oro-=25;const tn=VEN.tornei(s)[0],dt='«A '+s.l[tn.lid].nome+' c\'è torneo '+VEN.quando(tn.giorni)+'.»';if(x)x.noto=true;
    L(s,l.oste+(x?' abbassa la voce: «'+x.nome+'. Io non ci andrei, ma tu hai l\'aria di chi ci va.» E aggiunge: '+dt:' non ha storie nuove, ma una la sa: '+dt),'bene');return x?{s,lid:x.id}:{s}}
-  if(z.a==='riposa'){if((l.tipo==='villaggio'||SITO[l.tipo])&&!mio)return{err:'Qui non c\'è locanda'};const oro=mio?0:Math.ceil(uomini(tu)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5));if(tu.oro<oro)return{err:'Servono '+oro+' monete'};tu.oro-=oro;for(const e of tu.tr)e.f=Math.max(0,(e.f||0)-Math.ceil(e.n*.5));tu.mor=Math.min(100,tu.mor+6);tu.ord={t:'aspetta',fino:s.t+8*60};return{s}}
+  if(z.a==='riposa'){if((l.tipo==='villaggio'||SITO[l.tipo])&&!mio)return{err:'Qui non c\'è locanda'};const oro=costoRiposo(s,l);if(tu.oro<oro)return{err:'Servono '+oro+' monete'};tu.oro-=oro;for(const e of tu.tr)e.f=Math.max(0,(e.f||0)-Math.ceil(e.n*.5));tu.mor=Math.min(100,tu.mor+6);tu.ord={t:'aspetta',fino:s.t+8*60};return{s}}
   if(z.a==='riscatta'){if(!MURA[l.tipo])return{err:'Qui nessuno compra prigionieri'};let oro=0;for(const e of s.prig){if(e.sig!=null){const sg=s.sig[e.sig];oro+=350+(sg.re?450:0);sg.prig=null;const p=part(s,sg.pid);if(p)p.ia.t=s.t+P.GIORNO}else oro+=e.n*(12+D.TR[e.t].t*14)}
    if(!oro)return{err:'Non hai prigionieri'};s.prig=[];tu.oro+=oro;L(s,'Riscatti incassati: '+oro+' monete.','bene');VEN.reagisci(s,'riscatta');return{s,oro}}
   if(z.a==='incarico'){const q=l.inc;if(!q||q.preso)return{err:'Nessun incarico'};if(s.incarichi.filter(x=>!x.fatto&&!x.fallito).length>=4)return{err:'Hai già troppi incarichi'};
@@ -152,7 +154,7 @@ Object.assign(VEN,(()=>{
   if(z.a==='pace'){const f=l.faz;if(!VEN.regni(s).includes(f)&&f!=='tu')return{err:'Qui non si tratta'};const con=z.f||f;if(!(con in s.rel)||(s.corona?!inGuerra(s,'tu',con):s.rel[con]>-25))return{err:'Non siete in guerra'};const oro=400+Math.max(0,Math.round(-s.rel[con]*6));if(tu.oro<oro)return{err:'Servono '+oro+' monete di tributo'};tu.oro-=oro;s.rel[con]=Math.max(s.rel[con],-5);if(s.corona)VEN.faiPace(s,'tu',con);L(s,'Paghi un tributo di '+oro+' monete: pace con '+VEN.rg(s,con).breve+'.');return{s}}
   if(z.a==='guarnigione'){if(!mio||!MURA[l.tipo])return{err:'Non è una tua fortezza'};const n=Math.max(1,z.n||1);if(z.verso>0){if(togliUomini(tu.tr,z.t,n)<1)return{err:'Nessuno da lasciare'};aggiungi(l.g,z.t,n)}else{if(uomini(tu)+n>limite(s))return{err:'La compagnia è al completo'};const k=togliUomini(l.g,z.t,n);if(!k)return{err:'Nessuno da riprendere'};aggiungi(tu.tr,z.t,k)}return{s}}
   return{err:'Azione sconosciuta'}}
- return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,prezzo,prezzoMedio,segnali,renditaL,rendite,libera,titoloInc,fai}})());
+ return{prezzoOgg,rinnova,razioni,giorniViveri,carico,caricoMax,paga,costoRiposo,prezzo,prezzoMedio,segnali,renditaL,rendite,libera,titoloInc,fai}})());
 // ---------- Passo 36: l'economia del mondo (solo `s.geo===2`) ----------
 // Ogni giorno, per ogni luogo col mercato e per ogni merce: scorta += produzione − consumo × scorta/RIF (il resto frazionario sta in `l.prod.r`, così le scorte restano intere
 // e il conto non usa il caso). Il nucleo (28ka) ritocca ancora le scorte alla sua maniera: nei mondi nuovi il ritocco si annulla (`giornoNuovo` qui sotto) e vale solo questo.
