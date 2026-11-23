@@ -33,7 +33,7 @@ Ogni comandante ha un rango da 0 a 5 che cresce con le battaglie vinte e si legg
    - Volpe: 2 + capitolo della rivalità (al massimo 5);
    - rango = min(5, base + floor(esp/6)) + `VEN.opz(s).nem`, tenuto tra 0 e 5;
    - nomi: 0 sprovveduto, 1 accorto, 2 esperto, 3 astuto, 4 maestro di guerra, 5 leggendario.
-2. `VEN.rango(s,parte)` → `{r,nome}`; `VEN.rangoCap(s)` → il rango del tuo capitano dall'abilità `comando` (0–1 → 1, 2–3 → 2, 4–5 → 3, oltre → 4).
+2. `VEN.rango(s,parte)` → `{r,nome}`; `VEN.rangoCap(s)` → il rango del tuo capitano dall'abilità `comando` (0–1 → 2, 2–3 → 3, oltre → 4; correzione dell'issue #195: era 0–1 → 1, ma con la scala ripida il capitano che non ha studiato il comando perdeva troppe battaglie risolte da sole contro i signori di rango 2, e il bot accorto non reggeva più).
 3. **Esperienza**, sempre attiva (è solo stato in più): un ascoltatore di `battaglia` dà al signore vincitore +1 (+2 se ha battuto te); uno di `giorno` toglie 1 ogni 10 giorni di prigionia. `sg.esp` è facoltativo (assente vale 0).
 4. **Solo con `ACCESO.consiglio`**:
    - `premio`: se vinci, xp, fama e bottino × (1 + 0,2·rango); se perdi contro un rango ≥ 4, la fama che perdi si dimezza;
@@ -68,7 +68,7 @@ Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi g
 
 ## Correzione (issue #195)
 
-Con l'interruttore acceso il rango nel mondo non cambiava la scala in battaglia (quella sta nei passi 21 e 25) ma rompeva due prove fragili:
+Con l'interruttore acceso il rango nel mondo non cambiava la scala in battaglia (quella sta nei passi 21 e 25); il rango del capitano parte ora da 2 (decisione 2). Rompeva anche due prove fragili:
 - `test_ven_diplomazia` contava le guerre del regno dominante in due soli mondi: il moltiplicatore di forza tra IA cambia le battaglie e quindi la storia del mondo (2 guerre invece di 5 sui semi 12 e 33, ma 24 contro 22 su dieci mondi). Ora conta su quattro mondi;
 - `test_ven_p09` e `test_ven_stanza` pretendevano numeri esatti del nemico e gli eventi dell'ultimo passo: col consiglio acceso la vista del nemico è «a spanne» (passo 32) e gli eventi dipendono da quanti passi si fanno. Ora guardano solo ciò che non dipende dall'interruttore.
 
