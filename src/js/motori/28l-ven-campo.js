@@ -293,7 +293,7 @@ const k=b.p+'|'+b.t;if(!b.cap)s.cad[k]=(s.cad[k]||0)+1;else if(b.l==='a'){s.ko[b
     if(fr<C.ROTTA+(55-s.mor[l])*.004+(s.indole?VCONS.soglia(s,l):0)&&!(l==='b'&&s.muro)&&s.tipo!=='arena'){for(const u of s.u)if(u.l===l&&u.st==='vivo'&&!u.cap){if(u.sal>s.t&&u.scI>=0)s.scalaT[u.scI]=0;u.sal=0;u.st='fuga'}s.ris[l]=[];if(s.ond)s.ond[l]=[];s.ev.push({t:'rotta',l});if(l==='a'&&s.autoA)chiudi(s,'b')}}
    const na=vivi(s,'a').length+riserva(s,'a')+inOnda(s,'a'),nb=vivi(s,'b').length-P.capoVivo(s)+riserva(s,'b')+inOnda(s,'b');const soloCap=vivi(s,'a').every(u=>u.cap);
    if(nb===0)chiudi(s,'a');else if(na===0||(soloCap&&riserva(s,'a')===0&&inOnda(s,'a')===0&&nb>3&&s.tipo!=='arena'))chiudi(s,'b');
-   else if(s.t>=C.TMAX){const va=vivi(s,'a').length/Math.max(1,s.n0.a),vb=vivi(s,'b').length/Math.max(1,s.n0.b);chiudi(s,s.tipo==='arena'?(pfRes(s,'a')>=pfRes(s,'b')?'a':'b'):va>=vb&&!s.muro?'a':'b')}}}
+   else if(s.t>=C.TMAX){const va=na/Math.max(1,s.n0.a),vb=nb/Math.max(1,s.n0.b);chiudi(s,s.tipo==='arena'?(pfRes(s,'a')>=pfRes(s,'b')?'a':'b'):va>=vb&&!s.muro?'a':'b')}}}
  // in arena, a tempo scaduto vince chi ha più vita rimasta in proporzione
  const pfRes=(s,l)=>{let a=0,b=0;for(const u of s.u)if(u.l===l){a+=u.st==='ko'?0:u.pf;b+=u.pfm}return a/Math.max(1,b)};
  function chiudi(s,l){if(s.fine)return;s.fine={vince:l,t:s.t};if(s.rep)Q.vince(s,l);s.ev.push({t:'fine',vince:l})}

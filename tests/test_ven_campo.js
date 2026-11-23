@@ -115,6 +115,9 @@ for (const f of carica.VEN_FILES.filter(f => /^28[j-l]/.test(f) && f !== '28ja-v
     const deboli = duello(2, 20, { att: 1, dan: 1, dif: 0 }); for (let i = 1; i <= 5; i++) { const r = C.risolvi(Object.assign({}, deboli, { seme: i })); assert(r.vince === 'b' && r.capKo, 'tutti a terra: perde la squadra'); } }
   // il tempo massimo decide per vita rimasta, mai una battaglia senza fine
   { const q2 = C.nuovo(duello(1, 100000, { dan: 0 }), { autoA: true }); q2.u.find(u => u.l === 'b').dan = 0; C.passo(q2, C.C.TMAX + 10); assert(q2.fine, 'a tempo scaduto c\'è un vincitore'); }
+  // a tempo scaduto chi aspetta in riserva è vivo: 40 contro 10 senza un colpo (6 dei 40 fuori dal campo) vince chi ne ha 40
+  { const q4 = C.nuovo(scheda(3, T(0, { val_f2: 40 }), T(5, { fer_f2: 10 }), { cap: undefined }), { autoA: true }); for (const u of q4.u) u.vel = 0; assert(q4.ris.a.length > 0, 'qualcuno resta in riserva');
+    C.passo(q4, C.C.TMAX + 10); assert.strictEqual(q4.fine.t, C.C.TMAX); assert.strictEqual(q4.fine.vince, 'a', 'la riserva conta tra i vivi'); }
   // i battaglioni normali restano come prima: la rotta e gli ordini funzionano ancora
   { const q3 = C.nuovo(scheda(1, pari()[0], pari()[1])); assert.strictEqual(q3.tipo, 'campo'); assert(!C.ordina(q3, { t: 'carica' }).err); }
 }

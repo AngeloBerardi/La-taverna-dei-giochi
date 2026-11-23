@@ -132,4 +132,15 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
   for (const id of v1) assert(K.MANOVRE.find(m => m.id === id).rango <= 1);
   assert(v1.size >= 2 && v2.size >= 4, 'più rango, più manovre: ' + [...v1] + ' / ' + [...v2]);
 }
+// sotto le frecce senza tiratori propri i fanti non aspettano: sette fanti contro tre tiratori e due fanti (la prima battaglia del seme 7 del bot
+// del mondo, che al rango 2 vinceva 13 volte su 40 e perdeva sei uomini su sette) vincono a ogni rango come al rango 0
+{
+  const CAP = { nome: 'Capitano', pf: 66, att: 15, dif: 10, dan: 12, vel: 15, rit: 12, perf: 0, git: 0, cavallo: true };
+  const vinte = ra => { let v = 0; for (let k = 0; k < 12; k++) { const r = C.risolvi({ seme: 1000 + k * 37, terreno: 1 + k % 3, a: T(0, { sel_f1: 5, sel_f2: 2 }), b: T(5, { pre_f2: 2, pre_t2: 3 }), faza: 'tu', fazb: 'pre', cap: CAP, rango: { a: ra, b: 0 } }); if (r.vince === 'a') v++ } return v };
+  for (const ra of [0, 2, 3, 4]) { const v = vinte(ra); assert(v >= 11, 'rango ' + ra + ' contro i tiratori: ' + v + '/12') }
+  // con più tiratori dei loro e il nemico a tiro, invece, i fanti aspettano in ordine largo (è la leva della scala dei ranghi)
+  const s = mk({ val_f2: 20, val_t2: 12 }, { fer_f2: 10, fer_t2: 4 }, { rango: { a: 2, b: 0 } });
+  const Q = K.quadro(s, 'a'); assert.strictEqual(Q.sotto, !Q.rep.some(m => m.ti > .5 && m.nm && m.nm.d <= m.git * 1.05));
+  const s2 = mk({ val_f2: 20 }, { fer_f2: 10, fer_t2: 4 }, { rango: { a: 2, b: 0 } }); assert.strictEqual(K.quadro(s2, 'a').sotto, true, 'senza tiratori si è sotto');
+}
 console.log('test_ven_p21 ok');

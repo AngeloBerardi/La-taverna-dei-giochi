@@ -40,6 +40,10 @@ const VCONS=(()=>{
   for(const m of Q.rep){let d=1e9,mn=null;for(const e of Q.nem){const de=d2(m,e);if(de<d){d=de;mn=e}if(de<=K.MINACCIA)m.min+=e.fo*contrario(e,m,aperto)}m.nm=mn?{x:mn.x,y:mn.y,d,c:mn.c,r:mn.r,git:mn.git,ti:mn.ti}:null}
   for(const e of Q.nem){e.nd=1e9;for(const m of Q.rep){const de=d2(m,e);if(de<e.nd)e.nd=de}}
   const vm=valore(s,l),vn=valore(s,nl);Q.R=vm/Math.max(1,vn);
+  // lo scambio di frecce si regge solo con più tiratori e se almeno un reparto dei propri ha il nemico a tiro (non fermo su un'altura lontana):
+  // altrimenti i fanti sotto il tiro vanno a prendersi i tiratori invece di aspettare (vedi `contro`)
+  let tm=0,tn=0;for(const m of Q.rep)tm+=m.n*m.ti;for(const e of Q.nem)tn+=e.n*e.ti;
+  Q.sotto=tn>tm||!Q.rep.some(m=>m.ti>.5&&m.nm&&m.nm.d<=m.git*1.05);
   Q.alt=Q.rep.some(m=>m.qu>C.TER.DISL);
   Q.onde=s.ond&&s.ond[l]?s.ond[l].filter(w=>!w.fatta).length:0;
   // il capitano nemico è esposto se nessun suo reparto gli sta entro 8
@@ -93,7 +97,8 @@ const VCONS=(()=>{
     tieni(s,l,m,Q,ax,ay)}},
   {id:'contro',rango:2,tipo:['f'],
    vale:(Q,m)=>{const t=minacce(Q,m);return t.cav?2.5:t.tiro?1.2:0},
-   ordina:(s,l,m,Q)=>{tieni(s,l,m,Q,m.x,m.y,minacce(Q,m).cav?'serrata':'larga')}},
+   // contro i cavalli in serrata; sotto le frecce in larga: si aspetta solo se i propri tiratori reggono lo scambio, altrimenti si carica
+   ordina:(s,l,m,Q)=>{const cav=minacce(Q,m).cav;tieni(s,l,m,Q,m.x,m.y,cav?'serrata':'larga');if(!cav&&Q.sotto)s.ord[l][m.k].t='carica'}},
   {id:'ripiega',rango:2,tipo:['t','c'],
    // solo se nessun reparto amico non-tiratore sta tra il tiratore e il nemico che arriva
    vale:(Q,m)=>m.nm&&m.nm.d<=K.RIPIEGA&&m.ti>.5&&!Q.rep.some(q=>q.c!=='t'&&d2(q,m.nm)<m.nm.d)?1.5:0,
