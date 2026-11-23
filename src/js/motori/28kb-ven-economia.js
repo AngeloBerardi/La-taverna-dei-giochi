@@ -8,7 +8,7 @@ VDAT.ECO={
  CURVA:[.486,.577,.66,.736,.807,.875,.939,1,1.059,1.116,1.17,1.224,1.275,1.326,1.375,1.423,1.47,1.516,1.561,1.605,1.648,1.691,1.733,1.774,1.815,1.855,1.894,1.933],
  MIN:.4,MAX:3,      // il prezzo (curva × rialzo di guerra) resta tra queste due volte la base
  // al giorno, per luogo, con k = prosperità/60: [produce, non produce, consuma] (cibo e altre merci). Scorta di equilibrio = RIF × produzione / consumo
- TASSI:{villaggio:{c:[2.4,1.8,1.4],a:[1,.5,.7]},citta:{c:[2.4,2.4,3],a:[1.8,.8,1.2]},porto:{c:[3,2.2,2.5],a:[1.6,.6,1]}},
+ TASSI:{villaggio:{c:[4,3,1.2],a:[1,.5,.7]},citta:{c:[2.4,2.4,2],a:[1.8,.8,1.2]},porto:{c:[3,2.4,2],a:[1.6,.6,1]}},
  STAG:{prim:1,est:1.1,aut:1.5,inv:.5},   // quanto producono i villaggi nelle stagioni (il raccolto è in autunno)
  TETTO:120,         // scorta massima di un luogo
  RAGGIO:15,         // mercato regionale: luoghi entro quante celle si scambiano scorte...
