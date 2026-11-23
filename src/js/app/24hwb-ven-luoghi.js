@@ -81,7 +81,7 @@ const VenLuoghi=(()=>{
   if(l.tipo==='locanda'){const nasc=s.l.some(q=>q.noto===false&&q.g.length);T.push(tes('chat','Voci','sub:term:voci',{no:!nasc,s:nasc?'25 m':'Niente di nuovo',d:nasc?'Un giro di vino (25 monete) e l\'oste racconta dove andare':'L\'oste non ha più storie da raccontare'}))}
   if(cons)T.push(tes('pin','Consegna','sub:term:consegna',{dot:1,s:cons.premio+' m',d:VEN.titoloInc(s,cons)+', '+cons.premio+' monete'}));
   if(q&&!q.preso)T.push(tes('diario','Incarico','sub:term:incarico',{dot:ha('incarico'),s:q.premio+' m · '+q.giorni+' g',d:VenGente.descInc(s,q)+'. '+q.premio+' monete, '+q.giorni+' giorni'}));
-  if(!(l.tipo==='villaggio'&&!mio))T.push(tes('letto','Riposo','sub:term:riposa',{s:mio?'Gratis':VenGente.costoRiposo(s,l)+' m',d:'Otto ore: metà dei feriti torna in piedi.'+(mio?'':' '+Math.ceil(VEN.uomini(t)*(l.tipo==='locanda'||l.tipo==='monastero'?1:1.5))+' monete.')}));
+  if(!(l.tipo==='villaggio'&&!mio))T.push(tes('letto','Riposo','sub:term:riposa',{s:mio?'Gratis':VenGente.costoRiposo(s,l)+' m',d:'Otto ore: metà dei feriti torna in piedi.'+(mio?'':' '+VenGente.costoRiposo(s,l)+' monete.')}));
   return pannello(esc(l.nome),h+`<div class="vn-sr">${T.join('')}</div>`+(tnQui?torneoH(l):'')+`<div class="vn-fine">${bt('Riparti','fai:esci',{cls:'gold'})}</div>`,{chiudi:'fai:esci'})}
  // il torneo della città: iscrizione, turno, avversari col loro corredo, premio maturato
  function torneoH(l){const s=V.s,t=s.torneo,T=D.TORNEO,g=VEN.giorno(s),capi=VEN.capi(s),posta=capi.reduce((a,c)=>a+T.posta*c.liv,0);

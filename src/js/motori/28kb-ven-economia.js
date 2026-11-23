@@ -19,7 +19,8 @@ VDAT.ECO={
  DURATA:21,         // ...e dopo tanti giorni è finito
  FERMO:14,          // giorni senza produzione per un villaggio razziato
  FAME:.05,          // quota di guarnigione che muore ogni giorno di assedio senza cibo (almeno uno)
- PAGA_SOGLIA:40,PAGA_OLTRE:.02,   // la paga per truppa sale del 2% per ogni uomo oltre i 40 (sta dentro `paga` del nucleo e riguarda solo le truppe, non le guarnigioni dei feudi: deroga alla decisione 7 del passo)
+ PAGA_SOGLIA:40,PAGA_OLTRE:.02,   // la paga delle truppe (non delle guarnigioni) sale del 2% per ogni uomo oltre i 40
+ CAV_VIVERI:2,      // un cavaliere mangia 2 razioni invece di 1 (uomo con `molt('viveri')`, cavallo col foraggio)
  BOTTINO:{4:.003,5:.006},BOTTINO_COMP:.4,BOTTINO_MAX:.2,   // quota di bottino chiesta dalle truppe di grado alto (per uomo); i compagni la chiedono al 40%
  STORIA:8};         // prezzi degli ultimi giorni tenuti per la freccia della tendenza (il più vecchio è di 7 giorni fa)
 Object.assign(VEN,(()=>{
@@ -45,7 +46,7 @@ Object.assign(VEN,(()=>{
  const caricoMax=s=>30+uomini(TU(s))*2+capi(s).reduce((a,c)=>a+(c.eq.cavallo?12:0),0);
  // giorni di viveri: razioni diviso il consumo giornaliero (una razione ogni sei uomini, almeno una)
  const giorniViveri=s=>{const t=TU(s);return Math.floor(razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))};
- const paga=s=>{const tr=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0),x=(s.geo===2?Math.round(tr*(1+VDAT.ECO.PAGA_OLTRE*Math.max(0,uomini(TU(s))-VDAT.ECO.PAGA_SOGLIA))):tr)+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
+ const paga=s=>{const tr=TU(s).tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0),x=tr+s.l.reduce((a,l)=>a+(l.faz==='tu'?Math.ceil(forzaTr(l.g)*.12):0),0),m=VEN.molt(s,'paga',{});return m===1?x:Math.round(x*m)};
  // prezzo di una merce in un luogo: sale quando la scorta è bassa. verso = 1 compri, -1 vendi
  function prezzo(s,l,m,verso){const sc=l.scorte[m]||0,k=s.geo===2?VEN.curvaEco(s,l,m):Math.max(.45,Math.min(2.1,1.9-1.2*sc/60)),c=abil(s,'commercio');
   return Math.max(1,Math.round(D.MERCI[m].base*k*(verso>0?1.12-c*.02:.88+c*.02)*VEN.molt(s,'prezzo',{lid:l.id,m,compra:verso>0})))}
@@ -209,7 +210,10 @@ Object.assign(VEN,(()=>{
   // la memoria dei prezzi, per la freccia della tendenza
   for(const l of mk){const h=l.prod.h||(l.prod.h={});for(const m of Object.keys(D.MERCI)){const a=h[m]||(h[m]=[]);a.push(VEN.prezzo(s,l,m,1));if(a.length>E.STORIA)a.shift()}}}
  VEN.aggancia('nuovo',nuovo);
- VEN.aggancia('giorno',s=>{if(s.geo===2)giornoEco(s);snap=null});
+ // foraggio in più dei cavalieri: la mancanza la punisce il gancio di 28kh
+ function foraggioExtra(s){let da=foraggioBase(s)*(E.CAV_VIVERI-1);const tu=TU(s),cibi=Object.keys(tu.merci).filter(m=>D.MERCI[m].cibo);let k=0;
+  while(da>0&&cibi.some(m=>tu.merci[m]>0)){const m=cibi[k++%cibi.length];if(tu.merci[m]>0){tu.merci[m]--;da--}}}
+ VEN.aggancia('giorno',s=>{if(s.geo===2){giornoEco(s);foraggioExtra(s)}snap=null});
  // razzia: il villaggio smette di produrre e il cibo sale in tutta la regione
  VEN.aggancia('luogo',(s,l,k)=>{if(s.geo!==2||k!=='razzia'||!l)return;const p=l.prod||(l.prod={}),g=giorno(s);p.fermo=g+E.FERMO;p.gu=g;ev.s=null});
  // il nucleo ritocca le scorte nel suo giornoNuovo: nei mondi nuovi si tiene l'istantanea di prima e `giornoEco` la rimette
@@ -217,12 +221,29 @@ Object.assign(VEN,(()=>{
  const giornoNuovo=s=>{snap=s.geo===2?s.l.map(l=>MERCATO[l.tipo]?Object.assign({},l.scorte):null):null;try{gn0(s)}finally{snap=null}};
  // freccia del mercato: -1 se il prezzo di oggi è sceso di oltre il 5% rispetto a sette giorni fa, 1 se è salito, 0 altrimenti (e nei mondi vecchi)
  function tendenza(s,lid,m){const l=s.l[lid],h=l&&l.prod&&l.prod.h&&l.prod.h[m];if(!h||h.length<2)return 0;const a=h[0],b=VEN.prezzo(s,l,m,1);return b>a*1.05?1:b<a*.95?-1:0}
- // quanto costa al giorno tenere la compagnia: paghe in monete, viveri (con la razione in più dei cavalieri) e foraggio (la parte dei cavalli) in razioni. Il foraggio ricopia la formula di 28kh (`giorno`, parte «foraggio»): se cambia là, va cambiata anche qui; test_ven_p36 li confronta
- function costoGiorno(s){const t=TU(s),U=uomini(t),mv=VEN.molt(s,'viveri',{p:t}),paghe=Math.round(VEN.paga(s)/P.PAGA_GIORNI),viveri=Math.ceil(U/6*mv);let foraggio=0;
-  if(s.anno!=null&&VEN.stagione&&!s.prigioniero){const st=VEN.stagione(s),sc=((VDAT.DIFF.stag||{})[(s.opz&&s.opz.stag)||VDAT.OPZ0.stag]||{scarto:1}).scarto,cav=t.tr.reduce((a,e)=>a+(D.TR[e.t].c==='c'?e.n:0),0);
-   foraggio=Math.round(cav*VDAT.STAG.FORAGGIO_QUOTA/6*Math.max(.05,1+(VDAT.STAG.EFF[st.k].foraggio-1)*sc)*consF(s))}
+ // il foraggio di un giorno come lo toglie 28kh (se cambia là, cambia anche qui; test_ven_p36 li confronta); nei mondi nuovi ne vale CAV_VIVERI volte tanto
+ function foraggioBase(s){const t=TU(s);if(s.anno==null||!VEN.stagione||s.prigioniero)return 0;
+  const st=VEN.stagione(s),sc=((VDAT.DIFF.stag||{})[(s.opz&&s.opz.stag)||VDAT.OPZ0.stag]||{scarto:1}).scarto,cav=t.tr.reduce((a,e)=>a+(D.TR[e.t].c==='c'?e.n:0),0);
+  return Math.round(cav*VDAT.STAG.FORAGGIO_QUOTA/6*Math.max(.05,1+(VDAT.STAG.EFF[st.k].foraggio-1)*sc)*consF(s))}
+ // costo al giorno: paghe in monete, viveri e foraggio in razioni
+ function costoGiorno(s){const t=TU(s),U=uomini(t),mv=VEN.molt(s,'viveri',{p:t}),paghe=Math.round(VEN.paga(s)/P.PAGA_GIORNI),viveri=Math.ceil(U/6*mv),foraggio=foraggioBase(s)*(s.geo===2?E.CAV_VIVERI:1);
   return{paghe,viveri,foraggio}}
+ // la paga dei sette giorni e i giorni di viveri se arrivassero `n` reclute di quel villaggio (pura: lavora su una copia della compagnia)
+ function conReclute(s,lid,n){const l=s.l[lid],f=VEN.regni(s).includes(l.faz)?VEN.cult(s,l.faz):M0(s,l),c=Object.assign({},s),t=Object.assign({},TU(s),{tr:TU(s).tr.map(e=>Object.assign({},e))});
+  c.p=s.p.slice();c.p[0]=t;VEN._.aggiungi(t.tr,f+'_f1',n);return{paga:VEN.paga(c),giorni:VEN.giorniViveri(c)}}
+ // il rincaro dei grandi eserciti si somma alla paga del nucleo, con lo stesso `molt('paga')`
+ const paga0=VEN.paga;
+ function paga(s){const x=paga0(s);if(s.geo!==2)return x;const tu=TU(s),tr=tu.tr.reduce((a,e)=>a+e.n*D.TR[e.t].paga*2,0),m=VEN.molt(s,'paga',{});
+  return x+Math.round(tr*E.PAGA_OLTRE*Math.max(0,uomini(tu)-E.PAGA_SOGLIA)*m)}
+ // la razione-uomo dei cavalieri (senza il foraggio) cresce in `molt('viveri')`; 28kh, che viene dopo, toglie la sua parte
+ const molt0=VEN.molt;
+ VEN.molt=(s,k,c)=>{const m=molt0(s,k,c);if(k!=='viveri'||s.geo!==2||s.anno==null||!c||!c.p||!c.p.tr)return m;
+  let n=0,cav=0;for(const e of c.p.tr){n+=e.n;if(D.TR[e.t]&&D.TR[e.t].c==='c')cav+=e.n}
+  return n?m*(n+cav*(E.CAV_VIVERI*(1-VDAT.STAG.FORAGGIO_QUOTA)-1))/(n-cav*VDAT.STAG.FORAGGIO_QUOTA):m}
  // quota di bottino che le truppe di grado alto chiedono (0–BOTTINO_MAX); i compagni ne chiedono meno
  function quotaBottino(s){let q=0;for(const e of TU(s).tr){const T=D.TR[e.t];q+=e.n*(E.BOTTINO[T.t]||0)*(T.compagno?E.BOTTINO_COMP:1)}return Math.min(E.BOTTINO_MAX,q)}
- VEN.aggancia('premio',(s,riep,out)=>{if(s.geo!==2||!out||!(out.oro>0))return;const x=Math.floor(out.oro*quotaBottino(s));if(x>0){out.oro-=x;out.quota=x;L(s,'Le truppe scelte chiedono la loro parte del bottino: '+x+' monete.')}});
- return{giornoNuovo,curvaEco,tendenza,costoGiorno,quotaBottino}})());
+ VEN.aggancia('premio',(s,riep,out)=>{if(s.geo!==2||!out||!(out.oro>0))return;const x=Math.floor(out.oro*quotaBottino(s));if(x>0){out.oro-=x;L(s,'Le truppe scelte chiedono la loro parte del bottino: '+x+' monete.')}});
+ // giorni di viveri: nei mondi nuovi contano anche la razione dei cavalieri e il foraggio
+ const gv0=VEN.giorniViveri;
+ const giorniViveri=s=>{if(s.geo!==2)return gv0(s);const c=costoGiorno(s),d=c.viveri+c.foraggio;return d>0?Math.floor(VEN.razioni(TU(s))/d):gv0(s)};
+ return{giornoNuovo,curvaEco,tendenza,costoGiorno,quotaBottino,paga,conReclute,giorniViveri}})());
