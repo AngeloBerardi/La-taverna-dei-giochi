@@ -92,7 +92,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
  // Ogni figura è fatta di pezzi scelti dal suo aspetto (`asp`, da VDAT.aspetto o dall'equipaggiamento del capitano): corpo e
  // corazza, testa ed elmo, arma, scudo, mantello, cavallo e barda. Un InstancedMesh per pezzo, colore per istanza: così ogni
  // truppa si riconosce a colpo d'occhio e l'equipaggiamento del capitano si vede addosso.
- function Schiera(scene,max){const d=new T.Object3D(),d2=new T.Object3D(),col=new T.Color(),c2=new T.Color(),c3=new T.Color(),So=Solidi;
+ function Schiera(scene,max){const d=new T.Object3D(),d2=new T.Object3D(),col=new T.Color(),c2=new T.Color(),c3=new T.Color(),hc=new T.Color(),So=Solidi;
   const pezzo=(S,ombra)=>{const me=new T.InstancedMesh(S.geo(),matInst,max);me.castShadow=ombra!==false;me.receiveShadow=false;me.count=0;me.frustumCulled=false;me.instanceMatrix.setUsage(T.DynamicDrawUsage);
    me.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);me.instanceColor.setUsage(T.DynamicDrawUsage);scene.add(me);return me};
   const P={};
@@ -102,21 +102,21 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
   P.spall=pezzo(So().box(.3,.16,.36,-.44,1.1,0,'#ffffff').box(.3,.16,.36,.44,1.1,0,'#ffffff').box(.25,.3,.29,-.15,.04,0,'#dcdcdc').box(.25,.3,.29,.15,.04,0,'#dcdcdc'),false);
   P.testa=pezzo(So().box(.34,.32,.32,0,1.22,0,'#ffe2c0'));
   P.cappuccio=pezzo(So().box(.42,.36,.4,0,1.25,-.03,'#ffffff').box(.44,.16,.2,0,1.16,-.17,'#e2e2e2'),false);
-  P.paglia=pezzo(So().cil(.44,.48,.06,8,0,1.52,0,'#ecd382').cil(.2,.24,.14,7,0,1.56,0,'#d9bd62'),false);
+  P.paglia=pezzo(So().cil(.44,.48,.06,8,0,1.52,0,'#c9a95a').cil(.2,.24,.14,7,0,1.56,0,'#b4974a'),false);
   P.berretto=pezzo(So().box(.4,.12,.4,0,1.52,0,'#ffffff').box(.22,.09,.22,.1,1.62,0,'#e0e0e0'),false);
   P.pelliccia=pezzo(So().box(.46,.24,.44,0,1.46,0,'#7a5a3c').box(.52,.1,.5,0,1.44,0,'#cbbb9e'),false);
-  P.cervelliera=pezzo(So().box(.4,.16,.38,0,1.48,0,'#c9d2dc').box(.52,.05,.5,0,1.46,0,'#a5afba'),false);
-  P.bacinetto=pezzo(So().box(.42,.38,.4,0,1.29,0,'#cfd8e2').box(.3,.09,.08,0,1.38,.2,'#4a5058'),false);
-  P.corna=pezzo(So().box(.42,.3,.4,0,1.36,0,'#b4bdc8').box(.08,.32,.08,-.26,1.56,0,'#f2ead4',{rz:.55}).box(.08,.32,.08,.26,1.56,0,'#f2ead4',{rz:-.55}),false);
+  P.cervelliera=pezzo(So().box(.4,.16,.38,0,1.48,0,'#8a949f').box(.52,.05,.5,0,1.46,0,'#6f7883'),false);
+  P.bacinetto=pezzo(So().box(.42,.38,.4,0,1.29,0,'#8e98a4').box(.3,.09,.08,0,1.38,.2,'#3a4048'),false);
+  P.corna=pezzo(So().box(.42,.3,.4,0,1.36,0,'#858e99').box(.08,.32,.08,-.26,1.56,0,'#f2ead4',{rz:.55}).box(.08,.32,.08,.26,1.56,0,'#f2ead4',{rz:-.55}),false);
   P.cappello=pezzo(So().cil(.46,.46,.05,8,0,1.52,0,'#3a3030').cil(.2,.23,.17,7,0,1.56,0,'#4a3c3c'),false);
   P.cresta=pezzo(So().box(.09,.2,.46,0,1.66,-.02,'#ffffff'),false);
   P.piuma=pezzo(So().box(.08,.36,.12,.2,1.6,-.12,'#ffffff',{rx:-.5}),false);
-  P.spada=pezzo(So().box(.07,.8,.07,.46,.86,.22,'#dfe6ee',{rx:.5}).box(.2,.06,.08,.46,.88,.12,'#8a6a2c'),false);
+  P.spada=pezzo(So().box(.07,.8,.07,.46,.86,.22,'#aeb7c1',{rx:.5}).box(.2,.06,.08,.46,.88,.12,'#8a6a2c'),false);
   P.sciabola=pezzo(So().box(.07,.5,.07,.46,.86,.2,'#dfe6ee',{rx:.5}).box(.07,.4,.07,.46,1.22,.44,'#e8eef4',{rx:1}).box(.18,.06,.08,.46,.88,.12,'#8a6a2c'),false);
   P.ascia=pezzo(So().box(.06,.9,.06,.46,.6,.2,'#7a5a3a',{rx:.4}).box(.06,.28,.32,.46,1.32,.58,'#cfd6de',{rx:.4}),false);
   P.mazza=pezzo(So().box(.06,.7,.06,.46,.7,.2,'#7a5a3a',{rx:.4}).box(.22,.22,.22,.46,1.32,.5,'#8a9099',{rx:.4}),false);
-  P.lancia=pezzo(So().box(.06,2.1,.06,.46,.1,.16,'#8b6b43').box(.1,.28,.1,.46,2.2,.16,'#e6edf4'),false);
-  P.alabarda=pezzo(So().box(.06,2.0,.06,.46,.1,.16,'#8b6b43').box(.05,.36,.32,.46,1.86,.28,'#d6dde6').box(.08,.3,.08,.46,2.1,.16,'#e6edf4'),false);
+  P.lancia=pezzo(So().box(.06,2.1,.06,.46,.1,.16,'#6e5232').box(.08,.2,.08,.46,2.18,.16,'#9aa3ad'),false);
+  P.alabarda=pezzo(So().box(.06,2.0,.06,.46,.1,.16,'#6e5232').box(.05,.36,.32,.46,1.86,.28,'#9ca5b0').box(.08,.22,.08,.46,2.08,.16,'#9aa3ad'),false);
   P.spadone=pezzo(So().box(.1,1.3,.08,.46,.8,.26,'#e3e9f0',{rx:.45}).box(.36,.07,.09,.46,.86,.12,'#8a6a2c'),false);
   P.arco=pezzo(So().box(.05,.5,.05,-.44,.95,.32,'#7a5230',{rx:.35}).box(.05,.5,.05,-.44,.5,.32,'#7a5230',{rx:-.35}).box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
   P.balestra=pezzo(So().box(.08,.1,.6,.3,.9,.3,'#7a5230').box(.6,.06,.06,.3,.92,.52,'#5a4028').box(.3,.36,.14,.12,.86,-.26,'#6a4a2c'),false);
@@ -130,7 +130,7 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
   // oltre il tetto (livello 2): un omino di due scatole senza ombra (gambe e busto tinti, testa a parte); lo stesso omino allungato fa da cavallo.
   P.omino=pezzo(So().box(.56,.62,.34,0,0,0,'#6e665f').box(.66,.62,.4,0,.6,0,'#ffffff',{c2:'#f2f2f2'}),false);
   P.capo=pezzo(So().box(.34,.32,.32,0,1.22,0,'#ffe2c0'),false);
-  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#e6e0d4','#6e4a2e'],COR=[null,'#8a5a34','#98a2ad','#e2e8ef'],ELMO={paglia:'paglia',cappuccio:'cappuccio',berretto:'berretto',pelliccia:'pelliccia',cervelliera:'cervelliera',bacinetto:'bacinetto',crestato:'bacinetto',piuma:'cappello',corna:'corna'};
+  const ord=Object.keys(P),n={};const MANTI=['#8a5a34','#5c3c26','#b89468','#3a302c','#e6e0d4','#6e4a2e'],COR=[null,'#8a5a34','#6f7882','#98a1ab'],ELMO={paglia:'paglia',cappuccio:'cappuccio',berretto:'berretto',pelliccia:'pelliccia',cervelliera:'cervelliera',bacinetto:'bacinetto',crestato:'bacinetto',piuma:'cappello',corna:'corna'};
   let LV=0;   // livello di dettaglio di base
   const L2V=new T.Matrix4().makeScale(.85,1.08,3.6),m2=new T.Matrix4(),zero=new T.Matrix4().makeScale(0,0,0);
   const m=(k,r,g,b,mat)=>{const me=P[k],i=n[k];if(i>=max)return;me.setMatrixAt(i,mat||d.matrix);me.instanceColor.setXYZ(i,r,g,b);n[k]=i+1};
@@ -139,19 +139,19 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    livello(v){LV=v|0},
    inizio(){for(const k of ord)n[k]=0},
    // f: {x,y,z,yaw,sc,col,col2,asp,cav,fase,colpo,giu,lampo,seme}
-   metti(f){const lv=f.liv!=null?f.liv:LV,sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0;
-    col.set(f.col||'#888');c2.set(f.col2||'#ccc');c3.set(a.col||f.col||'#888');if(!a.col)c3.multiplyScalar(.72);const yb=f.y+(cav?.78*sc:0)+bob*sc;
+   metti(f){const lv=f.liv!=null?f.liv:LV,sc=f.sc||1,a=f.asp||{},cav=!!f.cav,giu=f.giu||0,fase=f.fase||0,sw=Math.sin(fase*6.283),bob=cav?Math.abs(sw)*.1:Math.abs(sw)*.07,colpo=f.colpo||0,aff=Math.sin(colpo*3.1416),L=f.lampo?1.7:0,sd=f.scuro||0,W=L||1-sd;   // scuro: i caduti a terra sono più scuri (0..1)
+    col.set(f.col||'#888');c2.set(f.col2||'#ccc');c3.set(a.col||f.col||'#888');if(!a.col)c3.multiplyScalar(.72);if(sd){col.multiplyScalar(1-sd);c2.multiplyScalar(1-sd);c3.multiplyScalar(1-sd)}const yb=f.y+(cav?.78*sc:0)+bob*sc;
     d.position.set(f.x,yb-giu*(cav?.5:.05)*sc,f.z);d.rotation.set(0,0,0);d.rotation.order='YXZ';d.rotation.y=f.yaw;d.rotation.x=giu*1.45+aff*.22+(cav?0:sw*.03);d.rotation.z=cav?0:sw*.05;d.scale.set(sc,sc*(1-giu*.2),sc);d.updateMatrix();
     if(f.base&&giu<.5&&lv<2){const kb=new T.Color(f.base),mb=new T.Matrix4().compose(new T.Vector3(f.x,f.y,f.z),new T.Quaternion(),new T.Vector3(sc*(cav?1.5:1),sc,sc*(cav?1.5:1)));m('base',kb.r,kb.g,kb.b,mb)}
-    if(lv>1){m('omino',L||col.r,L||col.g,L||col.b);m('capo',L||1,L||1,L||1)}else{m('corpo',L||col.r,L||col.g,L||col.b);m('testa',L||1,L||1,L||1)}
-    if(a.cor>0&&lv<2){const k=new T.Color(COR[a.cor]);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3&&!lv)m('spall',L||k.r,L||k.g,L||k.b)}
-    const el=lv>1?null:ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto';m(el,L||(tinto?c3.r:1),L||(tinto?c3.g:1),L||(tinto?c3.b:1));if(!lv){if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}}
+    if(lv>1){m('omino',L||col.r,L||col.g,L||col.b);m('capo',L||1,L||1,L||1)}else{m('corpo',L||col.r,L||col.g,L||col.b);m('testa',W,W,W)}
+    if(a.cor>0&&lv<2){const k=new T.Color(COR[a.cor]).lerp(col,.4);m('vest',L||k.r,L||k.g,L||k.b);if(a.cor===3&&!lv)m('spall',L||k.r,L||k.g,L||k.b)}
+    const el=lv>1?null:ELMO[a.elmo];if(el){const tinto=el==='cappuccio'||el==='berretto',h=tinto?c3:hc.setRGB(W,W,W).lerp(col,.35);m(el,L||h.r,L||h.g,L||h.b);if(!lv){if(a.elmo==='crestato')m('cresta',c2.r,c2.g,c2.b);else if(a.elmo==='piuma')m('piuma',c2.r,c2.g,c2.b)}}
     if(a.mant&&!lv)m('mantello',L||c3.r,L||c3.g,L||c3.b);
     if(giu<.5&&!lv){const arma=a.arma||'spada';
-     if(arma==='arco'||arma==='balestra')m(arma,1,1,1);
-     else{d2.position.copy(d.position);d2.rotation.copy(d.rotation);d2.rotation.x+=aff*1.1;d2.scale.copy(d.scale);if(arma==='picca')d2.scale.y*=1.3;d2.updateMatrix();m(arma==='picca'?'lancia':P[arma]?arma:'spada',1,1,1,d2.matrix)}
+     if(arma==='arco'||arma==='balestra')m(arma,W,W,W);
+     else{d2.position.copy(d.position);d2.rotation.copy(d.rotation);d2.rotation.x+=aff*1.1;d2.scale.copy(d.scale);if(arma==='picca')d2.scale.y*=1.15;d2.updateMatrix();m(arma==='picca'?'lancia':P[arma]?arma:'spada',W,W,W,d2.matrix)}
      if(a.scudo&&P[a.scudo])m(a.scudo,c2.r,c2.g,c2.b)}
-    if(cav&&giu<.9){const mt=new T.Color(MANTI[(a.manto!=null?a.manto:(f.seme||0))%MANTI.length]);d.position.set(f.x,f.y+bob*sc*.6-giu*.3*sc,f.z);d.rotation.set(sw*.06+giu*.2,f.yaw,giu*1.3,'YXZ');d.scale.set(sc,sc,sc);d.updateMatrix();if(lv>1){m('omino',mt.r,mt.g,mt.b,m2.multiplyMatrices(d.matrix,L2V));return}m('cavallo',mt.r,mt.g,mt.b);if(a.barda)m('barda',col.r,col.g,col.b)}},
+    if(cav&&giu<.9){const mt=new T.Color(MANTI[(a.manto!=null?a.manto:(f.seme||0))%MANTI.length]);if(sd)mt.multiplyScalar(1-sd);d.position.set(f.x,f.y+bob*sc*.6-giu*.3*sc,f.z);d.rotation.set(sw*.06+giu*.2,f.yaw,giu*1.3,'YXZ');d.scale.set(sc,sc,sc);d.updateMatrix();if(lv>1){m('omino',mt.r,mt.g,mt.b,m2.multiplyMatrices(d.matrix,L2V));return}m('cavallo',mt.r,mt.g,mt.b);if(a.barda)m('barda',col.r,col.g,col.b)}},
    // se c'è almeno una figura ogni pezzo si disegna (un'istanza schiacciata se vuoto): le draw call non dipendono da quanti uomini ci sono, da chi è in vista o da chi passa il tetto
    fine(){const tutti=ord.some(k=>n[k]>0);if(tutti)for(const k of ord)if(!n[k])m(k,1,1,1,zero);
     for(const k of ord){const me=P[k];me.count=n[k];me.visible=n[k]>0;me.instanceMatrix.needsUpdate=true;me.instanceColor.needsUpdate=true}},

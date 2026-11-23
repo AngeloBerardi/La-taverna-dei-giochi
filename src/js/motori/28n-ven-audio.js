@@ -35,6 +35,11 @@ const VAUD=(()=>{
   'ven-rotta':[BR(55,0,.1,.3),BR(50,.25,.1,.5),N(0,.6,.1,500,'lowpass',200)],
   'ven-vittoria':[BR(62,0,.1,.25),BR(66,.2,.1,.25),BR(69,.4,.1,.25),BR(74,.6,.12,.7),T(73,.3,.6)],
   'ven-sconfitta':[PD([45,48,52],0,1.8,.03),FL(76,0,.06,.5),FL(72,.5,.06,.5),FL(69,1,.06,.8)]};
+ // il tappeto della mischia (passo 37), a tre livelli: rumore basso e ferri che crescono con i colpi dell'ultimo secondo. Li registra la vista del campo (`Snd.fx`), dura ognuno meno di un secondo
+ const TAPPETO={
+  'ven-mischia-1':[N(0,.9,.05,380,'lowpass',200),N(.3,.04,.05,2200,'bandpass')],
+  'ven-mischia-2':[N(0,.9,.08,500,'lowpass',300),N(.15,.04,.08,2600,'bandpass'),N(.5,.04,.07,2000,'bandpass'),O('sine',70,0,.5,.08,{sl:50})],
+  'ven-mischia-3':[N(0,.9,.11,600,'lowpass',400),N(.1,.04,.1,3000,'bandpass'),N(.35,.04,.1,2400,'bandpass'),N(.6,.04,.09,2800,'bandpass'),O('sine',60,0,.7,.12,{sl:40}),O('square',480,.2,.08,.04,{sl:300,lp:2500})]};
  const ESISTENTI=['err','sel','ok'];
  const PAUSA={'ven-cozzo':120,'ven-freccia':180,'ven-corno':900,'ven-passi':400,'ven-zoccoli':400};
  const MAX_CAMPO=3;
@@ -47,7 +52,7 @@ const VAUD=(()=>{
  const CAMPO={colpo:(e,cap)=>e.dan>0&&!e.freccia&&(e.crit||e.carica||(cap!=null&&(e.da===cap||e.a===cap)))?'ven-cozzo':null,
   tiro:'ven-freccia',ko:e=>e.cap?'ven-grido':null,'cap-ko':'ven-grido',grido:'ven-corno',rinforzi:'ven-corno',
   ordine:e=>e.l==='a'&&e.o==='carica'?'ven-corno':null,rotta:'ven-rotta',fine:e=>e.vince==='a'?'ven-vittoria':'ven-sconfitta',
-  ariete:null,scala:'ven-passi',porta:'ven-porta'};
+  ariete:null,scala:'ven-passi',porta:'ven-porta',mischia:e=>e.liv>0?'ven-mischia-'+Math.min(3,e.liv|0):null};
  const tutti=(l,v)=>Object.fromEntries(l.map(k=>[k,v]));
  const FAI=Object.assign(tutti(['compra','vendi'],'ven-mercato'),
   tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca'],'ven-moneta'),
@@ -56,16 +61,18 @@ const VAUD=(()=>{
   tutti(['aduna','rompi','lascia','libera','congeda'],null));
  const ORDINE={vai:(o,cav)=>cav?'ven-zoccoli':'ven-passi',entra:(o,cav)=>cav?'ven-zoccoli':'ven-passi',segui:(o,cav)=>cav?'ven-zoccoli':'ven-passi',aspetta:null,ferma:null};
  // in battaglia, se gli eventi chiedono più suoni del massimo, passano prima quelli che contano
- const PESO=['ven-vittoria','ven-sconfitta','ven-rotta','ven-grido','ven-corno','ven-porta','ven-cozzo','ven-freccia','ven-passi'];
+ const PESO=['ven-vittoria','ven-sconfitta','ven-rotta','ven-grido','ven-corno','ven-porta','ven-cozzo','ven-freccia','ven-passi','ven-mischia-3','ven-mischia-2','ven-mischia-1'];
  const voce=(v,...a)=>typeof v==='function'?v(...a):v;
  const aggiungi=(o,n,r)=>{if(n&&!o.some(x=>x.n===n))o.push({n,r:r||0})};
  function contesto(s,inCampo,notte){if(inCampo)return'battaglia';if(s&&s.dentro>=0)return'citta';
   const tu=s&&s.p&&s.p[0];if(notte||(tu&&tu.ord&&tu.ord.t==='aspetta'))return'notte';return'viaggio'}
  const traccia=ctx=>'ven-'+(ctx||'viaggio');
+ // i colpi dell'ultimo secondo → livello del tappeto: 0 niente, 1 scaramuccia, 2 mischia, 3 mischia piena
+ const livelloMischia=n=>n>=14?3:n>=6?2:n>=2?1:0;
  function mondo(ev){const o=[];for(const e of ev||[])if(e&&Object.prototype.hasOwnProperty.call(MONDO,e.t))aggiungi(o,voce(MONDO[e.t],e));return o}
  function campo(ev,capId){const o=[];for(const e of ev||[])if(e&&Object.prototype.hasOwnProperty.call(CAMPO,e.t))aggiungi(o,voce(CAMPO[e.t],e,capId));
   if(o.length>MAX_CAMPO)o.sort((a,b)=>PESO.indexOf(a.n)-PESO.indexOf(b.n));return o.slice(0,MAX_CAMPO)}
  function fai(verbo){const o=[];if(Object.prototype.hasOwnProperty.call(FAI,verbo))aggiungi(o,FAI[verbo]);return o}
  function ordine(o,cavallo){const l=[],t=o&&(o.t||o);if(Object.prototype.hasOwnProperty.call(ORDINE,t))aggiungi(l,voce(ORDINE[t],o,!!cavallo));return l}
- return{TRACCE,SUONI,ESISTENTI,PAUSA,MAX_CAMPO,LOG,MONDO,CAMPO,FAI,ORDINE,contesto,traccia,mondo,campo,fai,ordine}})();
+ return{TRACCE,SUONI,TAPPETO,ESISTENTI,PAUSA,MAX_CAMPO,LOG,MONDO,CAMPO,FAI,ORDINE,livelloMischia,contesto,traccia,mondo,campo,fai,ordine}})();
 if(typeof module!=='undefined')module.exports=VAUD;
