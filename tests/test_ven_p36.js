@@ -100,9 +100,17 @@ const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   assert(c150.c.paghe > 3 * c50.c.paghe, 'le paghe crescono più che in proporzione');
   assert.strictEqual(V.paga(s), Math.round(150 * D.TR[t2].paga * 2 * (1 + .02 * 110)), 'paga per truppa × (1 + 0,02 × uomini oltre i 40)');
   tu.tr = [{ t: t2, n: 40, f: 0, xp: 0 }]; assert.strictEqual(V.paga(s), 40 * D.TR[t2].paga * 2, 'fino a 40 uomini nessun aumento');
-  // i cavalieri: la parte dei cavalli sta a parte (passo 17: in tutto una razione per cavaliere, metà sua e metà del cavallo; il «doppio» della decisione 4 è in sospeso, vedi la PR)
+  // i cavalieri consumano il doppio di un fante: una razione l'uomo (viveri) e una il cavallo (foraggio, a parte)
   tu.tr = [{ t: cav, n: 60, f: 0, xp: 0 }]; const cc = V.costoGiorno(s); assert(cc.foraggio > 0 && cc.viveri > 0, 'cavalieri: viveri e foraggio ' + JSON.stringify(cc));
   tu.tr = [{ t: t2, n: 60, f: 0, xp: 0 }]; const cf = V.costoGiorno(s); assert.strictEqual(cf.foraggio, 0, 'a piedi niente foraggio');
+  assert.strictEqual(cc.viveri, cf.viveri, 'l\'uomo a cavallo mangia come un fante'); assert.strictEqual(cc.foraggio, 2 * Math.round(60 * D.STAG.FORAGGIO_QUOTA / 6 * D.STAG.EFF.prim.foraggio), 'il foraggio è il doppio di quello di 28kh (primavera)');
+  { const vecchio = V.nuovo(3), tv = V.TU(vecchio); vecchio.dentro = -1; tv.tr = [{ t: cav, n: 60, f: 0, xp: 0 }]; assert.strictEqual(V.costoGiorno(vecchio).viveri, Math.ceil(60 / 6 * V.molt(vecchio, 'viveri', { p: tv })), 'mondi vecchi: nessun raddoppio'); }
+  // la scheda delle reclute: paga e viveri con n uomini in più, su una copia (la partita non si tocca); il rincaro oltre i 40 uomini e `molt('paga')` ci sono
+  { tu.tr = [{ t: t2, n: 100, f: 0, xp: 0 }]; const vil = s.l.find(x => x.tipo === 'villaggio'), p0 = V.paga(s), g0 = V.giorniViveri(s), r = V.conReclute(s, vil.id, 6);
+    assert.strictEqual(V.uomini(tu), 100, 'la compagnia resta com\'è'); assert(r.paga > p0 + 2 * 6 && r.giorni <= g0, 'paga ' + p0 + ' -> ' + r.paga + ', viveri ' + g0 + ' -> ' + r.giorni);
+    const ava2 = mondo(3, { eco: 'avara' }); V.TU(ava2).tr = [{ t: t2, n: 100, f: 0, xp: 0 }]; for (const l of ava2.l) if (l.faz === 'tu') l.faz = 'neu';
+    const m = D.DIFF.eco.avara.paga, tr = 100 * D.TR[t2].paga * 2;
+    assert.strictEqual(V.paga(ava2), Math.round(tr * m) + Math.round(tr * .02 * 60 * m), 'il rincaro passa da `molt(\'paga\')`'); }
   // `costoGiorno` coincide con ciò che si consuma davvero in un giorno (viveri e foraggio tolti dalla scorta), in tutte le stagioni
   const mangia = (s0, t, n) => { const x = copia(s0), p = V.TU(x); x.dentro = -1; x.davanti = -1; x.prigioniero = null; p.tr = [{ t, n, f: 0, xp: 0 }]; p.merci = { grano: 500 }; p.mor = 100; x.tregua = 1e9;
     const c = V.costoGiorno(x); giorno(x, V.giorno(x) + 1); V.giornoNuovo(x); return { vero: 500 - (p.merci.grano || 0), conto: c.viveri + c.foraggio }; };
