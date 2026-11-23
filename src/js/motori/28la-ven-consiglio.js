@@ -252,7 +252,8 @@ const VCONS=(()=>{
    if(v>bs){bs=v;best={m:'incudine',k:fm.k,tg:tg.k,t0:s.t,mi:null,col:0}}}
   return best}
  // un istante di comando per i due lati: col rango decide il consiglio (negli assedi e in lizza resta il `comanda` di sempre), senza rango il `comanda`
- function turno(s){if(M5&&s.tipo!=='arena')M5.osserva(s);for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
+ // chi parte con «Via» senza «Pronto» (battaglie senza tavolo, da soli o in compagnia) non ha fatto rischierare il lato b: lo schieramento si fa al primo istante, prima di ogni passo
+ function turno(s){if(s.t===1&&s.esp&&s.primo==='a'&&!s.autoA&&!(s.pronto&&s.pronto.a))schiera(s,'b',1);if(M5&&s.tipo!=='arena')M5.osserva(s);for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
  // all'avvio della battaglia: rango, dottrina e indole dalla scheda, poi lo schieramento dell'IA (se il lato `a` schiera da sé, `Pronto` fa rischierare il `b`: 28m)
  function avvia(s,scheda){s.rango=Object.assign({},scheda.rango);if(scheda.dott)s.dott=Object.assign({},scheda.dott);if(scheda.indole)s.indole=Object.assign({},scheda.indole);
   if(M5&&scheda.memo&&(s.rango.b|0)>=5){const ab=M5.abitudini(scheda.memo);if(Object.keys(ab).length)s.ab=ab}
@@ -261,7 +262,7 @@ const VCONS=(()=>{
  const soglia=(s,l)=>(D.INDOLE[s.indole&&s.indole[l]]||{}).rotta||0;
  // ---------- schieramento dell'IA ----------
  // rango 0-1: tutto al centro; rango 2: i tiratori dietro i fanti, i cavalieri ai lati. Dal passo 25 i ranghi alti leggono il terreno e lo schieramento avversario
- function schiera(s,l){if(!s.rango||s.rango[l]==null||(l==='a'&&!s.autoA)||s.tipo==='arena'||s.muro||s.t>0)return;const rg=s.rango[l]|0,o=s.ord[l],ver=l==='a'?1:-1,cx=s.W/2;
+ function schiera(s,l,via){if(!s.rango||s.rango[l]==null||(l==='a'&&!s.autoA)||s.tipo==='arena'||s.muro||(s.t>0&&!via))return;const rg=s.rango[l]|0,o=s.ord[l],ver=l==='a'?1:-1,cx=s.W/2;
   if(rg<=1){for(const k of chiavi(o)){o[k].x=cx;if(repC(o[k],k)==='c')o[k].y=o.f.y+ver*2}}
   else if(rg===2){let lato=1;for(const k of chiavi(o)){const g=repC(o[k],k);if(g==='t'){o[k].x=cx;o[k].y=o.f.y+ver*7}else if(g==='c'){o[k].x=cx+lato*K.LATO;o[k].y=o.f.y+ver*2;lato=-lato}}}
   else{const fl=schieraAlto(s,l);if(s.ondOk&&s.ond[l]&&!s.ond[l].length)ondateAlto(s,l,rg,fl);if(rg>=5&&l==='b'&&s.ab)M5.contromosse(s,l)}
