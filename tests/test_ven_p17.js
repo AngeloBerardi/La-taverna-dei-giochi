@@ -40,17 +40,17 @@ const piede = Object.keys(D.TR).find(t => D.TR[t].c === 'f'), cavallo = Object.k
   assert.strictEqual(V.molt(inSt(s, 'aut'), 'viveri', { p }), .9); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p }), 1);
   const miti = mondo(3, { stag: 'miti' }), rig = mondo(3, { stag: 'rigide' });
   assert.strictEqual(V.molt(inSt(miti, 'inv'), 'viveri', { p }), 1.25); assert.strictEqual(V.molt(inSt(rig, 'inv'), 'viveri', { p }), 1.75);
-  // i cavalieri: gli uomini mangiano la loro razione (viveri), il cavallo il suo foraggio, a parte. 10 su 10 a cavallo: gli uomini valgono metà razione
+  // i cavalieri (passo 36, mondi nuovi): ognuno consuma due razioni, una l'uomo (viveri, come un fante) e una il cavallo (foraggio, a parte): per gli uomini il moltiplicatore è quello dei fanti
   const pc = { tr: [{ t: cavallo, n: 10 }] };
-  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: pc }), .75); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p: pc }), .5);
-  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: { tr: [{ t: piede, n: 5 }, { t: cavallo, n: 5 }] } }), 1.5 * .75, 'metà a cavallo');
+  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: pc }), 1.5); assert.strictEqual(V.molt(inSt(s, 'prim'), 'viveri', { p: pc }), 1);
+  assert.strictEqual(V.molt(inSt(s, 'inv'), 'viveri', { p: { tr: [{ t: piede, n: 5 }, { t: cavallo, n: 5 }] } }), 1.5, 'metà a cavallo');
   // il consumo vero di un giorno: 60 uomini, 10 razioni in estate, 15 in inverno
   const razioni = k => { const t = mondo(3); inSt(t, k, 3); const tu = V.TU(t); tu.tr = [{ t: piede, n: 60, f: 0, xp: 0 }]; tu.merci = { grano: 100 }; t.dentro = -1; V.giornoNuovo(t); return 100 - tu.merci.grano; };
   assert.strictEqual(razioni('est'), 10); assert.strictEqual(razioni('inv'), 15); assert.strictEqual(razioni('aut'), 9);
-  // 60 cavalieri: uomini (metà razione, molt dei viveri) più foraggio a parte (suo moltiplicatore)
+  // 60 cavalieri: uomini (una razione, molt dei viveri) più foraggio a parte (suo moltiplicatore, raddoppiato nei mondi nuovi)
   const razioniC = (k, opz, grano = 100) => { const t = mondo(3, opz); inSt(t, k, 3); const tu = V.TU(t); tu.tr = [{ t: cavallo, n: 60, f: 0, xp: 0 }]; tu.merci = { grano }; t.dentro = -1; tu.mor = 100; t.tregua = 1e9; V.giornoNuovo(t); return { usate: grano - (tu.merci.grano || 0), log: t.log.map(x => x.tx), mor: tu.mor }; };
-  assert.strictEqual(razioniC('est').usate, 9); assert.strictEqual(razioniC('inv').usate, 16); assert.strictEqual(razioniC('aut').usate, 10);
-  assert(razioniC('inv', { stag: 'miti' }).usate < 16 && razioniC('inv', { stag: 'rigide' }).usate > 16, 'la leva `stag` pesa anche sul foraggio');
+  assert.strictEqual(razioniC('est').usate, 18); assert.strictEqual(razioniC('inv').usate, 31); assert.strictEqual(razioniC('aut').usate, 19);
+  assert(razioniC('inv', { stag: 'miti' }).usate < 31 && razioniC('inv', { stag: 'rigide' }).usate > 31, 'la leva `stag` pesa anche sul foraggio');
   // senza scorta per i cavalli lo dice, e il morale scende
   const scarso = razioniC('inv', null, 8); assert.strictEqual(scarso.usate, 8); assert(scarso.log.some(x => /cavalli non hanno foraggio/.test(x)), 'lo dice: ' + scarso.log.join('|'));
   assert(!razioniC('inv').log.some(x => /foraggio/.test(x)), 'con la scorta non si lamenta nessuno');

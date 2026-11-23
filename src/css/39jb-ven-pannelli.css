@@ -42,3 +42,9 @@
 .vn-bn{align-items:center}.vn-bi{width:40px}.vn-bx{flex:1;min-width:0;display:grid;gap:1px}.vn-bs{color:#cdbb96;font-size:11.5px;line-height:1.25}.vn-bg.bene{color:#b6e07e}.vn-bg.male{color:#ff9a8a}
 .vn-wd.vn-wv,.vn-wd.vn-wc{grid-auto-flow:row;gap:0;align-content:center;font-size:12px}.vn-wd small{font:800 12px var(--f-b);line-height:1}.vn-wd.vn-wc.bene small{color:#b6e07e}.vn-wd.vn-wc.male small{color:#ff9a8a}
 .vn-leg{margin:0;color:#a8957a;font-size:12px}
+/* economia (passo 36): freccia del prezzo, numero sotto il nome della tessera, scheda dei termini */
+.vn-td{display:inline-flex;vertical-align:-1px}.vn-td.male{color:#ff9a8a}.vn-td.bene{color:#b6e07e}
+.vn-sv .vn-ss{font:700 11.5px/1.15 var(--f-b);color:#f0c166;text-align:center}
+.vn-term{display:grid;gap:6px}.vn-term p{margin:0;display:grid;grid-template-columns:96px 1fr;gap:8px;padding:6px 9px;background:rgba(0,0,0,.26);border:1px solid rgba(184,138,60,.3);color:#e6d6b4}
+.vn-term b{font:800 12px var(--f-d);color:#f0c166;text-transform:uppercase;letter-spacing:.05em}
+.vn-termb{display:flex;gap:8px}.vn-termb .b{flex:1;min-height:48px;font-size:15px}.vn-termb .b.gold{flex:2}

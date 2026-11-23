@@ -1,7 +1,7 @@
 /* ---- Compagnia di ventura, vista: compagnia, capitano, diario, gradimento e voci. ----
    Parte di `Ven` (24hw-ventura.js): legge stato e aiutanti da `Ven._`. Nomi e HTML come prima. CSS: css/39j*-ven-*.css. */
 const VenGente=(()=>{
- const {CLS,D,PREGIO,V,bt,faz,inS,mio,oggH,pannello,pips,posto,riga,tu}=Ven._;
+ const {CLS,D,PREGIO,V,bt,faz,inS,mio,n0,oggH,pannello,pips,posto,riga,tu}=Ven._;
  // gradimento (V6a): cosa ama o detesta un compagno si sa solo dopo che è successo una volta; i legami solo se l'altro è in compagnia
  const EVN={razzia:'le razzie',libera:'liberare i prigionieri',riscatta:'incassare riscatti',pagatardi:'la paga in ritardo',fame:'la fame',perdite:'le perdite pesanti',vittoria:'le vittorie sudate',fuga:'la fuga',tributo:'pagare pedaggi',sito:'ripulire covi e rovine',torneo:'i tornei',cura:'curare i feriti'};
  const evNome=x=>x.slice(0,6)==='servi_'?'servire '+VEN.rg(V.s,x.slice(6)).breve:EVN[x]||x;
@@ -16,11 +16,45 @@ const VenGente=(()=>{
  function voceH(){const v=VEN.voce(V.s);if(!v)return'';const tv=inS()&&ui.tv;
   const sc=v.scelte.map(c=>`<button class="b sm vn-vs" data-a="ven" data-v="parla:${c.i}" ${c.ok&&!tv?'':'disabled'}><span>${esc(c.t)}</span>${c.etichetta?` <i class="vn-tag">${esc(c.etichetta)}</i>`:''}${c.ok?'':`<small>${esc(c.perche)}</small>`}</button>`).join('');
   return pannello(esc(v.chi.nome||'La compagnia'),`<p class="vn-p vn-dl">${esc(v.testo)}</p>${v.continua?bt(esc(v.continua),'parla:c',{cls:'gold',no:tv}):sc}`,{fisso:1,cls:'vn-voce'})}
+ // descrizione di un incarico offerto (in breve, senza premio e scadenza)
+ const descInc=(s,q)=>q.tipo==='predoni'?'Una banda infesta i dintorni':q.tipo==='consegna'?'Portate '+q.n+' di '+D.MERCI[q.bene].nome+' a '+s.l[q.a].nome:q.tipo==='reliquia'?'Liberate le rovine di '+s.l[q.a].nome:q.tipo==='taglia'?'Una taglia su '+s.l[q.a].nome:'Servono '+q.n+' soldati addestrati';
+ // scheda dei termini: un tocco che spende o promette mostra prima cosa si fa, quanto costa o rende, entro quando, cosa si rischia e cosa cambia. Un solo ottone e «Indietro»
+ function termH(s,l,k){const t=tu(),g=VEN.giorno(s),ING=D.INGAGGIO[1],mio=l.faz==='tu'||l.sig===-2,U=VEN.uomini(t),oro=t.oro,fer=t.tr.reduce((a,e)=>a+(e.f||0),0),mn=x=>x+(x===1?' moneta':' monete');
+  let ti,R,ok;
+  if(k==='recluta1'||k==='tutti'){if(l.tipo!=='villaggio'||!l.rec)return null;const n=k==='tutti'?l.rec:1,c=ING*n,lim=VEN.limite(s),gv=VEN.giorniViveri(s),pg=VEN.paga(s),cr=VEN.conReclute(s,l.id,n),gv2=cr.giorni,pg2=cr.paga;
+   ti=k==='tutti'?'Arruola tutti':'Arruola una recluta';
+   R=[['Cosa',n+(n>1?' volontari di ':' volontario di ')+l.nome+' entrano nella compagnia.'],['Costo',mn(c)+' ('+ING+' a testa); ne hai '+n0(oro)+'.'],['Entro quando','Subito: non c\'è scadenza.'],['Cosa rischi','Più bocche, più paghe: la paga di sette giorni passa da '+pg+' a '+pg2+'.'],['Cosa cambia','Uomini da '+U+' a '+(U+n)+' (al massimo '+lim+'); i viveri durano da '+gv+' a '+gv2+' giorni.']];
+   ok={t:'Arruola · '+c+' m',v:'fai:recluta:'+n,no:oro<c||U+n>lim,p:oro<c?'Servono '+c+' monete':U+n>lim?'La compagnia è al completo':''}}
+  else if(k==='incarico'){const q=l.inc;if(!q||q.preso)return null;const n=s.incarichi.filter(x=>!x.fatto&&!x.fallito).length,meta=q.a!=null&&s.l[q.a]?' Sta a '+Math.round(VEN.dist(l,s.l[q.a]))+' leghe in linea d\'aria.':'';ti='Incarico';
+   R=[['Cosa',descInc(s,q)+'.'+meta],['Rende',mn(q.premio)+' a lavoro compiuto.'],['Entro quando',q.giorni+' giorni, cioè entro il giorno '+(g+q.giorni)+'.'],['Cosa rischi','Se scade, niente premio e '+l.nome+' ti stima un po\' meno.'],['Cosa cambia','Incarichi in corso da '+n+' a '+(n+1)+' (al massimo 4).']];
+   ok={t:'Accetta',v:'fai:incarico',no:n>=4,p:n>=4?'Hai già troppi incarichi':''}}
+  else if(k==='consegna'){const q=s.incarichi.find(x=>!x.fatto&&!x.fallito&&(x.tipo==='consegna'&&x.a===l.id||x.tipo==='reclute'&&x.da===l.id));if(!q)return null;const m=q.tipo==='consegna',ho=m?(t.merci[q.bene]||0):t.tr.filter(e=>D.TR[e.t].t>=2&&!D.TR[e.t].compagno&&!D.TR[e.t].faz.startsWith('mer')).reduce((a,e)=>a+e.n,0);ti='Consegna';
+   R=[['Cosa',m?'Lasci qui '+q.n+' di '+D.MERCI[q.bene].nome+'.':'Lasci a '+l.nome+' '+q.n+' soldati addestrati (non reclute).'],['Rende',mn(q.premio)+', e '+s.l[q.da].nome+' ti stima di più.'],['Entro quando','Entro il giorno '+q.scad+' ('+Math.max(0,q.scad-g)+' giorni).'],['Cosa rischi',m?'Le merci restano qui: non si riprendono.':'I soldati restano di guarnigione e non tornano con te.'],['Cosa cambia',m?'Ne hai '+ho+': ne restano '+Math.max(0,ho-q.n)+'.':'Uomini da '+U+' a '+(U-q.n)+'.']];
+   ok={t:'Consegna',v:'fai:consegna',no:ho<q.n,p:ho<q.n?(m?'Ti servono '+q.n+' di '+D.MERCI[q.bene].nome:'Servono '+q.n+' soldati addestrati'):''}}
+  else if(k==='torneo'){const T=D.TORNEO,posta=VEN.capi(s).reduce((a,c)=>a+T.posta*c.liv,0);if(l.tipo!=='citta'||!VEN.torneoOggi(s,l)||s.torneo)return null;const usato=!!s.torneoUsato&&s.torneoUsato[l.id]===g;ti='Torneo';
+   R=[['Cosa','Tre duelli a piedi e senza arco: sfidante, campione, gran campione.'],['Costo','Iscrizione '+mn(posta)+'; ne hai '+n0(oro)+'.'],['Rende','Il premio matura a ogni duello vinto ('+T.mol.map(x=>x+'×').join(', ')+' l\'iscrizione); vincendoli tutti '+T.mol[2]*posta+' monete, '+T.fama[2]+' fama e un oggetto di pregio.'],['Entro quando','Oggi: il torneo finisce a sera.'],['Cosa rischi','Perdendo il primo duello la posta è persa; dopo puoi ritirarti col premio maturato.'],['Cosa cambia','Monete da '+n0(oro)+' a '+n0(oro-posta)+'.']];
+   ok={t:'Iscriviti · '+posta+' m',v:'fai:torneo',no:usato||oro<posta,p:usato?'Hai già partecipato al torneo di oggi':oro<posta?'Servono '+posta+' monete':''}}
+  else if(k==='riposa'){if(l.tipo==='villaggio'&&!mio)return null;const c=VEN.costoRiposo(s,l),sana=t.tr.reduce((a,e)=>a+Math.min(e.f||0,Math.ceil(e.n*.5)),0);ti='Riposo';
+   R=[['Cosa','La compagnia dorme otto ore sotto un tetto.'],['Costo',c?mn(c)+'; ne hai '+n0(oro)+'.':'Niente: è terra vostra.'],['Entro quando','Otto ore: poi si riparte.'],['Cosa rischi','Il tempo passa: paghe e viveri corrono, e chi vi cerca vi trova fermi.'],['Cosa cambia','Feriti da '+fer+' a '+(fer-sana)+'; il morale sale un poco.']];
+   ok={t:'Riposa'+(c?' · '+c+' m':''),v:'fai:riposa',no:oro<c,p:oro<c?'Servono '+c+' monete':''}}
+  else if(k==='cura'){if(l.tipo!=='monastero')return null;const c=fer*4;ti='Infermeria';
+   R=[['Cosa','I cerusici curano tutti i feriti della compagnia.'],['Costo',mn(c)+' di offerta ('+4+' a ferito); ne hai '+n0(oro)+'.'],['Entro quando','Subito.'],['Cosa rischi','Niente: l\'offerta non si restituisce.'],['Cosa cambia','Feriti da '+fer+' a 0; il morale sale un poco.']];
+   ok={t:'Paga · '+c+' m',v:'fai:cura',no:!fer||oro<c,p:!fer?'Nessun ferito da curare':oro<c?'Servono '+c+' monete':''}}
+  else if(k==='benedizione'){if(l.tipo!=='monastero')return null;ti='Benedizione';
+   R=[['Cosa','Una benedizione per tutta la compagnia.'],['Costo',mn(80)+' di offerta; ne hai '+n0(oro)+'.'],['Entro quando','Vale subito; si può chiedere di nuovo tra sette giorni.'],['Cosa rischi','Niente: l\'offerta non si restituisce.'],['Cosa cambia','Il morale sale, lo slancio anche; monete da '+n0(oro)+' a '+n0(Math.max(0,oro-80))+'.']];
+   ok={t:'Paga · 80 m',v:'fai:benedizione',no:l.bened>g||oro<80,p:l.bened>g?'Già benedetti: tornate tra '+(l.bened-g)+' giorni':oro<80?'Servono 80 monete':''}}
+  else if(k==='voci'){if(l.tipo!=='locanda'||!s.l.some(q=>q.noto===false&&q.g.length))return null;ti='Voci';   // senza luoghi nascosti l'oste non ha niente da dire: la scheda si chiude da sola
+   R=[['Cosa','Un giro di vino, e '+(l.oste?l.oste:'l\'oste')+' racconta dove andare.'],['Costo',mn(25)+'; ne hai '+n0(oro)+'.'],['Entro quando','Subito.'],['Cosa rischi','Può non avere storie nuove: il vino si paga lo stesso.'],['Cosa cambia','Un posto nascosto finisce sulla carta, e sai quando è il prossimo torneo.']];
+   ok={t:'Paga · 25 m',v:'fai:voci',no:oro<25,p:oro<25?'Servono 25 monete':''}}
+  else return null;
+  return pannello(esc(ti)+' · '+esc(l.nome),`<div class="vn-term">${R.map(x=>`<p><b>${x[0]}</b><span>${esc(x[1])}</span></p>`).join('')}</div>${ok.no&&ok.p?`<p class="vn-male">${esc(ok.p)}</p>`:''}<div class="vn-termb">${bt(esc(ok.t),ok.v,{cls:'gold',no:ok.no})}${bt('Indietro','sub:home')}</div>`,{chiudi:'sub:home'})}
+ // costo al giorno della compagnia (passo 36, solo mondi nuovi): paghe in monete, viveri e foraggio in razioni
+ function costoH(s){if(s.geo!==2)return'';const c=VEN.costoGiorno(s);return`<p class="vn-p vn-costo">Costo al giorno: paghe ${c.paghe} m · viveri ${c.viveri} · foraggio ${c.foraggio}</p>`}
  function compagniaH(){const s=V.s,t=tu(),regnoRiga=s.corona?riga(`<b>${esc(s.corona.nome)}</b><small>Malcontento ${s.corona.malc}/100 · ${s.l.filter(l=>l.faz==='tu'&&l.sig<0).length} luoghi tenuti</small>`,bt('Il regno','pan:corona',{cls:'gold'})):'',h=t.tr.map(e=>{const T=D.TR[e.t],need=D.XP_SU[T.t],pr=T.su.length?Math.min(e.n,Math.floor((e.xp||0)/need)):0;
    const su=pr?T.su.map(x=>bt(esc(D.TR[x].nome)+' · '+D.PROMO[T.t],'fai:promuovi:'+e.t+':'+x,{cls:'gold'})).join(''):'';
    return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.su.length?' · esperienza '+Math.floor(e.xp||0)+'/'+need:''}${pr?' · <span class="vn-bene">'+pr+' pronti a salire</span>':''}</small>${T.compagno?gradH(s,e.t)+incH(s,e.t):''}`,su+(T.compagno?'':bt('Congeda','fai:congeda:'+e.t)))}).join('');
   const prig=s.prig.map(e=>e.sig!=null?riga(`<b>${esc(s.sig[e.sig].nome)}</b><small>Prigioniero di riguardo: vale un riscatto, o un favore se lo liberi.</small>`,bt('Libera','fai:liberasig:'+e.sig)):riga(`<b>${esc(D.TR[e.t].nome)}</b><small>${e.n} prigionieri</small>`)).join('');
-  return pannello(esc(s.nome),`<p class="vn-p">${VEN.uomini(t)} uomini su ${VEN.limite(s)} · paga ${VEN.paga(s)} monete ogni sette giorni · rendite ${VEN.rendite(s)} · viveri per ${Math.floor(VEN.razioni(t)/Math.max(1,Math.ceil(VEN.uomini(t)/6)))} giorni</p>${regnoRiga}${h}${prig?'<div class="sh2">Prigionieri</div>'+prig:''}`)}
+  return pannello(esc(s.nome),`<p class="vn-p">${VEN.uomini(t)} uomini su ${VEN.limite(s)} · paga ${VEN.paga(s)} monete ogni sette giorni · rendite ${VEN.rendite(s)} · viveri per ${VEN.giorniViveri(s)} giorni</p>${costoH(s)}${regnoRiga}${h}${prig?'<div class="sh2">Prigionieri</div>'+prig:''}`)}
  function capitanoH(){const s=V.s,c=mio(),t=tu(),st=VEN.statCap(c),ab=Object.keys(D.ABIL).map(k=>riga(`<b>${esc(D.ABIL[k].nome)} ${c.ab[k]}</b>${VEN.abil(s,k)>c.ab[k]?' <i class="vn-tag">+'+(VEN.abil(s,k)-c.ab[k])+'</i>':''}<small>${esc(D.ABIL[k].d)}</small>`,c.punti>0&&c.ab[k]<10?bt(ic('plus',14),'fai:abilita:'+k,{cls:'gold'}):'')).join('');
   const rel=VEN.regni(s).map(f=>`${faz(f)} <b class="${s.rel[f]<=-25?'vn-male':s.rel[f]>=10?'vn-bene':''}">${s.rel[f]}</b>${s.cadute[f]?' (caduto)':''}`).join(' · ');
   const tr=VEN.traguardi(s).map(x=>`<li class="${x[1]?'ok':''}">${ic(x[1]?'spunta':'bersaglio',14)} ${esc(x[0])}</li>`).join('');
@@ -44,4 +78,4 @@ ${inS()?'<div class="sh2">Capitani della compagnia</div>'+VEN.capi(s).map((x,i)=
   const tip='Cresce se liberi i suoi prigionieri, lo aiuti in battaglia, consegni merci nei suoi luoghi e con l\'amicizia del suo regno; cala se lo sconfiggi o lo tradisci. Da fiducia 2 scrive lettere e presta denaro; da 3 sostiene le tue proposte al re. Un favore ogni '+S.ATTESA+' giorni.';
   return riga(`<b>${FIDUCIA[c]}</b>${infoH(esc(tip))}<small>${att&&c>=1?'Gli hai già chiesto un favore da poco.':c<1?'Servono tempo e buone azioni.':'Può farti un favore.'}${deb?' Gli devi '+deb.oro+' monete entro il giorno '+deb.scad+'.':''}</small>`,
    (c>=2&&regno?bt('Una lettera ('+S.LETTERA+' gg)','scegli:lettera',{no:att||(s.lettere[sg.faz]||0)>=VEN.giorno(s)}):'')+(c>=2?bt('Prestito '+S.PRESTITO,'scegli:prestito',{no:att||!!deb}):'')+(deb?bt('Rendi '+deb.oro,'scegli:rendi'):''))}
- return{EVN,evNome,gradH,incH,voceH,compagniaH,capitanoH,diarioH,schieraH,FIDUCIA,confH}})();
+ return{termH,descInc,EVN,evNome,gradH,incH,voceH,compagniaH,capitanoH,diarioH,schieraH,FIDUCIA,confH}})();

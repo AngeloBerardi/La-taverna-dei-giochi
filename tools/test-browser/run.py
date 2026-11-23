@@ -3081,8 +3081,9 @@ async def sc_ventura(b, srv):
     check(rip['nuovo'] and rip['inPagina'] and not rip['persa'] and rip['uom'] == 7 and px2 >= 6, f'contesto perso: canvas nuovo, scena ridisegnata ({px2} colori), partita intatta: {rip}')
     await pg.evaluate("(()=>{const s=Ven.V.s,tu=VEN.TU(s);const l=s.l.filter(l=>l.tipo==='villaggio'&&!VEN.nemiche(s,'tu',l.faz)).sort((a,b)=>VEN.dist(a,tu)-VEN.dist(b,tu))[0];Ven.V.vel=4;VEN.ordina(s,{t:'entra',lid:l.id})})()")
     await pg.wait_for_selector('.vn-pan', timeout=60000)
-    n0 = await pg.evaluate("VEN.uomini(VEN.TU(Ven.V.s))"); await pg.click('[data-v="fai:recluta:1"]'); await pg.wait_for_timeout(150)
+    n0 = await pg.evaluate("VEN.uomini(VEN.TU(Ven.V.s))"); await pg.click('[data-v="sub:term:recluta1"]'); await pg.click('[data-v="fai:recluta:1"]'); await pg.wait_for_timeout(150)
     check(await pg.evaluate("VEN.uomini(VEN.TU(Ven.V.s))") == n0 + 1, 'una recluta in più dal villaggio')
+    if await pg.locator('.vn-term').count(): await pg.click('[data-v="sub:home"]')
     await pg.click('[data-v="sub:mercato"]'); await pg.wait_for_timeout(150); await pg.click('[data-v="fai:compra:grano"]'); await pg.wait_for_timeout(150)
     check(await pg.evaluate("VEN.TU(Ven.V.s).merci.grano") == 7 and await pg.locator('.vn-r').count() == 10, 'mercato: dieci merci, il grano comprato arriva')
     piccoli = await pg.evaluate("[...document.querySelectorAll('.vn button')].filter(b=>{const r=b.getBoundingClientRect();return r.width&&(r.height<40||r.width<40)}).length")
@@ -3119,8 +3120,9 @@ async def sc_ventura_torneo(b, srv):
     # la compagnia entra in una città amica nel giorno del suo torneo; capitano forte, tasche piene
     await pg.evaluate("""(()=>{const s=Ven.V.s,tu=VEN.TU(s),l=s.l.filter(l=>l.tipo==='citta'&&!VEN.nemiche(s,'tu',l.faz))[0],g=VEN.giorno(s);s.t+=((7-(g+l.id)%7)%7)*1440;tu.x=l.x;tu.y=l.y;s.dentro=l.id;s.davanti=-1;tu.ord=null;tu.via=[];tu.oro=5000;
       const c=s.cap;c.liv=12;c.ab.prodezza=8;Object.assign(c.eq,{arma:'temprata',scudo:'mandorla',armatura:'brigantina',elmo:'bacinetto'});Ven.act('pan:luogo')})()""")
-    await pg.wait_for_selector('[data-v="fai:torneo"]', timeout=10000)
-    check('Torneo di oggi' in await pg.inner_text('.vn-pan') and await pg.locator('[data-v="fai:lizza"]').count() == 0, 'città: «Torneo di oggi» con iscrizione, nessun duello prima di iscriversi')
+    await pg.wait_for_selector('[data-v="sub:term:torneo"]', timeout=10000)
+    await pg.click('[data-v="sub:term:torneo"]'); await pg.wait_for_selector('.vn-term', timeout=5000)
+    check('Iscrizione' in await pg.inner_text('.vn-term') and await pg.locator('[data-v="fai:lizza"]').count() == 0, 'città: la scheda dei termini mostra l\'iscrizione, nessun duello prima di iscriversi')
     oro0 = await pg.evaluate("VEN.TU(Ven.V.s).oro"); await pg.click('[data-v="fai:torneo"]'); await pg.wait_for_selector('[data-v="fai:lizza"]', timeout=5000)
     st = await pg.evaluate("({t:Ven.V.s.torneo,oro:VEN.TU(Ven.V.s).oro})")
     check(st['t'] and st['t']['turno'] == 0 and st['oro'] == oro0 - 40 * 12 and 'Sfidante' in await pg.inner_text('.vn-pan'), f"iscritto: paga 40 × livello, ecco lo sfidante e i suoi avversari: {st}")
@@ -3419,7 +3421,7 @@ async def sc_ventura_stanza(b, srv):
     await A.wait_for_timeout(1500)
     t = [await pg.evaluate("G.w.t+'|'+G.w.dentro+'|'+VEN.TU(G.w).x.toFixed(4)") for pg in (A, B)]
     check(t[0] == t[1], f'arrivati al villaggio allo stesso minuto e nello stesso punto: {t}')
-    await A.click('[data-v="fai:recluta:1"]'); await B.wait_for_function("VEN.uomini(VEN.TU(Ven.V.s))===12", timeout=15000)
+    await A.click('[data-v="sub:term:recluta1"]'); await A.click('[data-v="fai:recluta:1"]'); await B.wait_for_function("VEN.uomini(VEN.TU(Ven.V.s))===12", timeout=15000)
     await B.click('[data-v="fai:esci"]'); await B.click('[data-v="pan:capitano"]'); await B.wait_for_timeout(200)
     await B.click('[data-v="fai:abilita:prodezza"]'); await A.wait_for_function("VEN.capi(Ven.V.s)[1].ab.prodezza===1", timeout=15000)
     check(await A.evaluate("VEN.capi(Ven.V.s)[0].ab.prodezza") == 0 and await B.locator('.vn-pan').get_by_text('sei tu').count() == 1, 'la recluta di Ada e il punto abilità di Bruno arrivano all\'altro; ognuno spende i suoi punti')
