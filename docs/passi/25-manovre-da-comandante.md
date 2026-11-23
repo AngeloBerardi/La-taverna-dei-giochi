@@ -57,6 +57,7 @@ I comandanti esperti giocano davvero.
 
 `tests/test_ven_p25_lento.js` (scenari fissi, 30–40 semi ciascuno):
 - **Scala**: rango 3 contro 2 e rango 4 contro 3 vincono tra il 58 e il 75% a truppe pari; rango 4 contro rango 1 con il 25% di truppe in meno vince ≥ 55%.
+- **Anche senza reparti né ondate** (correzione, issue #195): nella battaglia di tutti i giorni le manovre di rango 3–4 che vogliono reparti (`aggira`, trappole) o ondate (`riserva`, `fianco`) non entrano, e la scala veniva solo dal rumore (3>2 57%, 4>3 52% nel torneo del passo 34). Ora ogni rango aspetta un po' di più (`PAZIENZA[rango]`, passo 21) e sbaglia meno: la scala regge sia qui sia nel torneo dei comandanti.
 - `prendi`: con un'altura nella metà `b`, entro l'istante 300 i tiratori ci stanno sopra in ≥ 80% dei semi.
 - `riserva`: il rango 3 non manda le ondate prima delle tue in ≥ 70% dei semi.
 - `rotazione`: con due reparti di fanti, quello stanco arretra almeno una volta.

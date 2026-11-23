@@ -89,7 +89,8 @@ Object.assign(VEN,(()=>{
  function sconfitta(s,p,daFaz,preso){const r=rnd(s);if(p.k==='pre'){rimuovi(s,p);return}
   if(p.k==='car'){const c=s.l[p.casa];rimuovi(s,p);if(c){c.prosp=Math.max(5,c.prosp-6);c.carTorna=giorno(s)+4}return}
   if(p.k==='riv'){const C=s.l.filter(l=>l.tipo==='citta'),c=C[Math.floor(r()*C.length)],v=vicinoOk(VEN.mappaDi(s),c.x+3,c.y+2);p.tr=leva('mer',70,r);aggiungi(p.tr,D.RIVALE.id,1);p.x=v[0];p.y=v[1];p.via=[];p.fermo=s.t+P.GIORNO*3;p.ia={st:'giro',t:0};return}
-  if(p.faz==='neu'){rimuovi(s,p);s.sig[p.sig].pid=-1;return}
+  // un esule battuto sparisce; se è un tuo compagno investito, torna nella compagnia come a fine esilio (prima andava perso)
+  if(p.faz==='neu'){rimuovi(s,p);const se=s.sig[p.sig];se.pid=-1;if(se.comp){aggiungi(TU(s).tr,se.comp,1);s.compagni[se.comp]=-1;L(s,se.nome+' rientra nella compagnia.');se.comp=null;se.esule=null}return}
   const sg=s.sig[p.sig];let casa=s.l[sg.casa];if(!casa||casa.faz!==sg.faz){casa=s.l.find(l=>l.faz===sg.faz&&l.tipo!=='villaggio');if(casa)sg.casa=casa.id}
   if(!casa){rimuovi(s,p);sg.pid=-1;return}
   p.tr=leva(cultura(s,p),18+r()*12,r);p.oro=Math.max(60,Math.floor(p.oro*.4));p.x=casa.x;p.y=casa.y;p.dentro=casa.id;p.via=[];p.ia={st:'casa',t:s.t+P.GIORNO*(preso?5:2)};if(preso)sg.prig=preso}

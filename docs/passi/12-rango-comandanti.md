@@ -66,6 +66,12 @@ Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi g
 - Un comandante di rango alto, se lo abbatti, ha molte più probabilità di restare tuo prigioniero.
 - Il rango del tuo capitano dipende dalla sua abilità di comando.
 
+## Correzione (issue #195)
+
+Con l'interruttore acceso il rango nel mondo non cambiava la scala in battaglia (quella sta nei passi 21 e 25) ma rompeva due prove fragili:
+- `test_ven_diplomazia` contava le guerre del regno dominante in due soli mondi: il moltiplicatore di forza tra IA cambia le battaglie e quindi la storia del mondo (2 guerre invece di 5 sui semi 12 e 33, ma 24 contro 22 su dieci mondi). Ora conta su quattro mondi;
+- `test_ven_p09` e `test_ven_stanza` pretendevano numeri esatti del nemico e gli eventi dell'ultimo passo: col consiglio acceso la vista del nemico è «a spanne» (passo 32) e gli eventi dipendono da quanti passi si fanno. Ora guardano solo ciò che non dipende dall'interruttore.
+
 ## Fuori scopo
 
 Comportamento in battaglia (passi 21, 25 e 30), memoria delle tattiche (passo 30).

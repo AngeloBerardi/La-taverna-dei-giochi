@@ -105,7 +105,8 @@ for (const inGuerra of [true, false]) {
 // (Lasciato a sé il mondo di oggi conquista poco e il freno scatta di rado: qui lo si mette alla prova creando apposta un regno che vince troppo.)
 {
   let contro = 0, guerre = 0;
-  for (const seme of [12, 33]) {
+  // quattro mondi: il numero di guerre di un mondo solo cambia molto con ogni ritocco delle battaglie tra IA (rango, consiglio), la media no
+  for (const seme of [12, 33, 5, 7]) {
     const s = pulito(V.nuovo(seme)), D0 = 'val', vs = s.sig.findIndex(x => x.faz === D0);
     for (const l of s.l) if (D.REGNI.includes(l.faz) && l.faz !== D0 && l.tipo !== 'citta' && s.l.filter(q => q.faz === D0).length < s.l.filter(q => D.REGNI.includes(q.faz)).length * .5) { l.faz = D0; l.sig = vs; }
     const dom = V.dominante(s); assert(dom && dom.f === D0 && dom.quota >= D.DIPL.QUOTA_DOM, 'il regno che tiene metà dei luoghi è dominante: ' + JSON.stringify(dom));
@@ -114,7 +115,7 @@ for (const inGuerra of [true, false]) {
     if (vista) contro++;
     guerre += D.REGNI.filter(f => f !== D0 && V.inGuerra(s, D0, f)).length;
   }
-  assert(contro === 2, 'in tutti e due i mondi gli altri regni si alleano contro il dominante: ' + contro + '/2');
-  assert(guerre >= 4, 'il dominante si trova in guerra con più regni: ' + guerre + ' guerre in 2 mondi');
+  assert(contro === 4, 'in tutti i mondi gli altri regni si alleano contro il dominante: ' + contro + '/4');
+  assert(guerre >= 8, 'il dominante si trova in guerra con più regni: ' + guerre + ' guerre in 4 mondi');
 }
 console.log('ven_diplomazia ok');

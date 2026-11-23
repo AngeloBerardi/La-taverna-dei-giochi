@@ -87,10 +87,13 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
   assert.strictEqual(K.soglia({}, 'b'), 0);
 }
 
-// la soglia di rotta dell'indole prudente: a parità di tutto il signore prudente cede prima di quello prode
+// la soglia di rotta dell'indole prudente: a parità di tutto (stessa battaglia, stesse manovre) il signore prudente cede prima di uno che non ha la sua soglia.
+// Il confronto con il prode non è a parità: il prode carica e la battaglia prende un'altra strada.
 {
-  const rotta = ind => { const s = mk({ val_f2: 30, val_c3: 6 }, { fer_f2: 22 }, { rango: { a: 2, b: 2 }, indole: { b: ind } }); let t = -1; while (!s.fine && t < 0) { for (const e of C.passo(s, 10)) if (e.t === 'rotta' && e.l === 'b') t = s.t } return t };
-  const pr = rotta('prudente'), po = rotta('prode'); assert(pr > 0 && po > 0 && pr <= po, 'prudente ' + pr + ' prode ' + po);
+  const rotta = seme => { const s = C.nuovo({ seme, a: T(0, { val_f2: 30, val_c3: 6 }), b: T(5, { fer_f2: 22 }), faza: 'tu', fazb: 'fer', rango: { a: 2, b: 2 }, indole: { b: 'prudente' } }, { autoA: true }); let t = -1; while (!s.fine && t < 0) { for (const e of C.passo(s, 10)) if (e.t === 'rotta' && e.l === 'b') t = s.t } return t < 0 ? 1e9 : t };
+  const p0 = D.INDOLE.prudente.rotta; let prima = 0;
+  for (const seme of [5, 6, 7, 8]) { const pr = rotta(seme); D.INDOLE.prudente.rotta = 0; const senza = rotta(seme); D.INDOLE.prudente.rotta = p0; assert(pr <= senza, 'seme ' + seme + ': prudente ' + pr + ', senza soglia ' + senza); if (pr < senza) prima++ }
+  assert(prima >= 1, 'la soglia del prudente anticipa la rotta almeno in una battaglia');
 }
 
 // schieramento dell'IA: rango 0-1 tutto al centro, rango 2 tiratori dietro i fanti e cavalieri ai lati
@@ -120,8 +123,9 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
 {
   assert.strictEqual(K.MANOVRE.filter(m => m.rango <= 2).length, 10);   // le manovre dei ranghi 3-4 sono del passo 25
   assert.strictEqual(K.MANOVRE.filter(m => m.rango === 0).map(m => m.id).join(), 'carica');
-  assert.strictEqual(K.MANOVRE.filter(m => m.rango === 1).map(m => m.id).join(), 'avanza,tieni,tiro');
-  assert.strictEqual(K.MANOVRE.filter(m => m.rango === 2).map(m => m.id).join(), 'contro,ripiega,debole,copri,insegui,attendi');
+  assert.strictEqual(K.MANOVRE.filter(m => m.rango === 1).map(m => m.id).join(), 'avanza,tieni');
+  // `tiro` sta al rango 2 (correzione, issue #195): con il tiro da fermo il rango 1 batteva il rango 0 quasi quattro volte su cinque
+  assert.strictEqual(K.MANOVRE.filter(m => m.rango === 2).map(m => m.id).join(), 'tiro,contro,ripiega,debole,copri,insegui,attendi');
   const vis = rg => { const s = mk({ val_f2: 20, val_t2: 8, val_c3: 6 }, { fer_f2: 20, fer_t2: 8, fer_c3: 6 }, { rango: { a: rg, b: rg } }); const m = new Set(); for (const e of gioca(s, 1500)) if (e.t === 'piano') m.add(e.m); return m };
   const v0 = vis(0), v1 = vis(1), v2 = vis(2);
   assert.strictEqual([...v0].join(), 'carica');
