@@ -132,4 +132,24 @@ const sposta = (s, l, c, x, y) => { const g = centro(s, l, c); for (const u of s
   for (const id of v1) assert(K.MANOVRE.find(m => m.id === id).rango <= 1);
   assert(v1.size >= 2 && v2.size >= 4, 'più rango, più manovre: ' + [...v1] + ' / ' + [...v2]);
 }
+// sotto le frecce senza tiratori propri i fanti non aspettano: sette fanti contro tre tiratori e due fanti (la prima battaglia del seme 7 del bot
+// del mondo, che al rango 2 vinceva 13 volte su 40 e perdeva sei uomini su sette) vincono a ogni rango come al rango 0
+{
+  const CAP = { nome: 'Capitano', pf: 66, att: 15, dif: 10, dan: 12, vel: 15, rit: 12, perf: 0, git: 0, cavallo: true };
+  const vinte = ra => { let v = 0; for (let k = 0; k < 12; k++) { const r = C.risolvi({ seme: 1000 + k * 37, terreno: 1 + k % 3, a: T(0, { sel_f1: 5, sel_f2: 2 }), b: T(5, { pre_f2: 2, pre_t2: 3 }), faza: 'tu', fazb: 'pre', cap: CAP, rango: { a: ra, b: 0 } }); if (r.vince === 'a') v++ } return v };
+  for (const ra of [0, 2, 3, 4]) { const v = vinte(ra); assert(v >= 11, 'rango ' + ra + ' contro i tiratori: ' + v + '/12') }
+  // con più tiratori dei loro e il nemico a tiro, invece, i fanti aspettano in ordine largo (è la leva della scala dei ranghi)
+  const s = mk({ val_f2: 20, val_t2: 12 }, { fer_f2: 10, fer_t2: 4 }, { rango: { a: 2, b: 0 } });
+  const Q = K.quadro(s, 'a'); assert.strictEqual(Q.sotto, !Q.rep.some(m => m.ti > .5 && m.nm && m.nm.d <= m.git * 1.05));
+  const s2 = mk({ val_f2: 20 }, { fer_f2: 10, fer_t2: 4 }, { rango: { a: 2, b: 0 } }); assert.strictEqual(K.quadro(s2, 'a').sotto, true, 'senza tiratori si è sotto');
+}
+// con gli esploratori (`esplora`) chi gioca si schiera per primo e il lato b si rischiera a «Pronto»; se si parte con «Via» senza «Pronto»
+// (battaglie senza tavolo) il lato b si schiera al primo istante: un rango 3 porta i tiratori sull'altura della sua metà
+{
+  const alt = { k: 'altura', x: 30, y: 28, rx: 12, ry: 8, h: 1 }, dentro = u => ((u.x - alt.x) / alt.rx) ** 2 + ((u.y - alt.y) / alt.ry) ** 2 <= 1;
+  const su = s => s.u.filter(u => u.l === 'b' && u.c === 't' && u.st === 'vivo' && dentro(u)).length;
+  const s = C.nuovo({ seme: 4, a: T(0, { val_f2: 20, val_t2: 6 }), b: T(5, { fer_f2: 20, fer_t2: 10 }), faza: 'tu', fazb: 'fer', rango: { a: 1, b: 3 }, esplora: { a: 0, b: 3 }, zone: [alt] });
+  assert.strictEqual(s.primo, 'a'); assert.strictEqual(su(s), 0, 'prima del Via i tiratori stanno dietro i fanti');
+  C.passo(s, 1); assert.strictEqual(su(s), 10, 'al primo istante salgono sull\'altura: ' + su(s));
+}
 console.log('test_ven_p21 ok');

@@ -40,6 +40,10 @@ const VCONS=(()=>{
   for(const m of Q.rep){let d=1e9,mn=null;for(const e of Q.nem){const de=d2(m,e);if(de<d){d=de;mn=e}if(de<=K.MINACCIA)m.min+=e.fo*contrario(e,m,aperto)}m.nm=mn?{x:mn.x,y:mn.y,d,c:mn.c,r:mn.r,git:mn.git,ti:mn.ti}:null}
   for(const e of Q.nem){e.nd=1e9;for(const m of Q.rep){const de=d2(m,e);if(de<e.nd)e.nd=de}}
   const vm=valore(s,l),vn=valore(s,nl);Q.R=vm/Math.max(1,vn);
+  // lo scambio di frecce si regge solo con più tiratori e se almeno un reparto dei propri ha il nemico a tiro (non fermo su un'altura lontana):
+  // altrimenti i fanti sotto il tiro vanno a prendersi i tiratori invece di aspettare (vedi `contro`)
+  let tm=0,tn=0;for(const m of Q.rep)tm+=m.n*m.ti;for(const e of Q.nem)tn+=e.n*e.ti;
+  Q.sotto=tn>tm||!Q.rep.some(m=>m.ti>.5&&m.nm&&m.nm.d<=m.git*1.05);
   Q.alt=Q.rep.some(m=>m.qu>C.TER.DISL);
   Q.onde=s.ond&&s.ond[l]?s.ond[l].filter(w=>!w.fatta).length:0;
   // il capitano nemico è esposto se nessun suo reparto gli sta entro 8
@@ -93,7 +97,8 @@ const VCONS=(()=>{
     tieni(s,l,m,Q,ax,ay)}},
   {id:'contro',rango:2,tipo:['f'],
    vale:(Q,m)=>{const t=minacce(Q,m);return t.cav?2.5:t.tiro?1.2:0},
-   ordina:(s,l,m,Q)=>{tieni(s,l,m,Q,m.x,m.y,minacce(Q,m).cav?'serrata':'larga')}},
+   // contro i cavalli in serrata; sotto le frecce in larga: si aspetta solo se i propri tiratori reggono lo scambio, altrimenti si carica
+   ordina:(s,l,m,Q)=>{const cav=minacce(Q,m).cav;tieni(s,l,m,Q,m.x,m.y,cav?'serrata':'larga');if(!cav&&Q.sotto)s.ord[l][m.k].t='carica'}},
   {id:'ripiega',rango:2,tipo:['t','c'],
    // solo se nessun reparto amico non-tiratore sta tra il tiratore e il nemico che arriva
    vale:(Q,m)=>m.nm&&m.nm.d<=K.RIPIEGA&&m.ti>.5&&!Q.rep.some(q=>q.c!=='t'&&d2(q,m.nm)<m.nm.d)?1.5:0,
@@ -247,7 +252,8 @@ const VCONS=(()=>{
    if(v>bs){bs=v;best={m:'incudine',k:fm.k,tg:tg.k,t0:s.t,mi:null,col:0}}}
   return best}
  // un istante di comando per i due lati: col rango decide il consiglio (negli assedi e in lizza resta il `comanda` di sempre), senza rango il `comanda`
- function turno(s){if(M5&&s.tipo!=='arena')M5.osserva(s);for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
+ // chi parte con «Via» senza «Pronto» (battaglie senza tavolo, da soli o in compagnia) non ha fatto rischierare il lato b: lo schieramento si fa al primo istante, prima di ogni passo
+ function turno(s){if(s.t===1&&s.esp&&s.primo==='a'&&!s.autoA&&!(s.pronto&&s.pronto.a))schiera(s,'b',1);if(M5&&s.tipo!=='arena')M5.osserva(s);for(const l of s.autoA?['b','a']:['b']){if(s.rango[l]!=null&&!s.muro&&s.tipo!=='arena')API.decidi(s,l);else if(s.t%20===1)I.comanda(s,l)}}
  // all'avvio della battaglia: rango, dottrina e indole dalla scheda, poi lo schieramento dell'IA (se il lato `a` schiera da sé, `Pronto` fa rischierare il `b`: 28m)
  function avvia(s,scheda){s.rango=Object.assign({},scheda.rango);if(scheda.dott)s.dott=Object.assign({},scheda.dott);if(scheda.indole)s.indole=Object.assign({},scheda.indole);
   if(M5&&scheda.memo&&(s.rango.b|0)>=5){const ab=M5.abitudini(scheda.memo);if(Object.keys(ab).length)s.ab=ab}
@@ -256,7 +262,7 @@ const VCONS=(()=>{
  const soglia=(s,l)=>(D.INDOLE[s.indole&&s.indole[l]]||{}).rotta||0;
  // ---------- schieramento dell'IA ----------
  // rango 0-1: tutto al centro; rango 2: i tiratori dietro i fanti, i cavalieri ai lati. Dal passo 25 i ranghi alti leggono il terreno e lo schieramento avversario
- function schiera(s,l){if(!s.rango||s.rango[l]==null||(l==='a'&&!s.autoA)||s.tipo==='arena'||s.muro||s.t>0)return;const rg=s.rango[l]|0,o=s.ord[l],ver=l==='a'?1:-1,cx=s.W/2;
+ function schiera(s,l,via){if(!s.rango||s.rango[l]==null||(l==='a'&&!s.autoA)||s.tipo==='arena'||s.muro||(s.t>0&&!via))return;const rg=s.rango[l]|0,o=s.ord[l],ver=l==='a'?1:-1,cx=s.W/2;
   if(rg<=1){for(const k of chiavi(o)){o[k].x=cx;if(repC(o[k],k)==='c')o[k].y=o.f.y+ver*2}}
   else if(rg===2){let lato=1;for(const k of chiavi(o)){const g=repC(o[k],k);if(g==='t'){o[k].x=cx;o[k].y=o.f.y+ver*7}else if(g==='c'){o[k].x=cx+lato*K.LATO;o[k].y=o.f.y+ver*2;lato=-lato}}}
   else{const fl=schieraAlto(s,l);if(s.ondOk&&s.ond[l]&&!s.ond[l].length)ondateAlto(s,l,rg,fl);if(rg>=5&&l==='b'&&s.ab)M5.contromosse(s,l)}

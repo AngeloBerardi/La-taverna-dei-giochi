@@ -27,3 +27,13 @@ Quando si accende, per chi gioca cambia:
 - morale per reparto, fatica e frecce contate;
 - un signore o la Volpe portano in campo il loro comandante;
 - ogni compagno porta una dote ai suoi uomini vicini; in compagnia ogni capitano preme il suo «Pronto».
+
+## Rilascio 3: comandanti (acceso nel passo 34)
+
+Acceso con `VDAT.ACCESO.consiglio=true`. Impronta accesa `docs/passi/impronte/consiglio.txt`, torneo `tools/avventura/torneo-comandanti.js`, regole in `docs/rules/ventura.md` e `RULES.ventura`.
+
+Per chi gioca cambia:
+- rango dei comandanti (da sprovveduto a leggendario) visibile prima dello scontro;
+- nemici che pensano per rango, dottrina e carattere: alture, riserve, rotazioni, trappole, memoria delle tue abitudini; sotto le frecce aspettano solo se i loro tiratori reggono lo scambio;
+- a tempo scaduto gli uomini in riserva contano come vivi: l'esercito più grande non perde più una battaglia senza scontri;
+- prima della battaglia: esploratori, scelta del campo, alba, notte, imboscata, pali, retroguardia.

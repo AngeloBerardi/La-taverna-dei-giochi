@@ -3,7 +3,7 @@
    o, per provare, in memoria con `?ven=grandi,consiglio,mondo2,eserciti` (24hw, `entra`). Dopo 28ja e prima del mondo (28k). */
 Object.assign(VDAT,(()=>{
  // interruttori: a tutti spenti il gioco è identico a `main` (lo prova `node tools/avventura/impronta.js --controlla`)
- const ACCESO={grandi:false,consiglio:false,mondo2:false,eserciti:false};
+ const ACCESO={grandi:false,consiglio:true,mondo2:false,eserciti:false};
  // opzioni di una partita nuova (`s.opz`, unite a queste da `VEN.opz`) e quelle che si cambiano anche in partita
  const OPZ0={diff:'condottiero',eco:'giusta',cons:'normali',nem:0,unif:'normale',stag:'normali',fer:'normali',mondo:'ampio',taglia:'media',nebbia:false};
  const OPZ_PARTITA=['taglia'];
