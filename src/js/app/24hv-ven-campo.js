@@ -131,7 +131,7 @@ const VenCampo=(()=>{
   K.fig=A.Schiera(sc,520);K.ste=A.Stendardi(sc,24);K.par=A.Particelle(sc,400);
   // vista del comandante: i reparti diventano blocchi piatti (una base scura e il colore del lato), a istanze
   K.blk=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshBasicMaterial({color:'#ffffff'}),48);K.blk.instanceColor=new T.InstancedBufferAttribute(new Float32Array(48*3).fill(1),3);K.blk.count=0;K.blk.frustumCulled=false;sc.add(K.blk);
-  K.fre=new T.InstancedMesh(new T.BoxGeometry(.07,.07,1.1),new T.MeshBasicMaterial({color:'#f4ecd8'}),90);K.fre.count=0;K.fre.frustumCulled=false;sc.add(K.fre);K.pia=new T.InstancedMesh(new T.BoxGeometry(.05,.05,.5),new T.MeshBasicMaterial({color:'#4a3420'}),16);K.pia.count=0;K.pia.frustumCulled=false;K.pia.renderOrder=-1;sc.add(K.pia);
+  K.fre=new T.InstancedMesh(new T.BoxGeometry(.06,.06,.42),new T.MeshBasicMaterial({color:'#5a3e26'}),90);K.fre.count=0;K.fre.frustumCulled=false;sc.add(K.fre);K.pia=new T.InstancedMesh(new T.BoxGeometry(.05,.05,.5),new T.MeshBasicMaterial({color:'#4a3420'}),16);K.pia.count=0;K.pia.frustumCulled=false;K.pia.renderOrder=-1;sc.add(K.pia);
   const anello=(c,r)=>{const m=new T.Mesh(new T.RingGeometry(r,r+.16,22),new T.MeshBasicMaterial({color:c,transparent:true,opacity:.95,depthTest:false}));m.rotation.x=-Math.PI/2;m.renderOrder=5;m.visible=false;sc.add(m);return m};
   K.anCap=anello('#ffd75a',.8);K.anMeta=anello('#fff2b0',.5);K.anBers=anello('#ff5a4a',.85);K.anGr=anello('#fff2b0',1);K.anGr.material.opacity=.55;K.anGr.geometry=new T.RingGeometry(.97,1,48);
   {const pl=new T.Mesh(new T.BoxGeometry(.1,2.4,.1),new T.MeshBasicMaterial({color:'#e8dcc0'})),bn=new T.Mesh(new T.PlaneGeometry(1.1,.7),new T.MeshBasicMaterial({color:'#f0a830',side:T.DoubleSide}));bn.position.set(.55,2,0);K.band=new T.Group();K.band.add(pl,bn);pl.position.y=1.2;K.band.visible=false;sc.add(K.band)}
@@ -273,8 +273,8 @@ const VenCampo=(()=>{
   else{K.anCap.visible=K.anMeta.visible=K.anBers.visible=false}
   hudGruppo(s);K.ste.fine();
   // frecce ad arco
-  {const d=new T.Object3D();let n=0,m=0;for(let i=K.frecce.length-1;i>=0;i--){const f=K.frecce[i],q=(K.t-f.t0)/Math.max(.08,f.dur);if(q>=1){if(!f.ok&&VenArte.qual()!=='bassa'){K.par.emetti(f.x1+(Math.random()-.5)*1.5,.1,f.z1+(Math.random()-.5)*1.5,{vy:.3,s:.1,dur:.4,col:'#cfc4a8'});if(K.piantate.length>=14)K.piantate.shift();if(!K.piantate.some(o=>Math.hypot(o.x-f.x1,o.z-f.z1)<4))K.piantate.push({x:f.x1,z:f.z1,t:K.t,yaw:Math.atan2(f.x1-f.x0,f.z1-f.z0)})}K.frecce.splice(i,1);continue}
-    if(n>=60)continue;const L=Math.hypot(f.x1-f.x0,f.z1-f.z0),hm=1.3+L*.16,x=f.x0+(f.x1-f.x0)*q,z=f.z0+(f.z1-f.z0)*q,y=1.3+4*hm*q*(1-q)-q*.4,vy=4*hm*(1-2*q);
+  {const d=new T.Object3D(),zf=K._zf||(K._zf=new Map());zf.clear();let n=0,m=0;for(let i=K.frecce.length-1;i>=0;i--){const f=K.frecce[i],q=(K.t-f.t0)/Math.max(.08,f.dur);if(q>=1){if(!f.ok&&VenArte.qual()!=='bassa'){K.par.emetti(f.x1+(Math.random()-.5)*1.5,.1,f.z1+(Math.random()-.5)*1.5,{vy:.3,s:.1,dur:.4,col:'#cfc4a8'});if(K.piantate.length>=14)K.piantate.shift();if(!K.piantate.some(o=>Math.hypot(o.x-f.x1,o.z-f.z1)<4))K.piantate.push({x:f.x1,z:f.z1,t:K.t,yaw:Math.atan2(f.x1-f.x0,f.z1-f.z0)})}K.frecce.splice(i,1);continue}
+    if(n>=28)continue;const L=Math.hypot(f.x1-f.x0,f.z1-f.z0),hm=1.3+L*.16,x=f.x0+(f.x1-f.x0)*q,z=f.z0+(f.z1-f.z0)*q,y=1.3+4*hm*q*(1-q)-q*.4,vy=4*hm*(1-2*q),zk=Math.floor(x/5)*997+Math.floor(z/5),nz=zf.get(zk)||0;if(nz>=2)continue;zf.set(zk,nz+1);   // al più 2 frecce in volo ogni 5x5
     d.position.set(x,y,z);d.rotation.set(0,0,0);d.lookAt(x+(f.x1-f.x0),y+vy,z+(f.z1-f.z0));d.updateMatrix();K.fre.setMatrixAt(n++,d.matrix)}
    // quelle mancate restano piantate a terra per 4 s
    for(let i=K.piantate.length-1;i>=0;i--){const p=K.piantate[i];if(K.t-p.t>=4){K.piantate.splice(i,1);continue}if(m>=16)break;d.position.set(p.x,K.alto(p.x,p.z)+.12,p.z);d.rotation.set(.95,p.yaw,0,'YXZ');d.updateMatrix();K.pia.setMatrixAt(m++,d.matrix)}

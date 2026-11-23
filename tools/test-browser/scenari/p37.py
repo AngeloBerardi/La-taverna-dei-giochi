@@ -36,7 +36,7 @@ async def sc_p37_mischia(b, srv):
     await pg.screenshot(path=os.path.join(d, 'p37-mischia.png'))
     # stendardi: uno per gruppo vivo, porta la prima unità viva; i caduti non passano gli 80
     k = await pg.evaluate("(()=>{const K=VenCampo.K;return{n:K._st?K._st.length:-1,cad:K.caduti}})()")
-    check(k['n'] >= 0, f'stendardi dei gruppi: {k}')
+    check(k['n'] > 0, f'stendardi dei gruppi: {k}')
     check(k['cad'] <= 80, f'al più 80 caduti a terra: {k}')
     # dopo la rotta: si tira avanti finché la battaglia finisce, poi screenshot
     await pg.evaluate("(()=>{const K=VenCampo.K;for(let i=0;i<4000&&!K.s.fine;i++)VenCampo.passo(1/30);for(let i=0;i<30;i++)VenCampo.passo(1/30)})()")
