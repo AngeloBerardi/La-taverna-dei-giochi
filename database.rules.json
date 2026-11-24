@@ -180,6 +180,137 @@
             }
           }
         },
+        "modifiche": {
+          "$i": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/)",
+            ".validate": "newData.hasChildren(['autore','t'])",
+            "ora": {
+              ".validate": "newData.isString() && newData.val().matches(/^[0-2][0-9]:[0-5][0-9]$/)"
+            },
+            "data": {
+              ".validate": "newData.isString() && newData.val().matches(/^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$/)"
+            },
+            "nascosto": {
+              ".validate": "newData.isBoolean()"
+            },
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          }
+        },
+        "liste": {
+          "$i": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && (data.exists() || newData.child('uid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['lista','testo','autore','uid','t'])",
+            "lista": {
+              ".validate": "newData.isString() && newData.val().matches(/^(desideri|prenotare|prima|valigia|altro)$/)"
+            },
+            "testo": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 160"
+            },
+            "nota": {
+              ".validate": "newData.isString() && newData.val().length <= 600"
+            },
+            "link": {
+              ".validate": "newData.isString() && newData.val().length <= 600 && newData.val().matches(/^https:\\/\\//)"
+            },
+            "idea": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,80}$/)"
+            },
+            "chi": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{0,20}$/)"
+            },
+            "fatto": {
+              ".validate": "newData.isBoolean()"
+            },
+            "lat": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "lng": {
+              ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+            },
+            "ord": {
+              ".validate": "newData.isNumber()"
+            },
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "uid": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          }
+        },
+        "spunte": {
+          "$i": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/)",
+            ".validate": "newData.hasChildren(['t'])",
+            "fatto": {
+              ".validate": "newData.isBoolean()"
+            },
+            "chi": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{0,20}$/)"
+            },
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          }
+        },
+        "visti": {
+          "$i": {
+            "$nome": {
+              ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/)",
+              ".validate": "$nome.matches(/^[A-Za-z]{2,20}$/) && newData.isNumber()"
+            }
+          }
+        },
+        "diario": {
+          "$i": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && !newData.exists() && data.child('uid').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['autore','uid','t','data','testo'])",
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "uid": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "data": {
+              ".validate": "newData.isString() && newData.val().matches(/^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$/)"
+            },
+            "testo": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 1000"
+            },
+            "foto": {
+              ".validate": "newData.isString() && newData.val().length <= 600 && newData.val().matches(/^https:\\/\\//)"
+            },
+            "rid": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,80}$/)"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          }
+        },
         "$altro": {
           ".validate": "false"
         }
