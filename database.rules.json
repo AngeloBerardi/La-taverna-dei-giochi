@@ -268,6 +268,15 @@
             "t": {
               ".validate": "newData.isNumber()"
             },
+            "stato": {
+              ".validate": "newData.isString() && newData.val().matches(/^(fare|fatto|pagato|no)$/)"
+            },
+            "codice": {
+              ".validate": "newData.isString() && newData.val().length <= 300"
+            },
+            "spesa": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,40}$/)"
+            },
             "$altro": {
               ".validate": "false"
             }
