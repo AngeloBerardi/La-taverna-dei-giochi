@@ -60,6 +60,8 @@ ck(scrivi(conL, B + 'liste/l1', null, 'ua'), 'una voce si può togliere');
 ck(!scrivi(vuoto, B + 'liste/l2', voce('ub', { lista: 'spesa' }), 'ub'), 'lista sconosciuta: negata');
 ck(!scrivi(vuoto, B + 'liste/l2', voce('ub', { link: 'javascript:alert(1)' }), 'ub'), 'link non https: negato');
 ck(scrivi(vuoto, B + 'spunte/pre-3', { fatto: true, chi: 'Valerio', autore: 'Valerio', t: 5 }, 'ub'), 'spunta su una voce fissa');
+ck(scrivi(vuoto, B + 'spunte/b-ev-hozu', { fatto: true, stato: 'pagato', codice: 'HZ-123 https://x.jp', spesa: '-Nabc12', chi: 'Luca', autore: 'Luca', t: 5 }, 'ub'), 'biglietto pagato con codice e spesa');
+ck(!scrivi(vuoto, B + 'spunte/b-ev-hozu', { stato: 'boh', t: 5 }, 'ub'), 'stato del biglietto sconosciuto: negato');
 ck(scrivi(vuoto, B + 'visti/ev-20261229-0930-senso/Luigi', 1700000000000, 'ub'), 'tappa visitata');
 ck(!scrivi(vuoto, B + 'visti/ev-x/Luigi', 'si', 'ub'), 'visitata con valore non numerico: negata');
 const dia = (uid, extra = {}) => ({ autore: 'Luigi', uid, t: 6, data: '2026-12-29', testo: 'Che giornata', ...extra });
