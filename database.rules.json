@@ -160,7 +160,7 @@
         "commenti": {
           "$i": {
             "$c": {
-              ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && $c.matches(/^[A-Za-z0-9_-]{1,40}$/) && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && !newData.exists() && data.child('uid').val() === auth.uid))",
+              ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && $c.matches(/^[A-Za-z0-9_-]{1,40}$/) && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || newData.child('uid').val() === auth.uid)))",
               ".validate": "newData.hasChildren(['autore','testo','t','uid'])",
               "autore": {
                 ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
@@ -173,6 +173,9 @@
               },
               "uid": {
                 ".validate": "newData.isString() && newData.val().length <= 128"
+              },
+              "mod": {
+                ".validate": "newData.isNumber()"
               },
               "$altro": {
                 ".validate": "false"

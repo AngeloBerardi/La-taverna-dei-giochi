@@ -45,7 +45,11 @@ ck(!scrivi(vuoto, CM, com('ub', { extra: 1 }), 'ub'), 'commento con campo sconos
 const conC = new Map([[CM, com('ub')]]);
 ck(scrivi(conC, CM, null, 'ub'), 'l’autore cancella il suo commento');
 ck(!scrivi(conC, CM, null, 'ua'), 'un altro non cancella il commento');
-ck(!scrivi(conC, CM, com('ub', { testo: 'modificato' }), 'ub'), 'il commento non si riscrive');
+ck(scrivi(conC, CM, com('ub', { testo: 'modificato', mod: 3 }), 'ub'), 'l’autore modifica il suo commento');
+ck(!scrivi(conC, CM, com('ub', { testo: 'modificato', mod: 3 }), 'ua'), 'un altro non modifica il commento');
+ck(!scrivi(conC, CM, com('ua', { testo: 'modificato' }), 'ub'), 'l’autore non passa il commento a un altro');
+ck(!scrivi(conC, CM, com('ub', { mod: 'ieri' }), 'ub'), 'data di modifica non numerica: negata');
+ck(!scrivi(conC, CM, com('ub', { testo: '' }), 'ub'), 'commento svuotato: negato');
 const B = 'viaggi/' + K + '/';
 ck(scrivi(vuoto, B + 'modifiche/ev-20261229-0930-senso', { ora: '10:15', autore: 'Luca', t: 3 }, 'ub'), 'sposta una tappa a un altro orario');
 ck(scrivi(vuoto, B + 'modifiche/ev-20261229-0930-senso', { data: '2026-12-30', nascosto: false, autore: 'Luca', t: 3 }, 'ub'), 'sposta una tappa a un altro giorno');
