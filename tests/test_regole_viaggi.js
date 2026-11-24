@@ -67,6 +67,19 @@ ck(scrivi(vuoto, B + 'diario/d1', dia('ub', { foto: 'https://photos.app.goo.gl/a
 ck(!scrivi(vuoto, B + 'diario/d1', dia('ua'), 'ub'), 'diario a nome di un altro: negato');
 ck(!scrivi(vuoto, B + 'diario/d1', dia('ub', { data: 'ieri' }), 'ub'), 'diario con data non valida: negato');
 ck(!scrivi(new Map([[B + 'diario/d1', dia('ub')]]), B + 'diario/d1', null, 'ua'), 'diario di un altro non si cancella');
+const sp = (uid, extra = {}) => ({ titolo: 'Cena a Pontocho', importo: 36000, valuta: 'JPY', paga: 'Luca', per: { Luca: 1, Dario: 1, Angelo: 1 }, modo: 'uguale', data: '2027-01-05', cat: 'cibo', cambio: 162.4, autore: 'Luca', uid, t: 7, ...extra });
+ck(scrivi(vuoto, B + 'spese/s1', sp('ub'), 'ub'), 'nuova spesa in yen divisa in parti uguali');
+ck(scrivi(vuoto, B + 'spese/s2', sp('ub', { valuta: 'EUR', importo: 854, modo: 'importi', per: { Luigi: 213.5, Luca: 640.5 } }), 'ub'), 'spesa in euro con importi esatti');
+ck(scrivi(vuoto, B + 'spese/s3', sp('ub', { modo: 'rimborso', per: { Dario: 1 } }), 'ub'), 'rimborso registrato');
+ck(!scrivi(vuoto, B + 'spese/s4', sp('ub', { valuta: 'USD' }), 'ub'), 'valuta non gestita: negata');
+ck(!scrivi(vuoto, B + 'spese/s4', sp('ub', { importo: -5 }), 'ub'), 'importo negativo: negato');
+ck(!scrivi(vuoto, B + 'spese/s4', sp('ub', { per: { 'a b': 1 } }), 'ub'), 'nome non valido nella divisione: negato');
+ck(!scrivi(vuoto, B + 'spese/s4', sp('ua'), 'ub'), 'spesa nuova a nome di un altro uid: negata');
+const conS = new Map([[B + 'spese/s1', sp('ub')]]);
+ck(scrivi(conS, B + 'spese/s1', sp('ub', { importo: 38000 }), 'ua'), 'un altro corregge la spesa');
+ck(scrivi(conS, B + 'spese/s1', null, 'ua'), 'una spesa si può cancellare');
+ck(scrivi(vuoto, B + 'cassa/cambio', { valore: 162.4, t: 8, autore: 'Luca', fonte: 'BCE' }, 'ub'), 'cambio euro-yen');
+ck(!scrivi(vuoto, B + 'cassa/cambio', { valore: 0, t: 8 }, 'ub'), 'cambio a zero: negato');
 ck(R.puoLeggere(regole, R.albero(con), 'viaggi/' + K, 'ub').ok, 'lettura con la chiave');
 ck(!R.puoLeggere(regole, R.albero(con), 'viaggi', 'ub').ok, 'l’elenco dei viaggi non si legge');
 if (fails) {
