@@ -58,6 +58,7 @@ const conL = new Map([[B + 'liste/l1', voce('ub')]]);
 ck(scrivi(conL, B + 'liste/l1', voce('ub', { fatto: true, chi: 'Angelo' }), 'ua'), 'un altro la spunta e se la assegna');
 ck(scrivi(conL, B + 'liste/l1', null, 'ua'), 'una voce si può togliere');
 ck(!scrivi(vuoto, B + 'liste/l2', voce('ub', { lista: 'spesa' }), 'ub'), 'lista sconosciuta: negata');
+ck(scrivi(vuoto, B + 'liste/l3', voce('ub', { lista: 'posti', link: 'https://www.instagram.com/reel/x', lat: 35.69, lng: 139.70 }), 'ub'), 'posto segnalato');
 ck(!scrivi(vuoto, B + 'liste/l2', voce('ub', { link: 'javascript:alert(1)' }), 'ub'), 'link non https: negato');
 ck(scrivi(vuoto, B + 'spunte/pre-3', { fatto: true, chi: 'Valerio', autore: 'Valerio', t: 5 }, 'ub'), 'spunta su una voce fissa');
 ck(scrivi(vuoto, B + 'spunte/b-ev-hozu', { fatto: true, stato: 'pagato', codice: 'HZ-123 https://x.jp', spesa: '-Nabc12', chi: 'Luca', autore: 'Luca', t: 5 }, 'ub'), 'biglietto pagato con codice e spesa');

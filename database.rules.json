@@ -209,7 +209,7 @@
             ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && (data.exists() || newData.child('uid').val() === auth.uid)",
             ".validate": "newData.hasChildren(['lista','testo','autore','uid','t'])",
             "lista": {
-              ".validate": "newData.isString() && newData.val().matches(/^(desideri|prenotare|prima|valigia|altro)$/)"
+              ".validate": "newData.isString() && newData.val().matches(/^(desideri|prenotare|prima|valigia|posti|altro)$/)"
             },
             "testo": {
               ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 160"
