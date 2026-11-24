@@ -311,6 +311,80 @@
             }
           }
         },
+        "spese": {
+          "$i": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/) && $i.matches(/^[A-Za-z0-9_-]{1,80}$/) && (data.exists() || newData.child('uid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['titolo','importo','valuta','paga','per','autore','uid','t'])",
+            "titolo": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 120"
+            },
+            "importo": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 100000000"
+            },
+            "valuta": {
+              ".validate": "newData.isString() && newData.val().matches(/^(EUR|JPY)$/)"
+            },
+            "paga": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "per": {
+              "$nome": {
+                ".validate": "$nome.matches(/^[A-Za-z]{2,20}$/) && newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000000"
+              }
+            },
+            "modo": {
+              ".validate": "newData.isString() && newData.val().matches(/^(uguale|quote|importi|rimborso)$/)"
+            },
+            "data": {
+              ".validate": "newData.isString() && newData.val().matches(/^20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]$/)"
+            },
+            "cat": {
+              ".validate": "newData.isString() && newData.val().matches(/^[a-z]{2,12}$/)"
+            },
+            "cambio": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 1000"
+            },
+            "nota": {
+              ".validate": "newData.isString() && newData.val().length <= 300"
+            },
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "uid": {
+              ".validate": "newData.isString() && newData.val().length <= 128"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          }
+        },
+        "cassa": {
+          "cambio": {
+            ".write": "auth != null && $k.length >= 20 && $k.length <= 64 && $k.matches(/^[A-Za-z0-9]+$/)",
+            ".validate": "newData.hasChildren(['valore','t'])",
+            "valore": {
+              ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 1000"
+            },
+            "t": {
+              ".validate": "newData.isNumber()"
+            },
+            "autore": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z]{2,20}$/)"
+            },
+            "fonte": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "$altro": {
+              ".validate": "false"
+            }
+          },
+          "$altro": {
+            ".validate": "false"
+          }
+        },
         "$altro": {
           ".validate": "false"
         }
