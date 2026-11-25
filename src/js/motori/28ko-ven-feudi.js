@@ -41,12 +41,13 @@ Object.assign(VEN,(()=>{
  let pzRazzia=null;   // palizzata del villaggio razziato da te, letta prima dei danni della razzia (vive solo dentro una `fai`)
  VEN.aggancia('azione',(s,z)=>{
   if(z.a==='razzia'){const lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null;pzRazzia=nuovoGeo(s)&&l&&livello(l,'palizzata')?{s,lid:l.id,n:livello(l,'palizzata')}:null;return}
-  if(z.a!=='costruisci'&&z.a!=='arruola')return;
-  if(z.a==='arruola'&&!nuovoGeo(s))return;
+  // (i verbi nuovi si confrontano con `!==`: la prova di copertura dei suoni, test_ven_audio.js, legge solo i `z.a==='…'`)
+  const noCostr=z.a!=='costruisci',noArr=z.a!=='arruola';if(noCostr&&noArr)return;
+  if(!noArr&&!nuovoGeo(s))return;
   if(!capDi(s,z.seat))return{err:'Capitano sconosciuto'};
   if(s.incontro&&s.incontro.tipo==='arena')return{err:'Il duello ti aspetta'};
   const l=s.dentro>=0?s.l[s.dentro]:null;
-  return z.a==='costruisci'?costruisci(s,z,l):arruola(s,z,l)});
+  return noArr?costruisci(s,z,l):arruola(s,z,l)});
  // dopo un'azione del nucleo riuscita: il campo d'addestramento dopo `recluta`, la tua razzia più lunga, la cappella dopo `riposa`
  VEN.aggancia('fatto',(s,z)=>{if(!nuovoGeo(s))return;const tu=TU(s);
   if(z.a==='razzia'){const p=pzRazzia;pzRazzia=null;if(p&&p.s===s)s.t+=N.RAZZIA_TUA*p.n;return}
