@@ -65,7 +65,9 @@ Impronta identica. `tests/test_ven_p41_lento.js`, semi 3, 11, 29, 120 giorni: al
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nei luoghi che sono tuoi (anche un feudo avuto dal sovrano) puoi far costruire, un cantiere alla volta: mulino, palizzata e campo d'addestramento nei villaggi; mura, caserma e mercato coperto nelle città e nei castelli; una torre di guardia dove si vede lontano; una cappella per il riposo. Ogni edificio ha tre livelli e costa di più a ogni livello: il prezzo e i giorni di lavoro si vedono prima di spendere.
+Il mulino e il mercato fanno rendere di più il luogo; la palizzata tiene dei difensori e fa perdere tempo a chi razzia; le mura ritardano gli assedi; la caserma raccoglie volontari che si possono arruolare già scelti; il campo d'addestramento promuove una parte delle reclute; la cappella rinfranca la compagnia e cura i feriti quando riposa.
+Se il luogo viene razziato o conquistato, l'edificio più alto perde un livello e il cantiere aperto va perduto, con le monete spese. Si costruisce solo nei mondi nuovi.
 
 ## Fatto quando
 
