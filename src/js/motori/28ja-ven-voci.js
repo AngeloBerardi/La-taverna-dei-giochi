@@ -4,6 +4,8 @@
    Le scene leggono solo i fatti che il mondo copia in `bandiere` prima di ogni mossa: grad-<c> (gradimento), inc-<c> (passi compiuti), con-<c> (in compagnia), serve-<regno>, fama, tappa, giorno,
    più le bandiere che impostano da sé (volpe-patto, volpe-odio, volpe-sfida, volpe-debito, <c>-promessa e i finali degli incarichi).
    Effetti del mondo: {t:'ven',k:'grad',id,n} · {k:'via',id} · {k:'passo',id} · {k:'premio',id} · {k:'scontro'} · {k:'conf',n} · {k:'tappa'}; {t:'oro',n}. Elenco in VEN.EFF_VOCI.
+   Effetti nuovi (passo 04, applicati dai passi 40 e 44): {k:'uomini',n} (1..4 reclute, −1/−2 perdite) · {k:'merce',m,n} (m in VDAT.MERCI, non da mangiare) · {k:'viveri',n} (grano) · {k:'gusto',ev} (evento di VEN.reagisci) · {k:'adunata',v:0|1}.
+   Incontri del crocevia (passo 42): scene `cro-<nome>` (parla il narratore) e `VVOC.CROCEVIA=[{id,peso,blocco:'A'|'B',se}]`; `se`: bioma, regno, guerra, notte, fama, con. Lettere `adunata-convoca`, `adunata-feudo`.
    Testi di V6c: la Volpe, i dieci compagni (lamento, addio, incarico) e i signori (cinque indoli × tre livelli di fiducia). Misure: nodo ≤ 280 lettere, 3–6 nodi per scena (l'addio è breve). */
 const VVOC=(()=>{
  const D=typeof VDAT!=='undefined'?VDAT:require('./28j-ven-dati.js');
@@ -403,6 +405,115 @@ const VVOC=(()=>{
    d:{chi:'rv_volpe',testo:"«Una stretta di mano.» La tiene a lungo. Poi sorride, e se ne va.",effetti:[gr('co_lapo',3),ven('tappa')],fine:true},
    e:{chi:'rv_volpe',testo:"«Te lo ricordavi.» Sorride, si toglie il guanto e lo getta ai tuoi piedi.",effetti:[gr('co_berta',6),gr('co_ulf',2),ven('scontro'),ven('tappa')],fine:true}}}
  };
+ // ---- incontri del crocevia (passo 42; li fa capitare il passo 44): parla il narratore. Scelta = [testo, effetti, se?, 'b' se porta al secondo nodo] ----
+ const gu=ev=>ven('gusto',{ev}),uom=n=>ven('uomini',{n}),mer=(m,n)=>ven('merce',{m,n}),viv=n=>ven('viveri',{n});
+ const sce=x=>Object.assign({t:x[0],effetti:x[1]},x[2]?{se:x[2]}:{},x[3]?{vai:x[3]}:{fine:true});
+ const cro=(a,sa,b,sb)=>{const nodi={a:{chi:'_',testo:a,scelte:sa.map(sce)}};if(b)nodi.b={chi:'_',testo:b,scelte:sb.map(sce)};return{inizio:'a',nodi}};
+ Object.assign(scene,{
+  // -- blocco A, strada --
+  'cro-pellegrino':cro("Sul ciglio della strada un pellegrino giace con la gamba squarciata. Ha una bisaccia, un bastone e nessuno accanto. Vi guarda senza chiedere niente: ha già visto passare altri armati.",
+   [['Fasciatelo e caricatelo sul carro.',[viv(-2),gu('cura')]],['Frugate la bisaccia, prima.',[gu('razzia')],null,'b'],['Non è affar nostro. Avanti.',[gu('fuga')]]],
+   "Nella bisaccia ci sono una reliquia di stagno, qualche moneta e una lettera per una sorella. Il pellegrino vi guarda frugare e tace.",
+   [['Prendete le monete e lasciate il resto.',[oro(6),gu('razzia')]],['Rimettete tutto a posto e fasciatelo.',[viv(-2),gu('cura')]]]),
+  'cro-ponte':cro("Il ponte sul torrente è crollato nella notte: restano due piloni e una trave che dondola. A valle c'è un guado torbido; a monte, mezza giornata di cammino, un altro ponte.",
+   [['Guadate qui, legati alle corde.',[uom(-1),viv(-3),gu('perdite')]],['Fate il giro lungo.',[viv(-4),gu('fame')]],['Pagate i boscaioli perché rimettano la trave.',[oro(-40),gu('tributo')],{oro:40}]]),
+  'cro-disertore':cro("Un uomo con la giubba strappata esce dai cespugli con le mani alzate. Ha lasciato il suo signore dopo tre mesi senza paga, dice. Sa tenere la picca e chiede di seguirvi.",
+   [['Prendetelo con voi.',[uom(1),gu('fuga')]],['Consegnatelo al suo signore per la taglia.',[oro(40),gu('riscatta')]],['Chiedetegli perché è scappato.',[gu('libera')],null,'b']],
+   "Racconta di un capitano che vende il grano dei suoi e manda avanti i più giovani. Con lui sono scappati in quattro: gli altri aspettano nel bosco, affamati.",
+   [['Prendeteli tutti e quattro.',[uom(4),viv(-4),gu('fuga')]],['Date loro del pane e mandateli a casa.',[viv(-3),gu('cura')]]]),
+  'cro-mercante':cro("Al crocevia un mercante vi ferma con troppi sorrisi. Ha balle di velluto da vendere a metà prezzo, subito, senza ricevuta. Sul suo carro c'è uno stemma raschiato via di fresco.",
+   [['Comprate il velluto.',[oro(-80),mer('velluto',4),gu('riscatta')],{oro:80}],['Prendetegli il carico: è roba rubata.',[mer('velluto',6),gu('razzia')]],['Chiedetegli di chi era lo stemma.',[gu('libera')],null,'b']],
+   "Lo stemma è di un signore della zona. Il mercante giura che il velluto gliel'hanno venduto dei soldati, e che non sa altro. Suda parecchio, per uno che non sa altro.",
+   [['Riportate il carico al signore.',[oro(60),gu('riscatta')]],['Lasciatelo andare col suo carro.',[gu('libera')]]]),
+  'cro-fiamme':cro("Fumo nero oltre la collina. Il villaggio brucia: i predoni sono ancora tra le case, una dozzina, intenti a caricare i carri. Dalla chiesa arrivano grida.",
+   [['Caricate e scacciateli.',[uom(-1),oro(30),gu('vittoria')]],['Aspettate che se ne vadano, poi aiutate.',[viv(-4),gu('cura')]],['Aspettate, e prendete quel che lasciano.',[mer('ferro',3),gu('razzia')]]]),
+  'cro-carro':cro("Un carro rovesciato blocca la strada. I buoi sono scappati, il carrettiere è sparito. Il carico è intatto: botti di vino e sacchi di sale, legati bene.",
+   [['Caricate tutto: è roba di nessuno.',[mer('vino',4),mer('sale',2),gu('razzia')]],['Raddrizzatelo e aspettate il padrone.',[gu('cura')],null,'b']],
+   "Dopo un'ora arriva il carrettiere, zoppicando, con un bue sì e uno no. Non sperava di ritrovare il carico. Vi offre quel che ha.",
+   [['Prendete due botti, come compenso.',[mer('vino',2),gu('riscatta')]],['Niente. Buona strada.',[gu('cura')]]]),
+  'cro-gabella':cro("Tre armati con una catena tesa tra due pali. Chiedono quaranta monete di gabella, in nome del signore. Il sigillo sul loro foglio è falso, e lo sanno anche loro.",
+   [['Pagate e passate.',[oro(-40),gu('tributo')],{oro:40}],['Strappate la catena.',[oro(25),gu('vittoria')]],['Fate il giro per i campi.',[viv(-2),gu('fuga')]]]),
+  'cro-messo':cro("Un messaggero è riverso accanto al cavallo morto, una freccia nella spalla. Stringe un rotolo sigillato. «Al castello», dice. «Prima di sera, o è tutto perduto.»",
+   [['Portate voi il rotolo, al galoppo.',[oro(50),gu('cura')]],['Aprite il sigillo: meglio sapere.',[gu('sito')],null,'b'],['Non è la vostra guerra.',[gu('fuga')]]],
+   "Il rotolo chiede rinforzi contro una colonna che scende dal passo, e dice quanti soldati ci sono e per quale strada. Nel campo avverso qualcuno pagherebbe bene per saperlo.",
+   [['Consegnatelo comunque al castello.',[oro(30),gu('vittoria')]],['Vendetelo al nemico.',[oro(120),gu('riscatta')]]]),
+  'cro-processione':cro("Una processione occupa la strada: stendardi, ceri, un santo di legno portato a spalla. Il priore chiede che la compagnia si scopra il capo e lasci un'offerta.",
+   [["Lasciate un'offerta.",[oro(-20),gu('tributo')],{oro:20}],['Chiedete una benedizione per i feriti.',[gu('cura')]],['Passate in mezzo: avete fretta.',[gu('razzia')]]]),
+  'cro-forca':cro("Al crocevia pende un impiccato, con un cartello al collo: «Ladro di grano». È poco più di un ragazzo. Sotto la forca una donna aspetta, e non osa toccarlo.",
+   [['Tiratelo giù e aiutatela a seppellirlo.',[gu('libera')]],['Lasciate alla donna un sacco di grano.',[viv(-3),gu('cura')]],['Non toccate niente: è la legge del signore.',[gu('tributo')]]]),
+  'cro-giocolieri':cro("Una compagnia di giocolieri ha montato il palco all'incrocio: un mangiafuoco, due acrobati, un orso ammaestrato e magro. Chiedono qualche moneta per lo spettacolo, e da mangiare per l'orso.",
+   [['Pagate lo spettacolo: gli uomini ne hanno bisogno.',[oro(-15),gu('tributo')],{oro:15}],['Sfamate l\'orso e arruolate il mangiafuoco.',[viv(-2),uom(1),gu('cura')]],['Passate oltre.',[gu('fuga')]]]),
+  'cro-vedova':cro("Una vedova con due figli e un mulo carico vi chiede scorta fino al prossimo villaggio: gli sbandati girano da queste parti. Offre quel che ha, cioè poco: un sacco di lana.",
+   [['Scortatela, senza compenso.',[viv(-2),gu('cura')]],['Scortatela, e prendete la lana.',[mer('lana',2),gu('riscatta')]],['Non avete tempo.',[gu('fuga')]]]),
+  'cro-mendicanti':cro("Alla croce di pietra siedono una ventina di mendicanti: storpi, vecchi, profughi dei villaggi bruciati. Quando vedono i vostri carri si alzano tutti insieme, in silenzio.",
+   [['Distribuite grano a tutti.',[viv(-6),gu('cura')]],['Prendete i più forti come portatori.',[uom(2),viv(-2),gu('libera')]],['Tirate dritto, le armi in vista.',[gu('fuga')]]]),
+  'cro-cavallo':cro("Un cavallo sellato bruca al crocevia, senza cavaliere. La sella è buona, le bisacce piene. Più avanti, nel fosso, ci sono un'impronta di stivale e una macchia scura.",
+   [['Prendete il cavallo e le bisacce.',[oro(40),gu('razzia')]],['Seguite le tracce nel fosso.',[gu('cura')],null,'b']],
+   "Nel fosso trovate il cavaliere, vivo, con una caviglia rotta e la spada ancora nel fodero. È un sergente di un signore vicino, e su chi l'ha disarcionato non dice niente.",
+   [['Riportatelo al suo signore.',[oro(60),gu('cura')]],['Prendetelo con voi, se vuole.',[uom(1),gu('libera')]]]),
+  'cro-fiera':cro("All'incrocio è nata una fiera: banchi di assi, capre, ferraioli, un oste con la botte sul carro. I prezzi sono buoni, e il prevosto chiede una tassa per lasciarvi entrare armati.",
+   [['Pagate la tassa e comprate ferro.',[oro(-60),mer('ferro',4),gu('tributo')],{oro:60}],['Vendete un po\' di grano e restate fuori.',[viv(-4),oro(40),gu('riscatta')]],['Entrate armati, e che provi a fermarvi.',[mer('vino',2),gu('razzia')]]]),
+  // -- blocco B, selvaggio --
+  'cro-lupi':cro("Nel buio, intorno al campo, occhi gialli. Un branco di lupi magri, troppo affamati per avere paura. I cavalli scalpitano; i muli tirano le corde.",
+   [['Caccia al lupo, con le torce.',[uom(-1),gu('vittoria')]],['Gettate loro un sacco di grano e levate il campo.',[viv(-4),gu('fuga')]],['Vegliate tutta notte, senza cuocere niente.',[gu('fame')]]]),
+  'cro-eremita':cro("Una capanna di frasche, un orto, un vecchio con la barba fino alla cintura. L'eremita vi offre acqua e niente altro. Dice di conoscere ogni sentiero del monte, e di non volerne dire nessuno.",
+   [['Lasciategli del grano e la vostra pace.',[viv(-2),gu('cura')]],['Fatevi dire i sentieri, con le buone o no.',[gu('razzia')],null,'b']],
+   "Il vecchio non si spaventa. Vi guarda a lungo, poi indica una gola tra due rocce. «Di là c'è una tomba che nessuno ha toccato. Andateci, se è questo che cercate.»",
+   [['Andateci.',[oro(70),gu('sito')]],['Lasciate stare i morti.',[gu('cura')]]]),
+  'cro-bracconiere':cro("Un uomo con un cervo sulle spalle si blocca in mezzo al sentiero. È un bracconiere: nel bosco del signore la caccia costa una mano. Vi offre qualche moneta per il vostro silenzio.",
+   [['Prendete le monete e tacete.',[oro(20),gu('riscatta')]],['Consegnatelo alle guardie del signore.',[oro(40),gu('tributo')]],['Prendetelo con voi: un buon tiratore serve.',[uom(1),gu('libera')]]]),
+  'cro-carbonai':cro("Una radura annerita, cumuli di legna che fumano sotto la terra. I carbonai vi guardano arrivare con le scuri in mano: l'ultima compagnia passata di qui ha preso il carbone e i figli.",
+   [['Comprate attrezzi, e pagate subito.',[oro(-50),mer('attrezzi',2),gu('tributo')],{oro:50}],['Lasciate grano per chi è rimasto.',[viv(-3),gu('cura')]],['Prendete il ferro dei loro attrezzi.',[mer('ferro',3),gu('razzia')]]]),
+  'cro-cassa':cro("Chi conosce le rovine nota un cumulo di sassi messo troppo bene ai piedi di una quercia. Sotto, a due palmi, c'è il coperchio di una cassa ferrata, con una croce incisa col coltello.",
+   [['Apritela.',[gu('sito')],null,'b'],['Lasciatela sepolta.',[gu('cura')]]],
+   "Dentro ci sono monete d'argento annerite, un anello e un biglietto: «Per Marta, se torno». Nessuno è tornato, a giudicare dalla ruggine.",
+   [['Prendete tutto.',[oro(110),gu('razzia')]],["Prendete le monete, lasciate l'anello e il biglietto.",[oro(80),gu('sito')]]]),
+  'cro-bivacco':cro("Un bivacco abbandonato in fretta: brace ancora calda, coperte, una pentola sul fuoco. Nessun corpo, nessun segno di lotta. Chi è scappato sentendovi arrivare vi guarda dal buio.",
+   [['Prendete quel che c\'è.',[viv(3),mer('lana',2),gu('razzia')]],['Chiamate fuori chi si nasconde.',[gu('libera')],null,'b'],['Lasciate tutto e accampatevi altrove.',[gu('fuga')]]],
+   "Escono in sei: soldati sbandati di un esercito battuto, senza capitano e senza paga. Hanno ancora le armi, e la fame negli occhi.",
+   [['Arruolateli.',[uom(3),viv(-4),gu('fuga')]],['Spartite il pane e lasciateli andare.',[viv(-3),gu('cura')]]]),
+  'cro-frana':cro("Una frana ha chiuso il sentiero. Pietre grosse come carri, terra smossa, un mulo sepolto fino al collo che raglia ancora. Di là, il passo; di qua, due giorni di giro.",
+   [['Spalate e liberate il mulo.',[viv(-2),mer('attrezzi',-1),gu('libera')]],['Arrampicatevi sopra la frana.',[uom(-1),gu('perdite')]],['Fate il giro.',[viv(-5),gu('fame')]]]),
+  'cro-nebbia':cro("Sale una nebbia così fitta che non vedete la coda della colonna. Si sentono passi che non sono vostri, e una campana lontana che suona fuori ora.",
+   [['Fermatevi in cerchio e aspettate.',[viv(-2),gu('fame')]],['Seguite la campana.',[gu('sito')],null,'b'],['Avanti alla cieca, in fila e in silenzio.',[uom(-1),gu('perdite')]]],
+   "La campana è di una cappella in rovina, e a suonarla è il vento. Sotto l'altare qualcuno ha nascosto un forziere, e non da poco.",
+   [['Prendetelo.',[oro(70),gu('sito')]],['Lasciatelo: il luogo è consacrato.',[gu('cura')]]]),
+  'cro-sorgente':cro("Una sorgente calda fuma tra le rocce, e intorno l'erba è verde anche d'inverno. Chi ha vissuto all'aperto la riconosce: qui i cavalli guariscono e gli uomini dormono bene.",
+   [['Fermatevi un giorno a riposare.',[viv(-3),gu('cura')]],['Segnatela sulla mappa e ripartite.',[gu('sito')]]]),
+  'cro-orso':cro("Sul sentiero, ritto sulle zampe, un orso grande come una porta. Annusa l'aria, guarda i muli carichi di grano. Non ha nessuna fretta di andarsene.",
+   [['Lasciategli un sacco di grano e giratevi intorno.',[viv(-4),gu('tributo')]],['Lance avanti: la pelle si vende bene.',[uom(-1),oro(30),gu('vittoria')]],['Indietro piano, senza voltargli le spalle.',[gu('fuga')]]]),
+  'cro-legato':cro("Legato a un faggio, con la bocca tappata, c'è un uomo in abito da mercante. Ai piedi dell'albero, un cartello: «Usuraio». Le corde sono fresche; chi l'ha legato non è lontano.",
+   [['Liberatelo.',[gu('libera')],null,'b'],['Chiedete un riscatto alla sua famiglia.',[oro(100),gu('riscatta')]],['Lasciatelo lì: avranno avuto le loro ragioni.',[gu('fuga')]]],
+   "Libero, il mercante si massaggia i polsi e conta i suoi debitori sulle dita. Vi promette mari e monti in città; intanto vi offre la borsa che gli è rimasta.",
+   [['Prendete la borsa.',[oro(50),gu('riscatta')]],['Rifiutate, e lasciatelo andare.',[gu('libera')]]]),
+  'cro-imboscata':cro("Un tronco cade di traverso sul sentiero, e dagli alberi spuntano archi tesi. Una voce chiede metà del vostro grano. Sono tanti, e hanno scelto bene il posto.",
+   [['Trattate: grano, non sangue.',[viv(-6),gu('tributo')]],['Offrite monete al posto del grano.',[oro(-60),gu('tributo')],{oro:60}],['Indietro di corsa, sotto le frecce.',[uom(-1),gu('fuga')]]]),
+  'cro-cacciatori':cro("Una battuta di caccia del signore vi sbarra il passo: cani, falconieri, un nobile giovane a cavallo. Vi chiede chi vi ha dato il permesso di attraversare la sua foresta.",
+   [['Chiedete scusa e pagate il passaggio.',[oro(-40),gu('tributo')],{oro:40}],['La foresta è di chi la attraversa.',[gu('vittoria')],null,'b'],['Tornate indietro per un altro sentiero.',[viv(-3),gu('fuga')]]],
+   "Il giovane ride, poi smette. I suoi sono pochi e voi molti. Se ne va senza una parola, e lascia sul prato il cervo appena abbattuto.",
+   [['Prendete il cervo: la carne si vende.',[oro(30),gu('razzia')]],['Lasciatelo: non cercate altri guai.',[gu('fuga')]]]),
+  'cro-santuario':cro("In una grotta, un santuario di pietra: un altare, ex voto appesi, una cassetta delle offerte piena fino all'orlo. Nessun custode, solo candele consumate.",
+   [["Lasciate un'offerta e una preghiera.",[oro(-20),gu('cura')],{oro:20}],['Vuotate la cassetta.',[oro(90),gu('razzia')]],['Riposate qui una notte.',[viv(-1),gu('sito')]]]),
+  'cro-fuggiaschi':cro("Nel buio vi raggiunge una fila di gente: contadini con le masserizie, vecchi sui muli, bambini addormentati in braccio. Fuggono dalla guerra. Dietro di loro, dicono, arrivano i cavalieri.",
+   [['Proteggeteli fino al mattino.',[viv(-4),gu('libera')]],['Prendete chi sa combattere, gli altri vadano.',[uom(2),gu('razzia')]],['Lasciateli passare e spegnete i fuochi.',[gu('fuga')]]]),
+  // ---- lettere dell'adunata (passo 40): parla il maresciallo del re ----
+  'adunata-convoca':{inizio:'a',nodi:{a:{chi:'signore',testo:"Una lettera col sigillo del re. «{capitano}, il re chiama le sue bandiere e tu tieni terra da lui. Raggiungi l'esercito con i tuoi uomini, e presto. Chi manca lo ricordo per nome. {signore}, maresciallo.»",
+   scelte:[{t:'Verrò.',effetti:[ven('adunata',{v:1})],fine:true},{t:'Non posso.',effetti:[ven('adunata',{v:0})],fine:true}]}}},
+  'adunata-feudo':{inizio:'a',nodi:{a:{chi:'signore',testo:"Un'altra lettera, più corta. «{capitano}, il re ti ha chiamato e tu non sei venuto, troppe volte. Le terre che tenevi da lui tornano alla corona. Non scrivere per spiegare. {signore}, maresciallo.»",fine:true}}}
+ });
+ // quando capitano gli incontri: una voce per scena, nell'ordine dei blocchi (A strada, B selvaggio). Condizioni del passo 42, lette dal passo 44
+ const BOS=['bosco'],MON=['monte'],SEL=['bosco','monte'],STR=['strada'];
+ const CROCEVIA=[
+  ['pellegrino',3,'A',{}],['ponte',2,'A',{}],['disertore',2,'A',{guerra:true}],['mercante',2,'A',{}],['fiamme',2,'A',{guerra:true}],
+  ['carro',2,'A',{}],['gabella',2,'A',{regno:'nemico'}],['messo',1,'A',{guerra:true}],['processione',1,'A',{guerra:false,notte:false}],['forca',1,'A',{regno:'nemico'}],
+  ['giocolieri',1,'A',{guerra:false,notte:false,con:['co_brando','co_isa']}],['vedova',2,'A',{guerra:true}],['mendicanti',2,'A',{guerra:true,con:['co_nera','co_lapo']}],
+  ['cavallo',1,'A',{con:['co_temu','co_berta']}],['fiera',1,'A',{guerra:false,notte:false}],
+  ['lupi',2,'B',{bioma:SEL,notte:true}],['eremita',1,'B',{bioma:MON}],['bracconiere',2,'B',{bioma:BOS,notte:false}],['carbonai',2,'B',{bioma:BOS,notte:false}],
+  ['cassa',1,'B',{bioma:SEL,notte:false,con:['co_fosca','co_ghino']}],['bivacco',2,'B',{bioma:SEL,notte:true,guerra:true}],['frana',2,'B',{bioma:MON,notte:false}],
+  ['nebbia',2,'B',{bioma:SEL,notte:true}],['sorgente',1,'B',{bioma:MON,notte:false,con:['co_temu','co_ghino']}],['orso',2,'B',{bioma:SEL}],
+  ['legato',1,'B',{bioma:BOS}],['imboscata',3,'B',{bioma:SEL}],['cacciatori',2,'B',{bioma:BOS,notte:false,regno:'nemico'}],
+  ['santuario',1,'B',{bioma:SEL,notte:false,con:['co_nera','co_dia']}],['fuggiaschi',2,'B',{bioma:SEL,notte:true,guerra:true}]
+ ].map(([n,peso,blocco,se])=>({id:'cro-'+n,peso,blocco,se:blocco==='A'?Object.assign({bioma:STR},se):se}));
  // bandiere (i fatti copiati dal mondo) e ingressi (ogni scena può essere avviata dal mondo): calcolati dai nomi
  const bandiere=['fama','tappa','giorno'].concat(D.REGNI.map(f=>'serve-'+f));
  for(const c of D.COMPAGNI){const k=c.id.slice(3);bandiere.push('grad-'+k,'inc-'+k,'con-'+k)}
@@ -479,5 +590,5 @@ const VVOC=(()=>{
    'A {luogo}, nelle terre di {regno}, la sorte ti consegna {uomini} uomini e {monete} monete. A {meta} i contadini affilano le falci contro i predoni. Le falci da sole non bastano mai.'],
   affare:['La sorte ti getta a {luogo}, nelle terre di {regno}, con {uomini} uomini e {monete} monete. A {meta} un mercante sussurra di un affare sicuro. Gli affari sicuri sono i più pericolosi.',
    'A {luogo}, nelle terre di {regno}, la sorte ti lascia {uomini} uomini e {monete} monete, poche davvero. Un mercante a {meta} ha un carico da spostare senza domande. Le domande costano, il silenzio paga.']};
- return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO,APERTURE,CONTRO}})();
+ return{id:'ventura',titolo:'Voci della compagnia',personaggi,bandiere,ingressi:Object.keys(scene),scene,CAMPO,APERTURE,CONTRO,CROCEVIA}})();
 if(typeof module!=='undefined')module.exports=VVOC;
