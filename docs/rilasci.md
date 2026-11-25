@@ -37,3 +37,12 @@ Per chi gioca cambia:
 - nemici che pensano per rango, dottrina e carattere: alture, riserve, rotazioni, trappole, memoria delle tue abitudini; sotto le frecce aspettano solo se i loro tiratori reggono lo scambio;
 - a tempo scaduto gli uomini in riserva contano come vivi: l'esercito più grande non perde più una battaglia senza scontri;
 - prima della battaglia: esploratori, scelta del campo, alba, notte, imboscata, pali, retroguardia.
+
+## Rilascio 4: nuova campagna (in attesa, interruttore spento)
+
+Il passo 38 ha preparato l'accensione (`VDAT.ACCESO.mondo2`, impronta accesa `docs/passi/impronte/mondo2.txt`, stemma con 12 figure) ma l'interruttore resta spento, come chiede il passo se le prove d'insieme non reggono. Bot a 120 giorni su 6 semi (1-6), regni vivi (esclusi i caduti) al giorno 121:
+- Recluta: 9, 9, 9, 9, 7, 6 (attesi 4-7);
+- Condottiero: seme 2 con 3 regni, seme 4 con la compagnia ridotta a 1 uomo (rovina);
+- Leggenda: 3-5 regni, semi 1 e 2 in rovina (ammessa).
+In più, con l'interruttore acceso falliscono 15 test rapidi che chiamano `VEN.nuovo(seme)` e si aspettano il mondo vecchio (assedio, diplomazia, mondo, p02, p07, p13, p17, p23, p27, p33, p36, personaggi, regno, stanza, voci): vanno portati a `mondo2=false` in un passo che li possa toccare.
+Le regole dei passi 07, 17, 23, 27, 33, 35, 36 non sono ancora copiate in `docs/rules/ventura.md` né in `RULES.ventura`: si fa all'accensione.

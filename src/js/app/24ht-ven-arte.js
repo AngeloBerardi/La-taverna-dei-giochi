@@ -156,6 +156,16 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
    fine(){const tutti=ord.some(k=>n[k]>0);if(tutti)for(const k of ord)if(!n[k])m(k,1,1,1,zero);
     for(const k of ord){const me=P[k];me.count=n[k];me.visible=n[k]>0;me.instanceMatrix.needsUpdate=true;me.instanceColor.needsUpdate=true}},
    via(){for(const k of ord){scene.remove(P[k]);P[k].geometry.dispose()}}}}
+ // ---------- stemma della compagnia: scudo partito nei due colori e una figura a sagoma (passo 38) ----------
+ const SAGOME={Leone:'M2 17V11l3-2 1-4 4-2 3 3 3 1 3 3-1 3-2 1v5h-3v-4H7v4z',Aquila:'M10 2l2 4 8-3-3 7-3 1 1 4-3 2-2 1-2-1-3-2 1-4-3-1-3-7 8 3z',
+  Lupo:'M3 18l1-9 2-6 3 4 3-1 3-3 3 6 2 9-4 2-3-3-3 3-4-2z',Cervo:'M10 18l-3-5 1-4-3-3 1-2 2 2 1-4 1 3 1-3 1 4 2-2 1 2-3 3 1 4z',
+  Torre:'M4 18V8h2V4h3v2h2V4h3v4h2v10z',Spada:'M9 1h2v11h4v2h-4v4H9v-4H5v-2h4z',Corona:'M2 16V6l4 4 4-6 4 6 4-4v10z',
+  Rosa:'M10 2a4 4 0 0 1 4 4 4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1-4-4 4 4 0 0 1 4-4 4 4 0 0 1 4-4z',
+  Stella:'M10 1l2.5 6.5 7 .5-5.5 4.5 2 7L10 15.5 4 19.5l2-7L.5 8l7-.5z',Drago:'M2 16l3-6 2-6 3 3 3-5 1 5 5 1-4 3 2 6-5-2-3 2-2-3z',
+  Cinghiale:'M2 14l2-5 5-3 6 1 4 4v7h-3v-3H8v3H5v-3z',Ponte:'M1 8h18v3h-2v7h-3v-5a4 4 0 0 0-8 0v5H3v-7H1z'};
+ // `px` è la larghezza; senza `fig` (partite vecchie) resta lo scudo partito, senza figura
+ function stemma(o,px){o=o||{};px=px||34;const c1=o.c1||'#7a1a14',c2=o.c2||'#e0a030',sg=SAGOME[o.fig];
+  return`<svg class="vn-stm" viewBox="0 0 40 46" width="${px}" height="${Math.round(px*46/40)}" aria-hidden="true"><path d="M3 3h34v22c0 10-10 16-17 19C13 41 3 35 3 25z" fill="${c1}" stroke="#1a1208" stroke-width="2"/><path d="M20 3h17v22c0 10-10 16-17 19z" fill="${c2}"/>${sg?`<path d="${sg}" transform="translate(10 10)" fill="#f4e9c8" stroke="#1a1208" stroke-width="1.2" stroke-linejoin="round"/>`:''}</svg>`}
  // ---------- stendardi: asta e drappo che sventola, a istanze ----------
  function Stendardi(scene,max){const asta=new T.InstancedMesh(Solidi().box(.07,2.6,.07,0,0,0,'#6b4a2c').sfera(.11,0,2.66,0,'#e8c35a').geo(),matInst,max),d=new T.Object3D();asta.instanceColor=new T.InstancedBufferAttribute(new Float32Array(max*3).fill(1),3);
   const S=Solidi();for(let k=0;k<4;k++)S.box(.3,.74-k*.08,.05,.18+k*.3,1.82+k*.04,0,'#ffffff',{c2:'#e6e6e6'});S.box(.3,.2,.06,.48,2.1,0,'#d0d0d0');
@@ -184,5 +194,5 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const r=raggio||30;sole.position.set(fuoco.x+ex*60,fuoco.y+ey*70+10,fuoco.z+38);sole.target.position.set(fuoco.x,fuoco.y,fuoco.z);sole.target.updateMatrixWorld();
     const sc=sole.shadow.camera;sc.left=-r;sc.right=r;sc.top=r;sc.bottom=-r;sc.near=1;sc.far=260;sc.updateProjectionMatrix();
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
- return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
+ return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,stemma,SAGOME,luce,qual,
   get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get ren(){return ren},get grad(){return grad},SE,CE}})();
