@@ -57,7 +57,11 @@ In guerra i signori non vagano più da soli: un maresciallo del regno chiama l'a
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+- In guerra i signori di un regno non vagano più da soli: uno dei più forti diventa maresciallo, gli altri si radunano attorno a lui e marciano insieme verso una fortezza nemica da assediare, un villaggio da saccheggiare o un luogo amico da soccorrere.
+- Un esercito è più lento del suo uomo più lento, ma chi lo incontra deve vedersela con tutti i suoi signori vicini, guidati dal maresciallo.
+- Dopo due settimane, o se resta con meno di metà delle forze, o se il maresciallo cade, l'esercito si scioglie.
+- Se giuri a un re, quando chiama l'esercito ti arriva una lettera: raggiungi il maresciallo entro quattro giorni e il re si fida di più e ti paga gli uomini; ignora la chiamata e ti ricorderà l'offesa. A tre chiamate ignorate perdi il feudo.
+- Se sei re, «Aduna» tiene i tuoi signori al tuo fianco per due settimane.
 
 ## Fuori scopo
 
