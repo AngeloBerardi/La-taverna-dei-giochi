@@ -103,3 +103,6 @@ html.vn-ctl .vn-cb{max-height:none}html.vn-ctl .vn-cb .vn-rcs{display:grid;grid-
 .vn-dt{margin:2px 0 0;color:#cdbb96;font-size:12px;font-style:italic;text-align:center}
 .vn-sc .info>i{background:#e0b04a;color:#1a1206;border-color:#3a2206;box-shadow:0 2px 0 #3a2206}
 .vn-via .b.sm,.vn-inc .b.sm,.vn-vela .b.sm,.vn-via .b,.vn-inc .b,.vn-vela .b{min-height:44px;min-width:44px}
+.vn-fumetto{position:absolute;transform:translate(-50%,-100%);max-width:200px;padding:5px 9px;font:700 13px/1.25 var(--f-d);font-style:normal;text-align:center;color:#3a2206;background:linear-gradient(180deg,#f3e2b8,#d8b26a);border:2px solid #5a3c22;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.5);pointer-events:none}.vn-fumetto small{display:block;font:800 10px var(--f-d);color:#7a3a1a}
+.vn-fumetto.fuori{left:8px;bottom:8px;top:auto;transform:none}
+.vn-tvcr{top:auto;bottom:calc(clamp(16px,1.6vw,28px) + 60px)}.vn-tvcr p{margin:2px 0}
