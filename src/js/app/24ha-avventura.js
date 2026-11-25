@@ -14,7 +14,7 @@ const AvvNuova=(()=>{
  function opzNC(){const o=Object.assign({},VDAT.OPZ0,VDAT.PRESET.condottiero,NC.diff==='misura'?NC.leve:Object.assign({},VDAT.PRESET[NC.diff],{mondo:NC.leve.mondo||VDAT.OPZ0.mondo,taglia:NC.leve.taglia||VDAT.OPZ0.taglia}),{diff:NC.diff});
   o.stemma={c1:COLORI[NC.c1],c2:COLORI[NC.c2],fig:FIGURE[NC.fig]};return o}
  const etich=(k,v)=>{const L=LEVE.find(x=>x[0]===k);return L&&L[3]?L[3][v]:String(v)};
- const stemmaH=(c1,c2,fig)=>`<svg class="vn-stm" viewBox="0 0 40 46" width="34" height="40" aria-hidden="true"><path d="M3 3h34v22c0 10-10 16-17 19C13 41 3 35 3 25z" fill="${c1}" stroke="#1a1208" stroke-width="2"/><path d="M20 3h17v22c0 10-10 16-17 19z" fill="${c2}"/><text x="20" y="28" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" stroke="#1a1208" stroke-width=".8" paint-order="stroke">${esc(String(fig||'?')[0])}</text></svg>`;
+ const stemmaH=(c1,c2,fig)=>VenArte.stemma({c1,c2,fig},34);
  // riepilogo breve delle opzioni: lo vede anche l'ospite in compagnia
  function riepilogoH(o){o=o||{};const d=DIFFS.find(x=>x[0]===o.diff)||DIFFS[1];
   const L=LEVE.filter(x=>x[0]!=='mondo'&&x[0]!=='taglia'&&x[0]!=='fer').map(x=>`<span>${esc(x[1])}: <b>${esc(etich(x[0],o[x[0]]!=null?o[x[0]]:VDAT.OPZ0[x[0]]))}</b></span>`).join('');
