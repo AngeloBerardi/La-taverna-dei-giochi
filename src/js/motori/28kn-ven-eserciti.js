@@ -5,8 +5,7 @@
    sulla parte `p.es=id` (`e.sg` = indice del maresciallo, `s.presi` = giorno dell'ultimo passaggio di mano dei luoghi); da vassallo `s.convoca={eid,fino,presente}` e `s.disobb`. L'esercito del sovrano ha `faz:'tu'`, `capo:0` (sei tu) e nessun obiettivo.
    Il maresciallo porta `sg.mar` finché l'esercito vive (rango 3, passo 12). Motore puro e ripetibile: solo `rnd(s)`, niente Math.random né funzioni trascendenti.
    Dopo 28ke, prima di 28l. */
-// RAGGIO vale 12 e non 6 come scritto nel passo: con 6 i signori, sparsi per il regno, raramente erano in tre vicini e la prova «ogni regno in guerra forma un esercito» falliva (vedi la PR).
-Object.assign(VDAT,{ESERCITI:{NASCE:.35,MIN:3,MAX:6,RAGGIO:12,ADUNA:2,DURATA:15,META:.5,LONTANO:40,STRETTI:1.4,AIUTO:3,PRESENTE:2,ENTRO:4,FIDUCIA:5,PAGA:3,IGNORA:-10,FEUDO:3}});
+Object.assign(VDAT,{ESERCITI:{NASCE:.35,MIN:3,MAX:6,RAGGIO:12,ADUNA:2,DURATA:15,META:.5,LONTANO:40,STRETTI:1.4,AIUTO:3,PRESENTE:2,ENTRO:4,FIDUCIA:5,PAGA:3,IGNORA:-10,FEUDO:3,PAUSA:10}});
 Object.assign(VEN,(()=>{const{L,MURA,P,TU,dist,forza,forzaTr,giorno,nemiche,fazioni,viva,relaz,rnd,part,uomini}=VEN._,X=VDAT.ESERCITI;
  const attivo=()=>!!VDAT.ACCESO.eserciti;
  const OBIETTIVI=['assedio','razzia','soccorso'];
@@ -23,7 +22,7 @@ Object.assign(VEN,(()=>{const{L,MURA,P,TU,dist,forza,forzaTr,giorno,nemiche,fazi
  const regnoVero=(s,f)=>f==='tu'||VEN.regni(s).includes(f);
  // ---------- obiettivo ----------
  // un luogo appena preso o perso non è subito un bersaglio: evita i castelli che passano di mano avanti e indietro
- const PAUSA=10,fermo=(s,l)=>!!s.presi&&s.presi[l.id]!=null&&giorno(s)-s.presi[l.id]<PAUSA;
+ const fermo=(s,l)=>!!s.presi&&s.presi[l.id]!=null&&giorno(s)-s.presi[l.id]<X.PAUSA;
  VEN.aggancia('luogo',(s,l,ev)=>{if(attivo()&&ev==='conquista'){if(!s.presi)s.presi={};s.presi[l.id]=giorno(s)}});
  // soccorso a un proprio luogo assediato, poi il luogo murato nemico più vicino che l'esercito può prendere, poi un villaggio nemico da saccheggiare
  function scegli(s,f,cp,fz){const g=giorno(s),vicino=(lista,max)=>{let m=null,md=1e9;for(const l of lista){const d=dist(l,cp);if(d<=max&&d<md){md=d;m=l}}return m};

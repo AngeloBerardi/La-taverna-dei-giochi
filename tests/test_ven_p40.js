@@ -33,7 +33,7 @@ function mondo(opz) {
 }
 
 // ---- i numeri ----
-assert.strictEqual(JSON.stringify(X), JSON.stringify({ NASCE: .35, MIN: 3, MAX: 6, RAGGIO: 12, ADUNA: 2, DURATA: 15, META: .5, LONTANO: 40, STRETTI: 1.4, AIUTO: 3, PRESENTE: 2, ENTRO: 4, FIDUCIA: 5, PAGA: 3, IGNORA: -10, FEUDO: 3 }));
+assert.strictEqual(JSON.stringify(X), JSON.stringify({ NASCE: .35, MIN: 3, MAX: 6, RAGGIO: 12, ADUNA: 2, DURATA: 15, META: .5, LONTANO: 40, STRETTI: 1.4, AIUTO: 3, PRESENTE: 2, ENTRO: 4, FIDUCIA: 5, PAGA: 3, IGNORA: -10, FEUDO: 3, PAUSA: 10 }));
 assert.strictEqual(D.ACCESO.eserciti, false, 'nasce spento');
 
 // ---- (g) spento: nulla ----
@@ -210,9 +210,14 @@ D.ACCESO.eserciti = true;
   // il maresciallo esce dal mondo: l'esercito si scioglie e il grado non resta
   const sg = e.sg; assert(s.sig[sg].mar, 'ha il grado'); V._.rimuovi(s, V.part(s, e.capo)); gg(s);
   assert.strictEqual(e.stato, 'sciolto'); assert.strictEqual(s.sig[sg].mar, undefined, 'il grado cade anche se il maresciallo non c\'è più');
-  // luogo appena preso: niente bersaglio per qualche giorno
-  const g = V.giorno(s); s.presi = s.presi || {}; const nem = s.l.filter(l => l.faz === 'fer'); for (const l of nem) s.presi[l.id] = g; delete s.eserciti; for (const p of s.p) delete p.es;
-  gg(s, 3); assert(!(s.eserciti || []).some(x => x.faz === 'sel'), 'senza bersagli non nasce (tutti i luoghi nemici sono appena passati di mano)');
+  // luogo appena preso: niente bersaglio per qualche giorno. Caso di controllo: stesso mondo, nascita certa; senza `s.presi` l'esercito nasce, con tutti i luoghi nemici appena presi no
+  const nasce = presi => {
+    const w = V.nuovo(3); w.tregua = 1e9; w.guerra = {}; w.alleanza = {}; w.guerra[chiave('sel', 'fer')] = true; raduna(w, 'sel'); raduna(w, 'fer');
+    if (presi) { w.presi = {}; for (const l of w.l) if (l.faz === 'fer') w.presi[l.id] = V.giorno(w); }
+    const n0 = X.NASCE; X.NASCE = 1; try { gg(w); } finally { X.NASCE = n0; }
+    return (w.eserciti || []).some(x => x.faz === 'sel');
+  };
+  assert.strictEqual(nasce(false), true, 'senza pausa l\'esercito nasce'); assert.strictEqual(nasce(true), false, 'con la pausa no');
 }
 
 // ---- (g) salvataggi vecchi ----
