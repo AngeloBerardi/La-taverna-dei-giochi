@@ -2,7 +2,7 @@
    In guerra i signori di un regno si radunano dietro un maresciallo, marciano insieme su un obiettivo (soccorso, assedio, razzia) e si sciolgono.
    Si attacca ai ganci `giorno`, `ora`, `scontro`, `incontro`, `scheda`, `fatto`, `effetto` e compone `VEN.decidi` e `VEN.molt`; agisce solo con `VDAT.ACCESO.eserciti` (rilascio 5).
    Stato facoltativo (assente = nessun esercito): `s.eserciti=[{id,faz,capo,membri:[pid],obiettivo:{tipo,lid},stato,da,f0}]`, `stato` ∈ 'aduna'|'marcia'|'assedia'|'sciolto';
-   sulla parte `p.es=id`; da vassallo `s.convoca={eid,fino,presente}` e `s.disobb`. L'esercito del sovrano ha `faz:'tu'`, `capo:0` (sei tu) e nessun obiettivo.
+   sulla parte `p.es=id` (`e.sg` = indice del maresciallo, `s.presi` = giorno dell'ultimo passaggio di mano dei luoghi); da vassallo `s.convoca={eid,fino,presente}` e `s.disobb`. L'esercito del sovrano ha `faz:'tu'`, `capo:0` (sei tu) e nessun obiettivo.
    Il maresciallo porta `sg.mar` finché l'esercito vive (rango 3, passo 12). Motore puro e ripetibile: solo `rnd(s)`, niente Math.random né funzioni trascendenti.
    Dopo 28ke, prima di 28l. */
 // RAGGIO vale 12 e non 6 come scritto nel passo: con 6 i signori, sparsi per il regno, raramente erano in tre vicini e la prova «ogni regno in guerra forma un esercito» falliva (vedi la PR).
@@ -22,11 +22,14 @@ Object.assign(VEN,(()=>{const{L,MURA,P,TU,dist,forza,forzaTr,giorno,nemiche,fazi
  const forzaLuogo=(s,l)=>(forzaTr(l.g)+s.p.filter(p=>p.dentro===l.id&&p.k==='sig').reduce((a,p)=>a+forza(p),0))*P.MURA;
  const regnoVero=(s,f)=>f==='tu'||VEN.regni(s).includes(f);
  // ---------- obiettivo ----------
+ // un luogo appena preso o perso non è subito un bersaglio: evita i castelli che passano di mano avanti e indietro
+ const PAUSA=10,fermo=(s,l)=>!!s.presi&&s.presi[l.id]!=null&&giorno(s)-s.presi[l.id]<PAUSA;
+ VEN.aggancia('luogo',(s,l,ev)=>{if(attivo()&&ev==='conquista'){if(!s.presi)s.presi={};s.presi[l.id]=giorno(s)}});
  // soccorso a un proprio luogo assediato, poi il luogo murato nemico più vicino che l'esercito può prendere, poi un villaggio nemico da saccheggiare
  function scegli(s,f,cp,fz){const g=giorno(s),vicino=(lista,max)=>{let m=null,md=1e9;for(const l of lista){const d=dist(l,cp);if(d<=max&&d<md){md=d;m=l}}return m};
   let l=vicino(s.l.filter(x=>x.faz===f&&x.ass&&nemiche(s,f,x.ass.faz)),X.LONTANO);if(l)return{tipo:'soccorso',lid:l.id};
-  l=vicino(s.l.filter(x=>MURA[x.tipo]&&x.faz!==f&&regnoVero(s,x.faz)&&nemiche(s,f,x.faz)&&(!x.ass||x.ass.faz===f)&&forzaLuogo(s,x)<1.2*fz),X.LONTANO);if(l)return{tipo:'assedio',lid:l.id};
-  l=vicino(s.l.filter(x=>x.tipo==='villaggio'&&regnoVero(s,x.faz)&&nemiche(s,f,x.faz)&&x.sacc<=g),1e9);if(l)return{tipo:'razzia',lid:l.id};
+  l=vicino(s.l.filter(x=>MURA[x.tipo]&&x.faz!==f&&!fermo(s,x)&&regnoVero(s,x.faz)&&nemiche(s,f,x.faz)&&(!x.ass||x.ass.faz===f)&&forzaLuogo(s,x)<1.2*fz),X.LONTANO);if(l)return{tipo:'assedio',lid:l.id};
+  l=vicino(s.l.filter(x=>x.tipo==='villaggio'&&!fermo(s,x)&&regnoVero(s,x.faz)&&nemiche(s,f,x.faz)&&x.sacc<=g),1e9);if(l)return{tipo:'razzia',lid:l.id};
   return null}
  function compiuto(s,e){const o=e.obiettivo,l=s.l[o.lid],f=e.faz;if(!l)return true;
   if(o.tipo==='soccorso')return !l.ass||l.faz!==f;
@@ -48,20 +51,21 @@ Object.assign(VEN,(()=>{const{L,MURA,P,TU,dist,forza,forzaTr,giorno,nemiche,fazi
  // ---------- nascita e scioglimento ----------
  function scioglie(s,e,motivo,g){e.stato='sciolto';e.sciolto=g;e.motivo=motivo;
   for(const id of e.membri){const p=part(s,id);if(p&&p.es===e.id)delete p.es}
-  if(e.mar){const cp=part(s,e.capo),sg=sigDi(s,cp);if(sg)delete sg.mar}
+  if(e.mar&&s.sig[e.sg])delete s.sig[e.sg].mar
   fineConvoca(s,e)}
  function nascite(s,r,g){
   for(const f of VEN.regni(s)){
    if(!viva(s,f)||liste(s).some(e=>e.faz===f)||!inGuerraCon(s,f)||!(r()<X.NASCE))continue;
-   const tutti=s.p.filter(p=>p.k==='sig'&&p.faz===f).length,pool=liberi(s,f).filter(p=>!s.sig[p.sig].re||tutti<4);if(pool.length<X.MIN)continue;
-   // il maresciallo è il più forte che riesce a radunare almeno MIN signori entro RAGGIO caselle; i membri sono i più vicini a lui
+   // servono MIN signori (nei regni piccoli di meno: tutti tranne uno, almeno 2); il re può essere membro, maresciallo solo se il regno ha meno di 4 signori
+   const tutti=s.p.filter(p=>p.k==='sig'&&p.faz===f).length,serve=Math.max(2,Math.min(X.MIN,tutti-1)),pool=liberi(s,f),capi=pool.filter(p=>!s.sig[p.sig].re||tutti<4);if(pool.length<serve)continue;
+   // il maresciallo è il più forte che riesce a radunare almeno `serve` signori entro RAGGIO caselle; i membri sono i più vicini a lui
    const peso=p=>forza(p)+20*(s.sig[p.sig].esp|0),minimo=p=>forza(p)>=(s.sig[p.sig].re?80:55);   // più debole di così il maresciallo tornerebbe a casa
    let cp=null,vic=null;
-   for(const c of pool.filter(minimo).sort((a,b)=>peso(b)-peso(a)||a.id-b.id)){
-    const v=pool.filter(p=>p!==c&&dist(p,c)<=X.RAGGIO).sort((a,b)=>dist(a,c)-dist(b,c)||a.id-b.id).slice(0,X.MAX-1);if(v.length+1>=X.MIN){cp=c;vic=v;break}}
+   for(const c of capi.filter(minimo).sort((a,b)=>peso(b)-peso(a)||a.id-b.id)){
+    const v=pool.filter(p=>p!==c&&dist(p,c)<=X.RAGGIO).sort((a,b)=>dist(a,c)-dist(b,c)||a.id-b.id).slice(0,X.MAX-1);if(v.length+1>=serve){cp=c;vic=v;break}}
    if(!cp)continue;
    const mem=[cp].concat(vic),fz=mem.reduce((a,p)=>a+forza(p),0),ob=scegli(s,f,cp,fz);if(!ob)continue;
-   const e={id:s.uid++,faz:f,capo:cp.id,membri:mem.map(p=>p.id),obiettivo:ob,stato:'aduna',da:g,f0:fz};
+   const e={id:s.uid++,faz:f,capo:cp.id,membri:mem.map(p=>p.id),obiettivo:ob,stato:'aduna',da:g,f0:fz,sg:cp.sig};
    if(!s.eserciti)s.eserciti=[];s.eserciti.push(e);for(const p of mem)p.es=e.id;
    const sg=s.sig[cp.sig];if(!sg.mar){sg.mar=1;e.mar=1}
    if(vedi(s,cp))L(s,cp.nome+' raduna i signori di '+VEN.rg(s,f).breve+'.','guerra');

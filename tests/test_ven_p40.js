@@ -16,7 +16,7 @@ const sigDi = (s, p) => s.sig[p.sig];
 const parti = (s, f) => s.p.filter(p => p.k === 'sig' && p.faz === f);
 // i signori non re di un regno si radunano in un punto fuori dalle mura; `lontano` ne manda uno a più di RAGGIO caselle
 function raduna(s, f, lontano) {
-  const M = V.mappaDi(s), re = parti(s, f).find(p => sigDi(s, p).re), P = V._.vicinoOk(M, re.x + 8, re.y), L = V._.vicinoOk(M, P[0] + 20, P[1]);
+  const M = V.mappaDi(s), re = parti(s, f).find(p => sigDi(s, p).re), P = V._.vicinoOk(M, re.x + 8, re.y), L = V._.vicinoOk(M, P[0] + 15, P[1]);
   const altri = parti(s, f).filter(p => !sigDi(s, p).re);
   altri.forEach((p, i) => { const q = lontano && i === altri.length - 1 ? L : P; p.dentro = -1; p.x = q[0]; p.y = q[1]; p.via = []; p.ia = { st: 'giro', t: 0 }; });
   return { P: { x: P[0], y: P[1] }, lontano: lontano ? altri[altri.length - 1] : null, vicini: lontano ? altri.slice(0, -1) : altri };
@@ -39,6 +39,7 @@ assert.strictEqual(D.ACCESO.eserciti, false, 'nasce spento');
 // ---- (g) spento: nulla ----
 {
   const s = V.nuovo(3); s.tregua = 1e9; raduna(s, 'sel'); raduna(s, 'fer'); s.guerra[chiave('sel', 'fer')] = true; gg(s, 60);
+  s.incontro = null; for (let g = 0; g < 2; g++) { for (let k = 0; k < GIORNO; k++) { s.incontro = null; V.passo(s, 1); } }
   assert.strictEqual(s.eserciti, undefined, 'spento, `s.eserciti` non nasce'); assert(s.p.every(p => p.es === undefined) && s.convoca === undefined && s.disobb === undefined);
   assert.strictEqual(JSON.stringify(V.eserciti(s)), '[]'); assert.strictEqual(V.esercitoDi(s, 5), null);
   const t = V.TU(s), v0 = V.velocita(s, t); D.ACCESO.eserciti = true; assert.strictEqual(V.velocita(s, t), v0, 'la velocità di chi non è in un esercito non cambia'); D.ACCESO.eserciti = false;
@@ -73,7 +74,7 @@ D.ACCESO.eserciti = true;
   const { s, e, R } = mondo({ lontano: true });
   assert(R.sel.lontano && dist(R.sel.lontano, R.sel.vicini[0]) > X.RAGGIO, 'il signore lontano sta oltre RAGGIO caselle');
   assert(!e.membri.includes(R.sel.lontano.id) && R.sel.lontano.es === undefined, 'il signore lontano non ne fa parte');
-  assert.strictEqual(e.membri.length, R.sel.vicini.length, 'gli altri sì');
+  assert(R.sel.vicini.every(p => e.membri.includes(p.id)), 'gli altri sì');
   const d = e.da; while (V.giorno(s) < d + X.ADUNA - 1) gg(s); assert.strictEqual(e.stato, 'aduna', 'dopo un giorno si aduna ancora');
   gg(s); assert.strictEqual(V.giorno(s), d + X.ADUNA); assert.strictEqual(e.stato === 'marcia' || e.stato === 'assedia', true, 'dopo ADUNA giorni marcia: ' + e.stato);
   // chi non è arrivato lascia l'esercito
@@ -189,12 +190,37 @@ D.ACCESO.eserciti = true;
   const ne = s.eserciti.find(x => x.stato !== 'sciolto'); const da = ne.da; while (V.giorno(s) <= da + X.DURATA) gg(s); assert.strictEqual(ne.stato, 'sciolto'); assert(s.p.every(p => p.es === undefined));
 }
 
+// ---- giorni veri: `decidi`, `molt`, `scontro` e `incontro` composti girano e lo stato resta coerente ----
+{
+  const { s, e } = mondo(); s.rac = s.rac || null;
+  for (let k = 0; k < 3 * GIORNO; k++) { s.incontro = null; if (s.rac) s.rac.scena = null; V.passo(s, 1); }
+  for (const x of s.eserciti || []) { assert(x.membri.every(id => V.part(s, id)) || x.stato === 'sciolto', 'membri esistenti'); if (x.stato !== 'sciolto') assert(x.membri.every(id => V.part(s, id).es === x.id), 'p.es coerente'); }
+  for (const p of s.p) if (p.es != null) { const x = s.eserciti.find(y => y.id === p.es); assert(x && x.stato !== 'sciolto', 'nessun p.es orfano'); }
+  assert(V.apri(V.salva(s)));
+}
+
+// ---- il re può essere membro (non maresciallo); il grado cade con il maresciallo ----
+{
+  const s = V.nuovo(3); s.tregua = 1e9; s.guerra = {}; s.alleanza = {}; s.guerra[chiave('sel', 'fer')] = true; const R = raduna(s, 'sel'); raduna(s, 'fer');
+  const re = parti(s, 'sel').find(p => sigDi(s, p).re); re.dentro = -1; re.x = R.P.x; re.y = R.P.y; re.via = [];
+  // tre soli signori vicini (due più il re): bastano a MIN solo col re
+  for (const p of R.vicini.slice(2)) { p.x = R.P.x + 40; p.y = R.P.y; }
+  let n = 0; while (!(s.eserciti || []).some(e => e.faz === 'sel') && n++ < 60) gg(s);
+  const e = s.eserciti.find(x => x.faz === 'sel'); assert(e, 'nasce'); assert(e.membri.includes(re.id), 'il re è tra i membri'); assert.notStrictEqual(e.capo, re.id, 'ma non il maresciallo');
+  // il maresciallo esce dal mondo: l'esercito si scioglie e il grado non resta
+  const sg = e.sg; assert(s.sig[sg].mar, 'ha il grado'); V._.rimuovi(s, V.part(s, e.capo)); gg(s);
+  assert.strictEqual(e.stato, 'sciolto'); assert.strictEqual(s.sig[sg].mar, undefined, 'il grado cade anche se il maresciallo non c\'è più');
+  // luogo appena preso: niente bersaglio per qualche giorno
+  const g = V.giorno(s); s.presi = s.presi || {}; const nem = s.l.filter(l => l.faz === 'fer'); for (const l of nem) s.presi[l.id] = g; delete s.eserciti; for (const p of s.p) delete p.es;
+  gg(s, 3); assert(!(s.eserciti || []).some(x => x.faz === 'sel'), 'senza bersagli non nasce (tutti i luoghi nemici sono appena passati di mano)');
+}
+
 // ---- (g) salvataggi vecchi ----
 {
   const dir = path.join(__dirname, 'fixture/ven');
   for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.json'))) {
     const s = V.apri(fs.readFileSync(path.join(dir, f), 'utf8')); assert(s, f); s.tregua = 1e9;
-    if (f.endsWith('_g0.json')) { s.incontro = null; V.passo(s, 1440); }
+    for (let k = 0; k < GIORNO; k++) { s.incontro = null; V.passo(s, 1); }
     gg(s, 10); assert(V.apri(V.salva(s)), f + ': si risalva');
     for (const e of s.eserciti || []) assert(e.membri.every(id => V.part(s, id)) || e.stato === 'sciolto', f + ': membri esistenti');
   }
