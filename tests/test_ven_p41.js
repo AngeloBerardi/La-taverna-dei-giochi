@@ -42,7 +42,9 @@ function alza(s, l, id, n) { let g = V.giorno(s); for (let k = 0; k < n; k++) { 
   const r3 = V.rendite(s); assert(r3 === 217 || r3 === 218, 'rendita ' + r3);
   const ritorno = spesa / ((r3 - r0) / 7); assert(ritorno > 40 && ritorno < 60, 'ritorno in ' + ritorno + ' giorni');
   // il mulino porta grano nelle scorte (cima a TETTO) e non cambia la rendita degli altri luoghi
-  l.scorte.grano = 10; const g0 = l.scorte.grano; avanza(s, g + 1, g + 1); assert(l.scorte.grano >= g0 + 3 - 6, 'il grano non cala di colpo');
+  // il mulino porta +3 al giorno al grano del luogo: stesso mondo e stesso giorno, con e senza mulino
+  const grano = lv => { const t = mondo(3), v = mio(t, 'villaggio'); if (lv) v.edif = { mulino: lv }; v.scorte.grano = 10; avanza(t, 1, 1); return v.scorte.grano; };
+  assert.strictEqual(grano(3) - grano(0), 3, 'mulino 3: +3 al giorno'); assert.strictEqual(grano(1) - grano(0), 1);
   assert.strictEqual(V.molt(s, 'rendita', { lid: s.l.find(x => !x.edif).id }), 1);
 }
 
@@ -84,9 +86,11 @@ function alza(s, l, id, n) { let g = V.giorno(s); for (let k = 0; k < n; k++) { 
   V.ganci('luogo', s, l, 'razzia'); V.ganci('luogo', s, l, 'razzia'); eq(l.edif, {}); V.ganci('luogo', s, l, 'razzia');
   const c = s.l.find(x => x.tipo === 'castello' && x.faz !== 'tu'); c.faz = 'tu'; c.sig = -1; c.edif = { mura: 2, torre: 1 }; c.cant = { id: 'caserma', fino: 99 };
   V.conquista(s, c, V.regni(s)[0], -1); eq(c.edif, { mura: 1, torre: 1 }, 'il luogo conquistato tiene gli edifici rimasti'); assert(!c.cant, 'e perde il cantiere');
-  // la razzia dell'IA, davvero: un signore che mette a sacco un villaggio tuo
-  const t = mondo(11), v = mio(t, 'villaggio'); v.edif = { mulino: 1, cappella: 1 }; v.cant = { id: 'palizzata', fino: 99 };
-  const s0 = V.salva(t); V.ganci('luogo', t, v, 'razzia'); assert.strictEqual(v.edif.cappella, 1); assert(!v.edif.mulino && !v.cant); assert.notStrictEqual(V.salva(t), s0);
+  // la razzia dell'IA, portata a termine da `VEN.decidi` (28ka): il villaggio perde il livello più alto e il cantiere
+  const z = mondo(11), v = mio(z, 'villaggio'); v.edif = { mulino: 1, cappella: 1 }; v.cant = { id: 'palizzata', fino: 99 };
+  const q = z.p.find(x => x.k === 'sig' && x.faz !== 'tu'); q.dentro = -1; q.x = v.x; q.y = v.y; q.via = []; q.ia = { st: 'razzia', a: v.id, t: 1 };
+  z.rel[q.faz] = -50; z.dentro = -1; V.TU(z).x = 1; V.TU(z).y = 1; z.t = 2000; v.sacc = 0;
+  V.decidi(z, q, V.mappaDi(z)); assert(v.sacc > V.giorno(z), 'la razzia è avvenuta'); assert.strictEqual(v.edif.cappella, 1); assert(!v.edif.mulino && !v.cant, 'mulino perso e cantiere perso');
 }
 
 // ---- (e) le mura ritardano l'assalto dell'IA ----
@@ -104,9 +108,15 @@ function alza(s, l, id, n) { let g = V.giorno(s); for (let k = 0; k < n; k++) { 
   assert(base > 0 && base < 100, 'senza mura l\'assalto arriva (' + base + ' ore)');
   assert.strictEqual(due - base, 24, 'mura 2: 24 ore più tardi'); assert.strictEqual(uno - base, 12, 'mura 1: 12 ore più tardi');
   // il tuo assedio a un luogo che ha mura: la breccia arriva 24·n ore dopo, una volta sola
-  const s = mondo(3), l = s.l.find(x => x.tipo === 'castello' && x.faz !== 'tu'); l.edif = { mura: 2 }; const t0 = s.t;
-  s.assedio = { lid: l.id, pronto: s.t + 600, da: s.t, ariete: false }; V.TU(s).ord = { t: 'aspetta', fino: s.t + 99999 };
-  for (let k = 0; k < 3; k++) V.ganci('ora', s); assert.strictEqual(s.assedio.da, t0 + 2 * 1440, 'una sola volta'); assert.strictEqual(s.assedio.mu, 1);
+  const breccia = n => { const s = mondo(3), l = s.l.find(x => x.tipo === 'castello' && x.faz !== 'tu'); if (n) l.edif = { mura: n };
+    s.assedio = { lid: l.id, pronto: s.t + 600, da: s.t, ariete: false }; V.TU(s).ord = { t: 'aspetta', fino: s.t + 99999 };
+    for (let k = 0; k < 3; k++) V.ganci('ora', s); return { s, l, ore: V.assedioStato(s).oreBreccia, da: s.assedio.da }; };
+  const b0 = breccia(0), b2 = breccia(2);
+  assert.strictEqual(b2.da - b0.da, 2 * 1440, 'una sola volta'); assert.strictEqual(b2.s.assedio.mu, 1); assert.strictEqual(b2.ore - b0.ore, 48, 'la breccia arriva 48 ore dopo');
+  // mura finite a assedio già iniziato non lo ritardano (solo gli assedi nuovi)
+  const c = breccia(0); c.l.edif = { mura: 3 }; for (let k = 0; k < 3; k++) V.ganci('ora', c.s); assert.strictEqual(c.s.assedio.da, c.da, 'assedio già in corso'); assert.strictEqual(V.assedioStato(c.s).oreBreccia, b0.ore);
+  const s = mondo(3), l = mio(s, 'castello'), p = V._.nuovaP(s, 'pre', 'pre', 'Banda', l.x, l.y, [{ t: 'pre_f1', n: 5, f: 0, xp: 0 }], {}); l.ass = { faz: 'pre', da: s.t, pid: [p.id] }; V.ganci('ora', s); l.edif = { mura: 2 }; const da = l.ass.da; V.ganci('ora', s);
+  assert.strictEqual(l.ass.da, da, 'anche l\'assedio dell\'IA: mura finite dopo l\'inizio non contano');
 }
 
 // ---- (f) la cappella ----
@@ -162,11 +172,15 @@ function alza(s, l, id, n) { let g = V.giorno(s); for (let k = 0; k < n; k++) { 
   V.TU(t).x += 20; assert.strictEqual(V.vista(t), v0, 'a più di 8 caselle non conta'); V.TU(t).x = c.x; c.faz = 'neu'; c.sig = 0; assert.strictEqual(V.vista(t), v0, 'un luogo non tuo non conta');
 }
 
-// ---- compagnia: due copie fanno lo stesso; salvataggio ----
+// ---- compagnia: mosse con `seat`, copie che partono dallo stesso salvataggio ----
 {
-  const gioca = () => { const s = mondo(11), l = mio(s, 'villaggio'); giorno(s, 1); costruisci(s, 'mulino'); costruisci(s, 'palizzata'); V.fai(s, { a: 'costruisci', id: 'cappella', seat: 0 }); avanza(s, 1, 14); l.edif.cappella = 1; return s; };
-  const a = gioca(), b = gioca(); assert.strictEqual(V.salva(a), V.salva(b), 'ripetibile');
-  const c = V.apri(V.salva(a)); assert.strictEqual(V.salva(c), V.salva(a), 'il salvataggio si riapre'); assert(a.l.some(l => l.edif && l.edif.mulino === 1));
+  const s0 = mondo(11), l0 = mio(s0, 'villaggio'); giorno(s0, 1); const salvato = V.salva(s0);
+  const prova = (st, lid) => { const l = st.l[lid]; st.dentro = lid; const tu = V.TU(st); tu.oro = 5000;
+    for (const z of [{ a: 'costruisci', id: 'mulino', seat: 0 }]) { const r = V.fai(st, z); assert(r.s, 'mossa con seat: ' + r.err); }
+    avanza(st, 2, 5); assert.strictEqual(l.edif.mulino, 1); const r2 = V.fai(st, { a: 'costruisci', id: 'cappella', seat: 0 }); assert(r2.s, r2.err); avanza(st, 6, 12); return st; };
+  const a = prova(V.apri(salvato), l0.id), b = prova(V.apri(salvato), l0.id);
+  assert.strictEqual(V.salva(a), V.salva(b), 'due telefoni, stesso stato'); assert.strictEqual(a.l[l0.id].edif.cappella, 1);
+  const c = V.apri(V.salva(a)); assert.strictEqual(V.salva(c), V.salva(a), 'il salvataggio si riapre'); assert.strictEqual(c.l[l0.id].edif.mulino, 1);
 }
 
 // ---- (g) mondi vecchi ----

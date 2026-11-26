@@ -41,13 +41,12 @@ Object.assign(VEN,(()=>{
  let pzRazzia=null;   // palizzata del villaggio razziato da te, letta prima dei danni della razzia (vive solo dentro una `fai`)
  VEN.aggancia('azione',(s,z)=>{
   if(z.a==='razzia'){const lid=s.dentro>=0?s.dentro:s.davanti,l=lid>=0?s.l[lid]:null;pzRazzia=nuovoGeo(s)&&l&&livello(l,'palizzata')?{s,lid:l.id,n:livello(l,'palizzata')}:null;return}
-  // (i verbi nuovi si confrontano con `!==`: la prova di copertura dei suoni, test_ven_audio.js, legge solo i `z.a==='…'`)
-  const noCostr=z.a!=='costruisci',noArr=z.a!=='arruola';if(noCostr&&noArr)return;
-  if(!noArr&&!nuovoGeo(s))return;
-  if(!capDi(s,z.seat))return{err:'Capitano sconosciuto'};
-  if(s.incontro&&s.incontro.tipo==='arena')return{err:'Il duello ti aspetta'};
-  const l=s.dentro>=0?s.l[s.dentro]:null;
-  return noArr?costruisci(s,z,l):arruola(s,z,l)});
+  if(z.a==='costruisci'||z.a==='arruola'){
+   if(z.a==='arruola'&&!nuovoGeo(s))return;
+   if(!capDi(s,z.seat))return{err:'Capitano sconosciuto'};
+   if(s.incontro&&s.incontro.tipo==='arena')return{err:'Il duello ti aspetta'};
+   const l=s.dentro>=0?s.l[s.dentro]:null;
+   return z.a==='costruisci'?costruisci(s,z,l):arruola(s,z,l)}});
  // dopo un'azione del nucleo riuscita: il campo d'addestramento dopo `recluta`, la tua razzia più lunga, la cappella dopo `riposa`
  VEN.aggancia('fatto',(s,z)=>{if(!nuovoGeo(s))return;const tu=TU(s);
   if(z.a==='razzia'){const p=pzRazzia;pzRazzia=null;if(p&&p.s===s)s.t+=N.RAZZIA_TUA*p.n;return}
@@ -68,9 +67,10 @@ Object.assign(VEN,(()=>{
    const pa=livello(l,'palizzata');if(pa&&uomini({tr:l.g})<N.GUARNIGIONE*pa){const t=nascita(s,l)+'_f1';if(D.TR[t])aggiungi(l.g,t,1)}
    const ca=livello(l,'caserma');if(ca&&g%7===N.SETT)l.cas=Math.min(N.CASERMA_SETT*ca,(l.cas||0)+ca)}});
  // ---------- le mura ritardano gli assedi, una volta sola per assedio ----------
+ // (solo gli assedi nuovi: `mu` segna che l'assedio è già stato visto, con o senza mura; mura finite dopo l'inizio non lo ritardano)
  VEN.aggancia('ora',s=>{if(!nuovoGeo(s))return;
-  for(const l of s.l){const a=l.ass;if(a&&!a.mu&&l.edif){const n=livello(l,'mura');if(n){a.mu=1;a.da+=N.MURA_IA*n}}}
-  const a=s.assedio,l=a&&s.l[a.lid];if(a&&!a.mu&&l&&l.edif){const n=livello(l,'mura');if(n){a.mu=1;if(a.da==null)a.da=a.pronto-P.ASSEDIO_ORE*60;a.da+=N.MURA_TUA*n}}});
+  for(const l of s.l){const a=l.ass;if(a&&!a.mu){a.mu=1;const n=livello(l,'mura');if(n)a.da+=N.MURA_IA*n}}
+  const a=s.assedio,l=a&&s.l[a.lid];if(a&&!a.mu){a.mu=1;const n=livello(l,'mura');if(n){if(a.da==null)a.da=a.pronto-P.ASSEDIO_ORE*60;a.da+=N.MURA_TUA*n}}});
  // ---------- la palizzata allunga la razzia dell'IA (alla prima ora di razzia su quel villaggio) ----------
  const decidi0=VEN.decidi;
  VEN.decidi=(s,p,M)=>{const r=decidi0(s,p,M);const ia=p&&p.ia;if(!ia||!nuovoGeo(s))return r;

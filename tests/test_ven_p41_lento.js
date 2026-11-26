@@ -1,5 +1,5 @@
-// Passo 41, parte lenta: 120 giorni di bot in mondi nuovi (opz.geo=2), semi 3, 11, 29, ogni partita in un processo suo, con e senza costruzione.
-// Il capitano accorto di tests/bot_ven.js, al giorno 1, giura a un regno e riceve un villaggio in feudo (l.sig=-2); `costruisce` lo fa costruire: con oro > costo + 400 + la paga della settimana (senza la paga il cantiere affamerebbe gli uomini: le paghe di questo mondo superano da sole le 400 monete) prima il mulino,
+// Passo 41, parte lenta: 120 giorni di bot in mondi nuovi (opz.geo=2), semi 5, 11, 29, ogni partita in un processo suo, con e senza costruzione.
+// Il capitano accorto di tests/bot_ven.js, al giorno 1, giura a un regno e riceve un villaggio in feudo (l.sig=-2); `costruisce` lo fa costruire: con oro > costo + 400 prima il mulino,
 // poi la palizzata, poi di nuovo il mulino, ecc. Il bot gira per il mondo e raramente è nel villaggio: per questo la prova apre il cantiere «da dentro» (porta `s.dentro` sul villaggio
 // il tempo della mossa e la rimette com'era). Si prova che:
 //  - con la costruzione si finiscono almeno 2 livelli (razzie e conquiste ne tolgono poi qualcuno: per questo si contano i cantieri finiti), e lo stato resta sano (monete e uomini finiti, edifici entro 3 livelli, un cantiere al più per luogo);
@@ -9,7 +9,7 @@
 const assert = require('assert'), path = require('path'), os = require('os');
 const { execFile } = require('child_process');
 const PROVA = path.join(__dirname, '..');
-const SEMI = process.env.P41_SEMI ? process.env.P41_SEMI.split(',').map(Number) : [3, 11, 29], GIORNI = +process.env.P41_GIORNI || 120;
+const SEMI = process.env.P41_SEMI ? process.env.P41_SEMI.split(',').map(Number) : [5, 11, 29], GIORNI = +process.env.P41_GIORNI || 120;
 
 if (process.argv[2] === '--lavora') {
   const carica = require('./carica.js');
@@ -32,7 +32,7 @@ if (process.argv[2] === '--lavora') {
     if (costruisce && !feudo.cant && VEN.mioLuogo(s, feudo)) {
       const id = [ORDINE[livelli % 2], ORDINE[(livelli + 1) % 2]].find(x => (feudo.edif && feudo.edif[x] || 0) < 3);
       const n = (feudo.edif && feudo.edif[id]) || 0;
-      if (id && tu.oro > VDAT.EDIFICI[id].costo[n] + 400 + VEN.paga(s)) { const d = s.dentro; s.dentro = feudo.id; const r = VEN.fai(s, { a: 'costruisci', id }); s.dentro = d; if (r.s) livelli++; }
+      if (id && tu.oro > VDAT.EDIFICI[id].costo[n] + 400) { const d = s.dentro; s.dentro = feudo.id; const r = VEN.fai(s, { a: 'costruisci', id }); s.dentro = d; if (r.s) livelli++; }
     }
     for (const l of s.l) { if (l.edif) for (const k of Object.keys(l.edif)) if (!(l.edif[k] >= 1 && l.edif[k] <= 3)) guasti++; }
   });

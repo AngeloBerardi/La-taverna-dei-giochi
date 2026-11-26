@@ -55,8 +55,8 @@ const VAUD=(()=>{
   ariete:null,scala:'ven-passi',porta:'ven-porta',mischia:e=>e.liv>0?'ven-mischia-'+Math.min(3,e.liv|0):null};
  const tutti=(l,v)=>Object.fromEntries(l.map(k=>[k,v]));
  const FAI=Object.assign(tutti(['compra','vendi'],'ven-mercato'),
-  tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca'],'ven-moneta'),
-  tutti(['recluta','assolda','compagno','guarnigione'],'ven-passi'),tutti(['assedia','assalta','lizza','razzia','dichiara'],'ven-corno'),{fonda:'ven-vittoria'},
+  tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca','costruisci'],'ven-moneta'),
+  tutti(['recluta','assolda','compagno','guarnigione','arruola'],'ven-passi'),tutti(['assedia','assalta','lizza','razzia','dichiara'],'ven-corno'),{fonda:'ven-vittoria'},
   tutti(['promuovi','abilita','investi','feudo','giura','contratto','incarico','proponi','liberasig'],'ok'),tutti(['equipa','togli'],'sel'),{esci:'ven-porta'},
   tutti(['aduna','rompi','lascia','libera','congeda'],null));
  const ORDINE={vai:(o,cav)=>cav?'ven-zoccoli':'ven-passi',entra:(o,cav)=>cav?'ven-zoccoli':'ven-passi',segui:(o,cav)=>cav?'ven-zoccoli':'ven-passi',aspetta:null,ferma:null};
