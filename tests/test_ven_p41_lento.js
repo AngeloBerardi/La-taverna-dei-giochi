@@ -1,7 +1,7 @@
 // Passo 41, parte lenta: 120 giorni di bot in mondi nuovi (opz.geo=2), semi 5, 11, 29, ogni partita in un processo suo, con e senza costruzione.
 // Il capitano accorto di tests/bot_ven.js, al giorno 1, giura a un regno e riceve un villaggio in feudo (l.sig=-2); `costruisce` lo fa costruire: con oro > costo + 400 prima il mulino,
-// poi la palizzata, poi di nuovo il mulino, ecc. Il bot gira per il mondo e raramente è nel villaggio: per questo la prova apre il cantiere «da dentro» (porta `s.dentro` sul villaggio
-// il tempo della mossa e la rimette com'era). Si prova che:
+// poi la palizzata, poi di nuovo il mulino. Regola del bot di prova: costruisce solo con oro > costo + 400 + la paga di una settimana (un giocatore sensato tiene la riserva
+// per le paghe: con la sola soglia +400 le paghe mancate salivano di 2-4 giorni sui semi 5, 11, 29) e solo da dentro il feudo, dopo esserci andato con `ordina entra`. Si prova che:
 //  - con la costruzione si finiscono almeno 2 livelli (razzie e conquiste ne tolgono poi qualcuno: per questo si contano i cantieri finiti), e lo stato resta sano (monete e uomini finiti, edifici entro 3 livelli, un cantiere al più per luogo);
 //  - i giorni di paga mancata non sono più di quelli del bot che non costruisce, +1;
 //  - l'impronta a interruttori spenti è identica a `main` (`tools/avventura/impronta.js --controlla`).
@@ -25,14 +25,22 @@ if (process.argv[2] === '--lavora') {
   const feudo = s.l.find(l => l.sig === -2); if (!feudo) throw new Error('nessun feudo');
   VEN.fai(s, { a: 'esci' });
   let mancate = 0, livelli = 0, guasti = 0, finiti = 0; const ORDINE = ['mulino', 'palizzata'];
+  // politica del bot di prova: costruisce solo con oro > costo + 400 + la paga di una settimana, e solo da dentro il feudo, dopo esserci andato
+  const prossimo = () => { const id = [ORDINE[livelli % 2], ORDINE[(livelli + 1) % 2]].find(x => (feudo.edif && feudo.edif[x] || 0) < 3); return id ? { id, n: (feudo.edif && feudo.edif[id]) || 0 } : null; };
+  const voglio = () => { const q = prossimo(); return !!q && tu.oro > VDAT.EDIFICI[q.id].costo[q.n] + 400 + VEN.paga(s); };
+  let dentroOra = false;
+  const provaCostruire = st => {
+    if (st !== s || !costruisce || dentroOra || s.dentro !== feudo.id || feudo.cant || !VEN.mioLuogo(s, feudo) || !voglio()) return;
+    dentroOra = true; try { const q = prossimo(), r = VEN.fai(s, { a: 'costruisci', id: q.id }); if (r.s) livelli++; } finally { dentroOra = false; }
+  };
+  VEN.aggancia('fatto', provaCostruire); VEN.aggancia('ora', provaCostruire);
   VEN.aggancia('giorno', st => {
     if (st !== s) return;
     if (s.ev.some(e => e.t === 'log' && /Non hai di che pagare/.test(e.tx))) mancate++;
     finiti += s.ev.filter(e => e.t === 'log' && /finit[oae] \(livello \d\)/.test(e.tx)).length;
-    if (costruisce && !feudo.cant && VEN.mioLuogo(s, feudo)) {
-      const id = [ORDINE[livelli % 2], ORDINE[(livelli + 1) % 2]].find(x => (feudo.edif && feudo.edif[x] || 0) < 3);
-      const n = (feudo.edif && feudo.edif[id]) || 0;
-      if (id && tu.oro > VDAT.EDIFICI[id].costo[n] + 400) { const d = s.dentro; s.dentro = feudo.id; const r = VEN.fai(s, { a: 'costruisci', id }); s.dentro = d; if (r.s) livelli++; }
+    if (costruisce && !feudo.cant && VEN.mioLuogo(s, feudo) && voglio() && s.dentro !== feudo.id && !s.incontro && !s.prigioniero && !(s.rac && s.rac.scena)) {
+      if (s.dentro >= 0) VEN.fai(s, { a: 'esci' });
+      VEN.ordina(s, { t: 'entra', lid: feudo.id });   // il bot va davvero al feudo
     }
     for (const l of s.l) { if (l.edif) for (const k of Object.keys(l.edif)) if (!(l.edif[k] >= 1 && l.edif[k] <= 3)) guasti++; }
   });
