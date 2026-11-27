@@ -18,6 +18,47 @@ const VenLuoghi=(()=>{
   velluto:`<path d="M4 8h24v6H4zM6 14h20v13H6z" fill="#5a2a6a" stroke="${S}" stroke-width="1.5"/><path d="M4 11h24" stroke="${O}" stroke-width="1.5"/><path d="M6 24h20" stroke="${O}" stroke-width="2"/>`,
   spezie:`<path d="M7 12h18l-1 15H8z" fill="${L}" stroke="${S}" stroke-width="1.5"/><path d="M6 12c1-5 19-5 20 0z" fill="${R}" stroke="${S}" stroke-width="1.5"/><circle cx="16" cy="19" r="3" fill="${O}" stroke="${S}"/><path d="M13 4c1 3 5 3 6 0" stroke="${VD}" stroke-width="2" fill="none"/>`};
  const icMerce=m=>`<svg class="ico-m" width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">${IM[m]||''}</svg>`;
+ // ---------- feudi e affari (passo 45): solo nei mondi nuovi, dove VEN.edifici risponde ----------
+ const feudiOk=(s,l)=>!!(VEN.edifici&&VEN.mioLuogo&&VEN.mioLuogo(s,l)&&VEN.edifici(s,l).length);
+ const tra=n=>n<=0?'oggi':n===1?'domani':'tra '+n+' giorni';
+ const gg=n=>n+(n===1?' giorno':' giorni');
+ const livTot=l=>Object.keys(l.edif||{}).reduce((a,k)=>a+l.edif[k],0);
+ const novita=l=>!!l.edif&&livTot(l)>((V.edVisto||{})[l.id]||0)&&!l.cant;   // il pallino d'ottone: qualcosa è finito dall'ultima volta che hai guardato
+ const IE={mulino:'M8 21l2-11h4l2 11zM12 10V7M6 4l12 6M18 4L6 10',palizzata:'M4 21V8l1-2 1 2v13M10 21V8l1-2 1 2v13M16 21V8l1-2 1 2v13M3 15h18',addestra:'M12 21V9M7 13h10M12 5a2 2 0 1 0 0 4a2 2 0 1 0 0-4M5 21h14',
+  mura:'M3 21V9h3V6h2v3h3V6h2v3h3V6h2v3h3v12zM10 21v-5h4v5',caserma:'M3 20v-9l9-5 9 5v9zM9 20v-5h6v5M3 11h18',mercato:'M3 9l2-5h14l2 5zM5 9v11M19 9v11M3 20h18M8 14h8',torre:'M8 21V9L6 4h12l-2 5v12zM11 14h2v3h-2z',cappella:'M12 3v5M10 5h4M7 21V12l5-4 5 4v9zM10 21v-5h4v5'};
+ const icE=id=>`<svg class="ico" style="color:#f0c166" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="round" aria-hidden="true"><path d="${IE[id]||IE.caserma}"/></svg>`;
+ const tacche=n=>`<span role="img" aria-label="livello ${n} di 3" style="letter-spacing:2px;color:#f0c166">${'●'.repeat(n)}${'○'.repeat(3-n)}</span>`;
+ // una riga da 56 px: a sinistra icona e testo, a destra il tasto di legno (mai ottone: l'ottone resta a «Riparti»)
+ const rg=(ic0,sx,dx)=>`<div class="vn-r" style="min-height:56px;align-items:center"><div class="vn-rs" style="display:flex;gap:10px;align-items:center">${ic0||''}<div>${sx}</div></div><div class="vn-rd">${dx||''}</div></div>`;
+ const tasto=(tx,fa,fi,sub,o)=>{o=o||{};return`<button class="b sm" style="min-height:44px;min-width:44px" data-fa="${fa}" data-fi="${fi==null?'':fi}" data-sub="${sub}" ${o.err?'disabled aria-label="'+esc(tx+': '+o.err)+'"':''}>${tx}</button>`};
+ function cantiereH(s,l){const E=VEN.edifici(s,l),cn=VEN.cantiere(s,l),t=tu();V.edVisto=V.edVisto||{};V.edVisto[l.id]=livTot(l);
+  const testa=cn?`<p class="vn-p"><b>${esc(cn.nome)}</b>: pronto ${tra(cn.resta)}. Un cantiere alla volta.</p>`:`<p class="vn-p">Hai ${n0(t.oro)} monete. Un cantiere alla volta; i danni di una razzia o di una conquista tolgono un livello.</p>`;
+  const righe=E.map(e=>{const max=e.n>=3,sx=`<b>${esc(e.nome)}</b> ${tacche(e.n)}<small>${max?'Al massimo':e.costo+' monete · '+gg(e.giorni)}${e.err&&!max?' · '+esc(e.err):''}</small>`;
+   return rg(icE(e.id),sx,max?'':tasto('Costruisci','costruisci',e.id,'cantiere',e.puoi?null:{err:e.err}))}).join('');
+  return pannello('Cantiere di '+esc(l.nome),testa+righe,{chiudi:'sub:home'})}
+ // «Affari»: scelte della carovana (meta e capocarovana) tenute qui, nel foglio
+ const AF={verso:null,capo:'mer'};
+ function affariH(s,l){const A=VEN.affari(s),t=tu(),X=VDAT.AFFARI||{CAPITALE:300,MERCENARIO:100,CAROVANE:2,SCORTA:10},mia=A.botteghe.find(b=>b.lid===l.id),tipi=VEN.tipiBottega?VEN.tipiBottega(s,l):[];
+  const nom=x=>typeof x==='number'?(s.l[x]?s.l[x].nome:'?'):String(x),sgn=n=>(n>0?'+':'')+n;
+  let h=`<p class="vn-p">Hai ${n0(t.oro)} monete.${A.sett?' Settimana scorsa gli affari hanno reso '+sgn(A.sett)+'.':''}</p>`;
+  h+='<div class="sh2">Bottega</div>';
+  if(mia){const tp=tipi.find(x=>x.k===mia.k)||{};h+=rg('',`<b>${esc(mia.nome||'Bottega')}</b><small>Ultima settimana: ${sgn(mia.ultima||0)} monete. Vendendola incassi metà di quanto è costata.</small>`,tasto('Vendi','vendibottega','','affari'))}
+  else h+=tipi.length?tipi.map(x=>rg('',`<b>${esc(x.nome)}</b><small>${x.costo} monete · rende circa ${sgn(x.stima)} a settimana${x.err?' · '+esc(x.err):''}</small>`,tasto('Apri','bottega',x.k,'affari',x.err?{err:x.err}:null))).join(''):'<p class="vn-p">Qui non c\'è posto per una bottega.</p>';
+  const mete=s.l.filter(x=>x.id!==l.id&&x.noto!==false&&(x.tipo==='citta'||x.tipo==='porto')&&!VEN.nemiche(s,VEN.lato(s),x.faz)),pre=D.COMPAGNI.filter(c=>s.compagni[c.id]===-1);
+  if(!mete.some(x=>x.id===AF.verso))AF.verso=null;if(AF.capo!=='mer'&&!pre.some(c=>c.id===AF.capo))AF.capo='mer';
+  const ch=(on,fs,tx)=>`<button class="vn-ch${on?' on':''}" style="min-height:44px" data-fs="${fs}" data-sub="affari">${esc(tx)}</button>`,costo=X.CAPITALE+(AF.capo==='mer'?X.MERCENARIO:0);
+  h+=`<div class="sh2">Carovana</div><p class="vn-p">Parte da qui con ${X.SCORTA} uomini di scorta e ${X.CAPITALE} monete di capitale${AF.capo==='mer'?', più '+X.MERCENARIO+' per il mercenario che la guida':''}: ${costo} monete in tutto. Compra e rivende da sola; gli utili tornano a te.</p>`+
+   `<div class="vn-qta" style="flex-wrap:wrap"><small>Meta</small>${mete.map(x=>ch(AF.verso===x.id,'verso:'+x.id,x.nome)).join('')||'<small>nessuna città raggiungibile</small>'}</div>`+
+   `<div class="vn-qta" style="flex-wrap:wrap"><small>Guida</small>${ch(AF.capo==='mer','capo:mer','Un mercenario')}${pre.map(c=>ch(AF.capo===c.id,'capo:'+c.id,c.nome)).join('')}</div>`+
+   rg('',`<b>Mettila in strada</b><small>${AF.verso==null?'Scegli prima la meta.':costo>t.oro?'Servono '+costo+' monete.':'Via per '+esc(nom(AF.verso))+', '+costo+' monete.'}</small>`,tasto('Parti','carovana','','affari',AF.verso==null?{err:'Scegli la meta'}:costo>t.oro?{err:'Servono '+costo+' monete'}:null));
+  if(A.carovane.length)h+='<div class="sh2">In viaggio</div>'+A.carovane.map(c=>{const qui=l.id===c.da||l.id===c.a;return rg('',`<b>${esc(c.nome||'Carovana')}</b><small>${esc(nom(c.da))} e ${esc(nom(c.a))} · porta ${n0(c.oro||0)} monete</small>`,tasto('Richiama','richiama',c.pid,'affari',qui?null:{err:'Solo da una delle due città'}))}).join('');
+  return pannello('Affari a '+esc(l.nome),h,{chiudi:'sub:home'})}
+ // i tasti di feudi e affari portano un argomento che `fai:` non sa passare (il suo `switch` sta in 24hw): qui un solo ascoltatore, poi la pagina si ridisegna con `sub:`
+ document.addEventListener('click',e=>{const b=e.target&&e.target.closest?e.target.closest('[data-fa],[data-fs]'):null;if(!b||b.disabled)return;const s=Ven.V.s;if(!s)return;
+  if(b.dataset.fs){const[k,v]=b.dataset.fs.split(':');AF[k]=k==='verso'?+v:v;return Ven.act('sub:'+b.dataset.sub)}
+  const a=b.dataset.fa,i=b.dataset.fi,z={a};if(a==='costruisci')z.id=i;else if(a==='bottega')z.k=i;else if(a==='carovana'){z.verso=AF.verso;z.capo=AF.capo}else if(a==='richiama')z.pid=+i;
+  const r=Ven._.inS()?VenStanza.manda({t:'fai',z}):VEN.fai(s,z);if(r&&r.err){Snd.play('err');Ven.avviso(r.err,'male')}else{Ven.salva();if(!Ven._.inS()&&s.log.length)Ven.avviso(s.log[s.log.length-1].tx,'bene')}
+  Ven.act('sub:'+b.dataset.sub)});
  function truppaH(e,azioni){const T=D.TR[e.t];return riga(`<b>${esc(T.nome)}</b> ${pips(T.t)}<small>${CLS[T.c]||''} · ${e.n} uomini${e.f?' · '+e.f+' feriti':''}${T.compagno?' · compagno':''}</small>`,azioni||'')}
  function luogoH(){const s=V.s,lid=s.dentro>=0?s.dentro:s.davanti,l=s.l[lid];if(!l)return'';const t=tu(),fuori=s.davanti>=0,mio=l.faz==='tu'||l.sig===-2,g=VEN.giorno(s),sito=VEN.SITO[l.tipo],mura=VEN.MURA[l.tipo];
   const testa=`<div class="vn-lt" style="--fz:${VEN.colFaz(s,l.faz).col}"><small>${TIPO[l.tipo]} ${mio?'· tuo':''}</small>${sito||l.faz==='neu'?'':faz(l.faz)}<small>${sito?'':l.oste?'Vi accoglie '+esc(l.oste):'Prosperità '+l.prosp}${l.sacc>g?' · saccheggiato':''}${l.ass?' · sotto assedio':''}</small></div>`;
@@ -60,6 +101,8 @@ const VenLuoghi=(()=>{
    for(const k of VEN.regni(s))if(s.corona?VEN.inGuerra(s,'tu',k):s.rel[k]<=-25)h+=riga(`<b>Pace con ${esc(VEN.rg(s,k).breve)}</b><small>Un tributo mette fine all'inimicizia (${s.rel[k]}).</small>`,bt('Tratta','fai:pace:'+k));
    h+=riga(`<b>Riscatti</b><small>${prig?prig+' prigionieri da cedere':'Nessun prigioniero'}</small>`,bt('Incassa','fai:riscatta',{cls:'vn-wd2',no:!prig}));return pannello('Sala del signore',h,{chiudi:'sub:home'})}
   if(V.sub==='guarn'){return pannello('Guarnigione',`<div class="sh2">Dentro le mura</div>${l.g.map(e=>truppaH(e,bt('Riprendi','fai:guarnigione:'+e.t+':-1'))).join('')||'<p class="vn-p">Nessuno.</p>'}<div class="sh2">Con te</div>${t.tr.filter(e=>!D.TR[e.t].compagno).map(e=>truppaH(e,bt('Lascia','fai:guarnigione:'+e.t+':1'))).join('')}`,{chiudi:'sub:home'})}
+  if(V.sub==='cantiere'){if(feudiOk(s,l))return cantiereH(s,l);V.sub='home'}
+  if(V.sub==='affari'){if(VEN.affari&&l.tipo==='citta')return affariH(s,l);V.sub='home'}
   const TK=V.sub&&V.sub.slice(0,5)==='term:'?V.sub.slice(5):null;if(TK){const x=VenGente.termH(s,l,TK);if(x)return x;V.sub='home'}   // la scheda dei termini si chiude da sola quando l'offerta non c'è più
   // casa del luogo: testa con segnali, servizi a griglia, un solo ottone fisso in fondo
   const q=l.inc,cons=s.incarichi.find(x=>!x.fatto&&!x.fallito&&(x.tipo==='consegna'&&x.a===l.id||x.tipo==='reclute'&&x.da===l.id)),fer=t.tr.reduce((a,e)=>a+(e.f||0),0),ospiti=D.COMPAGNI.some(c=>s.compagni[c.id]===l.id);
@@ -81,6 +124,8 @@ const VenLuoghi=(()=>{
   if(l.tipo==='locanda'){const nasc=s.l.some(q=>q.noto===false&&q.g.length);T.push(tes('chat','Voci','sub:term:voci',{no:!nasc,s:nasc?'25 m':'Niente di nuovo',d:nasc?'Un giro di vino (25 monete) e l\'oste racconta dove andare':'L\'oste non ha più storie da raccontare'}))}
   if(cons)T.push(tes('pin','Consegna','sub:term:consegna',{dot:1,s:cons.premio+' m',d:VEN.titoloInc(s,cons)+', '+cons.premio+' monete'}));
   if(q&&!q.preso)T.push(tes('diario','Incarico','sub:term:incarico',{dot:ha('incarico'),s:q.premio+' m · '+q.giorni+' g',d:VenGente.descInc(s,q)+'. '+q.premio+' monete, '+q.giorni+' giorni'}));
+  if(feudiOk(s,l)){const cn=VEN.cantiere(s,l);T.push(tes('casa','Cantiere','sub:cantiere',{dot:novita(l),s:cn?tra(cn.resta):'Costruisci',d:cn?cn.nome+': pronto '+tra(cn.resta):'Edifici del feudo: costo e giorni prima di decidere'}))}
+  if(l.tipo==='citta'&&VEN.affari){const af=VEN.affari(s),ms=af.botteghe.some(b=>b.lid===l.id);T.push(tes('moneta','Affari','sub:affari',{s:ms?'Hai una bottega':'Botteghe e carovane',d:'Botteghe in città e carovane che commerciano per te'}))}
   if(!(l.tipo==='villaggio'&&!mio))T.push(tes('letto','Riposo','sub:term:riposa',{s:mio?'Gratis':VEN.costoRiposo(s,l)+' m',d:'Otto ore: metà dei feriti torna in piedi.'+(mio?'':' '+VEN.costoRiposo(s,l)+' monete.')}));
   return pannello(esc(l.nome),h+`<div class="vn-sr">${T.join('')}</div>`+(tnQui?torneoH(l):'')+`<div class="vn-fine">${bt('Riparti','fai:esci',{cls:'gold'})}</div>`,{chiudi:'fai:esci'})}
  // il torneo della città: iscrizione, turno, avversari col loro corredo, premio maturato

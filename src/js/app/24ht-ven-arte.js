@@ -186,3 +186,42 @@ void main(){vec2 tx=floor(1.+vUv*(res-2.)+off)+.5;vec2 uv=tx/res;vec3 c=texture2
     const notte=h<5?1:h<6.5?1-(h-5)/1.5:h<19.5?0:h<21?(h-19.5)/1.5:1;return{notte}}}}
  return{A,avvia,riprova,monta,smonta,persa,rifai,misura,camera,disegna,aTerra,aSchermo,Solidi,Schiera,Stendardi,Particelle,luce,qual,
   get T(){return T},get mat(){return matToon},get matI(){return matInst},get cv(){return cv},get ren(){return ren},get grad(){return grad},SE,CE}})();
+/* ---- Passo 45: gli edifici dei feudi (`VenArte.edificio`). Un blocco a sé, fuori dal costruttore: usa solo Solidi e T, come le altre parti. ----
+   `edificio(id,n,col,alto)` → gruppo low-poly nelle unità del modellino del luogo (la mappa lo mette a scala 1,5). id: un edificio di VDAT.EDIFICI oppure 'cantiere'.
+   n = livello (1..3): dal 2 più grande del 15% e con un dettaglio in più; dal 3 tetti nel colore `col` e finestre accese di sera (`userData.lume`, una maglia da mostrare solo di notte).
+   `userData.pala` = la maglia delle pale del mulino (si gira attorno a z, in `userData.pala0` la quota del mozzo). `alto` = altezza massima. */
+Object.assign(VenArte,(()=>{
+ let mLume=null;const LG='#8a6a48',PI='#aaa49b',PI2='#c8c2b8',INT='#e8dcc0',RS='#a8553a';
+ function edificio(id,n,col,alto){const T=VenArte.T;if(!T)return null;n=Math.max(1,Math.min(3,n|0||1));const S=VenArte.Solidi(),W=VenArte.Solidi(),Lm=VenArte.Solidi(),g=new T.Group(),tt=n>=3&&col?col:RS;let pala=null,pala0=0;
+  const lume=(x,y,z,ry)=>{if(n>=3)Lm.box(.07,.1,.03,x,y,z,'#ffd98a',{ry:ry||0})};
+  const asta=(x,z,h)=>{S.box(.03,h,.03,x,0,z,'#6b4a2c');S.box(.2,.12,.02,x+.11,h-.12,z,tt)};
+  if(id==='mulino'){const h=.5+(n>=2?.18:0);S.cil(.2,.27,h,8,0,0,0,PI,{c2:PI2});S.cono(.3,.26,8,0,h,0,tt);S.box(.1,.18,.04,0,0,.26,'#5a4030');lume(0,h*.6,.25);
+   S.box(.06,.06,.2,0,h*.8,.2,'#5a4030');pala0=h*.8;if(n>=2)asta(0,0,h+.55);
+   const P=VenArte.Solidi();P.box(.07,.07,.05,0,-.035,0,LG);for(let k=0;k<4;k++){const a=k*Math.PI/2,dx=-Math.sin(a),dy=Math.cos(a);P.agg(new T.BoxGeometry(.05,.5,.02),dx*.25,dy*.25,0,LG,{rz:a});P.agg(new T.BoxGeometry(.13,.28,.012),dx*.33+Math.cos(a)*.07,dy*.33+Math.sin(a)*.07,.014,'#efe6cf',{rz:a})}
+   pala=P.mesh({ombra:false});pala.position.set(0,pala0,.3)}
+  else if(id==='palizzata'){const m=12;for(let k=0;k<m;k++){if(k===3)continue;const a=k/m*6.283;S.cono(.045,.46+(k%3)*.05,5,Math.cos(a)*.42,0,Math.sin(a)*.42,'#7a5a3a')}
+   S.cil(.42,.42,.04,12,0,.18,0,'#6a4a2e');if(n>=2){S.box(.22,.16,.22,0,0,-.4,LG);S.box(.26,.1,.26,0,.34,-.4,LG);S.tetto(.3,.14,.3,0,.44,-.4,tt);S.box(.03,.3,.03,0,.58,-.4,'#6b4a2c');S.box(.14,.09,.02,.08,.76,-.4,tt)}lume(0,.1,-.28)}
+  else if(id==='addestra'){const r=.4;S.box(.8,.05,.03,0,.12,r,LG);S.box(.8,.05,.03,0,.28,r,LG);S.box(.8,.05,.03,0,.12,-r,LG);S.box(.8,.05,.03,0,.28,-r,LG);S.box(.03,.05,.8,r*2,.12,0,LG);S.box(.03,.05,.8,-r*2,.12,0,LG);
+   for(const[x,z]of[[-.4,.4],[.4,.4],[-.4,-.4],[.4,-.4],[0,.4],[0,-.4]])S.box(.04,.4,.04,x,0,z,'#6b4a2c');
+   for(const x of[-.16,.18]){S.box(.04,.5,.04,x,0,.02,'#6b4a2c');S.box(.3,.05,.04,x,.34,.02,LG);S.sfera(.07,x,.58,.02,'#d8c48a');S.box(.1,.16,.06,x,.2,.02,'#b0463a')}
+   if(n>=2)asta(.3,-.3,.7);lume(-.1,.1,.42)}
+  else if(id==='mura'){const R=1.18,m=26,h=.34+(n>=2?.1:0);for(let k=0;k<m;k++){const a=k/m*6.283,x=Math.cos(a)*R,z=Math.sin(a)*R;if(k===m>>2)continue;S.box(.32,h,.09,x,0,z,PI,{ry:-a+Math.PI/2,c2:PI2});if(k%2===0)S.box(.1,.07,.12,x,h,z,PI2,{ry:-a+Math.PI/2})}
+   for(const[x,z]of[[R,0],[-R,0],[0,-R]]){S.cil(.12,.14,h+.26,7,x,0,z,PI,{c2:PI2});S.cono(.17,.18,7,x,h+.26,z,tt);lume(x,h*.7,z+.12)}if(n>=2)asta(0,R,h+.3)}
+  else if(id==='caserma'){const h=.3+(n>=2?.26:0);S.box(.92,h,.36,0,0,0,'#d8c7a0',{c2:INT});S.tetto(.44,.3,1.04,0,h,0,tt,{ry:Math.PI/2});S.box(.12,.2,.04,0,0,.2,'#5a4030');S.box(.1,.1,.03,-.28,h*.55,.19,'#3a3230');S.box(.1,.1,.03,.28,h*.55,.19,'#3a3230');
+   S.box(.03,.5,.03,.42,h,0,'#6b4a2c');S.box(.2,.12,.02,.52,h+.38,0,tt);lume(-.28,h*.55,.2);lume(.28,h*.55,.2);if(n>=2){lume(0,h*.9,.2)}}
+  else if(id==='mercato'){const h=.3;for(const[x,z]of[[-.38,-.26],[.38,-.26],[-.38,.26],[.38,.26]])S.box(.05,h,.05,x,0,z,LG);S.tetto(.78,.22,1.0,0,h,0,tt,{ry:Math.PI/2});
+   S.box(.5,.16,.2,0,0,0,'#9c7a52');S.sfera(.07,-.14,.2,0,'#cf8f2c');S.sfera(.07,0,.2,0,'#b0463a');S.sfera(.07,.14,.2,0,'#6f9a3c');if(n>=2){S.box(.6,.05,.1,0,.28,.34,tt);S.box(.18,.14,.16,.3,0,-.2,'#8a6a48')}lume(0,.2,.28)}
+  else if(id==='torre'){const h=.9+(n>=2?.25:0);S.cil(.13,.18,h,8,0,0,0,PI,{c2:PI2});S.cil(.19,.19,.1,8,0,h,0,PI2);S.cono(.2,.26,8,0,h+.1,0,tt);S.box(.05,.1,.03,0,h*.7,.15,'#3a3230');S.box(.08,.14,.03,0,0,.18,'#5a4030');
+   if(n>=2)asta(0,0,h+.7);lume(0,h*.7,.16);lume(0,h*.35,.17)}
+  else if(id==='cappella'){const h=.3;S.box(.36,h,.5,0,0,.08,'#e2d8c0',{c2:INT});S.tetto(.42,.22,.56,0,h,.08,tt);S.box(.16,.62,.16,0,0,-.2,PI,{c2:PI2});S.cono(.14,.22,4,0,.62,-.2,tt,{ry:.785});S.box(.1,.12,.03,0,.34,.34,'#4a6a9c');S.box(.08,.14,.04,0,0,.36,'#5a4030');
+   if(n>=2)S.sfera(.04,0,.5,-.1,'#e8c35a');S.box(.02,.1,.02,0,.86,-.2,'#e8c35a');S.box(.07,.02,.02,0,.92,-.2,'#e8c35a');lume(0,.34,.35)}
+  else{for(const[x,z]of[[-.3,-.3],[.3,-.3],[-.3,.3],[.3,.3]])S.box(.04,.62,.04,x,0,z,'#7a5a3a');for(const y of[.2,.4,.6]){S.box(.64,.03,.03,0,y,.3,'#9c7a52');S.box(.64,.03,.03,0,y,-.3,'#9c7a52');S.box(.03,.03,.64,.3,y,0,'#9c7a52');S.box(.03,.03,.64,-.3,y,0,'#9c7a52')}
+   S.box(.5,.1,.03,0,.3,.3,'#7a5a3a',{rz:.5});S.box(.24,.1,.16,0,0,0,'#6a4a2e');S.box(.2,.06,.14,0,.1,0,'#8a6a48');S.box(.12,.1,.1,.18,0,.1,PI)}
+  let ap=null;if(S.n){ap=S.mesh();g.add(ap)}if(pala)g.add(pala);
+  if(Lm.n){mLume=mLume||new T.MeshBasicMaterial({vertexColors:true});const l=new T.Mesh(Lm.geo(),mLume);l.visible=false;g.add(l);g.userData.lume=l}
+  g.userData.pala=pala;g.userData.pala0=pala0;g.userData.id=id;g.userData.n=n;
+  let k=n>=2?1.15:1;if(alto>0){const bb=new T.Box3().setFromObject(g),h=(bb.max.y-bb.min.y)*k;if(h>alto)k*=alto/h}
+  g.scale.setScalar(k);g.userData.k=k;return g}
+ // libera la geometria di un gruppo fatto da `edificio`
+ function scarta(g){if(!g)return;g.traverse(o=>{if(o.geometry)o.geometry.dispose()});if(g.parent)g.parent.remove(g)}
+ return{edificio,scartaEdificio:scarta}})());
