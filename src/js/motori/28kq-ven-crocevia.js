@@ -1,6 +1,6 @@
 /* ---- Compagnia di ventura, incontri del crocevia (passo 44). ----
    Nei mondi nuovi (`s.geo===2`), mentre cammini, ai crocevia e nei luoghi selvaggi capita una scena di `VVOC.CROCEVIA` (passo 42), che passa dalla coda delle voci (`VEN.accoda`).
-   Si attacca ai ganci `ora` (decide se e quale scena) ed `effetto` (uomini, merce, viveri, gusto). Nei mondi vecchi non fa nulla.
+   Si attacca ai ganci `vedi` (decide se e quale scena) ed `effetto` (uomini, merce, viveri, gusto). Nei mondi vecchi non fa nulla.
    Stato facoltativo: `s.croc={ult,visti:{id:giorno}}` (`ult` = `s.t` dell'ultima scena). Nuova: `VEN.croceviaQui(s)` → 'incrocio'|'selvaggio'|null.
    Ripetibile: niente Math.random né trigonometria. Dopo 28ke, prima di 28l. */
 // tutti i numeri qui: ogni quanti giorni al minimo (OGNI), probabilità all'ora (PROB), giorni prima di rivedere la stessa scena (MEMORIA), distanza minima da un luogo per dirsi in luoghi selvaggi (LONTANO), vicini sulla strada per essere un incrocio (VICINI)
@@ -31,7 +31,7 @@ Object.assign(VEN,(()=>{
   const guerra=!!faz&&VEN.regni(s).some(f=>f!==faz&&inGuerra(s,faz,f));
   return{bioma:tipo==='incrocio'?'strada':M.T[i]===4?'monte':'bosco',regno,guerra,notte:notte(s),fama:s.fama|0,con:VEN.inCompagnia(s).map(x=>x.id),faz}}
   // ---------- quando e quale ----------
- VEN.aggancia('ora',s=>{if(!nuovoGeo(s)||s.over)return;const P=C;
+ VEN.aggancia('vedi',s=>{if(!nuovoGeo(s)||s.over)return;const P=C;
   const tu=TU(s);if(!tu.via||!tu.via.length||s.dentro>=0||s.incontro||s.prigioniero||(s.rac&&s.rac.scena))return;
   const cr=s.croc;if(cr&&cr.ult!=null&&s.t-cr.ult<P.OGNI*1440)return;
   const M=VEN.mappaDi(s),tipo=M&&tipoCasella(s,M,tu);if(!tipo)return;
@@ -43,7 +43,7 @@ Object.assign(VEN,(()=>{
   if(!VEN.accoda(s,sc.id))return;
   const k=s.croc||(s.croc={ult:null,visti:{}});k.ult=s.t;k.visti[sc.id]=g});
  // le voci della compagnia (il capitolo VVOC, se il motore di racconto è caricato)
- function VOCI(){return typeof VVOC!=='undefined'?VVOC:(typeof require!=='undefined'?require('./28ja-ven-voci.js'):null)}
+ function VOCI(){return typeof VVOC!=='undefined'?VVOC:null}
  // ---------- effetti ----------
  const segno=n=>(n>0?'+':'−')+Math.abs(n);
  const cultQui=s=>{const f=regnoQui(s,TU(s)),c=f&&f!=='tu'&&f!=='neu'?VEN.cult(s,f):null;return c&&D.TR[c+'_f1']?c:(VEN.regni(s).map(x=>VEN.cult(s,x)).find(x=>D.TR[x+'_f1'])||null)};

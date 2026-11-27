@@ -1,7 +1,7 @@
 // Passo 44: gli incontri del crocevia (28kq, solo mondi `s.geo===2`). Prove rapide; la partita lunga è in test_ven_p44_lento.js.
 //  (a) le condizioni di casella: un incrocio vero, una strada senza incrocio, un bosco lontano, un bosco vicino a un villaggio;
 //  (b) condizioni di scena: notte, compagni, regno; (c) effetti: uomini, viveri, merce, gusto; (d) due scene non a meno di 2 giorni;
-//  (e) mondo vecchio: nessuno stato `croc`; i salvataggi di tests/fixture/ven/ si aprono.
+//  (e) mondo vecchio (30 giorni di bot): nessuno stato `croc`; i salvataggi di tests/fixture/ven/ si aprono.
 const assert = require('assert'), fs = require('fs'), path = require('path');
 const carica = require('./carica.js');
 const F = ['27-eroi.js'].concat(carica.VEN_FILES.slice(0, 1), ['27p-avv-compagni.js', '27q-avv-racconto.js'], carica.VEN_FILES.slice(1));
@@ -35,7 +35,7 @@ function caselle(s) {
 // prova una casella: per tante ore (con la memoria azzerata) raccoglie le scene accodate
 function scene(s, pos, ore, prima) {
   metti(s, pos[0], pos[1]); const viste = new Set();
-  for (let k = 0; k < ore; k++) { s.croc = null; s.voci = []; s.rac.scena = null; if (prima) prima(s); V.ganci('ora', s); for (const q of s.voci) viste.add(q.id); }
+  for (let k = 0; k < ore; k++) { s.croc = null; s.voci = []; s.rac.scena = null; if (prima) prima(s); V.ganci('vedi', s); for (const q of s.voci) viste.add(q.id); }
   return viste;
 }
 const giornoPieno = s => { s.t = 2 * 1440 + 720; return s; };
@@ -52,7 +52,6 @@ const giornoPieno = s => { s.t = 2 * 1440 + 720; return s; };
   tu.tr.push({ t: 'co_lapo', n: 1, f: 0, xp: 0 });
   for (const f of V.regni(s)) for (const g of V.regni(s)) if (f < g) s.guerra[V._.chiave(f, g)] = 1; // tutti in guerra: arrivano anche le scene di guerra
   const l2 = scene(s, c.incrocio, 1500); assert([...l2].some(conLapo), 'con Lapo: mendicanti'); assert([...l2].every(id => !(CRO[id].se.con || []).length || (CRO[id].se.con || []).some(x => x === 'co_lapo')), 'solo quelle di Lapo');
-  { const f0 = (() => { let b = null, bd = 1e9; for (const l of s.l) if (V.MURA[l.tipo]) { const d = V.dist(l, V.TU(s)); if (d < bd) { bd = d; b = l.faz; } } return b; })(); if (!V.nemiche(s, V._.lato(s), f0)) assert(![...inc].some(id => CRO[id].se.regno === 'nemico'), 'niente scene di terra nemica in terra amica'); }
   // regno: `nemico` solo in terra nemica
   const qui = id => VVOC.CROCEVIA.find(v => v.id === id);
   const reg = scene(s, c.incrocio, 1500);
@@ -69,7 +68,14 @@ const giornoPieno = s => { s.t = 2 * 1440 + 720; return s; };
   const da = V.limite(s) - V.uomini(tu); aggiungiPieno(da - 1);
   n0 = tot(); eff({ k: 'uomini', n: 3 }); assert.strictEqual(tot() - n0, 1, 'oltre il limite meno'); assert.strictEqual(V.uomini(tu), V.limite(s));
   function aggiungiPieno(k) { if (k > 0) V._.aggiungi(tu.tr, tu.tr.find(e => /_f1$/.test(e.t)).t, k); }
-  const prima = V.uomini(tu); eff({ k: 'uomini', n: -2 }); assert.strictEqual(V.uomini(tu), prima - 2); assert(tu.tr.some(e => e.t === 'co_lapo') === false);
+  { // mai compagni: con un compagno e meno reclute del tolto, il compagno resta
+    const r = tu.tr.filter(e => /_f1$/.test(e.t)); for (const e of r) e.n = 0; tu.tr = tu.tr.filter(e => e.n > 0 || !/_f1$/.test(e.t));
+    tu.tr.push({ t: 'co_lapo', n: 1, f: 0, xp: 0 }); V._.aggiungi(tu.tr, r[0].t, 2);
+    eff({ k: 'uomini', n: -5 }); assert(tu.tr.some(e => e.t === 'co_lapo' && e.n === 1), 'il compagno resta');
+    assert.strictEqual(tu.tr.filter(e => /_f1$/.test(e.t)).reduce((a, e) => a + e.n, 0), 0, 'tolte solo le reclute');
+    tu.tr = tu.tr.filter(e => e.t !== 'co_lapo'); V._.aggiungi(tu.tr, r[0].t, 10);
+  }
+  const prima = V.uomini(tu); eff({ k: 'uomini', n: -2 }); assert.strictEqual(V.uomini(tu), prima - 2);
   tu.merci = { grano: 5 }; eff({ k: 'viveri', n: -8 }); assert.strictEqual(tu.merci.grano || 0, 0, 'mai sotto zero');
   eff({ k: 'viveri', n: 4 }); assert.strictEqual(tu.merci.grano, 4);
   tu.merci = {}; eff({ k: 'merce', m: 'velluto', n: 9999 }); assert.strictEqual(V.carico(tu), V.caricoMax(s), 'merce oltre il carico si ferma');
@@ -84,15 +90,16 @@ const giornoPieno = s => { s.t = 2 * 1440 + 720; return s; };
   const s = mondo(11), c = caselle(s); metti(s, c.incrocio[0], c.incrocio[1]); s.rac.scena = null;
   let ult = null; const quando = [], visto = {};
   for (let k = 0; k < 40 * 24; k++) {
-    s.t += 60; s.voci = []; metti(s, c.incrocio[0], c.incrocio[1]); V.ganci('ora', s);
+    s.t += 60; s.voci = []; metti(s, c.incrocio[0], c.incrocio[1]); V.ganci('vedi', s);
     if (s.voci.length) { assert(!ult || s.t - ult >= C.OGNI * 1440, 'a meno di 2 giorni'); ult = s.t; const g = V.giorno(s), id = s.voci[0].id; assert(!(visto[id] != null && g - visto[id] < C.MEMORIA), id + ' ripetuta'); visto[id] = g; quando.push(s.t); }
   }
   assert(quando.length >= 5, 'scene in 40 giorni: ' + quando.length);
 }
 // ---- (e) mondo vecchio e salvataggi ----
 {
-  const s = V.nuovo(3), tu = V.TU(s), M = V.mappaDi(s); const i = M.S.findIndex(x => x); const [x, y] = cella(M, i); tu.x = x; tu.y = y;
-  for (let k = 0; k < 2000; k++) { tu.via = [1]; s.t += 60; V.ganci('ora', s); }
+  const s = V.nuovo(3), tu = V.TU(s);
+  const gioca = require('./bot_ven.js')(V, D); let x0 = 7; const r = () => { x0 = (x0 * 1103515245 + 12345) % 2147483648; return x0 / 2147483648; };
+  gioca(s, 30, true, r);
   assert(!s.croc && !s.voci.length, 'nessuna scena nei mondi vecchi');
   const dir = path.join(__dirname, 'fixture/ven'); let n = 0;
   for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.json'))) { const t = V.apri(fs.readFileSync(path.join(dir, f), 'utf8')); assert(t, f); V.passo(t, 600); assert(!t.croc, f); n++; }

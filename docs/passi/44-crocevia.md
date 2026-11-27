@@ -59,7 +59,7 @@ La strada tra due luoghi non è vuota: ai crocevia e nei luoghi selvaggi capitan
 
 Nelle terre nuove, mentre cammini, può capitarti un fatto lungo la strada: ai crocevia o nei boschi e sui monti lontani dai luoghi. Il tempo si ferma, qualcuno ti parla e tu scegli cosa fare.
 Capita di rado, mai due volte nello stesso periodo e mai la stessa storia in fretta. Di notte, in guerra o in terra nemica le storie cambiano.
-Ciò che scegli ha un prezzo o un premio: reclute, grano, merci e monete. Il diario lo scrive in breve («+3 reclute», «−4 grano»).
+Ciò che scegli ha un prezzo o un premio: reclute, grano e merci. Il diario lo scrive in breve («+3 reclute», «−4 grano»).
 I compagni giudicano: chi ama un gesto lo approva, chi lo detesta ti guarda storto.
 
 ## Fatto quando
