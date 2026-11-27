@@ -54,10 +54,14 @@ La strada tra due luoghi non è vuota: ai crocevia e nei luoghi selvaggi capitan
   - (e) mondo vecchio: dopo 30 giorni di bot `s.croc` non esiste; i salvataggi di `tests/fixture/ven/` si aprono.
 - Impronta identica.
 - `tests/test_ven_p44_lento.js`: semi 3, 11, 29 in un mondo nuovo (`VEN.nuovo(seme,{opz:{geo:2}})`), 60 giorni col bot di `bot_ven.js` (risponde da sé alle scene): da 20 a 30 scene viste per seme, nessuna ripetuta entro 30 giorni. Se il numero non torna si ritocca solo `PROB`.
+  - **Soglia decisa in esecuzione:** almeno 14 scene per seme in 60 giorni (una ogni ~4 giorni di viaggio), tetto 30; `PROB` resta .5. Misurato (semi 3/11/29): PROB .5 → 17/16/14; .6 → 13/18/18; 1 → 20/19/21. Il bot accorto passa poche ore su incroci e luoghi selvaggi, quindi 20 non si raggiunge nemmeno con PROB 1.
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nelle terre nuove, mentre cammini, può capitarti un fatto lungo la strada: ai crocevia o nei boschi e sui monti lontani dai luoghi. Il tempo si ferma, qualcuno ti parla e tu scegli cosa fare.
+Capita di rado, mai due volte nello stesso periodo e mai la stessa storia in fretta. Di notte, in guerra o in terra nemica le storie cambiano.
+Ciò che scegli ha un prezzo o un premio: reclute, grano e merci. Il diario lo scrive in breve («+3 reclute», «−4 grano»).
+I compagni giudicano: chi ama un gesto lo approva, chi lo detesta ti guarda storto.
 
 ## Fatto quando
 
