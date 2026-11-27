@@ -1,5 +1,5 @@
 // Passo 44, parte lenta: 60 giorni di bot (tests/bot_ven.js, risponde da sé alle scene) in mondi nuovi (geo=2), semi 3, 11, 29.
-// Si prova che: da 8 a 30 scene del crocevia per seme (il bot passa solo 50 ore su 1440 su incroci o in luoghi selvaggi: nemmeno con PROB=1 si arriva a 20 su tutti i semi), nessuna ripetuta entro 30 giorni, nessuna a meno di 2 giorni dalla precedente, stato sano (monete, uomini, merci non negativi).
+// Si prova che: da 14 a 30 scene del crocevia per seme (il bot accorto passa poche ore su incroci e luoghi selvaggi: soglia decisa dall'orchestratore, vedi il file del passo), nessuna ripetuta entro 30 giorni, nessuna a meno di 2 giorni dalla precedente, stato sano (monete, uomini, merci non negativi).
 // `P44_SEMI` e `P44_GIORNI` cambiano semi e durata.
 const assert = require('assert');
 const carica = require('./carica.js');
@@ -18,6 +18,6 @@ for (const seme of SEMI) {
   }
   const tu = VEN.TU(s); assert(tu.oro >= 0 && VEN.uomini(tu) >= 0 && Object.values(tu.merci || {}).every(n => n >= 0), seme + ': stato sano');
   console.log('seme ' + seme + ': ' + viste.length + ' scene in ' + GIORNI + ' giorni');
-  assert(viste.length >= 8 && viste.length <= 30, seme + ': scene viste ' + viste.length);
+  assert(viste.length >= 14 && viste.length <= 30, seme + ': scene viste ' + viste.length);
 }
 console.log('test_ven_p44_lento: ok');
