@@ -48,15 +48,15 @@ const VAUD=(()=>{
  const MONDO={incontro:'ven-corno',dentro:'ven-porta',davanti:'ven-porta',giorno:'ven-alba',log:e=>LOG[e.tipo||'']||null,
   conquista:e=>e.faz==='tu'?'ven-vittoria':null,esito:e=>e.out&&e.out.vince==='a'?'ven-vittoria':'ven-sconfitta',vittoria:'ven-vittoria',regno:'ven-vittoria',
   scoperta:'ok',passa:'ok',libero:null,'fine-attesa':null,
-  compagno:e=>e.via?null:'ok','corona-cade':'ven-sconfitta',voce:null};
+  compagno:e=>e.via?null:'ok',affari:e=>e.oro>0?'ven-moneta':null,'corona-cade':'ven-sconfitta',voce:null};
  const CAMPO={colpo:(e,cap)=>e.dan>0&&!e.freccia&&(e.crit||e.carica||(cap!=null&&(e.da===cap||e.a===cap)))?'ven-cozzo':null,
   tiro:'ven-freccia',ko:e=>e.cap?'ven-grido':null,'cap-ko':'ven-grido',grido:'ven-corno',rinforzi:'ven-corno',
   ordine:e=>e.l==='a'&&e.o==='carica'?'ven-corno':null,rotta:'ven-rotta',fine:e=>e.vince==='a'?'ven-vittoria':'ven-sconfitta',
   ariete:null,scala:'ven-passi',porta:'ven-porta',mischia:e=>e.liv>0?'ven-mischia-'+Math.min(3,e.liv|0):null};
  const tutti=(l,v)=>Object.fromEntries(l.map(k=>[k,v]));
  const FAI=Object.assign(tutti(['compra','vendi'],'ven-mercato'),
-  tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca'],'ven-moneta'),
-  tutti(['recluta','assolda','compagno','guarnigione'],'ven-passi'),tutti(['assedia','assalta','lizza','razzia','dichiara'],'ven-corno'),{fonda:'ven-vittoria'},
+  tutti(['compraogg','vendiogg','riscatta','consegna','torneo','ritira','pace','cura','benedizione','voci','riposa','imbarca','costruisci','bottega','vendibottega','carovana','richiama'],'ven-moneta'),
+  tutti(['recluta','assolda','compagno','guarnigione','arruola'],'ven-passi'),tutti(['assedia','assalta','lizza','razzia','dichiara'],'ven-corno'),{fonda:'ven-vittoria'},
   tutti(['promuovi','abilita','investi','feudo','giura','contratto','incarico','proponi','liberasig'],'ok'),tutti(['equipa','togli'],'sel'),{esci:'ven-porta'},
   tutti(['aduna','rompi','lascia','libera','congeda'],null));
  const ORDINE={vai:(o,cav)=>cav?'ven-zoccoli':'ven-passi',entra:(o,cav)=>cav?'ven-zoccoli':'ven-passi',segui:(o,cav)=>cav?'ven-zoccoli':'ven-passi',aspetta:null,ferma:null};

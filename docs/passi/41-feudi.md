@@ -10,6 +10,7 @@ impegno: alto
 controllo: forte
 file:
   - src/js/motori/28ko-ven-feudi.js
+  - src/js/motori/28n-ven-audio.js
 ---
 
 # Passo 41 — Feudi vivi: costruire (motore)
@@ -59,13 +60,18 @@ Un feudo non è solo una rendita: ci costruisci, e lo vedi crescere sulla mappa.
 - (b) gli errori di `costruisci` nell'ordine; un secondo cantiere nello stesso luogo è rifiutato; (c) un cantiere di 4 giorni finisce al quarto giorno, non prima;
 - (d) una razzia su un villaggio con mulino 2 e palizzata 1 lascia mulino 1 e palizzata 1; la conquista toglie il cantiere;
 - (e) mura 2: l'assalto dell'IA arriva 24 ore dopo che senza; (f) cappella 3: un giorno di `riposa` dà 9 di morale in più;
+- suoni: `costruisci` suona come le altre spese (`ven-moneta`), `arruola` come `recluta` (`ven-passi`), in `28n-ven-audio.js`;
 - (g) mondo vecchio: «Qui non si costruisce»; i salvataggi di `tests/fixture/ven/` si aprono senza `edif`.
 
-Impronta identica. `tests/test_ven_p41_lento.js`, semi 3, 11, 29, 120 giorni: al giorno 1 il bot di `bot_ven.js` giura a un regno e riceve un villaggio (`l.sig=-2`); con oro > costo + 400 costruisce mulino e poi palizzata. Attesi: almeno 2 livelli costruiti e giorni di paga mancata non più di quelli del bot che non costruisce, +1.
+Impronta identica. `tests/test_ven_p41_lento.js`, semi 5, 11, 29 (il 3 è stato sostituito col 5: senza costruire, al seme 3 la compagnia si scioglie, 0 uomini, e il confronto delle paghe non ha senso), 120 giorni: al giorno 1 il bot di `bot_ven.js` giura a un regno e riceve un villaggio (`l.sig=-2`); con oro > costo + 400 costruisce mulino e poi palizzata. Attesi: almeno 2 livelli costruiti e giorni di paga mancata non più di quelli del bot che non costruisce, +1.
+
+Regola del bot di prova (decisione dell'orchestratore): costruisce solo se oro > costo + 400 + la paga di una settimana, e solo da dentro il feudo, dopo esserci andato (`ordina entra`), come un giocatore che tiene la riserva per le paghe. Prima, con la sola soglia «costo + 400» e la mossa fatta da fuori, le paghe mancate superavano il limite sui semi 5, 11 e 29 (12 contro 10, 12 contro 8, 12 contro 10). Dopo: paghe mancate 5, 8 e 1 contro 10, 8 e 10 senza costruire; cantieri finiti 4, 7 e 11.
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nei luoghi che sono tuoi (anche un feudo avuto dal sovrano) puoi far costruire, un cantiere alla volta: mulino, palizzata e campo d'addestramento nei villaggi; mura e caserma nelle città e nei castelli, il mercato coperto nelle città e nei porti; una torre di guardia (anche nei porti) dove si vede lontano; una cappella per il riposo. Ogni edificio ha tre livelli e costa di più a ogni livello: il prezzo e i giorni di lavoro si vedono prima di spendere.
+Il mulino e il mercato fanno rendere di più il luogo; la palizzata tiene dei difensori e fa perdere tempo a chi razzia; le mura ritardano gli assedi; la caserma raccoglie volontari che si possono arruolare già scelti; il campo d'addestramento promuove una parte delle reclute; la cappella rinfranca la compagnia e cura i feriti quando riposa.
+Se il luogo viene razziato o conquistato, l'edificio più alto perde un livello e il cantiere aperto va perduto, con le monete spese. Si costruisce solo nei mondi nuovi.
 
 ## Fatto quando
 
