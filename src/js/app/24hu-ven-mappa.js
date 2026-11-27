@@ -6,7 +6,7 @@
    di che truppe sono fatte. Le etichette sono elementi della pagina (`.vn-etc`). Bottega comune: `VenArte` (24ht). Piano: docs/VENTURA.md. */
 const VenMappa=(()=>{
  const K={s:null,seme:-1,scene:null,cam:null,fuoco:{x:32,y:0,z:32},alt:13,segue:true,t:0,P:{},lu:[],M:null};
- const SEN=Math.sin(52*Math.PI/180);
+ const SEN=Math.sin(52*Math.PI/180),SL0=1.5;   // SL0: scala dei modellini dei luoghi (come SL in `costruisci`)
  function aspetto(){const A=VenArte;return A.rw&&A.rh?(A.rw-2)/(A.rh-2):.5}
  // striscia di mare oltre la terra che si può ancora guardare (cresce con il mondo)
  function margine(G){return Math.max(8,G/20)}
@@ -330,14 +330,27 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
  // tinge i tetti bianchi (stendardo di pietra) col colore di chi tiene il luogo
  function colora(l,lu){if(lu.faz===l.faz)return;const T=VenArte.T,c=lu.me.geometry.attributes.color,base=lu.base||(lu.base=c.array.slice()),k=new T.Color(VEN.colFaz(K.s,l.faz).col);
   for(let i=0;i<c.count;i++){const r=base[i*3],g=base[i*3+1],b=base[i*3+2];if(r>.97&&g>.97&&b>.97)c.setXYZ(i,k.r,k.g,k.b);else c.setXYZ(i,r,g,b)}c.needsUpdate=true;lu.faz=l.faz}
+ // ---- passo 45: edifici dei feudi sul modellino e eserciti come un solo segnalino ----
+ // un pezzo per edificio in 8 posti fissi attorno al centro (nell'ordine di VDAT.EDIFICI); ricostruiti solo quando cambia la chiave; il cantiere aperto prende il posto del pezzo
+ function edifici(s,l,lu){const ck=l.edif||l.cant?JSON.stringify(l.edif||0)+(l.cant?l.cant.id:'')+VEN.colFaz(s,'tu').col:'';
+  if(lu.edK!==ck){lu.edK=ck;for(const g of lu.edG||[])VenArte.scartaEdificio(g);lu.edG=[];if(ck){const ids=Object.keys(VDAT.EDIFICI),cap=Math.max(.7,lu.alto/SL0),col=VEN.colFaz(s,'tu').col;
+    ids.forEach((id,i)=>{const cant=l.cant&&l.cant.id===id,n=(l.edif&&l.edif[id])|0;if(!n&&!cant)return;const g=VenArte.edificio(cant?'cantiere':id,cant?1:n,col,cap);if(!g)return;
+     const a=i/ids.length*6.283+.39,mura=id==='mura'&&!cant,x=lu.x+(mura?0:Math.cos(a)*1.6*SL0),z=lu.y+(mura?0:Math.sin(a)*1.6*SL0),y=altG(x,z)<VEN.MARE+.03?lu.h0:quota(x,z);
+     g.scale.multiplyScalar(SL0*.8);g.position.set(x,y,z);g.rotation.y=mura?0:Math.atan2(Math.cos(a),Math.sin(a));K.scene.add(g);lu.edG.push(g)})}}
+  if(lu.edG)for(const g of lu.edG){const u=g.userData;if(u.pala)u.pala.rotation.z=K.t*1.1;if(u.lume)u.lume.visible=K.fin.visible}}
+ // eserciti (solo se VEN.eserciti c'è e ce ne sono): i membri non si disegnano, il maresciallo porta uno stendardo grande col totale degli uomini; sciolto: lo stendardo scende e sparisce in un secondo
+ function eserciti(s){const E=VEN.eserciti?VEN.eserciti(s):[],mar={},per={};for(const e of E)if(e.stato!=='sciolto'){mar[e.capo]=e;per[e.id]=e}
+  K.esc=K.esc||{};const vivi={};for(const e of E)if(e.stato!=='sciolto'){const q=K.P[e.capo];K.esc[e.id]={x:q?q.x:e.x,y:q?q.y:e.y,col:VEN.colFaz(s,e.faz==='tu'?VEN.lato(s):e.faz).col,t:0};vivi[e.id]=1}
+  return{mar,nasc:p=>p.id!==0&&p.es!=null&&!!per[p.es]&&per[p.es].capo!==p.id,
+   fine(ste,dt,qt){for(const id of Object.keys(K.esc)){if(vivi[id])continue;const c=K.esc[id];c.t+=dt;if(c.t>=1){delete K.esc[id];continue}const q=1-c.t,sc=.8*(.4+.6*q);ste.metti(c.x,qt(c.x,c.y)-(1-q)*2.0*sc,c.y,c.col,sc,K.t,+id)}}}}
  function apri(s){K.s=s;if(K.seme!==s.seme||!K.scene)costruisci(s);return true}
  // l'aspetto di chi guida una compagnia e del suo seguito: si vede di che truppe è fatta
  function seguito(p){const L=[];for(const e of p.tr){const T=VDAT.TR[e.t];if(T&&!T.capo)L.push([e.t,e.n-(e.f||0)])}L.sort((a,b)=>VDAT.TR[b[0]].t*100+b[1]-VDAT.TR[a[0]].t*100-a[1]);return L}
  // un fotogramma: aggiorna le parti vive e disegna
  function passo(dt,s){if(!K.scene)return;const T=VenArte.T,A=VenArte,tu=VEN.TU(s);K.t+=dt;const h=(s.t%1440)/60;K.s=s;
   // compagnie visibili (più la tua), con posizione ammorbidita
-  const vis=VEN.visibili(s).slice();if(!s.prigioniero)vis.unshift(tu);const visti={};K.fig.inizio();K.ste.inizio();const etc=[];
-  for(const p of vis){let q=K.P[p.id];if(!q||Math.abs(q.x-p.x)+Math.abs(q.y-p.y)>3)q=K.P[p.id]={x:p.x,y:p.y,yaw:0,f:0};visti[p.id]=1;
+  const vis=VEN.visibili(s).slice();if(!s.prigioniero)vis.unshift(tu);const visti={};K.fig.inizio();K.ste.inizio();const etc=[];const ES=eserciti(s);
+  for(const p of vis){if(ES.nasc(p))continue;let q=K.P[p.id];if(!q||Math.abs(q.x-p.x)+Math.abs(q.y-p.y)>3)q=K.P[p.id]={x:p.x,y:p.y,yaw:0,f:0};visti[p.id]=1;
    const dx=p.x-q.x,dy=p.y-q.y,dl=Math.hypot(dx,dy),k=Math.min(1,dt*9);q.x+=dx*k;q.y+=dy*k;const fermo=dl<.004;if(!fermo){const ya=Math.atan2(dx,dy);let da=ya-q.yaw;while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;q.yaw+=da*Math.min(1,dt*8);q.f+=dt*(p.k==='car'?1.4:2.2)}
    const F=Object.assign({},VEN.rg(s,p.id===0?VEN.lato(s):p.faz),VEN.colFaz(s,p.id===0?VEN.lato(s):p.faz)),n=VEN.uomini(p),S=seguito(p),hq=quota(q.x,q.y),col=p.id===0?VEN.colFaz(s,'tu').col:F.col,sn=Math.sin(q.yaw),cs=Math.cos(q.yaw);
    // chi guida: il tuo capitano con quello che ha addosso; un signore, un capobanda o la rivale col loro aspetto
@@ -347,14 +360,14 @@ void main(){vec2 uv=vP.xz/G;float d=.3;if(uv.x>0.&&uv.x<1.&&uv.y>0.&&uv.y<1.)d=(
    const seg=Math.min(6,Math.ceil(n/8));for(let j=0;j<seg;j++){const tid=S.length?S[j%S.length][0]:null,ox=((j%2)?.3:-.3)*(1+Math.floor(j/2)*.5),oz=-.42-Math.floor(j/2)*.34,fx=q.x+cs*ox+sn*oz,fy=q.y-sn*ox+cs*oz;
     K.fig.metti({x:fx,y:quota(fx,fy),z:fy,yaw:q.yaw,sc:.35,col,col2:F.col2,asp:tid?VDAT.aspetto(tid):{},cav:tid?VDAT.TR[tid].c==='c':false,fase:fermo?0:q.f+j*.37,seme:p.id+j})}
    if(p.k==='car'){K.fig.metti({x:q.x,y:hq,z:q.y,yaw:q.yaw,sc:.36,col:'#c9b48a',asp:{elmo:'paglia',arma:'lancia'},cav:true,fase:fermo?0:q.f+.5,seme:p.id+3})}
-   else K.ste.metti(q.x-cs*.16,hq,q.y+sn*.16,col,p.id===0?.58:.5,K.t,p.id);
+   else K.ste.metti(q.x-cs*.16,hq,q.y+sn*.16,col,ES.mar[p.id]?.8:p.id===0?.58:.5,K.t,p.id);
    if(!fermo&&Math.random()<dt*5&&K.M.T[cellaDi(q.x,q.y)]===1)K.par.emetti(q.x,hq+.03,q.y,{vy:.25,s:.08,dur:.7,col:'#d8c8a4',cresce:1.2});
-   etc.push({id:'p'+p.id,x:q.x,y:hq+(cav?1.7:1.4),z:q.y,tx:p.id===0?'':p.nome,n,cls:p.id===0?'tu':VEN.ostile(s,p,tu)?'nem':p.k==='sig'?'sig':p.k==='riv'?'riv':'neu',col})}
+   etc.push({id:'p'+p.id,x:q.x,y:hq+(cav?1.7:1.4),z:q.y,tx:p.id===0?'':p.nome,n:ES.mar[p.id]?ES.mar[p.id].n:n,cls:p.id===0?'tu':VEN.ostile(s,p,tu)?'nem':p.k==='sig'?'sig':p.k==='riv'?'riv':'neu',col})}
   for(const id of Object.keys(K.P))if(!visti[id])delete K.P[id];
-  K.fig.fine();K.ste.fine();
+  ES.fine(K.ste,dt,quota);K.fig.fine();K.ste.fine();
   // luoghi: colori, fumo, assedi, saccheggi; rovine e covi solo se scoperti
   const g=VEN.giorno(s),vx=K.alt*1.2,vz=K.alt*1.7;
-  for(const lu of K.lu){const l=s.l[lu.id],noto=l.noto!==false;if(lu.me.visible!==noto)lu.me.visible=noto;if(!noto)continue;if(Math.abs(lu.x-K.fuoco.x)>vx||Math.abs(lu.y-K.fuoco.z)>vz)continue;colora(l,lu);
+  for(const lu of K.lu){const l=s.l[lu.id],noto=l.noto!==false;if(lu.me.visible!==noto)lu.me.visible=noto;if(!noto)continue;if(Math.abs(lu.x-K.fuoco.x)>vx||Math.abs(lu.y-K.fuoco.z)>vz)continue;colora(l,lu);edifici(s,l,lu);
    if(l.sacc>g&&Math.random()<dt*7)K.par.emetti(lu.x+(Math.random()-.5)*.8,lu.h0+.3,lu.y+(Math.random()-.5)*.8,{vy:.7,vx:.15,s:.2,dur:2.4,col:'#3a3432',col2:'#857c76',cresce:1.4});
    if((l.ass||(s.assedio&&s.assedio.lid===l.id))&&Math.random()<dt*6)K.par.emetti(lu.x+(Math.random()-.5)*1.6,lu.h0+.5,lu.y+(Math.random()-.5)*1.6,{vy:.9,s:.16,dur:1.6,col:'#ff8a3a',col2:'#4a403c',cresce:1.6});
    const vuoto=VEN.SITO[l.tipo]&&!l.g.length;

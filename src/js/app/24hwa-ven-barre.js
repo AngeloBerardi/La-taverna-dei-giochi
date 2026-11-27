@@ -6,7 +6,7 @@ const VenBarre=(()=>{
  const RQ=[['oro','moneta','monete'],['uom','amici','uomini'],['cibo','boccale','viveri'],['mor','cuore','morale'],['fama','star','fama']];
  // dettaglio di un riquadro (infobox): i numeri veri, spiegati in una riga
  function rqInfo(k){const s=V.s,t=tu(),pg=VEN.paga(s),PG=7;
-  if(k==='oro')return'Paga '+pg+' monete ogni '+PG+' giorni, la prossima tra '+giorniPaga(s)+' giorni.';
+  if(k==='oro'){const af=VEN.affari?VEN.affari(s).sett:0;return'Paga '+pg+' monete ogni '+PG+' giorni, la prossima tra '+giorniPaga(s)+' giorni.'+(af?' Affari: '+(af>0?'+':'')+af+' a settimana.':'')}
   if(k==='uom')return VEN.uomini(t)+' uomini in compagnia, il limite è '+VEN.limite(s)+'.';
   if(k==='cibo')return'Viveri per '+VEN.giorniViveri(s)+' giorni di marcia: sotto i 3 si rischia la fame.';
   if(k==='mor')return'Morale '+t.mor+' su 100: sotto 30 gli uomini disertano e combattono male.';

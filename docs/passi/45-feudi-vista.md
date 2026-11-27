@@ -48,7 +48,10 @@ Un pezzo 3D per ogni edificio di `VDAT.EDIFICI` (passo 41), aggiunto al modellin
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+Nei feudi tuoi ogni edificio costruito si vede sul modellino del luogo: più alto il livello, più ricco il pezzo. Un cantiere aperto mostra le impalcature.
+Dal luogo, la tessera «Cantiere» elenca cosa puoi costruire, quanto costa e in quanti giorni; la tessera «Affari», nelle città, serve per botteghe e carovane.
+Un esercito è un solo stendardo grande sulla mappa, col numero degli uomini; sciolto, lo stendardo si abbassa e sparisce.
+Nel riquadro delle monete trovi quanto rendono gli affari ogni settimana.
 
 ## Fatto quando
 
