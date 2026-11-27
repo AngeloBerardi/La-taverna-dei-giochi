@@ -65,7 +65,10 @@ Qualcosa di tuo lavora mentre combatti: una bottega in città rende ogni settima
 
 ## Regole per il giocatore
 
-Le scrive chi esegue, **in questo file**, a lavoro finito: 3–6 righe per chi gioca, parole nostre, niente numeri interni. Le copierà nelle regole il passo del rilascio.
+In una città amica puoi comprare una bottega: ogni settimana compra una materia e vende un manufatto, e la differenza, tolto l'affitto, entra nella tua borsa (o ne esce, se la città è a corto di scorte). Ne tieni poche, una per città, e puoi rivenderla per metà prezzo.
+Da una città o da un porto puoi anche mandare una carovana tua verso un'altra città: porta con sé una piccola scorta, un capo (un compagno o un mercenario) e un po' di monete, e fa avanti e indietro comprando dove costa poco e vendendo dove rende. Ogni settimana ciò che ha guadagnato oltre il capitale viene a te.
+La guerra le rovina: una bottega in una città che passa al nemico è confiscata, una carovana presa dai predoni è perduta e il compagno che la guidava torna a casa scoraggiato. Dalle sue città puoi richiamarla e riavere uomini e monete.
+Non fanno ricchi da soli: sono un aiuto mentre combatti, non un'alternativa.
 
 ## Fatto quando
 
